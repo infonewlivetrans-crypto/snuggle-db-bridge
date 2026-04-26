@@ -216,6 +216,12 @@ function RouteDetailPage() {
 
   const completedCount = points?.filter((p) => p.status === "completed").length ?? 0;
   const totalCount = points?.length ?? 0;
+  const defectiveCount = points?.filter((p) => p.status === "defective").length ?? 0;
+  const failedCount =
+    points?.filter((p) => {
+      const o = pointStatusToOrderStatus(p.status);
+      return o === "not_delivered";
+    }).length ?? 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -234,7 +240,13 @@ function RouteDetailPage() {
         <div className="mb-6 rounded-lg border border-border bg-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="font-mono text-sm text-muted-foreground">{route.route_number}</div>
+              <div className="flex items-center gap-2">
+                <div className="font-mono text-sm text-muted-foreground">{route.route_number}</div>
+                <Badge variant="outline" className="border-border bg-secondary text-xs text-muted-foreground">
+                  <Database className="mr-1 h-3 w-3" />
+                  Источник: 1С
+                </Badge>
+              </div>
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
                 Маршрут на {new Date(route.route_date).toLocaleDateString("ru-RU")}
               </h1>
