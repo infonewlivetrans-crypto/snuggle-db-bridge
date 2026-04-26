@@ -290,7 +290,7 @@ function RouteDetailPage() {
                         </span>
                       )}
                       {p.completed_at && (
-                        <span className="inline-flex items-center gap-1 text-green-700">
+                        <span className="inline-flex items-center gap-1 font-medium text-foreground">
                           <CheckCircle2 className="h-3 w-3" />
                           Доставлено: {new Date(p.completed_at).toLocaleTimeString("ru-RU", {
                             hour: "2-digit",
