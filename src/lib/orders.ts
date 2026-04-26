@@ -16,7 +16,7 @@ export type Order = {
   id: string;
   order_number: string;
   status: OrderStatus;
-  delivery_address: string;
+  delivery_address: string | null;
   payment_type: PaymentType;
   requires_qr: boolean;
   comment: string | null;
@@ -24,6 +24,15 @@ export type Order = {
   qr_received: boolean;
   created_at: string;
   updated_at: string;
+  // Координаты и навигация
+  latitude: number | null;
+  longitude: number | null;
+  landmarks: string | null;
+  access_instructions: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  map_link: string | null;
+  delivery_photo_url: string | null;
 };
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
