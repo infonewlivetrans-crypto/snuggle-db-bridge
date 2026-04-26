@@ -151,9 +151,18 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
                 Карточка заказа · управление статусом и оплатой
               </DialogDescription>
             </div>
-            <Badge variant="outline" className={STATUS_STYLES[order.status]}>
-              {STATUS_LABELS[order.status]}
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className={STATUS_STYLES[order.status]}>
+                {STATUS_LABELS[order.status]}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-border bg-secondary text-xs text-muted-foreground"
+              >
+                <Database className="mr-1 h-3 w-3" />
+                Источник: 1С
+              </Badge>
+            </div>
           </div>
         </DialogHeader>
 
