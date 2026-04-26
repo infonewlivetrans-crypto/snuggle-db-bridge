@@ -35,6 +35,19 @@ export function AppHeader() {
                 Заказы
               </span>
             </Link>
+            <Link
+              to="/routes"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                path.startsWith("/routes")
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <RouteIcon className="h-4 w-4" />
+                Маршруты
+              </span>
+            </Link>
           </nav>
         </div>
 
