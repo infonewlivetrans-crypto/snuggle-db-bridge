@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Package, BarChart3 } from "lucide-react";
+import { Package, BarChart3, Route as RouteIcon } from "lucide-react";
 
 export function AppHeader() {
   const location = useLocation();
@@ -33,6 +33,19 @@ export function AppHeader() {
               <span className="inline-flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Заказы
+              </span>
+            </Link>
+            <Link
+              to="/routes"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                path.startsWith("/routes")
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <RouteIcon className="h-4 w-4" />
+                Маршруты
               </span>
             </Link>
           </nav>

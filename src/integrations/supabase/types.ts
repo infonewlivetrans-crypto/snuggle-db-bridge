@@ -56,12 +56,96 @@ export type Database = {
         }
         Relationships: []
       }
+      route_points: {
+        Row: {
+          arrived_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          order_id: string
+          planned_time: string | null
+          point_number: number
+          route_id: string
+          status: Database["public"]["Enums"]["point_status"]
+        }
+        Insert: {
+          arrived_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          planned_time?: string | null
+          point_number: number
+          route_id: string
+          status?: Database["public"]["Enums"]["point_status"]
+        }
+        Update: {
+          arrived_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          planned_time?: string | null
+          point_number?: number
+          route_id?: string
+          status?: Database["public"]["Enums"]["point_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_points_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_points_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routes: {
+        Row: {
+          comment: string | null
+          created_at: string
+          driver_name: string
+          id: string
+          route_date: string
+          route_number: string
+          status: Database["public"]["Enums"]["route_status"]
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          driver_name: string
+          id?: string
+          route_date?: string
+          route_number: string
+          status?: Database["public"]["Enums"]["route_status"]
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          driver_name?: string
+          id?: string
+          route_date?: string
+          route_number?: string
+          status?: Database["public"]["Enums"]["route_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_route_number: { Args: never; Returns: string }
     }
     Enums: {
       order_status:
@@ -71,6 +155,8 @@ export type Database = {
         | "completed"
         | "cancelled"
       payment_type: "cash" | "card" | "online" | "qr"
+      point_status: "pending" | "arrived" | "completed" | "failed"
+      route_status: "planned" | "in_progress" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -206,6 +292,8 @@ export const Constants = {
         "cancelled",
       ],
       payment_type: ["cash", "card", "online", "qr"],
+      point_status: ["pending", "arrived", "completed", "failed"],
+      route_status: ["planned", "in_progress", "completed", "cancelled"],
     },
   },
 } as const
