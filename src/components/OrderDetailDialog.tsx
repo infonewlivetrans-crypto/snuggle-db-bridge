@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -28,7 +28,28 @@ import {
   STATUS_STYLES,
   PAYMENT_LABELS,
 } from "@/lib/orders";
-import { MapPin, MessageSquare, Banknote, QrCode, Hash, CreditCard } from "lucide-react";
+import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
+import {
+  MapPin,
+  MessageSquare,
+  Banknote,
+  QrCode,
+  Hash,
+  CreditCard,
+  Database,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+
+type DeliveryReport = {
+  id: string;
+  outcome: string;
+  reason: string | null;
+  driver_name: string | null;
+  comment: string | null;
+  requires_resend: boolean;
+  delivered_at: string;
+};
 
 interface OrderDetailDialogProps {
   order: Order | null;
