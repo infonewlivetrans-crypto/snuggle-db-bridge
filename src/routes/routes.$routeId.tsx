@@ -364,7 +364,11 @@ function RouteDetailPage() {
                     <Select
                       value={p.status}
                       onValueChange={(v) =>
-                        updatePoint.mutate({ pointId: p.id, status: v as PointStatus })
+                        updatePoint.mutate({
+                          pointId: p.id,
+                          status: v as PointStatus,
+                          orderId: p.order_id,
+                        })
                       }
                     >
                       <SelectTrigger className="w-36">
