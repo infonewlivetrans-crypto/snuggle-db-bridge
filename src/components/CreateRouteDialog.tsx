@@ -55,7 +55,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     return orders.filter(
       (o) =>
         o.order_number.toLowerCase().includes(q) ||
-        o.delivery_address.toLowerCase().includes(q),
+        (o.delivery_address?.toLowerCase().includes(q) ?? false),
     );
   }, [orders, search]);
 

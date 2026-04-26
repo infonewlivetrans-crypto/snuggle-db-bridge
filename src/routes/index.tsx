@@ -66,7 +66,7 @@ function OrdersPage() {
       const matchSearch =
         !search ||
         o.order_number.toLowerCase().includes(search.toLowerCase()) ||
-        o.delivery_address.toLowerCase().includes(search.toLowerCase());
+        (o.delivery_address?.toLowerCase().includes(search.toLowerCase()) ?? false);
       const matchStatus = statusFilter === "all" || o.status === statusFilter;
       return matchSearch && matchStatus;
     });
