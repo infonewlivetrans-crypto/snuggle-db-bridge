@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -28,7 +28,28 @@ import {
   STATUS_STYLES,
   PAYMENT_LABELS,
 } from "@/lib/orders";
-import { MapPin, MessageSquare, Banknote, QrCode, Hash, CreditCard } from "lucide-react";
+import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
+import {
+  MapPin,
+  MessageSquare,
+  Banknote,
+  QrCode,
+  Hash,
+  CreditCard,
+  Database,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+
+type DeliveryReport = {
+  id: string;
+  outcome: string;
+  reason: string | null;
+  driver_name: string | null;
+  comment: string | null;
+  requires_resend: boolean;
+  delivered_at: string;
+};
 
 interface OrderDetailDialogProps {
   order: Order | null;
@@ -74,7 +95,39 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Отчёты о доставке для этого заказа
+  const { data: reports } = useQuery({
+    queryKey: ["delivery_reports", order?.id],
+    enabled: !!order?.id && open,
+    queryFn: async (): Promise<DeliveryReport[]> => {
+      const { data, error } = await (
+        supabase.from as unknown as (
+          name: string,
+        ) => {
+          select: (cols: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              order: (
+                c: string,
+                opts: { ascending: boolean },
+              ) => Promise<{ data: DeliveryReport[] | null; error: Error | null }>;
+            };
+          };
+        }
+      )("delivery_reports")
+        .select("*")
+        .eq("order_id", order!.id)
+        .order("delivered_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   if (!order) return null;
+
+  const latestReport = reports?.[0];
 
   const handleSave = () => {
     mutation.mutate({
@@ -98,9 +151,18 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
                 Карточка заказа · управление статусом и оплатой
               </DialogDescription>
             </div>
-            <Badge variant="outline" className={STATUS_STYLES[order.status]}>
-              {STATUS_LABELS[order.status]}
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className={STATUS_STYLES[order.status]}>
+                {STATUS_LABELS[order.status]}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="border-border bg-secondary text-xs text-muted-foreground"
+              >
+                <Database className="mr-1 h-3 w-3" />
+                Источник: 1С
+              </Badge>
+            </div>
           </div>
         </DialogHeader>
 
@@ -113,6 +175,68 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
             <div className="text-sm font-medium text-foreground">{order.delivery_address}</div>
           </div>
+
+          {/* Отчёт о доставке (если есть) */}
+          {latestReport && (
+            <div
+              className={`rounded-lg border p-4 ${
+                latestReport.outcome === "delivered"
+                  ? "border-green-200 bg-green-50"
+                  : latestReport.outcome === "defective"
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-red-200 bg-red-50"
+              }`}
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {latestReport.outcome === "delivered" ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-700" />
+                  ) : (
+                    <AlertTriangle
+                      className={`h-4 w-4 ${
+                        latestReport.outcome === "defective" ? "text-amber-700" : "text-red-700"
+                      }`}
+                    />
+                  )}
+                  <span className="text-sm font-semibold text-foreground">
+                    {latestReport.outcome === "delivered"
+                      ? "Доставлено"
+                      : latestReport.outcome === "defective"
+                        ? "Брак · требуется повторная отправка"
+                        : "Не доставлено"}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(latestReport.delivered_at).toLocaleString("ru-RU", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div className="space-y-1 text-sm text-foreground">
+                {latestReport.driver_name && (
+                  <div>
+                    <span className="text-muted-foreground">Водитель: </span>
+                    {latestReport.driver_name}
+                  </div>
+                )}
+                {latestReport.reason && latestReport.outcome !== "delivered" && (
+                  <div>
+                    <span className="text-muted-foreground">Причина: </span>
+                    {POINT_STATUS_LABELS[latestReport.reason as PointStatus] ?? latestReport.reason}
+                  </div>
+                )}
+                {latestReport.requires_resend && (
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
+                    <AlertTriangle className="h-3 w-3" />
+                    Требуется добавить в следующий маршрут
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Тип оплаты */}
           <div className="grid grid-cols-2 gap-3">

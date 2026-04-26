@@ -24,6 +24,7 @@ import {
   POINT_STATUS_ORDER,
   POINT_STATUS_STYLES,
 } from "@/lib/routes";
+import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
 import {
@@ -35,6 +36,8 @@ import {
   CheckCircle2,
   Package2,
   MessageSquare,
+  Database,
+  AlertTriangle,
 } from "lucide-react";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
@@ -116,17 +119,72 @@ function RouteDetailPage() {
   });
 
   const updatePoint = useMutation({
-    mutationFn: async ({ pointId, status }: { pointId: string; status: PointStatus }) => {
+    mutationFn: async ({
+      pointId,
+      status,
+      orderId,
+    }: {
+      pointId: string;
+      status: PointStatus;
+      orderId: string;
+    }) => {
       const updates: Partial<RoutePoint> = { status };
       const now = new Date().toISOString();
       if (status === "arrived") updates.arrived_at = now;
-      if (status === "completed") updates.completed_at = now;
-      const { error } = await supabase.from("route_points").update(updates).eq("id", pointId);
-      if (error) throw error;
+      const outcome = pointStatusToOrderStatus(status);
+      if (status === "completed" || outcome) updates.completed_at = now;
+
+      const { error: pErr } = await supabase
+        .from("route_points")
+        .update(updates)
+        .eq("id", pointId);
+      if (pErr) throw pErr;
+
+      // Если статус — итоговый (доставлено / не доставлено / брак), создаём отчёт
+      // и обновляем статус заказа.
+      if (outcome) {
+        const requiresResend = outcome === "defective";
+        const newOrderStatus =
+          outcome === "delivered"
+            ? "delivered"
+            : outcome === "defective"
+              ? "defective"
+              : "not_delivered";
+
+        const { error: oErr } = await supabase
+          .from("orders")
+          .update({ status: newOrderStatus })
+          .eq("id", orderId);
+        if (oErr) throw oErr;
+
+        // delivery_reports таблица отсутствует в сгенерированных типах supabase
+        // (миграция была только что), поэтому используем `as never` для обхода типизации.
+        const { error: rErr } = await (supabase.from as unknown as (
+          name: string,
+        ) => {
+          insert: (row: Record<string, unknown>) => Promise<{ error: Error | null }>;
+        })("delivery_reports").insert({
+          order_id: orderId,
+          route_point_id: pointId,
+          route_id: routeId,
+          outcome,
+          reason: status,
+          driver_name: route?.driver_name ?? null,
+          requires_resend: requiresResend,
+          delivered_at: now,
+        });
+        if (rErr) throw rErr;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
-      toast.success("Статус точки обновлён");
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      const outcome = pointStatusToOrderStatus(vars.status);
+      if (outcome === "delivered") toast.success("Заказ доставлен · отчёт создан");
+      else if (outcome === "defective")
+        toast.warning("Брак · заказ помечен для повторной отправки");
+      else if (outcome === "not_delivered") toast.error("Заказ не доставлен · уведомление отправлено");
+      else toast.success("Статус точки обновлён");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -158,6 +216,12 @@ function RouteDetailPage() {
 
   const completedCount = points?.filter((p) => p.status === "completed").length ?? 0;
   const totalCount = points?.length ?? 0;
+  const defectiveCount = points?.filter((p) => p.status === "defective").length ?? 0;
+  const failedCount =
+    points?.filter((p) => {
+      const o = pointStatusToOrderStatus(p.status);
+      return o === "not_delivered";
+    }).length ?? 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -176,7 +240,13 @@ function RouteDetailPage() {
         <div className="mb-6 rounded-lg border border-border bg-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="font-mono text-sm text-muted-foreground">{route.route_number}</div>
+              <div className="flex items-center gap-2">
+                <div className="font-mono text-sm text-muted-foreground">{route.route_number}</div>
+                <Badge variant="outline" className="border-border bg-secondary text-xs text-muted-foreground">
+                  <Database className="mr-1 h-3 w-3" />
+                  Источник: 1С
+                </Badge>
+              </div>
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
                 Маршрут на {new Date(route.route_date).toLocaleDateString("ru-RU")}
               </h1>
@@ -228,6 +298,36 @@ function RouteDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Уведомления о брака / недоставке */}
+        {(defectiveCount > 0 || failedCount > 0) && (
+          <div className="mb-4 space-y-2">
+            {defectiveCount > 0 && (
+              <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                <div className="text-sm">
+                  <div className="font-semibold text-amber-900">
+                    Брак: {defectiveCount} {defectiveCount === 1 ? "заказ" : "заказа"} требуют повторной отправки
+                  </div>
+                  <div className="text-amber-800">
+                    Заказы помечены как «Ожидают повторной отправки». Логист может добавить их в следующий маршрут.
+                  </div>
+                </div>
+              </div>
+            )}
+            {failedCount > 0 && (
+              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700" />
+                <div className="text-sm">
+                  <div className="font-semibold text-red-900">
+                    Не доставлено: {failedCount} {failedCount === 1 ? "заказ" : "заказа"}
+                  </div>
+                  <div className="text-red-800">Уведомления отправлены менеджеру и логисту.</div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Точки */}
         <div className="mb-3 flex items-center justify-between">
@@ -306,7 +406,11 @@ function RouteDetailPage() {
                     <Select
                       value={p.status}
                       onValueChange={(v) =>
-                        updatePoint.mutate({ pointId: p.id, status: v as PointStatus })
+                        updatePoint.mutate({
+                          pointId: p.id,
+                          status: v as PointStatus,
+                          orderId: p.order_id,
+                        })
                       }
                     >
                       <SelectTrigger className="w-36">
