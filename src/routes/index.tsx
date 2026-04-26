@@ -191,7 +191,18 @@ function OrdersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-md truncate text-sm text-foreground">
-                      {order.delivery_address}
+                      {order.delivery_address ?? (
+                        order.latitude !== null && order.longitude !== null ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
+                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-900">
+                              По координатам
+                            </span>
+                            {order.latitude.toFixed(5)}, {order.longitude.toFixed(5)}
+                          </span>
+                        ) : (
+                          <span className="italic text-muted-foreground">—</span>
+                        )
+                      )}
                     </TableCell>
                     <TableCell className="text-sm text-foreground">
                       {PAYMENT_LABELS[order.payment_type]}
