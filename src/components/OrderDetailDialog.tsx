@@ -95,7 +95,39 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Отчёты о доставке для этого заказа
+  const { data: reports } = useQuery({
+    queryKey: ["delivery_reports", order?.id],
+    enabled: !!order?.id && open,
+    queryFn: async (): Promise<DeliveryReport[]> => {
+      const { data, error } = await (
+        supabase.from as unknown as (
+          name: string,
+        ) => {
+          select: (cols: string) => {
+            eq: (
+              c: string,
+              v: string,
+            ) => {
+              order: (
+                c: string,
+                opts: { ascending: boolean },
+              ) => Promise<{ data: DeliveryReport[] | null; error: Error | null }>;
+            };
+          };
+        }
+      )("delivery_reports")
+        .select("*")
+        .eq("order_id", order!.id)
+        .order("delivered_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   if (!order) return null;
+
+  const latestReport = reports?.[0];
 
   const handleSave = () => {
     mutation.mutate({
