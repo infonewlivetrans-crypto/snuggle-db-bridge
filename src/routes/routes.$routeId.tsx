@@ -27,11 +27,11 @@ import {
 import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
+import { DeliveryLocation } from "@/components/DeliveryLocation";
 import {
   ArrowLeft,
   Calendar,
   User,
-  MapPin,
   Clock,
   CheckCircle2,
   Package2,
@@ -366,9 +366,8 @@ function RouteDetailPage() {
                         {PAYMENT_LABELS[p.orders.payment_type]}
                       </span>
                     </div>
-                    <div className="mt-2 flex items-start gap-1.5 text-sm text-foreground">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                      {p.orders.delivery_address}
+                    <div className="mt-2">
+                      <DeliveryLocation order={p.orders} compact />
                     </div>
                     {p.orders.comment && (
                       <div className="mt-1 text-xs text-muted-foreground">{p.orders.comment}</div>
