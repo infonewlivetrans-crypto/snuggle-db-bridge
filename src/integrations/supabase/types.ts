@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          cash_received: boolean
+          comment: string | null
+          created_at: string
+          delivery_address: string
+          id: string
+          order_number: string
+          payment_type: Database["public"]["Enums"]["payment_type"]
+          qr_received: boolean
+          requires_qr: boolean
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        Insert: {
+          cash_received?: boolean
+          comment?: string | null
+          created_at?: string
+          delivery_address: string
+          id?: string
+          order_number: string
+          payment_type?: Database["public"]["Enums"]["payment_type"]
+          qr_received?: boolean
+          requires_qr?: boolean
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Update: {
+          cash_received?: boolean
+          comment?: string | null
+          created_at?: string
+          delivery_address?: string
+          id?: string
+          order_number?: string
+          payment_type?: Database["public"]["Enums"]["payment_type"]
+          qr_received?: boolean
+          requires_qr?: boolean
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +64,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      order_status:
+        | "new"
+        | "in_progress"
+        | "delivering"
+        | "completed"
+        | "cancelled"
+      payment_type: "cash" | "card" | "online" | "qr"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +197,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      order_status: [
+        "new",
+        "in_progress",
+        "delivering",
+        "completed",
+        "cancelled",
+      ],
+      payment_type: ["cash", "card", "online", "qr"],
+    },
   },
 } as const
