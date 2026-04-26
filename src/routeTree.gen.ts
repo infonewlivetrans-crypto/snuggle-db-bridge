@@ -14,7 +14,9 @@ import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
 import { Route as RoutesIndexRouteImport } from './routes/routes.index'
 import { Route as DriversIndexRouteImport } from './routes/drivers.index'
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
+import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
+import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -42,9 +44,19 @@ const CarriersIndexRoute = CarriersIndexRouteImport.update({
   path: '/carriers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VehiclesVehicleIdRoute = VehiclesVehicleIdRouteImport.update({
+  id: '/vehicles/$vehicleId',
+  path: '/vehicles/$vehicleId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   id: '/routes/$routeId',
   path: '/routes/$routeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarriersVerificationRoute = CarriersVerificationRouteImport.update({
+  id: '/carriers/verification',
+  path: '/carriers/verification',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
@@ -56,7 +68,9 @@ const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
+  '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/carriers/': typeof CarriersIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
@@ -65,7 +79,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
+  '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/carriers': typeof CarriersIndexRoute
   '/drivers': typeof DriversIndexRoute
   '/routes': typeof RoutesIndexRoute
@@ -75,7 +91,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
+  '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/carriers/': typeof CarriersIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
@@ -86,7 +104,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/carriers/$carrierId'
+    | '/carriers/verification'
     | '/routes/$routeId'
+    | '/vehicles/$vehicleId'
     | '/carriers/'
     | '/drivers/'
     | '/routes/'
@@ -95,7 +115,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/carriers/$carrierId'
+    | '/carriers/verification'
     | '/routes/$routeId'
+    | '/vehicles/$vehicleId'
     | '/carriers'
     | '/drivers'
     | '/routes'
@@ -104,7 +126,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/carriers/$carrierId'
+    | '/carriers/verification'
     | '/routes/$routeId'
+    | '/vehicles/$vehicleId'
     | '/carriers/'
     | '/drivers/'
     | '/routes/'
@@ -114,7 +138,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
+  CarriersVerificationRoute: typeof CarriersVerificationRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
+  VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
   CarriersIndexRoute: typeof CarriersIndexRoute
   DriversIndexRoute: typeof DriversIndexRoute
   RoutesIndexRoute: typeof RoutesIndexRoute
@@ -158,11 +184,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarriersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vehicles/$vehicleId': {
+      id: '/vehicles/$vehicleId'
+      path: '/vehicles/$vehicleId'
+      fullPath: '/vehicles/$vehicleId'
+      preLoaderRoute: typeof VehiclesVehicleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/routes/$routeId': {
       id: '/routes/$routeId'
       path: '/routes/$routeId'
       fullPath: '/routes/$routeId'
       preLoaderRoute: typeof RoutesRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carriers/verification': {
+      id: '/carriers/verification'
+      path: '/carriers/verification'
+      fullPath: '/carriers/verification'
+      preLoaderRoute: typeof CarriersVerificationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/carriers/$carrierId': {
@@ -178,7 +218,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
+  CarriersVerificationRoute: CarriersVerificationRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
+  VehiclesVehicleIdRoute: VehiclesVehicleIdRoute,
   CarriersIndexRoute: CarriersIndexRoute,
   DriversIndexRoute: DriversIndexRoute,
   RoutesIndexRoute: RoutesIndexRoute,
