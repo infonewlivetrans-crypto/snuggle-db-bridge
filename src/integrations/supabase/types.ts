@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      delivery_reports: {
+        Row: {
+          cash_received: boolean
+          comment: string | null
+          created_at: string
+          delivered_at: string
+          driver_name: string | null
+          id: string
+          order_id: string
+          outcome: string
+          qr_received: boolean
+          reason: string | null
+          requires_resend: boolean
+          route_id: string | null
+          route_point_id: string | null
+        }
+        Insert: {
+          cash_received?: boolean
+          comment?: string | null
+          created_at?: string
+          delivered_at?: string
+          driver_name?: string | null
+          id?: string
+          order_id: string
+          outcome: string
+          qr_received?: boolean
+          reason?: string | null
+          requires_resend?: boolean
+          route_id?: string | null
+          route_point_id?: string | null
+        }
+        Update: {
+          cash_received?: boolean
+          comment?: string | null
+          created_at?: string
+          delivered_at?: string
+          driver_name?: string | null
+          id?: string
+          order_id?: string
+          outcome?: string
+          qr_received?: boolean
+          reason?: string | null
+          requires_resend?: boolean
+          route_id?: string | null
+          route_point_id?: string | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           cash_received: boolean
@@ -154,8 +202,25 @@ export type Database = {
         | "delivering"
         | "completed"
         | "cancelled"
+        | "delivered"
+        | "not_delivered"
+        | "defective"
+        | "awaiting_resend"
       payment_type: "cash" | "card" | "online" | "qr"
-      point_status: "pending" | "arrived" | "completed" | "failed"
+      point_status:
+        | "pending"
+        | "arrived"
+        | "completed"
+        | "failed"
+        | "returned_to_warehouse"
+        | "defective"
+        | "no_payment"
+        | "no_qr"
+        | "client_no_answer"
+        | "client_absent"
+        | "client_refused"
+        | "no_unloading"
+        | "problem"
       route_status: "planned" | "in_progress" | "completed" | "cancelled"
     }
     CompositeTypes: {
@@ -290,9 +355,27 @@ export const Constants = {
         "delivering",
         "completed",
         "cancelled",
+        "delivered",
+        "not_delivered",
+        "defective",
+        "awaiting_resend",
       ],
       payment_type: ["cash", "card", "online", "qr"],
-      point_status: ["pending", "arrived", "completed", "failed"],
+      point_status: [
+        "pending",
+        "arrived",
+        "completed",
+        "failed",
+        "returned_to_warehouse",
+        "defective",
+        "no_payment",
+        "no_qr",
+        "client_no_answer",
+        "client_absent",
+        "client_refused",
+        "no_unloading",
+        "problem",
+      ],
       route_status: ["planned", "in_progress", "completed", "cancelled"],
     },
   },
