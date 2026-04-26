@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      carriers: {
+        Row: {
+          bank_account: string | null
+          bank_bik: string | null
+          bank_corr_account: string | null
+          bank_name: string | null
+          carrier_type: Database["public"]["Enums"]["carrier_type"]
+          city: string | null
+          company_name: string
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          inn: string | null
+          ogrn: string | null
+          phone: string | null
+          updated_at: string
+          verification_comment: string | null
+          verification_status: Database["public"]["Enums"]["carrier_verification_status"]
+        }
+        Insert: {
+          bank_account?: string | null
+          bank_bik?: string | null
+          bank_corr_account?: string | null
+          bank_name?: string | null
+          carrier_type: Database["public"]["Enums"]["carrier_type"]
+          city?: string | null
+          company_name: string
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          inn?: string | null
+          ogrn?: string | null
+          phone?: string | null
+          updated_at?: string
+          verification_comment?: string | null
+          verification_status?: Database["public"]["Enums"]["carrier_verification_status"]
+        }
+        Update: {
+          bank_account?: string | null
+          bank_bik?: string | null
+          bank_corr_account?: string | null
+          bank_name?: string | null
+          carrier_type?: Database["public"]["Enums"]["carrier_type"]
+          city?: string | null
+          company_name?: string
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          inn?: string | null
+          ogrn?: string | null
+          phone?: string | null
+          updated_at?: string
+          verification_comment?: string | null
+          verification_status?: Database["public"]["Enums"]["carrier_verification_status"]
+        }
+        Relationships: []
+      }
       delivery_reports: {
         Row: {
           cash_received: boolean
@@ -61,6 +121,74 @@ export type Database = {
           route_point_id?: string | null
         }
         Relationships: []
+      }
+      drivers: {
+        Row: {
+          carrier_id: string
+          comment: string | null
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          license_categories: string | null
+          license_expires_date: string | null
+          license_issued_date: string | null
+          license_number: string | null
+          passport_issued_by: string | null
+          passport_issued_date: string | null
+          passport_number: string | null
+          passport_series: string | null
+          phone: string | null
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_id: string
+          comment?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          license_categories?: string | null
+          license_expires_date?: string | null
+          license_issued_date?: string | null
+          license_number?: string | null
+          passport_issued_by?: string | null
+          passport_issued_date?: string | null
+          passport_number?: string | null
+          passport_series?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_id?: string
+          comment?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          license_categories?: string | null
+          license_expires_date?: string | null
+          license_issued_date?: string | null
+          license_number?: string | null
+          passport_issued_by?: string | null
+          passport_issued_date?: string | null
+          passport_number?: string | null
+          passport_series?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -212,6 +340,98 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicles: {
+        Row: {
+          body_height_m: number | null
+          body_length_m: number | null
+          body_type: Database["public"]["Enums"]["body_type"]
+          body_width_m: number | null
+          brand: string | null
+          capacity_kg: number | null
+          carrier_id: string
+          comment: string | null
+          created_at: string
+          has_manipulator: boolean
+          has_straps: boolean
+          has_tent: boolean
+          id: string
+          is_active: boolean
+          model: string | null
+          photo_back_url: string | null
+          photo_documents_url: string | null
+          photo_front_url: string | null
+          photo_inside_url: string | null
+          photo_left_url: string | null
+          photo_right_url: string | null
+          plate_number: string
+          tie_rings_count: number
+          updated_at: string
+          volume_m3: number | null
+        }
+        Insert: {
+          body_height_m?: number | null
+          body_length_m?: number | null
+          body_type?: Database["public"]["Enums"]["body_type"]
+          body_width_m?: number | null
+          brand?: string | null
+          capacity_kg?: number | null
+          carrier_id: string
+          comment?: string | null
+          created_at?: string
+          has_manipulator?: boolean
+          has_straps?: boolean
+          has_tent?: boolean
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          photo_back_url?: string | null
+          photo_documents_url?: string | null
+          photo_front_url?: string | null
+          photo_inside_url?: string | null
+          photo_left_url?: string | null
+          photo_right_url?: string | null
+          plate_number: string
+          tie_rings_count?: number
+          updated_at?: string
+          volume_m3?: number | null
+        }
+        Update: {
+          body_height_m?: number | null
+          body_length_m?: number | null
+          body_type?: Database["public"]["Enums"]["body_type"]
+          body_width_m?: number | null
+          brand?: string | null
+          capacity_kg?: number | null
+          carrier_id?: string
+          comment?: string | null
+          created_at?: string
+          has_manipulator?: boolean
+          has_straps?: boolean
+          has_tent?: boolean
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          photo_back_url?: string | null
+          photo_documents_url?: string | null
+          photo_front_url?: string | null
+          photo_inside_url?: string | null
+          photo_left_url?: string | null
+          photo_right_url?: string | null
+          plate_number?: string
+          tie_rings_count?: number
+          updated_at?: string
+          volume_m3?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -220,6 +440,19 @@ export type Database = {
       generate_route_number: { Args: never; Returns: string }
     }
     Enums: {
+      body_type:
+        | "tent"
+        | "isotherm"
+        | "refrigerator"
+        | "flatbed"
+        | "closed_van"
+        | "manipulator"
+        | "tipper"
+        | "container"
+        | "car_carrier"
+        | "other"
+      carrier_type: "self_employed" | "ip" | "ooo"
+      carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
       order_status:
         | "new"
         | "in_progress"
@@ -373,6 +606,20 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      body_type: [
+        "tent",
+        "isotherm",
+        "refrigerator",
+        "flatbed",
+        "closed_van",
+        "manipulator",
+        "tipper",
+        "container",
+        "car_carrier",
+        "other",
+      ],
+      carrier_type: ["self_employed", "ip", "ooo"],
+      carrier_verification_status: ["new", "in_review", "approved", "rejected"],
       order_status: [
         "new",
         "in_progress",
