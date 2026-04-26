@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Package, BarChart3 } from "lucide-react";
+import { Package, BarChart3, Route as RouteIcon } from "lucide-react";
 
 export function AppHeader() {
   const location = useLocation();
