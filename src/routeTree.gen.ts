@@ -10,12 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
 import { Route as RoutesIndexRouteImport } from './routes/routes.index'
+import { Route as DriversIndexRouteImport } from './routes/drivers.index'
+import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
+import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VehiclesIndexRoute = VehiclesIndexRouteImport.update({
+  id: '/vehicles/',
+  path: '/vehicles/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoutesIndexRoute = RoutesIndexRouteImport.update({
@@ -23,40 +32,93 @@ const RoutesIndexRoute = RoutesIndexRouteImport.update({
   path: '/routes/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriversIndexRoute = DriversIndexRouteImport.update({
+  id: '/drivers/',
+  path: '/drivers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CarriersIndexRoute = CarriersIndexRouteImport.update({
+  id: '/carriers/',
+  path: '/carriers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   id: '/routes/$routeId',
   path: '/routes/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
+  id: '/carriers/$carrierId',
+  path: '/carriers/$carrierId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/carriers/': typeof CarriersIndexRoute
+  '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
+  '/vehicles/': typeof VehiclesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/carriers': typeof CarriersIndexRoute
+  '/drivers': typeof DriversIndexRoute
   '/routes': typeof RoutesIndexRoute
+  '/vehicles': typeof VehiclesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/carriers/': typeof CarriersIndexRoute
+  '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
+  '/vehicles/': typeof VehiclesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/routes/$routeId' | '/routes/'
+  fullPaths:
+    | '/'
+    | '/carriers/$carrierId'
+    | '/routes/$routeId'
+    | '/carriers/'
+    | '/drivers/'
+    | '/routes/'
+    | '/vehicles/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/routes/$routeId' | '/routes'
-  id: '__root__' | '/' | '/routes/$routeId' | '/routes/'
+  to:
+    | '/'
+    | '/carriers/$carrierId'
+    | '/routes/$routeId'
+    | '/carriers'
+    | '/drivers'
+    | '/routes'
+    | '/vehicles'
+  id:
+    | '__root__'
+    | '/'
+    | '/carriers/$carrierId'
+    | '/routes/$routeId'
+    | '/carriers/'
+    | '/drivers/'
+    | '/routes/'
+    | '/vehicles/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
+  CarriersIndexRoute: typeof CarriersIndexRoute
+  DriversIndexRoute: typeof DriversIndexRoute
   RoutesIndexRoute: typeof RoutesIndexRoute
+  VehiclesIndexRoute: typeof VehiclesIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +130,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vehicles/': {
+      id: '/vehicles/'
+      path: '/vehicles'
+      fullPath: '/vehicles/'
+      preLoaderRoute: typeof VehiclesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/routes/': {
       id: '/routes/'
       path: '/routes'
       fullPath: '/routes/'
       preLoaderRoute: typeof RoutesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drivers/': {
+      id: '/drivers/'
+      path: '/drivers'
+      fullPath: '/drivers/'
+      preLoaderRoute: typeof DriversIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/carriers/': {
+      id: '/carriers/'
+      path: '/carriers'
+      fullPath: '/carriers/'
+      preLoaderRoute: typeof CarriersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/routes/$routeId': {
@@ -82,13 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoutesRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carriers/$carrierId': {
+      id: '/carriers/$carrierId'
+      path: '/carriers/$carrierId'
+      fullPath: '/carriers/$carrierId'
+      preLoaderRoute: typeof CarriersCarrierIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
+  CarriersIndexRoute: CarriersIndexRoute,
+  DriversIndexRoute: DriversIndexRoute,
   RoutesIndexRoute: RoutesIndexRoute,
+  VehiclesIndexRoute: VehiclesIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

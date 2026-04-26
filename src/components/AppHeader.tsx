@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Package, BarChart3, Route as RouteIcon } from "lucide-react";
+import { Package, BarChart3, Route as RouteIcon, Building2, User, Truck } from "lucide-react";
 
 export function AppHeader() {
   const location = useLocation();
@@ -46,6 +46,45 @@ export function AppHeader() {
               <span className="inline-flex items-center gap-2">
                 <RouteIcon className="h-4 w-4" />
                 Маршруты
+              </span>
+            </Link>
+            <Link
+              to="/carriers"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                path.startsWith("/carriers")
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Перевозчики
+              </span>
+            </Link>
+            <Link
+              to="/drivers"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                path.startsWith("/drivers")
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Водители
+              </span>
+            </Link>
+            <Link
+              to="/vehicles"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                path.startsWith("/vehicles")
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                Авто
               </span>
             </Link>
           </nav>
