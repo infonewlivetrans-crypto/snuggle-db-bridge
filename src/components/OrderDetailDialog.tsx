@@ -29,8 +29,8 @@ import {
   PAYMENT_LABELS,
 } from "@/lib/orders";
 import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
+import { DeliveryLocation } from "@/components/DeliveryLocation";
 import {
-  MapPin,
   MessageSquare,
   Banknote,
   QrCode,
@@ -167,14 +167,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
-          {/* Адрес */}
-          <div className="rounded-lg border border-border bg-secondary/40 p-4">
-            <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5" />
-              Адрес доставки
-            </div>
-            <div className="text-sm font-medium text-foreground">{order.delivery_address}</div>
-          </div>
+          {/* Адрес и навигация */}
+          <DeliveryLocation order={order} />
 
           {/* Отчёт о доставке (если есть) */}
           {latestReport && (

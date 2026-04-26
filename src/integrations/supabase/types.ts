@@ -64,11 +64,19 @@ export type Database = {
       }
       orders: {
         Row: {
+          access_instructions: string | null
           cash_received: boolean
           comment: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
-          delivery_address: string
+          delivery_address: string | null
+          delivery_photo_url: string | null
           id: string
+          landmarks: string | null
+          latitude: number | null
+          longitude: number | null
+          map_link: string | null
           order_number: string
           payment_type: Database["public"]["Enums"]["payment_type"]
           qr_received: boolean
@@ -77,11 +85,19 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_instructions?: string | null
           cash_received?: boolean
           comment?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
-          delivery_address: string
+          delivery_address?: string | null
+          delivery_photo_url?: string | null
           id?: string
+          landmarks?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          map_link?: string | null
           order_number: string
           payment_type?: Database["public"]["Enums"]["payment_type"]
           qr_received?: boolean
@@ -90,11 +106,19 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_instructions?: string | null
           cash_received?: boolean
           comment?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
-          delivery_address?: string
+          delivery_address?: string | null
+          delivery_photo_url?: string | null
           id?: string
+          landmarks?: string | null
+          latitude?: number | null
+          longitude?: number | null
+          map_link?: string | null
           order_number?: string
           payment_type?: Database["public"]["Enums"]["payment_type"]
           qr_received?: boolean

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { OrderDetailDialog } from "@/components/OrderDetailDialog";
+import { CreateOrderDialog } from "@/components/CreateOrderDialog";
 import {
   Table,
   TableBody,
@@ -30,7 +31,7 @@ import {
   STATUS_STYLES,
   PAYMENT_LABELS,
 } from "@/lib/orders";
-import { Search, QrCode, RefreshCw, Package2 } from "lucide-react";
+import { Search, QrCode, RefreshCw, Package2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -47,6 +48,7 @@ function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const { data: orders, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["orders"],
@@ -66,7 +68,7 @@ function OrdersPage() {
       const matchSearch =
         !search ||
         o.order_number.toLowerCase().includes(search.toLowerCase()) ||
-        o.delivery_address.toLowerCase().includes(search.toLowerCase());
+        (o.delivery_address?.toLowerCase().includes(search.toLowerCase()) ?? false);
       const matchStatus = statusFilter === "all" || o.status === statusFilter;
       return matchSearch && matchStatus;
     });
@@ -103,15 +105,21 @@ function OrdersPage() {
               Управление заказами и статусами доставки
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-            Обновить
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              Обновить
+            </Button>
+            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Создать заказ
+            </Button>
+          </div>
         </div>
 
         {/* Статистика */}
@@ -191,7 +199,18 @@ function OrdersPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-md truncate text-sm text-foreground">
-                      {order.delivery_address}
+                      {order.delivery_address ?? (
+                        order.latitude !== null && order.longitude !== null ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
+                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-900">
+                              По координатам
+                            </span>
+                            {order.latitude.toFixed(5)}, {order.longitude.toFixed(5)}
+                          </span>
+                        ) : (
+                          <span className="italic text-muted-foreground">—</span>
+                        )
+                      )}
                     </TableCell>
                     <TableCell className="text-sm text-foreground">
                       {PAYMENT_LABELS[order.payment_type]}
@@ -223,6 +242,7 @@ function OrdersPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
       />
+      <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }

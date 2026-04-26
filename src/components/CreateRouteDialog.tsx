@@ -55,7 +55,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     return orders.filter(
       (o) =>
         o.order_number.toLowerCase().includes(q) ||
-        o.delivery_address.toLowerCase().includes(q),
+        (o.delivery_address?.toLowerCase().includes(q) ?? false),
     );
   }, [orders, search]);
 
@@ -238,7 +238,12 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
                         </div>
                         <div className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground">
                           <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
-                          <span className="truncate">{o.delivery_address}</span>
+                          <span className="truncate">
+                            {o.delivery_address ??
+                              (o.latitude !== null && o.longitude !== null
+                                ? `По координатам: ${o.latitude.toFixed(5)}, ${o.longitude.toFixed(5)}`
+                                : "Без локации")}
+                          </span>
                         </div>
                       </div>
                     </label>
@@ -268,7 +273,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
                       <div className="min-w-0 flex-1">
                         <div className="font-mono text-sm font-semibold">{o.order_number}</div>
                         <div className="truncate text-xs text-muted-foreground">
-                          {o.delivery_address}
+                          {o.delivery_address ??
+                            (o.latitude !== null && o.longitude !== null
+                              ? `${o.latitude.toFixed(5)}, ${o.longitude.toFixed(5)}`
+                              : "—")}
                         </div>
                       </div>
                       <Button
