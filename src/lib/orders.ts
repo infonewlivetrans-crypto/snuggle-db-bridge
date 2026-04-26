@@ -1,6 +1,15 @@
 import type { Database } from "@/integrations/supabase/types";
 
-export type OrderStatus = "new" | "in_progress" | "delivering" | "completed" | "cancelled";
+export type OrderStatus =
+  | "new"
+  | "in_progress"
+  | "delivering"
+  | "completed"
+  | "cancelled"
+  | "delivered"
+  | "not_delivered"
+  | "defective"
+  | "awaiting_resend";
 export type PaymentType = "cash" | "card" | "online" | "qr";
 
 export type Order = {
@@ -23,12 +32,20 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   delivering: "Доставляется",
   completed: "Выполнен",
   cancelled: "Отменён",
+  delivered: "Доставлен",
+  not_delivered: "Не доставлен",
+  defective: "Брак / повторная доставка",
+  awaiting_resend: "Ожидает повторной отправки",
 };
 
 export const STATUS_ORDER: OrderStatus[] = [
   "new",
   "in_progress",
   "delivering",
+  "delivered",
+  "not_delivered",
+  "defective",
+  "awaiting_resend",
   "completed",
   "cancelled",
 ];
@@ -46,6 +63,10 @@ export const STATUS_STYLES: Record<OrderStatus, string> = {
   delivering: "bg-orange-100 text-orange-900 border-orange-200",
   completed: "bg-green-100 text-green-900 border-green-200",
   cancelled: "bg-muted text-muted-foreground border-border",
+  delivered: "bg-green-100 text-green-900 border-green-200",
+  not_delivered: "bg-red-100 text-red-900 border-red-200",
+  defective: "bg-amber-100 text-amber-900 border-amber-200",
+  awaiting_resend: "bg-purple-100 text-purple-900 border-purple-200",
 };
 
 // Type guard helper for Supabase

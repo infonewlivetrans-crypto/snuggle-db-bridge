@@ -1,5 +1,18 @@
 export type RouteStatus = "planned" | "in_progress" | "completed" | "cancelled";
-export type PointStatus = "pending" | "arrived" | "completed" | "failed";
+export type PointStatus =
+  | "pending"
+  | "arrived"
+  | "completed"
+  | "failed"
+  | "returned_to_warehouse"
+  | "defective"
+  | "no_payment"
+  | "no_qr"
+  | "client_no_answer"
+  | "client_absent"
+  | "client_refused"
+  | "no_unloading"
+  | "problem";
 
 export type DeliveryRoute = {
   id: string;
@@ -50,13 +63,72 @@ export const POINT_STATUS_LABELS: Record<PointStatus, string> = {
   arrived: "Прибыл",
   completed: "Доставлено",
   failed: "Не удалось",
+  returned_to_warehouse: "Возврат на склад",
+  defective: "Брак",
+  no_payment: "Нет оплаты",
+  no_qr: "Нет QR-кода",
+  client_no_answer: "Клиент не отвечает",
+  client_absent: "Клиента нет на месте",
+  client_refused: "Отказ клиента",
+  no_unloading: "Нет возможности выгрузки",
+  problem: "Проблема",
 };
 
-export const POINT_STATUS_ORDER: PointStatus[] = ["pending", "arrived", "completed", "failed"];
+export const POINT_STATUS_ORDER: PointStatus[] = [
+  "pending",
+  "arrived",
+  "completed",
+  "returned_to_warehouse",
+  "defective",
+  "no_payment",
+  "no_qr",
+  "client_no_answer",
+  "client_absent",
+  "client_refused",
+  "no_unloading",
+  "problem",
+  "failed",
+];
 
 export const POINT_STATUS_STYLES: Record<PointStatus, string> = {
   pending: "bg-secondary text-foreground border-border",
   arrived: "bg-orange-100 text-orange-900 border-orange-200",
   completed: "bg-green-100 text-green-900 border-green-200",
   failed: "bg-destructive/10 text-destructive border-destructive/20",
+  returned_to_warehouse: "bg-purple-100 text-purple-900 border-purple-200",
+  defective: "bg-amber-100 text-amber-900 border-amber-200",
+  no_payment: "bg-red-100 text-red-900 border-red-200",
+  no_qr: "bg-red-100 text-red-900 border-red-200",
+  client_no_answer: "bg-orange-100 text-orange-900 border-orange-200",
+  client_absent: "bg-orange-100 text-orange-900 border-orange-200",
+  client_refused: "bg-red-100 text-red-900 border-red-200",
+  no_unloading: "bg-red-100 text-red-900 border-red-200",
+  problem: "bg-destructive/10 text-destructive border-destructive/20",
 };
+
+/** Группировка статусов точки по итогу доставки */
+export const SUCCESS_POINT_STATUSES: PointStatus[] = ["completed"];
+export const FAILED_POINT_STATUSES: PointStatus[] = [
+  "failed",
+  "no_payment",
+  "no_qr",
+  "client_no_answer",
+  "client_absent",
+  "client_refused",
+  "no_unloading",
+  "problem",
+  "returned_to_warehouse",
+];
+export const DEFECTIVE_POINT_STATUSES: PointStatus[] = ["defective"];
+
+/** Маппинг статуса точки в исходный статус заказа */
+export function pointStatusToOrderStatus(s: PointStatus):
+  | "delivered"
+  | "not_delivered"
+  | "defective"
+  | null {
+  if (SUCCESS_POINT_STATUSES.includes(s)) return "delivered";
+  if (DEFECTIVE_POINT_STATUSES.includes(s)) return "defective";
+  if (FAILED_POINT_STATUSES.includes(s)) return "not_delivered";
+  return null;
+}
