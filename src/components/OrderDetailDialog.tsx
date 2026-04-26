@@ -176,6 +176,68 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             <div className="text-sm font-medium text-foreground">{order.delivery_address}</div>
           </div>
 
+          {/* Отчёт о доставке (если есть) */}
+          {latestReport && (
+            <div
+              className={`rounded-lg border p-4 ${
+                latestReport.outcome === "delivered"
+                  ? "border-green-200 bg-green-50"
+                  : latestReport.outcome === "defective"
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-red-200 bg-red-50"
+              }`}
+            >
+              <div className="mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {latestReport.outcome === "delivered" ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-700" />
+                  ) : (
+                    <AlertTriangle
+                      className={`h-4 w-4 ${
+                        latestReport.outcome === "defective" ? "text-amber-700" : "text-red-700"
+                      }`}
+                    />
+                  )}
+                  <span className="text-sm font-semibold text-foreground">
+                    {latestReport.outcome === "delivered"
+                      ? "Доставлено"
+                      : latestReport.outcome === "defective"
+                        ? "Брак · требуется повторная отправка"
+                        : "Не доставлено"}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(latestReport.delivered_at).toLocaleString("ru-RU", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+              <div className="space-y-1 text-sm text-foreground">
+                {latestReport.driver_name && (
+                  <div>
+                    <span className="text-muted-foreground">Водитель: </span>
+                    {latestReport.driver_name}
+                  </div>
+                )}
+                {latestReport.reason && latestReport.outcome !== "delivered" && (
+                  <div>
+                    <span className="text-muted-foreground">Причина: </span>
+                    {POINT_STATUS_LABELS[latestReport.reason as PointStatus] ?? latestReport.reason}
+                  </div>
+                )}
+                {latestReport.requires_resend && (
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
+                    <AlertTriangle className="h-3 w-3" />
+                    Требуется добавить в следующий маршрут
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Тип оплаты */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-border p-3">
