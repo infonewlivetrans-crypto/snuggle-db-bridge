@@ -179,7 +179,7 @@ function RoutesPage() {
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={7} className="py-12 text-center">
                     <RouteIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Маршруты не найдены</div>
                     <Button
