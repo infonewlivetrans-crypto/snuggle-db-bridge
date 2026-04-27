@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { OrderDetailDialog } from "@/components/OrderDetailDialog";
 import { CreateOrderDialog } from "@/components/CreateOrderDialog";
+import { ImportOrdersDialog } from "@/components/ImportOrdersDialog";
+import { ExportReportButton } from "@/components/ExportReportButton";
 import {
   Table,
   TableBody,
@@ -49,6 +51,7 @@ function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: orders, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["orders"],
@@ -105,7 +108,7 @@ function OrdersPage() {
               Управление заказами и статусами доставки
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               onClick={() => refetch()}
@@ -115,6 +118,12 @@ function OrdersPage() {
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
               Обновить
             </Button>
+            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Импорт заказов (Excel)
+            </Button>
+            <ExportReportButton kind="delivery" label="Отчёт по доставке" />
+            <ExportReportButton kind="payments" label="Отчёт по оплатам" />
             <Button onClick={() => setCreateOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Создать заказ
@@ -243,6 +252,7 @@ function OrdersPage() {
         onOpenChange={setDialogOpen}
       />
       <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <ImportOrdersDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
