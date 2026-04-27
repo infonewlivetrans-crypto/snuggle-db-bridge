@@ -741,31 +741,52 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [warehouseId]);
 
-  // Фильтр области ошибок/очереди: текущий склад или все склады.
-  // Сохраняется в localStorage, чтобы выбор пользователя помнился между сессиями.
-  const [errorScope, setErrorScope] = useState<"current" | "all">(() => {
-    if (typeof window === "undefined") return "current";
-    const v = window.localStorage.getItem("warehouse.errorScope");
-    return v === "all" ? "all" : "current";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("warehouse.errorScope", errorScope);
-    }
-  }, [errorScope]);
-
-  // Фильтр по типу операций очереди (для бейджа и индикатора ошибок).
+  // Фильтры очереди храним per-warehouse, чтобы выбор для одного склада
+  // не влиял на другой при переключении.
   type OpKindFilter = "all" | "save" | "toggle" | "remove";
-  const [opKindFilter, setOpKindFilter] = useState<OpKindFilter>(() => {
+  const scopeKey = `warehouse.errorScope.${warehouseId}`;
+  const opKindKey = `warehouse.opKindFilter.${warehouseId}`;
+
+  const readScope = (id: string): "current" | "all" => {
+    if (typeof window === "undefined") return "current";
+    const v = window.localStorage.getItem(`warehouse.errorScope.${id}`);
+    return v === "all" ? "all" : "current";
+  };
+  const readOpKind = (id: string): OpKindFilter => {
     if (typeof window === "undefined") return "all";
-    const v = window.localStorage.getItem("warehouse.opKindFilter");
+    const v = window.localStorage.getItem(`warehouse.opKindFilter.${id}`);
     return v === "save" || v === "toggle" || v === "remove" ? v : "all";
-  });
+  };
+
+  const [errorScope, setErrorScope] = useState<"current" | "all">(() => readScope(warehouseId));
+  const [opKindFilter, setOpKindFilter] = useState<OpKindFilter>(() => readOpKind(warehouseId));
+
+  // При смене склада подгружаем его собственные сохранённые настройки.
+  useEffect(() => {
+    setErrorScope(readScope(warehouseId));
+    setOpKindFilter(readOpKind(warehouseId));
+  }, [warehouseId]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("warehouse.opKindFilter", opKindFilter);
+      window.localStorage.setItem(scopeKey, errorScope);
     }
-  }, [opKindFilter]);
+  }, [errorScope, scopeKey]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(opKindKey, opKindFilter);
+    }
+  }, [opKindFilter, opKindKey]);
+
+  // Сброс настроек фильтров только для текущего склада
+  const resetFiltersForCurrent = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(scopeKey);
+      window.localStorage.removeItem(opKindKey);
+    }
+    setErrorScope("current");
+    setOpKindFilter("all");
+  };
 
   const matchesKind = (kind: string) => {
     if (opKindFilter === "all") return true;
