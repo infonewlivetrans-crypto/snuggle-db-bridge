@@ -51,8 +51,7 @@ export async function fetchSetting(key: string): Promise<SystemSetting | null> {
 }
 
 export async function updateSetting(id: string, value: SettingValue, description?: string) {
-  const patch: Record<string, unknown> = { setting_value: value };
-  if (description !== undefined) patch.description = description;
+  const patch = { setting_value: value as never, ...(description !== undefined ? { description } : {}) };
   const { error } = await supabase.from("system_settings").update(patch).eq("id", id);
   if (error) throw error;
 }
