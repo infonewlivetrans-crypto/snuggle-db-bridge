@@ -226,9 +226,15 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
                   </div>
                 )}
                 {latestReport.requires_resend && (
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
-                    <AlertTriangle className="h-3 w-3" />
-                    Требуется добавить в следующий маршрут
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
+                      <AlertTriangle className="h-3 w-3" />
+                      Требуется повторная доставка
+                    </span>
+                    <Button size="sm" onClick={() => setAddToRouteOpen(true)} className="h-7 gap-1.5">
+                      <RouteIcon className="h-3.5 w-3.5" />
+                      Добавить в следующий маршрут
+                    </Button>
                   </div>
                 )}
               </div>
