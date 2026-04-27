@@ -105,10 +105,10 @@ export function ImportOrdersDialog({
           {result && (
             <Alert
               variant={result.errors.length === 0 ? "default" : "destructive"}
-              className={result.errors.length === 0 ? "border-green-500/40 bg-green-50" : ""}
+              className={result.errors.length === 0 ? "rt-alert-success border-transparent" : ""}
             >
               {result.errors.length === 0 ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <CheckCircle2 className="h-4 w-4 text-status-success" />
               ) : (
                 <AlertTriangle className="h-4 w-4" />
               )}

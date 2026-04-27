@@ -488,7 +488,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
             </div>
 
             {selectedVehicle && !fit.ok && (
-              <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <div className="rt-alert rt-alert-warning mt-3">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
                   <div className="font-semibold">
@@ -501,7 +501,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
                       .filter(Boolean)
                       .join(" / ")}
                   </div>
-                  <div className="text-xs text-amber-800">
+                  <div className="text-xs opacity-80">
                     Сохранить заявку всё равно можно — это предупреждение.
                   </div>
                 </div>

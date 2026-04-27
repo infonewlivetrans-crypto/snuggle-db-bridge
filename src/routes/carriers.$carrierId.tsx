@@ -283,7 +283,7 @@ function CarrierDetailPage() {
                   className="flex-1 gap-1.5"
                   onClick={() => updateStatus.mutate("approved")}
                 >
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <CheckCircle2 className="h-4 w-4 text-status-success" />
                   Подтвердить
                 </Button>
                 <Button
