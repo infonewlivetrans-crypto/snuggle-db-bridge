@@ -33,8 +33,25 @@ const MAX_DELAY = 60_000; // 1 min
 
 const handlers = new Map<string, Handler>();
 const listeners = new Set<(items: QueueOp[]) => void>();
+const failureListeners = new Set<(failure: QueueFailure | null) => void>();
+let lastFailure: QueueFailure | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let processing = false;
+
+function errMessage(err: unknown): string {
+  if (err instanceof Error) return err.message || "Неизвестная ошибка";
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Неизвестная ошибка";
+  }
+}
+
+function setLastFailure(f: QueueFailure | null) {
+  lastFailure = f;
+  failureListeners.forEach((l) => l(f));
+}
 
 const isBrowser = () => typeof window !== "undefined";
 
