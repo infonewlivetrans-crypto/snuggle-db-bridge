@@ -7,7 +7,10 @@ import {
   enqueue as enqueueOp,
   registerHandler,
   subscribe as subscribeQueue,
+  subscribeFailure,
+  dismissLastFailure,
   type QueueOp,
+  type QueueFailure,
 } from "@/lib/offline-queue";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
