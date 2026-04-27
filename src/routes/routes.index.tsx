@@ -204,6 +204,11 @@ function RoutesPage() {
                         {r.route_number}
                       </Link>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={REQUEST_TYPE_STYLES[r.request_type]}>
+                        {REQUEST_TYPE_LABELS[r.request_type]}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-sm">
                       <span className="inline-flex items-center gap-1.5 text-foreground">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -218,6 +223,18 @@ function RoutesPage() {
                     </TableCell>
                     <TableCell className="text-sm font-medium text-foreground">
                       {r.points_count}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex items-center gap-1">
+                          <Scale className="h-3 w-3" />
+                          {Number(r.total_weight_kg ?? 0).toFixed(1)} кг
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Box className="h-3 w-3" />
+                          {Number(r.total_volume_m3 ?? 0).toFixed(2)} м³
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={ROUTE_STATUS_STYLES[r.status]}>
