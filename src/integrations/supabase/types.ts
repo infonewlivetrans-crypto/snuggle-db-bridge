@@ -311,34 +311,65 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string
-          driver_name: string
+          driver_id: string | null
+          driver_name: string | null
           id: string
           route_date: string
           route_number: string
           status: Database["public"]["Enums"]["route_status"]
           updated_at: string
+          vehicle_id: string | null
+          warehouse_id: string | null
         }
         Insert: {
           comment?: string | null
           created_at?: string
-          driver_name: string
+          driver_id?: string | null
+          driver_name?: string | null
           id?: string
           route_date?: string
           route_number: string
           status?: Database["public"]["Enums"]["route_status"]
           updated_at?: string
+          vehicle_id?: string | null
+          warehouse_id?: string | null
         }
         Update: {
           comment?: string | null
           created_at?: string
-          driver_name?: string
+          driver_id?: string | null
+          driver_name?: string | null
           id?: string
           route_date?: string
           route_number?: string
           status?: Database["public"]["Enums"]["route_status"]
           updated_at?: string
+          vehicle_id?: string | null
+          warehouse_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "routes_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routes_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vehicles: {
         Row: {
@@ -431,6 +462,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      warehouses: {
+        Row: {
+          address: string | null
+          city: string | null
+          contact_person: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
