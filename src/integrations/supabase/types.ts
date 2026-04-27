@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_versions: {
+        Row: {
+          app_store_url: string | null
+          created_at: string
+          current_version: string
+          force_update: boolean
+          id: string
+          minimum_required_version: string
+          platform: string
+          play_market_url: string | null
+          release_notes: string | null
+          released_at: string
+          update_message: string | null
+          updated_at: string
+        }
+        Insert: {
+          app_store_url?: string | null
+          created_at?: string
+          current_version: string
+          force_update?: boolean
+          id?: string
+          minimum_required_version: string
+          platform: string
+          play_market_url?: string | null
+          release_notes?: string | null
+          released_at?: string
+          update_message?: string | null
+          updated_at?: string
+        }
+        Update: {
+          app_store_url?: string | null
+          created_at?: string
+          current_version?: string
+          force_update?: boolean
+          id?: string
+          minimum_required_version?: string
+          platform?: string
+          play_market_url?: string | null
+          release_notes?: string | null
+          released_at?: string
+          update_message?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       carrier_documents: {
         Row: {
           carrier_id: string | null
@@ -667,6 +712,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_settings: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          setting_key: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+        }
+        Relationships: []
       }
       vehicles: {
         Row: {
