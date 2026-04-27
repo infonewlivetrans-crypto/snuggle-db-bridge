@@ -18,6 +18,7 @@ export type QueueFailure = {
   id: string;
   kind: string;
   label?: string;
+  payload: unknown;
   message: string;
   at: number;
   attempts: number;
