@@ -196,6 +196,23 @@ export function subscribe(fn: (items: QueueOp[]) => void) {
 
 export function clearFailed() {
   save([]);
+  setLastFailure(null);
+}
+
+export function getLastFailure(): QueueFailure | null {
+  return lastFailure;
+}
+
+export function subscribeFailure(fn: (failure: QueueFailure | null) => void) {
+  failureListeners.add(fn);
+  fn(lastFailure);
+  return () => {
+    failureListeners.delete(fn);
+  };
+}
+
+export function dismissLastFailure() {
+  setLastFailure(null);
 }
 
 if (isBrowser()) {
