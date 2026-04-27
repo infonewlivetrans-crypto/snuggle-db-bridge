@@ -49,6 +49,7 @@ import {
   Pencil,
   UserX,
   UserCheck,
+  Search,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
@@ -733,17 +734,39 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const active = staff.filter((s) => s.is_active);
-  const inactive = staff.filter((s) => !s.is_active);
-  const managers = active.filter((s) => s.role === "manager");
-  const storekeepers = active.filter((s) => s.role === "storekeeper");
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | WarehouseStaffRole>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("active");
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return staff.filter((s) => {
+      if (statusFilter === "active" && !s.is_active) return false;
+      if (statusFilter === "inactive" && s.is_active) return false;
+      if (roleFilter !== "all" && s.role !== roleFilter) return false;
+      if (q) {
+        const hay = [s.full_name, s.phone ?? "", s.email ?? "", s.comment ?? ""]
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [staff, search, roleFilter, statusFilter]);
+
+  const totalActive = staff.filter((s) => s.is_active).length;
+  const totalInactive = staff.length - totalActive;
+  const managers = filtered.filter((s) => s.role === "manager" && s.is_active);
+  const storekeepers = filtered.filter((s) => s.role === "storekeeper" && s.is_active);
+  const inactiveFiltered = filtered.filter((s) => !s.is_active);
+  const hasFilters = search.trim() !== "" || roleFilter !== "all" || statusFilter !== "active";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
-          {active.length} активных{inactive.length > 0 ? ` · ${inactive.length} в архиве` : ""}
+          {totalActive} активных{totalInactive > 0 ? ` · ${totalInactive} в архиве` : ""}
         </div>
         <Button size="sm" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
@@ -751,35 +774,83 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
         </Button>
       </div>
 
-      {active.length === 0 && inactive.length === 0 && (
+      {/* Поиск и фильтры */}
+      <div className="rt-card flex flex-wrap items-center gap-2 p-3">
+        <div className="relative min-w-[14rem] flex-1">
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Поиск по ФИО, телефону, email…"
+            className="pl-8"
+          />
+        </div>
+        <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as typeof roleFilter)}>
+          <SelectTrigger className="w-[12rem]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все роли</SelectItem>
+            <SelectItem value="manager">{STAFF_ROLE_LABELS.manager}</SelectItem>
+            <SelectItem value="storekeeper">{STAFF_ROLE_LABELS.storekeeper}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+          <SelectTrigger className="w-[10rem]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Активные</SelectItem>
+            <SelectItem value="inactive">В архиве</SelectItem>
+            <SelectItem value="all">Все</SelectItem>
+          </SelectContent>
+        </Select>
+        {hasFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSearch("");
+              setRoleFilter("all");
+              setStatusFilter("active");
+            }}
+          >
+            Сбросить
+          </Button>
+        )}
+      </div>
+
+      {staff.length === 0 ? (
         <div className="rt-card p-8 text-center text-sm text-muted-foreground">
           Нет сотрудников. Добавьте начальника склада и кладовщиков.
         </div>
-      )}
-
-      <StaffGroup
-        title="Начальники склада"
-        people={managers}
-        onEdit={openEdit}
-        onToggleActive={(s) => toggleActive.mutate(s)}
-        onRemove={(id) => remove.mutate(id)}
-      />
-      <StaffGroup
-        title="Кладовщики"
-        people={storekeepers}
-        onEdit={openEdit}
-        onToggleActive={(s) => toggleActive.mutate(s)}
-        onRemove={(id) => remove.mutate(id)}
-      />
-      {inactive.length > 0 && (
-        <StaffGroup
-          title="Архив (деактивированные)"
-          people={inactive}
-          muted
-          onEdit={openEdit}
-          onToggleActive={(s) => toggleActive.mutate(s)}
-          onRemove={(id) => remove.mutate(id)}
-        />
+      ) : filtered.length === 0 ? (
+        <div className="rt-card p-8 text-center text-sm text-muted-foreground">
+          Никого не найдено по заданным фильтрам.
+        </div>
+      ) : (
+        <>
+          <StaffGroup
+            title="Начальники склада"
+            people={managers}
+            onEdit={openEdit}
+            onToggleActive={(s) => toggleActive.mutate(s)}
+            onRemove={(id) => remove.mutate(id)}
+          />
+          <StaffGroup
+            title="Кладовщики"
+            people={storekeepers}
+            onEdit={openEdit}
+            onToggleActive={(s) => toggleActive.mutate(s)}
+            onRemove={(id) => remove.mutate(id)}
+          />
+          {inactiveFiltered.length > 0 && (
+            <StaffGroup
+              title="Архив (деактивированные)"
+              people={inactiveFiltered}
+              muted
+              onEdit={openEdit}
+              onToggleActive={(s) => toggleActive.mutate(s)}
+              onRemove={(id) => remove.mutate(id)}
+            />
+          )}
+        </>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
