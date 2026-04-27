@@ -146,7 +146,33 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     }
   }, [filteredVehicles, vehicleId]);
 
-  const toggleSelect = (id: string) => {
+  // Расчёт суммарного веса/объёма по выбранным заказам (для client_delivery)
+  const computedTotals = useMemo(() => {
+    let w = 0;
+    let v = 0;
+    let items = 0;
+    for (const id of selectedIds) {
+      const o = ordersById.get(id);
+      if (!o) continue;
+      w += Number(o.total_weight_kg ?? 0);
+      v += Number(o.total_volume_m3 ?? 0);
+      items += Number(o.items_count ?? 0);
+    }
+    return { w, v, items };
+  }, [selectedIds, ordersById]);
+
+  const isTransfer = requestType !== "client_delivery";
+  const totalWeight = isTransfer ? Number(manualWeightKg || 0) : computedTotals.w;
+  const totalVolume = isTransfer ? Number(manualVolumeM3 || 0) : computedTotals.v;
+
+  const selectedVehicle = filteredVehicles.find((v) => v.id === vehicleId) ?? null;
+  const fit = checkVehicleFit({
+    vehicle: selectedVehicle,
+    totalWeightKg: totalWeight,
+    totalVolumeM3: totalVolume,
+    requiredBodyType: requiredBodyType || null,
+  });
+
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
