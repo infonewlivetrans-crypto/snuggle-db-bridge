@@ -585,6 +585,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
               )}
             </div>
           </div>
+          )}
 
           {/* Порядок доставки */}
           {selectedIds.length > 0 && (
