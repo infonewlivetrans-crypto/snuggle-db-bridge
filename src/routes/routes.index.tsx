@@ -28,8 +28,10 @@ import {
   ROUTE_STATUS_LABELS,
   ROUTE_STATUS_ORDER,
   ROUTE_STATUS_STYLES,
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_STYLES,
 } from "@/lib/routes";
-import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User } from "lucide-react";
+import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box } from "lucide-react";
 
 type RouteWithCount = DeliveryRoute & { points_count: number };
 
