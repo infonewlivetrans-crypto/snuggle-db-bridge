@@ -50,6 +50,7 @@ import {
   UserX,
   UserCheck,
   Search,
+  Mail,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
@@ -737,6 +738,36 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | WarehouseStaffRole>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("active");
+  const [suggestOpen, setSuggestOpen] = useState(false);
+
+  // Подсказки автодополнения: уникальные ФИО / телефоны / email,
+  // отфильтрованные по текущему вводу. Уважают role/status фильтры.
+  const suggestions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [] as Array<{ value: string; field: "name" | "phone" | "email"; person: WarehouseStaff }>;
+    const seen = new Set<string>();
+    const out: Array<{ value: string; field: "name" | "phone" | "email"; person: WarehouseStaff }> = [];
+    for (const s of staff) {
+      if (statusFilter === "active" && !s.is_active) continue;
+      if (statusFilter === "inactive" && s.is_active) continue;
+      if (roleFilter !== "all" && s.role !== roleFilter) continue;
+      const candidates: Array<{ value: string; field: "name" | "phone" | "email" }> = [
+        { value: s.full_name, field: "name" },
+        ...(s.phone ? [{ value: s.phone, field: "phone" as const }] : []),
+        ...(s.email ? [{ value: s.email, field: "email" as const }] : []),
+      ];
+      for (const c of candidates) {
+        if (!c.value.toLowerCase().includes(q)) continue;
+        const key = `${c.field}:${c.value.toLowerCase()}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ ...c, person: s });
+        if (out.length >= 8) return out;
+      }
+    }
+    return out;
+  }, [search, staff, statusFilter, roleFilter]);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -777,13 +808,62 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
       {/* Поиск и фильтры */}
       <div className="rt-card flex flex-wrap items-center gap-2 p-3">
         <div className="relative min-w-[14rem] flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setSuggestOpen(true);
+            }}
+            onFocus={() => setSuggestOpen(true)}
+            onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSuggestOpen(false);
+            }}
             placeholder="Поиск по ФИО, телефону, email…"
             className="pl-8"
+            aria-autocomplete="list"
+            aria-expanded={suggestOpen && suggestions.length > 0}
           />
+          {suggestOpen && suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md">
+              {suggestions.map((sug, i) => (
+                <button
+                  key={`${sug.field}-${sug.value}-${i}`}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSearch(sug.value);
+                    setSuggestOpen(false);
+                  }}
+                  className="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent"
+                >
+                  <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
+                    {sug.field === "name" ? (
+                      <User className="h-3.5 w-3.5" />
+                    ) : sug.field === "phone" ? (
+                      <Phone className="h-3.5 w-3.5" />
+                    ) : (
+                      <Mail className="h-3.5 w-3.5" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-foreground">
+                      <HighlightMatch text={sug.value} query={search} />
+                    </span>
+                    {sug.field !== "name" && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {sug.person.full_name}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {sug.field === "name" ? "ФИО" : sug.field === "phone" ? "тел" : "email"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as typeof roleFilter)}>
           <SelectTrigger className="w-[12rem]"><SelectValue /></SelectTrigger>
@@ -829,6 +909,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
           <StaffGroup
             title="Начальники склада"
             people={managers}
+            highlight={search}
             onEdit={openEdit}
             onToggleActive={(s) => toggleActive.mutate(s)}
             onRemove={(id) => remove.mutate(id)}
@@ -836,6 +917,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
           <StaffGroup
             title="Кладовщики"
             people={storekeepers}
+            highlight={search}
             onEdit={openEdit}
             onToggleActive={(s) => toggleActive.mutate(s)}
             onRemove={(id) => remove.mutate(id)}
@@ -845,6 +927,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               title="Архив (деактивированные)"
               people={inactiveFiltered}
               muted
+              highlight={search}
               onEdit={openEdit}
               onToggleActive={(s) => toggleActive.mutate(s)}
               onRemove={(id) => remove.mutate(id)}
@@ -931,6 +1014,7 @@ function StaffGroup({
   title,
   people,
   muted = false,
+  highlight = "",
   onEdit,
   onToggleActive,
   onRemove,
@@ -938,6 +1022,7 @@ function StaffGroup({
   title: string;
   people: WarehouseStaff[];
   muted?: boolean;
+  highlight?: string;
   onEdit: (s: WarehouseStaff) => void;
   onToggleActive: (s: WarehouseStaff) => void;
   onRemove: (id: string) => void;
@@ -958,17 +1043,27 @@ function StaffGroup({
           >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-foreground">
-                {p.full_name}
+                <HighlightMatch text={p.full_name} query={highlight} />
                 {!p.is_active && (
                   <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
                     архив
                   </span>
                 )}
               </div>
-              {p.phone && <div className="text-xs text-muted-foreground">{p.phone}</div>}
-              {p.email && <div className="truncate text-xs text-muted-foreground">{p.email}</div>}
+              {p.phone && (
+                <div className="text-xs text-muted-foreground">
+                  <HighlightMatch text={p.phone} query={highlight} />
+                </div>
+              )}
+              {p.email && (
+                <div className="truncate text-xs text-muted-foreground">
+                  <HighlightMatch text={p.email} query={highlight} />
+                </div>
+              )}
               {p.comment && (
-                <div className="mt-1 text-xs italic text-muted-foreground">{p.comment}</div>
+                <div className="mt-1 text-xs italic text-muted-foreground">
+                  <HighlightMatch text={p.comment} query={highlight} />
+                </div>
               )}
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
@@ -1006,6 +1101,38 @@ function StaffGroup({
         ))}
       </div>
     </div>
+  );
+}
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const lower = text.toLowerCase();
+  const needle = q.toLowerCase();
+  const parts: Array<{ s: string; hit: boolean }> = [];
+  let i = 0;
+  while (i < text.length) {
+    const idx = lower.indexOf(needle, i);
+    if (idx === -1) {
+      parts.push({ s: text.slice(i), hit: false });
+      break;
+    }
+    if (idx > i) parts.push({ s: text.slice(i, idx), hit: false });
+    parts.push({ s: text.slice(idx, idx + needle.length), hit: true });
+    i = idx + needle.length;
+  }
+  return (
+    <>
+      {parts.map((p, k) =>
+        p.hit ? (
+          <mark key={k} className="rounded bg-primary/30 px-0.5 text-foreground">
+            {p.s}
+          </mark>
+        ) : (
+          <span key={k}>{p.s}</span>
+        ),
+      )}
+    </>
   );
 }
 
