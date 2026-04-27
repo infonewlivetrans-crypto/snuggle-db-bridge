@@ -909,6 +909,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
           <StaffGroup
             title="Начальники склада"
             people={managers}
+            highlight={search}
             onEdit={openEdit}
             onToggleActive={(s) => toggleActive.mutate(s)}
             onRemove={(id) => remove.mutate(id)}
@@ -916,6 +917,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
           <StaffGroup
             title="Кладовщики"
             people={storekeepers}
+            highlight={search}
             onEdit={openEdit}
             onToggleActive={(s) => toggleActive.mutate(s)}
             onRemove={(id) => remove.mutate(id)}
@@ -925,6 +927,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               title="Архив (деактивированные)"
               people={inactiveFiltered}
               muted
+              highlight={search}
               onEdit={openEdit}
               onToggleActive={(s) => toggleActive.mutate(s)}
               onRemove={(id) => remove.mutate(id)}
