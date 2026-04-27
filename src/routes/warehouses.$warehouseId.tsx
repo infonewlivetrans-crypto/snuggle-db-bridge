@@ -38,6 +38,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -741,31 +749,52 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [warehouseId]);
 
-  // Фильтр области ошибок/очереди: текущий склад или все склады.
-  // Сохраняется в localStorage, чтобы выбор пользователя помнился между сессиями.
-  const [errorScope, setErrorScope] = useState<"current" | "all">(() => {
-    if (typeof window === "undefined") return "current";
-    const v = window.localStorage.getItem("warehouse.errorScope");
-    return v === "all" ? "all" : "current";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("warehouse.errorScope", errorScope);
-    }
-  }, [errorScope]);
-
-  // Фильтр по типу операций очереди (для бейджа и индикатора ошибок).
+  // Фильтры очереди храним per-warehouse, чтобы выбор для одного склада
+  // не влиял на другой при переключении.
   type OpKindFilter = "all" | "save" | "toggle" | "remove";
-  const [opKindFilter, setOpKindFilter] = useState<OpKindFilter>(() => {
+  const scopeKey = `warehouse.errorScope.${warehouseId}`;
+  const opKindKey = `warehouse.opKindFilter.${warehouseId}`;
+
+  const readScope = (id: string): "current" | "all" => {
+    if (typeof window === "undefined") return "current";
+    const v = window.localStorage.getItem(`warehouse.errorScope.${id}`);
+    return v === "all" ? "all" : "current";
+  };
+  const readOpKind = (id: string): OpKindFilter => {
     if (typeof window === "undefined") return "all";
-    const v = window.localStorage.getItem("warehouse.opKindFilter");
+    const v = window.localStorage.getItem(`warehouse.opKindFilter.${id}`);
     return v === "save" || v === "toggle" || v === "remove" ? v : "all";
-  });
+  };
+
+  const [errorScope, setErrorScope] = useState<"current" | "all">(() => readScope(warehouseId));
+  const [opKindFilter, setOpKindFilter] = useState<OpKindFilter>(() => readOpKind(warehouseId));
+
+  // При смене склада подгружаем его собственные сохранённые настройки.
+  useEffect(() => {
+    setErrorScope(readScope(warehouseId));
+    setOpKindFilter(readOpKind(warehouseId));
+  }, [warehouseId]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem("warehouse.opKindFilter", opKindFilter);
+      window.localStorage.setItem(scopeKey, errorScope);
     }
-  }, [opKindFilter]);
+  }, [errorScope, scopeKey]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(opKindKey, opKindFilter);
+    }
+  }, [opKindFilter, opKindKey]);
+
+  // Сброс настроек фильтров только для текущего склада
+  const resetFiltersForCurrent = () => {
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem(scopeKey);
+      window.localStorage.removeItem(opKindKey);
+    }
+    setErrorScope("current");
+    setOpKindFilter("all");
+  };
 
   const matchesKind = (kind: string) => {
     if (opKindFilter === "all") return true;
@@ -1069,19 +1098,44 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
             );
           })}
           {(errorScope !== "current" || opKindFilter !== "all") && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setErrorScope("current");
-                setOpKindFilter("all");
-              }}
-              className="h-8 gap-1 text-xs"
-              title="Вернуть область и тип к значениям по умолчанию"
-            >
-              <X className="h-3 w-3" />
-              Сбросить фильтры
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 gap-1 text-xs"
+                  title="Сбросить настройки фильтров"
+                >
+                  <X className="h-3 w-3" />
+                  Сбросить фильтры
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs">
+                <DropdownMenuLabel>Сбросить</DropdownMenuLabel>
+                <DropdownMenuItem onClick={resetFiltersForCurrent}>
+                  Только для текущего склада
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      // удаляем все per-warehouse ключи фильтров
+                      Object.keys(window.localStorage)
+                        .filter(
+                          (k) =>
+                            k.startsWith("warehouse.errorScope.") ||
+                            k.startsWith("warehouse.opKindFilter.")
+                        )
+                        .forEach((k) => window.localStorage.removeItem(k));
+                    }
+                    setErrorScope("current");
+                    setOpKindFilter("all");
+                  }}
+                >
+                  Для всех складов
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
