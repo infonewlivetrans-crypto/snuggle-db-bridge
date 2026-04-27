@@ -46,6 +46,9 @@ import {
   PackageCheck,
   Undo2,
   RefreshCw,
+  Pencil,
+  UserX,
+  UserCheck,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
@@ -627,29 +630,93 @@ function NewSlotButton({ warehouseId, date }: { warehouseId: string; date: strin
 
 // ===================== Сотрудники =====================
 
+type StaffFormState = {
+  full_name: string;
+  phone: string;
+  email: string;
+  role: WarehouseStaffRole;
+  comment: string;
+};
+
+const EMPTY_STAFF_FORM: StaffFormState = {
+  full_name: "",
+  phone: "",
+  email: "",
+  role: "storekeeper",
+  comment: "",
+};
+
 function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: WarehouseStaff[] }) {
   const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<WarehouseStaffRole>("storekeeper");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<WarehouseStaff | null>(null);
+  const [form, setForm] = useState<StaffFormState>(EMPTY_STAFF_FORM);
 
-  const create = useMutation({
+  const invalidate = () =>
+    qc.invalidateQueries({ queryKey: ["warehouse_staff", warehouseId] });
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(EMPTY_STAFF_FORM);
+    setDialogOpen(true);
+  };
+
+  const openEdit = (s: WarehouseStaff) => {
+    setEditing(s);
+    setForm({
+      full_name: s.full_name,
+      phone: s.phone ?? "",
+      email: s.email ?? "",
+      role: s.role,
+      comment: s.comment ?? "",
+    });
+    setDialogOpen(true);
+  };
+
+  const save = useMutation({
     mutationFn: async () => {
-      if (!fullName.trim()) throw new Error("Укажите ФИО");
-      const { error } = await db.from("warehouse_staff").insert({
+      if (!form.full_name.trim()) throw new Error("Укажите ФИО");
+      const payload = {
         warehouse_id: warehouseId,
-        full_name: fullName.trim(),
-        phone: phone.trim() || null,
-        role,
-      });
-      if (error) throw error;
+        full_name: form.full_name.trim(),
+        phone: form.phone.trim() || null,
+        email: form.email.trim() || null,
+        role: form.role,
+        comment: form.comment.trim() || null,
+      };
+      if (editing) {
+        const { error } = await db
+          .from("warehouse_staff")
+          .update(payload)
+          .eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await db.from("warehouse_staff").insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["warehouse_staff", warehouseId] });
-      toast.success("Сотрудник добавлен");
-      setOpen(false);
-      setFullName(""); setPhone(""); setRole("storekeeper");
+      invalidate();
+      toast.success(editing ? "Сотрудник обновлён" : "Сотрудник добавлен");
+      setDialogOpen(false);
+      setEditing(null);
+      setForm(EMPTY_STAFF_FORM);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const toggleActive = useMutation({
+    mutationFn: async (s: WarehouseStaff) => {
+      const { error } = await db
+        .from("warehouse_staff")
+        .update({ is_active: !s.is_active })
+        .eq("id", s.id);
+      if (error) throw error;
+      return !s.is_active;
+    },
+    onSuccess: (nowActive) => {
+      invalidate();
+      toast.success(nowActive ? "Сотрудник активирован" : "Сотрудник деактивирован");
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -660,48 +727,106 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["warehouse_staff", warehouseId] });
+      invalidate();
       toast.success("Удалено");
     },
+    onError: (err: Error) => toast.error(err.message),
   });
 
-  const managers = staff.filter((s) => s.role === "manager");
-  const storekeepers = staff.filter((s) => s.role === "storekeeper");
+  const active = staff.filter((s) => s.is_active);
+  const inactive = staff.filter((s) => !s.is_active);
+  const managers = active.filter((s) => s.role === "manager");
+  const storekeepers = active.filter((s) => s.role === "storekeeper");
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
-          {staff.length} {staff.length === 1 ? "сотрудник" : "сотрудников"}
+          {active.length} активных{inactive.length > 0 ? ` · ${inactive.length} в архиве` : ""}
         </div>
-        <Button size="sm" onClick={() => setOpen(true)} className="gap-1.5">
+        <Button size="sm" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
           Добавить
         </Button>
       </div>
 
-      <StaffGroup title="Начальники склада" people={managers} onRemove={(id) => remove.mutate(id)} />
-      <StaffGroup title="Кладовщики" people={storekeepers} onRemove={(id) => remove.mutate(id)} />
+      {active.length === 0 && inactive.length === 0 && (
+        <div className="rt-card p-8 text-center text-sm text-muted-foreground">
+          Нет сотрудников. Добавьте начальника склада и кладовщиков.
+        </div>
+      )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <StaffGroup
+        title="Начальники склада"
+        people={managers}
+        onEdit={openEdit}
+        onToggleActive={(s) => toggleActive.mutate(s)}
+        onRemove={(id) => remove.mutate(id)}
+      />
+      <StaffGroup
+        title="Кладовщики"
+        people={storekeepers}
+        onEdit={openEdit}
+        onToggleActive={(s) => toggleActive.mutate(s)}
+        onRemove={(id) => remove.mutate(id)}
+      />
+      {inactive.length > 0 && (
+        <StaffGroup
+          title="Архив (деактивированные)"
+          people={inactive}
+          muted
+          onEdit={openEdit}
+          onToggleActive={(s) => toggleActive.mutate(s)}
+          onRemove={(id) => remove.mutate(id)}
+        />
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Новый сотрудник</DialogTitle>
-            <DialogDescription>Назначьте начальника склада или кладовщика</DialogDescription>
+            <DialogTitle>{editing ? "Редактировать сотрудника" : "Новый сотрудник"}</DialogTitle>
+            <DialogDescription>
+              {editing
+                ? "Измените данные сотрудника склада"
+                : "Назначьте начальника склада или кладовщика"}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 pt-2">
             <div>
               <Label>ФИО *</Label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1.5" />
+              <Input
+                value={form.full_name}
+                onChange={(e) => setForm((f) => ({ ...f, full_name: e.target.value }))}
+                className="mt-1.5"
+              />
             </div>
-            <div>
-              <Label>Телефон</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1.5" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Телефон</Label>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="mt-1.5"
+                  placeholder="+7…"
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className="mt-1.5"
+                />
+              </div>
             </div>
             <div>
               <Label>Роль</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as WarehouseStaffRole)}>
+              <Select
+                value={form.role}
+                onValueChange={(v) => setForm((f) => ({ ...f, role: v as WarehouseStaffRole }))}
+              >
                 <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="manager">{STAFF_ROLE_LABELS.manager}</SelectItem>
@@ -709,10 +834,19 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
                 </SelectContent>
               </Select>
             </div>
+            <div>
+              <Label>Комментарий</Label>
+              <Textarea
+                value={form.comment}
+                onChange={(e) => setForm((f) => ({ ...f, comment: e.target.value }))}
+                rows={2}
+                className="mt-1.5"
+              />
+            </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>Отмена</Button>
-              <Button onClick={() => create.mutate()} disabled={create.isPending}>
-                {create.isPending ? "Сохранение…" : "Добавить"}
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Отмена</Button>
+              <Button onClick={() => save.mutate()} disabled={save.isPending}>
+                {save.isPending ? "Сохранение…" : editing ? "Сохранить" : "Добавить"}
               </Button>
             </div>
           </div>
@@ -725,10 +859,16 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
 function StaffGroup({
   title,
   people,
+  muted = false,
+  onEdit,
+  onToggleActive,
   onRemove,
 }: {
   title: string;
   people: WarehouseStaff[];
+  muted?: boolean;
+  onEdit: (s: WarehouseStaff) => void;
+  onToggleActive: (s: WarehouseStaff) => void;
   onRemove: (id: string) => void;
 }) {
   if (people.length === 0) return null;
@@ -741,22 +881,56 @@ function StaffGroup({
         {people.map((p) => (
           <div
             key={p.id}
-            className="flex items-center justify-between rounded-md border border-border bg-background p-2.5"
+            className={`flex items-start justify-between gap-2 rounded-md border border-border bg-background p-2.5 ${
+              muted ? "opacity-60" : ""
+            }`}
           >
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-foreground">{p.full_name}</div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium text-foreground">
+                {p.full_name}
+                {!p.is_active && (
+                  <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
+                    архив
+                  </span>
+                )}
+              </div>
               {p.phone && <div className="text-xs text-muted-foreground">{p.phone}</div>}
+              {p.email && <div className="truncate text-xs text-muted-foreground">{p.email}</div>}
+              {p.comment && (
+                <div className="mt-1 text-xs italic text-muted-foreground">{p.comment}</div>
+              )}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (confirm(`Удалить ${p.full_name}?`)) onRemove(p.id);
-              }}
-              className="text-muted-foreground hover:text-status-danger"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(p)}
+                aria-label="Редактировать"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onToggleActive(p)}
+                aria-label={p.is_active ? "Деактивировать" : "Активировать"}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {p.is_active ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (confirm(`Удалить ${p.full_name}? Это действие необратимо.`)) onRemove(p.id);
+                }}
+                aria-label="Удалить"
+                className="text-muted-foreground hover:text-status-danger"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
