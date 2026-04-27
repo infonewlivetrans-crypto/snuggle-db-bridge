@@ -43,6 +43,11 @@ interface CreateRouteDialogProps {
 export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [requestType, setRequestType] = useState<TransportRequestType>("client_delivery");
+  const [destinationWarehouseId, setDestinationWarehouseId] = useState<string>("");
+  const [requiredBodyType, setRequiredBodyType] = useState<BodyType | "">("");
+  const [manualWeightKg, setManualWeightKg] = useState<string>("");
+  const [manualVolumeM3, setManualVolumeM3] = useState<string>("");
   const [driverId, setDriverId] = useState<string>("");
   const [vehicleId, setVehicleId] = useState<string>("");
   const [warehouseId, setWarehouseId] = useState<string>("");
