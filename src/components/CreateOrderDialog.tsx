@@ -371,6 +371,21 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
             )}
           </div>
 
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Вес, кг</Label>
+              <Input type="number" min={0} step="0.1" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Объём, м³</Label>
+              <Input type="number" min={0} step="0.01" value={volumeM3} onChange={(e) => setVolumeM3(e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Кол-во товаров</Label>
+              <Input type="number" min={0} step="1" value={itemsCount} onChange={(e) => setItemsCount(e.target.value)} className="mt-1.5" />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="cmt">Комментарий</Label>
             <Textarea
