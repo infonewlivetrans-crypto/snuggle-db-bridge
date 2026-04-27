@@ -41,6 +41,11 @@ import {
 } from "lucide-react";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
+type RouteWithRefs = DeliveryRoute & {
+  warehouse: { id: string; name: string; city: string | null; address: string | null } | null;
+  vehicle: { id: string; plate_number: string; brand: string | null; model: string | null; body_type: string } | null;
+  driver: { id: string; full_name: string; phone: string | null } | null;
+};
 
 export const Route = createFileRoute("/routes/$routeId")({
   head: () => ({
@@ -81,14 +86,16 @@ function RouteDetailPage() {
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
-    queryFn: async (): Promise<DeliveryRoute | null> => {
+    queryFn: async (): Promise<RouteWithRefs | null> => {
       const { data, error } = await supabase
         .from("routes")
-        .select("*")
+        .select(
+          "*, warehouse:warehouses(id, name, city, address), vehicle:vehicles(id, plate_number, brand, model, body_type), driver:drivers(id, full_name, phone)",
+        )
         .eq("id", routeId)
         .maybeSingle();
       if (error) throw error;
-      return data as DeliveryRoute | null;
+      return data as RouteWithRefs | null;
     },
   });
 
