@@ -108,7 +108,7 @@ function RouteDetailPage() {
       const { data, error } = await supabase
         .from("routes")
         .select(
-          "*, warehouse:warehouses(id, name, city, address), vehicle:vehicles(id, plate_number, brand, model, body_type), driver:drivers(id, full_name, phone)",
+          "*, warehouse:warehouses!routes_warehouse_id_fkey(id, name, city, address), destination_warehouse:warehouses!routes_destination_warehouse_id_fkey(id, name, city), vehicle:vehicles(id, plate_number, brand, model, body_type, capacity_kg, volume_m3), driver:drivers(id, full_name, phone)",
         )
         .eq("id", routeId)
         .maybeSingle();
