@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Package, BarChart3, Route as RouteIcon, Building2, User, Truck, Warehouse } from "lucide-react";
+import { Package, BarChart3, Route as RouteIcon, Building2, User, Truck, Warehouse, Settings } from "lucide-react";
 
 export function AppHeader() {
   const location = useLocation();
@@ -98,6 +98,19 @@ export function AppHeader() {
               <span className="inline-flex items-center gap-2">
                 <Warehouse className="h-4 w-4" />
                 Склады
+              </span>
+            </Link>
+            <Link
+              to="/admin/settings"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                path.startsWith("/admin")
+                  ? "bg-foreground text-background"
+                  : "text-foreground hover:bg-secondary"
+              }`}
+            >
+              <span className="inline-flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Настройки
               </span>
             </Link>
           </nav>

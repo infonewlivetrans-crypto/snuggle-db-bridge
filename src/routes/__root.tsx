@@ -1,6 +1,7 @@
 import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
+import { AppVersionGate } from "@/components/AppVersionGate";
 
 import appCss from "../styles.css?url";
 
@@ -60,6 +61,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <AppVersionGate />
       <Toaster />
     </QueryClientProvider>
   );
