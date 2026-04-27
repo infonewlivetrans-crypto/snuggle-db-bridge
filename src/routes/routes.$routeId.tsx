@@ -472,3 +472,84 @@ function RouteDetailPage() {
     </div>
   );
 }
+
+function RequestSummary({ route }: { route: RouteWithRefs }) {
+  const fit = checkVehicleFit({
+    vehicle: route.vehicle,
+    totalWeightKg: Number(route.total_weight_kg ?? 0),
+    totalVolumeM3: Number(route.total_volume_m3 ?? 0),
+    requiredBodyType: route.required_body_type,
+  });
+  return (
+    <div className="mb-4 rounded-lg border border-border bg-card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Заявка на транспорт</h2>
+        {route.required_body_type && (
+          <span className="text-xs text-muted-foreground">
+            Требуется кузов: {BODY_TYPE_LABELS[route.required_body_type]}
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        <div>
+          <div className="text-xs text-muted-foreground">Точек</div>
+          <div className="font-semibold text-foreground">{route.points_count}</div>
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Scale className="h-3 w-3" /> Вес
+          </div>
+          <div className="font-semibold text-foreground">
+            {Number(route.total_weight_kg ?? 0).toFixed(2)} кг
+          </div>
+          {fit.weightLoadPct !== null && (
+            <div className="text-xs text-muted-foreground">
+              Загрузка: {fit.weightLoadPct.toFixed(0)}%
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Box className="h-3 w-3" /> Объём
+          </div>
+          <div className="font-semibold text-foreground">
+            {Number(route.total_volume_m3 ?? 0).toFixed(2)} м³
+          </div>
+          {fit.volumeLoadPct !== null && (
+            <div className="text-xs text-muted-foreground">
+              Загрузка: {fit.volumeLoadPct.toFixed(0)}%
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground">Машина</div>
+          <div className="font-semibold text-foreground">
+            {route.vehicle ? route.vehicle.plate_number : "—"}
+          </div>
+          {route.vehicle && (
+            <div className="text-xs text-muted-foreground">
+              {BODY_TYPE_LABELS[route.vehicle.body_type]}
+              {route.vehicle.capacity_kg ? ` · ${route.vehicle.capacity_kg} кг` : ""}
+              {route.vehicle.volume_m3 ? ` · ${route.vehicle.volume_m3} м³` : ""}
+            </div>
+          )}
+        </div>
+      </div>
+      {route.vehicle && !fit.ok && (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="font-medium">
+            Выбранный транспорт не подходит по{" "}
+            {[
+              fit.issues.includes("capacity_kg") && "весу",
+              fit.issues.includes("volume_m3") && "объёму",
+              fit.issues.includes("body_type") && "типу кузова",
+            ]
+              .filter(Boolean)
+              .join(" / ")}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
