@@ -282,15 +282,83 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Создание маршрута</DialogTitle>
+          <DialogTitle>Заявка на транспорт</DialogTitle>
           <DialogDescription>
-            Выберите склад, водителя, машину и заказы — задайте порядок доставки
+            Тип заявки, склады, требуемая машина и состав груза
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
+          {/* Тип заявки */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Тип заявки *</Label>
+              <Select value={requestType} onValueChange={(v) => setRequestType(v as TransportRequestType)}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {REQUEST_TYPE_ORDER.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {REQUEST_TYPE_LABELS[t]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Требуемый тип кузова</Label>
+              <Select value={requiredBodyType} onValueChange={(v) => setRequiredBodyType(v as BodyType)}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Любой" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BODY_TYPE_ORDER.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {BODY_TYPE_LABELS[b]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Параметры маршрута */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Склад отправки</Label>
+              <Select value={warehouseId} onValueChange={setWarehouseId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder={(warehouses?.length ?? 0) === 0 ? "Сначала добавьте склад" : "Выберите склад"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(warehouses ?? []).map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.name}
+                      {w.city ? ` · ${w.city}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {requestType === "warehouse_transfer" && (
+              <div>
+                <Label>Склад назначения *</Label>
+                <Select value={destinationWarehouseId} onValueChange={setDestinationWarehouseId}>
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Выберите склад" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(warehouses ?? []).filter((w) => w.id !== warehouseId).map((w) => (
+                      <SelectItem key={w.id} value={w.id}>
+                        {w.name}
+                        {w.city ? ` · ${w.city}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Склад отправки</Label>
               <Select value={warehouseId} onValueChange={setWarehouseId}>
