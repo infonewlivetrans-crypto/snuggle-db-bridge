@@ -10,6 +10,18 @@ export type QueueOp = {
   attempts: number;
   nextAt: number; // timestamp ms
   createdAt: number;
+  lastError?: string; // сообщение последней неудачной попытки
+  lastErrorAt?: number; // timestamp последней ошибки
+};
+
+export type QueueFailure = {
+  id: string;
+  kind: string;
+  label?: string;
+  message: string;
+  at: number;
+  attempts: number;
+  dropped: boolean; // true, если задача была отброшена после исчерпания попыток
 };
 
 type Handler = (payload: unknown) => Promise<void>;
