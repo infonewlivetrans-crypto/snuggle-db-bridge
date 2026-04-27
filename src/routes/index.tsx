@@ -124,8 +124,8 @@ function OrdersPage() {
               <span className="hidden sm:inline">Импорт (Excel)</span>
               <span className="sm:hidden">Импорт</span>
             </Button>
-            <ExportReportButton kind="delivery" label="Отчёт по доставке" />
-            <ExportReportButton kind="payments" label="Отчёт по оплатам" />
+            <ExportReportButton kind="delivery" label="Доставка" size="sm" />
+            <ExportReportButton kind="payments" label="Оплаты" size="sm" />
             <Button size="sm" onClick={() => setCreateOpen(true)} className="ml-auto gap-2 sm:ml-0">
               <Plus className="h-4 w-4" />
               Создать заказ
