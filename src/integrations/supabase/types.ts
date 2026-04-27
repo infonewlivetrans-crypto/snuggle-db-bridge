@@ -838,45 +838,183 @@ export type Database = {
           },
         ]
       }
+      warehouse_dock_slots: {
+        Row: {
+          arrived_at: string | null
+          cargo_summary: string | null
+          carrier_name: string | null
+          confirmed_at: string | null
+          confirmed_by: string | null
+          created_at: string
+          driver_id: string | null
+          driver_name: string | null
+          end_time: string | null
+          expected_arrival_at: string | null
+          id: string
+          notes: string | null
+          route_id: string | null
+          slot_date: string
+          slot_kind: Database["public"]["Enums"]["dock_slot_kind"]
+          start_time: string
+          status: Database["public"]["Enums"]["dock_slot_status"]
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_plate: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          arrived_at?: string | null
+          cargo_summary?: string | null
+          carrier_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          driver_id?: string | null
+          driver_name?: string | null
+          end_time?: string | null
+          expected_arrival_at?: string | null
+          id?: string
+          notes?: string | null
+          route_id?: string | null
+          slot_date?: string
+          slot_kind: Database["public"]["Enums"]["dock_slot_kind"]
+          start_time: string
+          status?: Database["public"]["Enums"]["dock_slot_status"]
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_plate?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          arrived_at?: string | null
+          cargo_summary?: string | null
+          carrier_name?: string | null
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          driver_id?: string | null
+          driver_name?: string | null
+          end_time?: string | null
+          expected_arrival_at?: string | null
+          id?: string
+          notes?: string | null
+          route_id?: string | null
+          slot_date?: string
+          slot_kind?: Database["public"]["Enums"]["dock_slot_kind"]
+          start_time?: string
+          status?: Database["public"]["Enums"]["dock_slot_status"]
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_plate?: string | null
+          warehouse_id?: string
+        }
+        Relationships: []
+      }
+      warehouse_staff: {
+        Row: {
+          comment: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          role: Database["public"]["Enums"]["warehouse_staff_role"]
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["warehouse_staff_role"]
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          role?: Database["public"]["Enums"]["warehouse_staff_role"]
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: []
+      }
       warehouses: {
         Row: {
           address: string | null
+          breaks: Json
           city: string | null
           contact_person: string | null
           created_at: string
+          delivery_radius_km: number | null
+          delivery_zone: string | null
           external_id: string | null
           id: string
           is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          manager_name: string | null
+          manager_phone: string | null
           name: string
+          notes: string | null
           phone: string | null
           source: string
           updated_at: string
+          working_hours: Json
         }
         Insert: {
           address?: string | null
+          breaks?: Json
           city?: string | null
           contact_person?: string | null
           created_at?: string
+          delivery_radius_km?: number | null
+          delivery_zone?: string | null
           external_id?: string | null
           id?: string
           is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          manager_name?: string | null
+          manager_phone?: string | null
           name: string
+          notes?: string | null
           phone?: string | null
           source?: string
           updated_at?: string
+          working_hours?: Json
         }
         Update: {
           address?: string | null
+          breaks?: Json
           city?: string | null
           contact_person?: string | null
           created_at?: string
+          delivery_radius_km?: number | null
+          delivery_zone?: string | null
           external_id?: string | null
           id?: string
           is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          manager_name?: string | null
+          manager_phone?: string | null
           name?: string
+          notes?: string | null
           phone?: string | null
           source?: string
           updated_at?: string
+          working_hours?: Json
         }
         Relationships: []
       }
@@ -902,6 +1040,14 @@ export type Database = {
         | "other"
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
+      dock_slot_kind: "shipment" | "inbound_factory" | "inbound_return"
+      dock_slot_status:
+        | "planned"
+        | "arrived"
+        | "loading"
+        | "loaded"
+        | "done"
+        | "cancelled"
       order_status:
         | "new"
         | "in_progress"
@@ -932,6 +1078,7 @@ export type Database = {
         | "client_delivery"
         | "warehouse_transfer"
         | "factory_to_warehouse"
+      warehouse_staff_role: "manager" | "storekeeper"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1073,6 +1220,15 @@ export const Constants = {
       ],
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
+      dock_slot_kind: ["shipment", "inbound_factory", "inbound_return"],
+      dock_slot_status: [
+        "planned",
+        "arrived",
+        "loading",
+        "loaded",
+        "done",
+        "cancelled",
+      ],
       order_status: [
         "new",
         "in_progress",
@@ -1106,6 +1262,7 @@ export const Constants = {
         "warehouse_transfer",
         "factory_to_warehouse",
       ],
+      warehouse_staff_role: ["manager", "storekeeper"],
     },
   },
 } as const

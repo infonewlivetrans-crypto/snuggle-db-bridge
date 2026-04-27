@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { db } from "@/lib/db";
@@ -15,8 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Warehouse as WarehouseIcon, MapPin, Phone, User } from "lucide-react";
+import { Plus, Warehouse as WarehouseIcon, MapPin, Phone, User, Clock, ChevronRight } from "lucide-react";
 import type { Warehouse } from "@/lib/routes";
+import { parseWorkingHours, workingHoursSummary } from "@/lib/warehouses";
 
 export const Route = createFileRoute("/warehouses/")({
   head: () => ({ meta: [{ title: "Склады — Радиус Трек" }] }),
@@ -65,7 +66,7 @@ function WarehousesPage() {
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Склады</h1>
