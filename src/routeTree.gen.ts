@@ -15,6 +15,7 @@ import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
 import { Route as RoutesIndexRouteImport } from './routes/routes.index'
 import { Route as DriversIndexRouteImport } from './routes/drivers.index'
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
+import { Route as WarehousesWarehouseIdRouteImport } from './routes/warehouses.$warehouseId'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
@@ -51,6 +52,11 @@ const CarriersIndexRoute = CarriersIndexRouteImport.update({
   path: '/carriers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WarehousesWarehouseIdRoute = WarehousesWarehouseIdRouteImport.update({
+  id: '/warehouses/$warehouseId',
+  path: '/warehouses/$warehouseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VehiclesVehicleIdRoute = VehiclesVehicleIdRouteImport.update({
   id: '/vehicles/$vehicleId',
   path: '/vehicles/$vehicleId',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
+  '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
+  '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers': typeof CarriersIndexRoute
   '/drivers': typeof DriversIndexRoute
   '/routes': typeof RoutesIndexRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
+  '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/carriers/verification'
     | '/routes/$routeId'
     | '/vehicles/$vehicleId'
+    | '/warehouses/$warehouseId'
     | '/carriers/'
     | '/drivers/'
     | '/routes/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/carriers/verification'
     | '/routes/$routeId'
     | '/vehicles/$vehicleId'
+    | '/warehouses/$warehouseId'
     | '/carriers'
     | '/drivers'
     | '/routes'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/carriers/verification'
     | '/routes/$routeId'
     | '/vehicles/$vehicleId'
+    | '/warehouses/$warehouseId'
     | '/carriers/'
     | '/drivers/'
     | '/routes/'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
+  WarehousesWarehouseIdRoute: typeof WarehousesWarehouseIdRoute
   CarriersIndexRoute: typeof CarriersIndexRoute
   DriversIndexRoute: typeof DriversIndexRoute
   RoutesIndexRoute: typeof RoutesIndexRoute
@@ -217,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarriersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/warehouses/$warehouseId': {
+      id: '/warehouses/$warehouseId'
+      path: '/warehouses/$warehouseId'
+      fullPath: '/warehouses/$warehouseId'
+      preLoaderRoute: typeof WarehousesWarehouseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/vehicles/$vehicleId': {
       id: '/vehicles/$vehicleId'
       path: '/vehicles/$vehicleId'
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   CarriersVerificationRoute: CarriersVerificationRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   VehiclesVehicleIdRoute: VehiclesVehicleIdRoute,
+  WarehousesWarehouseIdRoute: WarehousesWarehouseIdRoute,
   CarriersIndexRoute: CarriersIndexRoute,
   DriversIndexRoute: DriversIndexRoute,
   RoutesIndexRoute: RoutesIndexRoute,

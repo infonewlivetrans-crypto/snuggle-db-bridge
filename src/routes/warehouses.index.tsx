@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { db } from "@/lib/db";
@@ -15,8 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Warehouse as WarehouseIcon, MapPin, Phone, User } from "lucide-react";
+import { Plus, Warehouse as WarehouseIcon, MapPin, Phone, User, Clock, ChevronRight } from "lucide-react";
 import type { Warehouse } from "@/lib/routes";
+import { parseWorkingHours, workingHoursSummary } from "@/lib/warehouses";
 
 export const Route = createFileRoute("/warehouses/")({
   head: () => ({ meta: [{ title: "Склады — Радиус Трек" }] }),
