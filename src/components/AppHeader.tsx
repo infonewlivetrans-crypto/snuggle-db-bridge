@@ -13,7 +13,6 @@ import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const NAV_ITEMS = [
   { to: "/", label: "Заказы", icon: BarChart3, match: (p: string) => p === "/" },
