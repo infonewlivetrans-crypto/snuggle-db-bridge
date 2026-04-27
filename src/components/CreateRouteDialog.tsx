@@ -197,6 +197,11 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     setDriverId("");
     setVehicleId("");
     setWarehouseId("");
+    setDestinationWarehouseId("");
+    setRequestType("client_delivery");
+    setRequiredBodyType("");
+    setManualWeightKg("");
+    setManualVolumeM3("");
     setComment("");
     setSearch("");
     setSelectedIds([]);
