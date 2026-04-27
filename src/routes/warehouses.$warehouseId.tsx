@@ -50,6 +50,7 @@ import {
   UserX,
   UserCheck,
   Search,
+  Mail,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
