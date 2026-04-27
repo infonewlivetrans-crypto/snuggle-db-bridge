@@ -119,6 +119,16 @@ export type Warehouse = {
   phone: string | null;
   contact_person: string | null;
   is_active: boolean;
+  // Расширенные поля (модуль склада)
+  latitude?: number | null;
+  longitude?: number | null;
+  working_hours?: unknown;
+  breaks?: unknown;
+  delivery_zone?: string | null;
+  delivery_radius_km?: number | null;
+  manager_name?: string | null;
+  manager_phone?: string | null;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
 };
