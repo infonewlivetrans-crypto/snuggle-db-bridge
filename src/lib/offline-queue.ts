@@ -121,19 +121,35 @@ export async function processQueue() {
         await handler(item.payload);
         items = load().filter((i) => i.id !== item.id);
         save(items);
+        // успех — если очередь пуста, скрываем последнюю ошибку
+        if (items.length === 0) setLastFailure(null);
       } catch (err) {
+        const message = errMessage(err);
+        const at = Date.now();
         items = load();
         const idx = items.findIndex((i) => i.id === item.id);
         if (idx >= 0) {
           items[idx].attempts += 1;
-          if (items[idx].attempts >= MAX_ATTEMPTS) {
+          items[idx].lastError = message;
+          items[idx].lastErrorAt = at;
+          const dropped = items[idx].attempts >= MAX_ATTEMPTS;
+          if (dropped) {
             // отказ — убираем, чтобы не зацикливаться
             items.splice(idx, 1);
             console.error("[offline-queue] dropped after max attempts", item, err);
           } else {
-            items[idx].nextAt = Date.now() + backoff(items[idx].attempts);
+            items[idx].nextAt = at + backoff(items[idx].attempts);
           }
           save(items);
+          setLastFailure({
+            id: item.id,
+            kind: item.kind,
+            label: item.label,
+            message,
+            at,
+            attempts: items[idx]?.attempts ?? item.attempts + 1,
+            dropped,
+          });
         }
       }
     }
