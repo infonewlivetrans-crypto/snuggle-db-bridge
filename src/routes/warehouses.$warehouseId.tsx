@@ -849,7 +849,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-foreground">
-                      <Highlight text={sug.value} query={search} />
+                      <HighlightMatch text={sug.value} query={search} />
                     </span>
                     {sug.field !== "name" && (
                       <span className="block truncate text-xs text-muted-foreground">
