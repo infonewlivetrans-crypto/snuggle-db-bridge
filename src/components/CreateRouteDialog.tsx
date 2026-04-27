@@ -524,7 +524,8 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
             />
           </div>
 
-          {/* Выбор заказов */}
+          {/* Выбор заказов — только для доставки клиентам */}
+          {requestType === "client_delivery" && (
           <div>
             <div className="mb-2 flex items-center justify-between">
               <Label>Доступные заказы</Label>
