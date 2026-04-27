@@ -77,7 +77,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryFn: async (): Promise<Vehicle[]> => {
       const { data, error } = await db
         .from("vehicles")
-        .select("id, plate_number, brand, model, body_type, is_active, carrier_id")
+        .select("id, plate_number, brand, model, body_type, is_active, carrier_id, capacity_kg, volume_m3")
         .eq("is_active", true)
         .order("plate_number", { ascending: true });
       if (error) throw error;
