@@ -1098,19 +1098,44 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
             );
           })}
           {(errorScope !== "current" || opKindFilter !== "all") && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setErrorScope("current");
-                setOpKindFilter("all");
-              }}
-              className="h-8 gap-1 text-xs"
-              title="Вернуть область и тип к значениям по умолчанию"
-            >
-              <X className="h-3 w-3" />
-              Сбросить фильтры
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 gap-1 text-xs"
+                  title="Сбросить настройки фильтров"
+                >
+                  <X className="h-3 w-3" />
+                  Сбросить фильтры
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="text-xs">
+                <DropdownMenuLabel>Сбросить</DropdownMenuLabel>
+                <DropdownMenuItem onClick={resetFiltersForCurrent}>
+                  Только для текущего склада
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      // удаляем все per-warehouse ключи фильтров
+                      Object.keys(window.localStorage)
+                        .filter(
+                          (k) =>
+                            k.startsWith("warehouse.errorScope.") ||
+                            k.startsWith("warehouse.opKindFilter.")
+                        )
+                        .forEach((k) => window.localStorage.removeItem(k));
+                    }
+                    setErrorScope("current");
+                    setOpKindFilter("all");
+                  }}
+                >
+                  Для всех складов
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
