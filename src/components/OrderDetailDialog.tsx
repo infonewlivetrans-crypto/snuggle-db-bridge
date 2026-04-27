@@ -316,7 +316,11 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setAddToRouteOpen(true)} className="gap-1.5 mr-auto">
+              <RouteIcon className="h-4 w-4" />
+              В маршрут
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Отмена
             </Button>
@@ -326,6 +330,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           </div>
         </div>
       </DialogContent>
+      <AddOrderToRouteDialog order={order} open={addToRouteOpen} onOpenChange={setAddToRouteOpen} />
     </Dialog>
   );
 }
