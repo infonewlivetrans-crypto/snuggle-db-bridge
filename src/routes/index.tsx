@@ -108,23 +108,25 @@ function OrdersPage() {
               Управление заказами и статусами доставки
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => refetch()}
               disabled={isFetching}
               className="gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-              Обновить
+              <span className="hidden sm:inline">Обновить</span>
             </Button>
-            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              Импорт заказов (Excel)
+              <span className="hidden sm:inline">Импорт (Excel)</span>
+              <span className="sm:hidden">Импорт</span>
             </Button>
             <ExportReportButton kind="delivery" label="Отчёт по доставке" />
             <ExportReportButton kind="payments" label="Отчёт по оплатам" />
-            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <Button size="sm" onClick={() => setCreateOpen(true)} className="ml-auto gap-2 sm:ml-0">
               <Plus className="h-4 w-4" />
               Создать заказ
             </Button>
