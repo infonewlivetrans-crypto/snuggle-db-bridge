@@ -651,7 +651,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
               Отмена
             </Button>
             <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-              {mutation.isPending ? "Создание..." : "Создать маршрут"}
+              {mutation.isPending ? "Создание..." : "Создать заявку"}
             </Button>
           </div>
         </div>
