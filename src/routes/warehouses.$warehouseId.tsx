@@ -60,6 +60,8 @@ import {
   UserCheck,
   Search,
   Mail,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
