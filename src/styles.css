@@ -338,4 +338,47 @@
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 25%, transparent);
   }
+
+  /* Алерты — мягкие плашки в фирменной палитре статусов.
+   * Используются вместо хардкода bg-amber-50 / bg-red-50 / bg-green-50. */
+  .rt-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+  }
+  .rt-alert-success {
+    background: var(--status-completed-bg);
+    color: var(--status-completed);
+    border-color: color-mix(in oklab, var(--status-completed) 25%, transparent);
+  }
+  .rt-alert-warning {
+    background: var(--status-delivering-bg);
+    color: var(--status-delivering);
+    border-color: color-mix(in oklab, var(--status-delivering) 25%, transparent);
+  }
+  .rt-alert-danger {
+    background: var(--status-failed-bg);
+    color: var(--status-failed);
+    border-color: color-mix(in oklab, var(--status-failed) 25%, transparent);
+  }
+  .rt-alert-info {
+    background: var(--status-new-bg);
+    color: var(--status-new);
+    border-color: color-mix(in oklab, var(--status-new) 25%, transparent);
+  }
+  .rt-alert-accent {
+    background: var(--status-progress-bg);
+    color: oklch(0.4 0.1 80);
+    border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  }
+
+  /* Текстовые тон-классы — для иконок/подписей внутри алертов и таблиц */
+  .text-status-success { color: var(--status-completed); }
+  .text-status-warning { color: var(--status-delivering); }
+  .text-status-danger { color: var(--status-failed); }
+  .text-status-info { color: var(--status-new); }
 }
