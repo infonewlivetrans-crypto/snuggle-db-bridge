@@ -807,13 +807,62 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
       {/* Поиск и фильтры */}
       <div className="rt-card flex flex-wrap items-center gap-2 p-3">
         <div className="relative min-w-[14rem] flex-1">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setSuggestOpen(true);
+            }}
+            onFocus={() => setSuggestOpen(true)}
+            onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setSuggestOpen(false);
+            }}
             placeholder="Поиск по ФИО, телефону, email…"
             className="pl-8"
+            aria-autocomplete="list"
+            aria-expanded={suggestOpen && suggestions.length > 0}
           />
+          {suggestOpen && suggestions.length > 0 && (
+            <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-border bg-popover py-1 shadow-md">
+              {suggestions.map((sug, i) => (
+                <button
+                  key={`${sug.field}-${sug.value}-${i}`}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setSearch(sug.value);
+                    setSuggestOpen(false);
+                  }}
+                  className="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent"
+                >
+                  <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
+                    {sug.field === "name" ? (
+                      <User className="h-3.5 w-3.5" />
+                    ) : sug.field === "phone" ? (
+                      <Phone className="h-3.5 w-3.5" />
+                    ) : (
+                      <Mail className="h-3.5 w-3.5" />
+                    )}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-foreground">
+                      <Highlight text={sug.value} query={search} />
+                    </span>
+                    {sug.field !== "name" && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {sug.person.full_name}
+                      </span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {sug.field === "name" ? "ФИО" : sug.field === "phone" ? "тел" : "email"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as typeof roleFilter)}>
           <SelectTrigger className="w-[12rem]"><SelectValue /></SelectTrigger>
