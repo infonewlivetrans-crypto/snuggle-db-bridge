@@ -211,7 +211,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
   const mutation = useMutation({
     mutationFn: async () => {
       if (!driverId) throw new Error("Выберите водителя");
-      if (selectedIds.length === 0) throw new Error("Выберите хотя бы один заказ");
+      if (requestType === "client_delivery" && selectedIds.length === 0)
+        throw new Error("Выберите хотя бы один заказ");
+      if (requestType === "warehouse_transfer" && !destinationWarehouseId)
+        throw new Error("Укажите склад назначения");
 
       const driver = drivers?.find((d) => d.id === driverId);
       const driverName = driver?.full_name ?? "";
@@ -228,22 +231,33 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           driver_id: driverId,
           vehicle_id: vehicleId || null,
           warehouse_id: warehouseId || null,
+          destination_warehouse_id: destinationWarehouseId || null,
+          request_type: requestType,
+          required_body_type: requiredBodyType || null,
+          required_capacity_kg: totalWeight > 0 ? totalWeight : null,
+          required_volume_m3: totalVolume > 0 ? totalVolume : null,
           route_date: routeDate,
+          planned_departure_at: null,
           comment: comment.trim() || null,
           status: "planned",
+          // Для warehouse_transfer передадим вручную, иначе пересчитает триггер
+          total_weight_kg: isTransfer ? totalWeight : 0,
+          total_volume_m3: isTransfer ? totalVolume : 0,
         })
         .select()
         .single();
       if (routeErr) throw routeErr;
 
-      const points = selectedIds.map((orderId, idx) => ({
-        route_id: route.id,
-        order_id: orderId,
-        point_number: idx + 1,
-        status: "pending" as const,
-      }));
-      const { error: pointsErr } = await supabase.from("route_points").insert(points);
-      if (pointsErr) throw pointsErr;
+      if (selectedIds.length > 0) {
+        const points = selectedIds.map((orderId, idx) => ({
+          route_id: route.id,
+          order_id: orderId,
+          point_number: idx + 1,
+          status: "pending" as const,
+        }));
+        const { error: pointsErr } = await supabase.from("route_points").insert(points);
+        if (pointsErr) throw pointsErr;
+      }
 
       return route;
     },
