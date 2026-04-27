@@ -249,8 +249,11 @@ function RouteDetailPage() {
         <div className="mb-6 rounded-lg border border-border bg-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="font-mono text-sm text-muted-foreground">{route.route_number}</div>
+                <Badge variant="outline" className={REQUEST_TYPE_STYLES[route.request_type]}>
+                  {REQUEST_TYPE_LABELS[route.request_type]}
+                </Badge>
                 <Badge variant="outline" className="border-border bg-secondary text-xs text-muted-foreground">
                   <Database className="mr-1 h-3 w-3" />
                   Источник: 1С
