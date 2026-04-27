@@ -1002,6 +1002,24 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               Все склады
             </button>
           </div>
+          <Select
+            value={opKindFilter}
+            onValueChange={(v) => setOpKindFilter(v as OpKindFilter)}
+          >
+            <SelectTrigger
+              className="h-8 w-[150px] text-xs"
+              aria-label="Фильтр по типу операции очереди"
+              title="Показывать ошибки только для выбранного типа операций"
+            >
+              <SelectValue placeholder="Все операции" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все операции</SelectItem>
+              <SelectItem value="save">Изменения</SelectItem>
+              <SelectItem value="toggle">Активация</SelectItem>
+              <SelectItem value="remove">Удаление</SelectItem>
+            </SelectContent>
+          </Select>
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
             Добавить
