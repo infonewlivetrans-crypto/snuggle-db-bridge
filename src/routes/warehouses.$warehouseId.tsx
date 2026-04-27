@@ -3,6 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  enqueue as enqueueOp,
+  registerHandler,
+  subscribe as subscribeQueue,
+  type QueueOp,
+} from "@/lib/offline-queue";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
