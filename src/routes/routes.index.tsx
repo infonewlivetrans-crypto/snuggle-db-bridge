@@ -162,16 +162,18 @@ function RoutesPage() {
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
                 <TableHead className="font-semibold text-foreground">Номер</TableHead>
+                <TableHead className="font-semibold text-foreground">Тип</TableHead>
                 <TableHead className="font-semibold text-foreground">Дата</TableHead>
                 <TableHead className="font-semibold text-foreground">Водитель</TableHead>
                 <TableHead className="font-semibold text-foreground">Точек</TableHead>
+                <TableHead className="font-semibold text-foreground">Груз</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                     Загрузка маршрутов...
                   </TableCell>
                 </TableRow>
