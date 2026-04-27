@@ -38,6 +38,8 @@ import {
   MessageSquare,
   Database,
   AlertTriangle,
+  Truck,
+  Warehouse,
 } from "lucide-react";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
@@ -214,11 +216,27 @@ function RouteDetailPage() {
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
                 Маршрут на {new Date(route.route_date).toLocaleDateString("ru-RU")}
               </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-foreground">
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  {route.driver_name}
+                  {route.driver?.full_name ?? route.driver_name ?? "—"}
                 </span>
+                {route.vehicle && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Truck className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-mono">{route.vehicle.plate_number}</span>
+                    <span className="text-muted-foreground">
+                      {[route.vehicle.brand, route.vehicle.model].filter(Boolean).join(" ")}
+                    </span>
+                  </span>
+                )}
+                {route.warehouse && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Warehouse className="h-4 w-4 text-muted-foreground" />
+                    {route.warehouse.name}
+                    {route.warehouse.city ? ` · ${route.warehouse.city}` : ""}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   {new Date(route.route_date).toLocaleDateString("ru-RU", {
