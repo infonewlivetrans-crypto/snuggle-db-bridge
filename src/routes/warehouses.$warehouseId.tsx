@@ -794,6 +794,22 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     [queueItems, errorScope, opKindFilter, warehouseId]
   );
 
+  // Счётчики по типам (учитывают только фильтр области, не фильтр типа),
+  // чтобы каждый бейдж показывал реальное количество операций своего типа.
+  const opCounts = useMemo(() => {
+    const inScope = queueItems.filter((op) => {
+      if (!op.kind.startsWith("staff.")) return false;
+      if (errorScope === "all") return true;
+      const p = op.payload as { warehouse_id?: string } | null | undefined;
+      return p?.warehouse_id === warehouseId;
+    });
+    return {
+      save: inScope.filter((o) => o.kind.startsWith("staff.save")).length,
+      toggle: inScope.filter((o) => o.kind === "staff.toggle").length,
+      remove: inScope.filter((o) => o.kind === "staff.remove").length,
+    };
+  }, [queueItems, errorScope, warehouseId]);
+
   // Последняя ошибка повтора (обновляется при каждой неудаче)
   const [lastFailure, setLastFailureState] = useState<QueueFailure | null>(null);
   useEffect(() => {
