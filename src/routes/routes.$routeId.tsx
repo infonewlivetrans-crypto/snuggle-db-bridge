@@ -23,11 +23,16 @@ import {
   POINT_STATUS_LABELS,
   POINT_STATUS_ORDER,
   POINT_STATUS_STYLES,
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_STYLES,
+  checkVehicleFit,
 } from "@/lib/routes";
 import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { BODY_TYPE_LABELS } from "@/lib/carriers";
+import type { BodyType } from "@/lib/carriers";
 import {
   ArrowLeft,
   Calendar,
@@ -40,6 +45,8 @@ import {
   AlertTriangle,
   Truck,
   Warehouse,
+  Scale,
+  Box,
 } from "lucide-react";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
