@@ -125,6 +125,9 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         payment_type: paymentType,
         requires_qr: requiresQr,
         delivery_photo_url: photoUrl,
+        total_weight_kg: weightKg ? Number(weightKg) : null,
+        total_volume_m3: volumeM3 ? Number(volumeM3) : null,
+        items_count: itemsCount ? Number(itemsCount) : null,
         status: "new",
       });
       if (error) throw error;
