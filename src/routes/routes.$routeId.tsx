@@ -342,26 +342,26 @@ function RouteDetailPage() {
         {(defectiveCount > 0 || failedCount > 0) && (
           <div className="mb-4 space-y-2">
             {defectiveCount > 0 && (
-              <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <div className="rt-alert rt-alert-warning">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div className="text-sm">
-                  <div className="font-semibold text-amber-900">
+                  <div className="font-semibold">
                     Брак: {defectiveCount} {defectiveCount === 1 ? "заказ" : "заказа"} требуют повторной отправки
                   </div>
-                  <div className="text-amber-800">
+                  <div className="opacity-80">
                     Заказы помечены как «Ожидают повторной отправки». Логист может добавить их в следующий маршрут.
                   </div>
                 </div>
               </div>
             )}
             {failedCount > 0 && (
-              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-700" />
+              <div className="rt-alert rt-alert-danger">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div className="text-sm">
-                  <div className="font-semibold text-red-900">
+                  <div className="font-semibold">
                     Не доставлено: {failedCount} {failedCount === 1 ? "заказ" : "заказа"}
                   </div>
-                  <div className="text-red-800">Уведомления отправлены менеджеру и логисту.</div>
+                  <div className="opacity-80">Уведомления отправлены менеджеру и логисту.</div>
                 </div>
               </div>
             )}
@@ -536,7 +536,7 @@ function RequestSummary({ route }: { route: RouteWithRefs }) {
         </div>
       </div>
       {route.vehicle && !fit.ok && (
-        <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rt-alert rt-alert-warning mt-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="font-medium">
             Выбранный транспорт не подходит по{" "}

@@ -211,7 +211,7 @@ function OrdersPage() {
                       {order.delivery_address ?? (
                         order.latitude !== null && order.longitude !== null ? (
                           <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
-                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-900">
+                            <span className="badge-status badge-status-delivering">
                               По координатам
                             </span>
                             {order.latitude.toFixed(5)}, {order.longitude.toFixed(5)}

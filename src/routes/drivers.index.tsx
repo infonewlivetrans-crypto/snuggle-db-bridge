@@ -148,13 +148,9 @@ function DriversPage() {
                     </TableCell>
                     <TableCell>
                       {d.is_active ? (
-                        <Badge variant="outline" className="border-green-200 bg-green-100 text-green-900">
-                          Активен
-                        </Badge>
+                        <span className="badge-status badge-status-completed">Активен</span>
                       ) : (
-                        <Badge variant="outline" className="border-border bg-secondary text-muted-foreground">
-                          Неактивен
-                        </Badge>
+                        <span className="badge-status badge-status-cancelled">Неактивен</span>
                       )}
                     </TableCell>
                   </TableRow>

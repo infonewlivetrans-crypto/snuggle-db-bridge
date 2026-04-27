@@ -69,7 +69,7 @@ function VerificationPage() {
           <div className="py-12 text-center text-muted-foreground">Загрузка...</div>
         ) : (carriers?.length ?? 0) === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-card py-12 text-center">
-            <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-green-600" />
+            <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-status-success" />
             <div className="text-sm text-muted-foreground">Все перевозчики проверены</div>
           </div>
         ) : (

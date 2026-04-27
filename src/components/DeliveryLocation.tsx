@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+
 import {
   MapPin,
   Navigation,
@@ -66,12 +66,9 @@ export function DeliveryLocation({ order, compact = false }: DeliveryLocationPro
             Точка доставки
           </div>
           {!order.delivery_address && hasCoords && (
-            <Badge
-              variant="outline"
-              className="border-amber-200 bg-amber-50 text-[10px] text-amber-900"
-            >
+            <span className="badge-status badge-status-delivering text-[10px]">
               Без точного адреса
-            </Badge>
+            </span>
           )}
         </div>
 

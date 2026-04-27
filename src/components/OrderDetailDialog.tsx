@@ -176,24 +176,20 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           {/* Отчёт о доставке (если есть) */}
           {latestReport && (
             <div
-              className={`rounded-lg border p-4 ${
+              className={`rt-alert ${
                 latestReport.outcome === "delivered"
-                  ? "border-green-200 bg-green-50"
+                  ? "rt-alert-success"
                   : latestReport.outcome === "defective"
-                    ? "border-amber-200 bg-amber-50"
-                    : "border-red-200 bg-red-50"
-              }`}
+                    ? "rt-alert-warning"
+                    : "rt-alert-danger"
+              } flex-col`}
             >
-              <div className="mb-2 flex items-center justify-between">
+              <div className="mb-2 flex w-full items-center justify-between">
                 <div className="flex items-center gap-2">
                   {latestReport.outcome === "delivered" ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-700" />
+                    <CheckCircle2 className="h-4 w-4" />
                   ) : (
-                    <AlertTriangle
-                      className={`h-4 w-4 ${
-                        latestReport.outcome === "defective" ? "text-amber-700" : "text-red-700"
-                      }`}
-                    />
+                    <AlertTriangle className="h-4 w-4" />
                   )}
                   <span className="text-sm font-semibold text-foreground">
                     {latestReport.outcome === "delivered"
@@ -227,7 +223,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
                 )}
                 {latestReport.requires_resend && (
                   <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
+                    <span className="badge-status badge-status-delivering">
                       <AlertTriangle className="h-3 w-3" />
                       Требуется повторная доставка
                     </span>
