@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Download, RefreshCw } from "lucide-react";
@@ -6,44 +7,38 @@ import {
   fetchAppVersion,
   checkVersion,
   APP_CLIENT_VERSION,
-  type VersionCheckResult,
+  APP_CLIENT_PLATFORM,
 } from "@/lib/system-settings";
 
 /**
- * Проверяет версию приложения при старте.
- * Если версия ниже минимальной — показывает блокирующее окно.
- * Если доступно мягкое обновление — показывает закрываемый баннер.
+ * Использует общий React Query-кэш (см. SettingsProvider).
+ * Realtime-инвалидация настроек/версий уже подключена в провайдере,
+ * поэтому здесь только читаем данные и периодически рефетчим как страховку.
  */
 export function AppVersionGate() {
-  const [result, setResult] = useState<VersionCheckResult>({ status: "ok" });
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    const check = async () => {
-      try {
-        const version = await fetchAppVersion();
-        if (cancelled) return;
-        setResult(checkVersion(version));
-      } catch {
-        // Сеть недоступна — не блокируем работу.
-      }
-    };
-    check();
-    const id = setInterval(check, 5 * 60 * 1000); // повторная проверка каждые 5 минут
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
+  const { data: version } = useQuery({
+    queryKey: ["app-version", APP_CLIENT_PLATFORM],
+    queryFn: () => fetchAppVersion(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000, // подстраховка, если realtime недоступен
+    refetchOnWindowFocus: true,
+  });
 
+  const result = checkVersion(version ?? null);
   if (result.status === "ok") return null;
 
   if (result.status === "force_update") {
     const v = result.version;
     return (
       <Dialog open={true}>
-        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()} onEscapeKeyDown={(e) => e.preventDefault()}>
+        <DialogContent
+          className="sm:max-w-md"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -78,7 +73,6 @@ export function AppVersionGate() {
     );
   }
 
-  // Мягкое обновление — баннер
   if (dismissed) return null;
   const v = result.version;
   return (
