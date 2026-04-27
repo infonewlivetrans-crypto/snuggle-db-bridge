@@ -737,6 +737,36 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<"all" | WarehouseStaffRole>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("active");
+  const [suggestOpen, setSuggestOpen] = useState(false);
+
+  // Подсказки автодополнения: уникальные ФИО / телефоны / email,
+  // отфильтрованные по текущему вводу. Уважают role/status фильтры.
+  const suggestions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [] as Array<{ value: string; field: "name" | "phone" | "email"; person: WarehouseStaff }>;
+    const seen = new Set<string>();
+    const out: Array<{ value: string; field: "name" | "phone" | "email"; person: WarehouseStaff }> = [];
+    for (const s of staff) {
+      if (statusFilter === "active" && !s.is_active) continue;
+      if (statusFilter === "inactive" && s.is_active) continue;
+      if (roleFilter !== "all" && s.role !== roleFilter) continue;
+      const candidates: Array<{ value: string; field: "name" | "phone" | "email" }> = [
+        { value: s.full_name, field: "name" },
+        ...(s.phone ? [{ value: s.phone, field: "phone" as const }] : []),
+        ...(s.email ? [{ value: s.email, field: "email" as const }] : []),
+      ];
+      for (const c of candidates) {
+        if (!c.value.toLowerCase().includes(q)) continue;
+        const key = `${c.field}:${c.value.toLowerCase()}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push({ ...c, person: s });
+        if (out.length >= 8) return out;
+      }
+    }
+    return out;
+  }, [search, staff, statusFilter, roleFilter]);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
