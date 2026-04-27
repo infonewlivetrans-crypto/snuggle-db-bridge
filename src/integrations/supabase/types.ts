@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      carrier_documents: {
+        Row: {
+          carrier_id: string | null
+          created_at: string
+          doc_type: string
+          driver_id: string | null
+          file_url: string
+          id: string
+          title: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string
+          doc_type: string
+          driver_id?: string | null
+          file_url: string
+          id?: string
+          title?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string
+          doc_type?: string
+          driver_id?: string | null
+          file_url?: string
+          id?: string
+          title?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: []
+      }
+      carrier_invites: {
+        Row: {
+          carrier_id: string | null
+          created_at: string
+          email: string | null
+          expires_at: string | null
+          id: string
+          invite_type: string
+          note: string | null
+          phone: string | null
+          status: string
+          token: string
+          updated_at: string
+          used_at: string | null
+          used_carrier_id: string | null
+          used_driver_id: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string | null
+          id?: string
+          invite_type?: string
+          note?: string | null
+          phone?: string | null
+          status?: string
+          token: string
+          updated_at?: string
+          used_at?: string | null
+          used_carrier_id?: string | null
+          used_driver_id?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string | null
+          id?: string
+          invite_type?: string
+          note?: string | null
+          phone?: string | null
+          status?: string
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+          used_carrier_id?: string | null
+          used_driver_id?: string | null
+        }
+        Relationships: []
+      }
       carriers: {
         Row: {
           bank_account: string | null
@@ -26,10 +110,13 @@ export type Database = {
           contact_person: string | null
           created_at: string
           email: string | null
+          external_id: string | null
           id: string
           inn: string | null
           ogrn: string | null
           phone: string | null
+          portal_token: string | null
+          source: string
           updated_at: string
           verification_comment: string | null
           verification_status: Database["public"]["Enums"]["carrier_verification_status"]
@@ -45,10 +132,13 @@ export type Database = {
           contact_person?: string | null
           created_at?: string
           email?: string | null
+          external_id?: string | null
           id?: string
           inn?: string | null
           ogrn?: string | null
           phone?: string | null
+          portal_token?: string | null
+          source?: string
           updated_at?: string
           verification_comment?: string | null
           verification_status?: Database["public"]["Enums"]["carrier_verification_status"]
@@ -64,13 +154,58 @@ export type Database = {
           contact_person?: string | null
           created_at?: string
           email?: string | null
+          external_id?: string | null
           id?: string
           inn?: string | null
           ogrn?: string | null
           phone?: string | null
+          portal_token?: string | null
+          source?: string
           updated_at?: string
           verification_comment?: string | null
           verification_status?: Database["public"]["Enums"]["carrier_verification_status"]
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string | null
+          external_id: string | null
+          id: string
+          inn: string | null
+          manager_name: string | null
+          name: string
+          phone: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          external_id?: string | null
+          id?: string
+          inn?: string | null
+          manager_name?: string | null
+          name: string
+          phone?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string | null
+          external_id?: string | null
+          id?: string
+          inn?: string | null
+          manager_name?: string | null
+          name?: string
+          phone?: string | null
+          source?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -127,6 +262,7 @@ export type Database = {
           carrier_id: string
           comment: string | null
           created_at: string
+          external_id: string | null
           full_name: string
           id: string
           is_active: boolean
@@ -140,12 +276,15 @@ export type Database = {
           passport_series: string | null
           phone: string | null
           photo_url: string | null
+          portal_token: string | null
+          source: string
           updated_at: string
         }
         Insert: {
           carrier_id: string
           comment?: string | null
           created_at?: string
+          external_id?: string | null
           full_name: string
           id?: string
           is_active?: boolean
@@ -159,12 +298,15 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           photo_url?: string | null
+          portal_token?: string | null
+          source?: string
           updated_at?: string
         }
         Update: {
           carrier_id?: string
           comment?: string | null
           created_at?: string
+          external_id?: string | null
           full_name?: string
           id?: string
           is_active?: boolean
@@ -178,6 +320,8 @@ export type Database = {
           passport_series?: string | null
           phone?: string | null
           photo_url?: string | null
+          portal_token?: string | null
+          source?: string
           updated_at?: string
         }
         Relationships: [
@@ -190,6 +334,72 @@ export type Database = {
           },
         ]
       }
+      external_refs: {
+        Row: {
+          created_at: string
+          entity: string
+          external_id: string
+          external_system: string
+          id: string
+          last_synced_at: string
+          local_id: string | null
+          payload: Json | null
+        }
+        Insert: {
+          created_at?: string
+          entity: string
+          external_id: string
+          external_system?: string
+          id?: string
+          last_synced_at?: string
+          local_id?: string | null
+          payload?: Json | null
+        }
+        Update: {
+          created_at?: string
+          entity?: string
+          external_id?: string
+          external_system?: string
+          id?: string
+          last_synced_at?: string
+          local_id?: string | null
+          payload?: Json | null
+        }
+        Relationships: []
+      }
+      onec_outbound: {
+        Row: {
+          attempts: number
+          created_at: string
+          event_type: string
+          id: string
+          last_error: string | null
+          payload: Json
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          event_type: string
+          id?: string
+          last_error?: string | null
+          payload: Json
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_error?: string | null
+          payload?: Json
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           access_instructions: string | null
@@ -200,6 +410,7 @@ export type Database = {
           created_at: string
           delivery_address: string | null
           delivery_photo_url: string | null
+          external_id: string | null
           id: string
           items_count: number | null
           landmarks: string | null
@@ -210,6 +421,7 @@ export type Database = {
           payment_type: Database["public"]["Enums"]["payment_type"]
           qr_received: boolean
           requires_qr: boolean
+          source: string
           status: Database["public"]["Enums"]["order_status"]
           total_volume_m3: number | null
           total_weight_kg: number | null
@@ -224,6 +436,7 @@ export type Database = {
           created_at?: string
           delivery_address?: string | null
           delivery_photo_url?: string | null
+          external_id?: string | null
           id?: string
           items_count?: number | null
           landmarks?: string | null
@@ -234,6 +447,7 @@ export type Database = {
           payment_type?: Database["public"]["Enums"]["payment_type"]
           qr_received?: boolean
           requires_qr?: boolean
+          source?: string
           status?: Database["public"]["Enums"]["order_status"]
           total_volume_m3?: number | null
           total_weight_kg?: number | null
@@ -248,6 +462,7 @@ export type Database = {
           created_at?: string
           delivery_address?: string | null
           delivery_photo_url?: string | null
+          external_id?: string | null
           id?: string
           items_count?: number | null
           landmarks?: string | null
@@ -258,10 +473,56 @@ export type Database = {
           payment_type?: Database["public"]["Enums"]["payment_type"]
           qr_received?: boolean
           requires_qr?: boolean
+          source?: string
           status?: Database["public"]["Enums"]["order_status"]
           total_volume_m3?: number | null
           total_weight_kg?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          created_at: string
+          external_id: string | null
+          id: string
+          name: string
+          sku: string | null
+          source: string
+          stock_qty: number | null
+          unit: string | null
+          updated_at: string
+          volume_m3: number | null
+          warehouse_id: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          name: string
+          sku?: string | null
+          source?: string
+          stock_qty?: number | null
+          unit?: string | null
+          updated_at?: string
+          volume_m3?: number | null
+          warehouse_id?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          name?: string
+          sku?: string | null
+          source?: string
+          stock_qty?: number | null
+          unit?: string | null
+          updated_at?: string
+          volume_m3?: number | null
+          warehouse_id?: string | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -505,10 +766,12 @@ export type Database = {
           city: string | null
           contact_person: string | null
           created_at: string
+          external_id: string | null
           id: string
           is_active: boolean
           name: string
           phone: string | null
+          source: string
           updated_at: string
         }
         Insert: {
@@ -516,10 +779,12 @@ export type Database = {
           city?: string | null
           contact_person?: string | null
           created_at?: string
+          external_id?: string | null
           id?: string
           is_active?: boolean
           name: string
           phone?: string | null
+          source?: string
           updated_at?: string
         }
         Update: {
@@ -527,10 +792,12 @@ export type Database = {
           city?: string | null
           contact_person?: string | null
           created_at?: string
+          external_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
           phone?: string | null
+          source?: string
           updated_at?: string
         }
         Relationships: []
