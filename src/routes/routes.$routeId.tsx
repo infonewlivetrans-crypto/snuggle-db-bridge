@@ -38,9 +38,16 @@ import {
   MessageSquare,
   Database,
   AlertTriangle,
+  Truck,
+  Warehouse,
 } from "lucide-react";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
+type RouteWithRefs = DeliveryRoute & {
+  warehouse: { id: string; name: string; city: string | null; address: string | null } | null;
+  vehicle: { id: string; plate_number: string; brand: string | null; model: string | null; body_type: string } | null;
+  driver: { id: string; full_name: string; phone: string | null } | null;
+};
 
 export const Route = createFileRoute("/routes/$routeId")({
   head: () => ({
@@ -81,14 +88,16 @@ function RouteDetailPage() {
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
-    queryFn: async (): Promise<DeliveryRoute | null> => {
+    queryFn: async (): Promise<RouteWithRefs | null> => {
       const { data, error } = await supabase
         .from("routes")
-        .select("*")
+        .select(
+          "*, warehouse:warehouses(id, name, city, address), vehicle:vehicles(id, plate_number, brand, model, body_type), driver:drivers(id, full_name, phone)",
+        )
         .eq("id", routeId)
         .maybeSingle();
       if (error) throw error;
-      return data as DeliveryRoute | null;
+      return data as RouteWithRefs | null;
     },
   });
 
@@ -119,70 +128,27 @@ function RouteDetailPage() {
   });
 
   const updatePoint = useMutation({
-    mutationFn: async ({
-      pointId,
-      status,
-      orderId,
-    }: {
-      pointId: string;
-      status: PointStatus;
-      orderId: string;
-    }) => {
-      const updates: Partial<RoutePoint> = { status };
-      const now = new Date().toISOString();
-      if (status === "arrived") updates.arrived_at = now;
-      const outcome = pointStatusToOrderStatus(status);
-      if (status === "completed" || outcome) updates.completed_at = now;
-
-      const { error: pErr } = await supabase
+    mutationFn: async ({ pointId, status }: { pointId: string; status: PointStatus; orderId: string }) => {
+      // Триггер sync_order_from_route_point на стороне БД сам обновит:
+      // - статус заказа (delivered / not_delivered / awaiting_resend)
+      // - запись в delivery_reports
+      // - времена arrived_at / completed_at
+      const { error } = await supabase
         .from("route_points")
-        .update(updates)
+        .update({ status })
         .eq("id", pointId);
-      if (pErr) throw pErr;
-
-      // Если статус — итоговый (доставлено / не доставлено / брак), создаём отчёт
-      // и обновляем статус заказа.
-      if (outcome) {
-        const requiresResend = outcome === "defective";
-        const newOrderStatus =
-          outcome === "delivered"
-            ? "delivered"
-            : outcome === "defective"
-              ? "defective"
-              : "not_delivered";
-
-        const { error: oErr } = await supabase
-          .from("orders")
-          .update({ status: newOrderStatus })
-          .eq("id", orderId);
-        if (oErr) throw oErr;
-
-        // delivery_reports таблица отсутствует в сгенерированных типах supabase
-        // (миграция была только что), поэтому используем `as never` для обхода типизации.
-        const { error: rErr } = await (supabase.from as unknown as (
-          name: string,
-        ) => {
-          insert: (row: Record<string, unknown>) => Promise<{ error: Error | null }>;
-        })("delivery_reports").insert({
-          order_id: orderId,
-          route_point_id: pointId,
-          route_id: routeId,
-          outcome,
-          reason: status,
-          driver_name: route?.driver_name ?? null,
-          requires_resend: requiresResend,
-          delivered_at: now,
-        });
-        if (rErr) throw rErr;
-      }
+      if (error) throw error;
     },
     onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_reports"] });
       const outcome = pointStatusToOrderStatus(vars.status);
       if (outcome === "delivered") toast.success("Заказ доставлен · отчёт создан");
       else if (outcome === "defective")
-        toast.warning("Брак · заказ помечен для повторной отправки");
+        toast.warning("Брак · заказ помечен «требуется повторная доставка»");
+      else if (vars.status === "returned_to_warehouse")
+        toast.warning("Возврат на склад · заказ ожидает повторной отправки");
       else if (outcome === "not_delivered") toast.error("Заказ не доставлен · уведомление отправлено");
       else toast.success("Статус точки обновлён");
     },
@@ -250,11 +216,27 @@ function RouteDetailPage() {
               <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
                 Маршрут на {new Date(route.route_date).toLocaleDateString("ru-RU")}
               </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-foreground">
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  {route.driver_name}
+                  {route.driver?.full_name ?? route.driver_name ?? "—"}
                 </span>
+                {route.vehicle && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Truck className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-mono">{route.vehicle.plate_number}</span>
+                    <span className="text-muted-foreground">
+                      {[route.vehicle.brand, route.vehicle.model].filter(Boolean).join(" ")}
+                    </span>
+                  </span>
+                )}
+                {route.warehouse && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Warehouse className="h-4 w-4 text-muted-foreground" />
+                    {route.warehouse.name}
+                    {route.warehouse.city ? ` · ${route.warehouse.city}` : ""}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   {new Date(route.route_date).toLocaleDateString("ru-RU", {

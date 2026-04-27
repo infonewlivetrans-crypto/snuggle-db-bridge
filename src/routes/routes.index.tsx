@@ -70,7 +70,7 @@ function RoutesPage() {
       const matchSearch =
         !search ||
         r.route_number.toLowerCase().includes(search.toLowerCase()) ||
-        r.driver_name.toLowerCase().includes(search.toLowerCase());
+        (r.driver_name?.toLowerCase().includes(search.toLowerCase()) ?? false);
       const matchStatus = statusFilter === "all" || r.status === statusFilter;
       return matchSearch && matchStatus;
     });
@@ -209,7 +209,7 @@ function RoutesPage() {
                     <TableCell className="text-sm">
                       <span className="inline-flex items-center gap-1.5 text-foreground">
                         <User className="h-3.5 w-3.5 text-muted-foreground" />
-                        {r.driver_name}
+                        {r.driver_name ?? "—"}
                       </span>
                     </TableCell>
                     <TableCell className="text-sm font-medium text-foreground">

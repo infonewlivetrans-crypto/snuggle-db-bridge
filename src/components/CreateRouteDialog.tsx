@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +11,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
 import { STATUS_LABELS, STATUS_STYLES } from "@/lib/orders";
+import type { Driver, Vehicle } from "@/lib/carriers";
+import type { Warehouse } from "@/lib/routes";
 import { ArrowDown, ArrowUp, X, Search, MapPin, GripVertical } from "lucide-react";
 
 interface CreateRouteDialogProps {
@@ -27,20 +37,65 @@ interface CreateRouteDialogProps {
 export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [driverName, setDriverName] = useState("");
+  const [driverId, setDriverId] = useState<string>("");
+  const [vehicleId, setVehicleId] = useState<string>("");
+  const [warehouseId, setWarehouseId] = useState<string>("");
   const [routeDate, setRouteDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [comment, setComment] = useState("");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // Доступные заказы (новые и в работе)
+  // Справочники
+  const { data: drivers } = useQuery({
+    queryKey: ["drivers", "active"],
+    enabled: open,
+    queryFn: async (): Promise<Driver[]> => {
+      const { data, error } = await db
+        .from("drivers")
+        .select("id, full_name, is_active, carrier_id")
+        .eq("is_active", true)
+        .order("full_name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: vehicles } = useQuery({
+    queryKey: ["vehicles", "active"],
+    enabled: open,
+    queryFn: async (): Promise<Vehicle[]> => {
+      const { data, error } = await db
+        .from("vehicles")
+        .select("id, plate_number, brand, model, body_type, is_active, carrier_id")
+        .eq("is_active", true)
+        .order("plate_number", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: warehouses } = useQuery({
+    queryKey: ["warehouses", "active"],
+    enabled: open,
+    queryFn: async (): Promise<Warehouse[]> => {
+      const { data, error } = await db
+        .from("warehouses")
+        .select("id, name, city, address, is_active")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Доступные заказы
   const { data: orders } = useQuery({
     queryKey: ["orders", "available-for-route"],
     queryFn: async (): Promise<Order[]> => {
       const { data, error } = await supabase
         .from("orders")
         .select("*")
-        .in("status", ["new", "in_progress"])
+        .in("status", ["new", "in_progress", "awaiting_resend"])
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Order[];
@@ -65,6 +120,21 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     return m;
   }, [orders]);
 
+  // Если выбрали машину/водителя одного перевозчика — автоподбор не делаем,
+  // но сбрасываем при смене водителя, чтобы пользователь видел только машины перевозчика
+  const selectedDriverCarrier = drivers?.find((d) => d.id === driverId)?.carrier_id;
+  const filteredVehicles = useMemo(() => {
+    if (!vehicles) return [];
+    if (!selectedDriverCarrier) return vehicles;
+    return vehicles.filter((v) => v.carrier_id === selectedDriverCarrier);
+  }, [vehicles, selectedDriverCarrier]);
+
+  useEffect(() => {
+    if (vehicleId && filteredVehicles.length > 0 && !filteredVehicles.find((v) => v.id === vehicleId)) {
+      setVehicleId("");
+    }
+  }, [filteredVehicles, vehicleId]);
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
@@ -86,7 +156,9 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
   };
 
   const reset = () => {
-    setDriverName("");
+    setDriverId("");
+    setVehicleId("");
+    setWarehouseId("");
     setComment("");
     setSearch("");
     setSelectedIds([]);
@@ -95,20 +167,24 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!driverName.trim()) throw new Error("Укажите имя водителя");
+      if (!driverId) throw new Error("Выберите водителя");
       if (selectedIds.length === 0) throw new Error("Выберите хотя бы один заказ");
 
-      // Сгенерировать номер маршрута через RPC
+      const driver = drivers?.find((d) => d.id === driverId);
+      const driverName = driver?.full_name ?? "";
+
       const { data: numData, error: numErr } = await supabase.rpc("generate_route_number");
       if (numErr) throw numErr;
       const routeNumber = numData as string;
 
-      // Создать маршрут
-      const { data: route, error: routeErr } = await supabase
+      const { data: route, error: routeErr } = await db
         .from("routes")
         .insert({
           route_number: routeNumber,
-          driver_name: driverName.trim(),
+          driver_name: driverName,
+          driver_id: driverId,
+          vehicle_id: vehicleId || null,
+          warehouse_id: warehouseId || null,
           route_date: routeDate,
           comment: comment.trim() || null,
           status: "planned",
@@ -117,7 +193,6 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
         .single();
       if (routeErr) throw routeErr;
 
-      // Добавить точки
       const points = selectedIds.map((orderId, idx) => ({
         route_id: route.id,
         order_id: orderId,
@@ -152,7 +227,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
         <DialogHeader>
           <DialogTitle>Создание маршрута</DialogTitle>
           <DialogDescription>
-            Заполните данные маршрута, выберите заказы и задайте порядок доставки
+            Выберите склад, водителя, машину и заказы — задайте порядок доставки
           </DialogDescription>
         </DialogHeader>
 
@@ -160,31 +235,65 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           {/* Параметры маршрута */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <Label htmlFor="driver">Водитель *</Label>
-              <Input
-                id="driver"
-                placeholder="Иванов И."
-                value={driverName}
-                onChange={(e) => setDriverName(e.target.value)}
-                className="mt-1.5"
-              />
+              <Label>Склад отправки</Label>
+              <Select value={warehouseId} onValueChange={setWarehouseId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder={(warehouses?.length ?? 0) === 0 ? "Сначала добавьте склад" : "Выберите склад"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(warehouses ?? []).map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.name}
+                      {w.city ? ` · ${w.city}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <Label htmlFor="date">Дата</Label>
+              <Label>Дата</Label>
               <Input
-                id="date"
                 type="date"
                 value={routeDate}
                 onChange={(e) => setRouteDate(e.target.value)}
                 className="mt-1.5"
               />
             </div>
+            <div>
+              <Label>Водитель *</Label>
+              <Select value={driverId} onValueChange={setDriverId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder={(drivers?.length ?? 0) === 0 ? "Нет активных водителей" : "Выберите водителя"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(drivers ?? []).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Автомобиль</Label>
+              <Select value={vehicleId} onValueChange={setVehicleId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder={filteredVehicles.length === 0 ? "Нет машин" : "Выберите авто"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredVehicles.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>
+                      {v.plate_number} · {[v.brand, v.model].filter(Boolean).join(" ") || "—"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="comment">Комментарий</Label>
+            <Label>Комментарий</Label>
             <Input
-              id="comment"
               placeholder="Например: утренний рейс"
               value={comment}
               onChange={(e) => setComment(e.target.value)}

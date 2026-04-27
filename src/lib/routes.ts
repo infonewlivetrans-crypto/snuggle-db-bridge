@@ -18,9 +18,24 @@ export type DeliveryRoute = {
   id: string;
   route_number: string;
   route_date: string;
-  driver_name: string;
+  driver_name: string | null;
+  driver_id: string | null;
+  vehicle_id: string | null;
+  warehouse_id: string | null;
   status: RouteStatus;
   comment: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Warehouse = {
+  id: string;
+  name: string;
+  address: string | null;
+  city: string | null;
+  phone: string | null;
+  contact_person: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 };

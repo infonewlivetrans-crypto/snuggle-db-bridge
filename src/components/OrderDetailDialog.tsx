@@ -30,6 +30,7 @@ import {
 } from "@/lib/orders";
 import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { AddOrderToRouteDialog } from "@/components/AddOrderToRouteDialog";
 import {
   MessageSquare,
   Banknote,
@@ -39,6 +40,7 @@ import {
   Database,
   AlertTriangle,
   CheckCircle2,
+  Route as RouteIcon,
 } from "lucide-react";
 
 type DeliveryReport = {
@@ -62,6 +64,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [status, setStatus] = useState<OrderStatus>(order?.status ?? "new");
   const [cashReceived, setCashReceived] = useState(order?.cash_received ?? false);
   const [qrReceived, setQrReceived] = useState(order?.qr_received ?? false);
+  const [addToRouteOpen, setAddToRouteOpen] = useState(false);
 
   // Sync state when order changes
   if (order && open && order.id !== (status as unknown as string) + order.id) {
@@ -223,9 +226,15 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
                   </div>
                 )}
                 {latestReport.requires_resend && (
-                  <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
-                    <AlertTriangle className="h-3 w-3" />
-                    Требуется добавить в следующий маршрут
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900">
+                      <AlertTriangle className="h-3 w-3" />
+                      Требуется повторная доставка
+                    </span>
+                    <Button size="sm" onClick={() => setAddToRouteOpen(true)} className="h-7 gap-1.5">
+                      <RouteIcon className="h-3.5 w-3.5" />
+                      Добавить в следующий маршрут
+                    </Button>
                   </div>
                 )}
               </div>
@@ -307,7 +316,11 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setAddToRouteOpen(true)} className="gap-1.5 mr-auto">
+              <RouteIcon className="h-4 w-4" />
+              В маршрут
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Отмена
             </Button>
@@ -317,6 +330,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           </div>
         </div>
       </DialogContent>
+      <AddOrderToRouteDialog order={order} open={addToRouteOpen} onOpenChange={setAddToRouteOpen} />
     </Dialog>
   );
 }
