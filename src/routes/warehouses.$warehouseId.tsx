@@ -823,6 +823,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
         <div className="relative min-w-[14rem] flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            ref={searchInputRef}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -831,7 +832,29 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
             onFocus={() => setSuggestOpen(true)}
             onBlur={() => setTimeout(() => setSuggestOpen(false), 150)}
             onKeyDown={(e) => {
-              if (e.key === "Escape") setSuggestOpen(false);
+              if (e.key === "Escape") {
+                setSuggestOpen(false);
+                searchInputRef.current?.blur();
+                return;
+              }
+              if (!suggestOpen || suggestions.length === 0) {
+                if (e.key === "Enter") {
+                  setSuggestOpen(false);
+                  searchInputRef.current?.blur();
+                }
+                return;
+              }
+              if (e.key === "ArrowDown") {
+                e.preventDefault();
+                setActiveIdx((i) => (i + 1) % suggestions.length);
+              } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                setActiveIdx((i) => (i - 1 + suggestions.length) % suggestions.length);
+              } else if (e.key === "Enter") {
+                e.preventDefault();
+                const sug = suggestions[activeIdx] ?? suggestions[0];
+                if (sug) pickSuggestion(sug.value);
+              }
             }}
             placeholder="Поиск по ФИО, телефону, email…"
             className="pl-8"
@@ -844,12 +867,14 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
                 <button
                   key={`${sug.field}-${sug.value}-${i}`}
                   type="button"
+                  onMouseEnter={() => setActiveIdx(i)}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    setSearch(sug.value);
-                    setSuggestOpen(false);
+                    pickSuggestion(sug.value);
                   }}
-                  className="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm hover:bg-accent"
+                  className={`flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm ${
+                    i === activeIdx ? "bg-accent" : "hover:bg-accent"
+                  }`}
                 >
                   <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground">
                     {sug.field === "name" ? (
