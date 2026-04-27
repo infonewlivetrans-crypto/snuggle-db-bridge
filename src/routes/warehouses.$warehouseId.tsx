@@ -185,6 +185,27 @@ function WarehouseDetailPage() {
     };
   }, [warehouseId, qc]);
 
+  // Realtime — сотрудники склада обновляются автоматически (актуальность подсказок)
+  useEffect(() => {
+    const channel = supabase
+      .channel(`warehouse-staff-${warehouseId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "warehouse_staff",
+          filter: `warehouse_id=eq.${warehouseId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["warehouse_staff", warehouseId] });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+
   if (isLoading || !warehouse) {
     return (
       <div className="min-h-screen bg-background">
