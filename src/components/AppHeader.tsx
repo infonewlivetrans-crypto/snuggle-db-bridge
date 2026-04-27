@@ -1,115 +1,113 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { BarChart3, Route as RouteIcon, Building2, User, Truck, Warehouse, Settings } from "lucide-react";
+import {
+  BarChart3,
+  Route as RouteIcon,
+  Building2,
+  User,
+  Truck,
+  Warehouse,
+  Settings,
+  Menu,
+} from "lucide-react";
+import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+
+const NAV_ITEMS = [
+  { to: "/", label: "Заказы", icon: BarChart3, match: (p: string) => p === "/" },
+  { to: "/routes", label: "Маршруты", icon: RouteIcon, match: (p: string) => p.startsWith("/routes") },
+  { to: "/carriers", label: "Перевозчики", icon: Building2, match: (p: string) => p.startsWith("/carriers") },
+  { to: "/drivers", label: "Водители", icon: User, match: (p: string) => p.startsWith("/drivers") },
+  { to: "/vehicles", label: "Авто", icon: Truck, match: (p: string) => p.startsWith("/vehicles") },
+  { to: "/warehouses", label: "Склады", icon: Warehouse, match: (p: string) => p.startsWith("/warehouses") },
+  { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p: string) => p.startsWith("/admin") },
+] as const;
 
 export function AppHeader() {
   const location = useLocation();
   const path = location.pathname;
+  const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center">
-            <BrandLogo size={36} />
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
+        <div className="flex min-w-0 items-center gap-3 md:gap-8">
+          {/* Мобильное меню — гамбургер */}
+          <Sheet open={open} onOpenChange={setOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label="Открыть меню"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 p-0">
+              <div className="border-b border-border px-5 py-4">
+                <BrandLogo size={32} />
+              </div>
+              <nav className="flex flex-col gap-1 p-3">
+                {NAV_ITEMS.map((item) => {
+                  const active = item.match(path);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setOpen(false)}
+                      className={`inline-flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                        active
+                          ? "bg-foreground text-background"
+                          : "text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          <Link to="/" className="flex min-w-0 items-center">
+            {/* На самых узких показываем только знак, чтобы не ломать шапку */}
+            <span className="md:hidden">
+              <BrandLogo size={32} />
+            </span>
+            <span className="hidden md:inline-flex">
+              <BrandLogo size={36} />
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-1 md:flex">
-            <Link
-              to="/"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path === "/"
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Заказы
-              </span>
-            </Link>
-            <Link
-              to="/routes"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path.startsWith("/routes")
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <RouteIcon className="h-4 w-4" />
-                Маршруты
-              </span>
-            </Link>
-            <Link
-              to="/carriers"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path.startsWith("/carriers")
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Building2 className="h-4 w-4" />
-                Перевозчики
-              </span>
-            </Link>
-            <Link
-              to="/drivers"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path.startsWith("/drivers")
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Водители
-              </span>
-            </Link>
-            <Link
-              to="/vehicles"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path.startsWith("/vehicles")
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Truck className="h-4 w-4" />
-                Авто
-              </span>
-            </Link>
-            <Link
-              to="/warehouses"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path.startsWith("/warehouses")
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Warehouse className="h-4 w-4" />
-                Склады
-              </span>
-            </Link>
-            <Link
-              to="/admin/settings"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                path.startsWith("/admin")
-                  ? "bg-foreground text-background"
-                  : "text-foreground hover:bg-secondary"
-              }`}
-            >
-              <span className="inline-flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Настройки
-              </span>
-            </Link>
+            {NAV_ITEMS.map((item) => {
+              const active = item.match(path);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    active
+                      ? "bg-foreground text-background"
+                      : "text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <div className="hidden text-right sm:block">
             <div className="text-sm font-medium text-foreground">Менеджер логистики</div>
             <div className="text-xs text-muted-foreground">Радиус Трек</div>
