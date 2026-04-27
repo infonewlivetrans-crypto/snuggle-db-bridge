@@ -739,6 +739,19 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   const [roleFilter, setRoleFilter] = useState<"all" | WarehouseStaffRole>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("active");
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Сбрасываем активный индекс при смене подсказок
+  useEffect(() => {
+    setActiveIdx(0);
+  }, [search, staff.length]);
+
+  const pickSuggestion = (value: string) => {
+    setSearch(value);
+    setSuggestOpen(false);
+    searchInputRef.current?.blur();
+  };
 
   // Подсказки автодополнения: уникальные ФИО / телефоны / email,
   // отфильтрованные по текущему вводу. Уважают role/status фильтры.
