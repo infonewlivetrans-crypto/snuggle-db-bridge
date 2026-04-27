@@ -33,7 +33,11 @@ export type Order = {
   contact_phone: string | null;
   map_link: string | null;
   delivery_photo_url: string | null;
+  total_weight_kg: number | null;
+  total_volume_m3: number | null;
+  items_count: number | null;
 };
+
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   new: "Новый",
