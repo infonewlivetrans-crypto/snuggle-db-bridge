@@ -3,6 +3,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  enqueue as enqueueOp,
+  registerHandler,
+  subscribe as subscribeQueue,
+  type QueueOp,
+} from "@/lib/offline-queue";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -697,6 +703,49 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     setDialogOpen(true);
   };
 
+  // Регистрируем обработчики офлайн-очереди один раз для warehouse_staff.
+  // Они выполняются при возврате сети либо по таймеру повторов.
+  useEffect(() => {
+    registerHandler("staff.save.create", async (payload) => {
+      const p = payload as Record<string, unknown>;
+      const { error } = await db.from("warehouse_staff").insert(p);
+      if (error) throw error;
+      invalidate();
+    });
+    registerHandler("staff.save.update", async (payload) => {
+      const { id, ...rest } = payload as { id: string } & Record<string, unknown>;
+      const { error } = await db.from("warehouse_staff").update(rest).eq("id", id);
+      if (error) throw error;
+      invalidate();
+    });
+    registerHandler("staff.toggle", async (payload) => {
+      const { id, is_active } = payload as { id: string; is_active: boolean };
+      const { error } = await db
+        .from("warehouse_staff")
+        .update({ is_active })
+        .eq("id", id);
+      if (error) throw error;
+      invalidate();
+    });
+    registerHandler("staff.remove", async (payload) => {
+      const { id } = payload as { id: string };
+      const { error } = await db.from("warehouse_staff").delete().eq("id", id);
+      if (error) throw error;
+      invalidate();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [warehouseId]);
+
+  // Подписка на состояние очереди — для индикатора и оптимистичных обновлений UI
+  const [queueItems, setQueueItems] = useState<QueueOp[]>([]);
+  useEffect(() => {
+    return subscribeQueue(setQueueItems);
+  }, []);
+  const pendingStaffOps = useMemo(
+    () => queueItems.filter((q) => q.kind.startsWith("staff.")),
+    [queueItems]
+  );
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.full_name.trim()) throw new Error("Укажите ФИО");
@@ -709,19 +758,17 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
         comment: form.comment.trim() || null,
       };
       if (editing) {
-        const { error } = await db
-          .from("warehouse_staff")
-          .update(payload)
-          .eq("id", editing.id);
-        if (error) throw error;
+        enqueueOp(
+          "staff.save.update",
+          { id: editing.id, ...payload },
+          `Изменение: ${payload.full_name}`
+        );
       } else {
-        const { error } = await db.from("warehouse_staff").insert(payload);
-        if (error) throw error;
+        enqueueOp("staff.save.create", payload, `Добавление: ${payload.full_name}`);
       }
     },
     onSuccess: () => {
-      invalidate();
-      toast.success(editing ? "Сотрудник обновлён" : "Сотрудник добавлен");
+      toast.success(editing ? "Изменения поставлены в очередь" : "Сотрудник поставлен в очередь");
       setDialogOpen(false);
       setEditing(null);
       setForm(EMPTY_STAFF_FORM);
@@ -731,28 +778,25 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
 
   const toggleActive = useMutation({
     mutationFn: async (s: WarehouseStaff) => {
-      const { error } = await db
-        .from("warehouse_staff")
-        .update({ is_active: !s.is_active })
-        .eq("id", s.id);
-      if (error) throw error;
+      enqueueOp(
+        "staff.toggle",
+        { id: s.id, is_active: !s.is_active },
+        `${s.is_active ? "Деактивация" : "Активация"}: ${s.full_name}`
+      );
       return !s.is_active;
     },
     onSuccess: (nowActive) => {
-      invalidate();
-      toast.success(nowActive ? "Сотрудник активирован" : "Сотрудник деактивирован");
+      toast.success(nowActive ? "Активация в очереди" : "Деактивация в очереди");
     },
     onError: (err: Error) => toast.error(err.message),
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db.from("warehouse_staff").delete().eq("id", id);
-      if (error) throw error;
+      enqueueOp("staff.remove", { id }, `Удаление сотрудника`);
     },
     onSuccess: () => {
-      invalidate();
-      toast.success("Удалено");
+      toast.success("Удаление поставлено в очередь");
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -829,10 +873,19 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
           {totalActive} активных{totalInactive > 0 ? ` · ${totalInactive} в архиве` : ""}
+          {pendingStaffOps.length > 0 && (
+            <span
+              className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400"
+              title={pendingStaffOps.map((p) => p.label ?? p.kind).join("\n")}
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+              В очереди: {pendingStaffOps.length}
+            </span>
+          )}
         </div>
         <Button size="sm" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
