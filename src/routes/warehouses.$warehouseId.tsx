@@ -205,6 +205,7 @@ function WarehouseDetailPage() {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [warehouseId, qc]);
 
   if (isLoading || !warehouse) {
     return (
