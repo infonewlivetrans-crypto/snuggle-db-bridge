@@ -283,6 +283,13 @@ function RouteDetailPage() {
                     {route.warehouse.city ? ` · ${route.warehouse.city}` : ""}
                   </span>
                 )}
+                {route.destination_warehouse && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Warehouse className="h-4 w-4 text-muted-foreground" />
+                    → {route.destination_warehouse.name}
+                    {route.destination_warehouse.city ? ` · ${route.destination_warehouse.city}` : ""}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   {new Date(route.route_date).toLocaleDateString("ru-RU", {
