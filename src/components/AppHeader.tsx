@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Package, BarChart3, Route as RouteIcon, Building2, User, Truck, Warehouse } from "lucide-react";
+import { Package, BarChart3, Route as RouteIcon, Building2, User, Truck, Warehouse, Settings } from "lucide-react";
 
 export function AppHeader() {
   const location = useLocation();
