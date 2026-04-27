@@ -23,11 +23,16 @@ import {
   POINT_STATUS_LABELS,
   POINT_STATUS_ORDER,
   POINT_STATUS_STYLES,
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_STYLES,
+  checkVehicleFit,
 } from "@/lib/routes";
 import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { BODY_TYPE_LABELS } from "@/lib/carriers";
+import type { BodyType } from "@/lib/carriers";
 import {
   ArrowLeft,
   Calendar,
@@ -40,12 +45,23 @@ import {
   AlertTriangle,
   Truck,
   Warehouse,
+  Scale,
+  Box,
 } from "lucide-react";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
 type RouteWithRefs = DeliveryRoute & {
   warehouse: { id: string; name: string; city: string | null; address: string | null } | null;
-  vehicle: { id: string; plate_number: string; brand: string | null; model: string | null; body_type: string } | null;
+  destination_warehouse: { id: string; name: string; city: string | null } | null;
+  vehicle: {
+    id: string;
+    plate_number: string;
+    brand: string | null;
+    model: string | null;
+    body_type: BodyType;
+    capacity_kg: number | null;
+    volume_m3: number | null;
+  } | null;
   driver: { id: string; full_name: string; phone: string | null } | null;
 };
 
@@ -89,15 +105,42 @@ function RouteDetailPage() {
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
     queryFn: async (): Promise<RouteWithRefs | null> => {
+      // Без FK в БД делаем 2 запроса вместо embed
       const { data, error } = await supabase
         .from("routes")
-        .select(
-          "*, warehouse:warehouses(id, name, city, address), vehicle:vehicles(id, plate_number, brand, model, body_type), driver:drivers(id, full_name, phone)",
-        )
+        .select("*")
         .eq("id", routeId)
         .maybeSingle();
       if (error) throw error;
-      return data as RouteWithRefs | null;
+      if (!data) return null;
+      const r = data as DeliveryRoute;
+
+      const [wh, dwh, veh, drv] = await Promise.all([
+        r.warehouse_id
+          ? supabase.from("warehouses").select("id, name, city, address").eq("id", r.warehouse_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        r.destination_warehouse_id
+          ? supabase.from("warehouses").select("id, name, city").eq("id", r.destination_warehouse_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        r.vehicle_id
+          ? supabase
+              .from("vehicles")
+              .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3")
+              .eq("id", r.vehicle_id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        r.driver_id
+          ? supabase.from("drivers").select("id, full_name, phone").eq("id", r.driver_id).maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+
+      return {
+        ...r,
+        warehouse: (wh.data ?? null) as RouteWithRefs["warehouse"],
+        destination_warehouse: (dwh.data ?? null) as RouteWithRefs["destination_warehouse"],
+        vehicle: (veh.data ?? null) as RouteWithRefs["vehicle"],
+        driver: (drv.data ?? null) as RouteWithRefs["driver"],
+      };
     },
   });
 
@@ -206,8 +249,11 @@ function RouteDetailPage() {
         <div className="mb-6 rounded-lg border border-border bg-card p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="font-mono text-sm text-muted-foreground">{route.route_number}</div>
+                <Badge variant="outline" className={REQUEST_TYPE_STYLES[route.request_type]}>
+                  {REQUEST_TYPE_LABELS[route.request_type]}
+                </Badge>
                 <Badge variant="outline" className="border-border bg-secondary text-xs text-muted-foreground">
                   <Database className="mr-1 h-3 w-3" />
                   Источник: 1С
@@ -235,6 +281,13 @@ function RouteDetailPage() {
                     <Warehouse className="h-4 w-4 text-muted-foreground" />
                     {route.warehouse.name}
                     {route.warehouse.city ? ` · ${route.warehouse.city}` : ""}
+                  </span>
+                )}
+                {route.destination_warehouse && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Warehouse className="h-4 w-4 text-muted-foreground" />
+                    → {route.destination_warehouse.name}
+                    {route.destination_warehouse.city ? ` · ${route.destination_warehouse.city}` : ""}
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1.5">
@@ -281,7 +334,11 @@ function RouteDetailPage() {
           </div>
         </div>
 
+        {/* Заявка на транспорт: сводка и проверка ТС */}
+        <RequestSummary route={route} />
+
         {/* Уведомления о брака / недоставке */}
+
         {(defectiveCount > 0 || failedCount > 0) && (
           <div className="mb-4 space-y-2">
             {defectiveCount > 0 && (
@@ -412,6 +469,87 @@ function RouteDetailPage() {
           </ol>
         )}
       </main>
+    </div>
+  );
+}
+
+function RequestSummary({ route }: { route: RouteWithRefs }) {
+  const fit = checkVehicleFit({
+    vehicle: route.vehicle,
+    totalWeightKg: Number(route.total_weight_kg ?? 0),
+    totalVolumeM3: Number(route.total_volume_m3 ?? 0),
+    requiredBodyType: route.required_body_type,
+  });
+  return (
+    <div className="mb-4 rounded-lg border border-border bg-card p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground">Заявка на транспорт</h2>
+        {route.required_body_type && (
+          <span className="text-xs text-muted-foreground">
+            Требуется кузов: {BODY_TYPE_LABELS[route.required_body_type]}
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+        <div>
+          <div className="text-xs text-muted-foreground">Точек</div>
+          <div className="font-semibold text-foreground">{route.points_count}</div>
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Scale className="h-3 w-3" /> Вес
+          </div>
+          <div className="font-semibold text-foreground">
+            {Number(route.total_weight_kg ?? 0).toFixed(2)} кг
+          </div>
+          {fit.weightLoadPct !== null && (
+            <div className="text-xs text-muted-foreground">
+              Загрузка: {fit.weightLoadPct.toFixed(0)}%
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Box className="h-3 w-3" /> Объём
+          </div>
+          <div className="font-semibold text-foreground">
+            {Number(route.total_volume_m3 ?? 0).toFixed(2)} м³
+          </div>
+          {fit.volumeLoadPct !== null && (
+            <div className="text-xs text-muted-foreground">
+              Загрузка: {fit.volumeLoadPct.toFixed(0)}%
+            </div>
+          )}
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground">Машина</div>
+          <div className="font-semibold text-foreground">
+            {route.vehicle ? route.vehicle.plate_number : "—"}
+          </div>
+          {route.vehicle && (
+            <div className="text-xs text-muted-foreground">
+              {BODY_TYPE_LABELS[route.vehicle.body_type]}
+              {route.vehicle.capacity_kg ? ` · ${route.vehicle.capacity_kg} кг` : ""}
+              {route.vehicle.volume_m3 ? ` · ${route.vehicle.volume_m3} м³` : ""}
+            </div>
+          )}
+        </div>
+      </div>
+      {route.vehicle && !fit.ok && (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="font-medium">
+            Выбранный транспорт не подходит по{" "}
+            {[
+              fit.issues.includes("capacity_kg") && "весу",
+              fit.issues.includes("volume_m3") && "объёму",
+              fit.issues.includes("body_type") && "типу кузова",
+            ]
+              .filter(Boolean)
+              .join(" / ")}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

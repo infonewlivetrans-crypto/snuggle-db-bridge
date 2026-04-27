@@ -25,9 +25,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
 import { STATUS_LABELS, STATUS_STYLES } from "@/lib/orders";
-import type { Driver, Vehicle } from "@/lib/carriers";
-import type { Warehouse } from "@/lib/routes";
-import { ArrowDown, ArrowUp, X, Search, MapPin, GripVertical } from "lucide-react";
+import type { Driver, Vehicle, BodyType } from "@/lib/carriers";
+import { BODY_TYPE_LABELS, BODY_TYPE_ORDER } from "@/lib/carriers";
+import type { Warehouse, TransportRequestType } from "@/lib/routes";
+import {
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_ORDER,
+  checkVehicleFit,
+} from "@/lib/routes";
+import { ArrowDown, ArrowUp, X, Search, MapPin, GripVertical, AlertTriangle, Scale, Box } from "lucide-react";
 
 interface CreateRouteDialogProps {
   open: boolean;
@@ -37,6 +43,11 @@ interface CreateRouteDialogProps {
 export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [requestType, setRequestType] = useState<TransportRequestType>("client_delivery");
+  const [destinationWarehouseId, setDestinationWarehouseId] = useState<string>("");
+  const [requiredBodyType, setRequiredBodyType] = useState<BodyType | "">("");
+  const [manualWeightKg, setManualWeightKg] = useState<string>("");
+  const [manualVolumeM3, setManualVolumeM3] = useState<string>("");
   const [driverId, setDriverId] = useState<string>("");
   const [vehicleId, setVehicleId] = useState<string>("");
   const [warehouseId, setWarehouseId] = useState<string>("");
@@ -66,7 +77,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryFn: async (): Promise<Vehicle[]> => {
       const { data, error } = await db
         .from("vehicles")
-        .select("id, plate_number, brand, model, body_type, is_active, carrier_id")
+        .select("id, plate_number, brand, model, body_type, is_active, carrier_id, capacity_kg, volume_m3")
         .eq("is_active", true)
         .order("plate_number", { ascending: true });
       if (error) throw error;
@@ -135,6 +146,33 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     }
   }, [filteredVehicles, vehicleId]);
 
+  // Расчёт суммарного веса/объёма по выбранным заказам (для client_delivery)
+  const computedTotals = useMemo(() => {
+    let w = 0;
+    let v = 0;
+    let items = 0;
+    for (const id of selectedIds) {
+      const o = ordersById.get(id);
+      if (!o) continue;
+      w += Number(o.total_weight_kg ?? 0);
+      v += Number(o.total_volume_m3 ?? 0);
+      items += Number(o.items_count ?? 0);
+    }
+    return { w, v, items };
+  }, [selectedIds, ordersById]);
+
+  const isTransfer = requestType !== "client_delivery";
+  const totalWeight = isTransfer ? Number(manualWeightKg || 0) : computedTotals.w;
+  const totalVolume = isTransfer ? Number(manualVolumeM3 || 0) : computedTotals.v;
+
+  const selectedVehicle = filteredVehicles.find((v) => v.id === vehicleId) ?? null;
+  const fit = checkVehicleFit({
+    vehicle: selectedVehicle,
+    totalWeightKg: totalWeight,
+    totalVolumeM3: totalVolume,
+    requiredBodyType: requiredBodyType || null,
+  });
+
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
@@ -159,6 +197,11 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     setDriverId("");
     setVehicleId("");
     setWarehouseId("");
+    setDestinationWarehouseId("");
+    setRequestType("client_delivery");
+    setRequiredBodyType("");
+    setManualWeightKg("");
+    setManualVolumeM3("");
     setComment("");
     setSearch("");
     setSelectedIds([]);
@@ -168,7 +211,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
   const mutation = useMutation({
     mutationFn: async () => {
       if (!driverId) throw new Error("Выберите водителя");
-      if (selectedIds.length === 0) throw new Error("Выберите хотя бы один заказ");
+      if (requestType === "client_delivery" && selectedIds.length === 0)
+        throw new Error("Выберите хотя бы один заказ");
+      if (requestType === "warehouse_transfer" && !destinationWarehouseId)
+        throw new Error("Укажите склад назначения");
 
       const driver = drivers?.find((d) => d.id === driverId);
       const driverName = driver?.full_name ?? "";
@@ -185,22 +231,33 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           driver_id: driverId,
           vehicle_id: vehicleId || null,
           warehouse_id: warehouseId || null,
+          destination_warehouse_id: destinationWarehouseId || null,
+          request_type: requestType,
+          required_body_type: requiredBodyType || null,
+          required_capacity_kg: totalWeight > 0 ? totalWeight : null,
+          required_volume_m3: totalVolume > 0 ? totalVolume : null,
           route_date: routeDate,
+          planned_departure_at: null,
           comment: comment.trim() || null,
           status: "planned",
+          // Для warehouse_transfer передадим вручную, иначе пересчитает триггер
+          total_weight_kg: isTransfer ? totalWeight : 0,
+          total_volume_m3: isTransfer ? totalVolume : 0,
         })
         .select()
         .single();
       if (routeErr) throw routeErr;
 
-      const points = selectedIds.map((orderId, idx) => ({
-        route_id: route.id,
-        order_id: orderId,
-        point_number: idx + 1,
-        status: "pending" as const,
-      }));
-      const { error: pointsErr } = await supabase.from("route_points").insert(points);
-      if (pointsErr) throw pointsErr;
+      if (selectedIds.length > 0) {
+        const points = selectedIds.map((orderId, idx) => ({
+          route_id: route.id,
+          order_id: orderId,
+          point_number: idx + 1,
+          status: "pending" as const,
+        }));
+        const { error: pointsErr } = await supabase.from("route_points").insert(points);
+        if (pointsErr) throw pointsErr;
+      }
 
       return route;
     },
@@ -225,15 +282,83 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Создание маршрута</DialogTitle>
+          <DialogTitle>Заявка на транспорт</DialogTitle>
           <DialogDescription>
-            Выберите склад, водителя, машину и заказы — задайте порядок доставки
+            Тип заявки, склады, требуемая машина и состав груза
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
+          {/* Тип заявки */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Тип заявки *</Label>
+              <Select value={requestType} onValueChange={(v) => setRequestType(v as TransportRequestType)}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {REQUEST_TYPE_ORDER.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {REQUEST_TYPE_LABELS[t]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Требуемый тип кузова</Label>
+              <Select value={requiredBodyType} onValueChange={(v) => setRequiredBodyType(v as BodyType)}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder="Любой" />
+                </SelectTrigger>
+                <SelectContent>
+                  {BODY_TYPE_ORDER.map((b) => (
+                    <SelectItem key={b} value={b}>
+                      {BODY_TYPE_LABELS[b]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Параметры маршрута */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Склад отправки</Label>
+              <Select value={warehouseId} onValueChange={setWarehouseId}>
+                <SelectTrigger className="mt-1.5">
+                  <SelectValue placeholder={(warehouses?.length ?? 0) === 0 ? "Сначала добавьте склад" : "Выберите склад"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(warehouses ?? []).map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.name}
+                      {w.city ? ` · ${w.city}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {requestType === "warehouse_transfer" && (
+              <div>
+                <Label>Склад назначения *</Label>
+                <Select value={destinationWarehouseId} onValueChange={setDestinationWarehouseId}>
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Выберите склад" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(warehouses ?? []).filter((w) => w.id !== warehouseId).map((w) => (
+                      <SelectItem key={w.id} value={w.id}>
+                        {w.name}
+                        {w.city ? ` · ${w.city}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <Label>Склад отправки</Label>
               <Select value={warehouseId} onValueChange={setWarehouseId}>
@@ -284,11 +409,109 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
                   {filteredVehicles.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
                       {v.plate_number} · {[v.brand, v.model].filter(Boolean).join(" ") || "—"}
+                      {v.capacity_kg ? ` · ${v.capacity_kg} кг` : ""}
+                      {v.volume_m3 ? ` · ${v.volume_m3} м³` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Ручной ввод веса/объёма для перемещений */}
+          {isTransfer && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Общий вес, кг *</Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.1"
+                  value={manualWeightKg}
+                  onChange={(e) => setManualWeightKg(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label>Общий объём, м³ *</Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  value={manualVolumeM3}
+                  onChange={(e) => setManualVolumeM3(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Сводка и проверка машины */}
+          <div className="rounded-lg border border-border bg-secondary/30 p-3">
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              <div>
+                <div className="text-xs text-muted-foreground">Точек</div>
+                <div className="font-semibold text-foreground">
+                  {requestType === "client_delivery" ? selectedIds.length : 1}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Товаров</div>
+                <div className="font-semibold text-foreground">
+                  {requestType === "client_delivery" ? computedTotals.items : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Scale className="h-3 w-3" /> Вес
+                </div>
+                <div className="font-semibold text-foreground">{totalWeight.toFixed(2)} кг</div>
+                {fit.weightLoadPct !== null && (
+                  <div className="text-xs text-muted-foreground">
+                    Загрузка: {fit.weightLoadPct.toFixed(0)}%
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Box className="h-3 w-3" /> Объём
+                </div>
+                <div className="font-semibold text-foreground">{totalVolume.toFixed(2)} м³</div>
+                {fit.volumeLoadPct !== null && (
+                  <div className="text-xs text-muted-foreground">
+                    Загрузка: {fit.volumeLoadPct.toFixed(0)}%
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedVehicle && !fit.ok && (
+              <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <div className="font-semibold">
+                    Выбранный транспорт не подходит по{" "}
+                    {[
+                      fit.issues.includes("capacity_kg") && "весу",
+                      fit.issues.includes("volume_m3") && "объёму",
+                      fit.issues.includes("body_type") && "типу кузова",
+                    ]
+                      .filter(Boolean)
+                      .join(" / ")}
+                  </div>
+                  <div className="text-xs text-amber-800">
+                    Сохранить заявку всё равно можно — это предупреждение.
+                  </div>
+                </div>
+              </div>
+            )}
+            {!selectedVehicle && (
+              <div className="mt-3 text-xs text-muted-foreground">
+                Выберите машину, чтобы проверить грузоподъёмность и объём кузова.
+              </div>
+            )}
           </div>
 
           <div>
@@ -301,7 +524,8 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
             />
           </div>
 
-          {/* Выбор заказов */}
+          {/* Выбор заказов — только для доставки клиентам */}
+          {requestType === "client_delivery" && (
           <div>
             <div className="mb-2 flex items-center justify-between">
               <Label>Доступные заказы</Label>
@@ -361,6 +585,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
               )}
             </div>
           </div>
+          )}
 
           {/* Порядок доставки */}
           {selectedIds.length > 0 && (
@@ -426,7 +651,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
               Отмена
             </Button>
             <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-              {mutation.isPending ? "Создание..." : "Создать маршрут"}
+              {mutation.isPending ? "Создание..." : "Создать заявку"}
             </Button>
           </div>
         </div>

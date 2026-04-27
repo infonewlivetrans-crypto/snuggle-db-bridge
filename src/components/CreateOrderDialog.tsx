@@ -48,6 +48,9 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   const [requiresQr, setRequiresQr] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [weightKg, setWeightKg] = useState("");
+  const [volumeM3, setVolumeM3] = useState("");
+  const [itemsCount, setItemsCount] = useState("");
 
   const reset = () => {
     setOrderNumber("");
@@ -122,6 +125,9 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         payment_type: paymentType,
         requires_qr: requiresQr,
         delivery_photo_url: photoUrl,
+        total_weight_kg: weightKg ? Number(weightKg) : null,
+        total_volume_m3: volumeM3 ? Number(volumeM3) : null,
+        items_count: itemsCount ? Number(itemsCount) : null,
         status: "new",
       });
       if (error) throw error;
@@ -363,6 +369,21 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 />
               </label>
             )}
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label>Вес, кг</Label>
+              <Input type="number" min={0} step="0.1" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Объём, м³</Label>
+              <Input type="number" min={0} step="0.01" value={volumeM3} onChange={(e) => setVolumeM3(e.target.value)} className="mt-1.5" />
+            </div>
+            <div>
+              <Label>Кол-во товаров</Label>
+              <Input type="number" min={0} step="1" value={itemsCount} onChange={(e) => setItemsCount(e.target.value)} className="mt-1.5" />
+            </div>
           </div>
 
           <div>

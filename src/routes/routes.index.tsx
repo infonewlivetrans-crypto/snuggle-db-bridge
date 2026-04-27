@@ -28,8 +28,10 @@ import {
   ROUTE_STATUS_LABELS,
   ROUTE_STATUS_ORDER,
   ROUTE_STATUS_STYLES,
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_STYLES,
 } from "@/lib/routes";
-import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User } from "lucide-react";
+import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box } from "lucide-react";
 
 type RouteWithCount = DeliveryRoute & { points_count: number };
 
@@ -94,10 +96,10 @@ function RoutesPage() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Маршруты доставки
+              Заявки на транспорт
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Планирование и управление маршрутами водителей
+              Маршруты, перемещения между складами и доставка с заводов
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -160,22 +162,24 @@ function RoutesPage() {
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
                 <TableHead className="font-semibold text-foreground">Номер</TableHead>
+                <TableHead className="font-semibold text-foreground">Тип</TableHead>
                 <TableHead className="font-semibold text-foreground">Дата</TableHead>
                 <TableHead className="font-semibold text-foreground">Водитель</TableHead>
                 <TableHead className="font-semibold text-foreground">Точек</TableHead>
+                <TableHead className="font-semibold text-foreground">Груз</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                     Загрузка маршрутов...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={7} className="py-12 text-center">
                     <RouteIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Маршруты не найдены</div>
                     <Button
@@ -200,6 +204,11 @@ function RoutesPage() {
                         {r.route_number}
                       </Link>
                     </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={REQUEST_TYPE_STYLES[r.request_type]}>
+                        {REQUEST_TYPE_LABELS[r.request_type]}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-sm">
                       <span className="inline-flex items-center gap-1.5 text-foreground">
                         <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
@@ -214,6 +223,18 @@ function RoutesPage() {
                     </TableCell>
                     <TableCell className="text-sm font-medium text-foreground">
                       {r.points_count}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex items-center gap-1">
+                          <Scale className="h-3 w-3" />
+                          {Number(r.total_weight_kg ?? 0).toFixed(1)} кг
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Box className="h-3 w-3" />
+                          {Number(r.total_volume_m3 ?? 0).toFixed(2)} м³
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={ROUTE_STATUS_STYLES[r.status]}>
