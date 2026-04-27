@@ -173,6 +173,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     requiredBodyType: requiredBodyType || null,
   });
 
+  const toggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
