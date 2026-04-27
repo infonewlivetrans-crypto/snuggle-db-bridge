@@ -1068,6 +1068,21 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               </button>
             );
           })}
+          {(errorScope !== "current" || opKindFilter !== "all") && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setErrorScope("current");
+                setOpKindFilter("all");
+              }}
+              className="h-8 gap-1 text-xs"
+              title="Вернуть область и тип к значениям по умолчанию"
+            >
+              <X className="h-3 w-3" />
+              Сбросить фильтры
+            </Button>
+          )}
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
             Добавить
