@@ -30,6 +30,7 @@ import {
 } from "@/lib/orders";
 import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { AddOrderToRouteDialog } from "@/components/AddOrderToRouteDialog";
 import {
   MessageSquare,
   Banknote,
@@ -39,6 +40,7 @@ import {
   Database,
   AlertTriangle,
   CheckCircle2,
+  Route as RouteIcon,
 } from "lucide-react";
 
 type DeliveryReport = {
