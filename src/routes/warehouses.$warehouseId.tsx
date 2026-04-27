@@ -950,10 +950,41 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
             </span>
           )}
         </div>
-        <Button size="sm" onClick={openCreate} className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          Добавить
-        </Button>
+        <div className="flex items-center gap-2">
+          <div
+            className="inline-flex items-center rounded-md border border-border bg-background p-0.5 text-xs"
+            role="group"
+            aria-label="Область ошибок и очереди"
+            title="Показывать события очереди только этого склада или всех"
+          >
+            <button
+              type="button"
+              onClick={() => setErrorScope("current")}
+              className={`rounded px-2 py-1 transition-colors ${
+                errorScope === "current"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Этот склад
+            </button>
+            <button
+              type="button"
+              onClick={() => setErrorScope("all")}
+              className={`rounded px-2 py-1 transition-colors ${
+                errorScope === "all"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Все склады
+            </button>
+          </div>
+          <Button size="sm" onClick={openCreate} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Добавить
+          </Button>
+        </div>
       </div>
 
       {/* Поиск и фильтры */}
