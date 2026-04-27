@@ -337,6 +337,8 @@ function RouteDetailPage() {
         {/* Заявка на транспорт: сводка и проверка ТС */}
         <RequestSummary route={route} />
 
+        {/* Уведомления о брака / недоставке */}
+
         {(defectiveCount > 0 || failedCount > 0) && (
           <div className="mb-4 space-y-2">
             {defectiveCount > 0 && (
