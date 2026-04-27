@@ -10,6 +10,18 @@ export type QueueOp = {
   attempts: number;
   nextAt: number; // timestamp ms
   createdAt: number;
+  lastError?: string; // сообщение последней неудачной попытки
+  lastErrorAt?: number; // timestamp последней ошибки
+};
+
+export type QueueFailure = {
+  id: string;
+  kind: string;
+  label?: string;
+  message: string;
+  at: number;
+  attempts: number;
+  dropped: boolean; // true, если задача была отброшена после исчерпания попыток
 };
 
 type Handler = (payload: unknown) => Promise<void>;
@@ -21,8 +33,25 @@ const MAX_DELAY = 60_000; // 1 min
 
 const handlers = new Map<string, Handler>();
 const listeners = new Set<(items: QueueOp[]) => void>();
+const failureListeners = new Set<(failure: QueueFailure | null) => void>();
+let lastFailure: QueueFailure | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let processing = false;
+
+function errMessage(err: unknown): string {
+  if (err instanceof Error) return err.message || "Неизвестная ошибка";
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Неизвестная ошибка";
+  }
+}
+
+function setLastFailure(f: QueueFailure | null) {
+  lastFailure = f;
+  failureListeners.forEach((l) => l(f));
+}
 
 const isBrowser = () => typeof window !== "undefined";
 
@@ -92,19 +121,35 @@ export async function processQueue() {
         await handler(item.payload);
         items = load().filter((i) => i.id !== item.id);
         save(items);
+        // успех — если очередь пуста, скрываем последнюю ошибку
+        if (items.length === 0) setLastFailure(null);
       } catch (err) {
+        const message = errMessage(err);
+        const at = Date.now();
         items = load();
         const idx = items.findIndex((i) => i.id === item.id);
         if (idx >= 0) {
           items[idx].attempts += 1;
-          if (items[idx].attempts >= MAX_ATTEMPTS) {
+          items[idx].lastError = message;
+          items[idx].lastErrorAt = at;
+          const dropped = items[idx].attempts >= MAX_ATTEMPTS;
+          if (dropped) {
             // отказ — убираем, чтобы не зацикливаться
             items.splice(idx, 1);
             console.error("[offline-queue] dropped after max attempts", item, err);
           } else {
-            items[idx].nextAt = Date.now() + backoff(items[idx].attempts);
+            items[idx].nextAt = at + backoff(items[idx].attempts);
           }
           save(items);
+          setLastFailure({
+            id: item.id,
+            kind: item.kind,
+            label: item.label,
+            message,
+            at,
+            attempts: items[idx]?.attempts ?? item.attempts + 1,
+            dropped,
+          });
         }
       }
     }
@@ -151,6 +196,23 @@ export function subscribe(fn: (items: QueueOp[]) => void) {
 
 export function clearFailed() {
   save([]);
+  setLastFailure(null);
+}
+
+export function getLastFailure(): QueueFailure | null {
+  return lastFailure;
+}
+
+export function subscribeFailure(fn: (failure: QueueFailure | null) => void) {
+  failureListeners.add(fn);
+  fn(lastFailure);
+  return () => {
+    failureListeners.delete(fn);
+  };
+}
+
+export function dismissLastFailure() {
+  setLastFailure(null);
 }
 
 if (isBrowser()) {

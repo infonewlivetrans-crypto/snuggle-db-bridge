@@ -7,7 +7,10 @@ import {
   enqueue as enqueueOp,
   registerHandler,
   subscribe as subscribeQueue,
+  subscribeFailure,
+  dismissLastFailure,
   type QueueOp,
+  type QueueFailure,
 } from "@/lib/offline-queue";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -57,6 +60,8 @@ import {
   UserCheck,
   Search,
   Mail,
+  AlertTriangle,
+  X,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
@@ -746,6 +751,15 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     [queueItems]
   );
 
+  // Последняя ошибка повтора (обновляется при каждой неудаче)
+  const [lastFailure, setLastFailureState] = useState<QueueFailure | null>(null);
+  useEffect(() => {
+    return subscribeFailure(setLastFailureState);
+  }, []);
+  // Показываем только ошибки, относящиеся к сотрудникам этого склада
+  const staffFailure =
+    lastFailure && lastFailure.kind.startsWith("staff.") ? lastFailure : null;
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.full_name.trim()) throw new Error("Укажите ФИО");
@@ -884,6 +898,28 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
             >
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
               В очереди: {pendingStaffOps.length}
+            </span>
+          )}
+          {staffFailure && (
+            <span
+              className="ml-1 inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive"
+              title={`${staffFailure.label ?? staffFailure.kind}\nПопытка #${staffFailure.attempts}${
+                staffFailure.dropped ? " (отменено)" : ""
+              }\n${new Date(staffFailure.at).toLocaleTimeString()}\n${staffFailure.message}`}
+            >
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                {staffFailure.dropped ? "Отменено: " : "Ошибка: "}
+                {staffFailure.message}
+              </span>
+              <button
+                type="button"
+                onClick={() => dismissLastFailure()}
+                className="ml-0.5 rounded p-0.5 hover:bg-destructive/20"
+                aria-label="Скрыть ошибку"
+              >
+                <X className="h-3 w-3" />
+              </button>
             </span>
           )}
         </div>
