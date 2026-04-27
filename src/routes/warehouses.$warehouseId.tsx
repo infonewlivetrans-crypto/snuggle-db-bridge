@@ -794,6 +794,22 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     [queueItems, errorScope, opKindFilter, warehouseId]
   );
 
+  // Счётчики по типам (учитывают только фильтр области, не фильтр типа),
+  // чтобы каждый бейдж показывал реальное количество операций своего типа.
+  const opCounts = useMemo(() => {
+    const inScope = queueItems.filter((op) => {
+      if (!op.kind.startsWith("staff.")) return false;
+      if (errorScope === "all") return true;
+      const p = op.payload as { warehouse_id?: string } | null | undefined;
+      return p?.warehouse_id === warehouseId;
+    });
+    return {
+      save: inScope.filter((o) => o.kind.startsWith("staff.save")).length,
+      toggle: inScope.filter((o) => o.kind === "staff.toggle").length,
+      remove: inScope.filter((o) => o.kind === "staff.remove").length,
+    };
+  }, [queueItems, errorScope, warehouseId]);
+
   // Последняя ошибка повтора (обновляется при каждой неудаче)
   const [lastFailure, setLastFailureState] = useState<QueueFailure | null>(null);
   useEffect(() => {
@@ -1020,6 +1036,38 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               <SelectItem value="remove">Удаление</SelectItem>
             </SelectContent>
           </Select>
+          {(["save", "toggle", "remove"] as const).map((k) => {
+            const count = opCounts[k];
+            if (count === 0) return null;
+            const labels: Record<typeof k, string> = {
+              save: "Изменения",
+              toggle: "Активация",
+              remove: "Удаление",
+            };
+            const isActive = opKindFilter === k;
+            return (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setOpKindFilter(isActive ? "all" : k)}
+                title={`${labels[k]} в очереди: ${count}. Нажмите, чтобы ${
+                  isActive ? "сбросить" : "оставить только этот тип"
+                }`}
+                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium transition-colors ${
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-amber-500/15 text-amber-700 hover:bg-amber-500/25 dark:text-amber-400"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    isActive ? "bg-primary-foreground" : "animate-pulse bg-amber-500"
+                  }`}
+                />
+                {labels[k]}: {count}
+              </button>
+            );
+          })}
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
             Добавить
