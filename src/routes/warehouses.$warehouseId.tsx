@@ -749,6 +749,15 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     [queueItems]
   );
 
+  // Последняя ошибка повтора (обновляется при каждой неудаче)
+  const [lastFailure, setLastFailureState] = useState<QueueFailure | null>(null);
+  useEffect(() => {
+    return subscribeFailure(setLastFailureState);
+  }, []);
+  // Показываем только ошибки, относящиеся к сотрудникам этого склада
+  const staffFailure =
+    lastFailure && lastFailure.kind.startsWith("staff.") ? lastFailure : null;
+
   const save = useMutation({
     mutationFn: async () => {
       if (!form.full_name.trim()) throw new Error("Укажите ФИО");
