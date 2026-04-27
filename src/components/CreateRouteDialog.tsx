@@ -25,9 +25,15 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
 import { STATUS_LABELS, STATUS_STYLES } from "@/lib/orders";
-import type { Driver, Vehicle } from "@/lib/carriers";
-import type { Warehouse } from "@/lib/routes";
-import { ArrowDown, ArrowUp, X, Search, MapPin, GripVertical } from "lucide-react";
+import type { Driver, Vehicle, BodyType } from "@/lib/carriers";
+import { BODY_TYPE_LABELS, BODY_TYPE_ORDER } from "@/lib/carriers";
+import type { Warehouse, TransportRequestType } from "@/lib/routes";
+import {
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_ORDER,
+  checkVehicleFit,
+} from "@/lib/routes";
+import { ArrowDown, ArrowUp, X, Search, MapPin, GripVertical, AlertTriangle, Scale, Box } from "lucide-react";
 
 interface CreateRouteDialogProps {
   open: boolean;
