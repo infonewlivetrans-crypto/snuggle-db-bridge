@@ -49,6 +49,7 @@ import {
   Pencil,
   UserX,
   UserCheck,
+  Search,
 } from "lucide-react";
 import {
   DEFAULT_BREAKS,
