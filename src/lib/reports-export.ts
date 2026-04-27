@@ -13,7 +13,8 @@ import {
   ShadingType,
   AlignmentType,
 } from "docx";
-import { saveAs } from "file-saver";
+import FileSaver from "file-saver";
+const { saveAs } = FileSaver;
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_LABELS, PAYMENT_LABELS, type OrderStatus, type PaymentType } from "@/lib/orders";
 
