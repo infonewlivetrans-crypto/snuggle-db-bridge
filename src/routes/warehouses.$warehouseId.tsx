@@ -741,14 +741,35 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [warehouseId]);
 
+  // Фильтр области ошибок/очереди: текущий склад или все склады.
+  // Сохраняется в localStorage, чтобы выбор пользователя помнился между сессиями.
+  const [errorScope, setErrorScope] = useState<"current" | "all">(() => {
+    if (typeof window === "undefined") return "current";
+    const v = window.localStorage.getItem("warehouse.errorScope");
+    return v === "all" ? "all" : "current";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("warehouse.errorScope", errorScope);
+    }
+  }, [errorScope]);
+
+  const matchesScope = (op: { kind: string; payload: unknown }) => {
+    if (!op.kind.startsWith("staff.")) return false;
+    if (errorScope === "all") return true;
+    const p = op.payload as { warehouse_id?: string } | null | undefined;
+    return p?.warehouse_id === warehouseId;
+  };
+
   // Подписка на состояние очереди — для индикатора и оптимистичных обновлений UI
   const [queueItems, setQueueItems] = useState<QueueOp[]>([]);
   useEffect(() => {
     return subscribeQueue(setQueueItems);
   }, []);
   const pendingStaffOps = useMemo(
-    () => queueItems.filter((q) => q.kind.startsWith("staff.")),
-    [queueItems]
+    () => queueItems.filter(matchesScope),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [queueItems, errorScope, warehouseId]
   );
 
   // Последняя ошибка повтора (обновляется при каждой неудаче)
@@ -756,9 +777,11 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   useEffect(() => {
     return subscribeFailure(setLastFailureState);
   }, []);
-  // Показываем только ошибки, относящиеся к сотрудникам этого склада
+  // Применяем выбранный фильтр области
   const staffFailure =
-    lastFailure && lastFailure.kind.startsWith("staff.") ? lastFailure : null;
+    lastFailure && matchesScope({ kind: lastFailure.kind, payload: lastFailure.payload })
+      ? lastFailure
+      : null;
 
   const save = useMutation({
     mutationFn: async () => {
@@ -794,7 +817,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     mutationFn: async (s: WarehouseStaff) => {
       enqueueOp(
         "staff.toggle",
-        { id: s.id, is_active: !s.is_active },
+        { id: s.id, is_active: !s.is_active, warehouse_id: warehouseId },
         `${s.is_active ? "Деактивация" : "Активация"}: ${s.full_name}`
       );
       return !s.is_active;
@@ -807,7 +830,11 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      enqueueOp("staff.remove", { id }, `Удаление сотрудника`);
+      enqueueOp(
+        "staff.remove",
+        { id, warehouse_id: warehouseId },
+        `Удаление сотрудника`
+      );
     },
     onSuccess: () => {
       toast.success("Удаление поставлено в очередь");
@@ -923,10 +950,41 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
             </span>
           )}
         </div>
-        <Button size="sm" onClick={openCreate} className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          Добавить
-        </Button>
+        <div className="flex items-center gap-2">
+          <div
+            className="inline-flex items-center rounded-md border border-border bg-background p-0.5 text-xs"
+            role="group"
+            aria-label="Область ошибок и очереди"
+            title="Показывать события очереди только этого склада или всех"
+          >
+            <button
+              type="button"
+              onClick={() => setErrorScope("current")}
+              className={`rounded px-2 py-1 transition-colors ${
+                errorScope === "current"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Этот склад
+            </button>
+            <button
+              type="button"
+              onClick={() => setErrorScope("all")}
+              className={`rounded px-2 py-1 transition-colors ${
+                errorScope === "all"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Все склады
+            </button>
+          </div>
+          <Button size="sm" onClick={openCreate} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            Добавить
+          </Button>
+        </div>
       </div>
 
       {/* Поиск и фильтры */}

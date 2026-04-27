@@ -18,6 +18,7 @@ export type QueueFailure = {
   id: string;
   kind: string;
   label?: string;
+  payload: unknown;
   message: string;
   at: number;
   attempts: number;
@@ -145,6 +146,7 @@ export async function processQueue() {
             id: item.id,
             kind: item.kind,
             label: item.label,
+            payload: item.payload,
             message,
             at,
             attempts: items[idx]?.attempts ?? item.attempts + 1,
