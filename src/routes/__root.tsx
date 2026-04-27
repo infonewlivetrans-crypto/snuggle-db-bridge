@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRouteWithContext, HeadContent, Scripts } from "
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { AppVersionGate } from "@/components/AppVersionGate";
+import { SettingsProvider } from "@/lib/settings-provider";
 
 import appCss from "../styles.css?url";
 
