@@ -97,7 +97,7 @@ function OrdersPage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {/* Заголовок */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -108,23 +108,25 @@ function OrdersPage() {
               Управление заказами и статусами доставки
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => refetch()}
               disabled={isFetching}
               className="gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-              Обновить
+              <span className="hidden sm:inline">Обновить</span>
             </Button>
-            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-2">
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              Импорт заказов (Excel)
+              <span className="hidden sm:inline">Импорт (Excel)</span>
+              <span className="sm:hidden">Импорт</span>
             </Button>
-            <ExportReportButton kind="delivery" label="Отчёт по доставке" />
-            <ExportReportButton kind="payments" label="Отчёт по оплатам" />
-            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+            <ExportReportButton kind="delivery" label="Доставка" size="sm" />
+            <ExportReportButton kind="payments" label="Оплаты" size="sm" />
+            <Button size="sm" onClick={() => setCreateOpen(true)} className="ml-auto gap-2 sm:ml-0">
               <Plus className="h-4 w-4" />
               Создать заказ
             </Button>
@@ -167,7 +169,7 @@ function OrdersPage() {
         </div>
 
         {/* Таблица */}
-        <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
