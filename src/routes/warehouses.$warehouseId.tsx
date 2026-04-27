@@ -741,14 +741,35 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [warehouseId]);
 
+  // Фильтр области ошибок/очереди: текущий склад или все склады.
+  // Сохраняется в localStorage, чтобы выбор пользователя помнился между сессиями.
+  const [errorScope, setErrorScope] = useState<"current" | "all">(() => {
+    if (typeof window === "undefined") return "current";
+    const v = window.localStorage.getItem("warehouse.errorScope");
+    return v === "all" ? "all" : "current";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("warehouse.errorScope", errorScope);
+    }
+  }, [errorScope]);
+
+  const matchesScope = (op: { kind: string; payload: unknown }) => {
+    if (!op.kind.startsWith("staff.")) return false;
+    if (errorScope === "all") return true;
+    const p = op.payload as { warehouse_id?: string } | null | undefined;
+    return p?.warehouse_id === warehouseId;
+  };
+
   // Подписка на состояние очереди — для индикатора и оптимистичных обновлений UI
   const [queueItems, setQueueItems] = useState<QueueOp[]>([]);
   useEffect(() => {
     return subscribeQueue(setQueueItems);
   }, []);
   const pendingStaffOps = useMemo(
-    () => queueItems.filter((q) => q.kind.startsWith("staff.")),
-    [queueItems]
+    () => queueItems.filter(matchesScope),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [queueItems, errorScope, warehouseId]
   );
 
   // Последняя ошибка повтора (обновляется при каждой неудаче)
@@ -756,9 +777,11 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   useEffect(() => {
     return subscribeFailure(setLastFailureState);
   }, []);
-  // Показываем только ошибки, относящиеся к сотрудникам этого склада
+  // Применяем выбранный фильтр области
   const staffFailure =
-    lastFailure && lastFailure.kind.startsWith("staff.") ? lastFailure : null;
+    lastFailure && matchesScope({ kind: lastFailure.kind, payload: lastFailure.payload })
+      ? lastFailure
+      : null;
 
   const save = useMutation({
     mutationFn: async () => {
