@@ -64,6 +64,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [status, setStatus] = useState<OrderStatus>(order?.status ?? "new");
   const [cashReceived, setCashReceived] = useState(order?.cash_received ?? false);
   const [qrReceived, setQrReceived] = useState(order?.qr_received ?? false);
+  const [addToRouteOpen, setAddToRouteOpen] = useState(false);
 
   // Sync state when order changes
   if (order && open && order.id !== (status as unknown as string) + order.id) {
