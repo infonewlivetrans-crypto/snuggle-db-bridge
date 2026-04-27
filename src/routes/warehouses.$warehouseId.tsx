@@ -754,8 +754,30 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     }
   }, [errorScope]);
 
+  // Фильтр по типу операций очереди (для бейджа и индикатора ошибок).
+  type OpKindFilter = "all" | "save" | "toggle" | "remove";
+  const [opKindFilter, setOpKindFilter] = useState<OpKindFilter>(() => {
+    if (typeof window === "undefined") return "all";
+    const v = window.localStorage.getItem("warehouse.opKindFilter");
+    return v === "save" || v === "toggle" || v === "remove" ? v : "all";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("warehouse.opKindFilter", opKindFilter);
+    }
+  }, [opKindFilter]);
+
+  const matchesKind = (kind: string) => {
+    if (opKindFilter === "all") return true;
+    if (opKindFilter === "save") return kind.startsWith("staff.save");
+    if (opKindFilter === "toggle") return kind === "staff.toggle";
+    if (opKindFilter === "remove") return kind === "staff.remove";
+    return true;
+  };
+
   const matchesScope = (op: { kind: string; payload: unknown }) => {
     if (!op.kind.startsWith("staff.")) return false;
+    if (!matchesKind(op.kind)) return false;
     if (errorScope === "all") return true;
     const p = op.payload as { warehouse_id?: string } | null | undefined;
     return p?.warehouse_id === warehouseId;
@@ -769,7 +791,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   const pendingStaffOps = useMemo(
     () => queueItems.filter(matchesScope),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [queueItems, errorScope, warehouseId]
+    [queueItems, errorScope, opKindFilter, warehouseId]
   );
 
   // Последняя ошибка повтора (обновляется при каждой неудаче)
@@ -777,7 +799,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
   useEffect(() => {
     return subscribeFailure(setLastFailureState);
   }, []);
-  // Применяем выбранный фильтр области
+  // Применяем выбранные фильтры (область + тип операции)
   const staffFailure =
     lastFailure && matchesScope({ kind: lastFailure.kind, payload: lastFailure.payload })
       ? lastFailure
@@ -980,6 +1002,24 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               Все склады
             </button>
           </div>
+          <Select
+            value={opKindFilter}
+            onValueChange={(v) => setOpKindFilter(v as OpKindFilter)}
+          >
+            <SelectTrigger
+              className="h-8 w-[150px] text-xs"
+              aria-label="Фильтр по типу операции очереди"
+              title="Показывать ошибки только для выбранного типа операций"
+            >
+              <SelectValue placeholder="Все операции" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все операции</SelectItem>
+              <SelectItem value="save">Изменения</SelectItem>
+              <SelectItem value="toggle">Активация</SelectItem>
+              <SelectItem value="remove">Удаление</SelectItem>
+            </SelectContent>
+          </Select>
           <Button size="sm" onClick={openCreate} className="gap-1.5">
             <Plus className="h-4 w-4" />
             Добавить
