@@ -794,7 +794,7 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
     mutationFn: async (s: WarehouseStaff) => {
       enqueueOp(
         "staff.toggle",
-        { id: s.id, is_active: !s.is_active },
+        { id: s.id, is_active: !s.is_active, warehouse_id: warehouseId },
         `${s.is_active ? "Деактивация" : "Активация"}: ${s.full_name}`
       );
       return !s.is_active;
@@ -807,7 +807,11 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      enqueueOp("staff.remove", { id }, `Удаление сотрудника`);
+      enqueueOp(
+        "staff.remove",
+        { id, warehouse_id: warehouseId },
+        `Удаление сотрудника`
+      );
     },
     onSuccess: () => {
       toast.success("Удаление поставлено в очередь");
