@@ -119,70 +119,27 @@ function RouteDetailPage() {
   });
 
   const updatePoint = useMutation({
-    mutationFn: async ({
-      pointId,
-      status,
-      orderId,
-    }: {
-      pointId: string;
-      status: PointStatus;
-      orderId: string;
-    }) => {
-      const updates: Partial<RoutePoint> = { status };
-      const now = new Date().toISOString();
-      if (status === "arrived") updates.arrived_at = now;
-      const outcome = pointStatusToOrderStatus(status);
-      if (status === "completed" || outcome) updates.completed_at = now;
-
-      const { error: pErr } = await supabase
+    mutationFn: async ({ pointId, status }: { pointId: string; status: PointStatus; orderId: string }) => {
+      // Триггер sync_order_from_route_point на стороне БД сам обновит:
+      // - статус заказа (delivered / not_delivered / awaiting_resend)
+      // - запись в delivery_reports
+      // - времена arrived_at / completed_at
+      const { error } = await supabase
         .from("route_points")
-        .update(updates)
+        .update({ status })
         .eq("id", pointId);
-      if (pErr) throw pErr;
-
-      // Если статус — итоговый (доставлено / не доставлено / брак), создаём отчёт
-      // и обновляем статус заказа.
-      if (outcome) {
-        const requiresResend = outcome === "defective";
-        const newOrderStatus =
-          outcome === "delivered"
-            ? "delivered"
-            : outcome === "defective"
-              ? "defective"
-              : "not_delivered";
-
-        const { error: oErr } = await supabase
-          .from("orders")
-          .update({ status: newOrderStatus })
-          .eq("id", orderId);
-        if (oErr) throw oErr;
-
-        // delivery_reports таблица отсутствует в сгенерированных типах supabase
-        // (миграция была только что), поэтому используем `as never` для обхода типизации.
-        const { error: rErr } = await (supabase.from as unknown as (
-          name: string,
-        ) => {
-          insert: (row: Record<string, unknown>) => Promise<{ error: Error | null }>;
-        })("delivery_reports").insert({
-          order_id: orderId,
-          route_point_id: pointId,
-          route_id: routeId,
-          outcome,
-          reason: status,
-          driver_name: route?.driver_name ?? null,
-          requires_resend: requiresResend,
-          delivered_at: now,
-        });
-        if (rErr) throw rErr;
-      }
+      if (error) throw error;
     },
     onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["delivery_reports"] });
       const outcome = pointStatusToOrderStatus(vars.status);
       if (outcome === "delivered") toast.success("Заказ доставлен · отчёт создан");
       else if (outcome === "defective")
-        toast.warning("Брак · заказ помечен для повторной отправки");
+        toast.warning("Брак · заказ помечен «требуется повторная доставка»");
+      else if (vars.status === "returned_to_warehouse")
+        toast.warning("Возврат на склад · заказ ожидает повторной отправки");
       else if (outcome === "not_delivered") toast.error("Заказ не доставлен · уведомление отправлено");
       else toast.success("Статус точки обновлён");
     },
