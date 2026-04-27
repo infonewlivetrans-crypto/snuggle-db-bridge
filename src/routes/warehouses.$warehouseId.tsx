@@ -1011,6 +1011,7 @@ function StaffGroup({
   title,
   people,
   muted = false,
+  highlight = "",
   onEdit,
   onToggleActive,
   onRemove,
@@ -1018,6 +1019,7 @@ function StaffGroup({
   title: string;
   people: WarehouseStaff[];
   muted?: boolean;
+  highlight?: string;
   onEdit: (s: WarehouseStaff) => void;
   onToggleActive: (s: WarehouseStaff) => void;
   onRemove: (id: string) => void;
@@ -1038,17 +1040,27 @@ function StaffGroup({
           >
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-medium text-foreground">
-                {p.full_name}
+                <HighlightMatch text={p.full_name} query={highlight} />
                 {!p.is_active && (
                   <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[10px] font-normal uppercase tracking-wider text-muted-foreground">
                     архив
                   </span>
                 )}
               </div>
-              {p.phone && <div className="text-xs text-muted-foreground">{p.phone}</div>}
-              {p.email && <div className="truncate text-xs text-muted-foreground">{p.email}</div>}
+              {p.phone && (
+                <div className="text-xs text-muted-foreground">
+                  <HighlightMatch text={p.phone} query={highlight} />
+                </div>
+              )}
+              {p.email && (
+                <div className="truncate text-xs text-muted-foreground">
+                  <HighlightMatch text={p.email} query={highlight} />
+                </div>
+              )}
               {p.comment && (
-                <div className="mt-1 text-xs italic text-muted-foreground">{p.comment}</div>
+                <div className="mt-1 text-xs italic text-muted-foreground">
+                  <HighlightMatch text={p.comment} query={highlight} />
+                </div>
               )}
             </div>
             <div className="flex shrink-0 items-center gap-0.5">
@@ -1086,6 +1098,38 @@ function StaffGroup({
         ))}
       </div>
     </div>
+  );
+}
+
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  const q = query.trim();
+  if (!q) return <>{text}</>;
+  const lower = text.toLowerCase();
+  const needle = q.toLowerCase();
+  const parts: Array<{ s: string; hit: boolean }> = [];
+  let i = 0;
+  while (i < text.length) {
+    const idx = lower.indexOf(needle, i);
+    if (idx === -1) {
+      parts.push({ s: text.slice(i), hit: false });
+      break;
+    }
+    if (idx > i) parts.push({ s: text.slice(i, idx), hit: false });
+    parts.push({ s: text.slice(idx, idx + needle.length), hit: true });
+    i = idx + needle.length;
+  }
+  return (
+    <>
+      {parts.map((p, k) =>
+        p.hit ? (
+          <mark key={k} className="rounded bg-primary/30 px-0.5 text-foreground">
+            {p.s}
+          </mark>
+        ) : (
+          <span key={k}>{p.s}</span>
+        ),
+      )}
+    </>
   );
 }
 
