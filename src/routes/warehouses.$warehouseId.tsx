@@ -898,6 +898,28 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
               В очереди: {pendingStaffOps.length}
             </span>
           )}
+          {staffFailure && (
+            <span
+              className="ml-1 inline-flex max-w-[20rem] items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive"
+              title={`${staffFailure.label ?? staffFailure.kind}\nПопытка #${staffFailure.attempts}${
+                staffFailure.dropped ? " (отменено)" : ""
+              }\n${new Date(staffFailure.at).toLocaleTimeString()}\n${staffFailure.message}`}
+            >
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                {staffFailure.dropped ? "Отменено: " : "Ошибка: "}
+                {staffFailure.message}
+              </span>
+              <button
+                type="button"
+                onClick={() => dismissLastFailure()}
+                className="ml-0.5 rounded p-0.5 hover:bg-destructive/20"
+                aria-label="Скрыть ошибку"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
         </div>
         <Button size="sm" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
