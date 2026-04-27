@@ -52,7 +52,16 @@ import {
 type RoutePointWithOrder = RoutePoint & { orders: Order };
 type RouteWithRefs = DeliveryRoute & {
   warehouse: { id: string; name: string; city: string | null; address: string | null } | null;
-  vehicle: { id: string; plate_number: string; brand: string | null; model: string | null; body_type: string } | null;
+  destination_warehouse: { id: string; name: string; city: string | null } | null;
+  vehicle: {
+    id: string;
+    plate_number: string;
+    brand: string | null;
+    model: string | null;
+    body_type: BodyType;
+    capacity_kg: number | null;
+    volume_m3: number | null;
+  } | null;
   driver: { id: string; full_name: string; phone: string | null } | null;
 };
 
