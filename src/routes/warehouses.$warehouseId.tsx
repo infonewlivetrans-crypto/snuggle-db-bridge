@@ -873,10 +873,19 @@ function StaffSection({ warehouseId, staff }: { warehouseId: string; staff: Ware
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
           {totalActive} активных{totalInactive > 0 ? ` · ${totalInactive} в архиве` : ""}
+          {pendingStaffOps.length > 0 && (
+            <span
+              className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400"
+              title={pendingStaffOps.map((p) => p.label ?? p.kind).join("\n")}
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+              В очереди: {pendingStaffOps.length}
+            </span>
+          )}
         </div>
         <Button size="sm" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
