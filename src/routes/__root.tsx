@@ -61,6 +61,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      <AppVersionGate />
       <Toaster />
     </QueryClientProvider>
   );
