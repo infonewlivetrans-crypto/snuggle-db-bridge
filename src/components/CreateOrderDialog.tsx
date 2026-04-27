@@ -48,6 +48,9 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
   const [requiresQr, setRequiresQr] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [weightKg, setWeightKg] = useState("");
+  const [volumeM3, setVolumeM3] = useState("");
+  const [itemsCount, setItemsCount] = useState("");
 
   const reset = () => {
     setOrderNumber("");
