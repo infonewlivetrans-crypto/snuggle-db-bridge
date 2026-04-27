@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { CreateRouteDialog } from "@/components/CreateRouteDialog";
+import { ExportReportButton } from "@/components/ExportReportButton";
 import {
   Table,
   TableBody,
@@ -102,7 +103,7 @@ function RoutesPage() {
               Маршруты, перемещения между складами и доставка с заводов
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               onClick={() => refetch()}
@@ -112,6 +113,7 @@ function RoutesPage() {
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
               Обновить
             </Button>
+            <ExportReportButton kind="transport" label="Экспорт заявок" />
             <Button onClick={() => setCreateOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Создать маршрут

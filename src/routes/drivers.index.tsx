@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { db } from "@/lib/db";
 import { AppHeader } from "@/components/AppHeader";
 import { DriverFormDialog } from "@/components/DriverFormDialog";
+import { ExportReportButton } from "@/components/ExportReportButton";
 import {
   Table,
   TableBody,
@@ -72,10 +73,13 @@ function DriversPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Водители</h1>
             <p className="mt-1 text-sm text-muted-foreground">Все водители перевозчиков</p>
           </div>
-          <Button onClick={() => setOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Добавить водителя
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <ExportReportButton kind="drivers" label="Отчёт по водителям" />
+            <Button onClick={() => setOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Добавить водителя
+            </Button>
+          </div>
         </div>
 
         <div className="mb-4 relative">
