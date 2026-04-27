@@ -409,11 +409,109 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
                   {filteredVehicles.map((v) => (
                     <SelectItem key={v.id} value={v.id}>
                       {v.plate_number} · {[v.brand, v.model].filter(Boolean).join(" ") || "—"}
+                      {v.capacity_kg ? ` · ${v.capacity_kg} кг` : ""}
+                      {v.volume_m3 ? ` · ${v.volume_m3} м³` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Ручной ввод веса/объёма для перемещений */}
+          {isTransfer && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Общий вес, кг *</Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.1"
+                  value={manualWeightKg}
+                  onChange={(e) => setManualWeightKg(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label>Общий объём, м³ *</Label>
+                <Input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  value={manualVolumeM3}
+                  onChange={(e) => setManualVolumeM3(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Сводка и проверка машины */}
+          <div className="rounded-lg border border-border bg-secondary/30 p-3">
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+              <div>
+                <div className="text-xs text-muted-foreground">Точек</div>
+                <div className="font-semibold text-foreground">
+                  {requestType === "client_delivery" ? selectedIds.length : 1}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Товаров</div>
+                <div className="font-semibold text-foreground">
+                  {requestType === "client_delivery" ? computedTotals.items : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Scale className="h-3 w-3" /> Вес
+                </div>
+                <div className="font-semibold text-foreground">{totalWeight.toFixed(2)} кг</div>
+                {fit.weightLoadPct !== null && (
+                  <div className="text-xs text-muted-foreground">
+                    Загрузка: {fit.weightLoadPct.toFixed(0)}%
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Box className="h-3 w-3" /> Объём
+                </div>
+                <div className="font-semibold text-foreground">{totalVolume.toFixed(2)} м³</div>
+                {fit.volumeLoadPct !== null && (
+                  <div className="text-xs text-muted-foreground">
+                    Загрузка: {fit.volumeLoadPct.toFixed(0)}%
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {selectedVehicle && !fit.ok && (
+              <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <div>
+                  <div className="font-semibold">
+                    Выбранный транспорт не подходит по{" "}
+                    {[
+                      fit.issues.includes("capacity_kg") && "весу",
+                      fit.issues.includes("volume_m3") && "объёму",
+                      fit.issues.includes("body_type") && "типу кузова",
+                    ]
+                      .filter(Boolean)
+                      .join(" / ")}
+                  </div>
+                  <div className="text-xs text-amber-800">
+                    Сохранить заявку всё равно можно — это предупреждение.
+                  </div>
+                </div>
+              </div>
+            )}
+            {!selectedVehicle && (
+              <div className="mt-3 text-xs text-muted-foreground">
+                Выберите машину, чтобы проверить грузоподъёмность и объём кузова.
+              </div>
+            )}
           </div>
 
           <div>
