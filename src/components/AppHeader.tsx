@@ -46,6 +46,10 @@ export function AppHeader() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
+              <SheetTitle className="sr-only">Навигация</SheetTitle>
+              <SheetDescription className="sr-only">
+                Главное меню приложения «Радиус Трек»
+              </SheetDescription>
               <div className="border-b border-border px-5 py-4">
                 <BrandLogo size={32} />
               </div>
