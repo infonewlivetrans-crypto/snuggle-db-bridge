@@ -201,6 +201,7 @@ export type Database = {
           delivery_address: string | null
           delivery_photo_url: string | null
           id: string
+          items_count: number | null
           landmarks: string | null
           latitude: number | null
           longitude: number | null
@@ -210,6 +211,8 @@ export type Database = {
           qr_received: boolean
           requires_qr: boolean
           status: Database["public"]["Enums"]["order_status"]
+          total_volume_m3: number | null
+          total_weight_kg: number | null
           updated_at: string
         }
         Insert: {
@@ -222,6 +225,7 @@ export type Database = {
           delivery_address?: string | null
           delivery_photo_url?: string | null
           id?: string
+          items_count?: number | null
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
@@ -231,6 +235,8 @@ export type Database = {
           qr_received?: boolean
           requires_qr?: boolean
           status?: Database["public"]["Enums"]["order_status"]
+          total_volume_m3?: number | null
+          total_weight_kg?: number | null
           updated_at?: string
         }
         Update: {
@@ -243,6 +249,7 @@ export type Database = {
           delivery_address?: string | null
           delivery_photo_url?: string | null
           id?: string
+          items_count?: number | null
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
@@ -252,6 +259,8 @@ export type Database = {
           qr_received?: boolean
           requires_qr?: boolean
           status?: Database["public"]["Enums"]["order_status"]
+          total_volume_m3?: number | null
+          total_weight_kg?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -311,12 +320,21 @@ export type Database = {
         Row: {
           comment: string | null
           created_at: string
+          destination_warehouse_id: string | null
           driver_id: string | null
           driver_name: string | null
           id: string
+          planned_departure_at: string | null
+          points_count: number
+          request_type: Database["public"]["Enums"]["transport_request_type"]
+          required_body_type: Database["public"]["Enums"]["body_type"] | null
+          required_capacity_kg: number | null
+          required_volume_m3: number | null
           route_date: string
           route_number: string
           status: Database["public"]["Enums"]["route_status"]
+          total_volume_m3: number
+          total_weight_kg: number
           updated_at: string
           vehicle_id: string | null
           warehouse_id: string | null
@@ -324,12 +342,21 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string
+          destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
           id?: string
+          planned_departure_at?: string | null
+          points_count?: number
+          request_type?: Database["public"]["Enums"]["transport_request_type"]
+          required_body_type?: Database["public"]["Enums"]["body_type"] | null
+          required_capacity_kg?: number | null
+          required_volume_m3?: number | null
           route_date?: string
           route_number: string
           status?: Database["public"]["Enums"]["route_status"]
+          total_volume_m3?: number
+          total_weight_kg?: number
           updated_at?: string
           vehicle_id?: string | null
           warehouse_id?: string | null
@@ -337,12 +364,21 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string
+          destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
           id?: string
+          planned_departure_at?: string | null
+          points_count?: number
+          request_type?: Database["public"]["Enums"]["transport_request_type"]
+          required_body_type?: Database["public"]["Enums"]["body_type"] | null
+          required_capacity_kg?: number | null
+          required_volume_m3?: number | null
           route_date?: string
           route_number?: string
           status?: Database["public"]["Enums"]["route_status"]
+          total_volume_m3?: number
+          total_weight_kg?: number
           updated_at?: string
           vehicle_id?: string | null
           warehouse_id?: string | null
@@ -505,6 +541,7 @@ export type Database = {
     }
     Functions: {
       generate_route_number: { Args: never; Returns: string }
+      recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
     }
     Enums: {
       body_type:
@@ -546,6 +583,10 @@ export type Database = {
         | "no_unloading"
         | "problem"
       route_status: "planned" | "in_progress" | "completed" | "cancelled"
+      transport_request_type:
+        | "client_delivery"
+        | "warehouse_transfer"
+        | "factory_to_warehouse"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -715,6 +756,11 @@ export const Constants = {
         "problem",
       ],
       route_status: ["planned", "in_progress", "completed", "cancelled"],
+      transport_request_type: [
+        "client_delivery",
+        "warehouse_transfer",
+        "factory_to_warehouse",
+      ],
     },
   },
 } as const
