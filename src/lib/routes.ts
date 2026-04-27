@@ -98,7 +98,18 @@ export type DeliveryRoute = {
   comment: string | null;
   created_at: string;
   updated_at: string;
+  // Заявка на транспорт
+  request_type: TransportRequestType;
+  destination_warehouse_id: string | null;
+  required_body_type: BodyType | null;
+  required_capacity_kg: number | null;
+  required_volume_m3: number | null;
+  planned_departure_at: string | null;
+  total_weight_kg: number;
+  total_volume_m3: number;
+  points_count: number;
 };
+
 
 export type Warehouse = {
   id: string;
