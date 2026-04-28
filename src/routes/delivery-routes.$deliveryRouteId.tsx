@@ -27,6 +27,7 @@ import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
+import { PointIdleBlock, IDLE_REASON_LABELS, type IdleReason } from "@/components/PointIdleBlock";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
