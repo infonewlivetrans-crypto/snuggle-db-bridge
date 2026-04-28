@@ -24,6 +24,7 @@ import {
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
+import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
@@ -588,6 +589,7 @@ function DeliveryRoutePage() {
                         hasQrPhoto={!!photoKindsByPoint?.[p.id]?.has("qr")}
                         hasProblemPhoto={!!photoKindsByPoint?.[p.id]?.has("problem")}
                       />
+                      <DeliveryReportBlock orderId={p.order_id} />
                       <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
                   ))
