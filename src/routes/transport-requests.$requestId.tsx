@@ -76,6 +76,27 @@ function TransportRequestDetailPage() {
     },
   });
 
+  const { data: totals } = useQuery({
+    queryKey: ["request-totals", requestId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_points")
+        .select("order:order_id(total_weight_kg, total_volume_m3)")
+        .eq("route_id", requestId);
+      if (error) throw error;
+      let weight = 0;
+      let volume = 0;
+      let count = 0;
+      for (const r of (data ?? []) as any[]) {
+        if (!r.order) continue;
+        count++;
+        weight += Number(r.order.total_weight_kg ?? 0);
+        volume += Number(r.order.total_volume_m3 ?? 0);
+      }
+      return { weight, volume, count };
+    },
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
