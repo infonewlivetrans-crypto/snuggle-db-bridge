@@ -53,8 +53,20 @@ import {
   Warehouse,
   Scale,
   Box,
+  Timer,
+  Gauge,
+  Route as RouteIcon,
 } from "lucide-react";
 import { QrCapture } from "@/components/QrCapture";
+import {
+  ETA_RISK_LABELS,
+  ETA_RISK_STYLES,
+  formatTime,
+  formatEtaWindow,
+  parseReasons,
+  summarizeRouteEta,
+  type EtaRiskLevel,
+} from "@/lib/eta";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
 type RouteWithRefs = DeliveryRoute & {
@@ -344,6 +356,9 @@ function RouteDetailPage() {
         {/* Заявка на транспорт: сводка и проверка ТС */}
         <RequestSummary route={route} />
 
+        {/* Сводка ETA по маршруту */}
+        <RouteEtaSummary route={route} points={points ?? []} />
+
         {/* Уведомления о брака / недоставке */}
 
         {(defectiveCount > 0 || failedCount > 0) && (
@@ -500,6 +515,7 @@ function RouteDetailPage() {
                         </span>
                       )}
                     </div>
+                    <EtaPanel point={p} />
                   </div>
 
                   {/* Управление статусом */}
@@ -612,6 +628,136 @@ function RequestSummary({ route }: { route: RouteWithRefs }) {
               .join(" / ")}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function RouteEtaSummary({
+  route,
+  points,
+}: {
+  route: RouteWithRefs;
+  points: RoutePointWithOrder[];
+}) {
+  const summary = summarizeRouteEta(
+    points.map((p) => ({
+      eta_at: p.eta_at ?? null,
+      eta_risk: (p.eta_risk ?? "unknown") as EtaRiskLevel,
+    })),
+  );
+  const totalMin = (route as unknown as { total_duration_minutes?: number }).total_duration_minutes ?? 0;
+  const speed = (route as unknown as { avg_speed_kmh?: number }).avg_speed_kmh ?? 35;
+  if (points.length === 0) return null;
+
+  return (
+    <div className="mb-4 rounded-lg border border-border bg-card p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-foreground">ETA по маршруту</h2>
+        <Badge variant="outline" className={ETA_RISK_STYLES[summary.risk]}>
+          {ETA_RISK_LABELS[summary.risk]}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Timer className="h-3 w-3" /> Выезд
+          </div>
+          <div className="font-semibold text-foreground">
+            {formatTime(route.planned_departure_at)}
+          </div>
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3" /> Финиш (ETA)
+          </div>
+          <div className="font-semibold text-foreground">{formatTime(summary.lastEta)}</div>
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <RouteIcon className="h-3 w-3" /> В пути
+          </div>
+          <div className="font-semibold text-foreground">
+            {Math.floor(totalMin / 60)}ч {totalMin % 60}м
+          </div>
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Gauge className="h-3 w-3" /> Ср. скорость
+          </div>
+          <div className="font-semibold text-foreground">{Number(speed).toFixed(0)} км/ч</div>
+        </div>
+        <div>
+          <div className="text-xs text-muted-foreground">Риск опоздания</div>
+          <div className="text-sm">
+            {summary.lateCount > 0 ? (
+              <span className="font-semibold text-red-700">
+                Опоздание: {summary.lateCount}
+              </span>
+            ) : summary.tightCount > 0 ? (
+              <span className="font-semibold text-amber-700">
+                Впритык: {summary.tightCount}
+              </span>
+            ) : (
+              <span className="font-semibold text-green-700">Все точки в срок</span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EtaPanel({ point }: { point: RoutePointWithOrder }) {
+  const risk = (point.eta_risk ?? "unknown") as EtaRiskLevel;
+  const reasons = parseReasons(point.eta_reasons);
+  if (!point.eta_at && risk === "unknown" && reasons.length === 0) return null;
+
+  return (
+    <div className="mt-3 rounded-md border border-border bg-secondary/40 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            <Timer className="h-3.5 w-3.5" /> ETA
+          </span>
+          <span className="text-sm font-semibold text-foreground">
+            {formatTime(point.eta_at)}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            (диапазон {formatEtaWindow(point.eta_window_from, point.eta_window_to)})
+          </span>
+          <Badge variant="outline" className={ETA_RISK_STYLES[risk]}>
+            {ETA_RISK_LABELS[risk]}
+          </Badge>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {point.travel_minutes ? `${point.travel_minutes} мин в пути` : null}
+          {point.leg_distance_km ? ` · ${Number(point.leg_distance_km).toFixed(1)} км` : null}
+        </div>
+      </div>
+      {(point.client_window_from || point.client_window_to) && (
+        <div className="mt-2 text-xs text-muted-foreground">
+          Окно клиента: {point.client_window_from?.slice(0, 5) ?? "—"} –{" "}
+          {point.client_window_to?.slice(0, 5) ?? "—"}
+        </div>
+      )}
+      {reasons.length > 0 && (
+        <ul className="mt-2 space-y-1">
+          {reasons.map((r, i) => (
+            <li key={i} className="flex items-start gap-1.5 text-xs text-foreground">
+              <AlertTriangle
+                className={`mt-0.5 h-3 w-3 shrink-0 ${
+                  risk === "late"
+                    ? "text-red-600"
+                    : risk === "tight"
+                      ? "text-amber-600"
+                      : "text-muted-foreground"
+                }`}
+              />
+              <span>{r.text}</span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

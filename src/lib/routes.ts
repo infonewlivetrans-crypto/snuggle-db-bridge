@@ -143,6 +143,17 @@ export type RoutePoint = {
   arrived_at: string | null;
   completed_at: string | null;
   created_at: string;
+  // ETA-поля
+  leg_distance_km?: number | null;
+  travel_minutes?: number | null;
+  service_minutes?: number | null;
+  client_window_from?: string | null;
+  client_window_to?: string | null;
+  eta_at?: string | null;
+  eta_window_from?: string | null;
+  eta_window_to?: string | null;
+  eta_risk?: "on_time" | "tight" | "late" | "unknown" | null;
+  eta_reasons?: unknown;
 };
 
 export const ROUTE_STATUS_LABELS: Record<RouteStatus, string> = {

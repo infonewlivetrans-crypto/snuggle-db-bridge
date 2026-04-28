@@ -759,36 +759,66 @@ export type Database = {
       route_points: {
         Row: {
           arrived_at: string | null
+          client_window_from: string | null
+          client_window_to: string | null
           completed_at: string | null
           created_at: string
+          eta_at: string | null
+          eta_reasons: Json
+          eta_risk: Database["public"]["Enums"]["eta_risk_level"]
+          eta_window_from: string | null
+          eta_window_to: string | null
           id: string
+          leg_distance_km: number
           order_id: string
           planned_time: string | null
           point_number: number
           route_id: string
+          service_minutes: number | null
           status: Database["public"]["Enums"]["point_status"]
+          travel_minutes: number
         }
         Insert: {
           arrived_at?: string | null
+          client_window_from?: string | null
+          client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          eta_at?: string | null
+          eta_reasons?: Json
+          eta_risk?: Database["public"]["Enums"]["eta_risk_level"]
+          eta_window_from?: string | null
+          eta_window_to?: string | null
           id?: string
+          leg_distance_km?: number
           order_id: string
           planned_time?: string | null
           point_number: number
           route_id: string
+          service_minutes?: number | null
           status?: Database["public"]["Enums"]["point_status"]
+          travel_minutes?: number
         }
         Update: {
           arrived_at?: string | null
+          client_window_from?: string | null
+          client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          eta_at?: string | null
+          eta_reasons?: Json
+          eta_risk?: Database["public"]["Enums"]["eta_risk_level"]
+          eta_window_from?: string | null
+          eta_window_to?: string | null
           id?: string
+          leg_distance_km?: number
           order_id?: string
           planned_time?: string | null
           point_number?: number
           route_id?: string
+          service_minutes?: number | null
           status?: Database["public"]["Enums"]["point_status"]
+          travel_minutes?: number
         }
         Relationships: [
           {
@@ -809,9 +839,11 @@ export type Database = {
       }
       routes: {
         Row: {
+          avg_speed_kmh: number
           carrier_cost: number
           comment: string | null
           created_at: string
+          default_service_minutes: number
           delivery_cost: number
           destination_warehouse_id: string | null
           driver_id: string | null
@@ -828,6 +860,7 @@ export type Database = {
           route_number: string
           status: Database["public"]["Enums"]["route_status"]
           total_distance_km: number
+          total_duration_minutes: number
           total_volume_m3: number
           total_weight_kg: number
           updated_at: string
@@ -835,9 +868,11 @@ export type Database = {
           warehouse_id: string | null
         }
         Insert: {
+          avg_speed_kmh?: number
           carrier_cost?: number
           comment?: string | null
           created_at?: string
+          default_service_minutes?: number
           delivery_cost?: number
           destination_warehouse_id?: string | null
           driver_id?: string | null
@@ -854,6 +889,7 @@ export type Database = {
           route_number: string
           status?: Database["public"]["Enums"]["route_status"]
           total_distance_km?: number
+          total_duration_minutes?: number
           total_volume_m3?: number
           total_weight_kg?: number
           updated_at?: string
@@ -861,9 +897,11 @@ export type Database = {
           warehouse_id?: string | null
         }
         Update: {
+          avg_speed_kmh?: number
           carrier_cost?: number
           comment?: string | null
           created_at?: string
+          default_service_minutes?: number
           delivery_cost?: number
           destination_warehouse_id?: string | null
           driver_id?: string | null
@@ -880,6 +918,7 @@ export type Database = {
           route_number?: string
           status?: Database["public"]["Enums"]["route_status"]
           total_distance_km?: number
+          total_duration_minutes?: number
           total_volume_m3?: number
           total_weight_kg?: number
           updated_at?: string
@@ -1519,6 +1558,7 @@ export type Database = {
         }
       }
       recalc_route_costs: { Args: { p_route_id: string }; Returns: undefined }
+      recalc_route_etas: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
     }
     Enums: {
@@ -1544,6 +1584,7 @@ export type Database = {
         | "loaded"
         | "done"
         | "cancelled"
+      eta_risk_level: "on_time" | "tight" | "late" | "unknown"
       order_status:
         | "new"
         | "in_progress"
@@ -1745,6 +1786,7 @@ export const Constants = {
         "done",
         "cancelled",
       ],
+      eta_risk_level: ["on_time", "tight", "late", "unknown"],
       order_status: [
         "new",
         "in_progress",

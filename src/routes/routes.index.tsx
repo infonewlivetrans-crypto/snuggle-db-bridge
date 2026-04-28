@@ -32,9 +32,17 @@ import {
   REQUEST_TYPE_LABELS,
   REQUEST_TYPE_STYLES,
 } from "@/lib/routes";
-import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box } from "lucide-react";
+import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box, Timer } from "lucide-react";
+import {
+  ETA_RISK_LABELS,
+  ETA_RISK_STYLES,
+  formatTime,
+  summarizeRouteEta,
+  type EtaRiskLevel,
+} from "@/lib/eta";
 
-type RouteWithCount = DeliveryRoute & { points_count: number };
+type EtaSummary = ReturnType<typeof summarizeRouteEta>;
+type RouteWithCount = DeliveryRoute & { points_count: number; _eta: EtaSummary };
 
 export const Route = createFileRoute("/routes/")({
   head: () => ({
@@ -56,14 +64,24 @@ function RoutesPage() {
     queryFn: async (): Promise<RouteWithCount[]> => {
       const { data, error } = await supabase
         .from("routes")
-        .select("*, route_points(count)")
+        .select("*, route_points(eta_at, eta_risk)")
         .order("route_date", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r: DeliveryRoute & { route_points: { count: number }[] }) => ({
-        ...r,
-        points_count: r.route_points?.[0]?.count ?? 0,
-      }));
+      return (data ?? []).map(
+        (r: DeliveryRoute & {
+          route_points: Array<{ eta_at?: string | null; eta_risk?: string | null }>;
+        }) => {
+          const pts = r.route_points ?? [];
+          const eta = summarizeRouteEta(
+            pts.map((x) => ({
+              eta_at: x.eta_at ?? null,
+              eta_risk: (x.eta_risk ?? "unknown") as EtaRiskLevel,
+            })),
+          );
+          return { ...r, points_count: pts.length, _eta: eta } as RouteWithCount;
+        },
+      );
     },
   });
 
@@ -168,6 +186,7 @@ function RoutesPage() {
                 <TableHead className="font-semibold text-foreground">Дата</TableHead>
                 <TableHead className="font-semibold text-foreground">Водитель</TableHead>
                 <TableHead className="font-semibold text-foreground">Точек</TableHead>
+                <TableHead className="font-semibold text-foreground">ETA / Риск</TableHead>
                 <TableHead className="font-semibold text-foreground">Груз</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
               </TableRow>
@@ -175,13 +194,13 @@ function RoutesPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
                     Загрузка маршрутов...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center">
+                  <TableCell colSpan={8} className="py-12 text-center">
                     <RouteIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Маршруты не найдены</div>
                     <Button
@@ -225,6 +244,21 @@ function RoutesPage() {
                     </TableCell>
                     <TableCell className="text-sm font-medium text-foreground">
                       {r.points_count}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="inline-flex items-center gap-1 text-foreground">
+                          <Timer className="h-3 w-3 text-muted-foreground" />
+                          {formatTime(r._eta.lastEta)}
+                        </span>
+                        <Badge variant="outline" className={`${ETA_RISK_STYLES[r._eta.risk]} px-1.5 py-0`}>
+                          {r._eta.risk === "late"
+                            ? `Опоздание · ${r._eta.lateCount}`
+                            : r._eta.risk === "tight"
+                              ? `Впритык · ${r._eta.tightCount}`
+                              : ETA_RISK_LABELS[r._eta.risk]}
+                        </Badge>
+                      </div>
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       <div className="flex flex-col gap-0.5">
