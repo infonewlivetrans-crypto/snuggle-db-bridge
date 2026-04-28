@@ -55,6 +55,7 @@ type Detail = {
 type PointRow = {
   id: string;
   point_number: number;
+  order_id: string;
   client_window_from: string | null;
   client_window_to: string | null;
   dp_status: DeliveryPointStatus;
