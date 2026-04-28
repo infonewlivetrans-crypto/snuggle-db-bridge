@@ -14,6 +14,10 @@ import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
 import { TransportCapacityCheck } from "@/components/TransportCapacityCheck";
+import {
+  TransportRequestStatusBlock,
+  type RequestStatus,
+} from "@/components/TransportRequestStatusBlock";
 import type { BodyType } from "@/lib/carriers";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
@@ -48,6 +52,10 @@ type RequestDetail = {
   requires_manipulator: boolean;
   requires_straps: boolean;
   transport_comment: string | null;
+  request_status: RequestStatus;
+  request_status_changed_by: string | null;
+  request_status_changed_at: string | null;
+  request_status_comment: string | null;
 };
 
 function TransportRequestDetailPage() {
@@ -59,12 +67,33 @@ function TransportRequestDetailPage() {
       const { data, error } = await supabase
         .from("routes")
         .select(
-          "id, route_number, request_type, status, route_date, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, source_warehouse:warehouse_id(name, city), destination_warehouse:destination_warehouse_id(name, city)",
+          "id, route_number, request_type, status, route_date, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, request_status, request_status_changed_by, request_status_changed_at, request_status_comment, source_warehouse:warehouse_id(name, city), destination_warehouse:destination_warehouse_id(name, city)",
         )
         .eq("id", requestId)
         .maybeSingle();
       if (error) throw error;
       return data as unknown as RequestDetail | null;
+    },
+  });
+
+  const { data: totals } = useQuery({
+    queryKey: ["request-totals", requestId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_points")
+        .select("order:order_id(total_weight_kg, total_volume_m3)")
+        .eq("route_id", requestId);
+      if (error) throw error;
+      let weight = 0;
+      let volume = 0;
+      let count = 0;
+      for (const r of (data ?? []) as any[]) {
+        if (!r.order) continue;
+        count++;
+        weight += Number(r.order.total_weight_kg ?? 0);
+        volume += Number(r.order.total_volume_m3 ?? 0);
+      }
+      return { weight, volume, count };
     },
   });
 
@@ -97,6 +126,7 @@ function TransportRequestDetailPage() {
               <Badge variant="outline">
                 {REQUEST_STATUS_LABELS[data.status] ?? data.status}
               </Badge>
+              {/* Расширенный статус заявки управляется в блоке "Статус заявки" ниже */}
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -136,6 +166,31 @@ function TransportRequestDetailPage() {
               requestId={data.id}
               requiredCapacityKg={data.required_capacity_kg}
               requiredVolumeM3={data.required_volume_m3}
+            />
+
+            <TransportRequestStatusBlock
+              requestId={data.id}
+              current={data.request_status}
+              changedBy={data.request_status_changed_by}
+              changedAt={data.request_status_changed_at}
+              comment={data.request_status_comment}
+              ordersCount={totals?.count ?? 0}
+              hasWarehouse={!!data.warehouse_id || data.request_type === "factory_to_warehouse"}
+              hasDate={!!data.route_date}
+              hasRequirements={
+                !!data.required_body_type ||
+                !!data.required_capacity_kg ||
+                !!data.required_volume_m3 ||
+                !!data.required_body_length_m
+              }
+              weightOver={
+                data.required_capacity_kg != null &&
+                (totals?.weight ?? 0) > data.required_capacity_kg
+              }
+              volumeOver={
+                data.required_volume_m3 != null &&
+                (totals?.volume ?? 0) > data.required_volume_m3
+              }
             />
 
 
