@@ -13,6 +13,7 @@ import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
+import { TransportCapacityCheck } from "@/components/TransportCapacityCheck";
 import type { BodyType } from "@/lib/carriers";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
