@@ -906,6 +906,10 @@ export type Database = {
           manual_cost: boolean
           planned_departure_at: string | null
           points_count: number
+          request_status: Database["public"]["Enums"]["transport_request_status"]
+          request_status_changed_at: string | null
+          request_status_changed_by: string | null
+          request_status_comment: string | null
           request_type: Database["public"]["Enums"]["transport_request_type"]
           required_body_length_m: number | null
           required_body_type: Database["public"]["Enums"]["body_type"] | null
@@ -940,6 +944,10 @@ export type Database = {
           manual_cost?: boolean
           planned_departure_at?: string | null
           points_count?: number
+          request_status?: Database["public"]["Enums"]["transport_request_status"]
+          request_status_changed_at?: string | null
+          request_status_changed_by?: string | null
+          request_status_comment?: string | null
           request_type?: Database["public"]["Enums"]["transport_request_type"]
           required_body_length_m?: number | null
           required_body_type?: Database["public"]["Enums"]["body_type"] | null
@@ -974,6 +982,10 @@ export type Database = {
           manual_cost?: boolean
           planned_departure_at?: string | null
           points_count?: number
+          request_status?: Database["public"]["Enums"]["transport_request_status"]
+          request_status_changed_at?: string | null
+          request_status_changed_by?: string | null
+          request_status_comment?: string | null
           request_type?: Database["public"]["Enums"]["transport_request_type"]
           required_body_length_m?: number | null
           required_body_type?: Database["public"]["Enums"]["body_type"] | null
@@ -1280,6 +1292,42 @@ export type Database = {
           setting_key?: string
           setting_value?: Json
           updated_at?: string
+        }
+        Relationships: []
+      }
+      transport_request_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          comment: string | null
+          from_status:
+            | Database["public"]["Enums"]["transport_request_status"]
+            | null
+          id: string
+          route_id: string
+          to_status: Database["public"]["Enums"]["transport_request_status"]
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["transport_request_status"]
+            | null
+          id?: string
+          route_id: string
+          to_status: Database["public"]["Enums"]["transport_request_status"]
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["transport_request_status"]
+            | null
+          id?: string
+          route_id?: string
+          to_status?: Database["public"]["Enums"]["transport_request_status"]
         }
         Relationships: []
       }
@@ -1704,6 +1752,14 @@ export type Database = {
         | "combo"
         | "percent_goods"
         | "manual"
+      transport_request_status:
+        | "draft"
+        | "ready_for_planning"
+        | "needs_review"
+        | "confirmed"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
       transport_request_type:
         | "client_delivery"
         | "warehouse_transfer"
@@ -1914,6 +1970,15 @@ export const Constants = {
         "combo",
         "percent_goods",
         "manual",
+      ],
+      transport_request_status: [
+        "draft",
+        "ready_for_planning",
+        "needs_review",
+        "confirmed",
+        "in_progress",
+        "completed",
+        "cancelled",
       ],
       transport_request_type: [
         "client_delivery",
