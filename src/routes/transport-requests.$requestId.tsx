@@ -75,7 +75,7 @@ function TransportRequestDetailPage() {
       const { data, error } = await supabase
         .from("routes")
         .select(
-          "id, route_number, request_type, status, route_date, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, request_status, request_status_changed_by, request_status_changed_at, request_status_comment, source_warehouse:warehouse_id(name, city), destination_warehouse:destination_warehouse_id(name, city)",
+          "id, route_number, request_type, status, route_date, departure_time, request_priority, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, request_status, request_status_changed_by, request_status_changed_at, request_status_comment, source_warehouse:warehouse_id(name, city), destination_warehouse:destination_warehouse_id(name, city)",
         )
         .eq("id", requestId)
         .maybeSingle();
