@@ -384,6 +384,66 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           </div>
 
+          {/* Финансы и атрибуты клиента */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="amount-due" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Сумма к получению, ₽
+              </Label>
+              <Input
+                id="amount-due"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                value={amountDue}
+                onChange={(e) => setAmountDue(e.target.value)}
+                placeholder="0.00"
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="payment-status" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Статус оплаты
+              </Label>
+              <Select value={paymentStatus} onValueChange={(v) => setPaymentStatus(v as PaymentStatus)}>
+                <SelectTrigger id="payment-status" className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(PAYMENT_STATUS_LABELS) as PaymentStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {PAYMENT_STATUS_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="marketplace" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Маркетплейс
+              </Label>
+              <Input
+                id="marketplace"
+                value={marketplace}
+                onChange={(e) => setMarketplace(e.target.value)}
+                placeholder="Wildberries, Ozon, ..."
+                className="mt-1.5"
+              />
+            </div>
+            <div className="flex items-end justify-between rounded-lg border border-border p-3">
+              <Label htmlFor="weekends" className="text-sm font-medium">
+                Клиент работает в выходные
+              </Label>
+              <Switch id="weekends" checked={worksWeekends} onCheckedChange={setWorksWeekends} />
+            </div>
+          </div>
+
+          {/* Все поля заказа */}
+          <OrderAllFields order={order} />
+
+          {/* История изменений */}
+          <OrderHistory orderId={order.id} />
+
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
             <Button variant="outline" onClick={() => setAddToRouteOpen(true)} className="gap-1.5 mr-auto">
               <RouteIcon className="h-4 w-4" />
