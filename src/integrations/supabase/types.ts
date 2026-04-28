@@ -304,6 +304,8 @@ export type Database = {
       }
       delivery_routes: {
         Row: {
+          assigned_driver: string | null
+          assigned_vehicle: string | null
           comment: string | null
           created_at: string
           created_by: string | null
@@ -316,6 +318,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_driver?: string | null
+          assigned_vehicle?: string | null
           comment?: string | null
           created_at?: string
           created_by?: string | null
@@ -328,6 +332,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_driver?: string | null
+          assigned_vehicle?: string | null
           comment?: string | null
           created_at?: string
           created_by?: string | null
