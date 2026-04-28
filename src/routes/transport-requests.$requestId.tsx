@@ -122,11 +122,8 @@ function TransportRequestDetailPage() {
               </Field>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <Stat label="Заказов" value={data.points_count ?? 0} />
-              <Stat label="Вес, кг" value={Number(data.total_weight_kg ?? 0).toLocaleString("ru-RU")} />
-              <Stat label="Объём, м³" value={Number(data.total_volume_m3 ?? 0).toLocaleString("ru-RU")} />
-            </div>
+            <RequestTotalsCards requestId={data.id} />
+
 
             <div className="rounded-lg border border-border p-4">
               <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
