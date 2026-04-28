@@ -254,7 +254,11 @@ function SupplyRequestsPage() {
                   const product = productById.get(r.product_id);
                   const StatusIcon = STATUS_ICONS[r.status];
                   return (
-                    <TableRow key={r.id}>
+                    <TableRow
+                      key={r.id}
+                      className="cursor-pointer hover:bg-secondary/40"
+                      onClick={() => setSelectedId(r.id)}
+                    >
                       <TableCell className="font-mono text-xs">{r.request_number}</TableCell>
                       <TableCell className="text-sm">
                         {r.source_type === "factory" ? (
@@ -294,7 +298,7 @@ function SupplyRequestsPage() {
                           {STATUS_LABELS[r.status]}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <StatusActions request={r} />
                       </TableCell>
                     </TableRow>
