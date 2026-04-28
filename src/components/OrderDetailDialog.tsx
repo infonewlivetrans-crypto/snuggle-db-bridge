@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -393,7 +393,6 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
 }
 
 // Helper: re-runs effect when key changes
-import { useRef } from "react";
 function useStateSync(key: string | undefined, fn: () => void) {
   const prev = useRef<string | undefined>(undefined);
   useEffect(() => {
