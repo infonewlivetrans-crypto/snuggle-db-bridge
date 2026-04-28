@@ -43,12 +43,14 @@ const KIND_LABEL: Record<string, string> = {
   qr_uploaded: "QR-код",
   payment_received: "Оплата",
   low_stock: "Остаток",
+  delivery_report: "Отчёт по доставке",
 };
 
 const KIND_TONE: Record<string, string> = {
   order_delivered: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   order_failed: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
   order_returned: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  delivery_report: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
 };
 
 function NotificationsPage() {
