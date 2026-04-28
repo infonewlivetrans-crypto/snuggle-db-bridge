@@ -582,6 +582,42 @@ export type Database = {
         }
         Relationships: []
       }
+      product_stock_settings: {
+        Row: {
+          created_at: string
+          id: string
+          is_critical: boolean
+          min_stock: number
+          on_demand_only: boolean
+          product_id: string
+          safety_stock: number
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_critical?: boolean
+          min_stock?: number
+          on_demand_only?: boolean
+          product_id: string
+          safety_stock?: number
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_critical?: boolean
+          min_stock?: number
+          on_demand_only?: boolean
+          product_id?: string
+          safety_stock?: number
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string
@@ -764,10 +800,140 @@ export type Database = {
             foreignKeyName: "routes_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
+            referencedRelation: "stock_balances"
+            referencedColumns: ["warehouse_id"]
+          },
+          {
+            foreignKeyName: "routes_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
             referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
+      }
+      stock_movements: {
+        Row: {
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          movement_type: string
+          product_id: string
+          qty: number
+          reason: string | null
+          ref_order_id: string | null
+          ref_route_id: string | null
+          ref_supply_id: string | null
+          warehouse_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_type: string
+          product_id: string
+          qty: number
+          reason?: string | null
+          ref_order_id?: string | null
+          ref_route_id?: string | null
+          ref_supply_id?: string | null
+          warehouse_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          movement_type?: string
+          product_id?: string
+          qty?: number
+          reason?: string | null
+          ref_order_id?: string | null
+          ref_route_id?: string | null
+          ref_supply_id?: string | null
+          warehouse_id?: string
+        }
+        Relationships: []
+      }
+      stock_reservations: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          product_id: string
+          qty: number
+          status: string
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          product_id: string
+          qty: number
+          status?: string
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          product_id?: string
+          qty?: number
+          status?: string
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: []
+      }
+      supply_in_transit: {
+        Row: {
+          comment: string | null
+          created_at: string
+          destination_warehouse_id: string
+          expected_at: string | null
+          id: string
+          product_id: string
+          qty: number
+          source_name: string | null
+          source_type: string
+          source_warehouse_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          destination_warehouse_id: string
+          expected_at?: string | null
+          id?: string
+          product_id: string
+          qty: number
+          source_name?: string | null
+          source_type: string
+          source_warehouse_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          destination_warehouse_id?: string
+          expected_at?: string | null
+          id?: string
+          product_id?: string
+          qty?: number
+          source_name?: string | null
+          source_type?: string
+          source_warehouse_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       system_settings: {
         Row: {
@@ -1076,10 +1242,32 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      stock_balances: {
+        Row: {
+          available: number | null
+          deficit_level: string | null
+          in_transit: number | null
+          is_critical: boolean | null
+          min_stock: number | null
+          on_hand: number | null
+          product_id: string | null
+          product_name: string | null
+          reserved: number | null
+          safety_stock: number | null
+          sku: string | null
+          unit: string | null
+          warehouse_id: string | null
+          warehouse_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_route_number: { Args: never; Returns: string }
+      notify_low_stock_for_product: {
+        Args: { p_product_id: string; p_warehouse_id: string }
+        Returns: undefined
+      }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
     }
     Enums: {
