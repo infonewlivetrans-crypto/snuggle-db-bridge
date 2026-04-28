@@ -39,6 +39,8 @@ type Props = {
     cash_received: boolean;
     qr_received: boolean;
   };
+  hasQrPhoto?: boolean;
+  hasProblemPhoto?: boolean;
   onSaved?: () => void;
 };
 
