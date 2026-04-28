@@ -228,9 +228,15 @@ function OrdersPage() {
                     </TableCell>
                     <TableCell>
                       {order.requires_qr ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-primary/20 px-2 py-1 text-xs font-medium text-foreground">
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
+                            order.qr_received
+                              ? "bg-green-100 text-green-900"
+                              : "bg-amber-100 text-amber-900"
+                          }`}
+                        >
                           <QrCode className="h-3 w-3" />
-                          Требуется
+                          {order.qr_received ? "Получен" : "Не получен"}
                         </span>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
