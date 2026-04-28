@@ -134,7 +134,41 @@ function TransportRequestDetailPage() {
               <Badge variant="outline">
                 {REQUEST_STATUS_LABELS[data.status] ?? data.status}
               </Badge>
-              {/* Расширенный статус заявки управляется в блоке "Статус заявки" ниже */}
+            </div>
+
+            {/* План отправки — баннер сверху */}
+            <div
+              className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3 ${
+                !data.route_date || !data.departure_time
+                  ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
+                  : "border-border bg-secondary/40"
+              }`}
+            >
+              <div className="flex items-center gap-2 text-sm">
+                <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-foreground">План отправки:</span>
+                {data.route_date ? (
+                  <span>{new Date(data.route_date).toLocaleDateString("ru-RU")}</span>
+                ) : (
+                  <span className="italic text-muted-foreground">дата не указана</span>
+                )}
+                {data.departure_time ? (
+                  <span className="font-mono">{data.departure_time.slice(0, 5)}</span>
+                ) : (
+                  <span className="italic text-muted-foreground">время не указано</span>
+                )}
+                {(!data.route_date || !data.departure_time) && (
+                  <span className="ml-2 inline-flex items-center gap-1 text-xs text-amber-800 dark:text-amber-200">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    Не указано время отправки
+                  </span>
+                )}
+              </div>
+              <span
+                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE_CLASS[data.request_priority]}`}
+              >
+                {PRIORITY_LABELS[data.request_priority]}
+              </span>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -145,6 +179,13 @@ function TransportRequestDetailPage() {
                 {new Date(data.route_date).toLocaleDateString("ru-RU")}
               </Field>
             </div>
+
+            <RequestSchedulingBlock
+              requestId={data.id}
+              routeDate={data.route_date}
+              departureTime={data.departure_time}
+              priority={data.request_priority}
+            />
 
             <RequestWarehousesEditor
               requestId={data.id}
