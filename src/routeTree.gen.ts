@@ -18,6 +18,7 @@ import { Route as DriversIndexRouteImport } from './routes/drivers.index'
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
 import { Route as WarehousesWarehouseIdRouteImport } from './routes/warehouses.$warehouseId'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
+import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
@@ -68,6 +69,11 @@ const VehiclesVehicleIdRoute = VehiclesVehicleIdRouteImport.update({
   path: '/vehicles/$vehicleId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SupplyRequestsRoute = SupplyRequestsRouteImport.update({
+  id: '/supply/requests',
+  path: '/supply/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   id: '/routes/$routeId',
   path: '/routes/$routeId',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/supply/requests': typeof SupplyRequestsRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/supply/requests': typeof SupplyRequestsRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers': typeof CarriersIndexRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
+  '/supply/requests': typeof SupplyRequestsRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/routes/$routeId'
+    | '/supply/requests'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/routes/$routeId'
+    | '/supply/requests'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/routes/$routeId'
+    | '/supply/requests'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
+  SupplyRequestsRoute: typeof SupplyRequestsRoute
   VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
   WarehousesWarehouseIdRoute: typeof WarehousesWarehouseIdRoute
   CarriersIndexRoute: typeof CarriersIndexRoute
@@ -264,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VehiclesVehicleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/supply/requests': {
+      id: '/supply/requests'
+      path: '/supply/requests'
+      fullPath: '/supply/requests'
+      preLoaderRoute: typeof SupplyRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/routes/$routeId': {
       id: '/routes/$routeId'
       path: '/routes/$routeId'
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
+  SupplyRequestsRoute: SupplyRequestsRoute,
   VehiclesVehicleIdRoute: VehiclesVehicleIdRoute,
   WarehousesWarehouseIdRoute: WarehousesWarehouseIdRoute,
   CarriersIndexRoute: CarriersIndexRoute,
