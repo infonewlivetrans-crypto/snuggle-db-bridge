@@ -30,6 +30,13 @@ import {
   type DeliveryRouteStatus,
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
+import { PointStatusEditor } from "@/components/PointStatusEditor";
+import {
+  DELIVERY_POINT_STATUS_LABELS,
+  DELIVERY_POINT_STATUS_STYLES,
+  type DeliveryPointStatus,
+  type DeliveryPointUndeliveredReason,
+} from "@/lib/deliveryPointStatus";
 
 export const Route = createFileRoute("/delivery-routes/$deliveryRouteId")({
   head: () => ({
