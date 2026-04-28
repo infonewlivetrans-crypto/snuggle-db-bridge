@@ -405,6 +405,18 @@ function RouteDetailPage() {
                       <span className="text-xs text-muted-foreground">
                         {PAYMENT_LABELS[p.orders.payment_type]}
                       </span>
+                      {p.orders.requires_qr && (
+                        <Badge
+                          variant="outline"
+                          className={
+                            p.orders.qr_received
+                              ? "border-green-300 bg-green-100 text-green-900"
+                              : "border-amber-300 bg-amber-100 text-amber-900"
+                          }
+                        >
+                          QR: {p.orders.qr_received ? "получен" : "не получен"}
+                        </Badge>
+                      )}
                     </div>
                     <div className="mt-2">
                       <DeliveryLocation order={p.orders} compact />
