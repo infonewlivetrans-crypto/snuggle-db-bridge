@@ -10,7 +10,9 @@ export type OrderStatus =
   | "delivered"
   | "not_delivered"
   | "defective"
-  | "awaiting_resend";
+  | "awaiting_resend"
+  | "awaiting_return"
+  | "return_accepted";
 export type PaymentType = "cash" | "card" | "online" | "qr";
 export type PaymentStatus = "not_paid" | "partial" | "paid" | "refunded";
 
