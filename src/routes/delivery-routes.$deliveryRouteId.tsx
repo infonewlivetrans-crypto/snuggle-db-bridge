@@ -24,6 +24,7 @@ import {
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
+import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
