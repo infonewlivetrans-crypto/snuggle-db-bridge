@@ -8,6 +8,7 @@ import {
   Warehouse,
   Settings,
   Menu,
+  PackageSearch,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
