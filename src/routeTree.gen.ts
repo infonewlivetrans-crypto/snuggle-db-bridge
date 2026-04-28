@@ -12,12 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WarehousesIndexRouteImport } from './routes/warehouses.index'
 import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
+import { Route as TransportRequestsIndexRouteImport } from './routes/transport-requests.index'
 import { Route as SupplyIndexRouteImport } from './routes/supply.index'
 import { Route as RoutesIndexRouteImport } from './routes/routes.index'
 import { Route as DriversIndexRouteImport } from './routes/drivers.index'
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
 import { Route as WarehousesWarehouseIdRouteImport } from './routes/warehouses.$warehouseId'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
+import { Route as TransportRequestsRequestIdRouteImport } from './routes/transport-requests.$requestId'
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
@@ -38,6 +40,11 @@ const WarehousesIndexRoute = WarehousesIndexRouteImport.update({
 const VehiclesIndexRoute = VehiclesIndexRouteImport.update({
   id: '/vehicles/',
   path: '/vehicles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TransportRequestsIndexRoute = TransportRequestsIndexRouteImport.update({
+  id: '/transport-requests/',
+  path: '/transport-requests/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupplyIndexRoute = SupplyIndexRouteImport.update({
@@ -70,6 +77,12 @@ const VehiclesVehicleIdRoute = VehiclesVehicleIdRouteImport.update({
   path: '/vehicles/$vehicleId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TransportRequestsRequestIdRoute =
+  TransportRequestsRequestIdRouteImport.update({
+    id: '/transport-requests/$requestId',
+    path: '/transport-requests/$requestId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const SupplyRequestsRoute = SupplyRequestsRouteImport.update({
   id: '/supply/requests',
   path: '/supply/requests',
@@ -109,12 +122,14 @@ export interface FileRoutesByFullPath {
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
+  '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
   '/supply/': typeof SupplyIndexRoute
+  '/transport-requests/': typeof TransportRequestsIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
 }
@@ -126,12 +141,14 @@ export interface FileRoutesByTo {
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
+  '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers': typeof CarriersIndexRoute
   '/drivers': typeof DriversIndexRoute
   '/routes': typeof RoutesIndexRoute
   '/supply': typeof SupplyIndexRoute
+  '/transport-requests': typeof TransportRequestsIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
 }
@@ -144,12 +161,14 @@ export interface FileRoutesById {
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
+  '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
   '/supply/': typeof SupplyIndexRoute
+  '/transport-requests/': typeof TransportRequestsIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
 }
@@ -163,12 +182,14 @@ export interface FileRouteTypes {
     | '/carriers/verification'
     | '/routes/$routeId'
     | '/supply/requests'
+    | '/transport-requests/$requestId'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
     | '/drivers/'
     | '/routes/'
     | '/supply/'
+    | '/transport-requests/'
     | '/vehicles/'
     | '/warehouses/'
   fileRoutesByTo: FileRoutesByTo
@@ -180,12 +201,14 @@ export interface FileRouteTypes {
     | '/carriers/verification'
     | '/routes/$routeId'
     | '/supply/requests'
+    | '/transport-requests/$requestId'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers'
     | '/drivers'
     | '/routes'
     | '/supply'
+    | '/transport-requests'
     | '/vehicles'
     | '/warehouses'
   id:
@@ -197,12 +220,14 @@ export interface FileRouteTypes {
     | '/carriers/verification'
     | '/routes/$routeId'
     | '/supply/requests'
+    | '/transport-requests/$requestId'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
     | '/drivers/'
     | '/routes/'
     | '/supply/'
+    | '/transport-requests/'
     | '/vehicles/'
     | '/warehouses/'
   fileRoutesById: FileRoutesById
@@ -215,12 +240,14 @@ export interface RootRouteChildren {
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyRequestsRoute: typeof SupplyRequestsRoute
+  TransportRequestsRequestIdRoute: typeof TransportRequestsRequestIdRoute
   VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
   WarehousesWarehouseIdRoute: typeof WarehousesWarehouseIdRoute
   CarriersIndexRoute: typeof CarriersIndexRoute
   DriversIndexRoute: typeof DriversIndexRoute
   RoutesIndexRoute: typeof RoutesIndexRoute
   SupplyIndexRoute: typeof SupplyIndexRoute
+  TransportRequestsIndexRoute: typeof TransportRequestsIndexRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
   WarehousesIndexRoute: typeof WarehousesIndexRoute
 }
@@ -246,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles'
       fullPath: '/vehicles/'
       preLoaderRoute: typeof VehiclesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-requests/': {
+      id: '/transport-requests/'
+      path: '/transport-requests'
+      fullPath: '/transport-requests/'
+      preLoaderRoute: typeof TransportRequestsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/supply/': {
@@ -288,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles/$vehicleId'
       fullPath: '/vehicles/$vehicleId'
       preLoaderRoute: typeof VehiclesVehicleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transport-requests/$requestId': {
+      id: '/transport-requests/$requestId'
+      path: '/transport-requests/$requestId'
+      fullPath: '/transport-requests/$requestId'
+      preLoaderRoute: typeof TransportRequestsRequestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/supply/requests': {
@@ -343,12 +384,14 @@ const rootRouteChildren: RootRouteChildren = {
   CarriersVerificationRoute: CarriersVerificationRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyRequestsRoute: SupplyRequestsRoute,
+  TransportRequestsRequestIdRoute: TransportRequestsRequestIdRoute,
   VehiclesVehicleIdRoute: VehiclesVehicleIdRoute,
   WarehousesWarehouseIdRoute: WarehousesWarehouseIdRoute,
   CarriersIndexRoute: CarriersIndexRoute,
   DriversIndexRoute: DriversIndexRoute,
   RoutesIndexRoute: RoutesIndexRoute,
   SupplyIndexRoute: SupplyIndexRoute,
+  TransportRequestsIndexRoute: TransportRequestsIndexRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
   WarehousesIndexRoute: WarehousesIndexRoute,
 }
