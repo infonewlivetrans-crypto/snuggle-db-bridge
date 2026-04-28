@@ -33,6 +33,12 @@ type Props = {
     dp_return_comment: string | null;
     dp_expected_return_at: string | null;
   };
+  order?: {
+    payment_type: string;
+    requires_qr: boolean;
+    cash_received: boolean;
+    qr_received: boolean;
+  };
   onSaved?: () => void;
 };
 
