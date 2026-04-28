@@ -5,6 +5,12 @@ import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -406,16 +412,37 @@ function RouteDetailPage() {
                         {PAYMENT_LABELS[p.orders.payment_type]}
                       </span>
                       {p.orders.requires_qr && (
-                        <Badge
-                          variant="outline"
-                          className={
-                            p.orders.qr_received
-                              ? "border-green-300 bg-green-100 text-green-900"
-                              : "border-amber-300 bg-amber-100 text-amber-900"
-                          }
-                        >
-                          QR: {p.orders.qr_received ? "получен" : "не получен"}
-                        </Badge>
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className={`cursor-help ${
+                                  p.orders.qr_received
+                                    ? "border-green-300 bg-green-100 text-green-900"
+                                    : "border-amber-300 bg-amber-100 text-amber-900"
+                                }`}
+                              >
+                                QR: {p.orders.qr_received ? "получен" : "не получен"}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {p.orders.qr_photo_uploaded_at ? (
+                                <div className="text-xs">
+                                  <div>
+                                    Загружено:{" "}
+                                    {new Date(p.orders.qr_photo_uploaded_at).toLocaleString("ru-RU")}
+                                  </div>
+                                  <div>
+                                    Кем: {p.orders.qr_photo_uploaded_by ?? "—"}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-xs">QR-фото ещё не загружено</span>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )}
                     </div>
                     <div className="mt-2">
