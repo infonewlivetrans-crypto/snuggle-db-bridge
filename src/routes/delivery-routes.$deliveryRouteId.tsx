@@ -382,6 +382,104 @@ function DeliveryRoutePage() {
               );
             })()}
 
+            {/* Завершение и итог маршрута */}
+            {(() => {
+              const list = points ?? [];
+              const FINAL: DeliveryPointStatus[] = ["delivered", "not_delivered", "returned_to_warehouse"];
+              const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
+              const isCompleted = data.status === "completed";
+              const canFinalize = list.length > 0 && pendingCount === 0 && !isCompleted;
+
+              const total = list.length;
+              const delivered = list.filter((p) => p.dp_status === "delivered").length;
+              const notDelivered = list.filter((p) => p.dp_status === "not_delivered").length;
+              const returned = list.filter((p) => p.dp_status === "returned_to_warehouse").length;
+
+              const arrivals = list
+                .map((p) => p.dp_actual_arrival_at)
+                .filter((v): v is string => !!v)
+                .map((v) => new Date(v).getTime());
+              const finishes = list
+                .map((p) => p.dp_finished_at)
+                .filter((v): v is string => !!v)
+                .map((v) => new Date(v).getTime());
+              const totalRouteMin =
+                arrivals.length && finishes.length
+                  ? Math.round((Math.max(...finishes) - Math.min(...arrivals)) / 60000)
+                  : null;
+
+              const totalIdle = list.reduce((s, p) => s + (p.dp_idle_duration_minutes ?? 0), 0);
+              const problemsCount = notDelivered + returned;
+
+              const amountDue = list.reduce((s, p) => s + (p.order?.amount_due ?? 0), 0);
+              const amountReceived = list.reduce((s, p) => s + (p.dp_amount_received ?? 0), 0);
+              const amountDiff = amountReceived - amountDue;
+
+              const fmtMin = (m: number | null) => {
+                if (m == null) return "—";
+                const h = Math.floor(m / 60);
+                const r = m % 60;
+                return h > 0 ? `${h} ч ${r} мин` : `${r} мин`;
+              };
+              const fmtMoney = (n: number) => n.toLocaleString("ru-RU");
+
+              return (
+                <div className="rounded-lg border border-border p-4">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="flex items-center gap-2 text-sm font-semibold">
+                      <Flag className="h-4 w-4 text-muted-foreground" />
+                      {isCompleted ? "Итог маршрута" : "Завершение маршрута"}
+                    </h2>
+                    {!isCompleted && (
+                      <Button
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={!canFinalize || finalize.isPending}
+                        onClick={() => finalize.mutate()}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        Завершить маршрут
+                      </Button>
+                    )}
+                  </div>
+
+                  {!isCompleted && pendingCount > 0 && (
+                    <div className="mb-3 flex items-start gap-1.5 rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm text-orange-700 dark:text-orange-300">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span>
+                        Нельзя завершить маршрут. Не все точки обработаны (осталось: {pendingCount}).
+                      </span>
+                    </div>
+                  )}
+
+                  {(isCompleted || canFinalize) && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <StatTile label="Всего точек" value={String(total)} />
+                        <StatTile label="Доставлено" value={String(delivered)} />
+                        <StatTile label="Не доставлено" value={String(notDelivered)} tone={notDelivered > 0 ? "red" : undefined} />
+                        <StatTile label="Возврат на склад" value={String(returned)} tone={returned > 0 ? "red" : undefined} />
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <StatTile label="Общее время маршрута" value={fmtMin(totalRouteMin)} />
+                        <StatTile label="Общее время простоя" value={fmtMin(totalIdle || null)} tone={totalIdle > 0 ? "red" : undefined} />
+                        <StatTile label="Проблем" value={String(problemsCount)} tone={problemsCount > 0 ? "red" : undefined} />
+                        <StatTile label="Сумма к получению" value={fmtMoney(amountDue)} />
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
+                        <StatTile label="Получено фактически" value={fmtMoney(amountReceived)} />
+                        <StatTile
+                          label="Расхождение по оплате"
+                          value={(amountDiff > 0 ? "+" : "") + fmtMoney(amountDiff)}
+                          tone={amountDiff !== 0 ? "red" : undefined}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
               <div className="border-b border-border px-4 py-3">
