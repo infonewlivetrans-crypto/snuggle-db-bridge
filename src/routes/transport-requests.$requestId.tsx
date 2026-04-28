@@ -20,6 +20,7 @@ import {
 } from "@/components/TransportRequestStatusBlock";
 import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
 import { DeliveryPointsBlock } from "@/components/DeliveryPointsBlock";
+import { CreateRouteFromRequestBlock } from "@/components/CreateRouteFromRequestBlock";
 import {
   PRIORITY_LABELS,
   PRIORITY_BADGE_CLASS,
@@ -258,6 +259,14 @@ function TransportRequestDetailPage() {
 
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />
+
+            {/* Создание маршрута на основе заявки */}
+            <CreateRouteFromRequestBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              routeDate={data.route_date}
+              ordersCount={totals?.count ?? 0}
+            />
 
             {/* Точки доставки */}
             <DeliveryPointsBlock requestId={data.id} />

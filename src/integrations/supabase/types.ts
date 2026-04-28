@@ -302,6 +302,45 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_routes: {
+        Row: {
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          route_date: string
+          route_number: string
+          source_request_id: string
+          source_warehouse_id: string | null
+          status: Database["public"]["Enums"]["delivery_route_status"]
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          route_date?: string
+          route_number: string
+          source_request_id: string
+          source_warehouse_id?: string | null
+          status?: Database["public"]["Enums"]["delivery_route_status"]
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          route_date?: string
+          route_number?: string
+          source_request_id?: string
+          source_warehouse_id?: string | null
+          status?: Database["public"]["Enums"]["delivery_route_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       delivery_tariffs: {
         Row: {
           base_price: number | null
@@ -1636,6 +1675,7 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: number
       }
+      generate_delivery_route_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
       notify_low_stock_for_product: {
@@ -1702,6 +1742,7 @@ export type Database = {
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
       delivery_cost_source: "auto" | "manual" | "tariff"
+      delivery_route_status: "draft" | "formed" | "in_progress" | "completed"
       dock_slot_kind: "shipment" | "inbound_factory" | "inbound_return"
       dock_slot_status:
         | "planned"
@@ -1917,6 +1958,7 @@ export const Constants = {
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
       delivery_cost_source: ["auto", "manual", "tariff"],
+      delivery_route_status: ["draft", "formed", "in_progress", "completed"],
       dock_slot_kind: ["shipment", "inbound_factory", "inbound_return"],
       dock_slot_status: [
         "planned",
