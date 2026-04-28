@@ -12,6 +12,8 @@ import {
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
+import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
+import type { BodyType } from "@/lib/carriers";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
   head: () => ({
@@ -37,6 +39,14 @@ type RequestDetail = {
   total_volume_m3: number;
   source_warehouse?: { name: string; city: string | null } | null;
   destination_warehouse?: { name: string; city: string | null } | null;
+  required_body_type: BodyType | null;
+  required_capacity_kg: number | null;
+  required_volume_m3: number | null;
+  required_body_length_m: number | null;
+  requires_tent: boolean;
+  requires_manipulator: boolean;
+  requires_straps: boolean;
+  transport_comment: string | null;
 };
 
 function TransportRequestDetailPage() {
@@ -48,7 +58,7 @@ function TransportRequestDetailPage() {
       const { data, error } = await supabase
         .from("routes")
         .select(
-          "id, route_number, request_type, status, route_date, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, source_warehouse:warehouse_id(name, city), destination_warehouse:destination_warehouse_id(name, city)",
+          "id, route_number, request_type, status, route_date, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, source_warehouse:warehouse_id(name, city), destination_warehouse:destination_warehouse_id(name, city)",
         )
         .eq("id", requestId)
         .maybeSingle();
