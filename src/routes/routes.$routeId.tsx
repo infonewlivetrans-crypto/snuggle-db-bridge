@@ -48,6 +48,7 @@ import {
   Scale,
   Box,
 } from "lucide-react";
+import { QrCapture } from "@/components/QrCapture";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
 type RouteWithRefs = DeliveryRoute & {
@@ -410,6 +411,18 @@ function RouteDetailPage() {
                     </div>
                     {p.orders.comment && (
                       <div className="mt-1 text-xs text-muted-foreground">{p.orders.comment}</div>
+                    )}
+                    {(p.orders.requires_qr || p.orders.qr_photo_url) && (
+                      <div className="mt-2">
+                        <QrCapture
+                          orderId={p.orders.id}
+                          orderNumber={p.orders.order_number}
+                          requiresQr={p.orders.requires_qr}
+                          qrPhotoUrl={p.orders.qr_photo_url}
+                          qrUploadedAt={p.orders.qr_photo_uploaded_at}
+                          compact
+                        />
+                      </div>
                     )}
                     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       {p.planned_time && (
