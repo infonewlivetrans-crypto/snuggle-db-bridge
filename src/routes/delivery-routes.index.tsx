@@ -128,54 +128,71 @@ function DeliveryRoutesPage() {
                 <TableHead>Дата</TableHead>
                 <TableHead>Заявка</TableHead>
                 <TableHead>Склад отправления</TableHead>
+                <TableHead>Водитель</TableHead>
+                <TableHead>Машина</TableHead>
                 <TableHead>Статус</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Загрузка...</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Загрузка...</TableCell></TableRow>
               ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Маршрутов нет. Создайте маршрут из карточки заявки.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">Маршрутов нет. Создайте маршрут из карточки заявки.</TableCell></TableRow>
               ) : (
-                filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer">
-                    <TableCell>
-                      <Link
-                        to="/delivery-routes/$deliveryRouteId"
-                        params={{ deliveryRouteId: r.id }}
-                        className="font-medium text-foreground hover:underline"
-                      >
-                        {r.route_number}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{new Date(r.route_date).toLocaleDateString("ru-RU")}</TableCell>
-                    <TableCell>
-                      {r.source_request ? (
+                filtered.map((r) => {
+                  const missing = !r.assigned_driver || !r.assigned_vehicle;
+                  return (
+                    <TableRow key={r.id} className="cursor-pointer">
+                      <TableCell>
                         <Link
-                          to="/transport-requests/$requestId"
-                          params={{ requestId: r.source_request_id }}
-                          className="text-sm text-primary hover:underline"
+                          to="/delivery-routes/$deliveryRouteId"
+                          params={{ deliveryRouteId: r.id }}
+                          className="font-medium text-foreground hover:underline"
                         >
-                          {r.source_request.route_number}
+                          {r.route_number}
                         </Link>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {r.source_warehouse ? (
-                        <span>{r.source_warehouse.name}{r.source_warehouse.city ? `, ${r.source_warehouse.city}` : ""}</span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[r.status]}>
-                        {DELIVERY_ROUTE_STATUS_LABELS[r.status]}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))
+                        {missing && (
+                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-300">
+                            <AlertTriangle className="h-3 w-3" />
+                            Не назначен водитель или транспорт
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>{new Date(r.route_date).toLocaleDateString("ru-RU")}</TableCell>
+                      <TableCell>
+                        {r.source_request ? (
+                          <Link
+                            to="/transport-requests/$requestId"
+                            params={{ requestId: r.source_request_id }}
+                            className="text-sm text-primary hover:underline"
+                          >
+                            {r.source_request.route_number}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.source_warehouse ? (
+                          <span>{r.source_warehouse.name}{r.source_warehouse.city ? `, ${r.source_warehouse.city}` : ""}</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {r.assigned_driver ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        {r.assigned_vehicle ?? <span className="text-muted-foreground">—</span>}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[r.status]}>
+                          {DELIVERY_ROUTE_STATUS_LABELS[r.status]}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
