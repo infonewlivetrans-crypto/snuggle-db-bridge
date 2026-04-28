@@ -782,9 +782,7 @@ function DriverMovementCard({
     .reverse()
     .find((p) => p.status === "completed" || p.status === "arrived");
   // Следующая цель: ближайшая точка, требующая визита
-  const nextPoint = sorted.find(
-    (p) => p.status !== "completed" && p.status !== "skipped",
-  );
+  const nextPoint = sorted.find((p) => p.status !== "completed");
 
   if (!nextPoint) {
     return (
