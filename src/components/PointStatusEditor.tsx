@@ -33,10 +33,16 @@ type Props = {
     dp_return_comment: string | null;
     dp_expected_return_at: string | null;
   };
+  order?: {
+    payment_type: string;
+    requires_qr: boolean;
+    cash_received: boolean;
+    qr_received: boolean;
+  };
   onSaved?: () => void;
 };
 
-export function PointStatusEditor({ routePointId, initial, onSaved }: Props) {
+export function PointStatusEditor({ routePointId, initial, order, onSaved }: Props) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<DeliveryPointStatus>(initial.dp_status);
   const [reason, setReason] = useState<DeliveryPointUndeliveredReason | "">(
@@ -71,6 +77,14 @@ export function PointStatusEditor({ routePointId, initial, onSaved }: Props) {
 
   const save = useMutation({
     mutationFn: async () => {
+      if (status === "delivered" && order) {
+        if (order.requires_qr && !order.qr_received) {
+          throw new Error("Нельзя поставить «Доставлено»: QR-код ещё не получен");
+        }
+        if (order.payment_type === "cash" && !order.cash_received) {
+          throw new Error("Нельзя поставить «Доставлено»: наличная оплата ещё не получена");
+        }
+      }
       const payload: Record<string, unknown> = {
         dp_status: status,
         dp_status_changed_at: new Date().toISOString(),
