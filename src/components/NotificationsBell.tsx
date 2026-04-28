@@ -15,7 +15,8 @@ type NotificationKind =
   | "order_delivered"
   | "order_failed"
   | "order_returned"
-  | "payment_received";
+  | "payment_received"
+  | "low_stock";
 
 type Notification = {
   id: string;
@@ -34,6 +35,7 @@ const KIND_ICON: Record<NotificationKind, typeof Bell> = {
   order_failed: AlertTriangle,
   order_returned: PackageX,
   payment_received: CheckCircle2,
+  low_stock: PackageSearch,
 };
 
 const KIND_COLOR: Record<NotificationKind, string> = {
@@ -42,6 +44,7 @@ const KIND_COLOR: Record<NotificationKind, string> = {
   order_failed: "text-red-600",
   order_returned: "text-purple-600",
   payment_received: "text-green-600",
+  low_stock: "text-orange-600",
 };
 
 export function NotificationsBell() {
