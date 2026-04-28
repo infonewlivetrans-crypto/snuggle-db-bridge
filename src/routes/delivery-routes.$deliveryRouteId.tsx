@@ -300,6 +300,7 @@ function DeliveryRoutePage() {
                           dp_expected_return_at: p.dp_expected_return_at,
                         }}
                       />
+                      <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
                   ))
                 )}
