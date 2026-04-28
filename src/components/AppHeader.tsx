@@ -23,6 +23,7 @@ const NAV_ITEMS = [
   { to: "/drivers", label: "Водители", icon: User, match: (p: string) => p.startsWith("/drivers") },
   { to: "/vehicles", label: "Авто", icon: Truck, match: (p: string) => p.startsWith("/vehicles") },
   { to: "/warehouses", label: "Склады", icon: Warehouse, match: (p: string) => p.startsWith("/warehouses") },
+  { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p: string) => p.startsWith("/supply") },
   { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p: string) => p.startsWith("/admin") },
 ] as const;
 
