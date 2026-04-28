@@ -82,6 +82,8 @@ export const STATUS_ORDER: OrderStatus[] = [
   "not_delivered",
   "defective",
   "awaiting_resend",
+  "awaiting_return",
+  "return_accepted",
   "completed",
   "cancelled",
 ];
