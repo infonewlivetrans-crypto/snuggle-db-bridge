@@ -112,6 +112,23 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const resetToAuto = useMutation({
+    mutationFn: async () => {
+      if (!order) throw new Error("Нет заказа");
+      const { error } = await supabase
+        .from("orders")
+        .update({ delivery_cost_source: "auto" })
+        .eq("id", order.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success("Возвращён автоматический расчёт по тарифам");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // Отчёты о доставке для этого заказа
   const { data: reports } = useQuery({
     queryKey: ["delivery_reports", order?.id],
