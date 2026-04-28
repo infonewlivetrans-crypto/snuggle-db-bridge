@@ -329,3 +329,26 @@ function Field({
     </div>
   );
 }
+
+function ProgressTile({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "muted" | "green" | "red" | "orange";
+}) {
+  const toneClass = {
+    muted: "border-border bg-muted/50 text-foreground",
+    green: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    red: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+    orange: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  }[tone];
+  return (
+    <div className={`rounded-lg border p-3 ${toneClass}`}>
+      <div className="text-xs font-medium uppercase tracking-wider opacity-80">{label}</div>
+      <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
+    </div>
+  );
+}
