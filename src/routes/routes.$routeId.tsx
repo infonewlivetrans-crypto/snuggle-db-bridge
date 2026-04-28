@@ -500,6 +500,7 @@ function RouteDetailPage() {
                         </span>
                       )}
                     </div>
+                    <EtaPanel point={p} />
                   </div>
 
                   {/* Управление статусом */}
