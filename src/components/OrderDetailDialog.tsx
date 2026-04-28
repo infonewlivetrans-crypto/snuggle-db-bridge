@@ -350,7 +350,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
 }
 
 // Helper: re-runs effect when key changes
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 function useStateSync(key: string | undefined, fn: () => void) {
   const prev = useRef<string | undefined>(undefined);
   useEffect(() => {
