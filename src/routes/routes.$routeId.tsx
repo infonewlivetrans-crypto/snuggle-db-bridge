@@ -53,8 +53,20 @@ import {
   Warehouse,
   Scale,
   Box,
+  Timer,
+  Gauge,
+  Route as RouteIcon,
 } from "lucide-react";
 import { QrCapture } from "@/components/QrCapture";
+import {
+  ETA_RISK_LABELS,
+  ETA_RISK_STYLES,
+  formatTime,
+  formatEtaWindow,
+  parseReasons,
+  summarizeRouteEta,
+  type EtaRiskLevel,
+} from "@/lib/eta";
 
 type RoutePointWithOrder = RoutePoint & { orders: Order };
 type RouteWithRefs = DeliveryRoute & {
