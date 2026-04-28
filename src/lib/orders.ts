@@ -38,6 +38,7 @@ export type Order = {
   items_count: number | null;
   qr_photo_url: string | null;
   qr_photo_uploaded_at: string | null;
+  qr_photo_uploaded_by: string | null;
 };
 
 
