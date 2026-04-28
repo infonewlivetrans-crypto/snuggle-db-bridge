@@ -23,6 +23,7 @@ import {
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
+import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
