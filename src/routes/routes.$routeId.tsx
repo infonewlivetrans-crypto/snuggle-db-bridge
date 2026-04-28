@@ -356,6 +356,9 @@ function RouteDetailPage() {
         {/* Заявка на транспорт: сводка и проверка ТС */}
         <RequestSummary route={route} />
 
+        {/* Сводка ETA по маршруту */}
+        <RouteEtaSummary route={route} points={points ?? []} />
+
         {/* Уведомления о брака / недоставке */}
 
         {(defectiveCount > 0 || failedCount > 0) && (
