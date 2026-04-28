@@ -589,6 +589,9 @@ export type Database = {
           landmarks: string | null
           latitude: number | null
           longitude: number | null
+          manual_cost_reason: string | null
+          manual_cost_set_at: string | null
+          manual_cost_set_by: string | null
           map_link: string | null
           order_number: string
           payment_type: Database["public"]["Enums"]["payment_type"]
@@ -624,6 +627,9 @@ export type Database = {
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
+          manual_cost_reason?: string | null
+          manual_cost_set_at?: string | null
+          manual_cost_set_by?: string | null
           map_link?: string | null
           order_number: string
           payment_type?: Database["public"]["Enums"]["payment_type"]
@@ -659,6 +665,9 @@ export type Database = {
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
+          manual_cost_reason?: string | null
+          manual_cost_set_at?: string | null
+          manual_cost_set_by?: string | null
           map_link?: string | null
           order_number?: string
           payment_type?: Database["public"]["Enums"]["payment_type"]
