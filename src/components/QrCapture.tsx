@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Loader2, QrCode, Upload, X, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadPublicFile } from "@/lib/uploads";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 
@@ -38,7 +38,7 @@ export function QrCapture({
       } else {
         updates.qr_photo_uploaded_at = null;
       }
-      const { error } = await supabase.from("orders").update(updates).eq("id", orderId);
+      const { error } = await db.from("orders").update(updates).eq("id", orderId);
       if (error) throw error;
     },
     onSuccess: (_d, url) => {

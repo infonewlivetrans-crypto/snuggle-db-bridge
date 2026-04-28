@@ -13,6 +13,7 @@ import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 const NAV_ITEMS = [
   { to: "/", label: "Заказы", icon: BarChart3, match: (p: string) => p === "/" },
@@ -112,6 +113,7 @@ export function AppHeader() {
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
+          <NotificationsBell />
           <div className="hidden text-right sm:block">
             <div className="text-sm font-medium text-foreground">Менеджер логистики</div>
             <div className="text-xs text-muted-foreground">Радиус Трек</div>
