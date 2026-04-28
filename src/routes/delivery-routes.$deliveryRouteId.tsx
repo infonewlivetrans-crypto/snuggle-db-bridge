@@ -388,6 +388,16 @@ function DeliveryRoutePage() {
                           }}
                         />
                       )}
+                      <PointTimeTracker
+                        routePointId={p.id}
+                        times={{
+                          dp_planned_arrival_at: p.dp_planned_arrival_at,
+                          dp_actual_arrival_at: p.dp_actual_arrival_at,
+                          dp_unload_started_at: p.dp_unload_started_at,
+                          dp_unload_finished_at: p.dp_unload_finished_at,
+                          dp_finished_at: p.dp_finished_at,
+                        }}
+                      />
                       <RoutePointPhotosBlock
                         routePointId={p.id}
                         orderId={p.order_id}
