@@ -387,6 +387,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
         </div>
       </DialogContent>
       <AddOrderToRouteDialog order={order} open={addToRouteOpen} onOpenChange={setAddToRouteOpen} />
+      <ManualDeliveryCostDialog order={order} open={manualCostOpen} onOpenChange={setManualCostOpen} />
     </Dialog>
   );
 }
