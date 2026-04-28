@@ -117,6 +117,20 @@ function TransportRequestDetailPage() {
 
             <RequestTotalsCards requestId={data.id} />
 
+            <TransportRequirementsBlock
+              requestId={data.id}
+              initial={{
+                required_body_type: data.required_body_type,
+                required_capacity_kg: data.required_capacity_kg,
+                required_volume_m3: data.required_volume_m3,
+                required_body_length_m: data.required_body_length_m,
+                requires_tent: data.requires_tent,
+                requires_manipulator: data.requires_manipulator,
+                requires_straps: data.requires_straps,
+                transport_comment: data.transport_comment,
+              }}
+            />
+
 
             <div className="rounded-lg border border-border p-4">
               <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
