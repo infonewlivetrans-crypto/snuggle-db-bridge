@@ -226,6 +226,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
         </DialogHeader>
 
         <div className="space-y-5 pt-2">
+          {/* Возврат на склад */}
+          <OrderReturnBlock order={order} />
+
           {/* Адрес и навигация */}
           <DeliveryLocation order={order} />
 
