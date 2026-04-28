@@ -26,6 +26,7 @@ import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
+import { PointTimeTracker } from "@/components/PointTimeTracker";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
@@ -68,6 +69,11 @@ type PointRow = {
   dp_expected_return_at: string | null;
   dp_amount_received: number | null;
   dp_payment_comment: string | null;
+  dp_planned_arrival_at: string | null;
+  dp_actual_arrival_at: string | null;
+  dp_unload_started_at: string | null;
+  dp_unload_finished_at: string | null;
+  dp_finished_at: string | null;
   order: {
     id: string;
     order_number: string;
@@ -109,7 +115,7 @@ function DeliveryRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
+          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, order:order_id(id, order_number, contact_name, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
@@ -268,13 +274,57 @@ function DeliveryRoutePage() {
               const delivered = list.filter((p) => p.dp_status === "delivered").length;
               const notDelivered = list.filter((p) => p.dp_status === "not_delivered").length;
               const returned = list.filter((p) => p.dp_status === "returned_to_warehouse").length;
+
+              // Тайминги
+              const lateCount = list.filter((p) => {
+                if (!p.dp_planned_arrival_at || !p.dp_actual_arrival_at) return false;
+                return new Date(p.dp_actual_arrival_at).getTime() > new Date(p.dp_planned_arrival_at).getTime();
+              }).length;
+
+              const unloadDurations = list
+                .map((p) => {
+                  if (!p.dp_unload_started_at || !p.dp_unload_finished_at) return null;
+                  return (new Date(p.dp_unload_finished_at).getTime() - new Date(p.dp_unload_started_at).getTime()) / 60000;
+                })
+                .filter((v): v is number => v != null && v >= 0);
+              const avgUnload = unloadDurations.length
+                ? Math.round(unloadDurations.reduce((a, b) => a + b, 0) / unloadDurations.length)
+                : null;
+
+              const arrivals = list
+                .map((p) => p.dp_actual_arrival_at)
+                .filter((v): v is string => !!v)
+                .map((v) => new Date(v).getTime());
+              const finishes = list
+                .map((p) => p.dp_finished_at)
+                .filter((v): v is string => !!v)
+                .map((v) => new Date(v).getTime());
+              const totalRouteMin =
+                arrivals.length && finishes.length
+                  ? Math.round((Math.max(...finishes) - Math.min(...arrivals)) / 60000)
+                  : null;
+
+              const fmtMin = (m: number | null) => {
+                if (m == null) return "—";
+                const h = Math.floor(m / 60);
+                const r = m % 60;
+                return h > 0 ? `${h} ч ${r} мин` : `${r} мин`;
+              };
+
               return (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <ProgressTile label="Всего точек" value={total} tone="muted" />
-                  <ProgressTile label="Доставлено" value={delivered} tone="green" />
-                  <ProgressTile label="Не доставлено" value={notDelivered} tone="red" />
-                  <ProgressTile label="Возврат" value={returned} tone="orange" />
-                </div>
+                <>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <ProgressTile label="Всего точек" value={total} tone="muted" />
+                    <ProgressTile label="Доставлено" value={delivered} tone="green" />
+                    <ProgressTile label="Не доставлено" value={notDelivered} tone="red" />
+                    <ProgressTile label="Возврат" value={returned} tone="orange" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <StatTile label="Общее время маршрута" value={fmtMin(totalRouteMin)} />
+                    <StatTile label="Опозданий" value={String(lateCount)} tone={lateCount > 0 ? "red" : undefined} />
+                    <StatTile label="Среднее время разгрузки" value={fmtMin(avgUnload)} />
+                  </div>
+                </>
               );
             })()}
 
@@ -338,6 +388,16 @@ function DeliveryRoutePage() {
                           }}
                         />
                       )}
+                      <PointTimeTracker
+                        routePointId={p.id}
+                        times={{
+                          dp_planned_arrival_at: p.dp_planned_arrival_at,
+                          dp_actual_arrival_at: p.dp_actual_arrival_at,
+                          dp_unload_started_at: p.dp_unload_started_at,
+                          dp_unload_finished_at: p.dp_unload_finished_at,
+                          dp_finished_at: p.dp_finished_at,
+                        }}
+                      />
                       <RoutePointPhotosBlock
                         routePointId={p.id}
                         orderId={p.order_id}
@@ -418,6 +478,27 @@ function ProgressTile({
     <div className={`rounded-lg border p-3 ${toneClass}`}>
       <div className="text-xs font-medium uppercase tracking-wider opacity-80">{label}</div>
       <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "red";
+}) {
+  const toneClass =
+    tone === "red"
+      ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
+      : "border-border bg-muted/40 text-foreground";
+  return (
+    <div className={`rounded-lg border p-3 ${toneClass}`}>
+      <div className="text-xs font-medium uppercase tracking-wider opacity-80">{label}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
     </div>
   );
 }

@@ -898,9 +898,12 @@ export type Database = {
           client_window_to: string | null
           completed_at: string | null
           created_at: string
+          dp_actual_arrival_at: string | null
           dp_amount_received: number | null
           dp_expected_return_at: string | null
+          dp_finished_at: string | null
           dp_payment_comment: string | null
+          dp_planned_arrival_at: string | null
           dp_return_comment: string | null
           dp_return_warehouse_id: string | null
           dp_status: Database["public"]["Enums"]["delivery_point_status"]
@@ -909,6 +912,8 @@ export type Database = {
           dp_undelivered_reason:
             | Database["public"]["Enums"]["delivery_point_undelivered_reason"]
             | null
+          dp_unload_finished_at: string | null
+          dp_unload_started_at: string | null
           eta_at: string | null
           eta_reasons: Json
           eta_risk: Database["public"]["Enums"]["eta_risk_level"]
@@ -930,9 +935,12 @@ export type Database = {
           client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          dp_actual_arrival_at?: string | null
           dp_amount_received?: number | null
           dp_expected_return_at?: string | null
+          dp_finished_at?: string | null
           dp_payment_comment?: string | null
+          dp_planned_arrival_at?: string | null
           dp_return_comment?: string | null
           dp_return_warehouse_id?: string | null
           dp_status?: Database["public"]["Enums"]["delivery_point_status"]
@@ -941,6 +949,8 @@ export type Database = {
           dp_undelivered_reason?:
             | Database["public"]["Enums"]["delivery_point_undelivered_reason"]
             | null
+          dp_unload_finished_at?: string | null
+          dp_unload_started_at?: string | null
           eta_at?: string | null
           eta_reasons?: Json
           eta_risk?: Database["public"]["Enums"]["eta_risk_level"]
@@ -962,9 +972,12 @@ export type Database = {
           client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          dp_actual_arrival_at?: string | null
           dp_amount_received?: number | null
           dp_expected_return_at?: string | null
+          dp_finished_at?: string | null
           dp_payment_comment?: string | null
+          dp_planned_arrival_at?: string | null
           dp_return_comment?: string | null
           dp_return_warehouse_id?: string | null
           dp_status?: Database["public"]["Enums"]["delivery_point_status"]
@@ -973,6 +986,8 @@ export type Database = {
           dp_undelivered_reason?:
             | Database["public"]["Enums"]["delivery_point_undelivered_reason"]
             | null
+          dp_unload_finished_at?: string | null
+          dp_unload_started_at?: string | null
           eta_at?: string | null
           eta_reasons?: Json
           eta_risk?: Database["public"]["Enums"]["eta_risk_level"]
