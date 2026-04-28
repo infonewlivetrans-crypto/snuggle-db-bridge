@@ -52,6 +52,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog";
+import { OrderReturnBlock } from "@/components/OrderReturnBlock";
 
 type DeliveryReport = {
   id: string;
