@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Hash, MessageSquare, Warehouse, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Hash, MessageSquare, Warehouse, Calendar, Tag, CalendarClock, AlertTriangle } from "lucide-react";
 import {
   REQUEST_TYPE_LABELS,
   REQUEST_STATUS_LABELS,
@@ -18,6 +18,12 @@ import {
   TransportRequestStatusBlock,
   type RequestStatus,
 } from "@/components/TransportRequestStatusBlock";
+import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
+import {
+  PRIORITY_LABELS,
+  PRIORITY_BADGE_CLASS,
+  type RequestPriority,
+} from "@/lib/requestPriority";
 import type { BodyType } from "@/lib/carriers";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
