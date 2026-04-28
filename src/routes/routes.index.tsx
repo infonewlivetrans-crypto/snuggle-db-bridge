@@ -64,25 +64,22 @@ function RoutesPage() {
     queryFn: async (): Promise<RouteWithCount[]> => {
       const { data, error } = await supabase
         .from("routes")
-        .select("*, route_points(count, eta_at, eta_risk)")
+        .select("*, route_points(eta_at, eta_risk)")
         .order("route_date", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).map(
         (r: DeliveryRoute & {
-          route_points: Array<{ count?: number; eta_at?: string | null; eta_risk?: string | null }>;
+          route_points: Array<{ eta_at?: string | null; eta_risk?: string | null }>;
         }) => {
           const pts = r.route_points ?? [];
-          // Supabase returns count aggregate as a single object with `count`
-          const count = pts.find((x) => typeof x.count === "number")?.count ?? pts.length;
-          const etaPoints = pts.filter((x) => x.eta_at !== undefined);
           const eta = summarizeRouteEta(
-            etaPoints.map((x) => ({
+            pts.map((x) => ({
               eta_at: x.eta_at ?? null,
               eta_risk: (x.eta_risk ?? "unknown") as EtaRiskLevel,
             })),
           );
-          return { ...r, points_count: count, _eta: eta } as RouteWithCount;
+          return { ...r, points_count: pts.length, _eta: eta } as RouteWithCount;
         },
       );
     },
