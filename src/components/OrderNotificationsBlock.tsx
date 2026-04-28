@@ -70,6 +70,16 @@ export function OrderNotificationsBlock({ orderId }: { orderId: string }) {
               </Badge>
               <div className="min-w-0 flex-1">
                 <div className="font-medium">{n.body ?? n.title}</div>
+                {Array.isArray((n.payload as { photos?: unknown }).photos) &&
+                  ((n.payload as { photos: Array<{ kind: string; url: string }> }).photos.length > 0) && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {(n.payload as { photos: Array<{ kind: string; url: string }> }).photos.map((ph, i) => (
+                        <a key={i} href={ph.url} target="_blank" rel="noopener noreferrer" title={ph.kind}>
+                          <img src={ph.url} alt={ph.kind} className="h-12 w-12 rounded border border-border object-cover" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">
                   {new Date(n.created_at).toLocaleString("ru-RU")}
                   {!n.is_read && <span className="ml-2 text-primary">• новое</span>}
