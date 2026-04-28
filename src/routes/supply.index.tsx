@@ -145,6 +145,12 @@ function SupplyPage() {
             <SummaryBadge level="critical" count={counts.critical} />
             <SummaryBadge level="low" count={counts.low} />
             <SummaryBadge level="ok" count={counts.ok} />
+            <Button asChild size="sm" className="ml-2">
+              <Link to="/supply/requests">
+                <ClipboardList className="mr-2 h-4 w-4" />
+                Заявки на пополнение
+              </Link>
+            </Button>
           </div>
         </div>
 
