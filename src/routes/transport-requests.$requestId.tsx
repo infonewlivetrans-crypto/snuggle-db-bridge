@@ -62,6 +62,8 @@ type RequestDetail = {
   request_status_changed_by: string | null;
   request_status_changed_at: string | null;
   request_status_comment: string | null;
+  departure_time: string | null;
+  request_priority: RequestPriority;
 };
 
 function TransportRequestDetailPage() {
