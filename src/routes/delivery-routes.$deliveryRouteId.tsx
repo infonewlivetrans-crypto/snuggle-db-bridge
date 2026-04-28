@@ -118,6 +118,25 @@ function DeliveryRoutePage() {
     },
   });
 
+  const pointIds = (points ?? []).map((p) => p.id);
+  const { data: photoKindsByPoint } = useQuery({
+    enabled: pointIds.length > 0,
+    queryKey: ["route-point-photos-kinds", pointIds.join(",")],
+    queryFn: async (): Promise<Record<string, Set<string>>> => {
+      const { data: rows, error } = await supabase
+        .from("route_point_photos")
+        .select("route_point_id, kind")
+        .in("route_point_id", pointIds);
+      if (error) throw error;
+      const map: Record<string, Set<string>> = {};
+      for (const r of (rows ?? []) as Array<{ route_point_id: string; kind: string }>) {
+        if (!map[r.route_point_id]) map[r.route_point_id] = new Set();
+        map[r.route_point_id].add(r.kind);
+      }
+      return map;
+    },
+  });
+
   const [status, setStatus] = useState<DeliveryRouteStatus>("formed");
   const [comment, setComment] = useState("");
 
