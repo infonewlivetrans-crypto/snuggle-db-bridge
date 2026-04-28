@@ -220,6 +220,13 @@ function DeliveryRoutePage() {
               </div>
             </div>
 
+            {/* Исполнение маршрута: водитель + транспорт */}
+            <RouteExecutionBlock
+              deliveryRouteId={data.id}
+              driver={data.assigned_driver}
+              vehicle={data.assigned_vehicle}
+            />
+
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
               <div className="border-b border-border px-4 py-3">
