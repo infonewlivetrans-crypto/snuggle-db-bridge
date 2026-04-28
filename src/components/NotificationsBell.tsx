@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX } from "lucide-react";
+import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
