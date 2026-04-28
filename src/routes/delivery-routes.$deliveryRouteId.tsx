@@ -75,6 +75,11 @@ type PointRow = {
   dp_unload_started_at: string | null;
   dp_unload_finished_at: string | null;
   dp_finished_at: string | null;
+  dp_idle_started_at: string | null;
+  dp_idle_finished_at: string | null;
+  dp_idle_duration_minutes: number | null;
+  dp_idle_reason: IdleReason | null;
+  dp_idle_comment: string | null;
   order: {
     id: string;
     order_number: string;
