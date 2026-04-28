@@ -9,6 +9,7 @@ import {
   Settings,
   Menu,
   PackageSearch,
+  Receipt,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -24,7 +25,8 @@ const NAV_ITEMS = [
   { to: "/vehicles", label: "Авто", icon: Truck, match: (p: string) => p.startsWith("/vehicles") },
   { to: "/warehouses", label: "Склады", icon: Warehouse, match: (p: string) => p.startsWith("/warehouses") },
   { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p: string) => p.startsWith("/supply") },
-  { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p: string) => p.startsWith("/admin") },
+  { to: "/admin/tariffs", label: "Тарифы", icon: Receipt, match: (p: string) => p.startsWith("/admin/tariffs") },
+  { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p: string) => p.startsWith("/admin") && !p.startsWith("/admin/tariffs") },
 ] as const;
 
 export function AppHeader() {

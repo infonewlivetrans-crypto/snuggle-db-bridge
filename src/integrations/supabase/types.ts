@@ -302,6 +302,81 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_tariffs: {
+        Row: {
+          base_price: number | null
+          city: string | null
+          comment: string | null
+          created_at: string
+          destination_city: string | null
+          fixed_price: number | null
+          goods_percent: number | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["tariff_kind"]
+          locality: string | null
+          min_price: number | null
+          name: string
+          price_per_km: number | null
+          price_per_point: number | null
+          priority: number
+          radius_km: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+          warehouse_id: string
+          zone: string | null
+        }
+        Insert: {
+          base_price?: number | null
+          city?: string | null
+          comment?: string | null
+          created_at?: string
+          destination_city?: string | null
+          fixed_price?: number | null
+          goods_percent?: number | null
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["tariff_kind"]
+          locality?: string | null
+          min_price?: number | null
+          name: string
+          price_per_km?: number | null
+          price_per_point?: number | null
+          priority?: number
+          radius_km?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+          warehouse_id: string
+          zone?: string | null
+        }
+        Update: {
+          base_price?: number | null
+          city?: string | null
+          comment?: string | null
+          created_at?: string
+          destination_city?: string | null
+          fixed_price?: number | null
+          goods_percent?: number | null
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["tariff_kind"]
+          locality?: string | null
+          min_price?: number | null
+          name?: string
+          price_per_km?: number | null
+          price_per_point?: number | null
+          priority?: number
+          radius_km?: number | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+          warehouse_id?: string
+          zone?: string | null
+        }
+        Relationships: []
+      }
       drivers: {
         Row: {
           carrier_id: string
@@ -495,14 +570,20 @@ export type Database = {
       orders: {
         Row: {
           access_instructions: string | null
+          applied_tariff_id: string | null
           cash_received: boolean
           comment: string | null
           contact_name: string | null
           contact_phone: string | null
           created_at: string
           delivery_address: string | null
+          delivery_cost: number
+          delivery_cost_source: Database["public"]["Enums"]["delivery_cost_source"]
           delivery_photo_url: string | null
+          delivery_zone: string | null
+          destination_city: string | null
           external_id: string | null
+          goods_amount: number | null
           id: string
           items_count: number | null
           landmarks: string | null
@@ -524,14 +605,20 @@ export type Database = {
         }
         Insert: {
           access_instructions?: string | null
+          applied_tariff_id?: string | null
           cash_received?: boolean
           comment?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           delivery_address?: string | null
+          delivery_cost?: number
+          delivery_cost_source?: Database["public"]["Enums"]["delivery_cost_source"]
           delivery_photo_url?: string | null
+          delivery_zone?: string | null
+          destination_city?: string | null
           external_id?: string | null
+          goods_amount?: number | null
           id?: string
           items_count?: number | null
           landmarks?: string | null
@@ -553,14 +640,20 @@ export type Database = {
         }
         Update: {
           access_instructions?: string | null
+          applied_tariff_id?: string | null
           cash_received?: boolean
           comment?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
           delivery_address?: string | null
+          delivery_cost?: number
+          delivery_cost_source?: Database["public"]["Enums"]["delivery_cost_source"]
           delivery_photo_url?: string | null
+          delivery_zone?: string | null
+          destination_city?: string | null
           external_id?: string | null
+          goods_amount?: number | null
           id?: string
           items_count?: number | null
           landmarks?: string | null
@@ -716,12 +809,15 @@ export type Database = {
       }
       routes: {
         Row: {
+          carrier_cost: number
           comment: string | null
           created_at: string
+          delivery_cost: number
           destination_warehouse_id: string | null
           driver_id: string | null
           driver_name: string | null
           id: string
+          manual_cost: boolean
           planned_departure_at: string | null
           points_count: number
           request_type: Database["public"]["Enums"]["transport_request_type"]
@@ -731,6 +827,7 @@ export type Database = {
           route_date: string
           route_number: string
           status: Database["public"]["Enums"]["route_status"]
+          total_distance_km: number
           total_volume_m3: number
           total_weight_kg: number
           updated_at: string
@@ -738,12 +835,15 @@ export type Database = {
           warehouse_id: string | null
         }
         Insert: {
+          carrier_cost?: number
           comment?: string | null
           created_at?: string
+          delivery_cost?: number
           destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
           id?: string
+          manual_cost?: boolean
           planned_departure_at?: string | null
           points_count?: number
           request_type?: Database["public"]["Enums"]["transport_request_type"]
@@ -753,6 +853,7 @@ export type Database = {
           route_date?: string
           route_number: string
           status?: Database["public"]["Enums"]["route_status"]
+          total_distance_km?: number
           total_volume_m3?: number
           total_weight_kg?: number
           updated_at?: string
@@ -760,12 +861,15 @@ export type Database = {
           warehouse_id?: string | null
         }
         Update: {
+          carrier_cost?: number
           comment?: string | null
           created_at?: string
+          delivery_cost?: number
           destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
           id?: string
+          manual_cost?: boolean
           planned_departure_at?: string | null
           points_count?: number
           request_type?: Database["public"]["Enums"]["transport_request_type"]
@@ -775,6 +879,7 @@ export type Database = {
           route_date?: string
           route_number?: string
           status?: Database["public"]["Enums"]["route_status"]
+          total_distance_km?: number
           total_volume_m3?: number
           total_weight_kg?: number
           updated_at?: string
@@ -1365,12 +1470,55 @@ export type Database = {
       }
     }
     Functions: {
+      calc_order_delivery_cost: {
+        Args: { p_order_id: string }
+        Returns: number
+      }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
       notify_low_stock_for_product: {
         Args: { p_product_id: string; p_warehouse_id: string }
         Returns: undefined
       }
+      pick_delivery_tariff: {
+        Args: {
+          p_order_city: string
+          p_order_zone: string
+          p_warehouse_city: string
+          p_warehouse_id: string
+        }
+        Returns: {
+          base_price: number | null
+          city: string | null
+          comment: string | null
+          created_at: string
+          destination_city: string | null
+          fixed_price: number | null
+          goods_percent: number | null
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["tariff_kind"]
+          locality: string | null
+          min_price: number | null
+          name: string
+          price_per_km: number | null
+          price_per_point: number | null
+          priority: number
+          radius_km: number | null
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+          warehouse_id: string
+          zone: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "delivery_tariffs"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      recalc_route_costs: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
     }
     Enums: {
@@ -1387,6 +1535,7 @@ export type Database = {
         | "other"
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
+      delivery_cost_source: "auto" | "manual" | "tariff"
       dock_slot_kind: "shipment" | "inbound_factory" | "inbound_return"
       dock_slot_status:
         | "planned"
@@ -1430,6 +1579,16 @@ export type Database = {
         | "in_transit"
         | "received"
         | "cancelled"
+      tariff_kind:
+        | "fixed_city"
+        | "fixed_zone"
+        | "fixed_direction"
+        | "per_km_round"
+        | "per_km_last"
+        | "per_point"
+        | "combo"
+        | "percent_goods"
+        | "manual"
       transport_request_type:
         | "client_delivery"
         | "warehouse_transfer"
@@ -1576,6 +1735,7 @@ export const Constants = {
       ],
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
+      delivery_cost_source: ["auto", "manual", "tariff"],
       dock_slot_kind: ["shipment", "inbound_factory", "inbound_return"],
       dock_slot_status: [
         "planned",
@@ -1622,6 +1782,17 @@ export const Constants = {
         "in_transit",
         "received",
         "cancelled",
+      ],
+      tariff_kind: [
+        "fixed_city",
+        "fixed_zone",
+        "fixed_direction",
+        "per_km_round",
+        "per_km_last",
+        "per_point",
+        "combo",
+        "percent_goods",
+        "manual",
       ],
       transport_request_type: [
         "client_delivery",

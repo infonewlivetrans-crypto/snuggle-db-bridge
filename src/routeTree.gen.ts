@@ -22,6 +22,7 @@ import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
+import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +90,11 @@ const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
   path: '/carriers/$carrierId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTariffsRoute = AdminTariffsRouteImport.update({
+  id: '/admin/tariffs',
+  path: '/admin/tariffs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/admin/settings',
   path: '/admin/settings',
@@ -98,6 +104,7 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin/settings'
+    | '/admin/tariffs'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/routes/$routeId'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/settings'
+    | '/admin/tariffs'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/routes/$routeId'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin/settings'
+    | '/admin/tariffs'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/routes/$routeId'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTariffsRoute: typeof AdminTariffsRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
@@ -305,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarriersCarrierIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/tariffs': {
+      id: '/admin/tariffs'
+      path: '/admin/tariffs'
+      fullPath: '/admin/tariffs'
+      preLoaderRoute: typeof AdminTariffsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/admin/settings'
@@ -318,6 +338,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminTariffsRoute: AdminTariffsRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
