@@ -132,6 +132,12 @@ function TransportRequestDetailPage() {
               }}
             />
 
+            <TransportCapacityCheck
+              requestId={data.id}
+              requiredCapacityKg={data.required_capacity_kg}
+              requiredVolumeM3={data.required_volume_m3}
+            />
+
 
             <div className="rounded-lg border border-border p-4">
               <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
