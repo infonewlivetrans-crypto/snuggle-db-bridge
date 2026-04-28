@@ -29,6 +29,7 @@ import {
   DELIVERY_ROUTE_STATUS_STYLES,
   type DeliveryRouteStatus,
 } from "@/lib/deliveryRoutes";
+import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 
 export const Route = createFileRoute("/delivery-routes/$deliveryRouteId")({
   head: () => ({
@@ -48,6 +49,8 @@ type Detail = {
   comment: string | null;
   source_request_id: string;
   source_warehouse_id: string | null;
+  assigned_driver: string | null;
+  assigned_vehicle: string | null;
   source_request: { route_number: string } | null;
   source_warehouse: { name: string; city: string | null } | null;
 };
@@ -75,7 +78,7 @@ function DeliveryRoutePage() {
       const { data, error } = await supabase
         .from("delivery_routes")
         .select(
-          "id, route_number, route_date, status, comment, source_request_id, source_warehouse_id, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
+          "id, route_number, route_date, status, comment, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
         )
         .eq("id", deliveryRouteId)
         .maybeSingle();
@@ -216,6 +219,13 @@ function DeliveryRoutePage() {
                 </Button>
               </div>
             </div>
+
+            {/* Исполнение маршрута: водитель + транспорт */}
+            <RouteExecutionBlock
+              deliveryRouteId={data.id}
+              driver={data.assigned_driver}
+              vehicle={data.assigned_vehicle}
+            />
 
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
