@@ -126,6 +126,7 @@ const PRIORITY_STYLES: Record<Priority, string> = {
 function SupplyRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ["supply-requests"],
