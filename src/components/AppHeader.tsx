@@ -9,6 +9,7 @@ import {
   Settings,
   Menu,
   PackageSearch,
+  Receipt,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
