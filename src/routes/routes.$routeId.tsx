@@ -359,6 +359,9 @@ function RouteDetailPage() {
         {/* Сводка ETA по маршруту */}
         <RouteEtaSummary route={route} points={points ?? []} />
 
+        {/* Статус движения водителя */}
+        <DriverMovementCard route={route} points={points ?? []} />
+
         {/* Уведомления о брака / недоставке */}
 
         {(defectiveCount > 0 || failedCount > 0) && (
