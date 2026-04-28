@@ -90,16 +90,37 @@ export function QrCapture({
     return (
       <div className="flex items-center gap-2">
         {qrPhotoUrl ? (
-          <a
-            href={qrPhotoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 rounded-md border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-900 hover:bg-green-100"
-            title={`QR загружен ${qrUploadedAt ? new Date(qrUploadedAt).toLocaleString("ru-RU") : ""}`}
-          >
-            <CheckCircle2 className="h-3 w-3" />
-            QR
-          </a>
+          <>
+            <a
+              href={qrPhotoUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-md border border-green-200 bg-green-50 px-2 py-1 text-xs font-medium text-green-900 hover:bg-green-100"
+              title={`QR загружен ${qrUploadedAt ? new Date(qrUploadedAt).toLocaleString("ru-RU") : ""}`}
+            >
+              <CheckCircle2 className="h-3 w-3" />
+              QR
+            </a>
+            <label
+              className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary/60"
+              title="Заменить фото QR"
+            >
+              {uploading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Upload className="h-3 w-3" />
+              )}
+              {uploading ? "…" : "Заменить"}
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                disabled={uploading}
+                onChange={(e) => handleFile(e.target.files?.[0])}
+              />
+            </label>
+          </>
         ) : (
           <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100">
             {uploading ? (
