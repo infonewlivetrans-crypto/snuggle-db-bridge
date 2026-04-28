@@ -435,6 +435,16 @@ function DeliveryRoutePage() {
                           dp_finished_at: p.dp_finished_at,
                         }}
                       />
+                      <PointIdleBlock
+                        routePointId={p.id}
+                        data={{
+                          dp_idle_started_at: p.dp_idle_started_at,
+                          dp_idle_finished_at: p.dp_idle_finished_at,
+                          dp_idle_duration_minutes: p.dp_idle_duration_minutes,
+                          dp_idle_reason: p.dp_idle_reason,
+                          dp_idle_comment: p.dp_idle_comment,
+                        }}
+                      />
                       <RoutePointPhotosBlock
                         routePointId={p.id}
                         orderId={p.order_id}
