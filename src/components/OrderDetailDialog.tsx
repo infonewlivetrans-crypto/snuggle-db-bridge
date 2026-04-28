@@ -76,11 +76,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [qrReceived, setQrReceived] = useState(order?.qr_received ?? false);
   const [addToRouteOpen, setAddToRouteOpen] = useState(false);
   const [manualCostOpen, setManualCostOpen] = useState(false);
-
-  // Sync state when order changes
-  if (order && open && order.id !== (status as unknown as string) + order.id) {
-    // noop — guard
-  }
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order?.payment_status ?? "not_paid");
+  const [amountDue, setAmountDue] = useState<string>(order?.amount_due != null ? String(order.amount_due) : "");
+  const [marketplace, setMarketplace] = useState<string>(order?.marketplace ?? "");
+  const [worksWeekends, setWorksWeekends] = useState<boolean>(order?.client_works_weekends ?? false);
 
   // Reset local state when a new order opens
   const orderId = order?.id;
@@ -90,6 +89,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setStatus(order.status);
       setCashReceived(order.cash_received);
       setQrReceived(order.qr_received);
+      setPaymentStatus(order.payment_status ?? "not_paid");
+      setAmountDue(order.amount_due != null ? String(order.amount_due) : "");
+      setMarketplace(order.marketplace ?? "");
+      setWorksWeekends(order.client_works_weekends ?? false);
     }
   });
 
