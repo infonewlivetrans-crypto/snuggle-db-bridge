@@ -69,6 +69,11 @@ type PointRow = {
   dp_expected_return_at: string | null;
   dp_amount_received: number | null;
   dp_payment_comment: string | null;
+  dp_planned_arrival_at: string | null;
+  dp_actual_arrival_at: string | null;
+  dp_unload_started_at: string | null;
+  dp_unload_finished_at: string | null;
+  dp_finished_at: string | null;
   order: {
     id: string;
     order_number: string;
