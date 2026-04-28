@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Hash, MessageSquare, Warehouse, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Hash, MessageSquare, Warehouse, Calendar, Tag, Weight, Box, Package, MapPin, AlertTriangle } from "lucide-react";
 import {
   REQUEST_TYPE_LABELS,
   REQUEST_STATUS_LABELS,
 } from "./transport-requests.index";
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
+import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
   head: () => ({
