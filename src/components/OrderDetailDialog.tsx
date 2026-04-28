@@ -167,6 +167,18 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
               <Badge variant="outline" className={STATUS_STYLES[order.status]}>
                 {STATUS_LABELS[order.status]}
               </Badge>
+              {order.requires_qr && (
+                <Badge
+                  variant="outline"
+                  className={
+                    order.qr_received
+                      ? "border-green-300 bg-green-100 text-green-900"
+                      : "border-amber-300 bg-amber-100 text-amber-900"
+                  }
+                >
+                  QR: {order.qr_received ? "получен" : "не получен"}
+                </Badge>
+              )}
               <Badge
                 variant="outline"
                 className="border-border bg-secondary text-xs text-muted-foreground"
