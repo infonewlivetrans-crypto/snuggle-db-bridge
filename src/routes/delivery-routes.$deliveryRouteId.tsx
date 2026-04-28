@@ -300,6 +300,24 @@ function DeliveryRoutePage() {
                           </div>
                         </div>
                       </div>
+                      {p.order && (
+                        <PaymentQrBlock
+                          routePointId={p.id}
+                          order={{
+                            id: p.order.id,
+                            payment_type: p.order.payment_type,
+                            amount_due: p.order.amount_due,
+                            requires_qr: p.order.requires_qr,
+                            marketplace: p.order.marketplace,
+                            cash_received: p.order.cash_received,
+                            qr_received: p.order.qr_received,
+                          }}
+                          point={{
+                            dp_amount_received: p.dp_amount_received,
+                            dp_payment_comment: p.dp_payment_comment,
+                          }}
+                        />
+                      )}
                       <PointStatusEditor
                         routePointId={p.id}
                         initial={{
@@ -309,6 +327,16 @@ function DeliveryRoutePage() {
                           dp_return_comment: p.dp_return_comment,
                           dp_expected_return_at: p.dp_expected_return_at,
                         }}
+                        order={
+                          p.order
+                            ? {
+                                payment_type: p.order.payment_type,
+                                requires_qr: p.order.requires_qr,
+                                cash_received: p.order.cash_received,
+                                qr_received: p.order.qr_received,
+                              }
+                            : undefined
+                        }
                       />
                       <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
