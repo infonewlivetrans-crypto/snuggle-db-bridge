@@ -935,6 +935,45 @@ export type Database = {
         }
         Relationships: []
       }
+      supply_request_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          comment: string | null
+          from_status:
+            | Database["public"]["Enums"]["supply_request_status"]
+            | null
+          id: string
+          in_transit_snapshot: Json | null
+          supply_request_id: string
+          to_status: Database["public"]["Enums"]["supply_request_status"]
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["supply_request_status"]
+            | null
+          id?: string
+          in_transit_snapshot?: Json | null
+          supply_request_id: string
+          to_status: Database["public"]["Enums"]["supply_request_status"]
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          from_status?:
+            | Database["public"]["Enums"]["supply_request_status"]
+            | null
+          id?: string
+          in_transit_snapshot?: Json | null
+          supply_request_id?: string
+          to_status?: Database["public"]["Enums"]["supply_request_status"]
+        }
+        Relationships: []
+      }
       supply_requests: {
         Row: {
           comment: string | null
