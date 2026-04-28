@@ -91,6 +91,7 @@ export function NotificationsBell() {
           else if (n.kind === "order_delivered") toast.success(n.title, { description: n.body ?? "" });
           else if (n.kind === "order_failed") toast.error(n.title, { description: n.body ?? "" });
           else if (n.kind === "order_returned") toast.warning(n.title, { description: n.body ?? "" });
+          else if (n.kind === "low_stock") toast.warning(n.title, { description: n.body ?? "" });
           else toast(n.title, { description: n.body ?? "" });
         },
       )
