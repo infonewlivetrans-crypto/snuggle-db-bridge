@@ -82,7 +82,9 @@ export function PointStatusEditor({ routePointId, initial, onSaved }: Props) {
             ? new Date(expectedReturn).toISOString()
             : null,
       };
-      const { error } = await supabase.from("route_points").update(payload).eq("id", routePointId);
+      const { error } = await (supabase.from("route_points") as unknown as {
+        update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
+      }).update(payload).eq("id", routePointId);
       if (error) throw error;
     },
     onSuccess: () => {
