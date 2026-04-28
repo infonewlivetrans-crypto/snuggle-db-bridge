@@ -428,7 +428,7 @@ function RouteDetailPage() {
                             </TooltipTrigger>
                             <TooltipContent>
                               {p.orders.qr_photo_uploaded_at ? (
-                                <div className="text-xs">
+                                <div className="space-y-1 text-xs">
                                   <div>
                                     Загружено:{" "}
                                     {new Date(p.orders.qr_photo_uploaded_at).toLocaleString("ru-RU")}
@@ -436,6 +436,17 @@ function RouteDetailPage() {
                                   <div>
                                     Кем: {p.orders.qr_photo_uploaded_by ?? "—"}
                                   </div>
+                                  {p.orders.qr_photo_url && (
+                                    <a
+                                      href={p.orders.qr_photo_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-block text-primary underline hover:no-underline"
+                                    >
+                                      Открыть фото в новой вкладке
+                                    </a>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-xs">QR-фото ещё не загружено</span>
