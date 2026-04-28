@@ -42,7 +42,7 @@ type Props = {
   onSaved?: () => void;
 };
 
-export function PointStatusEditor({ routePointId, initial, onSaved }: Props) {
+export function PointStatusEditor({ routePointId, initial, order, onSaved }: Props) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<DeliveryPointStatus>(initial.dp_status);
   const [reason, setReason] = useState<DeliveryPointUndeliveredReason | "">(
