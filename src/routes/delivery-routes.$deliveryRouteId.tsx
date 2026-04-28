@@ -175,6 +175,23 @@ function DeliveryRoutePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const finalize = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("delivery_routes")
+        .update({ status: "completed" as DeliveryRouteStatus })
+        .eq("id", deliveryRouteId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Маршрут завершён");
+      setStatus("completed");
+      qc.invalidateQueries({ queryKey: ["delivery-route", deliveryRouteId] });
+      qc.invalidateQueries({ queryKey: ["delivery-routes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const fmt = (t: string | null) => (t ? t.slice(0, 5) : null);
 
   return (
