@@ -765,3 +765,162 @@ function EtaPanel({ point }: { point: RoutePointWithOrder }) {
     </div>
   );
 }
+
+function DriverMovementCard({
+  route,
+  points,
+}: {
+  route: RouteWithRefs;
+  points: RoutePointWithOrder[];
+}) {
+  if (points.length === 0) return null;
+  if (route.status === "completed" || route.status === "cancelled") return null;
+
+  // Текущая позиция: последняя завершённая или прибывшая точка
+  const sorted = [...points].sort((a, b) => a.point_number - b.point_number);
+  const lastDone = [...sorted]
+    .reverse()
+    .find((p) => p.status === "completed" || p.status === "arrived");
+  // Следующая цель: ближайшая точка, требующая визита
+  const nextPoint = sorted.find(
+    (p) => p.status !== "completed" && p.status !== "skipped",
+  );
+
+  if (!nextPoint) {
+    return (
+      <div className="mb-4 rounded-lg border border-border bg-card p-4">
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <span className="font-semibold text-foreground">
+            Все точки маршрута завершены
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const risk = (nextPoint.eta_risk ?? "unknown") as EtaRiskLevel;
+  const reasons = parseReasons(nextPoint.eta_reasons);
+  const isArrived = nextPoint.status === "arrived";
+  const driverLabel =
+    route.driver?.full_name ?? route.driver_name ?? "Водитель";
+
+  return (
+    <div className="mb-4 overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-secondary/40 px-4 py-2">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Truck className="h-4 w-4 text-primary" />
+          Статус движения · {driverLabel}
+        </div>
+        <Badge variant="outline" className={ETA_RISK_STYLES[risk]}>
+          {ETA_RISK_LABELS[risk]}
+        </Badge>
+      </div>
+      <div className="grid gap-3 p-4 sm:grid-cols-2">
+        <div className="rounded-md border border-border bg-background p-3">
+          <div className="mb-1 text-xs uppercase tracking-wider text-muted-foreground">
+            Где сейчас
+          </div>
+          {lastDone ? (
+            <div className="text-sm">
+              <div className="font-semibold text-foreground">
+                Точка {lastDone.point_number} ·{" "}
+                {lastDone.status === "arrived" ? "на адресе" : "доставлено"}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {lastDone.orders.order_number} · {lastDone.orders.delivery_address ?? "—"}
+              </div>
+              {(lastDone.completed_at || lastDone.arrived_at) && (
+                <div className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  {formatTime(lastDone.completed_at ?? lastDone.arrived_at)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              Маршрут ещё не начат · ожидание выезда
+              {route.planned_departure_at
+                ? ` в ${formatTime(route.planned_departure_at)}`
+                : ""}
+            </div>
+          )}
+        </div>
+
+        <div
+          className={`rounded-md border p-3 ${
+            risk === "late"
+              ? "border-red-300 bg-red-50/40"
+              : risk === "tight"
+                ? "border-amber-300 bg-amber-50/40"
+                : "border-border bg-background"
+          }`}
+        >
+          <div className="mb-1 flex items-center justify-between gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+            <span>{isArrived ? "На адресе" : "Следующая точка"}</span>
+            <span className="font-mono normal-case tracking-normal text-muted-foreground">
+              #{nextPoint.point_number}
+            </span>
+          </div>
+          <div className="text-sm font-semibold text-foreground">
+            {nextPoint.orders.order_number}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {nextPoint.orders.delivery_address ?? "—"}
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span className="inline-flex items-center gap-1 text-foreground">
+              <Timer className="h-3 w-3" />
+              ETA{" "}
+              <span className="font-semibold">{formatTime(nextPoint.eta_at)}</span>
+            </span>
+            <span className="text-muted-foreground">
+              диапазон{" "}
+              {formatEtaWindow(nextPoint.eta_window_from, nextPoint.eta_window_to)}
+            </span>
+            {nextPoint.travel_minutes ? (
+              <span className="text-muted-foreground">
+                · {nextPoint.travel_minutes} мин в пути
+              </span>
+            ) : null}
+            {nextPoint.leg_distance_km ? (
+              <span className="text-muted-foreground">
+                · {Number(nextPoint.leg_distance_km).toFixed(1)} км
+              </span>
+            ) : null}
+          </div>
+          {(nextPoint.client_window_from || nextPoint.client_window_to) && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Окно клиента: {nextPoint.client_window_from?.slice(0, 5) ?? "—"} –{" "}
+              {nextPoint.client_window_to?.slice(0, 5) ?? "—"}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {reasons.length > 0 && (
+        <div className="border-t border-border bg-background px-4 py-3">
+          <div className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Причины риска
+          </div>
+          <ul className="space-y-1">
+            {reasons.map((r, i) => (
+              <li key={i} className="flex items-start gap-1.5 text-xs text-foreground">
+                <AlertTriangle
+                  className={`mt-0.5 h-3 w-3 shrink-0 ${
+                    risk === "late"
+                      ? "text-red-600"
+                      : risk === "tight"
+                        ? "text-amber-600"
+                        : "text-muted-foreground"
+                  }`}
+                />
+                <span>{r.text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
