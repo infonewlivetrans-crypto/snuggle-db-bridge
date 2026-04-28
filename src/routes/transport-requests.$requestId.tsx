@@ -13,6 +13,7 @@ import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
+import { TransportCapacityCheck } from "@/components/TransportCapacityCheck";
 import type { BodyType } from "@/lib/carriers";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
@@ -129,6 +130,12 @@ function TransportRequestDetailPage() {
                 requires_straps: data.requires_straps,
                 transport_comment: data.transport_comment,
               }}
+            />
+
+            <TransportCapacityCheck
+              requestId={data.id}
+              requiredCapacityKg={data.required_capacity_kg}
+              requiredVolumeM3={data.required_volume_m3}
             />
 
 
