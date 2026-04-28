@@ -107,7 +107,7 @@ function DeliveryRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, order:order_id(order_number, contact_name, delivery_address, comment)",
+          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
