@@ -258,6 +258,9 @@ function TransportRequestDetailPage() {
 
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />
+
+            {/* Точки доставки */}
+            <DeliveryPointsBlock requestId={data.id} />
           </div>
         )}
       </main>
