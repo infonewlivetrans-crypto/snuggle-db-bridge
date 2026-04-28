@@ -126,6 +126,7 @@ const PRIORITY_STYLES: Record<Priority, string> = {
 function SupplyRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ["supply-requests"],
@@ -253,7 +254,11 @@ function SupplyRequestsPage() {
                   const product = productById.get(r.product_id);
                   const StatusIcon = STATUS_ICONS[r.status];
                   return (
-                    <TableRow key={r.id}>
+                    <TableRow
+                      key={r.id}
+                      className="cursor-pointer hover:bg-secondary/40"
+                      onClick={() => setSelectedId(r.id)}
+                    >
                       <TableCell className="font-mono text-xs">{r.request_number}</TableCell>
                       <TableCell className="text-sm">
                         {r.source_type === "factory" ? (
@@ -293,7 +298,7 @@ function SupplyRequestsPage() {
                           {STATUS_LABELS[r.status]}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         <StatusActions request={r} />
                       </TableCell>
                     </TableRow>
@@ -310,6 +315,12 @@ function SupplyRequestsPage() {
         onOpenChange={setOpen}
         warehouses={warehouses ?? []}
         products={products ?? []}
+      />
+      <RequestDetailsDialog
+        requestId={selectedId}
+        onOpenChange={(v) => !v && setSelectedId(null)}
+        warehouseById={warehouseById}
+        productById={productById}
       />
     </div>
   );
@@ -699,6 +710,198 @@ function CreateRequestWizard({
             </Button>
           )}
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// -------- Details + history --------
+
+type StatusHistoryRow = {
+  id: string;
+  supply_request_id: string;
+  from_status: Status | null;
+  to_status: Status;
+  changed_at: string;
+  changed_by: string | null;
+  comment: string | null;
+  in_transit_snapshot: {
+    id?: string;
+    qty?: number;
+    product_id?: string;
+    destination_warehouse_id?: string;
+    created_at?: string;
+  } | null;
+};
+
+function RequestDetailsDialog({
+  requestId,
+  onOpenChange,
+  warehouseById,
+  productById,
+}: {
+  requestId: string | null;
+  onOpenChange: (v: boolean) => void;
+  warehouseById: Map<string, string>;
+  productById: Map<string, Product>;
+}) {
+  const open = !!requestId;
+
+  const { data: request } = useQuery({
+    queryKey: ["supply-request", requestId],
+    enabled: !!requestId,
+    queryFn: async (): Promise<SupplyRequest | null> => {
+      const { data, error } = await db
+        .from("supply_requests")
+        .select("*")
+        .eq("id", requestId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as SupplyRequest | null;
+    },
+  });
+
+  const { data: history } = useQuery({
+    queryKey: ["supply-request-history", requestId],
+    enabled: !!requestId,
+    queryFn: async (): Promise<StatusHistoryRow[]> => {
+      const { data, error } = await db
+        .from("supply_request_status_history")
+        .select("*")
+        .eq("supply_request_id", requestId)
+        .order("changed_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as StatusHistoryRow[];
+    },
+  });
+
+  const product = request ? productById.get(request.product_id) : undefined;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Заявка {request?.request_number ?? ""}</DialogTitle>
+          <DialogDescription>
+            {product?.name ?? "Товар"} ·{" "}
+            {request ? Number(request.qty).toLocaleString("ru-RU") : ""} {product?.unit ?? ""} ·
+            получатель: {request ? warehouseById.get(request.destination_warehouse_id) ?? "—" : ""}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          {request && (
+            <div className="grid grid-cols-2 gap-3 rounded-md border border-border bg-secondary/30 p-3 text-sm">
+              <div>
+                <div className="text-xs text-muted-foreground">Статус</div>
+                <Badge variant="outline" className={STATUS_STYLES[request.status]}>
+                  {STATUS_LABELS[request.status]}
+                </Badge>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Приоритет</div>
+                <Badge variant="outline" className={PRIORITY_STYLES[request.priority]}>
+                  {PRIORITY_LABELS[request.priority]}
+                </Badge>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Источник</div>
+                <div>
+                  {request.source_type === "factory"
+                    ? request.source_name ?? "Завод"
+                    : request.source_warehouse_id
+                      ? warehouseById.get(request.source_warehouse_id) ?? "—"
+                      : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted-foreground">Ожидаемая дата</div>
+                <div>
+                  {request.expected_at
+                    ? new Date(request.expected_at).toLocaleString("ru-RU")
+                    : "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <div className="mb-2 text-sm font-semibold text-foreground">История статусов</div>
+            {!history || history.length === 0 ? (
+              <div className="rounded-md border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                Изменений пока нет
+              </div>
+            ) : (
+              <ol className="relative space-y-3 border-l border-border pl-4">
+                {history.map((h) => {
+                  const isCancel = h.to_status === "cancelled";
+                  const Icon = STATUS_ICONS[h.to_status];
+                  return (
+                    <li key={h.id} className="relative">
+                      <span
+                        className={`absolute -left-[21px] top-1 inline-flex h-3 w-3 items-center justify-center rounded-full border-2 border-background ${
+                          isCancel ? "bg-red-500" : "bg-primary"
+                        }`}
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className={STATUS_STYLES[h.to_status]}>
+                          <Icon className="mr-1 h-3 w-3" />
+                          {STATUS_LABELS[h.to_status]}
+                        </Badge>
+                        {h.from_status && (
+                          <span className="text-xs text-muted-foreground">
+                            из «{STATUS_LABELS[h.from_status]}»
+                          </span>
+                        )}
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {new Date(h.changed_at).toLocaleString("ru-RU")}
+                        </span>
+                      </div>
+                      {h.changed_by && (
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          Автор: {h.changed_by}
+                        </div>
+                      )}
+                      {h.comment && (
+                        <div className="mt-0.5 text-xs text-muted-foreground">{h.comment}</div>
+                      )}
+                      {isCancel && (
+                        <div className="mt-2 rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-900">
+                          <div className="font-semibold">Заявка отменена</div>
+                          {h.in_transit_snapshot ? (
+                            <div className="mt-1 space-y-0.5">
+                              <div>
+                                Удалена запись «в пути»:{" "}
+                                <span className="font-mono">
+                                  {h.in_transit_snapshot.id?.slice(0, 8) ?? "—"}…
+                                </span>
+                              </div>
+                              <div>
+                                Объём в пути на момент отмены:{" "}
+                                {h.in_transit_snapshot.qty != null
+                                  ? Number(h.in_transit_snapshot.qty).toLocaleString("ru-RU")
+                                  : "—"}{" "}
+                                {product?.unit ?? ""}
+                              </div>
+                              {h.in_transit_snapshot.created_at && (
+                                <div>
+                                  Создана:{" "}
+                                  {new Date(h.in_transit_snapshot.created_at).toLocaleString("ru-RU")}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="mt-1">Связанной поставки в пути не было.</div>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
