@@ -48,6 +48,8 @@ type Detail = {
   comment: string | null;
   source_request_id: string;
   source_warehouse_id: string | null;
+  assigned_driver: string | null;
+  assigned_vehicle: string | null;
   source_request: { route_number: string } | null;
   source_warehouse: { name: string; city: string | null } | null;
 };
