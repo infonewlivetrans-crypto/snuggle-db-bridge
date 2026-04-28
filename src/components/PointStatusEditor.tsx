@@ -83,9 +83,15 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
         if (order.requires_qr && !order.qr_received) {
           throw new Error("Нельзя поставить «Доставлено»: QR-код ещё не получен");
         }
+        if (order.requires_qr && !hasQrPhoto) {
+          throw new Error("Нельзя поставить «Доставлено»: не загружено фото QR-кода");
+        }
         if (order.payment_type === "cash" && !order.cash_received) {
           throw new Error("Нельзя поставить «Доставлено»: наличная оплата ещё не получена");
         }
+      }
+      if ((status === "not_delivered" || status === "returned_to_warehouse") && !hasProblemPhoto) {
+        throw new Error("Нужно загрузить фото проблемы для статуса «Не доставлено» / «Возврат на склад»");
       }
       const payload: Record<string, unknown> = {
         dp_status: status,
