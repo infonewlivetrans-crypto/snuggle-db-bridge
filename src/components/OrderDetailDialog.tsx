@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -83,6 +83,14 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
     }
   });
 
+  // Sync QR / status when query data refreshes (e.g. after QR upload/delete)
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (!order) return;
+    setQrReceived(order.qr_received);
+    setStatus(order.status);
+  }, [order?.qr_received, order?.qr_photo_url, order?.status]);
+
   const mutation = useMutation({
     mutationFn: async (updates: Partial<Order>) => {
       if (!order) throw new Error("Нет заказа");
@@ -159,6 +167,18 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
               <Badge variant="outline" className={STATUS_STYLES[order.status]}>
                 {STATUS_LABELS[order.status]}
               </Badge>
+              {order.requires_qr && (
+                <Badge
+                  variant="outline"
+                  className={
+                    order.qr_received
+                      ? "border-green-300 bg-green-100 text-green-900"
+                      : "border-amber-300 bg-amber-100 text-amber-900"
+                  }
+                >
+                  QR: {order.qr_received ? "получен" : "не получен"}
+                </Badge>
+              )}
               <Badge
                 variant="outline"
                 className="border-border bg-secondary text-xs text-muted-foreground"
@@ -342,7 +362,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
 }
 
 // Helper: re-runs effect when key changes
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 function useStateSync(key: string | undefined, fn: () => void) {
   const prev = useRef<string | undefined>(undefined);
   useEffect(() => {
