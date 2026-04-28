@@ -186,6 +186,7 @@ function RoutesPage() {
                 <TableHead className="font-semibold text-foreground">Дата</TableHead>
                 <TableHead className="font-semibold text-foreground">Водитель</TableHead>
                 <TableHead className="font-semibold text-foreground">Точек</TableHead>
+                <TableHead className="font-semibold text-foreground">ETA / Риск</TableHead>
                 <TableHead className="font-semibold text-foreground">Груз</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
               </TableRow>
