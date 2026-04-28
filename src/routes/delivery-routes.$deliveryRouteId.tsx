@@ -338,6 +338,12 @@ function DeliveryRoutePage() {
                           }}
                         />
                       )}
+                      <RoutePointPhotosBlock
+                        routePointId={p.id}
+                        orderId={p.order_id}
+                        requiresQr={!!p.order?.requires_qr}
+                        pointStatus={p.dp_status}
+                      />
                       <PointStatusEditor
                         routePointId={p.id}
                         initial={{
@@ -357,6 +363,8 @@ function DeliveryRoutePage() {
                               }
                             : undefined
                         }
+                        hasQrPhoto={!!photoKindsByPoint?.[p.id]?.has("qr")}
+                        hasProblemPhoto={!!photoKindsByPoint?.[p.id]?.has("problem")}
                       />
                       <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
