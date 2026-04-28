@@ -31,6 +31,7 @@ import {
 import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { AddOrderToRouteDialog } from "@/components/AddOrderToRouteDialog";
+import { QrCapture } from "@/components/QrCapture";
 import {
   MessageSquare,
   Banknote,
@@ -258,6 +259,15 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
               </div>
             </div>
           </div>
+
+          {/* QR-код заказа */}
+          <QrCapture
+            orderId={order.id}
+            orderNumber={order.order_number}
+            requiresQr={order.requires_qr}
+            qrPhotoUrl={order.qr_photo_url}
+            qrUploadedAt={order.qr_photo_uploaded_at}
+          />
 
           {/* Комментарий */}
           <div className="rounded-lg border border-border p-4">
