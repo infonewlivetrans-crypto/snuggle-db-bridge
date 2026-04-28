@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX } from "lucide-react";
+import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ type NotificationKind =
   | "order_delivered"
   | "order_failed"
   | "order_returned"
-  | "payment_received";
+  | "payment_received"
+  | "low_stock";
 
 type Notification = {
   id: string;
@@ -34,6 +35,7 @@ const KIND_ICON: Record<NotificationKind, typeof Bell> = {
   order_failed: AlertTriangle,
   order_returned: PackageX,
   payment_received: CheckCircle2,
+  low_stock: PackageSearch,
 };
 
 const KIND_COLOR: Record<NotificationKind, string> = {
@@ -42,6 +44,7 @@ const KIND_COLOR: Record<NotificationKind, string> = {
   order_failed: "text-red-600",
   order_returned: "text-purple-600",
   payment_received: "text-green-600",
+  low_stock: "text-orange-600",
 };
 
 export function NotificationsBell() {
@@ -73,6 +76,21 @@ export function NotificationsBell() {
 
   const unreadCount = useMemo(() => items.filter((i) => !i.is_read).length, [items]);
 
+  const lowStockSummary = useMemo(() => {
+    const stock = items.filter((i) => i.kind === "low_stock");
+    let critical = 0;
+    let out = 0;
+    let low = 0;
+    stock.forEach((i) => {
+      const lvl = (i.payload as { level?: string } | null)?.level;
+      if (lvl === "out") out += 1;
+      else if (lvl === "critical") critical += 1;
+      else if (lvl === "low") low += 1;
+    });
+    const lastAt = stock[0]?.created_at ?? null;
+    return { total: stock.length, critical, out, low, lastAt };
+  }, [items]);
+
   // Realtime subscription
   useEffect(() => {
     const channel = supabase
@@ -88,6 +106,7 @@ export function NotificationsBell() {
           else if (n.kind === "order_delivered") toast.success(n.title, { description: n.body ?? "" });
           else if (n.kind === "order_failed") toast.error(n.title, { description: n.body ?? "" });
           else if (n.kind === "order_returned") toast.warning(n.title, { description: n.body ?? "" });
+          else if (n.kind === "low_stock") toast.warning(n.title, { description: n.body ?? "" });
           else toast(n.title, { description: n.body ?? "" });
         },
       )
@@ -156,6 +175,34 @@ export function NotificationsBell() {
             </Button>
           )}
         </div>
+        {lowStockSummary.total > 0 && (
+          <a
+            href="/supply"
+            className="flex items-center justify-between gap-3 border-b border-border bg-orange-50 px-3 py-2 text-xs hover:bg-orange-100"
+          >
+            <div className="flex items-center gap-2 text-orange-900">
+              <PackageSearch className="h-4 w-4" />
+              <span className="font-semibold">Дефицит на складах</span>
+              <span className="text-orange-800">
+                {lowStockSummary.out > 0 && <span className="mr-2">нет: {lowStockSummary.out}</span>}
+                {lowStockSummary.critical > 0 && (
+                  <span className="mr-2">критично: {lowStockSummary.critical}</span>
+                )}
+                {lowStockSummary.low > 0 && <span>низко: {lowStockSummary.low}</span>}
+              </span>
+            </div>
+            {lowStockSummary.lastAt && (
+              <span className="shrink-0 text-orange-700">
+                {new Date(lowStockSummary.lastAt).toLocaleString("ru-RU", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            )}
+          </a>
+        )}
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
             <div className="px-3 py-8 text-center text-sm text-muted-foreground">
