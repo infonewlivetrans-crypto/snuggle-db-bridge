@@ -245,6 +245,21 @@ function RoutesPage() {
                     <TableCell className="text-sm font-medium text-foreground">
                       {r.points_count}
                     </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="inline-flex items-center gap-1 text-foreground">
+                          <Timer className="h-3 w-3 text-muted-foreground" />
+                          {formatTime(r._eta.lastEta)}
+                        </span>
+                        <Badge variant="outline" className={`${ETA_RISK_STYLES[r._eta.risk]} px-1.5 py-0`}>
+                          {r._eta.risk === "late"
+                            ? `Опоздание · ${r._eta.lateCount}`
+                            : r._eta.risk === "tight"
+                              ? `Впритык · ${r._eta.tightCount}`
+                              : ETA_RISK_LABELS[r._eta.risk]}
+                        </Badge>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       <div className="flex flex-col gap-0.5">
                         <span className="inline-flex items-center gap-1">
