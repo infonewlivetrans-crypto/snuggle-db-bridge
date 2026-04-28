@@ -69,6 +69,8 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   not_delivered: "Не доставлен",
   defective: "Требует повторной доставки",
   awaiting_resend: "Возврат на склад",
+  awaiting_return: "Ожидает возврата на склад",
+  return_accepted: "Возврат принят складом",
 };
 
 export const STATUS_ORDER: OrderStatus[] = [
