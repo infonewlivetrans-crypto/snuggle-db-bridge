@@ -40,8 +40,8 @@ export type Order = {
   qr_photo_uploaded_at: string | null;
   qr_photo_uploaded_by: string | null;
   // Стоимость доставки
-  delivery_cost?: number | null;
-  delivery_cost_source?: "auto" | "tariff" | "manual" | null;
+  delivery_cost?: number;
+  delivery_cost_source?: "auto" | "tariff" | "manual";
   manual_cost_reason?: string | null;
   manual_cost_set_by?: string | null;
   manual_cost_set_at?: string | null;
