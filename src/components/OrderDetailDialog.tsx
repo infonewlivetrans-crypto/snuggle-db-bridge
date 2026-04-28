@@ -42,7 +42,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Route as RouteIcon,
+  Wallet,
+  Pencil,
+  RotateCcw,
 } from "lucide-react";
+import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog";
 
 type DeliveryReport = {
   id: string;
