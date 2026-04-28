@@ -862,6 +862,15 @@ export type Database = {
           client_window_to: string | null
           completed_at: string | null
           created_at: string
+          dp_expected_return_at: string | null
+          dp_return_comment: string | null
+          dp_return_warehouse_id: string | null
+          dp_status: Database["public"]["Enums"]["delivery_point_status"]
+          dp_status_changed_at: string | null
+          dp_status_changed_by: string | null
+          dp_undelivered_reason:
+            | Database["public"]["Enums"]["delivery_point_undelivered_reason"]
+            | null
           eta_at: string | null
           eta_reasons: Json
           eta_risk: Database["public"]["Enums"]["eta_risk_level"]
@@ -883,6 +892,15 @@ export type Database = {
           client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          dp_expected_return_at?: string | null
+          dp_return_comment?: string | null
+          dp_return_warehouse_id?: string | null
+          dp_status?: Database["public"]["Enums"]["delivery_point_status"]
+          dp_status_changed_at?: string | null
+          dp_status_changed_by?: string | null
+          dp_undelivered_reason?:
+            | Database["public"]["Enums"]["delivery_point_undelivered_reason"]
+            | null
           eta_at?: string | null
           eta_reasons?: Json
           eta_risk?: Database["public"]["Enums"]["eta_risk_level"]
@@ -904,6 +922,15 @@ export type Database = {
           client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          dp_expected_return_at?: string | null
+          dp_return_comment?: string | null
+          dp_return_warehouse_id?: string | null
+          dp_status?: Database["public"]["Enums"]["delivery_point_status"]
+          dp_status_changed_at?: string | null
+          dp_status_changed_by?: string | null
+          dp_undelivered_reason?:
+            | Database["public"]["Enums"]["delivery_point_undelivered_reason"]
+            | null
           eta_at?: string | null
           eta_reasons?: Json
           eta_risk?: Database["public"]["Enums"]["eta_risk_level"]
@@ -1748,6 +1775,23 @@ export type Database = {
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
       delivery_cost_source: "auto" | "manual" | "tariff"
+      delivery_point_status:
+        | "waiting"
+        | "en_route"
+        | "arrived"
+        | "unloading"
+        | "delivered"
+        | "not_delivered"
+        | "returned_to_warehouse"
+      delivery_point_undelivered_reason:
+        | "client_absent"
+        | "client_no_answer"
+        | "no_payment"
+        | "no_qr"
+        | "client_refused"
+        | "no_unloading"
+        | "defective"
+        | "other"
       delivery_route_status: "draft" | "formed" | "in_progress" | "completed"
       dock_slot_kind: "shipment" | "inbound_factory" | "inbound_return"
       dock_slot_status:
@@ -1964,6 +2008,25 @@ export const Constants = {
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
       delivery_cost_source: ["auto", "manual", "tariff"],
+      delivery_point_status: [
+        "waiting",
+        "en_route",
+        "arrived",
+        "unloading",
+        "delivered",
+        "not_delivered",
+        "returned_to_warehouse",
+      ],
+      delivery_point_undelivered_reason: [
+        "client_absent",
+        "client_no_answer",
+        "no_payment",
+        "no_qr",
+        "client_refused",
+        "no_unloading",
+        "defective",
+        "other",
+      ],
       delivery_route_status: ["draft", "formed", "in_progress", "completed"],
       dock_slot_kind: ["shipment", "inbound_factory", "inbound_return"],
       dock_slot_status: [
