@@ -481,3 +481,24 @@ function ProgressTile({
     </div>
   );
 }
+
+function StatTile({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: "red";
+}) {
+  const toneClass =
+    tone === "red"
+      ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
+      : "border-border bg-muted/40 text-foreground";
+  return (
+    <div className={`rounded-lg border p-3 ${toneClass}`}>
+      <div className="text-xs font-medium uppercase tracking-wider opacity-80">{label}</div>
+      <div className="mt-1 text-lg font-semibold tabular-nums">{value}</div>
+    </div>
+  );
+}
