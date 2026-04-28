@@ -252,12 +252,23 @@ function OrdersPage() {
                               onClick={(e) => e.stopPropagation()}
                             >
                               {order.qr_photo_uploaded_at ? (
-                                <div className="text-xs">
+                                <div className="space-y-1 text-xs">
                                   <div>
                                     Загружено:{" "}
                                     {new Date(order.qr_photo_uploaded_at).toLocaleString("ru-RU")}
                                   </div>
                                   <div>Кем: {order.qr_photo_uploaded_by ?? "—"}</div>
+                                  {order.qr_photo_url && (
+                                    <a
+                                      href={order.qr_photo_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-block text-primary underline hover:no-underline"
+                                    >
+                                      Открыть фото в новой вкладке
+                                    </a>
+                                  )}
                                 </div>
                               ) : (
                                 <span className="text-xs">QR-фото ещё не загружено</span>
