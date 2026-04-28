@@ -12,14 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -30,6 +22,11 @@ import {
   type DeliveryRouteStatus,
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
+import { PointStatusEditor } from "@/components/PointStatusEditor";
+import type {
+  DeliveryPointStatus,
+  DeliveryPointUndeliveredReason,
+} from "@/lib/deliveryPointStatus";
 
 export const Route = createFileRoute("/delivery-routes/$deliveryRouteId")({
   head: () => ({
@@ -60,6 +57,11 @@ type PointRow = {
   point_number: number;
   client_window_from: string | null;
   client_window_to: string | null;
+  dp_status: DeliveryPointStatus;
+  dp_undelivered_reason: DeliveryPointUndeliveredReason | null;
+  dp_return_warehouse_id: string | null;
+  dp_return_comment: string | null;
+  dp_expected_return_at: string | null;
   order: {
     order_number: string;
     contact_name: string | null;
@@ -94,7 +96,7 @@ function DeliveryRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, client_window_from, client_window_to, order:order_id(order_number, contact_name, delivery_address, comment)",
+          "id, point_number, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, order:order_id(order_number, contact_name, delivery_address, comment)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
@@ -227,6 +229,23 @@ function DeliveryRoutePage() {
               vehicle={data.assigned_vehicle}
             />
 
+            {/* Прогресс по точкам */}
+            {(() => {
+              const list = points ?? [];
+              const total = list.length;
+              const delivered = list.filter((p) => p.dp_status === "delivered").length;
+              const notDelivered = list.filter((p) => p.dp_status === "not_delivered").length;
+              const returned = list.filter((p) => p.dp_status === "returned_to_warehouse").length;
+              return (
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <ProgressTile label="Всего точек" value={total} tone="muted" />
+                  <ProgressTile label="Доставлено" value={delivered} tone="green" />
+                  <ProgressTile label="Не доставлено" value={notDelivered} tone="red" />
+                  <ProgressTile label="Возврат" value={returned} tone="orange" />
+                </div>
+              );
+            })()}
+
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
               <div className="border-b border-border px-4 py-3">
@@ -236,51 +255,53 @@ function DeliveryRoutePage() {
                   <span className="text-muted-foreground">({points?.length ?? 0})</span>
                 </h2>
               </div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">№</TableHead>
-                    <TableHead>Заказ</TableHead>
-                    <TableHead>Клиент</TableHead>
-                    <TableHead>Адрес</TableHead>
-                    <TableHead>Окно</TableHead>
-                    <TableHead>Комментарий</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(points ?? []).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="py-6 text-center text-muted-foreground">
-                        В заявке нет точек доставки
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    (points ?? []).map((p) => (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-medium">{p.point_number}</TableCell>
-                        <TableCell>{p.order?.order_number ?? "—"}</TableCell>
-                        <TableCell>{p.order?.contact_name ?? "—"}</TableCell>
-                        <TableCell className="max-w-[260px] truncate">
-                          {p.order?.delivery_address ?? "—"}
-                        </TableCell>
-                        <TableCell>
-                          {p.client_window_from || p.client_window_to ? (
-                            <span className="inline-flex items-center gap-1 font-mono text-xs">
-                              <Clock className="h-3 w-3 text-muted-foreground" />
-                              {fmt(p.client_window_from) ?? "—"}–{fmt(p.client_window_to) ?? "—"}
+              <div className="divide-y divide-border">
+                {(points ?? []).length === 0 ? (
+                  <div className="px-4 py-6 text-center text-muted-foreground">
+                    В заявке нет точек доставки
+                  </div>
+                ) : (
+                  (points ?? []).map((p) => (
+                    <div key={p.id} className="space-y-3 px-4 py-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-muted px-1.5 text-xs font-semibold">
+                              {p.point_number}
                             </span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="max-w-[220px] truncate text-muted-foreground">
-                          {p.order?.comment ?? ""}
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                            <span className="font-medium">{p.order?.order_number ?? "—"}</span>
+                            <span className="text-sm text-muted-foreground">
+                              · {p.order?.contact_name ?? "—"}
+                            </span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {p.order?.delivery_address ?? "—"}
+                          </div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                            {(p.client_window_from || p.client_window_to) && (
+                              <span className="inline-flex items-center gap-1 font-mono">
+                                <Clock className="h-3 w-3" />
+                                {fmt(p.client_window_from) ?? "—"}–{fmt(p.client_window_to) ?? "—"}
+                              </span>
+                            )}
+                            {p.order?.comment && <span>{p.order.comment}</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <PointStatusEditor
+                        routePointId={p.id}
+                        initial={{
+                          dp_status: p.dp_status,
+                          dp_undelivered_reason: p.dp_undelivered_reason,
+                          dp_return_warehouse_id: p.dp_return_warehouse_id,
+                          dp_return_comment: p.dp_return_comment,
+                          dp_expected_return_at: p.dp_expected_return_at,
+                        }}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -305,6 +326,29 @@ function Field({
         {label}
       </div>
       <div className="text-sm font-medium text-foreground">{children}</div>
+    </div>
+  );
+}
+
+function ProgressTile({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "muted" | "green" | "red" | "orange";
+}) {
+  const toneClass = {
+    muted: "border-border bg-muted/50 text-foreground",
+    green: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    red: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+    orange: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  }[tone];
+  return (
+    <div className={`rounded-lg border p-3 ${toneClass}`}>
+      <div className="text-xs font-medium uppercase tracking-wider opacity-80">{label}</div>
+      <div className="mt-1 text-2xl font-bold tabular-nums">{value}</div>
     </div>
   );
 }
