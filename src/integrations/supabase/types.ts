@@ -907,9 +907,13 @@ export type Database = {
           planned_departure_at: string | null
           points_count: number
           request_type: Database["public"]["Enums"]["transport_request_type"]
+          required_body_length_m: number | null
           required_body_type: Database["public"]["Enums"]["body_type"] | null
           required_capacity_kg: number | null
           required_volume_m3: number | null
+          requires_manipulator: boolean
+          requires_straps: boolean
+          requires_tent: boolean
           route_date: string
           route_number: string
           status: Database["public"]["Enums"]["route_status"]
@@ -917,6 +921,7 @@ export type Database = {
           total_duration_minutes: number
           total_volume_m3: number
           total_weight_kg: number
+          transport_comment: string | null
           updated_at: string
           vehicle_id: string | null
           warehouse_id: string | null
@@ -936,9 +941,13 @@ export type Database = {
           planned_departure_at?: string | null
           points_count?: number
           request_type?: Database["public"]["Enums"]["transport_request_type"]
+          required_body_length_m?: number | null
           required_body_type?: Database["public"]["Enums"]["body_type"] | null
           required_capacity_kg?: number | null
           required_volume_m3?: number | null
+          requires_manipulator?: boolean
+          requires_straps?: boolean
+          requires_tent?: boolean
           route_date?: string
           route_number: string
           status?: Database["public"]["Enums"]["route_status"]
@@ -946,6 +955,7 @@ export type Database = {
           total_duration_minutes?: number
           total_volume_m3?: number
           total_weight_kg?: number
+          transport_comment?: string | null
           updated_at?: string
           vehicle_id?: string | null
           warehouse_id?: string | null
@@ -965,9 +975,13 @@ export type Database = {
           planned_departure_at?: string | null
           points_count?: number
           request_type?: Database["public"]["Enums"]["transport_request_type"]
+          required_body_length_m?: number | null
           required_body_type?: Database["public"]["Enums"]["body_type"] | null
           required_capacity_kg?: number | null
           required_volume_m3?: number | null
+          requires_manipulator?: boolean
+          requires_straps?: boolean
+          requires_tent?: boolean
           route_date?: string
           route_number?: string
           status?: Database["public"]["Enums"]["route_status"]
@@ -975,6 +989,7 @@ export type Database = {
           total_duration_minutes?: number
           total_volume_m3?: number
           total_weight_kg?: number
+          transport_comment?: string | null
           updated_at?: string
           vehicle_id?: string | null
           warehouse_id?: string | null
@@ -1627,6 +1642,9 @@ export type Database = {
         | "container"
         | "car_carrier"
         | "other"
+        | "gazelle"
+        | "sideboard"
+        | "long_vehicle"
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
       delivery_cost_source: "auto" | "manual" | "tariff"
@@ -1829,6 +1847,9 @@ export const Constants = {
         "container",
         "car_carrier",
         "other",
+        "gazelle",
+        "sideboard",
+        "long_vehicle",
       ],
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
