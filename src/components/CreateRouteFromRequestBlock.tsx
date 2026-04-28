@@ -50,6 +50,7 @@ export function CreateRouteFromRequestBlock({
       const { data, error } = await supabase
         .from("delivery_routes")
         .insert({
+          route_number: "",
           source_request_id: requestId,
           source_warehouse_id: warehouseId,
           route_date: routeDate,

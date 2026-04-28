@@ -16,12 +16,14 @@ import { Route as TransportRequestsIndexRouteImport } from './routes/transport-r
 import { Route as SupplyIndexRouteImport } from './routes/supply.index'
 import { Route as RoutesIndexRouteImport } from './routes/routes.index'
 import { Route as DriversIndexRouteImport } from './routes/drivers.index'
+import { Route as DeliveryRoutesIndexRouteImport } from './routes/delivery-routes.index'
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
 import { Route as WarehousesWarehouseIdRouteImport } from './routes/warehouses.$warehouseId'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
 import { Route as TransportRequestsRequestIdRouteImport } from './routes/transport-requests.$requestId'
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
+import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
@@ -62,6 +64,11 @@ const DriversIndexRoute = DriversIndexRouteImport.update({
   path: '/drivers/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeliveryRoutesIndexRoute = DeliveryRoutesIndexRouteImport.update({
+  id: '/delivery-routes/',
+  path: '/delivery-routes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CarriersIndexRoute = CarriersIndexRouteImport.update({
   id: '/carriers/',
   path: '/carriers/',
@@ -93,6 +100,12 @@ const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   path: '/routes/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeliveryRoutesDeliveryRouteIdRoute =
+  DeliveryRoutesDeliveryRouteIdRouteImport.update({
+    id: '/delivery-routes/$deliveryRouteId',
+    path: '/delivery-routes/$deliveryRouteId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CarriersVerificationRoute = CarriersVerificationRouteImport.update({
   id: '/carriers/verification',
   path: '/carriers/verification',
@@ -120,12 +133,14 @@ export interface FileRoutesByFullPath {
   '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
+  '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
+  '/delivery-routes/': typeof DeliveryRoutesIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
   '/supply/': typeof SupplyIndexRoute
@@ -139,12 +154,14 @@ export interface FileRoutesByTo {
   '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
+  '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers': typeof CarriersIndexRoute
+  '/delivery-routes': typeof DeliveryRoutesIndexRoute
   '/drivers': typeof DriversIndexRoute
   '/routes': typeof RoutesIndexRoute
   '/supply': typeof SupplyIndexRoute
@@ -159,12 +176,14 @@ export interface FileRoutesById {
   '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
+  '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
+  '/delivery-routes/': typeof DeliveryRoutesIndexRoute
   '/drivers/': typeof DriversIndexRoute
   '/routes/': typeof RoutesIndexRoute
   '/supply/': typeof SupplyIndexRoute
@@ -180,12 +199,14 @@ export interface FileRouteTypes {
     | '/admin/tariffs'
     | '/carriers/$carrierId'
     | '/carriers/verification'
+    | '/delivery-routes/$deliveryRouteId'
     | '/routes/$routeId'
     | '/supply/requests'
     | '/transport-requests/$requestId'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
+    | '/delivery-routes/'
     | '/drivers/'
     | '/routes/'
     | '/supply/'
@@ -199,12 +220,14 @@ export interface FileRouteTypes {
     | '/admin/tariffs'
     | '/carriers/$carrierId'
     | '/carriers/verification'
+    | '/delivery-routes/$deliveryRouteId'
     | '/routes/$routeId'
     | '/supply/requests'
     | '/transport-requests/$requestId'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers'
+    | '/delivery-routes'
     | '/drivers'
     | '/routes'
     | '/supply'
@@ -218,12 +241,14 @@ export interface FileRouteTypes {
     | '/admin/tariffs'
     | '/carriers/$carrierId'
     | '/carriers/verification'
+    | '/delivery-routes/$deliveryRouteId'
     | '/routes/$routeId'
     | '/supply/requests'
     | '/transport-requests/$requestId'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
+    | '/delivery-routes/'
     | '/drivers/'
     | '/routes/'
     | '/supply/'
@@ -238,12 +263,14 @@ export interface RootRouteChildren {
   AdminTariffsRoute: typeof AdminTariffsRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
+  DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyRequestsRoute: typeof SupplyRequestsRoute
   TransportRequestsRequestIdRoute: typeof TransportRequestsRequestIdRoute
   VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
   WarehousesWarehouseIdRoute: typeof WarehousesWarehouseIdRoute
   CarriersIndexRoute: typeof CarriersIndexRoute
+  DeliveryRoutesIndexRoute: typeof DeliveryRoutesIndexRoute
   DriversIndexRoute: typeof DriversIndexRoute
   RoutesIndexRoute: typeof RoutesIndexRoute
   SupplyIndexRoute: typeof SupplyIndexRoute
@@ -303,6 +330,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DriversIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/delivery-routes/': {
+      id: '/delivery-routes/'
+      path: '/delivery-routes'
+      fullPath: '/delivery-routes/'
+      preLoaderRoute: typeof DeliveryRoutesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/carriers/': {
       id: '/carriers/'
       path: '/carriers'
@@ -345,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoutesRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/delivery-routes/$deliveryRouteId': {
+      id: '/delivery-routes/$deliveryRouteId'
+      path: '/delivery-routes/$deliveryRouteId'
+      fullPath: '/delivery-routes/$deliveryRouteId'
+      preLoaderRoute: typeof DeliveryRoutesDeliveryRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/carriers/verification': {
       id: '/carriers/verification'
       path: '/carriers/verification'
@@ -382,12 +423,14 @@ const rootRouteChildren: RootRouteChildren = {
   AdminTariffsRoute: AdminTariffsRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
+  DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyRequestsRoute: SupplyRequestsRoute,
   TransportRequestsRequestIdRoute: TransportRequestsRequestIdRoute,
   VehiclesVehicleIdRoute: VehiclesVehicleIdRoute,
   WarehousesWarehouseIdRoute: WarehousesWarehouseIdRoute,
   CarriersIndexRoute: CarriersIndexRoute,
+  DeliveryRoutesIndexRoute: DeliveryRoutesIndexRoute,
   DriversIndexRoute: DriversIndexRoute,
   RoutesIndexRoute: RoutesIndexRoute,
   SupplyIndexRoute: SupplyIndexRoute,
