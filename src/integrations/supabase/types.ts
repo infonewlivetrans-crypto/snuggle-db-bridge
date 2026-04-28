@@ -935,6 +935,69 @@ export type Database = {
         }
         Relationships: []
       }
+      supply_requests: {
+        Row: {
+          comment: string | null
+          confirmed_at: string | null
+          created_at: string
+          created_by: string | null
+          destination_warehouse_id: string
+          expected_at: string | null
+          id: string
+          in_transit_id: string | null
+          priority: Database["public"]["Enums"]["supply_request_priority"]
+          product_id: string
+          qty: number
+          received_at: string | null
+          request_number: string
+          source_name: string | null
+          source_type: Database["public"]["Enums"]["supply_request_source_type"]
+          source_warehouse_id: string | null
+          status: Database["public"]["Enums"]["supply_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_warehouse_id: string
+          expected_at?: string | null
+          id?: string
+          in_transit_id?: string | null
+          priority?: Database["public"]["Enums"]["supply_request_priority"]
+          product_id: string
+          qty: number
+          received_at?: string | null
+          request_number: string
+          source_name?: string | null
+          source_type: Database["public"]["Enums"]["supply_request_source_type"]
+          source_warehouse_id?: string | null
+          status?: Database["public"]["Enums"]["supply_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_warehouse_id?: string
+          expected_at?: string | null
+          id?: string
+          in_transit_id?: string | null
+          priority?: Database["public"]["Enums"]["supply_request_priority"]
+          product_id?: string
+          qty?: number
+          received_at?: string | null
+          request_number?: string
+          source_name?: string | null
+          source_type?: Database["public"]["Enums"]["supply_request_source_type"]
+          source_warehouse_id?: string | null
+          status?: Database["public"]["Enums"]["supply_request_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           category: string
@@ -1264,6 +1327,7 @@ export type Database = {
     }
     Functions: {
       generate_route_number: { Args: never; Returns: string }
+      generate_supply_request_number: { Args: never; Returns: string }
       notify_low_stock_for_product: {
         Args: { p_product_id: string; p_warehouse_id: string }
         Returns: undefined
@@ -1318,6 +1382,15 @@ export type Database = {
         | "no_unloading"
         | "problem"
       route_status: "planned" | "in_progress" | "completed" | "cancelled"
+      supply_request_priority: "low" | "normal" | "high" | "urgent"
+      supply_request_source_type: "factory" | "warehouse"
+      supply_request_status:
+        | "draft"
+        | "pending"
+        | "confirmed"
+        | "in_transit"
+        | "received"
+        | "cancelled"
       transport_request_type:
         | "client_delivery"
         | "warehouse_transfer"
@@ -1501,6 +1574,16 @@ export const Constants = {
         "problem",
       ],
       route_status: ["planned", "in_progress", "completed", "cancelled"],
+      supply_request_priority: ["low", "normal", "high", "urgent"],
+      supply_request_source_type: ["factory", "warehouse"],
+      supply_request_status: [
+        "draft",
+        "pending",
+        "confirmed",
+        "in_transit",
+        "received",
+        "cancelled",
+      ],
       transport_request_type: [
         "client_delivery",
         "warehouse_transfer",
