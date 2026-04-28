@@ -274,13 +274,57 @@ function DeliveryRoutePage() {
               const delivered = list.filter((p) => p.dp_status === "delivered").length;
               const notDelivered = list.filter((p) => p.dp_status === "not_delivered").length;
               const returned = list.filter((p) => p.dp_status === "returned_to_warehouse").length;
+
+              // Тайминги
+              const lateCount = list.filter((p) => {
+                if (!p.dp_planned_arrival_at || !p.dp_actual_arrival_at) return false;
+                return new Date(p.dp_actual_arrival_at).getTime() > new Date(p.dp_planned_arrival_at).getTime();
+              }).length;
+
+              const unloadDurations = list
+                .map((p) => {
+                  if (!p.dp_unload_started_at || !p.dp_unload_finished_at) return null;
+                  return (new Date(p.dp_unload_finished_at).getTime() - new Date(p.dp_unload_started_at).getTime()) / 60000;
+                })
+                .filter((v): v is number => v != null && v >= 0);
+              const avgUnload = unloadDurations.length
+                ? Math.round(unloadDurations.reduce((a, b) => a + b, 0) / unloadDurations.length)
+                : null;
+
+              const arrivals = list
+                .map((p) => p.dp_actual_arrival_at)
+                .filter((v): v is string => !!v)
+                .map((v) => new Date(v).getTime());
+              const finishes = list
+                .map((p) => p.dp_finished_at)
+                .filter((v): v is string => !!v)
+                .map((v) => new Date(v).getTime());
+              const totalRouteMin =
+                arrivals.length && finishes.length
+                  ? Math.round((Math.max(...finishes) - Math.min(...arrivals)) / 60000)
+                  : null;
+
+              const fmtMin = (m: number | null) => {
+                if (m == null) return "—";
+                const h = Math.floor(m / 60);
+                const r = m % 60;
+                return h > 0 ? `${h} ч ${r} мин` : `${r} мин`;
+              };
+
               return (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <ProgressTile label="Всего точек" value={total} tone="muted" />
-                  <ProgressTile label="Доставлено" value={delivered} tone="green" />
-                  <ProgressTile label="Не доставлено" value={notDelivered} tone="red" />
-                  <ProgressTile label="Возврат" value={returned} tone="orange" />
-                </div>
+                <>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <ProgressTile label="Всего точек" value={total} tone="muted" />
+                    <ProgressTile label="Доставлено" value={delivered} tone="green" />
+                    <ProgressTile label="Не доставлено" value={notDelivered} tone="red" />
+                    <ProgressTile label="Возврат" value={returned} tone="orange" />
+                  </div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <StatTile label="Общее время маршрута" value={fmtMin(totalRouteMin)} />
+                    <StatTile label="Опозданий" value={String(lateCount)} tone={lateCount > 0 ? "red" : undefined} />
+                    <StatTile label="Среднее время разгрузки" value={fmtMin(avgUnload)} />
+                  </div>
+                </>
               );
             })()}
 
