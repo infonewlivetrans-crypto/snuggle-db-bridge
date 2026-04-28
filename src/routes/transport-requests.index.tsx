@@ -57,6 +57,8 @@ type RequestRow = {
   request_type: string;
   status: string;
   route_date: string;
+  departure_time: string | null;
+  request_priority: RequestPriority;
   warehouse_id: string | null;
   destination_warehouse_id: string | null;
   points_count: number;
