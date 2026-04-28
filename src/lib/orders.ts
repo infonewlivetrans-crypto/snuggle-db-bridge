@@ -120,6 +120,8 @@ export const STATUS_STYLES: Record<OrderStatus, string> = {
   not_delivered: "bg-red-100 text-red-900 border-red-200",
   defective: "bg-amber-100 text-amber-900 border-amber-200",
   awaiting_resend: "bg-purple-100 text-purple-900 border-purple-200",
+  awaiting_return: "bg-purple-100 text-purple-900 border-purple-200",
+  return_accepted: "bg-emerald-100 text-emerald-900 border-emerald-200",
 };
 
 // Type guard helper for Supabase
