@@ -20,6 +20,7 @@ import {
 } from "@/components/TransportRequestStatusBlock";
 import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
 import { DeliveryPointsBlock } from "@/components/DeliveryPointsBlock";
+import { CreateRouteFromRequestBlock } from "@/components/CreateRouteFromRequestBlock";
 import {
   PRIORITY_LABELS,
   PRIORITY_BADGE_CLASS,
