@@ -176,6 +176,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       status,
       cash_received: cashReceived,
       qr_received: qrReceived,
+      payment_status: paymentStatus,
+      amount_due: amountDue === "" ? null : Number(amountDue),
+      marketplace: marketplace.trim() || null,
+      client_works_weekends: worksWeekends,
     });
   };
 
