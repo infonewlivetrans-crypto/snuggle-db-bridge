@@ -67,6 +67,11 @@ type PointRow = {
   point_number: number;
   client_window_from: string | null;
   client_window_to: string | null;
+  dp_status: DeliveryPointStatus;
+  dp_undelivered_reason: DeliveryPointUndeliveredReason | null;
+  dp_return_warehouse_id: string | null;
+  dp_return_comment: string | null;
+  dp_expected_return_at: string | null;
   order: {
     order_number: string;
     contact_name: string | null;
