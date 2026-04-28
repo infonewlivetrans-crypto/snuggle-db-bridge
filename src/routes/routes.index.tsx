@@ -32,9 +32,17 @@ import {
   REQUEST_TYPE_LABELS,
   REQUEST_TYPE_STYLES,
 } from "@/lib/routes";
-import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box } from "lucide-react";
+import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box, Timer } from "lucide-react";
+import {
+  ETA_RISK_LABELS,
+  ETA_RISK_STYLES,
+  formatTime,
+  summarizeRouteEta,
+  type EtaRiskLevel,
+} from "@/lib/eta";
 
-type RouteWithCount = DeliveryRoute & { points_count: number };
+type EtaSummary = ReturnType<typeof summarizeRouteEta>;
+type RouteWithCount = DeliveryRoute & { points_count: number; _eta: EtaSummary };
 
 export const Route = createFileRoute("/routes/")({
   head: () => ({
