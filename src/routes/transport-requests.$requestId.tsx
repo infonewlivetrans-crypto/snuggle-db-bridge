@@ -19,6 +19,7 @@ import {
   type RequestStatus,
 } from "@/components/TransportRequestStatusBlock";
 import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
+import { DeliveryPointsBlock } from "@/components/DeliveryPointsBlock";
 import {
   PRIORITY_LABELS,
   PRIORITY_BADGE_CLASS,
@@ -257,6 +258,9 @@ function TransportRequestDetailPage() {
 
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />
+
+            {/* Точки доставки */}
+            <DeliveryPointsBlock requestId={data.id} />
           </div>
         )}
       </main>
