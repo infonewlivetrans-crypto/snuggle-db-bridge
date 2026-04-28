@@ -10,6 +10,9 @@ export type BodyType =
   | "tipper"
   | "container"
   | "car_carrier"
+  | "gazelle"
+  | "sideboard"
+  | "long_vehicle"
   | "other";
 
 export type Carrier = {
@@ -119,16 +122,22 @@ export const BODY_TYPE_LABELS: Record<BodyType, string> = {
   tipper: "Самосвал",
   container: "Контейнеровоз",
   car_carrier: "Автовоз",
+  gazelle: "Газель",
+  sideboard: "Борт",
+  long_vehicle: "Длинномер",
   other: "Другое",
 };
 
 export const BODY_TYPE_ORDER: BodyType[] = [
+  "gazelle",
   "tent",
+  "sideboard",
+  "closed_van",
+  "manipulator",
+  "long_vehicle",
   "isotherm",
   "refrigerator",
   "flatbed",
-  "closed_van",
-  "manipulator",
   "tipper",
   "container",
   "car_carrier",
