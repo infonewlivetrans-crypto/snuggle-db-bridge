@@ -260,6 +260,14 @@ function TransportRequestDetailPage() {
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />
 
+            {/* Создание маршрута на основе заявки */}
+            <CreateRouteFromRequestBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              routeDate={data.route_date}
+              ordersCount={totals?.count ?? 0}
+            />
+
             {/* Точки доставки */}
             <DeliveryPointsBlock requestId={data.id} />
           </div>
