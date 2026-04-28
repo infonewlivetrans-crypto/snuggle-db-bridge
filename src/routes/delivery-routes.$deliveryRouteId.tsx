@@ -330,6 +330,37 @@ function DeliveryRoutePage() {
                     <StatTile label="Опозданий" value={String(lateCount)} tone={lateCount > 0 ? "red" : undefined} />
                     <StatTile label="Среднее время разгрузки" value={fmtMin(avgUnload)} />
                   </div>
+                  {(() => {
+                    const idleList = list.filter(
+                      (p) => (p.dp_idle_duration_minutes ?? 0) > 0 || !!p.dp_idle_started_at,
+                    );
+                    const totalIdle = idleList.reduce(
+                      (s, p) => s + (p.dp_idle_duration_minutes ?? 0),
+                      0,
+                    );
+                    const reasons = Array.from(
+                      new Set(
+                        idleList
+                          .map((p) => p.dp_idle_reason)
+                          .filter((r): r is IdleReason => !!r),
+                      ),
+                    );
+                    if (idleList.length === 0) return null;
+                    return (
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <StatTile label="Общее время простоя" value={fmtMin(totalIdle)} tone={totalIdle > 0 ? "red" : undefined} />
+                        <StatTile label="Точек с простоем" value={String(idleList.length)} />
+                        <StatTile
+                          label="Причины простоев"
+                          value={
+                            reasons.length
+                              ? reasons.map((r) => IDLE_REASON_LABELS[r]).join(", ")
+                              : "—"
+                          }
+                        />
+                      </div>
+                    );
+                  })()}
                 </>
               );
             })()}
