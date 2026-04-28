@@ -175,6 +175,34 @@ export function NotificationsBell() {
             </Button>
           )}
         </div>
+        {lowStockSummary.total > 0 && (
+          <a
+            href="/supply"
+            className="flex items-center justify-between gap-3 border-b border-border bg-orange-50 px-3 py-2 text-xs hover:bg-orange-100"
+          >
+            <div className="flex items-center gap-2 text-orange-900">
+              <PackageSearch className="h-4 w-4" />
+              <span className="font-semibold">Дефицит на складах</span>
+              <span className="text-orange-800">
+                {lowStockSummary.out > 0 && <span className="mr-2">нет: {lowStockSummary.out}</span>}
+                {lowStockSummary.critical > 0 && (
+                  <span className="mr-2">критично: {lowStockSummary.critical}</span>
+                )}
+                {lowStockSummary.low > 0 && <span>низко: {lowStockSummary.low}</span>}
+              </span>
+            </div>
+            {lowStockSummary.lastAt && (
+              <span className="shrink-0 text-orange-700">
+                {new Date(lowStockSummary.lastAt).toLocaleString("ru-RU", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            )}
+          </a>
+        )}
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
             <div className="px-3 py-8 text-center text-sm text-muted-foreground">
