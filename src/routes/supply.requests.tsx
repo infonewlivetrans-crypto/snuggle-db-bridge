@@ -316,6 +316,12 @@ function SupplyRequestsPage() {
         warehouses={warehouses ?? []}
         products={products ?? []}
       />
+      <RequestDetailsDialog
+        requestId={selectedId}
+        onOpenChange={(v) => !v && setSelectedId(null)}
+        warehouseById={warehouseById}
+        productById={productById}
+      />
     </div>
   );
 }
