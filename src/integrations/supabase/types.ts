@@ -567,11 +567,46 @@ export type Database = {
         }
         Relationships: []
       }
+      order_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          comment: string | null
+          field: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          order_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          field: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          order_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          comment?: string | null
+          field?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          order_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           access_instructions: string | null
+          amount_due: number | null
           applied_tariff_id: string | null
           cash_received: boolean
+          client_works_weekends: boolean
           comment: string | null
           contact_name: string | null
           contact_phone: string | null
@@ -593,7 +628,9 @@ export type Database = {
           manual_cost_set_at: string | null
           manual_cost_set_by: string | null
           map_link: string | null
+          marketplace: string | null
           order_number: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
           payment_type: Database["public"]["Enums"]["payment_type"]
           qr_photo_uploaded_at: string | null
           qr_photo_uploaded_by: string | null
@@ -608,8 +645,10 @@ export type Database = {
         }
         Insert: {
           access_instructions?: string | null
+          amount_due?: number | null
           applied_tariff_id?: string | null
           cash_received?: boolean
+          client_works_weekends?: boolean
           comment?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -631,7 +670,9 @@ export type Database = {
           manual_cost_set_at?: string | null
           manual_cost_set_by?: string | null
           map_link?: string | null
+          marketplace?: string | null
           order_number: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           payment_type?: Database["public"]["Enums"]["payment_type"]
           qr_photo_uploaded_at?: string | null
           qr_photo_uploaded_by?: string | null
@@ -646,8 +687,10 @@ export type Database = {
         }
         Update: {
           access_instructions?: string | null
+          amount_due?: number | null
           applied_tariff_id?: string | null
           cash_received?: boolean
+          client_works_weekends?: boolean
           comment?: string | null
           contact_name?: string | null
           contact_phone?: string | null
@@ -669,7 +712,9 @@ export type Database = {
           manual_cost_set_at?: string | null
           manual_cost_set_by?: string | null
           map_link?: string | null
+          marketplace?: string | null
           order_number?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
           payment_type?: Database["public"]["Enums"]["payment_type"]
           qr_photo_uploaded_at?: string | null
           qr_photo_uploaded_by?: string | null
@@ -1604,6 +1649,8 @@ export type Database = {
         | "not_delivered"
         | "defective"
         | "awaiting_resend"
+        | "ready_for_delivery"
+      payment_status: "not_paid" | "partial" | "paid" | "refunded"
       payment_type: "cash" | "card" | "online" | "qr"
       point_status:
         | "pending"
@@ -1806,7 +1853,9 @@ export const Constants = {
         "not_delivered",
         "defective",
         "awaiting_resend",
+        "ready_for_delivery",
       ],
+      payment_status: ["not_paid", "partial", "paid", "refunded"],
       payment_type: ["cash", "card", "online", "qr"],
       point_status: [
         "pending",

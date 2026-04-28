@@ -23,11 +23,16 @@ import { toast } from "sonner";
 import {
   type Order,
   type OrderStatus,
+  type PaymentStatus,
   STATUS_LABELS,
   STATUS_ORDER,
   STATUS_STYLES,
   PAYMENT_LABELS,
+  PAYMENT_STATUS_LABELS,
 } from "@/lib/orders";
+import { Input } from "@/components/ui/input";
+import { OrderHistory } from "@/components/OrderHistory";
+import { OrderAllFields } from "@/components/OrderAllFields";
 import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { AddOrderToRouteDialog } from "@/components/AddOrderToRouteDialog";
@@ -71,11 +76,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [qrReceived, setQrReceived] = useState(order?.qr_received ?? false);
   const [addToRouteOpen, setAddToRouteOpen] = useState(false);
   const [manualCostOpen, setManualCostOpen] = useState(false);
-
-  // Sync state when order changes
-  if (order && open && order.id !== (status as unknown as string) + order.id) {
-    // noop — guard
-  }
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order?.payment_status ?? "not_paid");
+  const [amountDue, setAmountDue] = useState<string>(order?.amount_due != null ? String(order.amount_due) : "");
+  const [marketplace, setMarketplace] = useState<string>(order?.marketplace ?? "");
+  const [worksWeekends, setWorksWeekends] = useState<boolean>(order?.client_works_weekends ?? false);
 
   // Reset local state when a new order opens
   const orderId = order?.id;
@@ -85,6 +89,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setStatus(order.status);
       setCashReceived(order.cash_received);
       setQrReceived(order.qr_received);
+      setPaymentStatus(order.payment_status ?? "not_paid");
+      setAmountDue(order.amount_due != null ? String(order.amount_due) : "");
+      setMarketplace(order.marketplace ?? "");
+      setWorksWeekends(order.client_works_weekends ?? false);
     }
   });
 
@@ -168,12 +176,16 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       status,
       cash_received: cashReceived,
       qr_received: qrReceived,
+      payment_status: paymentStatus,
+      amount_due: amountDue === "" ? null : Number(amountDue),
+      marketplace: marketplace.trim() || null,
+      client_works_weekends: worksWeekends,
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start justify-between gap-4 pr-6">
             <div>
@@ -371,6 +383,66 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
               <Switch id="qr" checked={qrReceived} onCheckedChange={setQrReceived} />
             </div>
           </div>
+
+          {/* Финансы и атрибуты клиента */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="amount-due" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Сумма к получению, ₽
+              </Label>
+              <Input
+                id="amount-due"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                value={amountDue}
+                onChange={(e) => setAmountDue(e.target.value)}
+                placeholder="0.00"
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="payment-status" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Статус оплаты
+              </Label>
+              <Select value={paymentStatus} onValueChange={(v) => setPaymentStatus(v as PaymentStatus)}>
+                <SelectTrigger id="payment-status" className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(PAYMENT_STATUS_LABELS) as PaymentStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {PAYMENT_STATUS_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="marketplace" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Маркетплейс
+              </Label>
+              <Input
+                id="marketplace"
+                value={marketplace}
+                onChange={(e) => setMarketplace(e.target.value)}
+                placeholder="Wildberries, Ozon, ..."
+                className="mt-1.5"
+              />
+            </div>
+            <div className="flex items-end justify-between rounded-lg border border-border p-3">
+              <Label htmlFor="weekends" className="text-sm font-medium">
+                Клиент работает в выходные
+              </Label>
+              <Switch id="weekends" checked={worksWeekends} onCheckedChange={setWorksWeekends} />
+            </div>
+          </div>
+
+          {/* Все поля заказа */}
+          <OrderAllFields order={order} />
+
+          {/* История изменений */}
+          <OrderHistory orderId={order.id} />
 
           <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
             <Button variant="outline" onClick={() => setAddToRouteOpen(true)} className="gap-1.5 mr-auto">

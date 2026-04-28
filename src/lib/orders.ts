@@ -3,6 +3,7 @@ import type { Database } from "@/integrations/supabase/types";
 export type OrderStatus =
   | "new"
   | "in_progress"
+  | "ready_for_delivery"
   | "delivering"
   | "completed"
   | "cancelled"
@@ -11,6 +12,7 @@ export type OrderStatus =
   | "defective"
   | "awaiting_resend";
 export type PaymentType = "cash" | "card" | "online" | "qr";
+export type PaymentStatus = "not_paid" | "partial" | "paid" | "refunded";
 
 export type Order = {
   id: string;
@@ -46,24 +48,31 @@ export type Order = {
   manual_cost_set_by?: string | null;
   manual_cost_set_at?: string | null;
   applied_tariff_id?: string | null;
+  // Финансы и атрибуты клиента
+  amount_due?: number | null;
+  payment_status?: PaymentStatus;
+  marketplace?: string | null;
+  client_works_weekends?: boolean;
 };
 
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   new: "Новый",
   in_progress: "В работе",
+  ready_for_delivery: "Готов к доставке",
   delivering: "Доставляется",
   completed: "Выполнен",
   cancelled: "Отменён",
   delivered: "Доставлен",
   not_delivered: "Не доставлен",
-  defective: "Брак / повторная доставка",
-  awaiting_resend: "Ожидает повторной отправки",
+  defective: "Требует повторной доставки",
+  awaiting_resend: "Возврат на склад",
 };
 
 export const STATUS_ORDER: OrderStatus[] = [
   "new",
   "in_progress",
+  "ready_for_delivery",
   "delivering",
   "delivered",
   "not_delivered",
@@ -80,9 +89,24 @@ export const PAYMENT_LABELS: Record<PaymentType, string> = {
   qr: "QR-код",
 };
 
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  not_paid: "Не оплачен",
+  partial: "Частично",
+  paid: "Оплачен",
+  refunded: "Возврат",
+};
+
+export const PAYMENT_STATUS_STYLES: Record<PaymentStatus, string> = {
+  not_paid: "bg-amber-100 text-amber-900 border-amber-200",
+  partial: "bg-blue-100 text-blue-900 border-blue-200",
+  paid: "bg-green-100 text-green-900 border-green-200",
+  refunded: "bg-muted text-muted-foreground border-border",
+};
+
 export const STATUS_STYLES: Record<OrderStatus, string> = {
   new: "bg-blue-100 text-blue-900 border-blue-200",
   in_progress: "bg-primary text-primary-foreground border-primary",
+  ready_for_delivery: "bg-cyan-100 text-cyan-900 border-cyan-200",
   delivering: "bg-orange-100 text-orange-900 border-orange-200",
   completed: "bg-green-100 text-green-900 border-green-200",
   cancelled: "bg-muted text-muted-foreground border-border",
