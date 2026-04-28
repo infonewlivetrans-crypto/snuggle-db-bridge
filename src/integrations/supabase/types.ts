@@ -412,6 +412,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          kind: string
+          order_id: string | null
+          payload: Json
+          read_at: string | null
+          route_id: string | null
+          title: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          kind: string
+          order_id?: string | null
+          payload?: Json
+          read_at?: string | null
+          route_id?: string | null
+          title: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          kind?: string
+          order_id?: string | null
+          payload?: Json
+          read_at?: string | null
+          route_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       onec_outbound: {
         Row: {
           attempts: number
@@ -464,6 +511,9 @@ export type Database = {
           map_link: string | null
           order_number: string
           payment_type: Database["public"]["Enums"]["payment_type"]
+          qr_photo_uploaded_at: string | null
+          qr_photo_uploaded_by: string | null
+          qr_photo_url: string | null
           qr_received: boolean
           requires_qr: boolean
           source: string
@@ -490,6 +540,9 @@ export type Database = {
           map_link?: string | null
           order_number: string
           payment_type?: Database["public"]["Enums"]["payment_type"]
+          qr_photo_uploaded_at?: string | null
+          qr_photo_uploaded_by?: string | null
+          qr_photo_url?: string | null
           qr_received?: boolean
           requires_qr?: boolean
           source?: string
@@ -516,6 +569,9 @@ export type Database = {
           map_link?: string | null
           order_number?: string
           payment_type?: Database["public"]["Enums"]["payment_type"]
+          qr_photo_uploaded_at?: string | null
+          qr_photo_uploaded_by?: string | null
+          qr_photo_url?: string | null
           qr_received?: boolean
           requires_qr?: boolean
           source?: string
