@@ -77,6 +77,14 @@ export function PointStatusEditor({ routePointId, initial, order, onSaved }: Pro
 
   const save = useMutation({
     mutationFn: async () => {
+      if (status === "delivered" && order) {
+        if (order.requires_qr && !order.qr_received) {
+          throw new Error("Нельзя поставить «Доставлено»: QR-код ещё не получен");
+        }
+        if (order.payment_type === "cash" && !order.cash_received) {
+          throw new Error("Нельзя поставить «Доставлено»: наличная оплата ещё не получена");
+        }
+      }
       const payload: Record<string, unknown> = {
         dp_status: status,
         dp_status_changed_at: new Date().toISOString(),
