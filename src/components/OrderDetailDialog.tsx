@@ -280,6 +280,14 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           )}
 
+          {/* Стоимость доставки */}
+          <DeliveryCostBlock
+            order={order}
+            onEdit={() => setManualCostOpen(true)}
+            onResetAuto={() => resetToAuto.mutate()}
+            resetting={resetToAuto.isPending}
+          />
+
           {/* Тип оплаты */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-lg border border-border p-3">
