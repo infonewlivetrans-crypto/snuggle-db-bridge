@@ -1894,6 +1894,8 @@ export type Database = {
         | "defective"
         | "awaiting_resend"
         | "ready_for_delivery"
+        | "awaiting_return"
+        | "return_accepted"
       payment_status: "not_paid" | "partial" | "paid" | "refunded"
       payment_type: "cash" | "card" | "online" | "qr"
       point_status:
@@ -2146,6 +2148,8 @@ export const Constants = {
         "defective",
         "awaiting_resend",
         "ready_for_delivery",
+        "awaiting_return",
+        "return_accepted",
       ],
       payment_status: ["not_paid", "partial", "paid", "refunded"],
       payment_type: ["cash", "card", "online", "qr"],

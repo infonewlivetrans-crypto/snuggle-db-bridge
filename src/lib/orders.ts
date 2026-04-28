@@ -10,7 +10,9 @@ export type OrderStatus =
   | "delivered"
   | "not_delivered"
   | "defective"
-  | "awaiting_resend";
+  | "awaiting_resend"
+  | "awaiting_return"
+  | "return_accepted";
 export type PaymentType = "cash" | "card" | "online" | "qr";
 export type PaymentStatus = "not_paid" | "partial" | "paid" | "refunded";
 
@@ -67,6 +69,8 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   not_delivered: "Не доставлен",
   defective: "Требует повторной доставки",
   awaiting_resend: "Возврат на склад",
+  awaiting_return: "Ожидает возврата на склад",
+  return_accepted: "Возврат принят складом",
 };
 
 export const STATUS_ORDER: OrderStatus[] = [
@@ -78,6 +82,8 @@ export const STATUS_ORDER: OrderStatus[] = [
   "not_delivered",
   "defective",
   "awaiting_resend",
+  "awaiting_return",
+  "return_accepted",
   "completed",
   "cancelled",
 ];
@@ -114,6 +120,8 @@ export const STATUS_STYLES: Record<OrderStatus, string> = {
   not_delivered: "bg-red-100 text-red-900 border-red-200",
   defective: "bg-amber-100 text-amber-900 border-amber-200",
   awaiting_resend: "bg-purple-100 text-purple-900 border-purple-200",
+  awaiting_return: "bg-purple-100 text-purple-900 border-purple-200",
+  return_accepted: "bg-emerald-100 text-emerald-900 border-emerald-200",
 };
 
 // Type guard helper for Supabase
