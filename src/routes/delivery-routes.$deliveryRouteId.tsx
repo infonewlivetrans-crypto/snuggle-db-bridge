@@ -64,11 +64,20 @@ type PointRow = {
   dp_return_warehouse_id: string | null;
   dp_return_comment: string | null;
   dp_expected_return_at: string | null;
+  dp_amount_received: number | null;
+  dp_payment_comment: string | null;
   order: {
+    id: string;
     order_number: string;
     contact_name: string | null;
     delivery_address: string | null;
     comment: string | null;
+    payment_type: string;
+    amount_due: number | null;
+    requires_qr: boolean;
+    marketplace: string | null;
+    cash_received: boolean;
+    qr_received: boolean;
   } | null;
 };
 
