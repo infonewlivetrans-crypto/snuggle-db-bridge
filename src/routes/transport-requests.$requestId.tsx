@@ -11,6 +11,7 @@ import {
 } from "./transport-requests.index";
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
+import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
   head: () => ({
@@ -94,33 +95,15 @@ function TransportRequestDetailPage() {
               <Field icon={<Calendar className="h-4 w-4" />} label="Дата отправки">
                 {new Date(data.route_date).toLocaleDateString("ru-RU")}
               </Field>
-              <Field icon={<Warehouse className="h-4 w-4" />} label="Склад отправления">
-                {data.source_warehouse ? (
-                  <>
-                    {data.source_warehouse.name}
-                    {data.source_warehouse.city ? (
-                      <span className="text-muted-foreground"> · {data.source_warehouse.city}</span>
-                    ) : null}
-                  </>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </Field>
-              <Field icon={<Warehouse className="h-4 w-4" />} label="Склад назначения">
-                {data.destination_warehouse ? (
-                  <>
-                    {data.destination_warehouse.name}
-                    {data.destination_warehouse.city ? (
-                      <span className="text-muted-foreground"> · {data.destination_warehouse.city}</span>
-                    ) : null}
-                  </>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {data.request_type === "client_delivery" ? "Доставка клиентам" : "—"}
-                  </span>
-                )}
-              </Field>
             </div>
+
+            <RequestWarehousesEditor
+              requestId={data.id}
+              requestType={data.request_type}
+              warehouseId={data.warehouse_id}
+              destinationWarehouseId={data.destination_warehouse_id}
+            />
+
 
             <RequestTotalsCards requestId={data.id} />
 

@@ -58,6 +58,7 @@ type RequestRow = {
   total_weight_kg: number;
   total_volume_m3: number;
   warehouses?: { name: string } | null;
+  destination?: { name: string } | null;
 };
 
 function TransportRequestsPage() {
@@ -70,7 +71,7 @@ function TransportRequestsPage() {
       const { data, error } = await supabase
         .from("routes")
         .select(
-          "id, route_number, request_type, status, route_date, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, warehouses:warehouse_id(name)",
+          "id, route_number, request_type, status, route_date, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, warehouses:warehouse_id(name), destination:destination_warehouse_id(name)",
         )
         .order("route_date", { ascending: false });
       if (error) throw error;
@@ -134,6 +135,7 @@ function TransportRequestsPage() {
                 <TableHead className="font-semibold text-foreground">Тип</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад отправления</TableHead>
+                <TableHead className="font-semibold text-foreground">Склад назначения</TableHead>
                 <TableHead className="font-semibold text-foreground">Дата</TableHead>
                 <TableHead className="text-right font-semibold text-foreground">Заказов</TableHead>
                 <TableHead className="text-right font-semibold text-foreground">Вес, кг</TableHead>
@@ -143,13 +145,13 @@ function TransportRequestsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="py-12 text-center text-muted-foreground">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-12 text-center">
+                  <TableCell colSpan={9} className="py-12 text-center">
                     <ClipboardList className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заявки не найдены</div>
                   </TableCell>
@@ -175,7 +177,22 @@ function TransportRequestsPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
-                      {r.warehouses?.name ?? <span className="text-muted-foreground">—</span>}
+                      {r.warehouses?.name ?? (
+                        r.request_type === "factory_to_warehouse" ? (
+                          <span className="text-muted-foreground">Завод</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {r.destination?.name ?? (
+                        r.request_type === "client_delivery" ? (
+                          <span className="text-muted-foreground">Клиенты</span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">
                       {new Date(r.route_date).toLocaleDateString("ru-RU")}
