@@ -10,6 +10,7 @@ import {
   Menu,
   PackageSearch,
   Receipt,
+  ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -20,6 +21,7 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 const NAV_ITEMS = [
   { to: "/", label: "Заказы", icon: BarChart3, match: (p: string) => p === "/" },
   { to: "/routes", label: "Маршруты", icon: RouteIcon, match: (p: string) => p.startsWith("/routes") },
+  { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p: string) => p.startsWith("/transport-requests") },
   { to: "/carriers", label: "Перевозчики", icon: Building2, match: (p: string) => p.startsWith("/carriers") },
   { to: "/drivers", label: "Водители", icon: User, match: (p: string) => p.startsWith("/drivers") },
   { to: "/vehicles", label: "Авто", icon: Truck, match: (p: string) => p.startsWith("/vehicles") },
