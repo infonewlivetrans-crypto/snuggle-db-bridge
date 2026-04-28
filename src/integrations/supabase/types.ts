@@ -862,7 +862,9 @@ export type Database = {
           client_window_to: string | null
           completed_at: string | null
           created_at: string
+          dp_amount_received: number | null
           dp_expected_return_at: string | null
+          dp_payment_comment: string | null
           dp_return_comment: string | null
           dp_return_warehouse_id: string | null
           dp_status: Database["public"]["Enums"]["delivery_point_status"]
@@ -892,7 +894,9 @@ export type Database = {
           client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          dp_amount_received?: number | null
           dp_expected_return_at?: string | null
+          dp_payment_comment?: string | null
           dp_return_comment?: string | null
           dp_return_warehouse_id?: string | null
           dp_status?: Database["public"]["Enums"]["delivery_point_status"]
@@ -922,7 +926,9 @@ export type Database = {
           client_window_to?: string | null
           completed_at?: string | null
           created_at?: string
+          dp_amount_received?: number | null
           dp_expected_return_at?: string | null
+          dp_payment_comment?: string | null
           dp_return_comment?: string | null
           dp_return_warehouse_id?: string | null
           dp_status?: Database["public"]["Enums"]["delivery_point_status"]
