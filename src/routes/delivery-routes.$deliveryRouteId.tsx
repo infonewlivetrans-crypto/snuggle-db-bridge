@@ -25,6 +25,7 @@ import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
+import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
@@ -114,6 +115,25 @@ function DeliveryRoutePage() {
         .order("point_number", { ascending: true });
       if (error) throw error;
       return (pts ?? []) as unknown as PointRow[];
+    },
+  });
+
+  const pointIds = (points ?? []).map((p) => p.id);
+  const { data: photoKindsByPoint } = useQuery({
+    enabled: pointIds.length > 0,
+    queryKey: ["route-point-photos-kinds", pointIds.join(",")],
+    queryFn: async (): Promise<Record<string, Set<string>>> => {
+      const { data: rows, error } = await supabase
+        .from("route_point_photos")
+        .select("route_point_id, kind")
+        .in("route_point_id", pointIds);
+      if (error) throw error;
+      const map: Record<string, Set<string>> = {};
+      for (const r of (rows ?? []) as Array<{ route_point_id: string; kind: string }>) {
+        if (!map[r.route_point_id]) map[r.route_point_id] = new Set();
+        map[r.route_point_id].add(r.kind);
+      }
+      return map;
     },
   });
 
@@ -318,6 +338,12 @@ function DeliveryRoutePage() {
                           }}
                         />
                       )}
+                      <RoutePointPhotosBlock
+                        routePointId={p.id}
+                        orderId={p.order_id}
+                        requiresQr={!!p.order?.requires_qr}
+                        pointStatus={p.dp_status}
+                      />
                       <PointStatusEditor
                         routePointId={p.id}
                         initial={{
@@ -337,6 +363,8 @@ function DeliveryRoutePage() {
                               }
                             : undefined
                         }
+                        hasQrPhoto={!!photoKindsByPoint?.[p.id]?.has("qr")}
+                        hasProblemPhoto={!!photoKindsByPoint?.[p.id]?.has("problem")}
                       />
                       <OrderNotificationsBlock orderId={p.order_id} />
                     </div>

@@ -855,6 +855,42 @@ export type Database = {
         }
         Relationships: []
       }
+      route_point_photos: {
+        Row: {
+          comment: string | null
+          created_at: string
+          file_url: string
+          id: string
+          kind: Database["public"]["Enums"]["route_point_photo_kind"]
+          order_id: string | null
+          route_point_id: string
+          storage_path: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          file_url: string
+          id?: string
+          kind: Database["public"]["Enums"]["route_point_photo_kind"]
+          order_id?: string | null
+          route_point_id: string
+          storage_path?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          file_url?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["route_point_photo_kind"]
+          order_id?: string | null
+          route_point_id?: string
+          storage_path?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       route_points: {
         Row: {
           arrived_at: string | null
@@ -1835,6 +1871,12 @@ export type Database = {
         | "client_refused"
         | "no_unloading"
         | "problem"
+      route_point_photo_kind:
+        | "qr"
+        | "signed_docs"
+        | "payment"
+        | "problem"
+        | "unloading_place"
       route_status: "planned" | "in_progress" | "completed" | "cancelled"
       supply_request_priority: "low" | "normal" | "high" | "urgent"
       supply_request_source_type: "factory" | "warehouse"
@@ -2072,6 +2114,13 @@ export const Constants = {
         "client_refused",
         "no_unloading",
         "problem",
+      ],
+      route_point_photo_kind: [
+        "qr",
+        "signed_docs",
+        "payment",
+        "problem",
+        "unloading_place",
       ],
       route_status: ["planned", "in_progress", "completed", "cancelled"],
       supply_request_priority: ["low", "normal", "high", "urgent"],
