@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Route as RouteIcon } from "lucide-react";
+import { Search, Route as RouteIcon, AlertTriangle } from "lucide-react";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_ORDER,
@@ -45,6 +45,8 @@ type Row = {
   status: DeliveryRouteStatus;
   source_request_id: string;
   source_warehouse_id: string | null;
+  assigned_driver: string | null;
+  assigned_vehicle: string | null;
   source_request: { route_number: string } | null;
   source_warehouse: { name: string; city: string | null } | null;
 };
@@ -59,7 +61,7 @@ function DeliveryRoutesPage() {
       const { data, error } = await supabase
         .from("delivery_routes")
         .select(
-          "id, route_number, route_date, status, source_request_id, source_warehouse_id, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
+          "id, route_number, route_date, status, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
         )
         .order("route_date", { ascending: false })
         .order("created_at", { ascending: false });
