@@ -42,7 +42,7 @@ export function RequestSchedulingBlock({
       const { error } = await supabase
         .from("routes")
         .update({
-          route_date: date || null,
+          route_date: date || undefined,
           departure_time: time ? `${time}:00` : null,
           request_priority: pr,
         })
