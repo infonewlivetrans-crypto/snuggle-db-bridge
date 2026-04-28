@@ -23,6 +23,7 @@ import {
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
+import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
@@ -55,6 +56,7 @@ type Detail = {
 type PointRow = {
   id: string;
   point_number: number;
+  order_id: string;
   client_window_from: string | null;
   client_window_to: string | null;
   dp_status: DeliveryPointStatus;
@@ -96,7 +98,7 @@ function DeliveryRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, order:order_id(order_number, contact_name, delivery_address, comment)",
+          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, order:order_id(order_number, contact_name, delivery_address, comment)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
@@ -298,6 +300,7 @@ function DeliveryRoutePage() {
                           dp_expected_return_at: p.dp_expected_return_at,
                         }}
                       />
+                      <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
                   ))
                 )}
