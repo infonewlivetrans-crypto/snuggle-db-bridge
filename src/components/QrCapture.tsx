@@ -167,16 +167,37 @@ export function QrCapture({
                 ? `Загружено ${new Date(qrUploadedAt).toLocaleString("ru-RU")}`
                 : ""}
             </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
-              onClick={() => save.mutate(null)}
-              disabled={save.isPending}
-            >
-              <X className="h-3 w-3" />
-              Удалить
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1 text-xs text-destructive hover:text-destructive"
+                  disabled={save.isPending}
+                >
+                  <X className="h-3 w-3" />
+                  Удалить
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Удалить QR-фото?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Прикреплённое изображение QR-кода будет откреплено от заказа{" "}
+                    {orderNumber}. Это действие можно отменить, загрузив фото заново.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Отмена</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => save.mutate(null)}
+                  >
+                    Удалить
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       ) : (
