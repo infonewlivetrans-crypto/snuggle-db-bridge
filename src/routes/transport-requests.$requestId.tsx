@@ -9,6 +9,7 @@ import {
   REQUEST_TYPE_LABELS,
   REQUEST_STATUS_LABELS,
 } from "./transport-requests.index";
+import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 
 export const Route = createFileRoute("/transport-requests/$requestId")({
   head: () => ({
@@ -137,6 +138,9 @@ function TransportRequestDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Заказы в заявке */}
+            <RequestOrdersBlock requestId={data.id} />
           </div>
         )}
       </main>
