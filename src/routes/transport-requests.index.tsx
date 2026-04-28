@@ -20,7 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ClipboardList } from "lucide-react";
+import { Search, ClipboardList, AlertTriangle } from "lucide-react";
+import {
+  PRIORITY_LABELS,
+  PRIORITY_BADGE_CLASS,
+  type RequestPriority,
+} from "@/lib/requestPriority";
 
 export const Route = createFileRoute("/transport-requests/")({
   head: () => ({
@@ -52,6 +57,8 @@ type RequestRow = {
   request_type: string;
   status: string;
   route_date: string;
+  departure_time: string | null;
+  request_priority: RequestPriority;
   warehouse_id: string | null;
   destination_warehouse_id: string | null;
   points_count: number;
@@ -71,7 +78,7 @@ function TransportRequestsPage() {
       const { data, error } = await supabase
         .from("routes")
         .select(
-          "id, route_number, request_type, status, route_date, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, warehouses:warehouse_id(name), destination:destination_warehouse_id(name)",
+          "id, route_number, request_type, status, route_date, departure_time, request_priority, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, warehouses:warehouse_id(name), destination:destination_warehouse_id(name)",
         )
         .order("route_date", { ascending: false });
       if (error) throw error;
@@ -136,7 +143,9 @@ function TransportRequestsPage() {
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад отправления</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад назначения</TableHead>
-                <TableHead className="font-semibold text-foreground">Дата</TableHead>
+                <TableHead className="font-semibold text-foreground">Дата отправки</TableHead>
+                <TableHead className="font-semibold text-foreground">Время</TableHead>
+                <TableHead className="font-semibold text-foreground">Приоритет</TableHead>
                 <TableHead className="text-right font-semibold text-foreground">Заказов</TableHead>
                 <TableHead className="text-right font-semibold text-foreground">Вес, кг</TableHead>
                 <TableHead className="text-right font-semibold text-foreground">Объём, м³</TableHead>
@@ -145,20 +154,30 @@ function TransportRequestsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={11} className="py-12 text-center text-muted-foreground">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center">
+                  <TableCell colSpan={11} className="py-12 text-center">
                     <ClipboardList className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заявки не найдены</div>
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer">
+                filtered.map((r) => {
+                  const noTime = !r.route_date || !r.departure_time;
+                  const rowTone =
+                    r.request_priority === "urgent"
+                      ? "bg-red-50/60 hover:bg-red-50 dark:bg-red-900/10 dark:hover:bg-red-900/20"
+                      : r.request_priority === "high"
+                        ? "bg-orange-50/60 hover:bg-orange-50 dark:bg-orange-900/10 dark:hover:bg-orange-900/20"
+                        : r.request_priority === "medium"
+                          ? "bg-yellow-50/40 hover:bg-yellow-50 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/20"
+                          : "";
+                  return (
+                  <TableRow key={r.id} className={`cursor-pointer ${rowTone}`}>
                     <TableCell>
                       <Link
                         to="/transport-requests/$requestId"
@@ -195,7 +214,28 @@ function TransportRequestsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm">
-                      {new Date(r.route_date).toLocaleDateString("ru-RU")}
+                      {r.route_date ? (
+                        new Date(r.route_date).toLocaleDateString("ru-RU")
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {r.departure_time ? (
+                        <span className="font-mono">{r.departure_time.slice(0, 5)}</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-300">
+                          <AlertTriangle className="h-3 w-3" />
+                          не указано
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${PRIORITY_BADGE_CLASS[r.request_priority]}`}
+                      >
+                        {PRIORITY_LABELS[r.request_priority]}
+                      </span>
                     </TableCell>
                     <TableCell className="text-right text-sm">{r.points_count ?? 0}</TableCell>
                     <TableCell className="text-right text-sm">
@@ -205,7 +245,8 @@ function TransportRequestsPage() {
                       {Number(r.total_volume_m3 ?? 0).toLocaleString("ru-RU")}
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>

@@ -899,6 +899,7 @@ export type Database = {
           created_at: string
           default_service_minutes: number
           delivery_cost: number
+          departure_time: string | null
           destination_warehouse_id: string | null
           driver_id: string | null
           driver_name: string | null
@@ -906,6 +907,7 @@ export type Database = {
           manual_cost: boolean
           planned_departure_at: string | null
           points_count: number
+          request_priority: Database["public"]["Enums"]["transport_request_priority"]
           request_status: Database["public"]["Enums"]["transport_request_status"]
           request_status_changed_at: string | null
           request_status_changed_by: string | null
@@ -937,6 +939,7 @@ export type Database = {
           created_at?: string
           default_service_minutes?: number
           delivery_cost?: number
+          departure_time?: string | null
           destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
@@ -944,6 +947,7 @@ export type Database = {
           manual_cost?: boolean
           planned_departure_at?: string | null
           points_count?: number
+          request_priority?: Database["public"]["Enums"]["transport_request_priority"]
           request_status?: Database["public"]["Enums"]["transport_request_status"]
           request_status_changed_at?: string | null
           request_status_changed_by?: string | null
@@ -975,6 +979,7 @@ export type Database = {
           created_at?: string
           default_service_minutes?: number
           delivery_cost?: number
+          departure_time?: string | null
           destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
@@ -982,6 +987,7 @@ export type Database = {
           manual_cost?: boolean
           planned_departure_at?: string | null
           points_count?: number
+          request_priority?: Database["public"]["Enums"]["transport_request_priority"]
           request_status?: Database["public"]["Enums"]["transport_request_status"]
           request_status_changed_at?: string | null
           request_status_changed_by?: string | null
@@ -1752,6 +1758,7 @@ export type Database = {
         | "combo"
         | "percent_goods"
         | "manual"
+      transport_request_priority: "low" | "medium" | "high" | "urgent"
       transport_request_status:
         | "draft"
         | "ready_for_planning"
@@ -1971,6 +1978,7 @@ export const Constants = {
         "percent_goods",
         "manual",
       ],
+      transport_request_priority: ["low", "medium", "high", "urgent"],
       transport_request_status: [
         "draft",
         "ready_for_planning",
