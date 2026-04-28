@@ -126,6 +126,7 @@ function TransportRequestDetailPage() {
               <Badge variant="outline">
                 {REQUEST_STATUS_LABELS[data.status] ?? data.status}
               </Badge>
+              {/* Расширенный статус заявки управляется в блоке "Статус заявки" ниже */}
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -165,6 +166,31 @@ function TransportRequestDetailPage() {
               requestId={data.id}
               requiredCapacityKg={data.required_capacity_kg}
               requiredVolumeM3={data.required_volume_m3}
+            />
+
+            <TransportRequestStatusBlock
+              requestId={data.id}
+              current={data.request_status}
+              changedBy={data.request_status_changed_by}
+              changedAt={data.request_status_changed_at}
+              comment={data.request_status_comment}
+              ordersCount={totals?.count ?? 0}
+              hasWarehouse={!!data.warehouse_id || data.request_type === "factory_to_warehouse"}
+              hasDate={!!data.route_date}
+              hasRequirements={
+                !!data.required_body_type ||
+                !!data.required_capacity_kg ||
+                !!data.required_volume_m3 ||
+                !!data.required_body_length_m
+              }
+              weightOver={
+                data.required_capacity_kg != null &&
+                (totals?.weight ?? 0) > data.required_capacity_kg
+              }
+              volumeOver={
+                data.required_volume_m3 != null &&
+                (totals?.volume ?? 0) > data.required_volume_m3
+              }
             />
 
 
