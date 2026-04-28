@@ -20,7 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ClipboardList } from "lucide-react";
+import { Search, ClipboardList, AlertTriangle } from "lucide-react";
+import {
+  PRIORITY_LABELS,
+  PRIORITY_BADGE_CLASS,
+  type RequestPriority,
+} from "@/lib/requestPriority";
 
 export const Route = createFileRoute("/transport-requests/")({
   head: () => ({
