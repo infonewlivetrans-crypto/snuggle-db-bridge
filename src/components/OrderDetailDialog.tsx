@@ -403,3 +403,88 @@ function useStateSync(key: string | undefined, fn: () => void) {
     }
   }, [key, fn]);
 }
+
+function DeliveryCostBlock({
+  order,
+  onEdit,
+  onResetAuto,
+  resetting,
+}: {
+  order: Order;
+  onEdit: () => void;
+  onResetAuto: () => void;
+  resetting: boolean;
+}) {
+  const source = order.delivery_cost_source ?? "auto";
+  const cost = Number(order.delivery_cost ?? 0);
+  const isManual = source === "manual";
+  const sourceLabel =
+    source === "manual" ? "Вручную" : source === "tariff" ? "По тарифу" : "Авто";
+  const sourceClass = isManual
+    ? "border-amber-300 bg-amber-100 text-amber-900"
+    : source === "tariff"
+      ? "border-blue-300 bg-blue-100 text-blue-900"
+      : "border-border bg-secondary text-muted-foreground";
+
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <Wallet className="h-3.5 w-3.5" />
+          Стоимость доставки
+        </div>
+        <Badge variant="outline" className={sourceClass}>
+          {sourceLabel}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="text-2xl font-bold text-foreground">
+            {cost.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+          </div>
+          {isManual && order.manual_cost_set_at && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Изменено{" "}
+              {new Date(order.manual_cost_set_at).toLocaleString("ru-RU", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+              {order.manual_cost_set_by ? ` · ${order.manual_cost_set_by}` : ""}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {isManual && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onResetAuto}
+              disabled={resetting}
+              className="gap-1.5"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {resetting ? "..." : "К авто"}
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5">
+            <Pencil className="h-3.5 w-3.5" />
+            Изменить вручную
+          </Button>
+        </div>
+      </div>
+      {isManual && order.manual_cost_reason && (
+        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+          <span className="font-medium">Причина:</span> {order.manual_cost_reason}
+        </div>
+      )}
+      {isManual && (
+        <div className="mt-2 text-xs text-muted-foreground">
+          Автоматический пересчёт по тарифам отключён для этого заказа.
+        </div>
+      )}
+    </div>
+  );
+}
