@@ -234,16 +234,37 @@ function OrdersPage() {
                     </TableCell>
                     <TableCell>
                       {order.requires_qr ? (
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
-                            order.qr_received
-                              ? "bg-green-100 text-green-900"
-                              : "bg-amber-100 text-amber-900"
-                          }`}
-                        >
-                          <QrCode className="h-3 w-3" />
-                          {order.qr_received ? "Получен" : "Не получен"}
-                        </span>
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={`inline-flex cursor-help items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
+                                  order.qr_received
+                                    ? "bg-green-100 text-green-900"
+                                    : "bg-amber-100 text-amber-900"
+                                }`}
+                              >
+                                <QrCode className="h-3 w-3" />
+                                {order.qr_received ? "Получен" : "Не получен"}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {order.qr_photo_uploaded_at ? (
+                                <div className="text-xs">
+                                  <div>
+                                    Загружено:{" "}
+                                    {new Date(order.qr_photo_uploaded_at).toLocaleString("ru-RU")}
+                                  </div>
+                                  <div>Кем: {order.qr_photo_uploaded_by ?? "—"}</div>
+                                </div>
+                              ) : (
+                                <span className="text-xs">QR-фото ещё не загружено</span>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       ) : (
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
