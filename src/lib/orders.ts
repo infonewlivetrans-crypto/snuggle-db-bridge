@@ -36,6 +36,8 @@ export type Order = {
   total_weight_kg: number | null;
   total_volume_m3: number | null;
   items_count: number | null;
+  qr_photo_url: string | null;
+  qr_photo_uploaded_at: string | null;
 };
 
 
