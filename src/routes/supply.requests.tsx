@@ -331,7 +331,10 @@ const NEXT_STATUS: Partial<Record<Status, { to: Status; label: string }[]>> = {
     { to: "received", label: "Принять" },
     { to: "cancelled", label: "Отменить" },
   ],
-  in_transit: [{ to: "received", label: "Принять" }],
+  in_transit: [
+    { to: "received", label: "Принять" },
+    { to: "cancelled", label: "Отменить" },
+  ],
 };
 
 function StatusActions({ request }: { request: SupplyRequest }) {
