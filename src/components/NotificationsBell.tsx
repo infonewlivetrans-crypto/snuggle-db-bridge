@@ -76,6 +76,21 @@ export function NotificationsBell() {
 
   const unreadCount = useMemo(() => items.filter((i) => !i.is_read).length, [items]);
 
+  const lowStockSummary = useMemo(() => {
+    const stock = items.filter((i) => i.kind === "low_stock");
+    let critical = 0;
+    let out = 0;
+    let low = 0;
+    stock.forEach((i) => {
+      const lvl = (i.payload as { level?: string } | null)?.level;
+      if (lvl === "out") out += 1;
+      else if (lvl === "critical") critical += 1;
+      else if (lvl === "low") low += 1;
+    });
+    const lastAt = stock[0]?.created_at ?? null;
+    return { total: stock.length, critical, out, low, lastAt };
+  }, [items]);
+
   // Realtime subscription
   useEffect(() => {
     const channel = supabase
