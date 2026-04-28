@@ -19,6 +19,7 @@ import {
   type RequestStatus,
 } from "@/components/TransportRequestStatusBlock";
 import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
+import { DeliveryPointsBlock } from "@/components/DeliveryPointsBlock";
 import {
   PRIORITY_LABELS,
   PRIORITY_BADGE_CLASS,
