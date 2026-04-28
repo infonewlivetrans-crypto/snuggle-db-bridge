@@ -902,6 +902,11 @@ export type Database = {
           dp_amount_received: number | null
           dp_expected_return_at: string | null
           dp_finished_at: string | null
+          dp_idle_comment: string | null
+          dp_idle_duration_minutes: number | null
+          dp_idle_finished_at: string | null
+          dp_idle_reason: Database["public"]["Enums"]["idle_reason"] | null
+          dp_idle_started_at: string | null
           dp_payment_comment: string | null
           dp_planned_arrival_at: string | null
           dp_return_comment: string | null
@@ -939,6 +944,11 @@ export type Database = {
           dp_amount_received?: number | null
           dp_expected_return_at?: string | null
           dp_finished_at?: string | null
+          dp_idle_comment?: string | null
+          dp_idle_duration_minutes?: number | null
+          dp_idle_finished_at?: string | null
+          dp_idle_reason?: Database["public"]["Enums"]["idle_reason"] | null
+          dp_idle_started_at?: string | null
           dp_payment_comment?: string | null
           dp_planned_arrival_at?: string | null
           dp_return_comment?: string | null
@@ -976,6 +986,11 @@ export type Database = {
           dp_amount_received?: number | null
           dp_expected_return_at?: string | null
           dp_finished_at?: string | null
+          dp_idle_comment?: string | null
+          dp_idle_duration_minutes?: number | null
+          dp_idle_finished_at?: string | null
+          dp_idle_reason?: Database["public"]["Enums"]["idle_reason"] | null
+          dp_idle_started_at?: string | null
           dp_payment_comment?: string | null
           dp_planned_arrival_at?: string | null
           dp_return_comment?: string | null
@@ -1859,6 +1874,15 @@ export type Database = {
         | "done"
         | "cancelled"
       eta_risk_level: "on_time" | "tight" | "late" | "unknown"
+      idle_reason:
+        | "client_absent"
+        | "client_no_answer"
+        | "no_unloaders"
+        | "no_access"
+        | "no_payment"
+        | "no_qr"
+        | "client_asks_wait"
+        | "other"
       order_status:
         | "new"
         | "in_progress"
@@ -2101,6 +2125,16 @@ export const Constants = {
         "cancelled",
       ],
       eta_risk_level: ["on_time", "tight", "late", "unknown"],
+      idle_reason: [
+        "client_absent",
+        "client_no_answer",
+        "no_unloaders",
+        "no_access",
+        "no_payment",
+        "no_qr",
+        "client_asks_wait",
+        "other",
+      ],
       order_status: [
         "new",
         "in_progress",

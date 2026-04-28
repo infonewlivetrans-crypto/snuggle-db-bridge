@@ -27,6 +27,7 @@ import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
+import { PointIdleBlock, IDLE_REASON_LABELS, type IdleReason } from "@/components/PointIdleBlock";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
@@ -74,6 +75,11 @@ type PointRow = {
   dp_unload_started_at: string | null;
   dp_unload_finished_at: string | null;
   dp_finished_at: string | null;
+  dp_idle_started_at: string | null;
+  dp_idle_finished_at: string | null;
+  dp_idle_duration_minutes: number | null;
+  dp_idle_reason: IdleReason | null;
+  dp_idle_comment: string | null;
   order: {
     id: string;
     order_number: string;
@@ -115,7 +121,7 @@ function DeliveryRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, order:order_id(id, order_number, contact_name, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
+          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
@@ -324,6 +330,37 @@ function DeliveryRoutePage() {
                     <StatTile label="Опозданий" value={String(lateCount)} tone={lateCount > 0 ? "red" : undefined} />
                     <StatTile label="Среднее время разгрузки" value={fmtMin(avgUnload)} />
                   </div>
+                  {(() => {
+                    const idleList = list.filter(
+                      (p) => (p.dp_idle_duration_minutes ?? 0) > 0 || !!p.dp_idle_started_at,
+                    );
+                    const totalIdle = idleList.reduce(
+                      (s, p) => s + (p.dp_idle_duration_minutes ?? 0),
+                      0,
+                    );
+                    const reasons = Array.from(
+                      new Set(
+                        idleList
+                          .map((p) => p.dp_idle_reason)
+                          .filter((r): r is IdleReason => !!r),
+                      ),
+                    );
+                    if (idleList.length === 0) return null;
+                    return (
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                        <StatTile label="Общее время простоя" value={fmtMin(totalIdle)} tone={totalIdle > 0 ? "red" : undefined} />
+                        <StatTile label="Точек с простоем" value={String(idleList.length)} />
+                        <StatTile
+                          label="Причины простоев"
+                          value={
+                            reasons.length
+                              ? reasons.map((r) => IDLE_REASON_LABELS[r]).join(", ")
+                              : "—"
+                          }
+                        />
+                      </div>
+                    );
+                  })()}
                 </>
               );
             })()}
@@ -396,6 +433,16 @@ function DeliveryRoutePage() {
                           dp_unload_started_at: p.dp_unload_started_at,
                           dp_unload_finished_at: p.dp_unload_finished_at,
                           dp_finished_at: p.dp_finished_at,
+                        }}
+                      />
+                      <PointIdleBlock
+                        routePointId={p.id}
+                        data={{
+                          dp_idle_started_at: p.dp_idle_started_at,
+                          dp_idle_finished_at: p.dp_idle_finished_at,
+                          dp_idle_duration_minutes: p.dp_idle_duration_minutes,
+                          dp_idle_reason: p.dp_idle_reason,
+                          dp_idle_comment: p.dp_idle_comment,
                         }}
                       />
                       <RoutePointPhotosBlock
