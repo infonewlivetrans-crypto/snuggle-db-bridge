@@ -95,15 +95,28 @@ export function PointActionsHistory({
 }
 
 function renderDetails(row: PointActionRow): string | null {
-  const d = row.details ?? {};
+  const d = (row.details ?? {}) as Record<string, unknown>;
+  const parts: string[] = [];
   if (row.action === "payment_amount_set" && d.amount_received != null) {
-    return `Сумма: ${Number(d.amount_received).toLocaleString("ru-RU")} ₽`;
+    parts.push(`Сумма: ${Number(d.amount_received).toLocaleString("ru-RU")} ₽`);
   }
   if (row.action === "status_not_delivered" && d.reason) {
-    return `Причина: ${d.reason}`;
+    parts.push(`Причина: ${d.reason}`);
   }
   if (row.action === "status_returned" && d.reason) {
-    return `Причина возврата: ${d.reason}`;
+    parts.push(`Причина возврата: ${d.reason}`);
   }
-  return null;
+  const gps = (d.gps ?? null) as
+    | { latitude: number; longitude: number; accuracy?: number | null }
+    | null;
+  if (gps && typeof gps.latitude === "number" && typeof gps.longitude === "number") {
+    const acc = gps.accuracy != null ? ` (±${Math.round(Number(gps.accuracy))} м)` : "";
+    parts.push(`📍 ${gps.latitude.toFixed(5)}, ${gps.longitude.toFixed(5)}${acc}`);
+  } else if (d.gps_unavailable) {
+    parts.push("📍 GPS недоступен");
+  }
+  if (typeof d.distance_to_point_m === "number") {
+    parts.push(`До точки: ${Math.round(d.distance_to_point_m)} м`);
+  }
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
