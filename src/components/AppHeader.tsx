@@ -14,6 +14,7 @@ import {
   Bell,
   FileText,
   PlayCircle,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";

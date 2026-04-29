@@ -319,7 +319,7 @@ function WarehouseTransfersPage() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
-              <Link to="/warehouse-movements">
+              <Link to="/warehouse-movements" search={{ productId: undefined }}>
                 <History className="mr-2 h-4 w-4" />
                 Журнал движения
               </Link>
