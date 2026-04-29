@@ -357,62 +357,17 @@ function DriverPointCard({
         )}
       </div>
 
-      {/* Быстрые действия — крупные кнопки для телефона */}
-      <div className="grid grid-cols-2 gap-2">
-        <Button
-          asChild
-          variant="outline"
-          size="lg"
-          disabled={!o?.contact_phone}
-          className="h-11 gap-1.5"
-        >
-          <a
-            href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}
-            onClick={() => {
-              if (!o?.contact_phone) return;
-              logPointAction({
-                routePointId: p.id,
-                orderId: p.order_id,
-                routeId,
-                action: "call_client",
-                actor: driverName ?? "Водитель",
-                details: { phone: o.contact_phone },
-              });
-            }}
-          >
-            <Phone className="h-4 w-4" />
-            Позвонить
-          </a>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          size="lg"
-          disabled={!buildMapUrl(o)}
-          className="h-11 gap-1.5"
-        >
-          <a
-            href={buildMapUrl(o) ?? "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              const url = buildMapUrl(o);
-              if (!url) return;
-              logPointAction({
-                routePointId: p.id,
-                orderId: p.order_id,
-                routeId,
-                action: "open_map",
-                actor: driverName ?? "Водитель",
-                details: { url },
-              });
-            }}
-          >
-            <MapPin className="h-4 w-4" />
-            Открыть карту
-          </a>
-        </Button>
-      </div>
+      {/* Менеджер по заказу */}
+      <ManagerInfoAndActions
+        contactName={o?.contact_name ?? null}
+        orderId={p.order_id}
+        orderNumber={o?.order_number ?? "—"}
+        routePointId={p.id}
+        routeId={routeId}
+        driverName={driverName}
+        clientPhone={o?.contact_phone ?? null}
+        mapUrl={buildMapUrl(o)}
+      />
 
       {/* Краткая сводка по оплате/QR */}
       <div className="flex flex-wrap gap-1.5 text-xs">
