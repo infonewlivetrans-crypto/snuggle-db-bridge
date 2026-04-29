@@ -39,6 +39,7 @@ import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
+import { RouteTimingBlock } from "@/components/RouteTimingBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -498,6 +499,17 @@ function RouteDetailPage() {
         {/* Сводка ETA по маршруту */}
         <RouteEtaSummary route={route} points={points ?? []} />
 
+        {/* Расстояние и время */}
+        <RouteTimingBlock
+          routeId={route.id}
+          totalDistanceKm={Number((route as unknown as { total_distance_km?: number }).total_distance_km ?? 0)}
+          totalDurationMinutes={Number((route as unknown as { total_duration_minutes?: number }).total_duration_minutes ?? 0)}
+          avgSpeedKmh={Number((route as unknown as { avg_speed_kmh?: number }).avg_speed_kmh ?? 35)}
+          defaultServiceMinutes={Number((route as unknown as { default_service_minutes?: number }).default_service_minutes ?? 20)}
+          pointsCount={totalCount}
+          plannedDepartureAt={route.planned_departure_at ?? null}
+        />
+
         {/* Статус движения водителя */}
         <DriverMovementCard route={route} points={points ?? []} />
 
@@ -771,6 +783,50 @@ function RouteDetailPage() {
                           </span>
                         )}
                       </div>
+                      {(() => {
+                        const hasCoords =
+                          typeof p.orders.latitude === "number" &&
+                          typeof p.orders.longitude === "number";
+                        const eta = p.eta_at ? new Date(p.eta_at) : null;
+                        const svc =
+                          p.service_minutes ??
+                          Number(
+                            (route as unknown as { default_service_minutes?: number })
+                              .default_service_minutes ?? 20,
+                          );
+                        const finish = eta
+                          ? new Date(eta.getTime() + svc * 60_000)
+                          : null;
+                        const fmt = (d: Date | null) =>
+                          d
+                            ? d.toLocaleTimeString("ru-RU", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "—";
+                        return (
+                          <div className="mt-2 grid grid-cols-1 gap-1.5 rounded-md border border-border bg-secondary/30 p-2 text-xs sm:grid-cols-3">
+                            <div>
+                              <span className="text-muted-foreground">Прибытие: </span>
+                              <span className="font-semibold text-foreground">{fmt(eta)}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Разгрузка: </span>
+                              <span className="font-semibold text-foreground">{svc} мин</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Завершение: </span>
+                              <span className="font-semibold text-foreground">{fmt(finish)}</span>
+                            </div>
+                            {!hasCoords && (
+                              <div className="rt-alert rt-alert-warning sm:col-span-3">
+                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span>Невозможно точно рассчитать время — нет координат</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <EtaPanel point={p} />
                     </div>
 
