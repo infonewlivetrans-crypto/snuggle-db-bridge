@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon } from "lucide-react";
+import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, FileSpreadsheet, FileDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as ExportPayload } from "@/lib/route-report-export";
 
 type ReportPayload = {
   delivery_route_id: string;
@@ -74,11 +76,54 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
 
   return (
     <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <FileText className="h-4 w-4 text-blue-700 dark:text-blue-300" />
-        <h2 className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-          Сводный отчёт менеджеру
-        </h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+          <h2 className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+            Сводный отчёт менеджеру
+          </h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5"
+            onClick={() => exportRouteReportXlsx(p as unknown as ExportPayload)}
+          >
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Скачать Excel
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5"
+            onClick={() => exportRouteReportPdf(p as unknown as ExportPayload)}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            Скачать PDF
+          </Button>
+        </div>
+      </div>
+
+      <div className="mb-3 rounded-md border border-blue-500/30 bg-card p-3">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Итоги маршрута
+        </div>
+        <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+          <Info label="Всего" value={String(p.totals.total)} />
+          <Info label="Доставлено" value={String(p.totals.delivered)} />
+          <Info label="Не доставлено" value={String(p.totals.not_delivered)} />
+          <Info label="Возврат" value={String(p.totals.returned)} />
+        </div>
+        <div className="mt-2 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+          <Info label="К получению" value={fmtMoney(p.totals.amount_due)} />
+          <Info label="Получено" value={fmtMoney(p.totals.amount_received)} />
+          <Info
+            label="Расхождение"
+            value={(p.totals.amount_diff > 0 ? "+" : "") + fmtMoney(p.totals.amount_diff)}
+            accent={p.totals.amount_diff !== 0}
+          />
+        </div>
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
@@ -88,22 +133,6 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
         <Info label="Машина" value={p.vehicle ?? "—"} />
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-        <Info label="Всего" value={String(p.totals.total)} />
-        <Info label="Доставлено" value={String(p.totals.delivered)} />
-        <Info label="Не доставлено" value={String(p.totals.not_delivered)} />
-        <Info label="Возврат" value={String(p.totals.returned)} />
-      </div>
-
-      <div className="mb-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
-        <Info label="К получению" value={fmtMoney(p.totals.amount_due)} />
-        <Info label="Получено" value={fmtMoney(p.totals.amount_received)} />
-        <Info
-          label="Расхождение"
-          value={(p.totals.amount_diff > 0 ? "+" : "") + fmtMoney(p.totals.amount_diff)}
-          accent={p.totals.amount_diff !== 0}
-        />
-      </div>
 
       <div className="space-y-2">
         {p.orders.map((o) => (
