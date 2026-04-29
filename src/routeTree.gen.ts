@@ -27,6 +27,7 @@ import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LogistRouteImport } from './routes/logist'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DirectorRouteImport } from './routes/director'
+import { Route as DataImportRouteImport } from './routes/data-import'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WarehousesIndexRouteImport } from './routes/warehouses.index'
 import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
@@ -140,6 +141,11 @@ const FirstRunRoute = FirstRunRouteImport.update({
 const DirectorRoute = DirectorRouteImport.update({
   id: '/director',
   path: '/director',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataImportRoute = DataImportRouteImport.update({
+  id: '/data-import',
+  path: '/data-import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -267,6 +273,7 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/data-import': typeof DataImportRoute
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
@@ -311,6 +318,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/data-import': typeof DataImportRoute
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
@@ -356,6 +364,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/data-import': typeof DataImportRoute
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/data-import'
     | '/director'
     | '/first-run'
     | '/logist'
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/data-import'
     | '/director'
     | '/first-run'
     | '/logist'
@@ -490,6 +501,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/data-import'
     | '/director'
     | '/first-run'
     | '/logist'
@@ -535,6 +547,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DataImportRoute: typeof DataImportRoute
   DirectorRoute: typeof DirectorRoute
   FirstRunRoute: typeof FirstRunRoute
   LogistRoute: typeof LogistRoute
@@ -704,6 +717,13 @@ declare module '@tanstack/react-router' {
       path: '/director'
       fullPath: '/director'
       preLoaderRoute: typeof DirectorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-import': {
+      id: '/data-import'
+      path: '/data-import'
+      fullPath: '/data-import'
+      preLoaderRoute: typeof DataImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -879,6 +899,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DataImportRoute: DataImportRoute,
   DirectorRoute: DirectorRoute,
   FirstRunRoute: FirstRunRoute,
   LogistRoute: LogistRoute,

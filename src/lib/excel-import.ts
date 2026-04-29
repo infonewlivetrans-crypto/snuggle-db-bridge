@@ -1,218 +1,137 @@
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 
-export type OrderImportRow = {
-  order_number?: string;
-  client?: string;
-  phone?: string;
-  address?: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  product?: string;
-  weight_kg?: number | null;
-  volume_m3?: number | null;
-  amount?: number | null;
-  payment_type?: string;
-  external_id?: string | null;
-};
-
 export type ImportResult = {
-  total: number;
   inserted: number;
+  total: number;
   errors: Array<{ row: number; message: string }>;
 };
 
-// Сопоставление любых вариантов названий колонок к нашим полям
-const HEADER_MAP: Record<string, keyof OrderImportRow> = {
-  // order_number
+const HEADER_MAP: Record<string, string> = {
   "номер": "order_number",
   "номер заказа": "order_number",
-  "№": "order_number",
   "order_number": "order_number",
-  // client
-  "клиент": "client",
-  "контрагент": "client",
-  "client": "client",
-  // phone
-  "телефон": "phone",
-  "phone": "phone",
-  // address
-  "адрес": "address",
-  "адрес доставки": "address",
-  "address": "address",
-  // coords
-  "широта": "latitude",
-  "lat": "latitude",
-  "latitude": "latitude",
-  "долгота": "longitude",
-  "lng": "longitude",
-  "lon": "longitude",
-  "longitude": "longitude",
-  // product
-  "товар": "product",
-  "наименование": "product",
-  "product": "product",
-  // weight
-  "вес": "weight_kg",
-  "вес, кг": "weight_kg",
-  "weight": "weight_kg",
-  "weight_kg": "weight_kg",
-  // volume
-  "объем": "volume_m3",
-  "объём": "volume_m3",
-  "объем, м3": "volume_m3",
-  "объём, м3": "volume_m3",
-  "volume": "volume_m3",
-  "volume_m3": "volume_m3",
-  // amount
-  "сумма": "amount",
-  "amount": "amount",
-  "total": "amount",
-  // payment
-  "оплата": "payment_type",
+  "клиент": "contact_name",
+  "имя": "contact_name",
+  "contact_name": "contact_name",
+  "телефон": "contact_phone",
+  "phone": "contact_phone",
+  "contact_phone": "contact_phone",
+  "адрес": "delivery_address",
+  "address": "delivery_address",
+  "delivery_address": "delivery_address",
+  "координаты": "coordinates",
+  "coordinates": "coordinates",
+  "товар": "goods",
+  "вес": "total_weight_kg",
+  "weight": "total_weight_kg",
+  "объём": "total_volume_m3",
+  "объем": "total_volume_m3",
+  "volume": "total_volume_m3",
+  "сумма": "goods_amount",
+  "amount": "goods_amount",
   "тип оплаты": "payment_type",
-  "payment": "payment_type",
+  "оплата": "payment_type",
   "payment_type": "payment_type",
-  // external
-  "id 1с": "external_id",
-  "external_id": "external_id",
 };
 
-const PAYMENT_MAP: Record<string, "cash" | "card" | "online" | "qr"> = {
-  "наличные": "cash",
-  "нал": "cash",
-  "cash": "cash",
-  "карта": "card",
-  "card": "card",
-  "онлайн": "online",
-  "online": "online",
-  "qr": "qr",
-  "qr-код": "qr",
-};
-
-function normalizeKey(k: string): string {
-  return k.trim().toLowerCase().replace(/\s+/g, " ");
+function norm(s: unknown): string {
+  return String(s ?? "").trim().toLowerCase();
 }
 
-function toNumber(v: unknown): number | null {
-  if (v === null || v === undefined || v === "") return null;
-  if (typeof v === "number") return Number.isFinite(v) ? v : null;
-  const s = String(v).replace(",", ".").replace(/\s+/g, "");
-  const n = Number(s);
+function num(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "number" ? v : parseFloat(String(v).replace(",", "."));
   return Number.isFinite(n) ? n : null;
 }
+function str(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s === "" ? null : s;
+}
 
-export function parseOrdersWorkbook(file: ArrayBuffer): OrderImportRow[] {
-  const wb = XLSX.read(file, { type: "array" });
-  const sheet = wb.Sheets[wb.SheetNames[0]];
-  const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
+const TEMPLATE_HEADERS = [
+  "Номер заказа",
+  "Клиент",
+  "Телефон",
+  "Адрес",
+  "Координаты",
+  "Товар",
+  "Вес",
+  "Объём",
+  "Сумма",
+  "Тип оплаты",
+];
 
-  return raw.map((row) => {
-    const out: OrderImportRow = {};
-    for (const [k, v] of Object.entries(row)) {
-      const key = HEADER_MAP[normalizeKey(k)];
-      if (!key) continue;
-      if (key === "latitude" || key === "longitude" || key === "weight_kg" || key === "volume_m3" || key === "amount") {
-        (out as Record<string, unknown>)[key] = toNumber(v);
-      } else {
-        const s = String(v ?? "").trim();
-        (out as Record<string, unknown>)[key] = s || undefined;
-      }
-    }
-    return out;
+export function downloadOrdersTemplate() {
+  const example = ["ORD-1001", "Иван Иванов", "+7 999 000 00 00", "г. Москва, ул. Ленина, 1", "55.7558, 37.6173", "Доска 50х50", 12.5, 0.05, 5000, "cash"];
+  const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, example]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Заказы");
+  XLSX.writeFile(wb, "template_orders.xlsx");
+}
+
+function mapHeaderRow(headerRow: unknown[]): Record<number, string> {
+  const out: Record<number, string> = {};
+  headerRow.forEach((h, i) => {
+    const key = HEADER_MAP[norm(h)];
+    if (key) out[i] = key;
   });
+  return out;
 }
 
 export async function importOrdersFromFile(file: File): Promise<ImportResult> {
   const buf = await file.arrayBuffer();
-  const rows = parseOrdersWorkbook(buf);
-  const result: ImportResult = { total: rows.length, inserted: 0, errors: [] };
-
-  // Получаем последний номер для авто-генерации
-  const { data: lastOrder } = await supabase
-    .from("orders")
-    .select("order_number")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  let counter = 1;
-  const lastNum = lastOrder?.order_number?.match(/(\d+)$/)?.[1];
-  if (lastNum) counter = parseInt(lastNum, 10) + 1;
-
-  for (let i = 0; i < rows.length; i++) {
-    const r = rows[i];
-    try {
-      if (!r.address && (r.latitude == null || r.longitude == null)) {
-        throw new Error("Нужен адрес или координаты");
-      }
-      const orderNumber = r.order_number?.trim() || `IMP-${String(counter++).padStart(4, "0")}`;
-      const paymentRaw = r.payment_type ? normalizeKey(r.payment_type) : "";
-      const payment_type = PAYMENT_MAP[paymentRaw] || "cash";
-
-      const commentParts: string[] = [];
-      if (r.client) commentParts.push(`Клиент: ${r.client}`);
-      if (r.product) commentParts.push(`Товар: ${r.product}`);
-      if (r.amount != null) commentParts.push(`Сумма: ${r.amount}`);
-
-      const { error } = await supabase.from("orders").insert({
-        order_number: orderNumber,
-        delivery_address: r.address ?? null,
-        latitude: r.latitude ?? null,
-        longitude: r.longitude ?? null,
-        contact_name: r.client ?? null,
-        contact_phone: r.phone ?? null,
-        payment_type,
-        total_weight_kg: r.weight_kg ?? null,
-        total_volume_m3: r.volume_m3 ?? null,
-        comment: commentParts.join(" • ") || null,
-        external_id: r.external_id ?? null,
-        source: "manual",
-        status: "new",
-      });
-      if (error) throw error;
-      result.inserted++;
-    } catch (e) {
-      result.errors.push({
-        row: i + 2, // +2: header + 1-based
-        message: e instanceof Error ? e.message : String(e),
-      });
+  const wb = XLSX.read(buf, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const errors: Array<{ row: number; message: string }> = [];
+  if (!ws) return { inserted: 0, total: 0, errors: [{ row: 0, message: "Файл пуст" }] };
+  const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
+  if (aoa.length < 2) return { inserted: 0, total: 0, errors: [{ row: 0, message: "Нет данных" }] };
+  const headerMap = mapHeaderRow(aoa[0] as unknown[]);
+  let inserted = 0;
+  let total = 0;
+  for (let i = 1; i < aoa.length; i++) {
+    const raw = aoa[i] as unknown[];
+    if (!raw || raw.every((v) => v === "" || v == null)) continue;
+    total++;
+    const data: Record<string, unknown> = {};
+    raw.forEach((v, idx) => {
+      const key = headerMap[idx];
+      if (key) data[key] = v;
+    });
+    const orderNumber = str(data.order_number);
+    if (!orderNumber) {
+      errors.push({ row: i + 1, message: "Пустой номер заказа" });
+      continue;
     }
+    let lat: number | null = null;
+    let lng: number | null = null;
+    const coords = str(data.coordinates);
+    if (coords) {
+      const parts = coords.split(/[,\s;]+/).filter(Boolean);
+      if (parts.length >= 2) {
+        lat = num(parts[0]);
+        lng = num(parts[1]);
+      }
+    }
+    const payload = {
+      order_number: orderNumber,
+      contact_name: str(data.contact_name),
+      contact_phone: str(data.contact_phone),
+      delivery_address: str(data.delivery_address),
+      latitude: lat,
+      longitude: lng,
+      total_weight_kg: num(data.total_weight_kg),
+      total_volume_m3: num(data.total_volume_m3),
+      goods_amount: num(data.goods_amount),
+      payment_type: (str(data.payment_type) ?? "cash"),
+      delivery_cost: 0,
+      source: "excel",
+    };
+    const { error } = await supabase.from("orders").insert(payload as never);
+    if (error) errors.push({ row: i + 1, message: error.message });
+    else inserted++;
   }
-  return result;
-}
-
-/** Скачать пустой шаблон Excel для импорта заказов */
-export function downloadOrdersTemplate() {
-  const headers = [
-    "Номер заказа",
-    "Клиент",
-    "Телефон",
-    "Адрес",
-    "Широта",
-    "Долгота",
-    "Товар",
-    "Вес, кг",
-    "Объём, м3",
-    "Сумма",
-    "Тип оплаты",
-    "external_id",
-  ];
-  const example = [
-    "ORD-0001",
-    "ООО Ромашка",
-    "+7 999 123-45-67",
-    "г. Москва, ул. Ленина, 1",
-    55.7558,
-    37.6173,
-    "Кофе зерновой 1кг",
-    12.5,
-    0.04,
-    4500,
-    "наличные",
-    "",
-  ];
-  const ws = XLSX.utils.aoa_to_sheet([headers, example]);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Заказы");
-  XLSX.writeFile(wb, "orders_template.xlsx");
+  return { inserted, total, errors };
 }
