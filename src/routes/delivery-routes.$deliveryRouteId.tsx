@@ -200,11 +200,19 @@ function DeliveryRoutePage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <Link to="/delivery-routes">
-          <Button variant="ghost" size="sm" className="mb-4 gap-1.5">
-            <ArrowLeft className="h-4 w-4" />К списку маршрутов
-          </Button>
-        </Link>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <Link to="/delivery-routes">
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <ArrowLeft className="h-4 w-4" />К списку маршрутов
+            </Button>
+          </Link>
+          <Link to="/driver/$deliveryRouteId" params={{ deliveryRouteId }}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Truck className="h-4 w-4" />
+              Открыть как водитель
+            </Button>
+          </Link>
+        </div>
 
         {isLoading ? (
           <div className="text-muted-foreground">Загрузка...</div>
