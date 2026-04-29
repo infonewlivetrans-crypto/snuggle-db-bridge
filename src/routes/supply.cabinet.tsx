@@ -843,3 +843,140 @@ function InTransitTable({
     </div>
   );
 }
+
+// ===== Уведомления =====
+const REASON_LABELS: Record<string, string> = {
+  low_stock: "Низкий остаток на складе",
+  shortage: "Нехватка товара под заявку",
+  supply_request_created: "Создана заявка на пополнение",
+};
+
+function NotificationsTable({ items }: { items: SupplyNotification[] }) {
+  const qc = useQueryClient();
+
+  const markRead = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["supply-notifications"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const markAllRead = useMutation({
+    mutationFn: async () => {
+      const { error } = await db
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("kind", "supply_alert")
+        .eq("is_read", false);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Все уведомления прочитаны");
+      qc.invalidateQueries({ queryKey: ["supply-notifications"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        Уведомлений нет
+      </div>
+    );
+  }
+
+  const hasUnread = items.some((i) => !i.is_read);
+
+  return (
+    <>
+      {hasUnread && (
+        <div className="mb-3 flex justify-end">
+          <Button size="sm" variant="outline" onClick={() => markAllRead.mutate()}>
+            <CheckCheck className="mr-1 h-3.5 w-3.5" />
+            Прочитать все
+          </Button>
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[140px]">Дата и время</TableHead>
+              <TableHead>Склад</TableHead>
+              <TableHead>Товар</TableHead>
+              <TableHead>Причина</TableHead>
+              <TableHead>Заявка на транспорт</TableHead>
+              <TableHead>Статус</TableHead>
+              <TableHead className="text-right"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((n) => {
+              const p = n.payload ?? {};
+              const reasonLabel = p.reason ? REASON_LABELS[p.reason] ?? n.title : n.title;
+              const transportLink = p.transport_request_id ? (
+                <Link
+                  to="/transport-requests/$requestId"
+                  params={{ requestId: p.transport_request_id }}
+                  className="font-mono text-xs text-blue-700 hover:underline"
+                  onClick={() => !n.is_read && markRead.mutate(n.id)}
+                >
+                  № {p.route_number ?? "—"}
+                </Link>
+              ) : (
+                <span className="text-xs text-muted-foreground">—</span>
+              );
+              return (
+                <TableRow key={n.id} className={n.is_read ? "" : "bg-rose-50/40"}>
+                  <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString("ru-RU")}
+                  </TableCell>
+                  <TableCell className="text-sm">{p.warehouse_name ?? "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="font-medium">{p.product_name ?? "—"}</div>
+                    {n.body && (
+                      <div className="text-xs text-muted-foreground">{n.body}</div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm">{reasonLabel}</TableCell>
+                  <TableCell>{transportLink}</TableCell>
+                  <TableCell>
+                    {n.is_read ? (
+                      <Badge variant="outline" className="border-slate-300 bg-slate-100 text-slate-700">
+                        <CheckCheck className="mr-1 h-3 w-3" />
+                        Прочитано
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-rose-300 bg-rose-100 text-rose-900">
+                        <Circle className="mr-1 h-3 w-3 fill-rose-600 text-rose-600" />
+                        Новое
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {!n.is_read && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => markRead.mutate(n.id)}
+                        disabled={markRead.isPending}
+                      >
+                        Прочитано
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
