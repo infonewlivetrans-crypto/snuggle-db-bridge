@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon, match: (p: string) => p.startsWith("/delivery-routes") },
   { to: "/logist", label: "Кабинет логиста", icon: ClipboardList, match: (p: string) => p.startsWith("/logist") },
   { to: "/route-reports", label: "Отчёты по маршрутам", icon: FileText, match: (p: string) => p.startsWith("/route-reports") },
+  { to: "/director", label: "Отчёт руководителя", icon: BarChart3, match: (p: string) => p.startsWith("/director") },
   { to: "/routes", label: "Маршруты (план)", icon: RouteIcon, match: (p: string) => p.startsWith("/routes") },
   { to: "/carriers", label: "Перевозчики", icon: Building2, match: (p: string) => p.startsWith("/carriers") },
   { to: "/drivers", label: "Водители", icon: User, match: (p: string) => p.startsWith("/drivers") },
