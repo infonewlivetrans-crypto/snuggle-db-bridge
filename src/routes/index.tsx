@@ -7,7 +7,9 @@ import { AppHeader } from "@/components/AppHeader";
 import { OrderDetailDialog } from "@/components/OrderDetailDialog";
 import { CreateOrderDialog } from "@/components/CreateOrderDialog";
 import { ImportOrdersDialog } from "@/components/ImportOrdersDialog";
+import { CreateRouteFromOrdersDialog } from "@/components/CreateRouteFromOrdersDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -40,7 +42,7 @@ import {
   STATUS_STYLES,
   PAYMENT_LABELS,
 } from "@/lib/orders";
-import { Search, QrCode, RefreshCw, Package2, Plus } from "lucide-react";
+import { Search, QrCode, RefreshCw, Package2, Plus, Route as RouteIcon, FileSpreadsheet } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   validateSearch: (
@@ -66,6 +68,8 @@ function OrdersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [routeDialogOpen, setRouteDialogOpen] = useState(false);
 
   const { data: orders, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["orders"],
