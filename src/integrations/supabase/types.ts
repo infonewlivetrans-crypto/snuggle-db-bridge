@@ -1548,6 +1548,9 @@ export type Database = {
           carrier_cost: number
           carrier_reward: number | null
           comment: string | null
+          cost_method: string
+          cost_per_km: number
+          cost_per_point: number
           created_at: string
           default_service_minutes: number
           delivery_amount: number | null
@@ -1557,6 +1560,7 @@ export type Database = {
           driver_id: string | null
           driver_name: string | null
           external_id: string | null
+          fixed_cost: number
           id: string
           manual_cost: boolean
           mileage_km: number | null
@@ -1600,6 +1604,9 @@ export type Database = {
           carrier_cost?: number
           carrier_reward?: number | null
           comment?: string | null
+          cost_method?: string
+          cost_per_km?: number
+          cost_per_point?: number
           created_at?: string
           default_service_minutes?: number
           delivery_amount?: number | null
@@ -1609,6 +1616,7 @@ export type Database = {
           driver_id?: string | null
           driver_name?: string | null
           external_id?: string | null
+          fixed_cost?: number
           id?: string
           manual_cost?: boolean
           mileage_km?: number | null
@@ -1652,6 +1660,9 @@ export type Database = {
           carrier_cost?: number
           carrier_reward?: number | null
           comment?: string | null
+          cost_method?: string
+          cost_per_km?: number
+          cost_per_point?: number
           created_at?: string
           default_service_minutes?: number
           delivery_amount?: number | null
@@ -1661,6 +1672,7 @@ export type Database = {
           driver_id?: string | null
           driver_name?: string | null
           external_id?: string | null
+          fixed_cost?: number
           id?: string
           manual_cost?: boolean
           mileage_km?: number | null
