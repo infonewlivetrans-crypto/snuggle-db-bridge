@@ -381,4 +381,84 @@
   .text-status-warning { color: var(--status-delivering); }
   .text-status-danger { color: var(--status-failed); }
   .text-status-info { color: var(--status-new); }
+
+  /* ==========================================================
+   * Адаптивные утилиты
+   * ========================================================== */
+
+  /* Безопасный контейнер страниц: центрирован, с max-width.
+   * Используйте оборачивая контент страницы вместо голых div w-full. */
+  .rt-page {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .rt-page { padding-inline: 1.25rem; }
+  }
+  @media (min-width: 1024px) {
+    .rt-page { padding-inline: 1.5rem; }
+  }
+  @media (min-width: 1536px) {
+    .rt-page { padding-inline: 2rem; }
+  }
+
+  /* Прокрутка таблиц с тонким скроллбаром */
+  .rt-table-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .rt-table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+  .rt-table-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 9999px;
+  }
+
+  /* Ограничитель высоты таблицы — тогда sticky thead начинает работать */
+  .rt-table-tall { max-height: calc(100vh - 220px); overflow-y: auto; }
+
+  /* Скрытие второстепенных колонок на маленьких экранах.
+   * Применяется на <th> и <td>: class="col-secondary" / "col-tertiary". */
+  @media (max-width: 1023px) {
+    .col-secondary { display: none !important; }
+  }
+  @media (max-width: 767px) {
+    .col-tertiary { display: none !important; }
+  }
+
+  /* Принудительный «горизонтальный скролл вместо переноса» для строк действий */
+  .rt-actions-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  @media (min-width: 1280px) {
+    .rt-actions-row { flex-wrap: nowrap; }
+  }
+}
+
+/* ==========================================================
+ * Глобальные responsive-фиксы (вне @layer utilities)
+ * ========================================================== */
+
+/* Не дать таблицам и широким карточкам пробивать viewport */
+html { max-width: 100%; }
+body { max-width: 100%; overflow-x: hidden; }
+
+/* Любая обёртка с .overflow-x-auto должна нормально работать на тач-экранах */
+.overflow-x-auto { -webkit-overflow-scrolling: touch; }
+
+/* На ноутбуках 1366px — компактная плотность кнопок и инпутов внутри таблиц,
+ * чтобы строки действий не уезжали за экран. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .rt-table td .h-10,
+  .rt-table-scroll td .h-10 { height: 2.25rem; }
+}
+
+/* Мобильная версия: крупные тачабельные кнопки */
+@media (max-width: 640px) {
+  button, [role="button"] { min-height: 40px; }
 }
