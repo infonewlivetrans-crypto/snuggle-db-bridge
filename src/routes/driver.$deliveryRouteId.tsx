@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
+import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
@@ -399,6 +400,17 @@ function DriverPointCard({
         <div className="rounded-md border border-border bg-muted/30 px-2 py-1.5 text-xs italic text-muted-foreground">
           {o.comment}
         </div>
+      )}
+
+      {/* Оплата и наличные — сводка с подсказками */}
+      {o && (
+        <PaymentSummaryBlock
+          paymentType={o.payment_type}
+          paymentStatus={o.payment_status}
+          amountDue={o.amount_due}
+          amountReceived={p.dp_amount_received}
+          paymentComment={p.dp_payment_comment}
+        />
       )}
 
       {/* Оплата / QR — переиспользуем существующий блок */}

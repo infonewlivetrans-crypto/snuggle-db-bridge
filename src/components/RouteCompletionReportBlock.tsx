@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as ExportPayload } from "@/lib/route-report-export";
+import { PaymentSummaryReportBlock } from "@/components/PaymentSummaryReportBlock";
 
 type ReportPayload = {
   delivery_route_id: string;
@@ -131,6 +132,11 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
         <Info label="Дата" value={new Date(p.route_date).toLocaleDateString("ru-RU")} />
         <Info label="Водитель" value={p.driver ?? "—"} />
         <Info label="Машина" value={p.vehicle ?? "—"} />
+      </div>
+
+      {/* Наличные и оплата */}
+      <div className="mb-3">
+        <PaymentSummaryReportBlock orders={p.orders} />
       </div>
 
 
