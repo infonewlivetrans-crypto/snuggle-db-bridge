@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as ExportPayload } from "@/lib/route-report-export";
+import { PaymentSummaryReportBlock } from "@/components/PaymentSummaryReportBlock";
 
 type ReportPayload = {
   delivery_route_id: string;
