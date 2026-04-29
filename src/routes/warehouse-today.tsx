@@ -302,6 +302,7 @@ function WarehouseTodayPage() {
       qc.invalidateQueries({ queryKey: ["wh-today-events", date] });
       qc.invalidateQueries({ queryKey: ["wh-today-returns"] });
       qc.invalidateQueries({ queryKey: ["wh-returns"] });
+      qc.invalidateQueries({ queryKey: ["request-wh-status"] });
       toast.success("Статус обновлён");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -414,6 +415,7 @@ function WarehouseTodayPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wh-today-events", date] });
+      qc.invalidateQueries({ queryKey: ["request-wh-status"] });
       toast.success("План загрузки подтверждён");
     },
     onError: (e: Error) => toast.error(e.message),

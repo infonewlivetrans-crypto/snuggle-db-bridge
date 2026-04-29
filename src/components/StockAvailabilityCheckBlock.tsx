@@ -142,20 +142,45 @@ export function StockAvailabilityCheckBlock({
     return m;
   }, [balances]);
 
-  // 5. Расчёт дефицита
+  // 4b. Собственные активные резервы по этой заявке — их нужно считать
+  // как «доступно для нас», иначе после резервирования возникает ложный дефицит.
+  const { data: ownReserv = [] } = useQuery({
+    queryKey: ["stock-check-own-reserv", requestId, productIds.join(",")],
+    enabled: productIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("stock_reservations")
+        .select("product_id, qty")
+        .eq("transport_request_id", requestId)
+        .eq("status", "active")
+        .in("product_id", productIds);
+      if (error) throw error;
+      return (data ?? []) as Array<{ product_id: string; qty: number }>;
+    },
+  });
+  const ownReservByProduct = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of ownReserv) {
+      m.set(r.product_id, (m.get(r.product_id) ?? 0) + (Number(r.qty) || 0));
+    }
+    return m;
+  }, [ownReserv]);
+
+  // 5. Расчёт дефицита (с учётом собственного резерва)
   const rows = useMemo(
     () =>
       required.map((r) => {
         const av = r.product_id ? availByProduct.get(r.product_id) ?? 0 : null;
-        const avNum = av ?? 0;
-        const deficit = r.product_id
-          ? Math.max(0, r.qty - avNum)
+        const ownRes = r.product_id
+          ? ownReservByProduct.get(r.product_id) ?? 0
           : 0;
+        const effective = (av ?? 0) + ownRes;
+        const deficit = r.product_id ? Math.max(0, r.qty - effective) : 0;
         const hasProduct = !!r.product_id;
-        const enough = !hasProduct ? null : avNum >= r.qty;
+        const enough = !hasProduct ? null : effective >= r.qty;
         return { ...r, av, deficit, enough, hasProduct };
       }),
-    [required, availByProduct],
+    [required, availByProduct, ownReservByProduct],
   );
 
   const hasShortage = rows.some((r) => r.enough === false);

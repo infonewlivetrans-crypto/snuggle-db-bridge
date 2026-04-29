@@ -178,8 +178,33 @@ export function DockLoadingChecklistBlock({
       if (!warehouseId) throw new Error("Не указан склад отгрузки");
       if (args.qty <= 0) throw new Error("Количество должно быть больше 0");
       if (args.product_id) {
+        // Доступно «реально для этой заявки» = available + собственный активный резерв заявки.
+        // Без этого корректно зарезервированный товар выглядел бы как «нехватка»,
+        // потому что available из stock_balances уже уменьшен на величину резерва.
         const av = availableByProduct.get(args.product_id) ?? 0;
-        if (av < args.qty) {
+        let ownReserved = 0;
+        const { data: dr } = await db
+          .from("delivery_routes")
+          .select("source_request_id")
+          .eq("id", deliveryRouteId)
+          .maybeSingle();
+        const srcId = (dr as { source_request_id?: string } | null)
+          ?.source_request_id;
+        if (srcId) {
+          const { data: rs } = await db
+            .from("stock_reservations")
+            .select("qty")
+            .eq("transport_request_id", srcId)
+            .eq("product_id", args.product_id)
+            .eq("warehouse_id", warehouseId)
+            .eq("status", "active");
+          const list = (rs ?? []) as Array<{ qty: number }>;
+          ownReserved = list.reduce(
+            (s, r) => s + (Number(r.qty) || 0),
+            0,
+          );
+        }
+        if (av + ownReserved < args.qty) {
           throw new Error("Недостаточно товара для загрузки");
         }
       }
@@ -271,6 +296,9 @@ export function DockLoadingChecklistBlock({
       qc.invalidateQueries({ queryKey: ["dock-loaded", deliveryRouteId] });
       qc.invalidateQueries({ queryKey: ["dock-load-stock"] });
       qc.invalidateQueries({ queryKey: ["stock-balances"] });
+      qc.invalidateQueries({ queryKey: ["request-wh-status"] });
+      qc.invalidateQueries({ queryKey: ["stock-check-bal"] });
+      qc.invalidateQueries({ queryKey: ["stock-check-own-reserv"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
