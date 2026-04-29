@@ -218,16 +218,47 @@ function OrdersPage() {
           </Select>
         </div>
 
+        {/* Панель действий с выбранными заказами */}
+        {selectedIds.size > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3">
+            <div className="text-sm font-medium text-foreground">
+              Выбрано заказов: {selectedIds.size}
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setRouteDialogOpen(true)}
+              className="ml-auto gap-2"
+            >
+              <RouteIcon className="h-4 w-4" />
+              Создать маршрут из выбранных заказов
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Сбросить
+            </Button>
+          </div>
+        )}
+
         {/* Таблица */}
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={
+                      filtered.length > 0 &&
+                      filtered.every((o) => selectedIds.has(o.id))
+                    }
+                    onCheckedChange={() => toggleAll()}
+                    aria-label="Выбрать все"
+                  />
+                </TableHead>
                 <TableHead className="font-semibold text-foreground">Номер</TableHead>
+                <TableHead className="font-semibold text-foreground">Источник</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
                 <TableHead className="font-semibold text-foreground">Адрес доставки</TableHead>
-                <TableHead className="font-semibold text-foreground">Оплата</TableHead>
-                <TableHead className="font-semibold text-foreground">QR</TableHead>
+                <TableHead className="font-semibold text-foreground col-secondary">Оплата</TableHead>
+                <TableHead className="font-semibold text-foreground col-secondary">QR</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
