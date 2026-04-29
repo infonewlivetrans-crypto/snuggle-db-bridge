@@ -281,13 +281,11 @@ export function StockReservationBlock({
         .eq("product_id", args.product_id)
         .eq("status", "active");
       if (qe) throw qe;
-      const total = (active ?? []).reduce(
-        (s, r) => s + (Number(r.qty) || 0),
-        0,
-      );
+      const list = (active ?? []) as Array<{ id: string; qty: number }>;
+      const total = list.reduce((s, r) => s + (Number(r.qty) || 0), 0);
       if (total <= 0) return;
 
-      const ids = (active ?? []).map((r) => r.id);
+      const ids = list.map((r) => r.id);
       const { error: ue } = await db
         .from("stock_reservations")
         .update({ status: "released" })
