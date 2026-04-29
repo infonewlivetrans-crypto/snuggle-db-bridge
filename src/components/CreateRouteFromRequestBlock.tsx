@@ -148,6 +148,12 @@ export function CreateRouteFromRequestBlock({
               Нельзя выдать маршрут водителю: не хватает товара на складе
             </p>
           )}
+          {blockedByWarehouseStatus && !blockedByShortage && (
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+              Заявка ещё не готова к отгрузке
+              {warehouseStatusLabel ? ` (${warehouseStatusLabel})` : ""}
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
