@@ -159,6 +159,22 @@ export function RouteCostBlock({
     return 0;
   }, [method, totalDistanceKm, pointsCount, perKm, perPoint, fixed, manualTotal]);
 
+  // Эффективная сумма заказов: ручной ввод приоритетнее данных из системы
+  const ordersAmount = useMemo(() => {
+    const m = Number(manualOrders);
+    if (manualOrders.trim() !== "" && Number.isFinite(m) && m > 0) return m;
+    return Number(ordersAmountFromData) || 0;
+  }, [manualOrders, ordersAmountFromData]);
+
+  const deliveryPercent = useMemo(() => {
+    if (!ordersAmount || ordersAmount <= 0) return null;
+    return (computedTotal / ordersAmount) * 100;
+  }, [computedTotal, ordersAmount]);
+
+  const targetPct = Number(percentTarget) || 0;
+  const overTarget =
+    deliveryPercent != null && targetPct > 0 && deliveryPercent > targetPct;
+
   const { data: history = [] } = useQuery({
     queryKey: ["route-cost-history", routeId],
     queryFn: async () => {
