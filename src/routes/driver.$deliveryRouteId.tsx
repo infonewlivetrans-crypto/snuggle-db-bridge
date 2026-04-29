@@ -298,12 +298,29 @@ function DriverRoutePage() {
 
 function DriverPointCard({
   p,
+  routeId,
+  driverName,
   photoKinds,
 }: {
   p: PointRow;
+  routeId: string;
+  driverName: string | null;
   photoKinds: Set<string> | undefined;
 }) {
   const o = p.order;
+
+  // Лог: водитель открыл карточку точки
+  useEffect(() => {
+    logPointAction({
+      routePointId: p.id,
+      orderId: p.order_id,
+      routeId,
+      action: "point_opened",
+      actor: driverName ?? "Водитель",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.id]);
+
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
