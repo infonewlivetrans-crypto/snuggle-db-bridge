@@ -78,7 +78,7 @@ type StockBalance = {
   deficit_level: "ok" | "low" | "critical" | "out";
 };
 
-type SupplyStatus = "created" | "in_progress" | "ordered" | "awaiting" | "closed";
+type SupplyStatus = "created" | "in_progress" | "ordered" | "awaiting" | "received" | "closed";
 
 type SupplySourceType = "factory" | "warehouse" | "supplier";
 
