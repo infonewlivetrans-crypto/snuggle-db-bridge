@@ -250,18 +250,23 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
               </p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleImport}
-              disabled={!parsed || importing || parsing || (parsed?.validRows ?? 0) === 0 || (parsed?.missingColumns.length ?? 0) > 0}
+              disabled={!parsed || importing || parsing || (parsed?.validRows ?? 0) === 0}
               className="gap-2"
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               Импортировать
             </Button>
+            {!parsed && preview && (
+              <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                Сначала подтвердите сопоставление колонок ниже.
+              </span>
+            )}
             {parsing && (
               <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Чтение файла…
+                <Loader2 className="h-4 w-4 animate-spin" /> Обработка…
               </span>
             )}
           </div>
