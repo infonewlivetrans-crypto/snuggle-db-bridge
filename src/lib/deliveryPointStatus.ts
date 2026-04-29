@@ -56,8 +56,9 @@ export const DELIVERY_POINT_UNDELIVERED_REASON_ORDER: DeliveryPointUndeliveredRe
   "no_qr",
   "client_refused",
   "no_unloading",
-  "no_unloading",
+  "defective",
   "damage",
+  "wrong_address",
   "other",
 ];
 
