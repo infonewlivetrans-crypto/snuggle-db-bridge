@@ -481,6 +481,72 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           </div>
 
+          {/* Временное окно доставки и тип клиента */}
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Временное окно доставки
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="window-from" className="text-xs text-muted-foreground">
+                  Время доставки с
+                </Label>
+                <Input
+                  id="window-from"
+                  type="time"
+                  value={windowFrom}
+                  onChange={(e) => setWindowFrom(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="window-to" className="text-xs text-muted-foreground">
+                  Время доставки до
+                </Label>
+                <Input
+                  id="window-to"
+                  type="time"
+                  value={windowTo}
+                  onChange={(e) => setWindowTo(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="client-type" className="text-xs text-muted-foreground">
+                Тип клиента
+              </Label>
+              <Select
+                value={clientType || "__none__"}
+                onValueChange={(v) => setClientType(v === "__none__" ? "" : (v as ClientKind))}
+              >
+                <SelectTrigger id="client-type" className="mt-1.5">
+                  <SelectValue placeholder="Не указан" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Не указан</SelectItem>
+                  {CLIENT_KIND_ORDER.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {CLIENT_KIND_LABELS[k]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="dt-comment" className="text-xs text-muted-foreground">
+                Комментарий по времени доставки
+              </Label>
+              <Input
+                id="dt-comment"
+                value={deliveryTimeComment}
+                onChange={(e) => setDeliveryTimeComment(e.target.value)}
+                placeholder="Например: только до обеда, после 14:00..."
+                className="mt-1.5"
+              />
+            </div>
+          </div>
+
           {/* Все поля заказа */}
           <OrderAllFields order={order} />
 
