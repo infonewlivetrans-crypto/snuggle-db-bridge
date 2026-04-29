@@ -261,6 +261,121 @@ function RouteDetailPage() {
       return o === "not_delivered";
     }).length ?? 0;
 
+  // ========= Черновой порядок точек (ручное редактирование) =========
+  const [draftIds, setDraftIds] = useState<string[]>([]);
+  // Синхронизируем черновик при смене серверных данных
+  useEffect(() => {
+    if (points) setDraftIds(points.map((p) => p.id));
+  }, [points]);
+
+  const pointsById = useMemo(() => {
+    const m = new Map<string, RoutePointWithOrder>();
+    (points ?? []).forEach((p) => m.set(p.id, p));
+    return m;
+  }, [points]);
+
+  // Точки в порядке черновика, с пересчитанными номерами
+  const orderedDraft = useMemo<RoutePointWithOrder[]>(() => {
+    return draftIds
+      .map((id, idx) => {
+        const p = pointsById.get(id);
+        if (!p) return null;
+        return { ...p, point_number: idx + 1 };
+      })
+      .filter((x): x is RoutePointWithOrder => x !== null);
+  }, [draftIds, pointsById]);
+
+  const originalIds = useMemo(
+    () => (points ?? []).map((p) => p.id),
+    [points],
+  );
+  const orderChanged = useMemo(
+    () =>
+      draftIds.length === originalIds.length &&
+      draftIds.some((id, i) => id !== originalIds[i]),
+    [draftIds, originalIds],
+  );
+
+  const moveDraft = (idx: number, dir: -1 | 1) => {
+    setDraftIds((prev) => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+  const resetDraft = () => setDraftIds(originalIds);
+
+  const saveOrder = useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Двухфазная запись, чтобы не упереться в потенциальный unique(route_id, point_number)
+      const TEMP = 100000;
+      for (let i = 0; i < ids.length; i++) {
+        const { error } = await supabase
+          .from("route_points")
+          .update({ point_number: TEMP + i })
+          .eq("id", ids[i]);
+        if (error) throw error;
+      }
+      for (let i = 0; i < ids.length; i++) {
+        const { error } = await supabase
+          .from("route_points")
+          .update({ point_number: i + 1 })
+          .eq("id", ids[i]);
+        if (error) throw error;
+      }
+      // Отметка кто/когда менял порядок
+      const who =
+        (await supabase.auth.getUser()).data.user?.email ?? "Пользователь";
+      const { error: rErr } = await supabase
+        .from("routes")
+        .update({
+          points_order_changed_at: new Date().toISOString(),
+          points_order_changed_by: who,
+        })
+        .eq("id", routeId);
+      if (rErr) throw rErr;
+    },
+    onSuccess: () => {
+      toast.success("Порядок точек сохранён");
+      queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["route", routeId] });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Не удалось сохранить порядок"),
+  });
+
+  // ========= Drag & Drop (нативный HTML5) =========
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const handleDragStart = (id: string) => setDragId(id);
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    if (id !== dragOverId) setDragOverId(id);
+  };
+  const handleDragEnd = () => {
+    setDragId(null);
+    setDragOverId(null);
+  };
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) {
+      handleDragEnd();
+      return;
+    }
+    setDraftIds((prev) => {
+      const from = prev.indexOf(dragId);
+      const to = prev.indexOf(targetId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    handleDragEnd();
+  };
+
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
