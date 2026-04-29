@@ -24,12 +24,16 @@ export function CreateRouteFromRequestBlock({
   routeDate,
   ordersCount,
   blockedByShortage = false,
+  blockedByWarehouseStatus = false,
+  warehouseStatusLabel,
 }: {
   requestId: string;
   warehouseId: string | null;
   routeDate: string;
   ordersCount: number;
   blockedByShortage?: boolean;
+  blockedByWarehouseStatus?: boolean;
+  warehouseStatusLabel?: string;
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
