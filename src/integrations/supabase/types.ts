@@ -547,6 +547,157 @@ export type Database = {
         }
         Relationships: []
       }
+      inbound_shipment_items: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_name: string
+          qty_expected: number
+          qty_received: number | null
+          shipment_id: string
+          sku: string | null
+          unit: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_name: string
+          qty_expected?: number
+          qty_received?: number | null
+          shipment_id: string
+          sku?: string | null
+          unit?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_name?: string
+          qty_expected?: number
+          qty_received?: number | null
+          shipment_id?: string
+          sku?: string | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbound_shipment_items_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "inbound_shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inbound_shipments: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          arrived_at: string | null
+          comment: string | null
+          created_at: string
+          destination_warehouse_id: string | null
+          docs_photo_urls: Json
+          driver_name: string | null
+          driver_phone: string | null
+          expected_at: string | null
+          id: string
+          problem_comment: string | null
+          problem_photo_url: string | null
+          problem_reason: string | null
+          receiving_started_at: string | null
+          shipment_number: string
+          source_name: string | null
+          source_type: string
+          source_warehouse_id: string | null
+          status: string
+          updated_at: string
+          vehicle_plate: string | null
+          warehouse_comment: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          arrived_at?: string | null
+          comment?: string | null
+          created_at?: string
+          destination_warehouse_id?: string | null
+          docs_photo_urls?: Json
+          driver_name?: string | null
+          driver_phone?: string | null
+          expected_at?: string | null
+          id?: string
+          problem_comment?: string | null
+          problem_photo_url?: string | null
+          problem_reason?: string | null
+          receiving_started_at?: string | null
+          shipment_number: string
+          source_name?: string | null
+          source_type?: string
+          source_warehouse_id?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_plate?: string | null
+          warehouse_comment?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          arrived_at?: string | null
+          comment?: string | null
+          created_at?: string
+          destination_warehouse_id?: string | null
+          docs_photo_urls?: Json
+          driver_name?: string | null
+          driver_phone?: string | null
+          expected_at?: string | null
+          id?: string
+          problem_comment?: string | null
+          problem_photo_url?: string | null
+          problem_reason?: string | null
+          receiving_started_at?: string | null
+          shipment_number?: string
+          source_name?: string | null
+          source_type?: string
+          source_warehouse_id?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_plate?: string | null
+          warehouse_comment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbound_shipments_destination_warehouse_id_fkey"
+            columns: ["destination_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "stock_balances"
+            referencedColumns: ["warehouse_id"]
+          },
+          {
+            foreignKeyName: "inbound_shipments_destination_warehouse_id_fkey"
+            columns: ["destination_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inbound_shipments_source_warehouse_id_fkey"
+            columns: ["source_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "stock_balances"
+            referencedColumns: ["warehouse_id"]
+          },
+          {
+            foreignKeyName: "inbound_shipments_source_warehouse_id_fkey"
+            columns: ["source_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -2045,6 +2196,7 @@ export type Database = {
         Returns: number
       }
       generate_delivery_route_number: { Args: never; Returns: string }
+      generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
       notify_low_stock_for_product: {
