@@ -37,6 +37,7 @@ import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
