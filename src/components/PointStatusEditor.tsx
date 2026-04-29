@@ -178,9 +178,39 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
         </Button>
       </div>
 
+      {status === "delivered" && (
+        <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2">
+          <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+            Подтверждение доставки
+          </div>
+          <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
+            {order?.requires_qr && <li>Загрузите фото QR-кода</li>}
+            {order?.payment_type === "cash" && order?.payment_status !== "paid" && (
+              <li>Укажите фактически полученную сумму и подтвердите оплату</li>
+            )}
+            <li>Загрузите фото документов</li>
+          </ul>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">
+              Комментарий {(() => {
+                const due = Number(order?.amount_due ?? 0);
+                const got = Number(initial.dp_amount_received ?? 0);
+                return due > 0 && got > 0 && got !== due ? "(обязателен — есть расхождение по оплате)" : "";
+              })()}
+            </div>
+            <Textarea
+              value={deliveredComment}
+              onChange={(e) => setDeliveredComment(e.target.value)}
+              rows={2}
+              placeholder="Комментарий по доставке / расхождению"
+            />
+          </div>
+        </div>
+      )}
+
       {status === "not_delivered" && (
-        <div className="rounded-md border border-red-500/30 bg-red-500/5 p-3">
-          <div className="mb-1.5 text-xs font-medium text-red-700 dark:text-red-300">
+        <div className="rounded-md border border-red-500/30 bg-red-500/5 p-3 space-y-2">
+          <div className="text-xs font-medium text-red-700 dark:text-red-300">
             Причина недоставки
           </div>
           <Select value={reason} onValueChange={(v) => setReason(v as DeliveryPointUndeliveredReason)}>
@@ -191,6 +221,18 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
               ))}
             </SelectContent>
           </Select>
+          <div className="text-xs text-muted-foreground">
+            Также обязательно: фото проблемы и комментарий.
+          </div>
+          <div>
+            <div className="mb-1 text-xs text-muted-foreground">Комментарий</div>
+            <Textarea
+              value={notDeliveredComment}
+              onChange={(e) => setNotDeliveredComment(e.target.value)}
+              rows={2}
+              placeholder="Что произошло, детали"
+            />
+          </div>
         </div>
       )}
 
