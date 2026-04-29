@@ -48,14 +48,21 @@ export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
     description: "Импорт заказов клиентов",
     sheetName: "Заказы",
     columns: [
-      { key: "order_number", label: "Номер заказа", required: true, example: "ORD-1001" },
-      { key: "delivery_address", label: "Адрес доставки", example: "г. Москва, ул. Ленина, 1" },
-      { key: "contact_name", label: "Имя клиента", example: "Иван Иванов" },
-      { key: "contact_phone", label: "Телефон", example: "+7 999 000 00 00" },
-      { key: "payment_type", label: "Тип оплаты (cash/card/online/qr)", example: "cash" },
-      { key: "delivery_cost", label: "Стоимость доставки, ₽", example: 500 },
-      { key: "goods_amount", label: "Сумма товара, ₽", example: 5000 },
-      { key: "comment", label: "Комментарий" },
+      { key: "order_number", label: "order_number", required: true, example: "ORD-1001" },
+      { key: "customer_name", label: "customer_name", example: "Иван Иванов" },
+      { key: "customer_phone", label: "customer_phone", example: "+7 999 000 00 00" },
+      { key: "delivery_address", label: "delivery_address", example: "г. Москва, ул. Ленина, 1" },
+      { key: "coordinates", label: "coordinates", example: "55.7558,37.6173" },
+      { key: "manager_name", label: "manager_name", example: "Сидоров С. С." },
+      { key: "delivery_date", label: "delivery_date", example: "2026-05-01" },
+      { key: "delivery_time_from", label: "delivery_time_from", example: "09:00" },
+      { key: "delivery_time_to", label: "delivery_time_to", example: "18:00" },
+      { key: "payment_type", label: "payment_type", example: "cash" },
+      { key: "prepaid", label: "prepaid", example: 0 },
+      { key: "amount_to_collect", label: "amount_to_collect", example: 5000 },
+      { key: "requires_qr", label: "requires_qr", example: "no" },
+      { key: "marketplace", label: "marketplace", example: "" },
+      { key: "comment", label: "comment" },
     ],
   },
   products: {
@@ -64,12 +71,15 @@ export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
     description: "Импорт справочника товаров",
     sheetName: "Товары",
     columns: [
-      { key: "name", label: "Наименование", required: true, example: "Шуруп 50мм" },
-      { key: "sku", label: "Артикул (SKU)", example: "SH-050" },
-      { key: "unit", label: "Ед. изм.", example: "шт" },
-      { key: "weight_kg", label: "Вес, кг", example: 0.05 },
-      { key: "volume_m3", label: "Объём, м³", example: 0.0001 },
-      { key: "category", label: "Категория", example: "Крепёж" },
+      { key: "product_name", label: "product_name", required: true, example: "Шуруп 50мм" },
+      { key: "category", label: "category", example: "Крепёж" },
+      { key: "characteristic", label: "characteristic", example: "оцинкованный" },
+      { key: "weight", label: "weight", example: 0.05 },
+      { key: "volume", label: "volume", example: 0.0001 },
+      { key: "length", label: "length", example: 0.05 },
+      { key: "width", label: "width", example: 0.005 },
+      { key: "height", label: "height", example: 0.005 },
+      { key: "comment", label: "comment" },
     ],
   },
   stock: {
@@ -78,10 +88,12 @@ export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
     description: "Импорт начальных остатков на склад",
     sheetName: "Остатки",
     columns: [
-      { key: "product_sku", label: "Артикул товара (SKU)", required: true, example: "SH-050" },
-      { key: "warehouse_name", label: "Название склада", required: true, example: "Главный склад" },
-      { key: "qty", label: "Количество", required: true, example: 100 },
-      { key: "comment", label: "Комментарий" },
+      { key: "warehouse", label: "warehouse", required: true, example: "Главный склад" },
+      { key: "product_name", label: "product_name", required: true, example: "Шуруп 50мм" },
+      { key: "available_quantity", label: "available_quantity", required: true, example: 100 },
+      { key: "reserved_quantity", label: "reserved_quantity", example: 0 },
+      { key: "in_transit_quantity", label: "in_transit_quantity", example: 0 },
+      { key: "min_stock_level", label: "min_stock_level", example: 10 },
     ],
   },
   routes: {
@@ -90,10 +102,19 @@ export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
     description: "Импорт плановых маршрутов",
     sheetName: "Маршруты",
     columns: [
-      { key: "route_number", label: "Номер маршрута", required: true, example: "R-2026-001" },
-      { key: "route_date", label: "Дата маршрута (YYYY-MM-DD)", required: true, example: "2026-05-01" },
-      { key: "driver_name", label: "ФИО водителя", example: "Петров П. П." },
-      { key: "comment", label: "Комментарий" },
+      { key: "route_number", label: "route_number", required: true, example: "R-2026-001" },
+      { key: "driver_name", label: "driver_name", example: "Петров П. П." },
+      { key: "vehicle_number", label: "vehicle_number", example: "А123БВ77" },
+      { key: "order_number", label: "order_number", example: "ORD-1001" },
+      { key: "point_number", label: "point_number", example: 1 },
+      { key: "customer_name", label: "customer_name", example: "Иван Иванов" },
+      { key: "phone", label: "phone", example: "+7 999 000 00 00" },
+      { key: "address", label: "address", example: "г. Москва, ул. Ленина, 1" },
+      { key: "coordinates", label: "coordinates", example: "55.7558,37.6173" },
+      { key: "amount_to_collect", label: "amount_to_collect", example: 5000 },
+      { key: "requires_qr", label: "requires_qr", example: "no" },
+      { key: "prepaid", label: "prepaid", example: 0 },
+      { key: "comment", label: "comment" },
     ],
   },
   transport_requests: {
@@ -102,12 +123,17 @@ export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
     description: "Импорт заявок на транспорт",
     sheetName: "Заявки на транспорт",
     columns: [
-      { key: "route_number", label: "Номер заявки", required: true, example: "TR-001" },
-      { key: "route_date", label: "Дата (YYYY-MM-DD)", required: true, example: "2026-05-01" },
-      { key: "request_type", label: "Тип (client_delivery/inter_warehouse/pickup)", example: "client_delivery" },
-      { key: "required_capacity_kg", label: "Грузоподъёмность, кг", example: 1500 },
-      { key: "required_volume_m3", label: "Объём, м³", example: 12 },
-      { key: "transport_comment", label: "Комментарий" },
+      { key: "request_number", label: "request_number", required: true, example: "TR-001" },
+      { key: "request_type", label: "request_type", example: "client_delivery" },
+      { key: "warehouse_from", label: "warehouse_from", example: "Главный склад" },
+      { key: "warehouse_to", label: "warehouse_to", example: "Филиал №2" },
+      { key: "planned_date", label: "planned_date", required: true, example: "2026-05-01" },
+      { key: "planned_time", label: "planned_time", example: "09:00" },
+      { key: "order_number", label: "order_number", example: "ORD-1001" },
+      { key: "product_name", label: "product_name", example: "Шуруп 50мм" },
+      { key: "quantity", label: "quantity", example: 100 },
+      { key: "weight", label: "weight", example: 5 },
+      { key: "volume", label: "volume", example: 0.01 },
     ],
   },
 };
@@ -220,11 +246,18 @@ export async function importParsed(
       const payload: Record<string, unknown> = {
         order_number: str(d.order_number),
         delivery_address: str(d.delivery_address),
-        contact_name: str(d.contact_name),
-        contact_phone: str(d.contact_phone),
+        contact_name: str(d.customer_name),
+        contact_phone: str(d.customer_phone),
+        manager_name: str(d.manager_name),
+        delivery_date: str(d.delivery_date),
+        delivery_time_from: str(d.delivery_time_from),
+        delivery_time_to: str(d.delivery_time_to),
+        coordinates: str(d.coordinates),
         payment_type: str(d.payment_type) ?? "cash",
-        delivery_cost: num(d.delivery_cost) ?? 0,
-        goods_amount: num(d.goods_amount),
+        prepaid: num(d.prepaid) ?? 0,
+        amount_to_collect: num(d.amount_to_collect),
+        requires_qr: ["yes", "true", "1", "да"].includes(String(d.requires_qr ?? "").toLowerCase()),
+        marketplace: str(d.marketplace),
         comment: str(d.comment),
         source,
       };
@@ -236,12 +269,15 @@ export async function importParsed(
     for (const r of valid) {
       const d = r.data;
       const payload = {
-        name: str(d.name)!,
-        sku: str(d.sku),
-        unit: str(d.unit),
-        weight_kg: num(d.weight_kg),
-        volume_m3: num(d.volume_m3),
+        name: str(d.product_name)!,
         category: str(d.category),
+        characteristic: str(d.characteristic),
+        weight_kg: num(d.weight),
+        volume_m3: num(d.volume),
+        length_m: num(d.length),
+        width_m: num(d.width),
+        height_m: num(d.height),
+        comment: str(d.comment),
         source,
       };
       const { error } = await supabase.from("products").insert(payload as never);
@@ -249,21 +285,20 @@ export async function importParsed(
       else inserted++;
     }
   } else if (entity === "stock") {
-    // resolve sku -> product_id, warehouse_name -> warehouse_id
-    const skus = Array.from(new Set(valid.map((r) => str(r.data.product_sku)).filter(Boolean) as string[]));
-    const whNames = Array.from(new Set(valid.map((r) => str(r.data.warehouse_name)).filter(Boolean) as string[]));
-    const { data: products } = await supabase.from("products").select("id, sku").in("sku", skus);
+    const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
+    const whNames = Array.from(new Set(valid.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
+    const { data: products } = await supabase.from("products").select("id, name").in("name", names);
     const { data: whs } = await supabase.from("warehouses").select("id, name").in("name", whNames);
-    const skuMap = new Map((products ?? []).map((p) => [p.sku, p.id]));
+    const prodMap = new Map((products ?? []).map((p) => [p.name, p.id]));
     const whMap = new Map((whs ?? []).map((w) => [w.name, w.id]));
     for (const r of valid) {
-      const sku = str(r.data.product_sku)!;
-      const whName = str(r.data.warehouse_name)!;
-      const qty = num(r.data.qty);
-      const productId = skuMap.get(sku);
+      const name = str(r.data.product_name)!;
+      const whName = str(r.data.warehouse)!;
+      const qty = num(r.data.available_quantity);
+      const productId = prodMap.get(name);
       const warehouseId = whMap.get(whName);
       if (!productId) {
-        failed.push({ row: r.rowNumber, message: `Товар с SKU "${sku}" не найден` });
+        failed.push({ row: r.rowNumber, message: `Товар "${name}" не найден` });
         continue;
       }
       if (!warehouseId) {
@@ -280,7 +315,6 @@ export async function importParsed(
         movement_type: "inbound",
         qty,
         reason: "excel_import",
-        comment: str(r.data.comment),
         source,
       } as never);
       if (error) failed.push({ row: r.rowNumber, message: error.message });
@@ -291,8 +325,8 @@ export async function importParsed(
       const d = r.data;
       const payload = {
         route_number: str(d.route_number)!,
-        route_date: str(d.route_date)!,
         driver_name: str(d.driver_name),
+        vehicle_number: str(d.vehicle_number),
         comment: str(d.comment),
         source,
       };
@@ -304,12 +338,10 @@ export async function importParsed(
     for (const r of valid) {
       const d = r.data;
       const payload = {
-        route_number: str(d.route_number)!,
-        route_date: str(d.route_date)!,
+        route_number: str(d.request_number)!,
+        route_date: str(d.planned_date)!,
         request_type: (str(d.request_type) ?? "client_delivery") as never,
-        required_capacity_kg: num(d.required_capacity_kg),
-        required_volume_m3: num(d.required_volume_m3),
-        transport_comment: str(d.transport_comment),
+        transport_comment: `${str(d.warehouse_from) ?? ""} → ${str(d.warehouse_to) ?? ""} ${str(d.planned_time) ?? ""}`.trim(),
         source,
       };
       const { error } = await supabase.from("routes").insert(payload as never);
