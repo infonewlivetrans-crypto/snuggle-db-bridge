@@ -351,6 +351,37 @@ function DeliveryRoutePage() {
             {/* Геопозиция водителя */}
             <DriverGeoBlock deliveryRouteId={deliveryRouteId} />
 
+            {/* Карта маршрута с позицией водителя */}
+            {(points ?? []).length > 0 && (
+              <RouteMapBlock
+                points={(points ?? []).map((p) => ({
+                  id: p.id,
+                  point_number: p.point_number,
+                  status: (p.dp_status === "delivered"
+                    ? "completed"
+                    : p.dp_status === "not_delivered" || p.dp_status === "returned_to_warehouse"
+                      ? "failed"
+                      : "pending") as "pending" | "completed" | "failed",
+                  order: {
+                    order_number: p.order?.order_number ?? "",
+                    contact_name: p.order?.contact_name ?? null,
+                    delivery_address: p.order?.delivery_address ?? null,
+                    latitude: p.order?.latitude ?? null,
+                    longitude: p.order?.longitude ?? null,
+                  },
+                }))}
+                driverLocation={
+                  driverGeo?.last_driver_lat != null && driverGeo?.last_driver_lng != null
+                    ? {
+                        latitude: driverGeo.last_driver_lat,
+                        longitude: driverGeo.last_driver_lng,
+                        capturedAt: driverGeo.last_driver_location_at,
+                      }
+                    : null
+                }
+              />
+            )}
+
             {/* Исполнение маршрута: водитель + транспорт */}
             <RouteExecutionBlock
               deliveryRouteId={data.id}
