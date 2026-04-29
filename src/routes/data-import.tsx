@@ -10,18 +10,28 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Download, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, Info, Upload, History } from "lucide-react";
+import { Download, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, Info, Upload, History, Save, Wand2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   SCHEMAS,
+  MANDATORY_FIELDS,
   downloadTemplate,
   parseFile,
   importParsed,
+  readFilePreview,
+  validateMapping,
+  findMappingTemplate,
+  saveMappingTemplate,
+  listMappingTemplates,
+  deleteMappingTemplate,
   type ImportEntity,
   type ImportSource,
   type ParseResult,
   type ImportResult as DataImportResult,
   type DuplicateAction,
+  type ColumnMapping,
+  type FilePreview,
+  type MappingTemplate,
 } from "@/lib/data-excel-import";
 
 export const Route = createFileRoute("/data-import")({
@@ -89,31 +99,42 @@ function DataImportPage() {
 
 function ImportPanel({ entity }: { entity: ImportEntity }) {
   const schema = SCHEMAS[entity];
+  const requiredKeys = MANDATORY_FIELDS[entity] ?? [];
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<ImportSource>("excel");
   const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>("skip");
+  const [preview, setPreview] = useState<FilePreview | null>(null);
+  const [mapping, setMapping] = useState<ColumnMapping>({});
+  const [savedTemplate, setSavedTemplate] = useState<MappingTemplate | null>(null);
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<DataImportResult | null>(null);
 
   const previewRows = useMemo(() => parsed?.rows.slice(0, 10) ?? [], [parsed]);
+  const mappingValidation = useMemo(() => validateMapping(entity, mapping), [entity, mapping]);
 
   const handleFile = async (f: File | null) => {
     setFile(f);
+    setPreview(null);
+    setMapping({});
+    setSavedTemplate(null);
     setParsed(null);
     setResult(null);
     if (!f) return;
     setParsing(true);
     try {
-      const r = await parseFile(f, entity);
-      setParsed(r);
-      if (r.missingColumns.length > 0) {
-        toast.error(`Не хватает обязательных колонок: ${r.missingColumns.join(", ")}`);
-      } else if (r.totalRows === 0) {
-        toast.warning("Файл пуст");
+      const p = await readFilePreview(f, entity);
+      setPreview(p);
+      // Ищем сохранённый шаблон сопоставления
+      const tpl = findMappingTemplate(entity, p.headers);
+      if (tpl) {
+        setSavedTemplate(tpl);
+        setMapping(tpl.mapping);
+        toast.success("Найден сохранённый шаблон сопоставления — применён автоматически");
       } else {
-        toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
+        setMapping(p.suggestedMapping);
+        toast.success(`Файл прочитан: ${p.headers.length} колонок, ${p.totalRows} строк. Проверьте сопоставление.`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
@@ -122,12 +143,45 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     }
   };
 
-  const handleImport = async () => {
-    if (!parsed) return;
-    if (parsed.missingColumns.length > 0) {
-      toast.error("Сначала исправьте обязательные колонки");
+  const handleConfirmMapping = async () => {
+    if (!file || !preview) return;
+    if (!mappingValidation.ok) {
+      toast.error(`Сопоставьте обязательные поля: ${mappingValidation.missingRequired.join(", ")}`);
       return;
     }
+    setParsing(true);
+    setParsed(null);
+    setResult(null);
+    try {
+      const r = await parseFile(file, entity, mapping);
+      setParsed(r);
+      if (r.totalRows === 0) toast.warning("Нет данных для импорта");
+      else toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка обработки");
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const handleSaveTemplate = () => {
+    if (!preview) return;
+    if (!mappingValidation.ok) {
+      toast.error("Сначала сопоставьте обязательные поля");
+      return;
+    }
+    const tpl = saveMappingTemplate(entity, preview.headers, mapping);
+    setSavedTemplate(tpl);
+    toast.success("Шаблон сопоставления сохранён");
+  };
+
+  const handleSetMapping = (key: string, idx: number | null) => {
+    setMapping((m) => ({ ...m, [key]: idx }));
+    setParsed(null);
+  };
+
+  const handleImport = async () => {
+    if (!parsed) return;
     if (parsed.validRows === 0) {
       toast.error("Нет валидных строк для импорта");
       return;
@@ -196,18 +250,23 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
               </p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={handleImport}
-              disabled={!parsed || importing || parsing || (parsed?.validRows ?? 0) === 0 || (parsed?.missingColumns.length ?? 0) > 0}
+              disabled={!parsed || importing || parsing || (parsed?.validRows ?? 0) === 0}
               className="gap-2"
             >
               {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               Импортировать
             </Button>
+            {!parsed && preview && (
+              <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                Сначала подтвердите сопоставление колонок ниже.
+              </span>
+            )}
             {parsing && (
               <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Чтение файла…
+                <Loader2 className="h-4 w-4 animate-spin" /> Обработка…
               </span>
             )}
           </div>
@@ -248,6 +307,97 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
           </Table>
         </CardContent>
       </Card>
+
+      {preview && (
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wand2 className="h-5 w-5 text-muted-foreground" />
+              Сопоставление колонок
+            </CardTitle>
+            <CardDescription>
+              Укажите, какая колонка файла соответствует каждому полю системы. Обязательные поля помечены ⭑.
+              {savedTemplate && <> Применён сохранённый шаблон от {new Date(savedTemplate.savedAt).toLocaleString("ru-RU")}.</>}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!mappingValidation.ok && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Не сопоставлены обязательные поля: <b>{mappingValidation.missingRequired.join(", ")}</b>
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="overflow-auto rounded-md border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-1/3">Поле системы</TableHead>
+                    <TableHead className="w-1/3">Колонка файла</TableHead>
+                    <TableHead>Образец из файла</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {schema.columns.map((c) => {
+                    const isRequired = requiredKeys.includes(c.key);
+                    const isAddrCoord = entity === "orders" && (c.key === "delivery_address" || c.key === "coordinates");
+                    const idx = mapping[c.key];
+                    const sample = (idx != null && idx >= 0)
+                      ? preview.sampleRows.map((r) => r[idx]).filter((v) => v !== "" && v != null).slice(0, 2)
+                      : [];
+                    return (
+                      <TableRow key={c.key}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs">{c.key}</span>
+                            {isRequired && <span className="text-xs font-bold text-destructive">⭑</span>}
+                            {isAddrCoord && <span className="text-[10px] text-amber-600">адрес или координаты</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{c.label}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={idx == null || idx < 0 ? "__none__" : String(idx)}
+                            onValueChange={(v) => handleSetMapping(c.key, v === "__none__" ? null : Number(v))}
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="— не сопоставлено —" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">— не сопоставлено —</SelectItem>
+                              {preview.headers.map((h, i) => (
+                                <SelectItem key={i} value={String(i)}>{h || `(колонка ${i + 1})`}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {sample.length > 0 ? sample.map(String).join(" · ") : <span className="opacity-50">—</span>}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleConfirmMapping} disabled={parsing || !mappingValidation.ok} className="gap-2">
+                {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                Применить сопоставление и проверить данные
+              </Button>
+              <Button onClick={handleSaveTemplate} variant="outline" disabled={!mappingValidation.ok} className="gap-2">
+                <Save className="h-4 w-4" />
+                Сохранить шаблон сопоставления
+              </Button>
+              <SavedTemplatesMenu
+                entity={entity}
+                onApply={(t) => { setMapping(t.mapping); setSavedTemplate(t); setParsed(null); toast.success("Шаблон применён"); }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {parsed && (
         <Card className="lg:col-span-2">
@@ -392,6 +542,43 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function SavedTemplatesMenu({ entity, onApply }: { entity: ImportEntity; onApply: (t: MappingTemplate) => void }) {
+  const [tick, setTick] = useState(0);
+  const templates = useMemo(() => listMappingTemplates(entity), [entity, tick]);
+  if (templates.length === 0) return null;
+  return (
+    <div className="flex items-center gap-2">
+      <Select onValueChange={(v) => {
+        const t = templates.find((x) => x.signature === v);
+        if (t) onApply(t);
+      }}>
+        <SelectTrigger className="h-9 w-[260px]">
+          <SelectValue placeholder={`Сохранённые шаблоны (${templates.length})`} />
+        </SelectTrigger>
+        <SelectContent>
+          {templates.map((t) => (
+            <SelectItem key={t.signature} value={t.signature}>
+              {t.name ?? t.signature.slice(0, 30)} · {new Date(t.savedAt).toLocaleDateString("ru-RU")}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Удалить все шаблоны для этого типа"
+        onClick={() => {
+          templates.forEach((t) => deleteMappingTemplate(entity, t.signature));
+          setTick((x) => x + 1);
+          toast.success("Шаблоны удалены");
+        }}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
