@@ -360,15 +360,28 @@ export function RouteCostBlock({
         </div>
       )}
 
-      <div className="mt-3">
-        <Label className="text-xs">Комментарий к изменению</Label>
-        <Textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Например: согласовано с руководителем"
-          rows={2}
-          className="resize-none"
-        />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {method === "manual" && (
+          <div>
+            <Label className="text-xs">Причина ручного изменения</Label>
+            <Input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Например: тариф не подходит, особый случай"
+              className="h-9"
+            />
+          </div>
+        )}
+        <div className={method === "manual" ? "" : "sm:col-span-2"}>
+          <Label className="text-xs">Комментарий к изменению</Label>
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Например: согласовано с руководителем"
+            rows={2}
+            className="resize-none"
+          />
+        </div>
       </div>
 
       <div className="mt-3 flex justify-end">
