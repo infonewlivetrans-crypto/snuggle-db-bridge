@@ -783,6 +783,50 @@ function RouteDetailPage() {
                           </span>
                         )}
                       </div>
+                      {(() => {
+                        const hasCoords =
+                          typeof p.orders.latitude === "number" &&
+                          typeof p.orders.longitude === "number";
+                        const eta = p.eta_at ? new Date(p.eta_at) : null;
+                        const svc =
+                          p.service_minutes ??
+                          Number(
+                            (route as unknown as { default_service_minutes?: number })
+                              .default_service_minutes ?? 20,
+                          );
+                        const finish = eta
+                          ? new Date(eta.getTime() + svc * 60_000)
+                          : null;
+                        const fmt = (d: Date | null) =>
+                          d
+                            ? d.toLocaleTimeString("ru-RU", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "—";
+                        return (
+                          <div className="mt-2 grid grid-cols-1 gap-1.5 rounded-md border border-border bg-secondary/30 p-2 text-xs sm:grid-cols-3">
+                            <div>
+                              <span className="text-muted-foreground">Прибытие: </span>
+                              <span className="font-semibold text-foreground">{fmt(eta)}</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Разгрузка: </span>
+                              <span className="font-semibold text-foreground">{svc} мин</span>
+                            </div>
+                            <div>
+                              <span className="text-muted-foreground">Завершение: </span>
+                              <span className="font-semibold text-foreground">{fmt(finish)}</span>
+                            </div>
+                            {!hasCoords && (
+                              <div className="rt-alert rt-alert-warning sm:col-span-3">
+                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span>Невозможно точно рассчитать время — нет координат</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <EtaPanel point={p} />
                     </div>
 
