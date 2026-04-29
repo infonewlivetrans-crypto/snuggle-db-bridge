@@ -57,6 +57,9 @@ type RouteRow = {
   total_distance_km?: number | null;
   points_count?: number | null;
   manual_cost?: boolean | null;
+  manual_orders_amount?: number | null;
+  delivery_percent_target?: number | null;
+  orders_amount?: number;
 };
 
 const COST_METHOD_LABELS: Record<string, string> = {
@@ -71,7 +74,7 @@ type PointRow = {
   dp_status: string;
   dp_undelivered_reason: string | null;
   dp_amount_received: number | null;
-  order: { amount_due: number | null; payment_type: string | null } | null;
+  order: { amount_due: number | null; payment_type: string | null; goods_amount: number | null } | null;
 };
 
 type Totals = {
