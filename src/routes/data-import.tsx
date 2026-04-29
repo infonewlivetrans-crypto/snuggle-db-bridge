@@ -338,7 +338,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
                   Не загружены строки
                 </div>
                 <ul className="max-h-64 space-y-1 overflow-auto p-3 text-sm">
-                  {result.failedRows.map((e, i) => (
+                  {result.failedRows.map((e: { row: number; message: string }, i: number) => (
                     <li key={i} className="flex gap-2">
                       <span className="font-mono text-xs text-muted-foreground">стр. {e.row}</span>
                       <span>{e.message}</span>
