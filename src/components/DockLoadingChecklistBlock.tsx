@@ -296,6 +296,9 @@ export function DockLoadingChecklistBlock({
       qc.invalidateQueries({ queryKey: ["dock-loaded", deliveryRouteId] });
       qc.invalidateQueries({ queryKey: ["dock-load-stock"] });
       qc.invalidateQueries({ queryKey: ["stock-balances"] });
+      qc.invalidateQueries({ queryKey: ["request-wh-status"] });
+      qc.invalidateQueries({ queryKey: ["stock-check-bal"] });
+      qc.invalidateQueries({ queryKey: ["stock-check-own-reserv"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
