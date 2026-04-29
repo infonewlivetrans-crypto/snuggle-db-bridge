@@ -200,6 +200,27 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
           </div>
         ))}
       </div>
+
+      {/* История действий водителя */}
+      <div className="mt-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          История действий водителя
+        </div>
+        <div className="space-y-3">
+          {p.orders.map((o) => (
+            <div key={`hist-${o.order_id}`}>
+              <div className="mb-1 text-xs font-medium">
+                №{o.order_number} · {o.contact_name ?? "—"}
+              </div>
+              <PointActionsHistory
+                orderId={o.order_id}
+                title="Действия по точке"
+                maxHeight="max-h-56"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
