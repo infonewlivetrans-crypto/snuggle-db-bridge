@@ -339,14 +339,29 @@ function WarehouseStockPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setEditing(b)}
-                            aria-label="Редактировать"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditing(b)}
+                              aria-label="Редактировать"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              aria-label="История движения"
+                            >
+                              <Link
+                                to="/warehouse-movements"
+                                search={{ productId: b.product_id }}
+                              >
+                                <History className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
