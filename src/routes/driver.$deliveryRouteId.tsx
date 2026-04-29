@@ -391,15 +391,19 @@ function DriverPointCard({
 }) {
   const o = p.order;
 
-  // Лог: водитель открыл карточку точки
+  // Лог: водитель открыл карточку точки (с GPS)
   useEffect(() => {
-    logPointAction({
-      routePointId: p.id,
-      orderId: p.order_id,
-      routeId,
-      action: "point_opened",
-      actor: driverName ?? "Водитель",
-    });
+    (async () => {
+      const gps = await getCurrentCoords();
+      logPointAction({
+        routePointId: p.id,
+        orderId: p.order_id,
+        routeId,
+        action: "point_opened",
+        actor: driverName ?? "Водитель",
+        details: gps ? { gps } : { gps_unavailable: true },
+      });
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
 
