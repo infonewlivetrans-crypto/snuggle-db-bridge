@@ -260,12 +260,59 @@ export function RouteCostBlock({
         </div>
       )}
 
+      <div className="mt-3">
+        <Label className="text-xs">Комментарий к изменению</Label>
+        <Textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Например: согласовано с руководителем"
+          rows={2}
+          className="resize-none"
+        />
+      </div>
+
       <div className="mt-3 flex justify-end">
         <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
           <Save className="h-3.5 w-3.5" />
           Сохранить
         </Button>
       </div>
+
+      {history.length > 0 && (
+        <div className="mt-4 rounded-md border border-border bg-muted/30 p-3">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+            <History className="h-3.5 w-3.5" />
+            История изменения стоимости
+          </div>
+          <div className="space-y-1.5">
+            {history.map((h) => (
+              <div key={h.id} className="rounded border border-border bg-card px-2 py-1.5 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">
+                    {fmtMoney(Number(h.old_cost) || 0)} ₽ → {fmtMoney(Number(h.new_cost) || 0)} ₽
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(h.created_at).toLocaleString("ru-RU")}
+                  </span>
+                </div>
+                <div className="mt-0.5 text-muted-foreground">
+                  {h.changed_by ?? "—"}
+                  {h.old_method && h.new_method && h.old_method !== h.new_method && (
+                    <>
+                      {" · "}
+                      {METHOD_LABEL[h.old_method as CostMethod] ?? h.old_method} →{" "}
+                      {METHOD_LABEL[h.new_method as CostMethod] ?? h.new_method}
+                    </>
+                  )}
+                </div>
+                {h.comment && (
+                  <div className="mt-0.5 italic text-foreground">{h.comment}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
