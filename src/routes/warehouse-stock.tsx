@@ -380,6 +380,7 @@ function WarehouseStockPage() {
           onSaved={() => {
             setEditing(null);
             qc.invalidateQueries({ queryKey: ["stock-balances"] });
+            qc.invalidateQueries({ queryKey: ["stock-movements"] });
           }}
         />
       )}
@@ -392,6 +393,7 @@ function WarehouseStockPage() {
             setCreating(false);
             qc.invalidateQueries({ queryKey: ["products-with-category"] });
             qc.invalidateQueries({ queryKey: ["stock-balances"] });
+            qc.invalidateQueries({ queryKey: ["stock-movements"] });
           }}
         />
       )}
