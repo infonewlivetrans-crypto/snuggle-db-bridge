@@ -100,7 +100,13 @@ function DeliveryRoutesPage() {
               Маршруты доставки, созданные на основе заявок на транспорт
             </p>
           </div>
+          <Button onClick={() => setImportOpen(true)} className="gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Импорт маршрута Excel
+          </Button>
         </div>
+
+        <ImportRouteDialog open={importOpen} onOpenChange={setImportOpen} />
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="relative max-w-sm flex-1">
