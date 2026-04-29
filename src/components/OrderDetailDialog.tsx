@@ -230,6 +230,12 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           {/* Возврат на склад */}
           <OrderReturnBlock order={order} />
 
+          {/* Результат доставки от водителя (статус, оплата, фото, комментарий) */}
+          <OrderDeliveryResultBlock
+            orderId={order.id}
+            requiresQr={order.requires_qr}
+            amountDue={order.amount_due ?? null}
+          />
           {/* Адрес и навигация */}
           <DeliveryLocation order={order} />
 
