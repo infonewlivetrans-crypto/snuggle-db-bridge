@@ -310,6 +310,7 @@ function OrdersPage() {
                         <span className="text-xs text-muted-foreground">Вручную</span>
                       )}
                     </TableCell>
+                    <TableCell>
                       <Badge variant="outline" className={STATUS_STYLES[order.status]}>
                         {STATUS_LABELS[order.status]}
                       </Badge>
