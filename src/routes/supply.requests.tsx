@@ -47,6 +47,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { notifySupplyRequestCreated } from "@/lib/supplyNotifications";
 
 export const Route = createFileRoute("/supply/requests")({
   head: () => ({
