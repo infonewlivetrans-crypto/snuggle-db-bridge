@@ -466,8 +466,8 @@ export async function importParsed(
       };
       await handleRow(
         r,
-        () => supabase.from("orders").insert(payload as never),
-        (id) => supabase.from("orders").update(payload as never).eq("id", id),
+        async () => await supabase.from("orders").insert(payload as never),
+        async (id) => await supabase.from("orders").update(payload as never).eq("id", id),
       );
     }
   } else if (entity === "products") {
