@@ -14,8 +14,19 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon } from "lucide-react";
+import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2 } from "lucide-react";
+
+const CARGO_POSITIONS: { value: string; label: string }[] = [
+  { value: "side", label: "У борта" },
+  { value: "top", label: "Сверху" },
+  { value: "bottom", label: "Снизу" },
+  { value: "deep", label: "В глубине кузова" },
+  { value: "left", label: "Слева" },
+  { value: "right", label: "Справа" },
+  { value: "return_trip", label: "На обратный путь" },
+];
 
 export const Route = createFileRoute("/warehouse-today")({
   head: () => ({
