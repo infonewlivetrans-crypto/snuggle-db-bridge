@@ -23,6 +23,8 @@ import {
 import { Search, Route as RouteIcon, AlertTriangle, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ImportRouteDialog } from "@/components/ImportRouteDialog";
+import { CreateManualDeliveryRouteDialog } from "@/components/CreateManualDeliveryRouteDialog";
+import { Plus } from "lucide-react";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_ORDER,
@@ -57,6 +59,7 @@ function DeliveryRoutesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<DeliveryRouteStatus | "all">("all");
   const [importOpen, setImportOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["delivery-routes"],
@@ -101,13 +104,17 @@ function DeliveryRoutesPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button onClick={() => setManualOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Создать маршрут вручную
+            </Button>
             <Button asChild variant="outline" className="gap-2">
               <Link to="/route-import-template">
                 <FileSpreadsheet className="h-4 w-4" />
                 Шаблон импорта маршрута
               </Link>
             </Button>
-            <Button onClick={() => setImportOpen(true)} className="gap-2">
+            <Button onClick={() => setImportOpen(true)} variant="outline" className="gap-2">
               <FileSpreadsheet className="h-4 w-4" />
               Импорт маршрута Excel
             </Button>
@@ -115,6 +122,7 @@ function DeliveryRoutesPage() {
         </div>
 
         <ImportRouteDialog open={importOpen} onOpenChange={setImportOpen} />
+        <CreateManualDeliveryRouteDialog open={manualOpen} onOpenChange={setManualOpen} />
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="relative max-w-sm flex-1">

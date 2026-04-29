@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck } from "lucide-react";
+import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
+import { AddManualPointDialog } from "@/components/AddManualPointDialog";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
@@ -154,6 +155,31 @@ function DeliveryRoutePage() {
 
   const [status, setStatus] = useState<DeliveryRouteStatus>("formed");
   const [comment, setComment] = useState("");
+  const [addPointOpen, setAddPointOpen] = useState(false);
+
+  const reorder = useMutation({
+    mutationFn: async ({ pointId, direction }: { pointId: string; direction: "up" | "down" }) => {
+      const list = points ?? [];
+      const idx = list.findIndex((p) => p.id === pointId);
+      if (idx === -1) return;
+      const swapWith = direction === "up" ? idx - 1 : idx + 1;
+      if (swapWith < 0 || swapWith >= list.length) return;
+      const a = list[idx];
+      const b = list[swapWith];
+      // Двухходовая замена через временное значение, чтобы обойти UNIQUE(route_id, point_number) при наличии
+      const tmp = -Math.abs(a.point_number) - 1;
+      const tx1 = await supabase.from("route_points").update({ point_number: tmp }).eq("id", a.id);
+      if (tx1.error) throw tx1.error;
+      const tx2 = await supabase.from("route_points").update({ point_number: a.point_number }).eq("id", b.id);
+      if (tx2.error) throw tx2.error;
+      const tx3 = await supabase.from("route_points").update({ point_number: b.point_number }).eq("id", a.id);
+      if (tx3.error) throw tx3.error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   useEffect(() => {
     if (data) {
@@ -499,20 +525,36 @@ function DeliveryRoutePage() {
 
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
-              <div className="border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <h2 className="flex items-center gap-2 text-sm font-semibold">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   Точки маршрута
                   <span className="text-muted-foreground">({points?.length ?? 0})</span>
                 </h2>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => setAddPointOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Добавить точку
+                </Button>
               </div>
+              <AddManualPointDialog
+                open={addPointOpen}
+                onOpenChange={setAddPointOpen}
+                sourceRequestId={data.source_request_id}
+                deliveryRouteId={data.id}
+                currentPointsCount={points?.length ?? 0}
+              />
               <div className="divide-y divide-border">
                 {(points ?? []).length === 0 ? (
                   <div className="px-4 py-6 text-center text-muted-foreground">
-                    В заявке нет точек доставки
+                    В маршруте пока нет точек. Нажмите «Добавить точку».
                   </div>
                 ) : (
-                  (points ?? []).map((p) => (
+                  (points ?? []).map((p, idx, arr) => (
                     <div key={p.id} className="space-y-3 px-4 py-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
@@ -537,6 +579,28 @@ function DeliveryRoutePage() {
                             )}
                             {p.order?.comment && <span>{p.order.comment}</span>}
                           </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-7 w-7"
+                            disabled={idx === 0 || reorder.isPending}
+                            onClick={() => reorder.mutate({ pointId: p.id, direction: "up" })}
+                            title="Переместить выше"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-7 w-7"
+                            disabled={idx === arr.length - 1 || reorder.isPending}
+                            onClick={() => reorder.mutate({ pointId: p.id, direction: "down" })}
+                            title="Переместить ниже"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                       {p.order && (
