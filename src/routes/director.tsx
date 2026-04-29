@@ -188,7 +188,7 @@ function DirectorPage() {
       const { data, error } = await supabase
         .from("route_points")
         .select(
-          "route_id, dp_status, dp_undelivered_reason, dp_amount_received, order:orders(amount_due, payment_type)"
+          "route_id, dp_status, dp_undelivered_reason, dp_amount_received, order:orders(amount_due, payment_type, goods_amount)"
         )
         .in("route_id", routeIds);
       if (error) throw error;
