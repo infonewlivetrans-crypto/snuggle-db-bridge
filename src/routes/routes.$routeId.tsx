@@ -445,6 +445,22 @@ function RouteDetailPage() {
                       <Badge variant="outline" className={POINT_STATUS_STYLES[p.status]}>
                         {POINT_STATUS_LABELS[p.status]}
                       </Badge>
+                      {typeof p.orders.latitude === "number" &&
+                      typeof p.orders.longitude === "number" ? (
+                        <Badge
+                          variant="outline"
+                          className="border-green-200 bg-green-100 text-green-900"
+                        >
+                          Есть координаты
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-100 text-amber-900"
+                        >
+                          Нет координат
+                        </Badge>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         {PAYMENT_LABELS[p.orders.payment_type]}
                       </span>
@@ -494,7 +510,7 @@ function RouteDetailPage() {
                       )}
                     </div>
                     <div className="mt-2">
-                      <DeliveryLocation order={p.orders} compact />
+                      <DeliveryLocation order={p.orders} />
                     </div>
                     {p.orders.comment && (
                       <div className="mt-1 text-xs text-muted-foreground">{p.orders.comment}</div>
