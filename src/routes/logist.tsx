@@ -465,16 +465,12 @@ function ProblemDialog({
   const save = useMutation({
     mutationFn: async () => {
       if (!problem) return;
-      const patch: Record<string, unknown> = {
+      const patch = {
         resolution_status: status,
         logist_comment: comment.trim() || null,
+        resolved_by: status === "resolved" ? "Логист" : null,
+        resolved_at: status === "resolved" ? new Date().toISOString() : null,
       };
-      if (status === "resolved") {
-        patch.resolved_by = "Логист";
-        patch.resolved_at = new Date().toISOString();
-      } else {
-        patch.resolved_at = null;
-      }
       const { error } = await supabase
         .from("order_problem_reports")
         .update(patch)
