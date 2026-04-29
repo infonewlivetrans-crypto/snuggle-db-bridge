@@ -213,6 +213,9 @@ export function RouteCostBlock({
         manual_cost: method === "manual",
         applied_tariff_id: tariffId || null,
         manual_cost_reason: method === "manual" ? (reason.trim() || null) : null,
+        manual_orders_amount:
+          manualOrders.trim() === "" ? null : Number(manualOrders) || 0,
+        delivery_percent_target: Number(percentTarget) || 0,
       };
       const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
       if (error) throw error;
