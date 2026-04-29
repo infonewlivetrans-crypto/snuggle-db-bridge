@@ -47,6 +47,7 @@ import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
+import { Route as DataImportHistoryRouteImport } from './routes/data-import.history'
 import { Route as DTokenRouteImport } from './routes/d.$token'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
@@ -245,6 +246,11 @@ const DeliveryRoutesDeliveryRouteIdRoute =
     path: '/delivery-routes/$deliveryRouteId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const DataImportHistoryRoute = DataImportHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => DataImportRoute,
+} as any)
 const DTokenRoute = DTokenRouteImport.update({
   id: '/d/$token',
   path: '/d/$token',
@@ -273,7 +279,7 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/data-import': typeof DataImportRoute
+  '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
@@ -297,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
+  '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
@@ -318,7 +325,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/data-import': typeof DataImportRoute
+  '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
@@ -342,6 +349,7 @@ export interface FileRoutesByTo {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
+  '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
@@ -364,7 +372,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/data-import': typeof DataImportRoute
+  '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
@@ -388,6 +396,7 @@ export interface FileRoutesById {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
+  '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
@@ -435,6 +444,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
+    | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/routes/$routeId'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
+    | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/routes/$routeId'
@@ -525,6 +536,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
+    | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/routes/$routeId'
@@ -547,7 +559,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DataImportRoute: typeof DataImportRoute
+  DataImportRoute: typeof DataImportRouteWithChildren
   DirectorRoute: typeof DirectorRoute
   FirstRunRoute: typeof FirstRunRoute
   LogistRoute: typeof LogistRoute
@@ -859,6 +871,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DeliveryRoutesDeliveryRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data-import/history': {
+      id: '/data-import/history'
+      path: '/history'
+      fullPath: '/data-import/history'
+      preLoaderRoute: typeof DataImportHistoryRouteImport
+      parentRoute: typeof DataImportRoute
+    }
     '/d/$token': {
       id: '/d/$token'
       path: '/d/$token'
@@ -897,9 +916,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DataImportRouteChildren {
+  DataImportHistoryRoute: typeof DataImportHistoryRoute
+}
+
+const DataImportRouteChildren: DataImportRouteChildren = {
+  DataImportHistoryRoute: DataImportHistoryRoute,
+}
+
+const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
+  DataImportRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DataImportRoute: DataImportRoute,
+  DataImportRoute: DataImportRouteWithChildren,
   DirectorRoute: DirectorRoute,
   FirstRunRoute: FirstRunRoute,
   LogistRoute: LogistRoute,
