@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2, Clock, AlertTriangle, Timer } from "lucide-react";
 import { DockLoadingChecklistBlock } from "@/components/DockLoadingChecklistBlock";
+import { RequestWarehouseStatusBadge } from "@/components/RequestWarehouseStatusBadge";
 
 /** Тикающие "часы" (обновляются каждые 30 секунд) для пересчёта таймеров */
 function useNowTick(intervalMs = 30_000) {
@@ -143,7 +144,7 @@ function WarehouseTodayPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, comment, created_at")
+        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, source_request_id, comment, created_at")
         .eq("route_date", date)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -582,6 +583,12 @@ function WarehouseTodayPage() {
                         <Badge variant="outline" className={STATUS_STYLES[status]}>
                           {STATUS_LABELS[status]}
                         </Badge>
+                        {r.source_request_id && (
+                          <RequestWarehouseStatusBadge
+                            requestId={r.source_request_id}
+                            warehouseId={r.source_warehouse_id}
+                          />
+                        )}
                         {hasReturns && (
                           <Badge variant="outline" className="bg-orange-100 text-orange-900 border-orange-200">
                             <RotateCcw className="mr-1 h-3 w-3" />

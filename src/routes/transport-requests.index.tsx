@@ -26,6 +26,7 @@ import {
   PRIORITY_BADGE_CLASS,
   type RequestPriority,
 } from "@/lib/requestPriority";
+import { RequestWarehouseStatusBadge } from "@/components/RequestWarehouseStatusBadge";
 
 export const Route = createFileRoute("/transport-requests/")({
   head: () => ({
@@ -141,6 +142,7 @@ function TransportRequestsPage() {
                 <TableHead className="font-semibold text-foreground">Номер</TableHead>
                 <TableHead className="font-semibold text-foreground">Тип</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
+                <TableHead className="font-semibold text-foreground">Склад</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад отправления</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад назначения</TableHead>
                 <TableHead className="font-semibold text-foreground">Дата отправки</TableHead>
@@ -154,13 +156,13 @@ function TransportRequestsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={12} className="py-12 text-center text-muted-foreground">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-12 text-center">
+                  <TableCell colSpan={12} className="py-12 text-center">
                     <ClipboardList className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заявки не найдены</div>
                   </TableCell>
@@ -194,6 +196,12 @@ function TransportRequestsPage() {
                       <Badge variant="outline">
                         {REQUEST_STATUS_LABELS[r.status] ?? r.status}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <RequestWarehouseStatusBadge
+                        requestId={r.id}
+                        warehouseId={r.warehouse_id}
+                      />
                     </TableCell>
                     <TableCell className="text-sm">
                       {r.warehouses?.name ?? (

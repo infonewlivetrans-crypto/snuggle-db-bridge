@@ -24,12 +24,16 @@ export function CreateRouteFromRequestBlock({
   routeDate,
   ordersCount,
   blockedByShortage = false,
+  blockedByWarehouseStatus = false,
+  warehouseStatusLabel,
 }: {
   requestId: string;
   warehouseId: string | null;
   routeDate: string;
   ordersCount: number;
   blockedByShortage?: boolean;
+  blockedByWarehouseStatus?: boolean;
+  warehouseStatusLabel?: string;
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -96,7 +100,7 @@ export function CreateRouteFromRequestBlock({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const disabled = ordersCount === 0 || blockedByShortage;
+  const disabled = ordersCount === 0 || blockedByShortage || blockedByWarehouseStatus;
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -144,6 +148,12 @@ export function CreateRouteFromRequestBlock({
               Нельзя выдать маршрут водителю: не хватает товара на складе
             </p>
           )}
+          {blockedByWarehouseStatus && !blockedByShortage && (
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+              Заявка ещё не готова к отгрузке
+              {warehouseStatusLabel ? ` (${warehouseStatusLabel})` : ""}
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
@@ -161,6 +171,11 @@ export function CreateRouteFromRequestBlock({
           {blockedByShortage ? (
             <p className="text-xs font-medium text-red-700 dark:text-red-300">
               Нельзя выдать маршрут водителю: не хватает товара на складе
+            </p>
+          ) : blockedByWarehouseStatus ? (
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+              Заявка ещё не готова к отгрузке
+              {warehouseStatusLabel ? ` (${warehouseStatusLabel})` : ""}
             </p>
           ) : disabled ? (
             <p className="text-xs text-amber-700 dark:text-amber-300">

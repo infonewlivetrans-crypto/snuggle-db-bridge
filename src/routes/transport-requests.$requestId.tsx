@@ -15,6 +15,12 @@ import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
 import { RequestLoadingListBlock } from "@/components/RequestLoadingListBlock";
 import { StockAvailabilityCheckBlock } from "@/components/StockAvailabilityCheckBlock";
 import { StockReservationBlock } from "@/components/StockReservationBlock";
+import { RequestWarehouseStatusBlock } from "@/components/RequestWarehouseStatusBlock";
+import {
+  REQ_WH_STATUS_LABELS,
+  REQ_WH_STATUS_OK_FOR_DRIVER,
+  type RequestWarehouseStatus,
+} from "@/lib/requestWarehouseStatus";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
@@ -76,7 +82,12 @@ type RequestDetail = {
 function TransportRequestDetailPage() {
   const { requestId } = Route.useParams();
   const [hasShortage, setHasShortage] = useState(false);
+  const [whStatus, setWhStatus] = useState<RequestWarehouseStatus | null>(null);
   const handleShortage = useCallback((v: boolean) => setHasShortage(v), []);
+  const handleWhStatus = useCallback(
+    (s: RequestWarehouseStatus | null) => setWhStatus(s),
+    [],
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["transport-request", requestId],
@@ -291,6 +302,13 @@ function TransportRequestDetailPage() {
               onShortageChange={handleShortage}
             />
 
+            {/* Складской статус заявки */}
+            <RequestWarehouseStatusBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              onStatusChange={handleWhStatus}
+            />
+
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
               requestId={data.id}
@@ -298,6 +316,12 @@ function TransportRequestDetailPage() {
               routeDate={data.route_date}
               ordersCount={totals?.count ?? 0}
               blockedByShortage={hasShortage}
+              blockedByWarehouseStatus={
+                !!whStatus && !REQ_WH_STATUS_OK_FOR_DRIVER.includes(whStatus)
+              }
+              warehouseStatusLabel={
+                whStatus ? REQ_WH_STATUS_LABELS[whStatus] : undefined
+              }
             />
 
             {/* Точки доставки */}
