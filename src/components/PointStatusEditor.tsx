@@ -177,6 +177,7 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
       } catch {
         // не критично для сохранения статуса точки
       }
+    },
     onSuccess: () => {
       toast.success("Статус точки сохранён");
       qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
