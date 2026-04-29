@@ -180,7 +180,47 @@ function DriverRoutePage() {
   const list = points ?? [];
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
   const isCompleted = data?.status === "completed";
-  const canFinalize = list.length > 0 && pendingCount === 0 && !isCompleted;
+
+  // Подробная проверка перед завершением маршрута
+  const validationErrors: string[] = (() => {
+    const errs: string[] = [];
+    if (list.length === 0) return errs;
+    if (pendingCount > 0) {
+      errs.push(`Нельзя завершить маршрут. Есть необработанные точки (${pendingCount}).`);
+    }
+    for (const p of list) {
+      const num = p.order?.order_number ?? `точка №${p.point_number}`;
+      const kinds = photoKindsByPoint?.[p.id];
+      if (p.dp_status === "delivered") {
+        if (p.order?.requires_qr) {
+          const hasQrPhoto = !!kinds?.has("qr");
+          if (!p.order.qr_received || !hasQrPhoto) {
+            errs.push(`По заказу №${num} не загружен QR-код.`);
+          }
+        }
+        const isPrepaid = p.order?.payment_status === "paid";
+        if (p.order?.payment_type === "cash" && !isPrepaid) {
+          if (p.dp_amount_received == null || Number(p.dp_amount_received) <= 0) {
+            errs.push(`По заказу №${num} не указана сумма оплаты.`);
+          }
+        }
+      } else if (p.dp_status === "not_delivered") {
+        if (!p.dp_undelivered_reason) {
+          errs.push(`По заказу №${num} не указана причина недоставки.`);
+        }
+      } else if (p.dp_status === "returned_to_warehouse") {
+        if (!p.dp_return_warehouse_id) {
+          errs.push(`По заказу №${num} не указан склад возврата.`);
+        }
+        if (!p.dp_undelivered_reason) {
+          errs.push(`По заказу №${num} не указана причина возврата.`);
+        }
+      }
+    }
+    return errs;
+  })();
+
+  const canFinalize = list.length > 0 && validationErrors.length === 0 && !isCompleted;
 
   return (
     <div className="min-h-screen bg-background">
