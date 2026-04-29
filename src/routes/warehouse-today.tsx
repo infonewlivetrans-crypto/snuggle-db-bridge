@@ -279,7 +279,12 @@ function WarehouseTodayPage() {
       warehouse_comment?: string | null;
     }) => {
       const existing = loadPlanByPoint.get(args.pointId);
-      const patch: Record<string, unknown> = {
+      const patch: {
+        route_point_id: string;
+        delivery_route_id: string;
+        cargo_position?: string | null;
+        warehouse_comment?: string | null;
+      } = {
         route_point_id: args.pointId,
         delivery_route_id: args.routeId,
       };
