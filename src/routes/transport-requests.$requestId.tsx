@@ -15,6 +15,12 @@ import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
 import { RequestLoadingListBlock } from "@/components/RequestLoadingListBlock";
 import { StockAvailabilityCheckBlock } from "@/components/StockAvailabilityCheckBlock";
 import { StockReservationBlock } from "@/components/StockReservationBlock";
+import { RequestWarehouseStatusBlock } from "@/components/RequestWarehouseStatusBlock";
+import {
+  REQ_WH_STATUS_LABELS,
+  REQ_WH_STATUS_OK_FOR_DRIVER,
+  type RequestWarehouseStatus,
+} from "@/lib/requestWarehouseStatus";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
