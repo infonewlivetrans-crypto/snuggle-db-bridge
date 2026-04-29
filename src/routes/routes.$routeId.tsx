@@ -58,6 +58,12 @@ import {
   Timer,
   Gauge,
   Route as RouteIcon,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+  Save,
+  RotateCcw,
+  History,
 } from "lucide-react";
 import { QrCapture } from "@/components/QrCapture";
 import {
