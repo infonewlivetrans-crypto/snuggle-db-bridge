@@ -99,7 +99,7 @@ export function classifyRisk(
   windowTo: Date | null,
   tightMinutes = 15,
 ): { risk: EtaRiskLevel; delayMinutes: number } {
-  if (!windowTo) return { risk: "on_time", delay_minutes: 0 } as never;
+  if (!windowTo) return { risk: "on_time", delayMinutes: 0 };
   const diffMin = (etaAt.getTime() - windowTo.getTime()) / 60_000;
   if (diffMin > 0) return { risk: "late", delayMinutes: Math.round(diffMin) };
   if (-diffMin <= tightMinutes) return { risk: "tight", delayMinutes: 0 };
