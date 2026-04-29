@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Wallet, Save } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Wallet, Save, History, Pencil } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,6 +53,7 @@ export function RouteCostBlock({
   const [perPoint, setPerPoint] = useState<string>(String(costPerPoint ?? 0));
   const [fixed, setFixed] = useState<string>(String(fixedCost ?? 0));
   const [manualTotal, setManualTotal] = useState<string>(String(deliveryCost ?? 0));
+  const [comment, setComment] = useState<string>("");
 
   useEffect(() => {
     setMethod(costMethod);
@@ -74,23 +76,66 @@ export function RouteCostBlock({
     return 0;
   }, [method, totalDistanceKm, pointsCount, perKm, perPoint, fixed, manualTotal]);
 
+  const { data: history = [] } = useQuery({
+    queryKey: ["route-cost-history", routeId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("route_cost_history")
+        .select("id, old_cost, new_cost, old_method, new_method, changed_by, comment, created_at")
+        .eq("route_id", routeId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        old_cost: number;
+        new_cost: number;
+        old_method: string | null;
+        new_method: string | null;
+        changed_by: string | null;
+        comment: string | null;
+        created_at: string;
+      }>;
+    },
+  });
+
   const save = useMutation({
     mutationFn: async () => {
+      const newCost = computedTotal;
+      const oldCost = Number(deliveryCost) || 0;
+      const oldMethod = costMethod;
+      const newMethod = method;
       const payload = {
         cost_method: method,
         cost_per_km: Number(perKm) || 0,
         cost_per_point: Number(perPoint) || 0,
         fixed_cost: Number(fixed) || 0,
-        delivery_cost: computedTotal,
+        delivery_cost: newCost,
         manual_cost: method === "manual",
       };
       const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
       if (error) throw error;
+
+      // Запись в историю, если что-то реально изменилось
+      const changed = oldCost !== newCost || oldMethod !== newMethod || comment.trim().length > 0;
+      if (changed) {
+        await supabase.from("route_cost_history").insert({
+          route_id: routeId,
+          old_cost: oldCost,
+          new_cost: newCost,
+          old_method: oldMethod,
+          new_method: newMethod,
+          changed_by: "Логист",
+          comment: comment.trim() || null,
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Стоимость доставки сохранена");
+      setComment("");
       qc.invalidateQueries({ queryKey: ["route", routeId] });
       qc.invalidateQueries({ queryKey: ["routes"] });
+      qc.invalidateQueries({ queryKey: ["route-cost-history", routeId] });
     },
     onError: (e: unknown) => {
       const msg = e instanceof Error ? e.message : "Не удалось сохранить";
@@ -104,6 +149,12 @@ export function RouteCostBlock({
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold">Стоимость доставки</h2>
+          {method === "manual" && (
+            <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+              <Pencil className="h-3 w-3" />
+              Стоимость изменена вручную
+            </span>
+          )}
         </div>
         <div className="text-sm">
           <span className="text-muted-foreground">Итого: </span>
@@ -209,12 +260,59 @@ export function RouteCostBlock({
         </div>
       )}
 
+      <div className="mt-3">
+        <Label className="text-xs">Комментарий к изменению</Label>
+        <Textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Например: согласовано с руководителем"
+          rows={2}
+          className="resize-none"
+        />
+      </div>
+
       <div className="mt-3 flex justify-end">
         <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending} className="gap-1.5">
           <Save className="h-3.5 w-3.5" />
           Сохранить
         </Button>
       </div>
+
+      {history.length > 0 && (
+        <div className="mt-4 rounded-md border border-border bg-muted/30 p-3">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+            <History className="h-3.5 w-3.5" />
+            История изменения стоимости
+          </div>
+          <div className="space-y-1.5">
+            {history.map((h) => (
+              <div key={h.id} className="rounded border border-border bg-card px-2 py-1.5 text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium">
+                    {fmtMoney(Number(h.old_cost) || 0)} ₽ → {fmtMoney(Number(h.new_cost) || 0)} ₽
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(h.created_at).toLocaleString("ru-RU")}
+                  </span>
+                </div>
+                <div className="mt-0.5 text-muted-foreground">
+                  {h.changed_by ?? "—"}
+                  {h.old_method && h.new_method && h.old_method !== h.new_method && (
+                    <>
+                      {" · "}
+                      {METHOD_LABEL[h.old_method as CostMethod] ?? h.old_method} →{" "}
+                      {METHOD_LABEL[h.new_method as CostMethod] ?? h.new_method}
+                    </>
+                  )}
+                </div>
+                {h.comment && (
+                  <div className="mt-0.5 italic text-foreground">{h.comment}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
