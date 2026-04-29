@@ -279,7 +279,7 @@ function WarehouseSchedulePage() {
                     wh?.breaks as Break[] | undefined,
                   );
                   const direction =
-                    r.request_type === "interwarehouse" && r.destination_warehouse_id
+                    r.request_type !== "client_delivery" && r.destination_warehouse_id
                       ? `→ ${destNameById[r.destination_warehouse_id] ?? "Склад"}`
                       : "Доставка клиентам";
                   return (
