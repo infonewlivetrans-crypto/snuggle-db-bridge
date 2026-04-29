@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
@@ -16,7 +16,46 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2 } from "lucide-react";
+import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2, Clock, AlertTriangle, Timer } from "lucide-react";
+
+/** Тикающие "часы" (обновляются каждые 30 секунд) для пересчёта таймеров */
+function useNowTick(intervalMs = 30_000) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+type EtaInfo = {
+  minutes: number; // положительные — впереди, отрицательные — опоздание
+  label: string;
+  isSoon: boolean; // < 60 минут
+  isLate: boolean; // время прошло
+};
+
+function computeEta(target: Date | null, now: Date): EtaInfo | null {
+  if (!target) return null;
+  const diffMs = target.getTime() - now.getTime();
+  const minutes = Math.round(diffMs / 60_000);
+  if (minutes >= 0) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    const label = h > 0 ? `через ${h} ч ${m} мин` : `через ${m} мин`;
+    return { minutes, label, isSoon: minutes < 60, isLate: false };
+  }
+  const lateMin = Math.abs(minutes);
+  const h = Math.floor(lateMin / 60);
+  const m = lateMin % 60;
+  const label = h > 0 ? `опоздание ${h} ч ${m} мин` : `опоздание ${m} мин`;
+  return { minutes, label, isSoon: false, isLate: true };
+}
+
+function fmtTime(d: Date | null): string {
+  if (!d) return "—";
+  return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
 
 const CARGO_POSITIONS: { value: string; label: string }[] = [
   { value: "side", label: "У борта" },
