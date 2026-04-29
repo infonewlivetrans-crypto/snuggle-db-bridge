@@ -22,6 +22,7 @@ import {
   type DeliveryRouteStatus,
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
+import { RouteManifestButton } from "@/components/RouteManifestButton";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
@@ -206,12 +207,15 @@ function DeliveryRoutePage() {
               <ArrowLeft className="h-4 w-4" />К списку маршрутов
             </Button>
           </Link>
-          <Link to="/driver/$deliveryRouteId" params={{ deliveryRouteId }}>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <Truck className="h-4 w-4" />
-              Открыть как водитель
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <RouteManifestButton deliveryRouteId={deliveryRouteId} />
+            <Link to="/driver/$deliveryRouteId" params={{ deliveryRouteId }}>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <Truck className="h-4 w-4" />
+                Открыть как водитель
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {isLoading ? (

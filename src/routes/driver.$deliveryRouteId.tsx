@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
+import { RouteManifestButton } from "@/components/RouteManifestButton";
 import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
@@ -268,6 +269,9 @@ function DriverRoutePage() {
                 <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[data.status]}>
                   {DELIVERY_ROUTE_STATUS_LABELS[data.status]}
                 </Badge>
+              </div>
+              <div className="mt-3">
+                <RouteManifestButton deliveryRouteId={deliveryRouteId} className="w-full sm:w-auto" />
               </div>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                 <div className="rounded border border-border bg-muted/40 p-2">
