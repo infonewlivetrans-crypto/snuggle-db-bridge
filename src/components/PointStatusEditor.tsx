@@ -25,6 +25,8 @@ import {
   type DeliveryPointStatus,
   type DeliveryPointUndeliveredReason,
 } from "@/lib/deliveryPointStatus";
+import { logPointAction, type PointActionKind } from "@/lib/pointActions";
+import { getCurrentCoords, distanceMeters, NEAR_POINT_THRESHOLD_METERS } from "@/lib/gps";
 
 type Props = {
   routePointId: string;
@@ -44,14 +46,21 @@ type Props = {
     qr_received: boolean;
     payment_status?: string;
     amount_due?: number | null;
+    /** Координаты адреса доставки — для проверки "Прибыл" */
+    latitude?: number | null;
+    longitude?: number | null;
   };
+  /** Контекст для лога действий */
+  orderId?: string;
+  routeId?: string | null;
+  driverName?: string | null;
   hasQrPhoto?: boolean;
   hasProblemPhoto?: boolean;
   hasDocumentsPhoto?: boolean;
   onSaved?: () => void;
 };
 
-export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, hasProblemPhoto, hasDocumentsPhoto, onSaved }: Props) {
+export function PointStatusEditor({ routePointId, initial, order, orderId, routeId, driverName, hasQrPhoto, hasProblemPhoto, hasDocumentsPhoto, onSaved }: Props) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<DeliveryPointStatus>(initial.dp_status);
   const [reason, setReason] = useState<DeliveryPointUndeliveredReason | "">(
@@ -64,6 +73,7 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
   const [expectedReturn, setExpectedReturn] = useState<string>(
     initial.dp_expected_return_at ? toLocalDT(initial.dp_expected_return_at) : "",
   );
+  const [farFromPointWarning, setFarFromPointWarning] = useState<string | null>(null);
 
   useEffect(() => {
     setDeliveredComment(initial.dp_payment_comment ?? "");
@@ -134,6 +144,29 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           throw new Error("Укажите комментарий к возврату.");
         }
       }
+      // GPS-фиксация действия водителя (один снимок при сохранении статуса)
+      const gps = await getCurrentCoords();
+      let distanceToPointM: number | null = null;
+      let farWarning: string | null = null;
+      if (
+        status === "arrived" &&
+        gps &&
+        order &&
+        typeof order.latitude === "number" &&
+        typeof order.longitude === "number"
+      ) {
+        distanceToPointM = distanceMeters(gps, {
+          latitude: order.latitude,
+          longitude: order.longitude,
+        });
+        if (distanceToPointM > NEAR_POINT_THRESHOLD_METERS) {
+          farWarning = `Водитель находится не рядом с точкой доставки (≈ ${Math.round(
+            distanceToPointM,
+          )} м).`;
+        }
+      }
+      setFarFromPointWarning(farWarning);
+
       const payload: Record<string, unknown> = {
         dp_status: status,
         dp_status_changed_at: new Date().toISOString(),
@@ -160,27 +193,64 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
       if (error) throw error;
 
       // Авто-перевод маршрута в статус «В работе» при первом действии водителя
+      let parentRouteId: string | null = routeId ?? null;
       try {
         const { data: rp } = await supabase
           .from("route_points")
           .select("route_id")
           .eq("id", routePointId)
           .maybeSingle();
-        const routeId = (rp as { route_id?: string } | null)?.route_id;
-        if (routeId) {
+        const rid = (rp as { route_id?: string } | null)?.route_id ?? null;
+        if (rid) {
+          parentRouteId = rid;
           await supabase
             .from("delivery_routes")
             .update({ status: "in_progress" })
-            .eq("id", routeId)
+            .eq("id", rid)
             .eq("status", "issued");
         }
       } catch {
         // не критично для сохранения статуса точки
       }
+
+      // Лог действия водителя с GPS
+      const actionMap: Partial<Record<DeliveryPointStatus, PointActionKind>> = {
+        arrived: "arrived",
+        delivered: "status_delivered",
+        not_delivered: "status_not_delivered",
+        returned_to_warehouse: "status_returned",
+      };
+      const actionKind = actionMap[status] ?? ("status_changed" as PointActionKind);
+      const details: Record<string, unknown> = {
+        new_status: status,
+      };
+      if (gps) details.gps = gps;
+      else details.gps_unavailable = true;
+      if (distanceToPointM != null) details.distance_to_point_m = distanceToPointM;
+      if (farWarning) details.far_from_point = true;
+      if (status === "not_delivered" && reason) details.reason = reason;
+      if (status === "returned_to_warehouse" && reason) details.reason = reason;
+      await logPointAction({
+        routePointId,
+        orderId: orderId ?? null,
+        routeId: parentRouteId,
+        action: actionKind,
+        actor: driverName ?? "Водитель",
+        details,
+        comment:
+          status === "delivered"
+            ? deliveredComment.trim() || null
+            : status === "not_delivered"
+              ? notDeliveredComment.trim() || null
+              : status === "returned_to_warehouse"
+                ? returnComment.trim() || null
+                : null,
+      });
     },
     onSuccess: () => {
       toast.success("Статус точки сохранён");
       qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
+      qc.invalidateQueries({ queryKey: ["point_actions"] });
       onSaved?.();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -204,6 +274,12 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           <Save className="h-3.5 w-3.5" />Сохранить
         </Button>
       </div>
+
+      {farFromPointWarning && (
+        <div className="rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-xs text-orange-800 dark:text-orange-200">
+          ⚠ {farFromPointWarning}
+        </div>
+      )}
 
       {status === "delivered" && (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2">

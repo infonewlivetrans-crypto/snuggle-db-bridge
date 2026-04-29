@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { logPointAction } from "@/lib/pointActions";
+import { getCurrentCoords } from "@/lib/gps";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
 import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
+import { PointActionsHistory } from "@/components/PointActionsHistory";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
@@ -167,11 +169,24 @@ function DriverRoutePage() {
       if (errors.length > 0) {
         throw new Error(errors[0]);
       }
+      const gps = await getCurrentCoords();
       const { error } = await supabase
         .from("delivery_routes")
         .update({ status: "completed" as DeliveryRouteStatus })
         .eq("id", deliveryRouteId);
       if (error) throw error;
+      // Лог завершения маршрута с GPS — пишем по последней точке (или просто к маршруту)
+      const lastPoint = (points ?? [])[ (points ?? []).length - 1 ];
+      if (lastPoint) {
+        await logPointAction({
+          routePointId: lastPoint.id,
+          orderId: lastPoint.order_id,
+          routeId: data?.source_request_id ?? null,
+          action: "route_completed",
+          actor: data?.assigned_driver ?? "Водитель",
+          details: gps ? { gps } : { gps_unavailable: true },
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Маршрут завершён. Отчёт отправлен менеджеру.");
@@ -390,15 +405,19 @@ function DriverPointCard({
 }) {
   const o = p.order;
 
-  // Лог: водитель открыл карточку точки
+  // Лог: водитель открыл карточку точки (с GPS)
   useEffect(() => {
-    logPointAction({
-      routePointId: p.id,
-      orderId: p.order_id,
-      routeId,
-      action: "point_opened",
-      actor: driverName ?? "Водитель",
-    });
+    (async () => {
+      const gps = await getCurrentCoords();
+      logPointAction({
+        routePointId: p.id,
+        orderId: p.order_id,
+        routeId,
+        action: "point_opened",
+        actor: driverName ?? "Водитель",
+        details: gps ? { gps } : { gps_unavailable: true },
+      });
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
 
@@ -544,13 +563,21 @@ function DriverPointCard({
                 qr_received: o.qr_received,
                 payment_status: o.payment_status,
                 amount_due: o.amount_due,
+                latitude: o.latitude,
+                longitude: o.longitude,
               }
             : undefined
         }
+        orderId={p.order_id}
+        routeId={routeId}
+        driverName={driverName}
         hasQrPhoto={!!photoKinds?.has("qr")}
         hasProblemPhoto={!!photoKinds?.has("problem")}
         hasDocumentsPhoto={!!photoKinds?.has("documents")}
       />
+
+      {/* История действий водителя по точке — с GPS-координатами */}
+      <PointActionsHistory routePointId={p.id} title="История действий по точке" maxHeight="max-h-56" />
     </div>
   );
 }

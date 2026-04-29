@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type PointActionKind =
   | "point_opened"
+  | "arrived"
   | "call_client"
   | "message_client"
   | "call_manager"
@@ -17,7 +18,8 @@ export type PointActionKind =
   | "photo_qr_uploaded"
   | "photo_documents_uploaded"
   | "photo_problem_uploaded"
-  | "photo_uploaded";
+  | "photo_uploaded"
+  | "route_completed";
 
 export interface PointActionRow {
   id: string;
@@ -69,6 +71,7 @@ export async function logPointAction(args: {
 
 export const POINT_ACTION_LABELS: Record<string, string> = {
   point_opened: "Открыл точку",
+  arrived: "Нажал «Прибыл»",
   call_client: "Позвонил клиенту",
   message_client: "Написал клиенту",
   call_manager: "Позвонил менеджеру",
@@ -85,4 +88,5 @@ export const POINT_ACTION_LABELS: Record<string, string> = {
   photo_documents_uploaded: "Загрузил фото документов",
   photo_problem_uploaded: "Загрузил фото проблемы",
   photo_uploaded: "Загрузил фото",
+  route_completed: "Завершил маршрут",
 };
