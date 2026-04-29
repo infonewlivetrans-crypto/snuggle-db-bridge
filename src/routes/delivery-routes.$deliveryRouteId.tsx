@@ -89,7 +89,10 @@ type PointRow = {
     id: string;
     order_number: string;
     contact_name: string | null;
+    contact_phone: string | null;
     delivery_address: string | null;
+    latitude: number | null;
+    longitude: number | null;
     comment: string | null;
     payment_type: string;
     amount_due: number | null;
