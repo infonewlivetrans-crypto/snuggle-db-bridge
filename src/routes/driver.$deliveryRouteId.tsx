@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
+import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
