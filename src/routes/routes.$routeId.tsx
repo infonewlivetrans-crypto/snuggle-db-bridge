@@ -36,7 +36,7 @@ import {
 } from "@/lib/routes";
 import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
-import { PAYMENT_LABELS } from "@/lib/orders";
+import { PAYMENT_LABELS, CLIENT_KIND_LABELS, type ClientKind } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteTimingBlock } from "@/components/RouteTimingBlock";
