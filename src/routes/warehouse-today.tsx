@@ -165,7 +165,7 @@ function WarehouseTodayPage() {
   });
 
   // Точки маршрутов с возвратами на склад (по dp_status / status)
-  const routeIds = (routes ?? []).map((r) => r.id);
+  const routeIds = useMemo(() => (routes ?? []).map((r) => r.id), [routes]);
   const { data: returnPoints } = useQuery({
     queryKey: ["wh-today-returns", routeIds],
     enabled: routeIds.length > 0,
@@ -180,7 +180,7 @@ function WarehouseTodayPage() {
     },
   });
 
-  const orderIds = (returnPoints ?? []).map((p) => p.order_id);
+  const orderIds = useMemo(() => (returnPoints ?? []).map((p) => p.order_id), [returnPoints]);
   const { data: returnOrders } = useQuery({
     queryKey: ["wh-today-return-orders", orderIds],
     enabled: orderIds.length > 0,
@@ -194,7 +194,7 @@ function WarehouseTodayPage() {
     },
   });
 
-  const pointIds = (returnPoints ?? []).map((p) => p.id);
+  const pointIds = useMemo(() => (returnPoints ?? []).map((p) => p.id), [returnPoints]);
   const { data: returnPhotos } = useQuery({
     queryKey: ["wh-today-return-photos", pointIds],
     enabled: pointIds.length > 0,
@@ -231,7 +231,10 @@ function WarehouseTodayPage() {
     },
   });
 
-  const allOrderIds = Array.from(new Set((routePoints ?? []).map((p) => p.order_id)));
+  const allOrderIds = useMemo(
+    () => Array.from(new Set((routePoints ?? []).map((p) => p.order_id))),
+    [routePoints],
+  );
   const { data: allOrders } = useQuery({
     queryKey: ["wh-today-all-orders", allOrderIds],
     enabled: allOrderIds.length > 0,
@@ -272,9 +275,31 @@ function WarehouseTodayPage() {
         const { error } = await supabase.from("warehouse_dock_events").insert(patch);
         if (error) throw error;
       }
+
+      // Если приняли возврат — синхронизируем точки маршрута, чтобы событие попало в отчёт склада
+      if (args.status === "return_accepted") {
+        const pts = (returnPoints ?? []).filter((p) => p.route_id === r.id);
+        if (pts.length > 0) {
+          const ids = pts.map((p) => p.id);
+          const { error } = await supabase
+            .from("route_points")
+            .update({
+              wh_return_status: "accepted",
+              wh_return_arrived_at: now,
+              wh_return_accepted_at: now,
+              wh_return_accepted_by: "Кладовщик",
+              wh_return_status_changed_at: now,
+              wh_return_status_changed_by: "Кладовщик",
+            })
+            .in("id", ids);
+          if (error) throw error;
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wh-today-events", date] });
+      qc.invalidateQueries({ queryKey: ["wh-today-returns"] });
+      qc.invalidateQueries({ queryKey: ["wh-returns"] });
       toast.success("Статус обновлён");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -302,8 +327,10 @@ function WarehouseTodayPage() {
   }, [routePoints]);
 
   // План загрузки по точкам открытого маршрута
-  const openedPointIds = (openCard ? routePoints?.filter((p) => p.route_id === openCard) ?? [] : []).map(
-    (p) => p.id,
+  const openedPointIds = useMemo(
+    () =>
+      openCard ? (routePoints ?? []).filter((p) => p.route_id === openCard).map((p) => p.id) : [],
+    [openCard, routePoints],
   );
   const { data: loadPlan } = useQuery({
     queryKey: ["wh-load-plan", openCard, openedPointIds],
