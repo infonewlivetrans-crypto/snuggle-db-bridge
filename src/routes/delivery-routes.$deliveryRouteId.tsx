@@ -32,6 +32,7 @@ import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
+import { RouteDeviationBlock } from "@/components/RouteDeviationBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
