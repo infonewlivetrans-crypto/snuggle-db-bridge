@@ -46,6 +46,7 @@ const KIND_LABEL: Record<string, string> = {
   payment_received: "Оплата",
   low_stock: "Остаток",
   delivery_report: "Отчёт по доставке",
+  route_completed_report: "Маршрут завершён",
 };
 
 const KIND_TONE: Record<string, string> = {
