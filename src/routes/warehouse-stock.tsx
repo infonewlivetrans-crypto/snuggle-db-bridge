@@ -572,9 +572,9 @@ function EditStockDialog({
         }
         await logMovement({
           type: "adjustment",
-          qty: 0,
+          qty: Math.abs(transitDiff),
           reason: "manual_in_transit_change",
-          comment: `В пути: ${transitDiff > 0 ? "+" : ""}${transitDiff}`,
+          comment: `В пути: ${transitDiff > 0 ? "+" : "−"}${Math.abs(transitDiff)}`,
         });
       }
 
