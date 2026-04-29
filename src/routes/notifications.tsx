@@ -237,8 +237,18 @@ function NotificationsPage() {
                   const reasonLabel = (n.payload?.reason_label as string | undefined) ?? null;
                   const expected = n.payload?.expected_return_at as string | undefined;
                   const manager = (n.payload?.manager_name as string | undefined) ?? null;
+                  const orderId = n.order_id ?? (n.payload?.order_id as string | undefined);
+                  const isOrderOpenable = !!orderId;
                   return (
-                    <TableRow key={n.id} className={n.is_read ? "" : "bg-muted/30"}>
+                    <TableRow
+                      key={n.id}
+                      className={`${n.is_read ? "" : "bg-muted/30"} ${isOrderOpenable ? "cursor-pointer hover:bg-muted/50" : ""}`}
+                      onClick={() => {
+                        if (!isOrderOpenable) return;
+                        if (!n.is_read) toggleRead.mutate({ id: n.id, read: true });
+                        navigate({ to: "/", search: { orderId } });
+                      }}
+                    >
                       <TableCell className="font-mono text-xs">
                         {new Date(n.created_at).toLocaleString("ru-RU")}
                       </TableCell>
