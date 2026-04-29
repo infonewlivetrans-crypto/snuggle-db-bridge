@@ -29,6 +29,7 @@ import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
 import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBlock";
 import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
+import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
