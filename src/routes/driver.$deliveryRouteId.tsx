@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { logPointAction } from "@/lib/pointActions";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,8 @@ import {
   Truck,
   MapPin,
   Phone,
+  MessageCircle,
+  Headphones,
   Wallet,
   QrCode,
   CheckCircle2,
@@ -17,6 +19,7 @@ import {
   Flag,
   AlertTriangle,
 } from "lucide-react";
+import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
