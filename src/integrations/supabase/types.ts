@@ -1731,6 +1731,8 @@ export type Database = {
           event_date: string
           expected_at: string | null
           id: string
+          load_plan_confirmed_at: string | null
+          load_plan_confirmed_by: string | null
           loaded_at: string | null
           loading_started_at: string | null
           return_accepted_at: string | null
@@ -1750,6 +1752,8 @@ export type Database = {
           event_date?: string
           expected_at?: string | null
           id?: string
+          load_plan_confirmed_at?: string | null
+          load_plan_confirmed_by?: string | null
           loaded_at?: string | null
           loading_started_at?: string | null
           return_accepted_at?: string | null
@@ -1769,6 +1773,8 @@ export type Database = {
           event_date?: string
           expected_at?: string | null
           id?: string
+          load_plan_confirmed_at?: string | null
+          load_plan_confirmed_by?: string | null
           loaded_at?: string | null
           loading_started_at?: string | null
           return_accepted_at?: string | null
@@ -1849,6 +1855,36 @@ export type Database = {
           vehicle_id?: string | null
           vehicle_plate?: string | null
           warehouse_id?: string
+        }
+        Relationships: []
+      }
+      warehouse_load_plan: {
+        Row: {
+          cargo_position: string | null
+          created_at: string
+          delivery_route_id: string
+          id: string
+          route_point_id: string
+          updated_at: string
+          warehouse_comment: string | null
+        }
+        Insert: {
+          cargo_position?: string | null
+          created_at?: string
+          delivery_route_id: string
+          id?: string
+          route_point_id: string
+          updated_at?: string
+          warehouse_comment?: string | null
+        }
+        Update: {
+          cargo_position?: string | null
+          created_at?: string
+          delivery_route_id?: string
+          id?: string
+          route_point_id?: string
+          updated_at?: string
+          warehouse_comment?: string | null
         }
         Relationships: []
       }
