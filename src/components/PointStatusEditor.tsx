@@ -221,19 +221,27 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           <div className="text-xs font-medium text-red-700 dark:text-red-300">
             Причина недоставки
           </div>
-          <Select value={reason} onValueChange={(v) => setReason(v as DeliveryPointUndeliveredReason)}>
-            <SelectTrigger className="h-8"><SelectValue placeholder="Выберите причину" /></SelectTrigger>
-            <SelectContent>
-              {DELIVERY_POINT_UNDELIVERED_REASON_ORDER.map((r) => (
-                <SelectItem key={r} value={r}>{DELIVERY_POINT_UNDELIVERED_REASON_LABELS[r]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ReasonChips
+            reasons={DELIVERY_POINT_NOT_DELIVERED_REASONS}
+            value={reason}
+            onChange={(v) => {
+              setReason(v);
+              const tpl = DELIVERY_POINT_REASON_COMMENT_TEMPLATES[v]?.[0];
+              if (tpl && !notDeliveredComment.trim()) setNotDeliveredComment(tpl);
+            }}
+            tone="red"
+          />
           <div className="text-xs text-muted-foreground">
             Также обязательно: фото проблемы и комментарий.
           </div>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">Комментарий</div>
+            {reason && DELIVERY_POINT_REASON_COMMENT_TEMPLATES[reason as DeliveryPointUndeliveredReason]?.length > 0 && (
+              <CommentTemplates
+                templates={DELIVERY_POINT_REASON_COMMENT_TEMPLATES[reason as DeliveryPointUndeliveredReason]}
+                onPick={(t) => setNotDeliveredComment(t)}
+              />
+            )}
             <Textarea
               value={notDeliveredComment}
               onChange={(e) => setNotDeliveredComment(e.target.value)}
@@ -251,14 +259,16 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           </div>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">Причина возврата</div>
-            <Select value={reason} onValueChange={(v) => setReason(v as DeliveryPointUndeliveredReason)}>
-              <SelectTrigger className="h-8"><SelectValue placeholder="Выберите причину" /></SelectTrigger>
-              <SelectContent>
-                {DELIVERY_POINT_UNDELIVERED_REASON_ORDER.map((r) => (
-                  <SelectItem key={r} value={r}>{DELIVERY_POINT_UNDELIVERED_REASON_LABELS[r]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ReasonChips
+              reasons={DELIVERY_POINT_RETURN_REASONS}
+              value={reason}
+              onChange={(v) => {
+                setReason(v);
+                const tpl = DELIVERY_POINT_REASON_COMMENT_TEMPLATES[v]?.[0];
+                if (tpl && !returnComment.trim()) setReturnComment(tpl);
+              }}
+              tone="orange"
+            />
           </div>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">Склад возврата</div>
@@ -284,6 +294,12 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           </div>
           <div>
             <div className="mb-1 text-xs text-muted-foreground">Комментарий</div>
+            {reason && DELIVERY_POINT_REASON_COMMENT_TEMPLATES[reason as DeliveryPointUndeliveredReason]?.length > 0 && (
+              <CommentTemplates
+                templates={DELIVERY_POINT_REASON_COMMENT_TEMPLATES[reason as DeliveryPointUndeliveredReason]}
+                onPick={(t) => setReturnComment(t)}
+              />
+            )}
             <Textarea
               value={returnComment}
               onChange={(e) => setReturnComment(e.target.value)}
@@ -293,6 +309,66 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ReasonChips({
+  reasons,
+  value,
+  onChange,
+  tone,
+}: {
+  reasons: DeliveryPointUndeliveredReason[];
+  value: DeliveryPointUndeliveredReason | "";
+  onChange: (v: DeliveryPointUndeliveredReason) => void;
+  tone: "red" | "orange";
+}) {
+  const active =
+    tone === "red"
+      ? "bg-red-600 text-white border-red-600"
+      : "bg-orange-600 text-white border-orange-600";
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {reasons.map((r) => {
+        const isActive = value === r;
+        return (
+          <button
+            key={r}
+            type="button"
+            onClick={() => onChange(r)}
+            className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+              isActive ? active : "border-border bg-background hover:bg-muted"
+            }`}
+          >
+            {DELIVERY_POINT_UNDELIVERED_REASON_LABELS[r]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CommentTemplates({
+  templates,
+  onPick,
+}: {
+  templates: string[];
+  onPick: (t: string) => void;
+}) {
+  return (
+    <div className="mb-1.5 flex flex-wrap gap-1">
+      {templates.map((t, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onPick(t)}
+          className="rounded border border-dashed border-border bg-background px-2 py-0.5 text-[10px] text-muted-foreground hover:bg-muted"
+          title="Подставить шаблон"
+        >
+          + {t.length > 40 ? t.slice(0, 38) + "…" : t}
+        </button>
+      ))}
     </div>
   );
 }
