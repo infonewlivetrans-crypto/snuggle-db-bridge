@@ -840,9 +840,14 @@ function WarehouseTodayPage() {
                 )}
               </div>
 
-              <div>
-                <div className="mb-2 inline-flex items-center gap-2 text-sm font-semibold">
-                  <RotateCcw className="h-4 w-4" /> Возможный возврат на склад ({openedReturns.length})
+              {/* Чек-лист загрузки товара со склада: нужно / загружено / остаток / подтвердить */}
+              <DockLoadingChecklistBlock
+                deliveryRouteId={openedRoute.id}
+                warehouseId={openedRoute.source_warehouse_id}
+                routeNumber={openedRoute.route_number}
+              />
+
+
                 </div>
                 {openedReturns.length === 0 ? (
                   <div className="text-xs text-muted-foreground">Возвратов пока нет</div>
