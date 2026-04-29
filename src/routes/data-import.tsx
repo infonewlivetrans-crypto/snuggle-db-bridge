@@ -348,18 +348,30 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
               <div className="rounded-md border border-border p-3">
-                <div className="text-xs text-muted-foreground">Загружено строк</div>
+                <div className="text-xs text-muted-foreground">Загружено</div>
                 <div className="text-xl font-semibold">{result.inserted}</div>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground">Обновлено</div>
+                <div className="text-xl font-semibold">{result.updated}</div>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground">Пропущено</div>
+                <div className="text-xl font-semibold">{result.skipped}</div>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground">Дублей</div>
+                <div className="text-xl font-semibold">{result.duplicates}</div>
               </div>
               <div className="rounded-md border border-border p-3">
                 <div className="text-xs text-muted-foreground">Ошибок</div>
                 <div className="text-xl font-semibold">{result.failed}</div>
               </div>
               <div className="rounded-md border border-border p-3">
-                <div className="text-xs text-muted-foreground">Источник</div>
-                <div className="text-xl font-semibold">{source}</div>
+                <div className="text-xs text-muted-foreground">Действие с дублями</div>
+                <div className="text-sm font-semibold">{result.duplicateAction}</div>
               </div>
             </div>
             {result.failedRows.length > 0 && (
