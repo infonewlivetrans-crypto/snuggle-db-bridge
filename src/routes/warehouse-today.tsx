@@ -305,8 +305,10 @@ function WarehouseTodayPage() {
   }, [routePoints]);
 
   // План загрузки по точкам открытого маршрута
-  const openedPointIds = (openCard ? routePoints?.filter((p) => p.route_id === openCard) ?? [] : []).map(
-    (p) => p.id,
+  const openedPointIds = useMemo(
+    () =>
+      openCard ? (routePoints ?? []).filter((p) => p.route_id === openCard).map((p) => p.id) : [],
+    [openCard, routePoints],
   );
   const { data: loadPlan } = useQuery({
     queryKey: ["wh-load-plan", openCard, openedPointIds],
