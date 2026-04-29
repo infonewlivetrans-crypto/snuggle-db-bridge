@@ -26,6 +26,7 @@ import {
   PRIORITY_BADGE_CLASS,
   type RequestPriority,
 } from "@/lib/requestPriority";
+import { RequestWarehouseStatusBadge } from "@/components/RequestWarehouseStatusBadge";
 
 export const Route = createFileRoute("/transport-requests/")({
   head: () => ({
