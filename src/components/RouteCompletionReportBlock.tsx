@@ -143,6 +143,11 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
         <PaymentSummaryReportBlock orders={p.orders} />
       </div>
 
+      {/* Возвраты на склад */}
+      <div className="mb-3">
+        <RouteReturnsBlock orders={p.orders} />
+      </div>
+
 
       <div className="space-y-2">
         {p.orders.map((o) => (
