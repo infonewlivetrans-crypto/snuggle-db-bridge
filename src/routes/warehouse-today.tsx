@@ -143,7 +143,7 @@ function WarehouseTodayPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, comment, created_at")
+        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, source_request_id, comment, created_at")
         .eq("route_date", date)
         .order("created_at", { ascending: true });
       if (error) throw error;
