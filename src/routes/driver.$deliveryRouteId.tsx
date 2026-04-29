@@ -24,6 +24,7 @@ import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
 import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
+import { PointActionsHistory } from "@/components/PointActionsHistory";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
