@@ -53,6 +53,7 @@ import {
 } from "lucide-react";
 import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog";
 import { OrderReturnBlock } from "@/components/OrderReturnBlock";
+import { OrderDeliveryResultBlock } from "@/components/OrderDeliveryResultBlock";
 
 type DeliveryReport = {
   id: string;
