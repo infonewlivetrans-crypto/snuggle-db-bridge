@@ -16,6 +16,7 @@ export type RouteImportRow = {
   payment_type?: string;
   prepaid?: string;
   requires_qr?: string;
+  marketplace?: string;
   manager_comment?: string;
 };
 
@@ -33,18 +34,23 @@ const HEADER_MAP: Record<string, keyof RouteImportRow> = {
   "route_number": "route_number",
   "водитель": "driver",
   "driver": "driver",
+  "driver_name": "driver",
   "машина": "vehicle",
   "транспорт": "vehicle",
   "vehicle": "vehicle",
+  "vehicle_number": "vehicle",
   "номер заказа": "order_number",
   "номер": "order_number",
   "order_number": "order_number",
   "клиент": "client",
   "client": "client",
+  "customer_name": "client",
   "телефон": "phone",
   "phone": "phone",
+  "customer_phone": "phone",
   "адрес": "address",
   "address": "address",
+  "delivery_address": "address",
   "ссылка на карту": "map_link",
   "карта": "map_link",
   "map_link": "map_link",
@@ -56,10 +62,12 @@ const HEADER_MAP: Record<string, keyof RouteImportRow> = {
   "lon": "longitude",
   "longitude": "longitude",
   "координаты": "map_link",
+  "coordinates": "map_link",
   "сумма к получению": "amount_due",
   "сумма": "amount_due",
   "amount": "amount_due",
   "amount_due": "amount_due",
+  "amount_to_collect": "amount_due",
   "тип оплаты": "payment_type",
   "оплата": "payment_type",
   "payment_type": "payment_type",
@@ -70,9 +78,12 @@ const HEADER_MAP: Record<string, keyof RouteImportRow> = {
   "нужен qr": "requires_qr",
   "qr": "requires_qr",
   "requires_qr": "requires_qr",
+  "маркетплейс": "marketplace",
+  "marketplace": "marketplace",
   "комментарий менеджера": "manager_comment",
   "комментарий": "manager_comment",
   "comment": "manager_comment",
+  "manager_comment": "manager_comment",
 };
 
 const PAYMENT_MAP: Record<string, "cash" | "card" | "online" | "qr"> = {
@@ -153,22 +164,17 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
     groups.get(key)!.rows.push(r);
   });
 
-  // Авто-нумерация заказов
-  const { data: lastOrder } = await supabase
-    .from("orders")
-    .select("order_number")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  let orderCounter = 1;
-  const lastNum = lastOrder?.order_number?.match(/(\d+)$/)?.[1];
-  if (lastNum) orderCounter = parseInt(lastNum, 10) + 1;
+  // (auto numbering removed — order_number теперь обязателен)
 
   for (const [routeKey, group] of groups.entries()) {
     const baseRow = group.rows[0];
     try {
-      // Проверка обязательных полей хотя бы у первой строки группы
-      if (!baseRow.driver) throw new Error("Не заполнены обязательные данные: водитель");
+      // Проверка обязательных полей маршрута
+      const missing: string[] = [];
+      if (!baseRow.route_number) missing.push("номер маршрута");
+      if (!baseRow.driver) missing.push("водитель");
+      if (missing.length > 0)
+        throw new Error("Не заполнены обязательные данные: " + missing.join(", "));
 
       // 1. routes (заявка-родитель)
       const { data: routeNumData, error: routeNumErr } = await supabase.rpc("generate_route_number");
@@ -193,11 +199,14 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
       let pointNum = 1;
       for (const r of group.rows) {
         try {
-          if (!r.address && !r.map_link && r.latitude == null && r.longitude == null) {
-            throw new Error("Нужен адрес или координаты");
-          }
-          const orderNumber =
-            r.order_number?.trim() || `IMP-${String(orderCounter++).padStart(4, "0")}`;
+          const rowMissing: string[] = [];
+          if (!r.order_number?.trim()) rowMissing.push("номер заказа");
+          if (!r.client?.trim()) rowMissing.push("клиент");
+          if (!r.address && !r.map_link && r.latitude == null && r.longitude == null)
+            rowMissing.push("адрес или координаты");
+          if (rowMissing.length > 0)
+            throw new Error("Не заполнены обязательные данные: " + rowMissing.join(", "));
+          const orderNumber = r.order_number!.trim();
           const paymentRaw = r.payment_type ? normalizeKey(r.payment_type) : "";
           const payment_type = PAYMENT_MAP[paymentRaw] || "cash";
           const requiresQr = toBool(r.requires_qr) || payment_type === "qr";
@@ -226,6 +235,7 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
               amount_due: r.amount_due ?? null,
               payment_status: prepaid ? "paid" : "not_paid",
               comment: r.manager_comment ?? null,
+              marketplace: r.marketplace ?? null,
               source: "manual",
               status: "ready_for_delivery",
             })
@@ -292,25 +302,28 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
 
 export function downloadRouteTemplate() {
   const headers = [
-    "Номер маршрута",
-    "Водитель",
-    "Машина",
-    "Номер заказа",
-    "Клиент",
-    "Телефон",
-    "Адрес",
-    "Ссылка на карту",
-    "Сумма к получению",
-    "Тип оплаты",
-    "Оплачено заранее",
-    "Нужен QR-код",
-    "Комментарий менеджера",
+    "route_number",
+    "driver_name",
+    "vehicle_number",
+    "order_number",
+    "customer_name",
+    "customer_phone",
+    "delivery_address",
+    "map_link",
+    "coordinates",
+    "amount_to_collect",
+    "payment_type",
+    "prepaid",
+    "requires_qr",
+    "marketplace",
+    "manager_comment",
   ];
   const example = [
     ["М-001", "Иванов И.И.", "А123БВ77", "ORD-1001", "ООО Ромашка", "+7 999 123-45-67",
-     "г. Москва, ул. Ленина, 1", "55.7558, 37.6173", 4500, "наличные", "нет", "нет", "Позвонить за час"],
+     "г. Москва, ул. Ленина, 1", "https://yandex.ru/maps/?pt=37.6173,55.7558", "55.7558, 37.6173",
+     4500, "наличные", "нет", "нет", "", "Позвонить за час"],
     ["М-001", "Иванов И.И.", "А123БВ77", "ORD-1002", "ИП Петров", "+7 999 222-33-44",
-     "г. Москва, ул. Мира, 5", "", 0, "онлайн", "да", "да", ""],
+     "г. Москва, ул. Мира, 5", "", "", 0, "онлайн", "да", "да", "Ozon", ""],
   ];
   const ws = XLSX.utils.aoa_to_sheet([headers, ...example]);
   const wb = XLSX.utils.book_new();
