@@ -180,6 +180,22 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label>Что делать с дублями</Label>
+            <Select value={duplicateAction} onValueChange={(v) => setDuplicateAction(v as DuplicateAction)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="skip">Пропустить строку</SelectItem>
+                <SelectItem value="update">Обновить существующую запись</SelectItem>
+                <SelectItem value="create">Создать как новую</SelectItem>
+              </SelectContent>
+            </Select>
+            {parsed && parsed.duplicateRows > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Найдено дублей: <b>{parsed.duplicateRows}</b>. Действие применится к ним при импорте.
+              </p>
+            )}
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={handleImport}
