@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
@@ -12,6 +13,7 @@ import {
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
 import { RequestLoadingListBlock } from "@/components/RequestLoadingListBlock";
+import { StockAvailabilityCheckBlock } from "@/components/StockAvailabilityCheckBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
@@ -72,6 +74,8 @@ type RequestDetail = {
 
 function TransportRequestDetailPage() {
   const { requestId } = Route.useParams();
+  const [hasShortage, setHasShortage] = useState(false);
+  const handleShortage = useCallback((v: boolean) => setHasShortage(v), []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["transport-request", requestId],
@@ -271,12 +275,21 @@ function TransportRequestDetailPage() {
               warehouseId={data.warehouse_id}
             />
 
+            {/* Проверка наличия товара перед выдачей маршрута водителю */}
+            <StockAvailabilityCheckBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              routeNumber={data.route_number}
+              onShortageChange={handleShortage}
+            />
+
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
               requestId={data.id}
               warehouseId={data.warehouse_id}
               routeDate={data.route_date}
               ordersCount={totals?.count ?? 0}
+              blockedByShortage={hasShortage}
             />
 
             {/* Точки доставки */}

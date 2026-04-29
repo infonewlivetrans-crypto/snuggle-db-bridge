@@ -23,11 +23,13 @@ export function CreateRouteFromRequestBlock({
   warehouseId,
   routeDate,
   ordersCount,
+  blockedByShortage = false,
 }: {
   requestId: string;
   warehouseId: string | null;
   routeDate: string;
   ordersCount: number;
+  blockedByShortage?: boolean;
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -94,7 +96,7 @@ export function CreateRouteFromRequestBlock({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const disabled = ordersCount === 0;
+  const disabled = ordersCount === 0 || blockedByShortage;
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -137,6 +139,11 @@ export function CreateRouteFromRequestBlock({
             <Plus className="h-4 w-4" />
             Ещё один маршрут
           </Button>
+          {blockedByShortage && (
+            <p className="text-xs font-medium text-red-700 dark:text-red-300">
+              Нельзя выдать маршрут водителю: не хватает товара на складе
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
@@ -151,11 +158,15 @@ export function CreateRouteFromRequestBlock({
             <Plus className="h-4 w-4" />
             {createRoute.isPending ? "Создание..." : "Создать маршрут"}
           </Button>
-          {disabled && (
+          {blockedByShortage ? (
+            <p className="text-xs font-medium text-red-700 dark:text-red-300">
+              Нельзя выдать маршрут водителю: не хватает товара на складе
+            </p>
+          ) : disabled ? (
             <p className="text-xs text-amber-700 dark:text-amber-300">
               Добавьте заказы в заявку, чтобы создать маршрут.
             </p>
-          )}
+          ) : null}
         </div>
       )}
     </div>
