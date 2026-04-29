@@ -20,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Route as RouteIcon, AlertTriangle } from "lucide-react";
+import { Search, Route as RouteIcon, AlertTriangle, FileSpreadsheet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ImportRouteDialog } from "@/components/ImportRouteDialog";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_ORDER,
@@ -54,6 +56,7 @@ type Row = {
 function DeliveryRoutesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<DeliveryRouteStatus | "all">("all");
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["delivery-routes"],
@@ -97,7 +100,13 @@ function DeliveryRoutesPage() {
               Маршруты доставки, созданные на основе заявок на транспорт
             </p>
           </div>
+          <Button onClick={() => setImportOpen(true)} className="gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Импорт маршрута Excel
+          </Button>
         </div>
+
+        <ImportRouteDialog open={importOpen} onOpenChange={setImportOpen} />
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="relative max-w-sm flex-1">
