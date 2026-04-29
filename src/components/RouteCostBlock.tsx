@@ -71,6 +71,8 @@ const fmtMoney = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigit
 
 export function RouteCostBlock({
   routeId,
+  warehouseId,
+  appliedTariffId,
   totalDistanceKm,
   pointsCount,
   costMethod,
@@ -86,6 +88,8 @@ export function RouteCostBlock({
   const [fixed, setFixed] = useState<string>(String(fixedCost ?? 0));
   const [manualTotal, setManualTotal] = useState<string>(String(deliveryCost ?? 0));
   const [comment, setComment] = useState<string>("");
+  const [tariffId, setTariffId] = useState<string>(appliedTariffId ?? "");
+  const [reason, setReason] = useState<string>("");
 
   useEffect(() => {
     setMethod(costMethod);
@@ -93,7 +97,40 @@ export function RouteCostBlock({
     setPerPoint(String(costPerPoint ?? 0));
     setFixed(String(fixedCost ?? 0));
     setManualTotal(String(deliveryCost ?? 0));
-  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost]);
+    setTariffId(appliedTariffId ?? "");
+  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost, appliedTariffId]);
+
+  const { data: tariffs = [] } = useQuery({
+    queryKey: ["delivery-tariffs-for-route", warehouseId ?? "any"],
+    queryFn: async () => {
+      let q = supabase
+        .from("delivery_tariffs")
+        .select("id, warehouse_id, name, kind, city, zone, destination_city, fixed_price, price_per_km, price_per_point, base_price, is_active, comment")
+        .eq("is_active", true)
+        .order("priority", { ascending: true });
+      if (warehouseId) q = q.eq("warehouse_id", warehouseId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as TariffRow[];
+    },
+  });
+
+  const applyTariff = (id: string) => {
+    setTariffId(id);
+    if (!id) return;
+    const t = tariffs.find((x) => x.id === id);
+    if (!t) return;
+    const m = tariffToCostMethod(t.kind);
+    setMethod(m);
+    if (m === "manual") {
+      setManualTotal(String(t.fixed_price ?? 0));
+    } else {
+      setPerKm(String(t.price_per_km ?? 0));
+      setPerPoint(String(t.price_per_point ?? 0));
+      setFixed(String(t.base_price ?? 0));
+    }
+    toast.success(`Тариф «${t.name}» применён`);
+  };
 
   const computedTotal = useMemo(() => {
     const km = totalDistanceKm || 0;
