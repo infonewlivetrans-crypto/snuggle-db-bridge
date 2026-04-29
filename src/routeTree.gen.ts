@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
 import { Route as RouteImportTemplateRouteImport } from './routes/route-import-template'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -41,6 +42,11 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemTestRoute = SystemTestRouteImport.update({
+  id: '/system-test',
+  path: '/system-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RouteReportsRoute = RouteReportsRouteImport.update({
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-test': typeof SystemTestRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -218,6 +225,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-test': typeof SystemTestRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -249,6 +257,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-test': typeof SystemTestRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -281,6 +290,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-test'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-test'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -341,6 +352,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-test'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -372,6 +384,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   RouteImportTemplateRoute: typeof RouteImportTemplateRoute
   RouteReportsRoute: typeof RouteReportsRoute
+  SystemTestRoute: typeof SystemTestRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
@@ -403,6 +416,13 @@ declare module '@tanstack/react-router' {
       path: '/workspace'
       fullPath: '/workspace'
       preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system-test': {
+      id: '/system-test'
+      path: '/system-test'
+      fullPath: '/system-test'
+      preLoaderRoute: typeof SystemTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/route-reports': {
@@ -604,6 +624,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   RouteImportTemplateRoute: RouteImportTemplateRoute,
   RouteReportsRoute: RouteReportsRoute,
+  SystemTestRoute: SystemTestRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
