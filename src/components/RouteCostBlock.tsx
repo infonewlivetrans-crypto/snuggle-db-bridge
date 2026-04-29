@@ -181,12 +181,14 @@ export function RouteCostBlock({
         fixed_cost: Number(fixed) || 0,
         delivery_cost: newCost,
         manual_cost: method === "manual",
+        applied_tariff_id: tariffId || null,
+        manual_cost_reason: method === "manual" ? (reason.trim() || null) : null,
       };
       const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
       if (error) throw error;
 
-      // Запись в историю, если что-то реально изменилось
-      const changed = oldCost !== newCost || oldMethod !== newMethod || comment.trim().length > 0;
+      const fullComment = [reason.trim(), comment.trim()].filter(Boolean).join(" — ");
+      const changed = oldCost !== newCost || oldMethod !== newMethod || fullComment.length > 0;
       if (changed) {
         await supabase.from("route_cost_history").insert({
           route_id: routeId,
@@ -195,13 +197,14 @@ export function RouteCostBlock({
           old_method: oldMethod,
           new_method: newMethod,
           changed_by: "Логист",
-          comment: comment.trim() || null,
+          comment: fullComment || null,
         });
       }
     },
     onSuccess: () => {
       toast.success("Стоимость доставки сохранена");
       setComment("");
+      setReason("");
       qc.invalidateQueries({ queryKey: ["route", routeId] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["route-cost-history", routeId] });
