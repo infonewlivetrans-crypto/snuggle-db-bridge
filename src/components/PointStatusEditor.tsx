@@ -248,6 +248,17 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
             Возврат на склад
           </div>
           <div>
+            <div className="mb-1 text-xs text-muted-foreground">Причина возврата</div>
+            <Select value={reason} onValueChange={(v) => setReason(v as DeliveryPointUndeliveredReason)}>
+              <SelectTrigger className="h-8"><SelectValue placeholder="Выберите причину" /></SelectTrigger>
+              <SelectContent>
+                {DELIVERY_POINT_UNDELIVERED_REASON_ORDER.map((r) => (
+                  <SelectItem key={r} value={r}>{DELIVERY_POINT_UNDELIVERED_REASON_LABELS[r]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
             <div className="mb-1 text-xs text-muted-foreground">Склад возврата</div>
             <Select value={returnWh} onValueChange={setReturnWh}>
               <SelectTrigger className="h-8"><SelectValue placeholder="Выберите склад" /></SelectTrigger>
