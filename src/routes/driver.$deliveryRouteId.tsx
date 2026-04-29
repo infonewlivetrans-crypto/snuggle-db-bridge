@@ -490,3 +490,159 @@ function buildMapUrl(
   }
   return null;
 }
+
+function buildSmsUrl(phone: string | null): string | null {
+  if (!phone) return null;
+  return `sms:${phone}`;
+}
+
+function ManagerInfoAndActions({
+  contactName,
+  orderId,
+  orderNumber,
+  routePointId,
+  routeId,
+  driverName,
+  clientPhone,
+  mapUrl,
+}: {
+  contactName: string | null;
+  orderId: string;
+  orderNumber: string;
+  routePointId: string;
+  routeId: string;
+  driverName: string | null;
+  clientPhone: string | null;
+  mapUrl: string | null;
+}) {
+  const [problemOpen, setProblemOpen] = useState(false);
+
+  const { data: manager } = useQuery({
+    enabled: !!contactName,
+    queryKey: ["client-manager", contactName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("manager_name, manager_phone")
+        .eq("name", contactName!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { manager_name: string | null; manager_phone: string | null } | null;
+    },
+  });
+
+  const managerName = manager?.manager_name ?? null;
+  const managerPhone = manager?.manager_phone ?? null;
+
+  const log = (action: string, details?: Record<string, unknown>) =>
+    logPointAction({
+      routePointId,
+      orderId,
+      routeId,
+      action,
+      actor: driverName ?? "Водитель",
+      details,
+    });
+
+  return (
+    <div className="space-y-2">
+      <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+        <div className="font-medium text-foreground">
+          Менеджер:{" "}
+          {managerName ?? <span className="italic text-muted-foreground">не назначен</span>}
+        </div>
+        {managerPhone && <div className="text-muted-foreground">Тел.: {managerPhone}</div>}
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!clientPhone}
+          className="h-11 gap-1.5"
+        >
+          <a
+            href={clientPhone ? `tel:${clientPhone}` : "#"}
+            onClick={() => clientPhone && log("call_client", { phone: clientPhone })}
+          >
+            <Phone className="h-4 w-4" />
+            Позвонить клиенту
+          </a>
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!clientPhone}
+          className="h-11 gap-1.5"
+        >
+          <a
+            href={buildSmsUrl(clientPhone) ?? "#"}
+            onClick={() => clientPhone && log("message_client", { phone: clientPhone })}
+          >
+            <MessageCircle className="h-4 w-4" />
+            Написать клиенту
+          </a>
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!managerPhone}
+          className="h-11 gap-1.5"
+        >
+          <a
+            href={managerPhone ? `tel:${managerPhone}` : "#"}
+            onClick={() =>
+              managerPhone &&
+              log("call_manager", { phone: managerPhone, manager: managerName })
+            }
+          >
+            <Headphones className="h-4 w-4" />
+            Позвонить менеджеру
+          </a>
+        </Button>
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-11 gap-1.5 border-orange-500/40 text-orange-700 hover:bg-orange-500/10 dark:text-orange-300"
+          onClick={() => setProblemOpen(true)}
+        >
+          <AlertTriangle className="h-4 w-4" />
+          Сообщить о проблеме
+        </Button>
+      </div>
+
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        disabled={!mapUrl}
+        className="w-full gap-1.5"
+      >
+        <a
+          href={mapUrl ?? "#"}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => mapUrl && log("open_map", { url: mapUrl })}
+        >
+          <MapPin className="h-4 w-4" />
+          Открыть карту
+        </a>
+      </Button>
+
+      <ReportProblemDialog
+        open={problemOpen}
+        onOpenChange={setProblemOpen}
+        orderId={orderId}
+        orderNumber={orderNumber}
+        routePointId={routePointId}
+        routeId={routeId}
+        reportedBy={driverName ?? "Водитель"}
+        managerName={managerName}
+        managerPhone={managerPhone}
+      />
+    </div>
+  );
+}
