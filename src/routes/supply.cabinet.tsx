@@ -248,11 +248,55 @@ function SupplyCabinetPage() {
     [balances]
   );
 
+  // Уведомление снабжению о низком остатке (с дедупликацией на стороне БД)
+  useEffect(() => {
+    if (!balances) return;
+    const lowStock = balances.filter(
+      (b) =>
+        b.warehouse_id &&
+        b.product_id &&
+        Number(b.min_stock ?? 0) > 0 &&
+        Number(b.available ?? 0) < Number(b.min_stock ?? 0),
+    );
+    if (lowStock.length === 0) return;
+    (async () => {
+      for (const b of lowStock) {
+        await notifyLowStock({
+          warehouseId: b.warehouse_id as string,
+          warehouseName: b.warehouse_name ?? "—",
+          productId: b.product_id,
+          productName: b.product_name,
+          available: Number(b.available ?? 0),
+          minStock: Number(b.min_stock ?? 0),
+          unit: b.unit,
+        });
+      }
+    })();
+  }, [balances]);
+
+  // Уведомления снабжению
+  const { data: notifications } = useQuery({
+    queryKey: ["supply-notifications"],
+    queryFn: async (): Promise<SupplyNotification[]> => {
+      const { data, error } = await db
+        .from("notifications")
+        .select("*")
+        .eq("kind", "supply_alert")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as unknown as SupplyNotification[];
+    },
+  });
+
+  const unreadCount = (notifications ?? []).filter((n) => !n.is_read).length;
+
   const counts = {
     deficit: deficitItems.length,
     requests: (requests ?? []).filter((r) => r.supply_status !== "closed").length,
     transfers: (transfers ?? []).filter((t) => !["accepted", "cancelled"].includes(t.status)).length,
     inTransit: (inTransit ?? []).length,
+    notifications: unreadCount,
   };
 
   return (
