@@ -176,7 +176,147 @@ function emptyResult(missingColumns: string[]): ParseResult {
   return { rows: [], missingColumns, totalRows: 0, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 };
 }
 
-export async function parseFile(file: File, entity: ImportEntity): Promise<ParseResult> {
+// Колонки, которые должны быть сопоставлены ПОЛЬЗОВАТЕЛЕМ (UI обязательность),
+// плюс особое правило «адрес ИЛИ координаты» для заказов.
+export const MANDATORY_FIELDS: Record<ImportEntity, string[]> = {
+  orders: ["order_number", "customer_name", "customer_phone"],
+  products: ["product_name"],
+  stock: ["warehouse", "product_name", "available_quantity"],
+  routes: ["route_number", "order_number", "driver_name"],
+  transport_requests: ["request_number", "request_type", "warehouse_from"],
+};
+
+export interface FilePreview {
+  headers: string[];                  // оригинальные заголовки из файла
+  sampleRows: unknown[][];            // первые N строк данных (без заголовка)
+  totalRows: number;                  // всего строк данных
+  suggestedMapping: ColumnMapping;    // автоподбор: systemKey -> headerIndex
+}
+
+// systemKey -> индекс колонки в файле (или -1 / null если не сопоставлено)
+export type ColumnMapping = Record<string, number | null>;
+
+export interface MappingValidation {
+  missingRequired: string[];          // системные ключи, не сопоставленные
+  ok: boolean;
+}
+
+export function validateMapping(entity: ImportEntity, mapping: ColumnMapping): MappingValidation {
+  const required = MANDATORY_FIELDS[entity] ?? [];
+  const missing: string[] = [];
+  for (const key of required) {
+    const v = mapping[key];
+    if (v == null || v < 0) missing.push(key);
+  }
+  // Особое правило: для заказов — адрес ИЛИ координаты
+  if (entity === "orders") {
+    const hasAddr = (mapping["delivery_address"] ?? -1) >= 0;
+    const hasCoord = (mapping["coordinates"] ?? -1) >= 0;
+    if (!hasAddr && !hasCoord) missing.push("delivery_address|coordinates");
+  }
+  return { missingRequired: missing, ok: missing.length === 0 };
+}
+
+function autoSuggestMapping(entity: ImportEntity, headers: string[]): ColumnMapping {
+  const schema = SCHEMAS[entity];
+  const headerN = headers.map((h) => normalizeKey(String(h)));
+  const map: ColumnMapping = {};
+  for (const col of schema.columns) {
+    const labelN = normalizeKey(col.label);
+    const keyN = normalizeKey(col.key);
+    let idx = headerN.findIndex((h) => h === labelN || h === keyN);
+    if (idx < 0 && labelN.length > 3) {
+      idx = headerN.findIndex((h) => h.startsWith(labelN.split(" ")[0]));
+    }
+    map[col.key] = idx >= 0 ? idx : null;
+  }
+  return map;
+}
+
+export async function readFilePreview(file: File, entity: ImportEntity): Promise<FilePreview> {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  if (!ws) return { headers: [], sampleRows: [], totalRows: 0, suggestedMapping: {} };
+  const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
+  if (aoa.length === 0) return { headers: [], sampleRows: [], totalRows: 0, suggestedMapping: {} };
+  const headers = (aoa[0] as unknown[]).map((h) => String(h ?? "").trim());
+  const dataRows = aoa.slice(1) as unknown[][];
+  return {
+    headers,
+    sampleRows: dataRows.slice(0, 5),
+    totalRows: dataRows.length,
+    suggestedMapping: autoSuggestMapping(entity, headers),
+  };
+}
+
+// ====== Mapping templates (localStorage) ======
+
+const MAPPING_STORAGE_KEY = "data_import_mapping_templates_v1";
+
+export interface MappingTemplate {
+  entity: ImportEntity;
+  signature: string;        // нормализованная сигнатура заголовков
+  headers: string[];        // оригинальные заголовки
+  mapping: ColumnMapping;
+  savedAt: string;
+  name?: string;
+}
+
+function headerSignature(headers: string[]): string {
+  return headers.map((h) => normalizeKey(h)).join("|");
+}
+
+function readTemplates(): MappingTemplate[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(MAPPING_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as MappingTemplate[];
+  } catch {
+    return [];
+  }
+}
+
+function writeTemplates(list: MappingTemplate[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MAPPING_STORAGE_KEY, JSON.stringify(list));
+  } catch {
+    // ignore quota
+  }
+}
+
+export function findMappingTemplate(entity: ImportEntity, headers: string[]): MappingTemplate | null {
+  const sig = headerSignature(headers);
+  return readTemplates().find((t) => t.entity === entity && t.signature === sig) ?? null;
+}
+
+export function saveMappingTemplate(entity: ImportEntity, headers: string[], mapping: ColumnMapping, name?: string): MappingTemplate {
+  const sig = headerSignature(headers);
+  const list = readTemplates().filter((t) => !(t.entity === entity && t.signature === sig));
+  const tpl: MappingTemplate = {
+    entity, signature: sig, headers, mapping,
+    savedAt: new Date().toISOString(),
+    name: name ?? `${entity} • ${headers.length} колонок`,
+  };
+  list.unshift(tpl);
+  writeTemplates(list.slice(0, 50));
+  return tpl;
+}
+
+export function listMappingTemplates(entity?: ImportEntity): MappingTemplate[] {
+  const all = readTemplates();
+  return entity ? all.filter((t) => t.entity === entity) : all;
+}
+
+export function deleteMappingTemplate(entity: ImportEntity, signature: string): void {
+  writeTemplates(readTemplates().filter((t) => !(t.entity === entity && t.signature === signature)));
+}
+
+// ====== Parse ======
+
+export async function parseFile(file: File, entity: ImportEntity, mapping?: ColumnMapping): Promise<ParseResult> {
   const schema = SCHEMAS[entity];
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
@@ -188,20 +328,30 @@ export async function parseFile(file: File, entity: ImportEntity): Promise<Parse
   if (aoa.length === 0) {
     return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
   }
-  const headerRow = (aoa[0] as unknown[]).map((h) => normalizeKey(String(h)));
+  const headers = (aoa[0] as unknown[]).map((h) => String(h ?? "").trim());
+
+  // Определяем сопоставление: пользовательское или автоподбор
+  const effectiveMapping: ColumnMapping = mapping ?? autoSuggestMapping(entity, headers);
+
   const colIndex: Record<string, number> = {};
   for (const col of schema.columns) {
-    const labelN = normalizeKey(col.label);
-    const keyN = normalizeKey(col.key);
-    let idx = headerRow.findIndex((h) => h === labelN || h === keyN);
-    if (idx < 0) {
-      idx = headerRow.findIndex((h) => h.startsWith(labelN.split(" ")[0]) && labelN.length > 3);
-    }
-    if (idx >= 0) colIndex[col.key] = idx;
+    const idx = effectiveMapping[col.key];
+    if (idx != null && idx >= 0) colIndex[col.key] = idx;
   }
-  const missingColumns = schema.columns
-    .filter((c) => c.required && !(c.key in colIndex))
-    .map((c) => c.label);
+
+  // Проверяем обязательные поля по UI-правилам (MANDATORY_FIELDS), а также адрес/координаты для заказов
+  const missingColumns: string[] = [];
+  for (const k of MANDATORY_FIELDS[entity] ?? []) {
+    if (!(k in colIndex)) {
+      const col = schema.columns.find((c) => c.key === k);
+      missingColumns.push(col?.label ?? k);
+    }
+  }
+  if (entity === "orders") {
+    if (!("delivery_address" in colIndex) && !("coordinates" in colIndex)) {
+      missingColumns.push("delivery_address или coordinates");
+    }
+  }
 
   const rows: ParsedRow[] = [];
   for (let i = 1; i < aoa.length; i++) {
@@ -213,10 +363,20 @@ export async function parseFile(file: File, entity: ImportEntity): Promise<Parse
       const idx = colIndex[col.key];
       const val = idx != null ? raw[idx] : undefined;
       const isEmpty = val === "" || val == null;
-      if (col.required && isEmpty) {
-        errors.push(`Не заполнено: ${col.label}`);
-      }
       data[col.key] = isEmpty ? null : val;
+    }
+    // Проверка обязательных по UI
+    for (const k of MANDATORY_FIELDS[entity] ?? []) {
+      if (data[k] == null || data[k] === "") {
+        const col = schema.columns.find((c) => c.key === k);
+        errors.push(`Не заполнено: ${col?.label ?? k}`);
+      }
+    }
+    if (entity === "orders") {
+      if ((data.delivery_address == null || data.delivery_address === "") &&
+          (data.coordinates == null || data.coordinates === "")) {
+        errors.push("Не заполнено: адрес или координаты");
+      }
     }
     rows.push({ rowNumber: i + 1, data, errors, duplicate: null });
   }
