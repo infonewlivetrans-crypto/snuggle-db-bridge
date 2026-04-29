@@ -308,6 +308,97 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
         </CardContent>
       </Card>
 
+      {preview && (
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wand2 className="h-5 w-5 text-muted-foreground" />
+              Сопоставление колонок
+            </CardTitle>
+            <CardDescription>
+              Укажите, какая колонка файла соответствует каждому полю системы. Обязательные поля помечены ⭑.
+              {savedTemplate && <> Применён сохранённый шаблон от {new Date(savedTemplate.savedAt).toLocaleString("ru-RU")}.</>}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!mappingValidation.ok && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Не сопоставлены обязательные поля: <b>{mappingValidation.missingRequired.join(", ")}</b>
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="overflow-auto rounded-md border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-1/3">Поле системы</TableHead>
+                    <TableHead className="w-1/3">Колонка файла</TableHead>
+                    <TableHead>Образец из файла</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {schema.columns.map((c) => {
+                    const isRequired = requiredKeys.includes(c.key);
+                    const isAddrCoord = entity === "orders" && (c.key === "delivery_address" || c.key === "coordinates");
+                    const idx = mapping[c.key];
+                    const sample = (idx != null && idx >= 0)
+                      ? preview.sampleRows.map((r) => r[idx]).filter((v) => v !== "" && v != null).slice(0, 2)
+                      : [];
+                    return (
+                      <TableRow key={c.key}>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs">{c.key}</span>
+                            {isRequired && <span className="text-xs font-bold text-destructive">⭑</span>}
+                            {isAddrCoord && <span className="text-[10px] text-amber-600">адрес или координаты</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{c.label}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={idx == null || idx < 0 ? "__none__" : String(idx)}
+                            onValueChange={(v) => handleSetMapping(c.key, v === "__none__" ? null : Number(v))}
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="— не сопоставлено —" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__none__">— не сопоставлено —</SelectItem>
+                              {preview.headers.map((h, i) => (
+                                <SelectItem key={i} value={String(i)}>{h || `(колонка ${i + 1})`}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {sample.length > 0 ? sample.map(String).join(" · ") : <span className="opacity-50">—</span>}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={handleConfirmMapping} disabled={parsing || !mappingValidation.ok} className="gap-2">
+                {parsing ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                Применить сопоставление и проверить данные
+              </Button>
+              <Button onClick={handleSaveTemplate} variant="outline" disabled={!mappingValidation.ok} className="gap-2">
+                <Save className="h-4 w-4" />
+                Сохранить шаблон сопоставления
+              </Button>
+              <SavedTemplatesMenu
+                entity={entity}
+                onApply={(t) => { setMapping(t.mapping); setSavedTemplate(t); setParsed(null); toast.success("Шаблон применён"); }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {parsed && (
         <Card className="lg:col-span-2">
           <CardHeader>
