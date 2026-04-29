@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { logPointAction } from "@/lib/pointActions";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -252,6 +254,8 @@ function DriverRoutePage() {
                   <DriverPointCard
                     key={p.id}
                     p={p}
+                    routeId={data.source_request_id}
+                    driverName={data.assigned_driver}
                     photoKinds={photoKindsByPoint?.[p.id]}
                   />
                 ))}
@@ -294,12 +298,29 @@ function DriverRoutePage() {
 
 function DriverPointCard({
   p,
+  routeId,
+  driverName,
   photoKinds,
 }: {
   p: PointRow;
+  routeId: string;
+  driverName: string | null;
   photoKinds: Set<string> | undefined;
 }) {
   const o = p.order;
+
+  // Лог: водитель открыл карточку точки
+  useEffect(() => {
+    logPointAction({
+      routePointId: p.id,
+      orderId: p.order_id,
+      routeId,
+      action: "point_opened",
+      actor: driverName ?? "Водитель",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.id]);
+
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -342,7 +363,20 @@ function DriverPointCard({
           disabled={!o?.contact_phone}
           className="h-11 gap-1.5"
         >
-          <a href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}>
+          <a
+            href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}
+            onClick={() => {
+              if (!o?.contact_phone) return;
+              logPointAction({
+                routePointId: p.id,
+                orderId: p.order_id,
+                routeId,
+                action: "call_client",
+                actor: driverName ?? "Водитель",
+                details: { phone: o.contact_phone },
+              });
+            }}
+          >
             <Phone className="h-4 w-4" />
             Позвонить
           </a>
@@ -358,6 +392,18 @@ function DriverPointCard({
             href={buildMapUrl(o) ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              const url = buildMapUrl(o);
+              if (!url) return;
+              logPointAction({
+                routePointId: p.id,
+                orderId: p.order_id,
+                routeId,
+                action: "open_map",
+                actor: driverName ?? "Водитель",
+                details: { url },
+              });
+            }}
           >
             <MapPin className="h-4 w-4" />
             Открыть карту

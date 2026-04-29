@@ -55,6 +55,7 @@ import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog"
 import { OrderReturnBlock } from "@/components/OrderReturnBlock";
 import { OrderDeliveryResultBlock } from "@/components/OrderDeliveryResultBlock";
 import { MarketplaceQrBlock } from "@/components/MarketplaceQrBlock";
+import { PointActionsHistory } from "@/components/PointActionsHistory";
 
 type DeliveryReport = {
   id: string;
@@ -462,6 +463,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
 
           {/* Все поля заказа */}
           <OrderAllFields order={order} />
+
+          {/* История доставки (действия водителя) */}
+          <PointActionsHistory orderId={order.id} title="История доставки" />
 
           {/* История изменений */}
           <OrderHistory orderId={order.id} />

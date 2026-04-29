@@ -855,6 +855,42 @@ export type Database = {
         }
         Relationships: []
       }
+      route_point_actions: {
+        Row: {
+          action: string
+          actor: string | null
+          comment: string | null
+          created_at: string
+          details: Json
+          id: string
+          order_id: string | null
+          route_id: string | null
+          route_point_id: string
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          comment?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          order_id?: string | null
+          route_id?: string | null
+          route_point_id: string
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          comment?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          order_id?: string | null
+          route_id?: string | null
+          route_point_id?: string
+        }
+        Relationships: []
+      }
       route_point_photos: {
         Row: {
           comment: string | null
