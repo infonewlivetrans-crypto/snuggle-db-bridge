@@ -4,6 +4,7 @@ import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, FileSpr
 import { Button } from "@/components/ui/button";
 import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as ExportPayload } from "@/lib/route-report-export";
 import { PaymentSummaryReportBlock } from "@/components/PaymentSummaryReportBlock";
+import { RouteReturnsBlock } from "@/components/RouteReturnsBlock";
 
 type ReportPayload = {
   delivery_route_id: string;
