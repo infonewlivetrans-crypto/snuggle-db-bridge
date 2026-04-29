@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as WarehouseTransfersRouteImport } from './routes/warehouse-transfers'
 import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
 import { Route as WarehouseStockRouteImport } from './routes/warehouse-stock'
 import { Route as WarehouseSettingsRouteImport } from './routes/warehouse-settings'
@@ -52,6 +53,11 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseTransfersRoute = WarehouseTransfersRouteImport.update({
+  id: '/warehouse-transfers',
+  path: '/warehouse-transfers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WarehouseTodayRoute = WarehouseTodayRouteImport.update({
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/warehouse-settings': typeof WarehouseSettingsRoute
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
+  '/warehouse-transfers': typeof WarehouseTransfersRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByTo {
   '/warehouse-settings': typeof WarehouseSettingsRoute
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
+  '/warehouse-transfers': typeof WarehouseTransfersRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -348,6 +356,7 @@ export interface FileRoutesById {
   '/warehouse-settings': typeof WarehouseSettingsRoute
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
+  '/warehouse-transfers': typeof WarehouseTransfersRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/warehouse-settings'
     | '/warehouse-stock'
     | '/warehouse-today'
+    | '/warehouse-transfers'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -432,6 +442,7 @@ export interface FileRouteTypes {
     | '/warehouse-settings'
     | '/warehouse-stock'
     | '/warehouse-today'
+    | '/warehouse-transfers'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -473,6 +484,7 @@ export interface FileRouteTypes {
     | '/warehouse-settings'
     | '/warehouse-stock'
     | '/warehouse-today'
+    | '/warehouse-transfers'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -515,6 +527,7 @@ export interface RootRouteChildren {
   WarehouseSettingsRoute: typeof WarehouseSettingsRoute
   WarehouseStockRoute: typeof WarehouseStockRoute
   WarehouseTodayRoute: typeof WarehouseTodayRoute
+  WarehouseTransfersRoute: typeof WarehouseTransfersRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
@@ -546,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/workspace'
       fullPath: '/workspace'
       preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-transfers': {
+      id: '/warehouse-transfers'
+      path: '/warehouse-transfers'
+      fullPath: '/warehouse-transfers'
+      preLoaderRoute: typeof WarehouseTransfersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/warehouse-today': {
@@ -835,6 +855,7 @@ const rootRouteChildren: RootRouteChildren = {
   WarehouseSettingsRoute: WarehouseSettingsRoute,
   WarehouseStockRoute: WarehouseStockRoute,
   WarehouseTodayRoute: WarehouseTodayRoute,
+  WarehouseTransfersRoute: WarehouseTransfersRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,

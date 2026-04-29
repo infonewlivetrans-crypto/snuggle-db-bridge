@@ -1548,6 +1548,63 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_transfers: {
+        Row: {
+          accepted_at: string | null
+          arrived_at: string | null
+          cancelled_at: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          destination_warehouse_id: string
+          id: string
+          in_transit_id: string | null
+          product_id: string
+          qty: number
+          sent_at: string | null
+          source_warehouse_id: string
+          status: string
+          transfer_number: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          arrived_at?: string | null
+          cancelled_at?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_warehouse_id: string
+          id?: string
+          in_transit_id?: string | null
+          product_id: string
+          qty: number
+          sent_at?: string | null
+          source_warehouse_id: string
+          status?: string
+          transfer_number: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          arrived_at?: string | null
+          cancelled_at?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination_warehouse_id?: string
+          id?: string
+          in_transit_id?: string | null
+          product_id?: string
+          qty?: number
+          sent_at?: string | null
+          source_warehouse_id?: string
+          status?: string
+          transfer_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       supply_in_transit: {
         Row: {
           comment: string | null
