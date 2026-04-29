@@ -534,7 +534,15 @@ function ManagerInfoAndActions({
   const managerName = manager?.manager_name ?? null;
   const managerPhone = manager?.manager_phone ?? null;
 
-  const log = (action: string, details?: Record<string, unknown>) =>
+  const log = (
+    action:
+      | "call_client"
+      | "message_client"
+      | "call_manager"
+      | "open_map"
+      | "report_problem",
+    details?: Record<string, unknown>,
+  ) =>
     logPointAction({
       routePointId,
       orderId,
