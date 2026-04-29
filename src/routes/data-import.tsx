@@ -254,7 +254,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
           <CardHeader>
             <CardTitle className="text-lg">Предпросмотр и проверка</CardTitle>
             <CardDescription>
-              Найдено строк: {parsed.totalRows} · Готово к загрузке: {parsed.validRows} · С ошибками: {parsed.invalidRows}
+              Всего: {parsed.totalRows} · Новые: {parsed.newRows} · Дубли: {parsed.duplicateRows} · Ошибки: {parsed.invalidRows}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
