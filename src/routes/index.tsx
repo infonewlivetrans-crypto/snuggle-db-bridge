@@ -329,10 +329,10 @@ function OrdersPage() {
                         )
                       )}
                     </TableCell>
-                    <TableCell className="text-sm text-foreground">
+                    <TableCell className="text-sm text-foreground col-secondary">
                       {PAYMENT_LABELS[order.payment_type]}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="col-secondary">
                       {order.requires_qr ? (
                         <TooltipProvider delayDuration={150}>
                           <Tooltip>
@@ -400,6 +400,14 @@ function OrdersPage() {
       />
       <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ImportOrdersDialog open={importOpen} onOpenChange={setImportOpen} />
+      <CreateRouteFromOrdersDialog
+        open={routeDialogOpen}
+        onOpenChange={(o) => {
+          setRouteDialogOpen(o);
+          if (!o) setSelectedIds(new Set());
+        }}
+        orders={selectedOrders}
+      />
     </div>
   );
 }
