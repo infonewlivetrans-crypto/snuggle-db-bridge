@@ -159,7 +159,7 @@ function DriverRoutesListPage() {
         )}
 
         <div className="pt-2">
-          <Link to="/">
+          <Link to="/" search={{ orderId: undefined }}>
             <Button variant="outline" size="sm" className="w-full">
               На главную
             </Button>

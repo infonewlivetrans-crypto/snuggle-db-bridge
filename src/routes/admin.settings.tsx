@@ -39,7 +39,7 @@ function AdminSettingsPage() {
       <header className="border-b bg-card">
         <div className="mx-auto max-w-6xl px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/"><ArrowLeft className="h-4 w-4" /> Назад</Link>
+            <Link to="/" search={{ orderId: undefined }}><ArrowLeft className="h-4 w-4" /> Назад</Link>
           </Button>
           <div>
             <h1 className="text-xl font-semibold flex items-center gap-2">

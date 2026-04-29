@@ -114,7 +114,7 @@ function OrdersPage() {
     if (found) {
       setSelectedOrder(found);
       setDialogOpen(true);
-      navigate({ to: "/", search: {}, replace: true });
+      navigate({ to: "/", search: { orderId: undefined }, replace: true });
     }
   }, [orderIdParam, orders, navigate]);
 
