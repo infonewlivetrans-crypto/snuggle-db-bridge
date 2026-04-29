@@ -359,6 +359,8 @@ function DeliveryRoutePage() {
               }))}
             />
 
+            {/* Доступ водителя по уникальной ссылке */}
+            <DriverAccessLinkBlock deliveryRouteId={data.id} />
             {/* Прогресс по точкам */}
             {(() => {
               const list = points ?? [];
