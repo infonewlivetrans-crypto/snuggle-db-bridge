@@ -46,6 +46,7 @@ function DriverRoutesListPage() {
         .select(
           "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id",
         )
+        .in("status", ["issued", "in_progress", "completed"])
         .order("route_date", { ascending: false })
         .limit(100);
       if (driver.trim()) q = q.ilike("assigned_driver", `%${driver.trim()}%`);
