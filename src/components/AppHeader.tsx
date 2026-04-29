@@ -41,6 +41,7 @@ const NAV_ITEMS = [
   { to: "/warehouse-inbound", label: "Приём товара", icon: PackageSearch, match: (p: string) => p.startsWith("/warehouse-inbound") },
   { to: "/warehouse-report", label: "Отчёт склада", icon: FileText, match: (p: string) => p.startsWith("/warehouse-report") },
   { to: "/warehouse-stock", label: "Остатки", icon: PackageSearch, match: (p: string) => p.startsWith("/warehouse-stock") },
+  { to: "/warehouse-movements", label: "Движение товара", icon: ClipboardList, match: (p: string) => p.startsWith("/warehouse-movements") },
   { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p: string) => p.startsWith("/supply") },
   { to: "/notifications", label: "Уведомления", icon: Bell, match: (p: string) => p.startsWith("/notifications") },
   { to: "/admin/tariffs", label: "Тарифы", icon: Receipt, match: (p: string) => p.startsWith("/admin/tariffs") },
