@@ -80,10 +80,12 @@ type StockBalance = {
 
 type SupplyStatus = "created" | "in_progress" | "ordered" | "awaiting" | "closed";
 
+type SupplySourceType = "factory" | "warehouse" | "supplier";
+
 type SupplyRequest = {
   id: string;
   request_number: string;
-  source_type: "factory" | "warehouse";
+  source_type: SupplySourceType;
   source_warehouse_id: string | null;
   source_name: string | null;
   destination_warehouse_id: string;
@@ -95,6 +97,11 @@ type SupplyRequest = {
   supply_comment: string | null;
   supply_status_changed_at: string | null;
   supply_status_changed_by: string | null;
+  expected_at: string | null;
+  expected_time: string | null;
+  planned_vehicle: string | null;
+  planned_carrier: string | null;
+  inbound_shipment_id: string | null;
   created_at: string;
 };
 
