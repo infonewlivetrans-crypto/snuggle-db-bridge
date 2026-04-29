@@ -129,12 +129,46 @@ function DirectorPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle")
+        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id")
         .gte("route_date", dateFrom)
         .lte("route_date", dateTo)
         .order("route_date", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as RouteRow[];
+      const rows = (data ?? []) as Array<RouteRow & { source_request_id: string | null }>;
+
+      const reqIds = Array.from(
+        new Set(rows.map((r) => r.source_request_id).filter(Boolean) as string[])
+      );
+      const costMap = new Map<string, {
+        delivery_cost: number;
+        cost_method: string;
+        cost_per_km: number;
+        cost_per_point: number;
+        total_distance_km: number;
+        points_count: number;
+        manual_cost: boolean;
+      }>();
+      if (reqIds.length > 0) {
+        const { data: rs } = await supabase
+          .from("routes")
+          .select("id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost")
+          .in("id", reqIds);
+        (rs ?? []).forEach((x) => costMap.set(x.id as string, x as never));
+      }
+
+      return rows.map((r) => {
+        const c = r.source_request_id ? costMap.get(r.source_request_id) : undefined;
+        return {
+          ...r,
+          delivery_cost: c?.delivery_cost ?? 0,
+          cost_method: c?.cost_method ?? "manual",
+          cost_per_km: c?.cost_per_km ?? 0,
+          cost_per_point: c?.cost_per_point ?? 0,
+          total_distance_km: c?.total_distance_km ?? 0,
+          points_count: c?.points_count ?? 0,
+          manual_cost: c?.manual_cost ?? false,
+        } as RouteRow;
+      });
     },
   });
 
