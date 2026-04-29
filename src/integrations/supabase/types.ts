@@ -595,6 +595,7 @@ export type Database = {
           error_message: string | null
           id: string
           import_log_id: string
+          matched_existing_id: string | null
           raw_data: Json
           row_number: number
           status: string
@@ -604,6 +605,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           import_log_id: string
+          matched_existing_id?: string | null
           raw_data?: Json
           row_number: number
           status?: string
@@ -613,6 +615,7 @@ export type Database = {
           error_message?: string | null
           id?: string
           import_log_id?: string
+          matched_existing_id?: string | null
           raw_data?: Json
           row_number?: number
           status?: string
@@ -630,42 +633,54 @@ export type Database = {
       import_logs: {
         Row: {
           created_at: string
+          duplicate_action: string
+          duplicate_rows: number
           entity: string
           failed_rows: number
           file_name: string | null
           id: string
           imported_by: string | null
           inserted_rows: number
+          skipped_rows: number
           source: string
           status: string
           total_rows: number
           updated_at: string
+          updated_rows: number
         }
         Insert: {
           created_at?: string
+          duplicate_action?: string
+          duplicate_rows?: number
           entity: string
           failed_rows?: number
           file_name?: string | null
           id?: string
           imported_by?: string | null
           inserted_rows?: number
+          skipped_rows?: number
           source?: string
           status?: string
           total_rows?: number
           updated_at?: string
+          updated_rows?: number
         }
         Update: {
           created_at?: string
+          duplicate_action?: string
+          duplicate_rows?: number
           entity?: string
           failed_rows?: number
           file_name?: string | null
           id?: string
           imported_by?: string | null
           inserted_rows?: number
+          skipped_rows?: number
           source?: string
           status?: string
           total_rows?: number
           updated_at?: string
+          updated_rows?: number
         }
         Relationships: []
       }

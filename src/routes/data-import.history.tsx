@@ -212,6 +212,8 @@ function LogDetailDialog({
         totalRows: failedRows.length,
         validRows: failedRows.length,
         invalidRows: 0,
+        duplicateRows: 0,
+        newRows: failedRows.length,
       };
       const r = await importParsed(
         log.entity,

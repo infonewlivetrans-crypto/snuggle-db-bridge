@@ -23,7 +23,16 @@ export interface ParsedRow {
   rowNumber: number; // 1-based, including header
   data: Record<string, unknown>;
   errors: string[];
+  duplicate?: DuplicateInfo | null;
 }
+
+export interface DuplicateInfo {
+  existingId: string;
+  matchedBy: string[]; // column keys used as the match
+  description: string; // short human description, e.g. order_number=ORD-1
+}
+
+export type DuplicateAction = "skip" | "update" | "create";
 
 export interface ParseResult {
   rows: ParsedRow[];
@@ -31,11 +40,17 @@ export interface ParseResult {
   totalRows: number;
   validRows: number;
   invalidRows: number;
+  duplicateRows: number;
+  newRows: number;
 }
 
 export interface ImportResult {
   inserted: number;
+  updated: number;
+  skipped: number;
   failed: number;
+  duplicates: number;
+  duplicateAction: DuplicateAction;
   failedRows: { row: number; message: string }[];
 }
 
@@ -157,27 +172,29 @@ function normalizeKey(s: string): string {
   return String(s ?? "").trim().toLowerCase();
 }
 
+function emptyResult(missingColumns: string[]): ParseResult {
+  return { rows: [], missingColumns, totalRows: 0, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 };
+}
+
 export async function parseFile(file: File, entity: ImportEntity): Promise<ParseResult> {
   const schema = SCHEMAS[entity];
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
   if (!ws) {
-    return { rows: [], missingColumns: schema.columns.filter(c => c.required).map(c => c.label), totalRows: 0, validRows: 0, invalidRows: 0 };
+    return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
   }
   const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
   if (aoa.length === 0) {
-    return { rows: [], missingColumns: schema.columns.filter(c => c.required).map(c => c.label), totalRows: 0, validRows: 0, invalidRows: 0 };
+    return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
   }
   const headerRow = (aoa[0] as unknown[]).map((h) => normalizeKey(String(h)));
-  // Map column key -> index by matching label OR key
   const colIndex: Record<string, number> = {};
   for (const col of schema.columns) {
     const labelN = normalizeKey(col.label);
     const keyN = normalizeKey(col.key);
     let idx = headerRow.findIndex((h) => h === labelN || h === keyN);
     if (idx < 0) {
-      // partial match by label start
       idx = headerRow.findIndex((h) => h.startsWith(labelN.split(" ")[0]) && labelN.length > 3);
     }
     if (idx >= 0) colIndex[col.key] = idx;
@@ -201,16 +218,166 @@ export async function parseFile(file: File, entity: ImportEntity): Promise<Parse
       }
       data[col.key] = isEmpty ? null : val;
     }
-    rows.push({ rowNumber: i + 1, data, errors });
+    rows.push({ rowNumber: i + 1, data, errors, duplicate: null });
   }
+
+  // Detect duplicates against existing data
+  await detectDuplicates(entity, rows);
+
   const validRows = rows.filter((r) => r.errors.length === 0).length;
+  const duplicateRows = rows.filter((r) => r.duplicate).length;
+  const newRows = rows.filter((r) => r.errors.length === 0 && !r.duplicate).length;
   return {
     rows,
     missingColumns,
     totalRows: rows.length,
     validRows,
     invalidRows: rows.length - validRows,
+    duplicateRows,
+    newRows,
   };
+}
+
+// ====== Duplicate detection ======
+
+interface DuplicateMatcher {
+  keys: string[]; // columns from data row used as match
+  fetch: (rows: ParsedRow[]) => Promise<Map<string, DuplicateInfo>>;
+  rowKey: (row: ParsedRow) => string | null;
+}
+
+const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
+
+function buildKey(parts: Array<unknown>): string | null {
+  if (parts.some((p) => p == null || String(p).trim() === "")) return null;
+  return parts.map(norm).join("||");
+}
+
+async function detectDuplicates(entity: ImportEntity, rows: ParsedRow[]): Promise<void> {
+  const matcher = getMatcher(entity);
+  if (!matcher) return;
+  const validRows = rows.filter((r) => r.errors.length === 0);
+  if (validRows.length === 0) return;
+  const map = await matcher.fetch(validRows);
+  for (const r of rows) {
+    const k = matcher.rowKey(r);
+    if (k && map.has(k)) {
+      r.duplicate = map.get(k)!;
+    }
+  }
+}
+
+function getMatcher(entity: ImportEntity): DuplicateMatcher | null {
+  if (entity === "orders") {
+    return {
+      keys: ["order_number"],
+      rowKey: (r) => buildKey([r.data.order_number]),
+      fetch: async (rows) => {
+        const vals = Array.from(new Set(rows.map((r) => str(r.data.order_number)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (vals.length === 0) return map;
+        const { data } = await supabase.from("orders").select("id, order_number").in("order_number", vals);
+        for (const d of data ?? []) {
+          const k = buildKey([d.order_number]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["order_number"], description: `order_number=${d.order_number}` });
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "products") {
+    return {
+      keys: ["product_name"],
+      rowKey: (r) => buildKey([r.data.product_name]),
+      fetch: async (rows) => {
+        const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (names.length === 0) return map;
+        const { data } = await supabase.from("products").select("id, name").in("name", names);
+        for (const d of (data ?? []) as Array<{ id: string; name: string }>) {
+          const k = buildKey([d.name]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["product_name"], description: d.name });
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "stock") {
+    return {
+      keys: ["warehouse", "product_name"],
+      rowKey: (r) => buildKey([r.data.warehouse, r.data.product_name]),
+      fetch: async (rows) => {
+        const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
+        const whs = Array.from(new Set(rows.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (names.length === 0 || whs.length === 0) return map;
+        // Existing inbound stock_movements with these product+warehouse already imply existing balance
+        const { data: prods } = await supabase.from("products").select("id, name").in("name", names);
+        const { data: whRows } = await supabase.from("warehouses").select("id, name").in("name", whs);
+        const prodMap = new Map((prods ?? []).map((p) => [p.id, p.name]));
+        const whMap = new Map((whRows ?? []).map((w) => [w.id, w.name]));
+        const prodIds = Array.from(prodMap.keys());
+        const whIds = Array.from(whMap.keys());
+        if (prodIds.length === 0 || whIds.length === 0) return map;
+        const { data: moves } = await supabase
+          .from("stock_movements")
+          .select("id, product_id, warehouse_id")
+          .in("product_id", prodIds)
+          .in("warehouse_id", whIds)
+          .limit(2000);
+        for (const m of (moves ?? []) as Array<{ id: string; product_id: string; warehouse_id: string }>) {
+          const pname = prodMap.get(m.product_id);
+          const wname = whMap.get(m.warehouse_id);
+          if (!pname || !wname) continue;
+          const k = buildKey([wname, pname]);
+          if (k && !map.has(k)) {
+            map.set(k, { existingId: m.id, matchedBy: ["warehouse", "product_name"], description: `${wname} / ${pname}` });
+          }
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "routes") {
+    return {
+      keys: ["route_number", "order_number"],
+      rowKey: (r) => buildKey([r.data.route_number, r.data.order_number ?? ""]),
+      fetch: async (rows) => {
+        const nums = Array.from(new Set(rows.map((r) => str(r.data.route_number)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (nums.length === 0) return map;
+        const { data } = await supabase.from("routes").select("id, route_number").in("route_number", nums);
+        for (const d of (data ?? []) as Array<{ id: string; route_number: string }>) {
+          // Match all rows with same route_number regardless of order_number value
+          for (const r of rows) {
+            if (str(r.data.route_number) === d.route_number) {
+              const k = buildKey([d.route_number, r.data.order_number ?? ""]);
+              if (k) map.set(k, { existingId: d.id, matchedBy: ["route_number"], description: `route_number=${d.route_number}` });
+            }
+          }
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "transport_requests") {
+    return {
+      keys: ["request_number"],
+      rowKey: (r) => buildKey([r.data.request_number]),
+      fetch: async (rows) => {
+        const nums = Array.from(new Set(rows.map((r) => str(r.data.request_number)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (nums.length === 0) return map;
+        const { data } = await supabase.from("routes").select("id, route_number").in("route_number", nums);
+        for (const d of (data ?? []) as Array<{ id: string; route_number: string }>) {
+          const k = buildKey([d.route_number]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["request_number"], description: `request_number=${d.route_number}` });
+        }
+        return map;
+      },
+    };
+  }
+  return null;
 }
 
 // ====== Import ======
@@ -230,24 +397,50 @@ export async function importParsed(
   entity: ImportEntity,
   parsed: ParseResult,
   source: ImportSource,
-  meta?: { fileName?: string | null; importedBy?: string | null },
+  meta?: { fileName?: string | null; importedBy?: string | null; duplicateAction?: DuplicateAction },
 ): Promise<ImportResult & { logId?: string }> {
-  const failed: { row: number; message: string; raw?: Record<string, unknown> }[] = [];
-  const succeededRows: { row: number; raw: Record<string, unknown> }[] = [];
+  const duplicateAction: DuplicateAction = meta?.duplicateAction ?? "skip";
+  const failed: { row: number; message: string; raw?: Record<string, unknown>; matchedId?: string | null }[] = [];
+  const insertedLog: { row: number; raw: Record<string, unknown>; matchedId?: string | null }[] = [];
+  const updatedLog: { row: number; raw: Record<string, unknown>; matchedId: string }[] = [];
+  const skippedLog: { row: number; raw: Record<string, unknown>; matchedId: string }[] = [];
   let inserted = 0;
+  let updated = 0;
+  let skipped = 0;
   const valid = parsed.rows.filter((r) => r.errors.length === 0);
 
-  // pre-fail rows with errors
   for (const r of parsed.rows.filter((x) => x.errors.length > 0)) {
     failed.push({ row: r.rowNumber, message: r.errors.join("; "), raw: r.data });
   }
 
-  const recordOk = (r: ParsedRow) => {
-    inserted++;
-    succeededRows.push({ row: r.rowNumber, raw: r.data });
+  const recordOk = (r: ParsedRow) => { inserted++; insertedLog.push({ row: r.rowNumber, raw: r.data }); };
+  const recordUpdated = (r: ParsedRow, id: string) => { updated++; updatedLog.push({ row: r.rowNumber, raw: r.data, matchedId: id }); };
+  const recordSkipped = (r: ParsedRow, id: string) => { skipped++; skippedLog.push({ row: r.rowNumber, raw: r.data, matchedId: id }); };
+  const recordFail = (r: ParsedRow, msg: string, matchedId?: string | null) => {
+    failed.push({ row: r.rowNumber, message: msg, raw: r.data, matchedId: matchedId ?? null });
   };
-  const recordFail = (r: ParsedRow, msg: string) => {
-    failed.push({ row: r.rowNumber, message: msg, raw: r.data });
+
+  // Helpers per entity to build payload + perform DB op
+  const handleRow = async (
+    r: ParsedRow,
+    insertOp: () => Promise<{ error: { message: string } | null }>,
+    updateOp: ((id: string) => Promise<{ error: { message: string } | null }>) | null,
+  ) => {
+    const dup = r.duplicate;
+    if (dup) {
+      if (duplicateAction === "skip") { recordSkipped(r, dup.existingId); return; }
+      if (duplicateAction === "update") {
+        if (!updateOp) { recordFail(r, "Обновление не поддерживается для этого типа", dup.existingId); return; }
+        const { error } = await updateOp(dup.existingId);
+        if (error) recordFail(r, error.message, dup.existingId);
+        else recordUpdated(r, dup.existingId);
+        return;
+      }
+      // create — fall through to insertOp
+    }
+    const { error } = await insertOp();
+    if (error) recordFail(r, error.message);
+    else recordOk(r);
   };
 
   if (entity === "orders") {
@@ -271,9 +464,11 @@ export async function importParsed(
         comment: str(d.comment),
         source,
       };
-      const { error } = await supabase.from("orders").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        async () => await supabase.from("orders").insert(payload as never),
+        async (id) => await supabase.from("orders").update(payload as never).eq("id", id),
+      );
     }
   } else if (entity === "products") {
     for (const r of valid) {
@@ -290,9 +485,11 @@ export async function importParsed(
         comment: str(d.comment),
         source,
       };
-      const { error } = await supabase.from("products").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        async () => await supabase.from("products").insert(payload as never),
+        async (id) => await supabase.from("products").update(payload as never).eq("id", id),
+      );
     }
   } else if (entity === "stock") {
     const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
@@ -310,15 +507,19 @@ export async function importParsed(
       if (!productId) { recordFail(r, `Товар "${name}" не найден`); continue; }
       if (!warehouseId) { recordFail(r, `Склад "${whName}" не найден`); continue; }
       if (qty == null || qty <= 0) { recordFail(r, `Некорректное количество`); continue; }
+      // For stock balances, an "update" means correction adjustment — we still insert a movement
+      // but skip it when duplicate + action=skip.
+      if (r.duplicate && duplicateAction === "skip") { recordSkipped(r, r.duplicate.existingId); continue; }
       const { error } = await supabase.from("stock_movements").insert({
         product_id: productId,
         warehouse_id: warehouseId,
         movement_type: "inbound",
         qty,
-        reason: "excel_import",
+        reason: r.duplicate && duplicateAction === "update" ? "excel_correction" : "excel_import",
         source,
       } as never);
       if (error) recordFail(r, error.message);
+      else if (r.duplicate && duplicateAction === "update") recordUpdated(r, r.duplicate.existingId);
       else recordOk(r);
     }
   } else if (entity === "routes") {
@@ -331,9 +532,11 @@ export async function importParsed(
         comment: str(d.comment),
         source,
       };
-      const { error } = await supabase.from("routes").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        async () => await supabase.from("routes").insert(payload as never),
+        async (id) => await supabase.from("routes").update(payload as never).eq("id", id),
+      );
     }
   } else if (entity === "transport_requests") {
     for (const r of valid) {
@@ -345,9 +548,11 @@ export async function importParsed(
         transport_comment: `${str(d.warehouse_from) ?? ""} → ${str(d.warehouse_to) ?? ""} ${str(d.planned_time) ?? ""}`.trim(),
         source,
       };
-      const { error } = await supabase.from("routes").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        async () => await supabase.from("routes").insert(payload as never),
+        async (id) => await supabase.from("routes").update(payload as never).eq("id", id),
+      );
     }
   }
 
@@ -356,8 +561,9 @@ export async function importParsed(
   try {
     const totalRows = parsed.totalRows;
     const failedCount = failed.length;
+    const duplicatesFound = parsed.duplicateRows ?? 0;
     let status: "loaded" | "partial" | "error" = "loaded";
-    if (inserted === 0 && failedCount > 0) status = "error";
+    if (inserted + updated + skipped === 0 && failedCount > 0) status = "error";
     else if (failedCount > 0) status = "partial";
 
     const { data: logRow, error: logErr } = await supabase
@@ -370,6 +576,10 @@ export async function importParsed(
         total_rows: totalRows,
         inserted_rows: inserted,
         failed_rows: failedCount,
+        updated_rows: updated,
+        skipped_rows: skipped,
+        duplicate_rows: duplicatesFound,
+        duplicate_action: duplicateAction,
         status,
       } as never)
       .select("id")
@@ -377,19 +587,21 @@ export async function importParsed(
     if (!logErr && logRow) {
       logId = (logRow as { id: string }).id;
       const rowsPayload = [
-        ...succeededRows.map((s) => ({
-          import_log_id: logId,
-          row_number: s.row,
-          status: "inserted",
-          error_message: null,
-          raw_data: s.raw,
+        ...insertedLog.map((s) => ({
+          import_log_id: logId, row_number: s.row, status: "inserted",
+          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId ?? null,
+        })),
+        ...updatedLog.map((s) => ({
+          import_log_id: logId, row_number: s.row, status: "updated",
+          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId,
+        })),
+        ...skippedLog.map((s) => ({
+          import_log_id: logId, row_number: s.row, status: "skipped",
+          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId,
         })),
         ...failed.map((f) => ({
-          import_log_id: logId,
-          row_number: f.row,
-          status: "failed",
-          error_message: f.message,
-          raw_data: f.raw ?? {},
+          import_log_id: logId, row_number: f.row, status: "failed",
+          error_message: f.message, raw_data: f.raw ?? {}, matched_existing_id: f.matchedId ?? null,
         })),
       ];
       if (rowsPayload.length > 0) {
@@ -400,5 +612,14 @@ export async function importParsed(
     // logging failures should not break the import
   }
 
-  return { inserted, failed: failed.length, failedRows: failed.map(f => ({ row: f.row, message: f.message })), logId };
+  return {
+    inserted,
+    updated,
+    skipped,
+    failed: failed.length,
+    duplicates: parsed.duplicateRows ?? 0,
+    duplicateAction,
+    failedRows: failed.map((f) => ({ row: f.row, message: f.message })),
+    logId,
+  };
 }

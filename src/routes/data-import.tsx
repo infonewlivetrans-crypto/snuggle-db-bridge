@@ -21,6 +21,7 @@ import {
   type ImportSource,
   type ParseResult,
   type ImportResult as DataImportResult,
+  type DuplicateAction,
 } from "@/lib/data-excel-import";
 
 export const Route = createFileRoute("/data-import")({
@@ -90,6 +91,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const schema = SCHEMAS[entity];
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<ImportSource>("excel");
+  const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>("skip");
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -111,7 +113,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
       } else if (r.totalRows === 0) {
         toast.warning("Файл пуст");
       } else {
-        toast.success(`Найдено строк: ${r.totalRows} (готовы: ${r.validRows})`);
+        toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
@@ -133,9 +135,9 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setImporting(true);
     setResult(null);
     try {
-      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null });
+      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null, duplicateAction });
       setResult(r);
-      if (r.failed === 0) toast.success(`Импортировано строк: ${r.inserted}`);
+      if (r.failed === 0) toast.success(`Загружено: ${r.inserted} · обновлено: ${r.updated} · пропущено: ${r.skipped}`);
       else toast.warning(`Загружено: ${r.inserted}, ошибок: ${r.failed}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка импорта");
@@ -177,6 +179,22 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
                 <SelectItem value="1c">1c — выгрузка из 1С</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Что делать с дублями</Label>
+            <Select value={duplicateAction} onValueChange={(v) => setDuplicateAction(v as DuplicateAction)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="skip">Пропустить строку</SelectItem>
+                <SelectItem value="update">Обновить существующую запись</SelectItem>
+                <SelectItem value="create">Создать как новую</SelectItem>
+              </SelectContent>
+            </Select>
+            {parsed && parsed.duplicateRows > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Найдено дублей: <b>{parsed.duplicateRows}</b>. Действие применится к ним при импорте.
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <Button
@@ -236,7 +254,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
           <CardHeader>
             <CardTitle className="text-lg">Предпросмотр и проверка</CardTitle>
             <CardDescription>
-              Найдено строк: {parsed.totalRows} · Готово к загрузке: {parsed.validRows} · С ошибками: {parsed.invalidRows}
+              Всего: {parsed.totalRows} · Новые: {parsed.newRows} · Дубли: {parsed.duplicateRows} · Ошибки: {parsed.invalidRows}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -269,13 +287,17 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
                     <TableRow key={r.rowNumber}>
                       <TableCell className="font-mono text-xs">{r.rowNumber}</TableCell>
                       <TableCell>
-                        {r.errors.length === 0 ? (
-                          <Badge variant="secondary" className="gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> OK
-                          </Badge>
-                        ) : (
+                        {r.errors.length > 0 ? (
                           <Badge variant="destructive" className="gap-1" title={r.errors.join("; ")}>
                             <AlertTriangle className="h-3 w-3" /> Ошибка
+                          </Badge>
+                        ) : r.duplicate ? (
+                          <Badge className="gap-1 bg-amber-500 text-white hover:bg-amber-500" title={r.duplicate.description}>
+                            <AlertTriangle className="h-3 w-3" /> Дубль
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <CheckCircle2 className="h-3 w-3" /> Новая
                           </Badge>
                         )}
                       </TableCell>
@@ -326,18 +348,30 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
               <div className="rounded-md border border-border p-3">
-                <div className="text-xs text-muted-foreground">Загружено строк</div>
+                <div className="text-xs text-muted-foreground">Загружено</div>
                 <div className="text-xl font-semibold">{result.inserted}</div>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground">Обновлено</div>
+                <div className="text-xl font-semibold">{result.updated}</div>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground">Пропущено</div>
+                <div className="text-xl font-semibold">{result.skipped}</div>
+              </div>
+              <div className="rounded-md border border-border p-3">
+                <div className="text-xs text-muted-foreground">Дублей</div>
+                <div className="text-xl font-semibold">{result.duplicates}</div>
               </div>
               <div className="rounded-md border border-border p-3">
                 <div className="text-xs text-muted-foreground">Ошибок</div>
                 <div className="text-xl font-semibold">{result.failed}</div>
               </div>
               <div className="rounded-md border border-border p-3">
-                <div className="text-xs text-muted-foreground">Источник</div>
-                <div className="text-xl font-semibold">{source}</div>
+                <div className="text-xs text-muted-foreground">Действие с дублями</div>
+                <div className="text-sm font-semibold">{result.duplicateAction}</div>
               </div>
             </div>
             {result.failedRows.length > 0 && (
