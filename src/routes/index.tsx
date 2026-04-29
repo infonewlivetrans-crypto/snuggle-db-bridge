@@ -264,28 +264,52 @@ function OrdersPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                     Загрузка заказов...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={7} className="py-12 text-center">
                     <Package2 className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заказы не найдены</div>
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((order) => (
+                filtered.map((order) => {
+                  const isExcel = (order.source ?? "").toLowerCase() === "excel";
+                  const is1c = (order.source ?? "").toLowerCase() === "1c";
+                  return (
                   <TableRow
                     key={order.id}
                     className="cursor-pointer"
+                    data-state={selectedIds.has(order.id) ? "selected" : undefined}
                     onClick={() => openOrder(order)}
                   >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(order.id)}
+                        onCheckedChange={() => toggleOne(order.id)}
+                        aria-label={`Выбрать заказ ${order.order_number}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-mono text-sm font-semibold text-foreground">
                       {order.order_number}
                     </TableCell>
                     <TableCell>
+                      {isExcel ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                          <FileSpreadsheet className="h-3 w-3 text-status-success" />
+                          Excel
+                        </span>
+                      ) : is1c ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                          1С
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Вручную</span>
+                      )}
+                    </TableCell>
                       <Badge variant="outline" className={STATUS_STYLES[order.status]}>
                         {STATUS_LABELS[order.status]}
                       </Badge>
