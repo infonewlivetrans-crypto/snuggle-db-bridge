@@ -119,6 +119,9 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
         }
       }
       if (status === "returned_to_warehouse") {
+        if (!reason) {
+          throw new Error("Укажите причину возврата.");
+        }
         if (!returnWh) {
           throw new Error("Выберите склад возврата.");
         }
@@ -126,13 +129,16 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           throw new Error("Загрузите фото для возврата на склад.");
         }
         if (!returnComment.trim()) {
-          throw new Error("Укажите причину возврата в комментарии.");
+          throw new Error("Укажите комментарий к возврату.");
         }
       }
       const payload: Record<string, unknown> = {
         dp_status: status,
         dp_status_changed_at: new Date().toISOString(),
-        dp_undelivered_reason: status === "not_delivered" ? (reason || null) : null,
+        dp_undelivered_reason:
+          status === "not_delivered" || status === "returned_to_warehouse"
+            ? (reason || null)
+            : null,
         dp_return_warehouse_id: status === "returned_to_warehouse" ? (returnWh || null) : null,
         dp_return_comment: status === "returned_to_warehouse" ? (returnComment || null) : null,
         dp_expected_return_at:
