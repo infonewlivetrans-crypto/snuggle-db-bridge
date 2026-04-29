@@ -26,6 +26,8 @@ const METHOD_LABEL: Record<CostMethod, string> = {
 
 type Props = {
   routeId: string;
+  warehouseId?: string | null;
+  appliedTariffId?: string | null;
   totalDistanceKm: number;
   pointsCount: number;
   costMethod: CostMethod;
@@ -34,6 +36,36 @@ type Props = {
   fixedCost: number;
   deliveryCost: number;
 };
+
+type TariffRow = {
+  id: string;
+  warehouse_id: string;
+  name: string;
+  kind: string;
+  city: string | null;
+  zone: string | null;
+  destination_city: string | null;
+  fixed_price: number | null;
+  price_per_km: number | null;
+  price_per_point: number | null;
+  base_price: number | null;
+  is_active: boolean;
+  comment: string | null;
+};
+
+function tariffToCostMethod(kind: string): CostMethod {
+  if (kind === "per_km_round" || kind === "per_km_last") return "per_km";
+  if (kind === "per_point") return "per_point";
+  if (kind === "combo") return "km_plus_point";
+  return "manual";
+}
+
+function tariffGeo(t: TariffRow): string {
+  if (t.kind === "fixed_direction") return `${t.city ?? "—"} → ${t.destination_city ?? "—"}`;
+  if (t.kind === "fixed_zone") return `Зона: ${t.zone ?? "—"}`;
+  if (t.kind === "fixed_city") return `Город: ${t.city ?? "—"}`;
+  return "—";
+}
 
 const fmtMoney = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 
