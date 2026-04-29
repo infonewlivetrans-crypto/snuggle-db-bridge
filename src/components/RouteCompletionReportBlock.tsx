@@ -28,6 +28,9 @@ type ReportPayload = {
     delivery_address: string | null;
     dp_status: "delivered" | "not_delivered" | "returned_to_warehouse" | string;
     undelivered_reason: string | null;
+    return_warehouse_name?: string | null;
+    return_comment?: string | null;
+    expected_return_at?: string | null;
     amount_due: number | null;
     amount_received: number | null;
     amount_diff: number;
