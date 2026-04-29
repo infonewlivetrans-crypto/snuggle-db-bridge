@@ -56,6 +56,8 @@ export const Route = createFileRoute("/")({
 });
 
 function OrdersPage() {
+  const { orderId: orderIdParam } = Route.useSearch();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
