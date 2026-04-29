@@ -17,6 +17,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2, Clock, AlertTriangle, Timer } from "lucide-react";
+import { DockLoadingChecklistBlock } from "@/components/DockLoadingChecklistBlock";
 
 /** Тикающие "часы" (обновляются каждые 30 секунд) для пересчёта таймеров */
 function useNowTick(intervalMs = 30_000) {
@@ -838,6 +839,13 @@ function WarehouseTodayPage() {
                   </div>
                 )}
               </div>
+
+              {/* Чек-лист загрузки товара со склада: нужно / загружено / остаток / подтвердить */}
+              <DockLoadingChecklistBlock
+                deliveryRouteId={openedRoute.id}
+                warehouseId={openedRoute.source_warehouse_id}
+                routeNumber={openedRoute.route_number}
+              />
 
               <div>
                 <div className="mb-2 inline-flex items-center gap-2 text-sm font-semibold">

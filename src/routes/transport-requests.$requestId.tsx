@@ -11,6 +11,7 @@ import {
 } from "./transport-requests.index";
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
+import { RequestLoadingListBlock } from "@/components/RequestLoadingListBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
@@ -263,6 +264,12 @@ function TransportRequestDetailPage() {
 
             {/* Товары из заказов (структура 1С) */}
             <RequestOrderItemsBlock requestId={data.id} />
+
+            {/* Список товаров к загрузке — агрегировано по товарам с проверкой остатков на складе */}
+            <RequestLoadingListBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+            />
 
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
