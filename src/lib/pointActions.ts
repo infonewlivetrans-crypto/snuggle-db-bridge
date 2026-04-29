@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 export type PointActionKind =
   | "point_opened"
   | "call_client"
+  | "message_client"
+  | "call_manager"
+  | "report_problem"
   | "open_map"
   | "status_delivered"
   | "status_not_delivered"
@@ -67,6 +70,9 @@ export async function logPointAction(args: {
 export const POINT_ACTION_LABELS: Record<string, string> = {
   point_opened: "Открыл точку",
   call_client: "Позвонил клиенту",
+  message_client: "Написал клиенту",
+  call_manager: "Позвонил менеджеру",
+  report_problem: "Сообщил о проблеме",
   open_map: "Открыл карту",
   status_delivered: "Отметил «Доставлено»",
   status_not_delivered: "Отметил «Не доставлено»",

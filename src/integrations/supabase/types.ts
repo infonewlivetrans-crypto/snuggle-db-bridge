@@ -221,6 +221,7 @@ export type Database = {
           id: string
           inn: string | null
           manager_name: string | null
+          manager_phone: string | null
           name: string
           phone: string | null
           source: string
@@ -234,6 +235,7 @@ export type Database = {
           id?: string
           inn?: string | null
           manager_name?: string | null
+          manager_phone?: string | null
           name: string
           phone?: string | null
           source?: string
@@ -247,6 +249,7 @@ export type Database = {
           id?: string
           inn?: string | null
           manager_name?: string | null
+          manager_phone?: string | null
           name?: string
           phone?: string | null
           source?: string
@@ -642,6 +645,51 @@ export type Database = {
           new_value?: string | null
           old_value?: string | null
           order_id?: string
+        }
+        Relationships: []
+      }
+      order_problem_reports: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          manager_name: string | null
+          manager_phone: string | null
+          order_id: string
+          photo_url: string | null
+          reason: string
+          reported_by: string | null
+          route_id: string | null
+          route_point_id: string | null
+          urgency: Database["public"]["Enums"]["problem_urgency"]
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          manager_name?: string | null
+          manager_phone?: string | null
+          order_id: string
+          photo_url?: string | null
+          reason: string
+          reported_by?: string | null
+          route_id?: string | null
+          route_point_id?: string | null
+          urgency?: Database["public"]["Enums"]["problem_urgency"]
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          manager_name?: string | null
+          manager_phone?: string | null
+          order_id?: string
+          photo_url?: string | null
+          reason?: string
+          reported_by?: string | null
+          route_id?: string | null
+          route_point_id?: string | null
+          urgency?: Database["public"]["Enums"]["problem_urgency"]
         }
         Relationships: []
       }
@@ -1949,6 +1997,7 @@ export type Database = {
         | "client_refused"
         | "no_unloading"
         | "problem"
+      problem_urgency: "normal" | "urgent"
       route_point_photo_kind:
         | "qr"
         | "signed_docs"
@@ -2206,6 +2255,7 @@ export const Constants = {
         "no_unloading",
         "problem",
       ],
+      problem_urgency: ["normal", "urgent"],
       route_point_photo_kind: [
         "qr",
         "signed_docs",
