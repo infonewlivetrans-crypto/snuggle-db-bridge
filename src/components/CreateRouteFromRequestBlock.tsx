@@ -153,11 +153,15 @@ export function CreateRouteFromRequestBlock({
             <Plus className="h-4 w-4" />
             {createRoute.isPending ? "Создание..." : "Создать маршрут"}
           </Button>
-          {disabled && (
+          {blockedByShortage ? (
+            <p className="text-xs font-medium text-red-700 dark:text-red-300">
+              Нельзя выдать маршрут водителю: не хватает товара на складе
+            </p>
+          ) : disabled ? (
             <p className="text-xs text-amber-700 dark:text-amber-300">
               Добавьте заказы в заявку, чтобы создать маршрут.
             </p>
-          )}
+          ) : null}
         </div>
       )}
     </div>
