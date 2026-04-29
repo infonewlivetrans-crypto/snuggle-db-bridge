@@ -20,8 +20,8 @@ import {
   type ImportEntity,
   type ImportSource,
   type ParseResult,
-  type ImportResult,
-} from "@/lib/excel-import";
+  type ImportResult as DataImportResult,
+} from "@/lib/data-excel-import";
 
 export const Route = createFileRoute("/data-import")({
   head: () => ({
