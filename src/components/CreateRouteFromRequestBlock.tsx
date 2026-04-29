@@ -100,7 +100,7 @@ export function CreateRouteFromRequestBlock({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const disabled = ordersCount === 0 || blockedByShortage;
+  const disabled = ordersCount === 0 || blockedByShortage || blockedByWarehouseStatus;
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
