@@ -178,8 +178,32 @@ export function DockLoadingChecklistBlock({
       if (!warehouseId) throw new Error("Не указан склад отгрузки");
       if (args.qty <= 0) throw new Error("Количество должно быть больше 0");
       if (args.product_id) {
+        // Доступно «реально для этой заявки» = available + собственный активный резерв заявки.
+        // Без этого корректно зарезервированный товар выглядел бы как «нехватка»,
+        // потому что available из stock_balances уже уменьшен на величину резерва.
         const av = availableByProduct.get(args.product_id) ?? 0;
-        if (av < args.qty) {
+        let ownReserved = 0;
+        const { data: dr } = await db
+          .from("delivery_routes")
+          .select("source_request_id")
+          .eq("id", deliveryRouteId)
+          .maybeSingle();
+        const srcId = (dr as { source_request_id?: string } | null)
+          ?.source_request_id;
+        if (srcId) {
+          const { data: rs } = await db
+            .from("stock_reservations")
+            .select("qty")
+            .eq("transport_request_id", srcId)
+            .eq("product_id", args.product_id)
+            .eq("warehouse_id", warehouseId)
+            .eq("status", "active");
+          ownReserved = (rs ?? []).reduce(
+            (s, r) => s + (Number((r as { qty: number }).qty) || 0),
+            0,
+          );
+        }
+        if (av + ownReserved < args.qty) {
           throw new Error("Недостаточно товара для загрузки");
         }
       }
