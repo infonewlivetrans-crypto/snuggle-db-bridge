@@ -287,16 +287,16 @@ function getMatcher(entity: ImportEntity): DuplicateMatcher | null {
   }
   if (entity === "products") {
     return {
-      keys: ["product_name", "characteristic"],
-      rowKey: (r) => buildKey([r.data.product_name, r.data.characteristic ?? ""]),
+      keys: ["product_name"],
+      rowKey: (r) => buildKey([r.data.product_name]),
       fetch: async (rows) => {
         const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
         const map = new Map<string, DuplicateInfo>();
         if (names.length === 0) return map;
-        const { data } = await supabase.from("products").select("id, name, characteristic").in("name", names);
-        for (const d of (data ?? []) as Array<{ id: string; name: string; characteristic: string | null }>) {
-          const k = buildKey([d.name, d.characteristic ?? ""]);
-          if (k) map.set(k, { existingId: d.id, matchedBy: ["product_name", "characteristic"], description: `${d.name}${d.characteristic ? " / " + d.characteristic : ""}` });
+        const { data } = await supabase.from("products").select("id, name").in("name", names);
+        for (const d of (data ?? []) as Array<{ id: string; name: string }>) {
+          const k = buildKey([d.name]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["product_name"], description: d.name });
         }
         return map;
       },
