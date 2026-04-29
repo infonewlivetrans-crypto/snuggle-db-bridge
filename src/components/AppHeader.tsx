@@ -12,6 +12,7 @@ import {
   Receipt,
   ClipboardList,
   Bell,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
