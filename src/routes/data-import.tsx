@@ -133,7 +133,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setImporting(true);
     setResult(null);
     try {
-      const r = await importParsed(entity, parsed, source);
+      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null });
       setResult(r);
       if (r.failed === 0) toast.success(`Импортировано строк: ${r.inserted}`);
       else toast.warning(`Загружено: ${r.inserted}, ошибок: ${r.failed}`);
