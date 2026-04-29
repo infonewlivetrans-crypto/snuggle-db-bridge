@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Warehouse, AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
@@ -7,6 +8,9 @@ import {
   useRequestWarehouseStatus,
   type RequestWarehouseStatus,
 } from "@/lib/requestWarehouseStatus";
+import { emitWarehouseStatusNotification } from "@/lib/warehouseStatusNotifications";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const HINTS: Record<RequestWarehouseStatus, string> = {
   awaiting_check:
@@ -32,11 +36,42 @@ export function RequestWarehouseStatusBlock({
 }) {
   const { data, isLoading } = useRequestWarehouseStatus(requestId, warehouseId);
 
+  // Берём номер заявки и имя склада для уведомлений
+  const { data: meta } = useQuery({
+    queryKey: ["transport-request-meta", requestId],
+    queryFn: async () => {
+      const { data: row } = await supabase
+        .from("routes")
+        .select("route_number, warehouse:warehouse_id(name)")
+        .eq("id", requestId)
+        .maybeSingle();
+      return row as
+        | { route_number: string; warehouse: { name: string } | null }
+        | null;
+    },
+  });
+
   if (data) {
     onStatusChange?.(data.status);
   }
 
   const status = data?.status;
+
+  // Эмитим уведомление при смене статуса (с дедупликацией на стороне БД).
+  const lastEmittedRef = useRef<RequestWarehouseStatus | null>(null);
+  useEffect(() => {
+    if (!status || !meta?.route_number) return;
+    if (lastEmittedRef.current === status) return;
+    lastEmittedRef.current = status;
+    void emitWarehouseStatusNotification({
+      requestId,
+      status,
+      routeNumber: meta.route_number,
+      warehouseId,
+      warehouseName: meta.warehouse?.name ?? null,
+    });
+  }, [status, meta?.route_number, meta?.warehouse?.name, requestId, warehouseId]);
+
   const okForDriver = status
     ? REQ_WH_STATUS_OK_FOR_DRIVER.includes(status)
     : false;

@@ -2016,6 +2016,30 @@ export type Database = {
         }
         Relationships: []
       }
+      transport_request_warehouse_status_log: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          status: string
+          transport_request_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          status: string
+          transport_request_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          transport_request_id?: string
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           body_height_m: number | null

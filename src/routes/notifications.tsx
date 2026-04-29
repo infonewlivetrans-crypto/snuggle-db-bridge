@@ -50,6 +50,7 @@ const KIND_LABEL: Record<string, string> = {
   delivery_report: "Отчёт по доставке",
   route_completed_report: "Маршрут завершён",
   driver_problem_reported: "Проблема по заказу",
+  transport_request_warehouse_status: "Склад · заявка",
 };
 
 const KIND_TONE: Record<string, string> = {
@@ -62,6 +63,7 @@ const KIND_TONE: Record<string, string> = {
   delivery_report: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
   route_completed_report: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
   driver_problem_reported: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  transport_request_warehouse_status: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
 };
 
 type FilterKey = "all" | "routes" | "qr" | "problems" | "returns" | "payment_diff";
@@ -238,6 +240,18 @@ function NotificationsPage() {
                       navigate({
                         to: "/delivery-routes/$deliveryRouteId",
                         params: { deliveryRouteId: routeId },
+                      });
+                      return;
+                    }
+                  }
+                  if (n.kind === "transport_request_warehouse_status") {
+                    const reqId =
+                      (n.payload?.transport_request_id as string | undefined) ??
+                      undefined;
+                    if (reqId) {
+                      navigate({
+                        to: "/transport-requests/$requestId",
+                        params: { requestId: reqId },
                       });
                       return;
                     }
