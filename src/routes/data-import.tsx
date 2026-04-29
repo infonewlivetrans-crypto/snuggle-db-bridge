@@ -41,14 +41,22 @@ function DataImportPage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className="mb-6">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            <FileSpreadsheet className="h-6 w-6 text-muted-foreground" />
-            Импорт данных
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Импорт Excel. Скачайте шаблон, заполните, проверьте предпросмотр и загрузите.
-          </p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+              <FileSpreadsheet className="h-6 w-6 text-muted-foreground" />
+              Импорт данных
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Импорт Excel. Скачайте шаблон, заполните, проверьте предпросмотр и загрузите.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/data-import/history">
+              <History className="h-4 w-4" />
+              История импорта
+            </Link>
+          </Button>
         </div>
 
         <Alert className="mb-6">
