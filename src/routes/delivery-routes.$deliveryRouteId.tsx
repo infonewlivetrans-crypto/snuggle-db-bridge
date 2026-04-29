@@ -155,6 +155,31 @@ function DeliveryRoutePage() {
 
   const [status, setStatus] = useState<DeliveryRouteStatus>("formed");
   const [comment, setComment] = useState("");
+  const [addPointOpen, setAddPointOpen] = useState(false);
+
+  const reorder = useMutation({
+    mutationFn: async ({ pointId, direction }: { pointId: string; direction: "up" | "down" }) => {
+      const list = points ?? [];
+      const idx = list.findIndex((p) => p.id === pointId);
+      if (idx === -1) return;
+      const swapWith = direction === "up" ? idx - 1 : idx + 1;
+      if (swapWith < 0 || swapWith >= list.length) return;
+      const a = list[idx];
+      const b = list[swapWith];
+      // Двухходовая замена через временное значение, чтобы обойти UNIQUE(route_id, point_number) при наличии
+      const tmp = -Math.abs(a.point_number) - 1;
+      const tx1 = await supabase.from("route_points").update({ point_number: tmp }).eq("id", a.id);
+      if (tx1.error) throw tx1.error;
+      const tx2 = await supabase.from("route_points").update({ point_number: a.point_number }).eq("id", b.id);
+      if (tx2.error) throw tx2.error;
+      const tx3 = await supabase.from("route_points").update({ point_number: b.point_number }).eq("id", a.id);
+      if (tx3.error) throw tx3.error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   useEffect(() => {
     if (data) {
