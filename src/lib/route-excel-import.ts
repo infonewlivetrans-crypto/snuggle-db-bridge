@@ -178,8 +178,12 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
   for (const [routeKey, group] of groups.entries()) {
     const baseRow = group.rows[0];
     try {
-      // Проверка обязательных полей хотя бы у первой строки группы
-      if (!baseRow.driver) throw new Error("Не заполнены обязательные данные: водитель");
+      // Проверка обязательных полей маршрута
+      const missing: string[] = [];
+      if (!baseRow.route_number) missing.push("номер маршрута");
+      if (!baseRow.driver) missing.push("водитель");
+      if (missing.length > 0)
+        throw new Error("Не заполнены обязательные данные: " + missing.join(", "));
 
       // 1. routes (заявка-родитель)
       const { data: routeNumData, error: routeNumErr } = await supabase.rpc("generate_route_number");
