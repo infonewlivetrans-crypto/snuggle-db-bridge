@@ -19,6 +19,10 @@ import {
   PackageSearch,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  notifyShortageForRequest,
+  notifySupplyRequestCreated,
+} from "@/lib/supplyNotifications";
 
 type Pt = { order_id: string };
 type Item = {
