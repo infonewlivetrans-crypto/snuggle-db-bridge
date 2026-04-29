@@ -127,7 +127,7 @@ function DriverRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, order_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, payment_status, cash_received, qr_received)",
+          "id, point_number, order_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, payment_status, cash_received, qr_received, map_link, latitude, longitude)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
