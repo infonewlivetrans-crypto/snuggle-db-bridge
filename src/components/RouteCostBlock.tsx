@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Wallet, Save, History, Pencil } from "lucide-react";
+import { Wallet, Save, History, Pencil, AlertTriangle, Percent } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
