@@ -94,7 +94,7 @@ export function AddManualPointDialog({
           order_number: orderNumber.trim(),
           contact_name: contactName.trim() || null,
           contact_phone: contactPhone.trim() || null,
-          delivery_address: address.trim(),
+          delivery_address: address.trim() || null,
           map_link: mapLink.trim() || null,
           latitude: lat,
           longitude: lng,
