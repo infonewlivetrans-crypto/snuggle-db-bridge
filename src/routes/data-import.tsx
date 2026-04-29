@@ -99,31 +99,42 @@ function DataImportPage() {
 
 function ImportPanel({ entity }: { entity: ImportEntity }) {
   const schema = SCHEMAS[entity];
+  const requiredKeys = MANDATORY_FIELDS[entity] ?? [];
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<ImportSource>("excel");
   const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>("skip");
+  const [preview, setPreview] = useState<FilePreview | null>(null);
+  const [mapping, setMapping] = useState<ColumnMapping>({});
+  const [savedTemplate, setSavedTemplate] = useState<MappingTemplate | null>(null);
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<DataImportResult | null>(null);
 
   const previewRows = useMemo(() => parsed?.rows.slice(0, 10) ?? [], [parsed]);
+  const mappingValidation = useMemo(() => validateMapping(entity, mapping), [entity, mapping]);
 
   const handleFile = async (f: File | null) => {
     setFile(f);
+    setPreview(null);
+    setMapping({});
+    setSavedTemplate(null);
     setParsed(null);
     setResult(null);
     if (!f) return;
     setParsing(true);
     try {
-      const r = await parseFile(f, entity);
-      setParsed(r);
-      if (r.missingColumns.length > 0) {
-        toast.error(`Не хватает обязательных колонок: ${r.missingColumns.join(", ")}`);
-      } else if (r.totalRows === 0) {
-        toast.warning("Файл пуст");
+      const p = await readFilePreview(f, entity);
+      setPreview(p);
+      // Ищем сохранённый шаблон сопоставления
+      const tpl = findMappingTemplate(entity, p.headers);
+      if (tpl) {
+        setSavedTemplate(tpl);
+        setMapping(tpl.mapping);
+        toast.success("Найден сохранённый шаблон сопоставления — применён автоматически");
       } else {
-        toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
+        setMapping(p.suggestedMapping);
+        toast.success(`Файл прочитан: ${p.headers.length} колонок, ${p.totalRows} строк. Проверьте сопоставление.`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
@@ -132,12 +143,45 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     }
   };
 
-  const handleImport = async () => {
-    if (!parsed) return;
-    if (parsed.missingColumns.length > 0) {
-      toast.error("Сначала исправьте обязательные колонки");
+  const handleConfirmMapping = async () => {
+    if (!file || !preview) return;
+    if (!mappingValidation.ok) {
+      toast.error(`Сопоставьте обязательные поля: ${mappingValidation.missingRequired.join(", ")}`);
       return;
     }
+    setParsing(true);
+    setParsed(null);
+    setResult(null);
+    try {
+      const r = await parseFile(file, entity, mapping);
+      setParsed(r);
+      if (r.totalRows === 0) toast.warning("Нет данных для импорта");
+      else toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка обработки");
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const handleSaveTemplate = () => {
+    if (!preview) return;
+    if (!mappingValidation.ok) {
+      toast.error("Сначала сопоставьте обязательные поля");
+      return;
+    }
+    const tpl = saveMappingTemplate(entity, preview.headers, mapping);
+    setSavedTemplate(tpl);
+    toast.success("Шаблон сопоставления сохранён");
+  };
+
+  const handleSetMapping = (key: string, idx: number | null) => {
+    setMapping((m) => ({ ...m, [key]: idx }));
+    setParsed(null);
+  };
+
+  const handleImport = async () => {
+    if (!parsed) return;
     if (parsed.validRows === 0) {
       toast.error("Нет валидных строк для импорта");
       return;
