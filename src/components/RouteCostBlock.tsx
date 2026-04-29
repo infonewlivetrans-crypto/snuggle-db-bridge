@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Wallet, Save, History, Pencil } from "lucide-react";
+import { Wallet, Save, History, Pencil, AlertTriangle, Percent } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,9 @@ type Props = {
   costPerPoint: number;
   fixedCost: number;
   deliveryCost: number;
+  ordersAmountFromData: number;
+  manualOrdersAmount: number | null;
+  deliveryPercentTarget: number;
 };
 
 type TariffRow = {
@@ -80,6 +83,9 @@ export function RouteCostBlock({
   costPerPoint,
   fixedCost,
   deliveryCost,
+  ordersAmountFromData,
+  manualOrdersAmount,
+  deliveryPercentTarget,
 }: Props) {
   const qc = useQueryClient();
   const [method, setMethod] = useState<CostMethod>(costMethod);
@@ -90,6 +96,12 @@ export function RouteCostBlock({
   const [comment, setComment] = useState<string>("");
   const [tariffId, setTariffId] = useState<string>(appliedTariffId ?? "");
   const [reason, setReason] = useState<string>("");
+  const [manualOrders, setManualOrders] = useState<string>(
+    manualOrdersAmount != null ? String(manualOrdersAmount) : ""
+  );
+  const [percentTarget, setPercentTarget] = useState<string>(
+    String(deliveryPercentTarget ?? 5)
+  );
 
   useEffect(() => {
     setMethod(costMethod);
@@ -98,7 +110,9 @@ export function RouteCostBlock({
     setFixed(String(fixedCost ?? 0));
     setManualTotal(String(deliveryCost ?? 0));
     setTariffId(appliedTariffId ?? "");
-  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost, appliedTariffId]);
+    setManualOrders(manualOrdersAmount != null ? String(manualOrdersAmount) : "");
+    setPercentTarget(String(deliveryPercentTarget ?? 5));
+  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost, appliedTariffId, manualOrdersAmount, deliveryPercentTarget]);
 
   const { data: tariffs = [] } = useQuery({
     queryKey: ["delivery-tariffs-for-route", warehouseId ?? "any"],
@@ -145,6 +159,22 @@ export function RouteCostBlock({
     return 0;
   }, [method, totalDistanceKm, pointsCount, perKm, perPoint, fixed, manualTotal]);
 
+  // Эффективная сумма заказов: ручной ввод приоритетнее данных из системы
+  const ordersAmount = useMemo(() => {
+    const m = Number(manualOrders);
+    if (manualOrders.trim() !== "" && Number.isFinite(m) && m > 0) return m;
+    return Number(ordersAmountFromData) || 0;
+  }, [manualOrders, ordersAmountFromData]);
+
+  const deliveryPercent = useMemo(() => {
+    if (!ordersAmount || ordersAmount <= 0) return null;
+    return (computedTotal / ordersAmount) * 100;
+  }, [computedTotal, ordersAmount]);
+
+  const targetPct = Number(percentTarget) || 0;
+  const overTarget =
+    deliveryPercent != null && targetPct > 0 && deliveryPercent > targetPct;
+
   const { data: history = [] } = useQuery({
     queryKey: ["route-cost-history", routeId],
     queryFn: async () => {
@@ -183,6 +213,9 @@ export function RouteCostBlock({
         manual_cost: method === "manual",
         applied_tariff_id: tariffId || null,
         manual_cost_reason: method === "manual" ? (reason.trim() || null) : null,
+        manual_orders_amount:
+          manualOrders.trim() === "" ? null : Number(manualOrders) || 0,
+        delivery_percent_target: Number(percentTarget) || 0,
       };
       const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
       if (error) throw error;
@@ -359,6 +392,108 @@ export function RouteCostBlock({
           <span className="font-semibold text-foreground">{fmtMoney(computedTotal)} ₽</span>
         </div>
       )}
+
+      {/* Контроль процента доставки от стоимости товара */}
+      <div className="mt-4 rounded-md border border-border bg-muted/20 p-3">
+        <div className="mb-2 flex items-center gap-2">
+          <Percent className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Процент доставки от стоимости товара</h3>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label className="text-xs">Сумма заказов в маршруте, ₽</Label>
+            <Input
+              value={fmtMoney(ordersAmountFromData)}
+              readOnly
+              disabled
+              className="h-9 bg-muted"
+            />
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              Из данных заказов (товары)
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Сумма вручную / из Excel, ₽</Label>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={manualOrders}
+              onChange={(e) => setManualOrders(e.target.value)}
+              placeholder="Если 1С не передал"
+              className="h-9"
+            />
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              Используется, если заполнено
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Норматив процента доставки, %</Label>
+            <Input
+              type="number"
+              min={0}
+              step="0.1"
+              value={percentTarget}
+              onChange={(e) => setPercentTarget(e.target.value)}
+              className="h-9"
+            />
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded border border-border bg-card p-2">
+            <div className="text-[10px] uppercase text-muted-foreground">Сумма заказов</div>
+            <div className="text-base font-semibold">{fmtMoney(ordersAmount)} ₽</div>
+          </div>
+          <div className="rounded border border-border bg-card p-2">
+            <div className="text-[10px] uppercase text-muted-foreground">Стоимость доставки</div>
+            <div className="text-base font-semibold">{fmtMoney(computedTotal)} ₽</div>
+          </div>
+          <div
+            className={`rounded border p-2 ${
+              overTarget
+                ? "border-rose-300 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/30"
+                : deliveryPercent != null
+                ? "border-emerald-300 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30"
+                : "border-border bg-card"
+            }`}
+          >
+            <div className="text-[10px] uppercase text-muted-foreground">% доставки</div>
+            <div
+              className={`text-base font-semibold ${
+                overTarget
+                  ? "text-rose-700 dark:text-rose-300"
+                  : deliveryPercent != null
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : ""
+              }`}
+            >
+              {deliveryPercent != null ? `${deliveryPercent.toFixed(2)} %` : "—"}
+            </div>
+            <div className="text-[10px] text-muted-foreground">Норматив: {targetPct} %</div>
+          </div>
+        </div>
+
+        {overTarget && (
+          <div className="mt-2 flex items-start gap-1.5 rounded border border-rose-300 bg-rose-50 p-2 text-xs text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              Стоимость доставки превышает норматив (
+              {deliveryPercent?.toFixed(2)} % &gt; {targetPct} %)
+            </span>
+          </div>
+        )}
+
+        {ordersAmount === 0 && (
+          <div className="mt-2 flex items-start gap-1.5 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              Сумма заказов не известна. Введите её вручную или дождитесь импорта из Excel / 1С.
+            </span>
+          </div>
+        )}
+      </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {method === "manual" && (

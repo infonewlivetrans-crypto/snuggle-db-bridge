@@ -57,6 +57,9 @@ type RouteRow = {
   total_distance_km?: number | null;
   points_count?: number | null;
   manual_cost?: boolean | null;
+  manual_orders_amount?: number | null;
+  delivery_percent_target?: number | null;
+  orders_amount?: number;
 };
 
 const COST_METHOD_LABELS: Record<string, string> = {
@@ -71,7 +74,7 @@ type PointRow = {
   dp_status: string;
   dp_undelivered_reason: string | null;
   dp_amount_received: number | null;
-  order: { amount_due: number | null; payment_type: string | null } | null;
+  order: { amount_due: number | null; payment_type: string | null; goods_amount: number | null } | null;
 };
 
 type Totals = {
@@ -147,11 +150,13 @@ function DirectorPage() {
         total_distance_km: number;
         points_count: number;
         manual_cost: boolean;
+        manual_orders_amount: number | null;
+        delivery_percent_target: number | null;
       }>();
       if (reqIds.length > 0) {
         const { data: rs } = await supabase
           .from("routes")
-          .select("id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost")
+          .select("id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost, manual_orders_amount, delivery_percent_target")
           .in("id", reqIds);
         (rs ?? []).forEach((x) => costMap.set(x.id as string, x as never));
       }
@@ -167,6 +172,8 @@ function DirectorPage() {
           total_distance_km: c?.total_distance_km ?? 0,
           points_count: c?.points_count ?? 0,
           manual_cost: c?.manual_cost ?? false,
+          manual_orders_amount: c?.manual_orders_amount ?? null,
+          delivery_percent_target: c?.delivery_percent_target ?? 5,
         } as RouteRow;
       });
     },
@@ -181,7 +188,7 @@ function DirectorPage() {
       const { data, error } = await supabase
         .from("route_points")
         .select(
-          "route_id, dp_status, dp_undelivered_reason, dp_amount_received, order:orders(amount_due, payment_type)"
+          "route_id, dp_status, dp_undelivered_reason, dp_amount_received, order:orders(amount_due, payment_type, goods_amount)"
         )
         .in("route_id", routeIds);
       if (error) throw error;
@@ -259,25 +266,52 @@ function DirectorPage() {
     return counts;
   }, [filteredPoints]);
 
+  // Сумма заказов (товаров) по каждому маршруту: ручной ввод приоритетнее
+  const ordersAmountByRoute = useMemo(() => {
+    const fromPoints = new Map<string, number>();
+    points.forEach((p) => {
+      const v = Number(p.order?.goods_amount ?? p.order?.amount_due ?? 0) || 0;
+      fromPoints.set(p.route_id, (fromPoints.get(p.route_id) ?? 0) + v);
+    });
+    const result = new Map<string, number>();
+    filteredRoutes.forEach((r) => {
+      const manual = r.manual_orders_amount;
+      const auto = fromPoints.get(r.id) ?? 0;
+      const eff = manual != null && Number(manual) > 0 ? Number(manual) : auto;
+      result.set(r.id, eff);
+    });
+    return result;
+  }, [points, filteredRoutes]);
+
   const costSummary = useMemo(() => {
     let totalCost = 0;
     let totalKm = 0;
     let totalPoints = 0;
+    let totalOrders = 0;
+    let overCount = 0;
     filteredRoutes.forEach((r) => {
-      totalCost += Number(r.delivery_cost) || 0;
+      const cost = Number(r.delivery_cost) || 0;
+      const orders = ordersAmountByRoute.get(r.id) ?? 0;
+      const target = Number(r.delivery_percent_target) || 0;
+      totalCost += cost;
       totalKm += Number(r.total_distance_km) || 0;
       totalPoints += Number(r.points_count) || 0;
+      totalOrders += orders;
+      if (orders > 0 && target > 0 && (cost / orders) * 100 > target) overCount += 1;
     });
     const n = filteredRoutes.length;
     return {
       totalCost,
       totalKm,
       totalPoints,
+      totalOrders,
+      overCount,
       avgPerRoute: n > 0 ? totalCost / n : 0,
       avgPerPoint: totalPoints > 0 ? totalCost / totalPoints : 0,
       avgPerKm: totalKm > 0 ? totalCost / totalKm : 0,
+      overallPercent: totalOrders > 0 ? (totalCost / totalOrders) * 100 : null,
     };
-  }, [filteredRoutes]);
+  }, [filteredRoutes, ordersAmountByRoute]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -375,6 +409,18 @@ function DirectorPage() {
 
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard icon={<Wallet className="h-4 w-4 text-primary" />} label="Общая стоимость" value={fmt(costSummary.totalCost) + " ₽"} />
+            <KpiCard icon={<Wallet className="h-4 w-4" />} label="Сумма заказов" value={fmt(costSummary.totalOrders) + " ₽"} />
+            <KpiCard
+              icon={<BarChart3 className="h-4 w-4" />}
+              label="% доставки от товара"
+              value={costSummary.overallPercent != null ? costSummary.overallPercent.toFixed(2) + " %" : "—"}
+            />
+            <KpiCard
+              icon={<AlertTriangle className={`h-4 w-4 ${costSummary.overCount > 0 ? "text-rose-600" : "text-muted-foreground"}`} />}
+              label="Маршрутов сверх норматива"
+              value={String(costSummary.overCount)}
+              tone={costSummary.overCount > 0 ? "warn" : "neutral"}
+            />
             <KpiCard icon={<Truck className="h-4 w-4" />} label="Средняя на маршрут" value={fmt(costSummary.avgPerRoute) + " ₽"} />
             <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Средняя на точку" value={fmt(costSummary.avgPerPoint) + " ₽"} />
             <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Средняя на 1 км" value={fmt(costSummary.avgPerKm) + " ₽"} />
@@ -398,7 +444,10 @@ function DirectorPage() {
                     <th className="px-3 py-2 text-left">Способ</th>
                     <th className="px-3 py-2 text-right">За км, ₽</th>
                     <th className="px-3 py-2 text-right">За точку, ₽</th>
-                    <th className="px-3 py-2 text-right">Итого, ₽</th>
+                    <th className="px-3 py-2 text-right">Сумма заказов, ₽</th>
+                    <th className="px-3 py-2 text-right">Стоимость, ₽</th>
+                    <th className="px-3 py-2 text-right">% доставки</th>
+                    <th className="px-3 py-2 text-center">Превышение</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -407,8 +456,12 @@ function DirectorPage() {
                     const pts = Number(r.points_count) || 0;
                     const total = Number(r.delivery_cost) || 0;
                     const method = r.cost_method ?? "manual";
+                    const orders = ordersAmountByRoute.get(r.id) ?? 0;
+                    const target = Number(r.delivery_percent_target) || 0;
+                    const pct = orders > 0 ? (total / orders) * 100 : null;
+                    const over = pct != null && target > 0 && pct > target;
                     return (
-                      <tr key={`cost-${r.id}`} className="border-t border-border hover:bg-muted/30">
+                      <tr key={`cost-${r.id}`} className={`border-t border-border hover:bg-muted/30 ${over ? "bg-rose-50/50 dark:bg-rose-950/10" : ""}`}>
                         <td className="px-3 py-2">
                           <Link
                             to="/delivery-routes/$deliveryRouteId"
@@ -435,7 +488,26 @@ function DirectorPage() {
                         </td>
                         <td className="px-3 py-2 text-right">{fmt(Number(r.cost_per_km) || 0)}</td>
                         <td className="px-3 py-2 text-right">{fmt(Number(r.cost_per_point) || 0)}</td>
+                        <td className="px-3 py-2 text-right">
+                          {orders > 0 ? fmt(orders) : <span className="text-muted-foreground">—</span>}
+                          {r.manual_orders_amount != null && Number(r.manual_orders_amount) > 0 && (
+                            <div className="text-[10px] text-muted-foreground">введено вручную</div>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right font-semibold text-primary">{fmt(total)}</td>
+                        <td className={`px-3 py-2 text-right font-medium ${over ? "text-rose-700 dark:text-rose-300" : pct != null ? "text-emerald-700 dark:text-emerald-300" : ""}`}>
+                          {pct != null ? `${pct.toFixed(2)} %` : "—"}
+                          <div className="text-[10px] text-muted-foreground">норма {target} %</div>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {over ? (
+                            <Badge className="bg-rose-600 hover:bg-rose-600">да</Badge>
+                          ) : pct != null ? (
+                            <Badge variant="outline">нет</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -446,7 +518,14 @@ function DirectorPage() {
                     <td className="px-3 py-2 text-right font-semibold">{costSummary.totalPoints}</td>
                     <td className="px-3 py-2 text-right font-semibold">{fmt(costSummary.totalKm)}</td>
                     <td colSpan={3}></td>
+                    <td className="px-3 py-2 text-right font-semibold">{fmt(costSummary.totalOrders)} ₽</td>
                     <td className="px-3 py-2 text-right font-bold text-primary">{fmt(costSummary.totalCost)} ₽</td>
+                    <td className="px-3 py-2 text-right font-semibold">
+                      {costSummary.overallPercent != null ? costSummary.overallPercent.toFixed(2) + " %" : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-center font-semibold">
+                      {costSummary.overCount > 0 ? `${costSummary.overCount} шт.` : "—"}
+                    </td>
                   </tr>
                 </tfoot>
               </table>

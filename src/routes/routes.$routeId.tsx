@@ -523,6 +523,24 @@ function RouteDetailPage() {
           costPerPoint={Number((route as unknown as { cost_per_point?: number }).cost_per_point ?? 0)}
           fixedCost={Number((route as unknown as { fixed_cost?: number }).fixed_cost ?? 0)}
           deliveryCost={Number((route as unknown as { delivery_cost?: number }).delivery_cost ?? 0)}
+          ordersAmountFromData={(points ?? []).reduce(
+            (sum, p) =>
+              sum +
+              (Number(
+                (p.orders as unknown as { goods_amount?: number | null; amount_due?: number | null })?.goods_amount,
+              ) ||
+                Number(
+                  (p.orders as unknown as { amount_due?: number | null })?.amount_due,
+                ) ||
+                0),
+            0,
+          )}
+          manualOrdersAmount={
+            (route as unknown as { manual_orders_amount?: number | null }).manual_orders_amount ?? null
+          }
+          deliveryPercentTarget={Number(
+            (route as unknown as { delivery_percent_target?: number }).delivery_percent_target ?? 5,
+          )}
         />
 
         {/* Статус движения водителя */}

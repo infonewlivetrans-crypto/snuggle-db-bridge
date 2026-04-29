@@ -1592,6 +1592,7 @@ export type Database = {
           default_service_minutes: number
           delivery_amount: number | null
           delivery_cost: number
+          delivery_percent_target: number
           departure_time: string | null
           destination_warehouse_id: string | null
           driver_id: string | null
@@ -1601,6 +1602,7 @@ export type Database = {
           id: string
           manual_cost: boolean
           manual_cost_reason: string | null
+          manual_orders_amount: number | null
           mileage_km: number | null
           onec_request_number: string | null
           organization: string | null
@@ -1650,6 +1652,7 @@ export type Database = {
           default_service_minutes?: number
           delivery_amount?: number | null
           delivery_cost?: number
+          delivery_percent_target?: number
           departure_time?: string | null
           destination_warehouse_id?: string | null
           driver_id?: string | null
@@ -1659,6 +1662,7 @@ export type Database = {
           id?: string
           manual_cost?: boolean
           manual_cost_reason?: string | null
+          manual_orders_amount?: number | null
           mileage_km?: number | null
           onec_request_number?: string | null
           organization?: string | null
@@ -1708,6 +1712,7 @@ export type Database = {
           default_service_minutes?: number
           delivery_amount?: number | null
           delivery_cost?: number
+          delivery_percent_target?: number
           departure_time?: string | null
           destination_warehouse_id?: string | null
           driver_id?: string | null
@@ -1717,6 +1722,7 @@ export type Database = {
           id?: string
           manual_cost?: boolean
           manual_cost_reason?: string | null
+          manual_orders_amount?: number | null
           mileage_km?: number | null
           onec_request_number?: string | null
           organization?: string | null
