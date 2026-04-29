@@ -302,25 +302,28 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
 
 export function downloadRouteTemplate() {
   const headers = [
-    "Номер маршрута",
-    "Водитель",
-    "Машина",
-    "Номер заказа",
-    "Клиент",
-    "Телефон",
-    "Адрес",
-    "Ссылка на карту",
-    "Сумма к получению",
-    "Тип оплаты",
-    "Оплачено заранее",
-    "Нужен QR-код",
-    "Комментарий менеджера",
+    "route_number",
+    "driver_name",
+    "vehicle_number",
+    "order_number",
+    "customer_name",
+    "customer_phone",
+    "delivery_address",
+    "map_link",
+    "coordinates",
+    "amount_to_collect",
+    "payment_type",
+    "prepaid",
+    "requires_qr",
+    "marketplace",
+    "manager_comment",
   ];
   const example = [
     ["М-001", "Иванов И.И.", "А123БВ77", "ORD-1001", "ООО Ромашка", "+7 999 123-45-67",
-     "г. Москва, ул. Ленина, 1", "55.7558, 37.6173", 4500, "наличные", "нет", "нет", "Позвонить за час"],
+     "г. Москва, ул. Ленина, 1", "https://yandex.ru/maps/?pt=37.6173,55.7558", "55.7558, 37.6173",
+     4500, "наличные", "нет", "нет", "", "Позвонить за час"],
     ["М-001", "Иванов И.И.", "А123БВ77", "ORD-1002", "ИП Петров", "+7 999 222-33-44",
-     "г. Москва, ул. Мира, 5", "", 0, "онлайн", "да", "да", ""],
+     "г. Москва, ул. Мира, 5", "", "", 0, "онлайн", "да", "да", "Ozon", ""],
   ];
   const ws = XLSX.utils.aoa_to_sheet([headers, ...example]);
   const wb = XLSX.utils.book_new();
