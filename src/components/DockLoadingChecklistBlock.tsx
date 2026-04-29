@@ -209,6 +209,60 @@ export function DockLoadingChecklistBlock({
             : `Загрузка: ${args.nomenclature}`,
         });
         if (e2) throw e2;
+
+        // 3) уменьшить активные резервы под исходную заявку
+        const { data: dr } = await db
+          .from("delivery_routes")
+          .select("source_request_id")
+          .eq("id", deliveryRouteId)
+          .maybeSingle();
+        const sourceRequestId = (dr as { source_request_id?: string } | null)
+          ?.source_request_id;
+        if (sourceRequestId) {
+          const { data: actives } = await db
+            .from("stock_reservations")
+            .select("id, qty")
+            .eq("transport_request_id", sourceRequestId)
+            .eq("product_id", args.product_id)
+            .eq("warehouse_id", warehouseId)
+            .eq("status", "active");
+          const list = (actives ?? []) as Array<{ id: string; qty: number }>;
+          let toConsume = args.qty;
+          let consumedTotal = 0;
+          for (const r of list) {
+            if (toConsume <= 0) break;
+            const q = Number(r.qty) || 0;
+            const take = Math.min(q, toConsume);
+            const remain = q - take;
+            if (remain <= 0) {
+              await db
+                .from("stock_reservations")
+                .update({ status: "consumed" })
+                .eq("id", r.id);
+            } else {
+              await db
+                .from("stock_reservations")
+                .update({ qty: remain })
+                .eq("id", r.id);
+            }
+            toConsume -= take;
+            consumedTotal += take;
+          }
+          if (consumedTotal > 0) {
+            await db.from("stock_movements").insert({
+              warehouse_id: warehouseId,
+              product_id: args.product_id,
+              movement_type: "reservation_consume",
+              qty: consumedTotal,
+              reason: "reservation_consumed_on_load",
+              ref_route_id: deliveryRouteId,
+              ref_transport_request_id: sourceRequestId,
+              comment: routeNumber
+                ? `Списание резерва при загрузке (маршрут ${routeNumber}): ${args.nomenclature}`
+                : `Списание резерва при загрузке: ${args.nomenclature}`,
+            });
+          }
+        }
       }
     },
     onSuccess: (_d, args) => {
