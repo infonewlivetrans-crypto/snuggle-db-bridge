@@ -634,34 +634,66 @@ function SupplyEditDialog({
   onClose,
   productName,
   warehouseName,
+  productUnit,
 }: {
   request: SupplyRequest | null;
   onClose: () => void;
   productName: string;
   warehouseName: string;
+  productUnit: string | null;
 }) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<SupplyStatus>("created");
   const [comment, setComment] = useState("");
+  const [sourceType, setSourceType] = useState<SupplySourceType>("factory");
+  const [sourceName, setSourceName] = useState("");
+  const [expectedDate, setExpectedDate] = useState("");
+  const [expectedTime, setExpectedTime] = useState("");
+  const [vehicle, setVehicle] = useState("");
+  const [carrier, setCarrier] = useState("");
 
   // Sync local state when opening
   useMemo(() => {
     if (request) {
       setStatus((request.supply_status ?? "created") as SupplyStatus);
       setComment(request.supply_comment ?? "");
+      setSourceType((request.source_type ?? "factory") as SupplySourceType);
+      setSourceName(request.source_name ?? "");
+      setExpectedDate(
+        request.expected_at
+          ? new Date(request.expected_at).toISOString().slice(0, 10)
+          : "",
+      );
+      setExpectedTime(request.expected_time ? request.expected_time.slice(0, 5) : "");
+      setVehicle(request.planned_vehicle ?? "");
+      setCarrier(request.planned_carrier ?? "");
     }
   }, [request]);
 
-  const mutation = useMutation({
+  const buildPatch = () => {
+    const expectedAtIso =
+      expectedDate
+        ? new Date(`${expectedDate}T${expectedTime || "00:00"}:00`).toISOString()
+        : null;
+    return {
+      supply_status: status,
+      supply_comment: comment.trim() || null,
+      supply_status_changed_at: new Date().toISOString(),
+      source_type: sourceType,
+      source_name: sourceName.trim() || null,
+      expected_at: expectedAtIso,
+      expected_time: expectedTime || null,
+      planned_vehicle: vehicle.trim() || null,
+      planned_carrier: carrier.trim() || null,
+    };
+  };
+
+  const saveMutation = useMutation({
     mutationFn: async () => {
       if (!request) return;
       const { error } = await db
         .from("supply_requests")
-        .update({
-          supply_status: status,
-          supply_comment: comment.trim() || null,
-          supply_status_changed_at: new Date().toISOString(),
-        })
+        .update(buildPatch())
         .eq("id", request.id);
       if (error) throw error;
     },
@@ -674,9 +706,75 @@ function SupplyEditDialog({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const createInboundMutation = useMutation({
+    mutationFn: async () => {
+      if (!request) return;
+      if (request.inbound_shipment_id) {
+        throw new Error("Ожидаемое поступление уже создано");
+      }
+      const expectedAtIso = expectedDate
+        ? new Date(`${expectedDate}T${expectedTime || "00:00"}:00`).toISOString()
+        : null;
+      // 1. Сохраняем план в заявке
+      await db.from("supply_requests").update(buildPatch()).eq("id", request.id);
+      // 2. Создаём ожидаемое поступление
+      const { data: shipment, error } = await db
+        .from("inbound_shipments")
+        .insert({
+          shipment_number: `IN-${request.request_number}`,
+          source_type: sourceType,
+          source_name:
+            sourceType === "warehouse"
+              ? sourceName.trim() || warehouseName
+              : sourceName.trim() || (sourceType === "factory" ? "Завод" : "Поставщик"),
+          source_warehouse_id:
+            sourceType === "warehouse" ? request.source_warehouse_id : null,
+          destination_warehouse_id: request.destination_warehouse_id,
+          expected_at: expectedAtIso,
+          vehicle_plate: vehicle.trim() || null,
+          driver_name: carrier.trim() || null,
+          status: "expected",
+          comment: `Из заявки на пополнение № ${request.request_number}`,
+          supply_request_id: request.id,
+        })
+        .select("id")
+        .single();
+      if (error) throw error;
+      // 3. Состав поступления
+      await db.from("inbound_shipment_items").insert({
+        shipment_id: (shipment as { id: string }).id,
+        product_name: productName,
+        qty_expected: request.qty,
+        unit: productUnit,
+      });
+      // 4. Привязываем поступление к заявке + ставим статус «ожидается»
+      await db
+        .from("supply_requests")
+        .update({
+          inbound_shipment_id: (shipment as { id: string }).id,
+          supply_status: "awaiting",
+          supply_status_changed_at: new Date().toISOString(),
+        })
+        .eq("id", request.id);
+    },
+    onSuccess: () => {
+      toast.success("Ожидаемое поступление создано");
+      qc.invalidateQueries({ queryKey: ["supply-requests-cabinet"] });
+      qc.invalidateQueries({ queryKey: ["supply-requests"] });
+      qc.invalidateQueries({ queryKey: ["wh-inbound"] });
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const canCreateInbound =
+    !!request &&
+    !request.inbound_shipment_id &&
+    !!expectedDate;
+
   return (
     <Dialog open={!!request} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Обработка заявки {request?.request_number}</DialogTitle>
           <DialogDescription>
@@ -701,22 +799,109 @@ function SupplyEditDialog({
             </Select>
           </div>
 
+          <div className="rounded-md border border-border bg-secondary/30 p-3 space-y-3">
+            <div className="text-xs font-medium text-muted-foreground">
+              План поставки
+            </div>
+
+            <div className="space-y-1">
+              <Label>Источник поставки</Label>
+              <Select
+                value={sourceType}
+                onValueChange={(v) => setSourceType(v as SupplySourceType)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="factory">Завод</SelectItem>
+                  <SelectItem value="warehouse">Другой склад</SelectItem>
+                  <SelectItem value="supplier">Поставщик</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {sourceType !== "warehouse" && (
+              <div className="space-y-1">
+                <Label>Название источника</Label>
+                <Input
+                  value={sourceName}
+                  onChange={(e) => setSourceName(e.target.value)}
+                  placeholder={sourceType === "factory" ? "Завод-производитель" : "Поставщик"}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label>Дата прибытия</Label>
+                <Input
+                  type="date"
+                  value={expectedDate}
+                  onChange={(e) => setExpectedDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Время</Label>
+                <Input
+                  type="time"
+                  value={expectedTime}
+                  onChange={(e) => setExpectedTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label>Машина</Label>
+                <Input
+                  value={vehicle}
+                  onChange={(e) => setVehicle(e.target.value)}
+                  placeholder="А123БВ77"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Перевозчик / водитель</Label>
+                <Input
+                  value={carrier}
+                  onChange={(e) => setCarrier(e.target.value)}
+                  placeholder="ИП Иванов"
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="space-y-1">
             <Label>Комментарий снабжения</Label>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Заказано у поставщика, ожидаем поставку..."
-              rows={4}
+              rows={3}
             />
           </div>
+
+          {request?.inbound_shipment_id && (
+            <div className="flex items-center gap-2 rounded-md border border-emerald-300 bg-emerald-50 p-2 text-xs text-emerald-900">
+              <PackageCheck className="h-4 w-4" />
+              Ожидаемое поступление уже создано — отслеживается на складе
+            </div>
+          )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
           <Button variant="ghost" onClick={onClose}>
             Отмена
           </Button>
-          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          <Button
+            variant="outline"
+            onClick={() => createInboundMutation.mutate()}
+            disabled={!canCreateInbound || createInboundMutation.isPending}
+          >
+            <PackageCheck className="mr-1 h-4 w-4" />
+            Создать ожидаемое поступление
+          </Button>
+          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             Сохранить
           </Button>
         </DialogFooter>
