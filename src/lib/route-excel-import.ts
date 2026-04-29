@@ -164,16 +164,7 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
     groups.get(key)!.rows.push(r);
   });
 
-  // Авто-нумерация заказов
-  const { data: lastOrder } = await supabase
-    .from("orders")
-    .select("order_number")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  let orderCounter = 1;
-  const lastNum = lastOrder?.order_number?.match(/(\d+)$/)?.[1];
-  if (lastNum) orderCounter = parseInt(lastNum, 10) + 1;
+  // (auto numbering removed — order_number теперь обязателен)
 
   for (const [routeKey, group] of groups.entries()) {
     const baseRow = group.rows[0];
