@@ -514,6 +514,8 @@ function RouteDetailPage() {
         {/* Стоимость доставки */}
         <RouteCostBlock
           routeId={route.id}
+          warehouseId={(route as unknown as { warehouse_id?: string | null }).warehouse_id ?? null}
+          appliedTariffId={(route as unknown as { applied_tariff_id?: string | null }).applied_tariff_id ?? null}
           totalDistanceKm={Number((route as unknown as { total_distance_km?: number }).total_distance_km ?? 0)}
           pointsCount={totalCount}
           costMethod={((route as unknown as { cost_method?: string }).cost_method as CostMethod) ?? "manual"}

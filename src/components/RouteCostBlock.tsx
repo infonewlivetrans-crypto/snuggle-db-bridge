@@ -26,6 +26,8 @@ const METHOD_LABEL: Record<CostMethod, string> = {
 
 type Props = {
   routeId: string;
+  warehouseId?: string | null;
+  appliedTariffId?: string | null;
   totalDistanceKm: number;
   pointsCount: number;
   costMethod: CostMethod;
@@ -35,10 +37,42 @@ type Props = {
   deliveryCost: number;
 };
 
+type TariffRow = {
+  id: string;
+  warehouse_id: string;
+  name: string;
+  kind: string;
+  city: string | null;
+  zone: string | null;
+  destination_city: string | null;
+  fixed_price: number | null;
+  price_per_km: number | null;
+  price_per_point: number | null;
+  base_price: number | null;
+  is_active: boolean;
+  comment: string | null;
+};
+
+function tariffToCostMethod(kind: string): CostMethod {
+  if (kind === "per_km_round" || kind === "per_km_last") return "per_km";
+  if (kind === "per_point") return "per_point";
+  if (kind === "combo") return "km_plus_point";
+  return "manual";
+}
+
+function tariffGeo(t: TariffRow): string {
+  if (t.kind === "fixed_direction") return `${t.city ?? "—"} → ${t.destination_city ?? "—"}`;
+  if (t.kind === "fixed_zone") return `Зона: ${t.zone ?? "—"}`;
+  if (t.kind === "fixed_city") return `Город: ${t.city ?? "—"}`;
+  return "—";
+}
+
 const fmtMoney = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
 
 export function RouteCostBlock({
   routeId,
+  warehouseId,
+  appliedTariffId,
   totalDistanceKm,
   pointsCount,
   costMethod,
@@ -54,6 +88,8 @@ export function RouteCostBlock({
   const [fixed, setFixed] = useState<string>(String(fixedCost ?? 0));
   const [manualTotal, setManualTotal] = useState<string>(String(deliveryCost ?? 0));
   const [comment, setComment] = useState<string>("");
+  const [tariffId, setTariffId] = useState<string>(appliedTariffId ?? "");
+  const [reason, setReason] = useState<string>("");
 
   useEffect(() => {
     setMethod(costMethod);
@@ -61,7 +97,40 @@ export function RouteCostBlock({
     setPerPoint(String(costPerPoint ?? 0));
     setFixed(String(fixedCost ?? 0));
     setManualTotal(String(deliveryCost ?? 0));
-  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost]);
+    setTariffId(appliedTariffId ?? "");
+  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost, appliedTariffId]);
+
+  const { data: tariffs = [] } = useQuery({
+    queryKey: ["delivery-tariffs-for-route", warehouseId ?? "any"],
+    queryFn: async () => {
+      let q = supabase
+        .from("delivery_tariffs")
+        .select("id, warehouse_id, name, kind, city, zone, destination_city, fixed_price, price_per_km, price_per_point, base_price, is_active, comment")
+        .eq("is_active", true)
+        .order("priority", { ascending: true });
+      if (warehouseId) q = q.eq("warehouse_id", warehouseId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as TariffRow[];
+    },
+  });
+
+  const applyTariff = (id: string) => {
+    setTariffId(id);
+    if (!id) return;
+    const t = tariffs.find((x) => x.id === id);
+    if (!t) return;
+    const m = tariffToCostMethod(t.kind);
+    setMethod(m);
+    if (m === "manual") {
+      setManualTotal(String(t.fixed_price ?? 0));
+    } else {
+      setPerKm(String(t.price_per_km ?? 0));
+      setPerPoint(String(t.price_per_point ?? 0));
+      setFixed(String(t.base_price ?? 0));
+    }
+    toast.success(`Тариф «${t.name}» применён`);
+  };
 
   const computedTotal = useMemo(() => {
     const km = totalDistanceKm || 0;
@@ -112,12 +181,14 @@ export function RouteCostBlock({
         fixed_cost: Number(fixed) || 0,
         delivery_cost: newCost,
         manual_cost: method === "manual",
+        applied_tariff_id: tariffId || null,
+        manual_cost_reason: method === "manual" ? (reason.trim() || null) : null,
       };
       const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
       if (error) throw error;
 
-      // Запись в историю, если что-то реально изменилось
-      const changed = oldCost !== newCost || oldMethod !== newMethod || comment.trim().length > 0;
+      const fullComment = [reason.trim(), comment.trim()].filter(Boolean).join(" — ");
+      const changed = oldCost !== newCost || oldMethod !== newMethod || fullComment.length > 0;
       if (changed) {
         await supabase.from("route_cost_history").insert({
           route_id: routeId,
@@ -126,13 +197,14 @@ export function RouteCostBlock({
           old_method: oldMethod,
           new_method: newMethod,
           changed_by: "Логист",
-          comment: comment.trim() || null,
+          comment: fullComment || null,
         });
       }
     },
     onSuccess: () => {
       toast.success("Стоимость доставки сохранена");
       setComment("");
+      setReason("");
       qc.invalidateQueries({ queryKey: ["route", routeId] });
       qc.invalidateQueries({ queryKey: ["routes"] });
       qc.invalidateQueries({ queryKey: ["route-cost-history", routeId] });
@@ -160,6 +232,34 @@ export function RouteCostBlock({
           <span className="text-muted-foreground">Итого: </span>
           <span className="text-base font-bold text-primary">{fmtMoney(computedTotal)} ₽</span>
         </div>
+      </div>
+
+      {/* Выбор тарифа */}
+      <div className="mb-3 rounded-md border border-dashed border-border bg-muted/30 p-3">
+        <Label className="text-xs">Тариф доставки</Label>
+        <Select value={tariffId || "__none__"} onValueChange={(v) => applyTariff(v === "__none__" ? "" : v)}>
+          <SelectTrigger className="h-9">
+            <SelectValue placeholder="Без тарифа" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">Без тарифа</SelectItem>
+            {tariffs.map((t) => (
+              <SelectItem key={t.id} value={t.id}>
+                {t.name} · {tariffGeo(t)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {tariffs.length === 0 && (
+          <div className="mt-1.5 text-[11px] text-muted-foreground">
+            Нет активных тарифов{warehouseId ? " для склада маршрута" : ""}. Настройте их на странице «Тарифы доставки».
+          </div>
+        )}
+        {tariffId && (
+          <div className="mt-1.5 text-[11px] text-muted-foreground">
+            После выбора тарифа стоимость пересчитывается автоматически. Сохраните, чтобы применить.
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -260,15 +360,28 @@ export function RouteCostBlock({
         </div>
       )}
 
-      <div className="mt-3">
-        <Label className="text-xs">Комментарий к изменению</Label>
-        <Textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Например: согласовано с руководителем"
-          rows={2}
-          className="resize-none"
-        />
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {method === "manual" && (
+          <div>
+            <Label className="text-xs">Причина ручного изменения</Label>
+            <Input
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Например: тариф не подходит, особый случай"
+              className="h-9"
+            />
+          </div>
+        )}
+        <div className={method === "manual" ? "" : "sm:col-span-2"}>
+          <Label className="text-xs">Комментарий к изменению</Label>
+          <Textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Например: согласовано с руководителем"
+            rows={2}
+            className="resize-none"
+          />
+        </div>
       </div>
 
       <div className="mt-3 flex justify-end">
