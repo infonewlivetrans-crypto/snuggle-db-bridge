@@ -534,8 +534,8 @@ export async function importParsed(
       };
       await handleRow(
         r,
-        () => supabase.from("routes").insert(payload as never),
-        (id) => supabase.from("routes").update(payload as never).eq("id", id),
+        async () => await supabase.from("routes").insert(payload as never),
+        async (id) => await supabase.from("routes").update(payload as never).eq("id", id),
       );
     }
   } else if (entity === "transport_requests") {
