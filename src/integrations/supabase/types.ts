@@ -1552,6 +1552,8 @@ export type Database = {
           organization: string | null
           planned_departure_at: string | null
           points_count: number
+          points_order_changed_at: string | null
+          points_order_changed_by: string | null
           request_priority: Database["public"]["Enums"]["transport_request_priority"]
           request_status: Database["public"]["Enums"]["transport_request_status"]
           request_status_changed_at: string | null
@@ -1602,6 +1604,8 @@ export type Database = {
           organization?: string | null
           planned_departure_at?: string | null
           points_count?: number
+          points_order_changed_at?: string | null
+          points_order_changed_by?: string | null
           request_priority?: Database["public"]["Enums"]["transport_request_priority"]
           request_status?: Database["public"]["Enums"]["transport_request_status"]
           request_status_changed_at?: string | null
@@ -1652,6 +1656,8 @@ export type Database = {
           organization?: string | null
           planned_departure_at?: string | null
           points_count?: number
+          points_order_changed_at?: string | null
+          points_order_changed_by?: string | null
           request_priority?: Database["public"]["Enums"]["transport_request_priority"]
           request_status?: Database["public"]["Enums"]["transport_request_status"]
           request_status_changed_at?: string | null

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
@@ -57,6 +58,12 @@ import {
   Timer,
   Gauge,
   Route as RouteIcon,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+  Save,
+  RotateCcw,
+  History,
 } from "lucide-react";
 import { QrCapture } from "@/components/QrCapture";
 import {
@@ -83,6 +90,8 @@ type RouteWithRefs = DeliveryRoute & {
     volume_m3: number | null;
   } | null;
   driver: { id: string; full_name: string; phone: string | null } | null;
+  points_order_changed_at?: string | null;
+  points_order_changed_by?: string | null;
 };
 
 export const Route = createFileRoute("/routes/$routeId")({
@@ -252,6 +261,121 @@ function RouteDetailPage() {
       return o === "not_delivered";
     }).length ?? 0;
 
+  // ========= Черновой порядок точек (ручное редактирование) =========
+  const [draftIds, setDraftIds] = useState<string[]>([]);
+  // Синхронизируем черновик при смене серверных данных
+  useEffect(() => {
+    if (points) setDraftIds(points.map((p) => p.id));
+  }, [points]);
+
+  const pointsById = useMemo(() => {
+    const m = new Map<string, RoutePointWithOrder>();
+    (points ?? []).forEach((p) => m.set(p.id, p));
+    return m;
+  }, [points]);
+
+  // Точки в порядке черновика, с пересчитанными номерами
+  const orderedDraft = useMemo<RoutePointWithOrder[]>(() => {
+    return draftIds
+      .map((id, idx) => {
+        const p = pointsById.get(id);
+        if (!p) return null;
+        return { ...p, point_number: idx + 1 };
+      })
+      .filter((x): x is RoutePointWithOrder => x !== null);
+  }, [draftIds, pointsById]);
+
+  const originalIds = useMemo(
+    () => (points ?? []).map((p) => p.id),
+    [points],
+  );
+  const orderChanged = useMemo(
+    () =>
+      draftIds.length === originalIds.length &&
+      draftIds.some((id, i) => id !== originalIds[i]),
+    [draftIds, originalIds],
+  );
+
+  const moveDraft = (idx: number, dir: -1 | 1) => {
+    setDraftIds((prev) => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+  const resetDraft = () => setDraftIds(originalIds);
+
+  const saveOrder = useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Двухфазная запись, чтобы не упереться в потенциальный unique(route_id, point_number)
+      const TEMP = 100000;
+      for (let i = 0; i < ids.length; i++) {
+        const { error } = await supabase
+          .from("route_points")
+          .update({ point_number: TEMP + i })
+          .eq("id", ids[i]);
+        if (error) throw error;
+      }
+      for (let i = 0; i < ids.length; i++) {
+        const { error } = await supabase
+          .from("route_points")
+          .update({ point_number: i + 1 })
+          .eq("id", ids[i]);
+        if (error) throw error;
+      }
+      // Отметка кто/когда менял порядок
+      const who =
+        (await supabase.auth.getUser()).data.user?.email ?? "Пользователь";
+      const { error: rErr } = await supabase
+        .from("routes")
+        .update({
+          points_order_changed_at: new Date().toISOString(),
+          points_order_changed_by: who,
+        })
+        .eq("id", routeId);
+      if (rErr) throw rErr;
+    },
+    onSuccess: () => {
+      toast.success("Порядок точек сохранён");
+      queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["route", routeId] });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Не удалось сохранить порядок"),
+  });
+
+  // ========= Drag & Drop (нативный HTML5) =========
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const handleDragStart = (id: string) => setDragId(id);
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    if (id !== dragOverId) setDragOverId(id);
+  };
+  const handleDragEnd = () => {
+    setDragId(null);
+    setDragOverId(null);
+  };
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) {
+      handleDragEnd();
+      return;
+    }
+    setDraftIds((prev) => {
+      const from = prev.indexOf(dragId);
+      const to = prev.indexOf(targetId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    handleDragEnd();
+  };
+
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -322,6 +446,20 @@ function RouteDetailPage() {
                   <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                   {completedCount} / {totalCount} доставлено
                 </span>
+                {route.points_order_changed_at && (
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <History className="h-4 w-4" />
+                    Порядок изменён:{" "}
+                    {new Date(route.points_order_changed_at).toLocaleString("ru-RU", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {route.points_order_changed_by ? ` · ${route.points_order_changed_by}` : ""}
+                  </span>
+                )}
               </div>
               {route.comment && (
                 <div className="mt-3 inline-flex items-start gap-1.5 rounded-md bg-secondary px-3 py-2 text-sm text-foreground">
@@ -397,7 +535,7 @@ function RouteDetailPage() {
         {/* Карта маршрута */}
         {totalCount > 0 && (
           <RouteMapBlock
-            points={points!.map((p) => ({
+            points={orderedDraft.map((p) => ({
               id: p.id,
               point_number: p.point_number,
               status: p.status,
@@ -413,10 +551,42 @@ function RouteDetailPage() {
         )}
 
         {/* Точки */}
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-foreground">Точки доставки</h2>
-          <span className="text-sm text-muted-foreground">{totalCount} точек</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">{totalCount} точек</span>
+            {orderChanged && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={resetDraft}
+                disabled={saveOrder.isPending}
+                className="gap-1.5"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Отменить
+              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={() => saveOrder.mutate(draftIds)}
+              disabled={!orderChanged || saveOrder.isPending}
+              className="gap-1.5"
+            >
+              <Save className="h-3.5 w-3.5" />
+              Сохранить порядок точек
+            </Button>
+          </div>
         </div>
+
+        {orderChanged && (
+          <div className="rt-alert rt-alert-warning mb-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="text-sm font-medium">
+              Порядок точек изменён, сохраните маршрут
+            </div>
+          </div>
+        )}
 
         {totalCount === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-card py-12 text-center">
@@ -425,164 +595,213 @@ function RouteDetailPage() {
           </div>
         ) : (
           <ol className="space-y-3">
-            {points!.map((p) => (
-              <li
-                key={p.id}
-                className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30"
-              >
-                <div className="flex items-start gap-4">
-                  {/* Номер точки */}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-base font-bold text-primary-foreground">
-                    {p.point_number}
-                  </div>
+            {orderedDraft.map((p, idx) => {
+              const isDragging = dragId === p.id;
+              const isOver = dragOverId === p.id && dragId !== p.id;
+              return (
+                <li
+                  key={p.id}
+                  draggable
+                  onDragStart={() => handleDragStart(p.id)}
+                  onDragOver={(e) => handleDragOver(e, p.id)}
+                  onDrop={(e) => handleDrop(e, p.id)}
+                  onDragEnd={handleDragEnd}
+                  className={`rounded-lg border bg-card p-4 transition-all ${
+                    isDragging
+                      ? "border-primary opacity-60"
+                      : isOver
+                        ? "border-primary/60 bg-primary/5"
+                        : "border-border hover:border-primary/30"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Drag handle + кнопки порядка */}
+                    <div className="flex shrink-0 flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        className="cursor-grab text-muted-foreground hover:text-foreground active:cursor-grabbing"
+                        title="Перетащите, чтобы изменить порядок"
+                        aria-label="Перетащить точку"
+                      >
+                        <GripVertical className="h-4 w-4" />
+                      </button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={idx === 0 || saveOrder.isPending}
+                        onClick={() => moveDraft(idx, -1)}
+                        title="Переместить вверх"
+                      >
+                        <ArrowUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={idx === orderedDraft.length - 1 || saveOrder.isPending}
+                        onClick={() => moveDraft(idx, 1)}
+                        title="Переместить вниз"
+                      >
+                        <ArrowDown className="h-3 w-3" />
+                      </Button>
+                    </div>
 
-                  {/* Информация */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-sm font-semibold text-foreground">
-                        {p.orders.order_number}
-                      </span>
-                      <Badge variant="outline" className={POINT_STATUS_STYLES[p.status]}>
-                        {POINT_STATUS_LABELS[p.status]}
-                      </Badge>
-                      {typeof p.orders.latitude === "number" &&
-                      typeof p.orders.longitude === "number" ? (
-                        <Badge
-                          variant="outline"
-                          className="border-green-200 bg-green-100 text-green-900"
-                        >
-                          Есть координаты
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="border-amber-200 bg-amber-100 text-amber-900"
-                        >
-                          Нет координат
-                        </Badge>
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        {PAYMENT_LABELS[p.orders.payment_type]}
-                      </span>
-                      {p.orders.requires_qr && (
-                        <TooltipProvider delayDuration={150}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="outline"
-                                className={`cursor-help ${
-                                  p.orders.qr_received
-                                    ? "border-green-300 bg-green-100 text-green-900"
-                                    : "border-amber-300 bg-amber-100 text-amber-900"
-                                }`}
-                              >
-                                QR: {p.orders.qr_received ? "получен" : "не получен"}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {p.orders.qr_photo_uploaded_at ? (
-                                <div className="space-y-1 text-xs">
-                                  <div>
-                                    Загружено:{" "}
-                                    {new Date(p.orders.qr_photo_uploaded_at).toLocaleString("ru-RU")}
-                                  </div>
-                                  <div>
-                                    Кем: {p.orders.qr_photo_uploaded_by ?? "—"}
-                                  </div>
-                                  {p.orders.qr_photo_url && (
-                                    <a
-                                      href={p.orders.qr_photo_url}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="inline-block text-primary underline hover:no-underline"
-                                    >
-                                      Открыть фото в новой вкладке
-                                    </a>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-xs">QR-фото ещё не загружено</span>
-                              )}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
+                    {/* Номер точки */}
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary text-base font-bold text-primary-foreground">
+                      {p.point_number}
                     </div>
-                    <div className="mt-2">
-                      <DeliveryLocation order={p.orders} />
-                    </div>
-                    {p.orders.comment && (
-                      <div className="mt-1 text-xs text-muted-foreground">{p.orders.comment}</div>
-                    )}
-                    {(p.orders.requires_qr || p.orders.qr_photo_url) && (
-                      <div className="mt-2">
-                        <QrCapture
-                          orderId={p.orders.id}
-                          orderNumber={p.orders.order_number}
-                          requiresQr={p.orders.requires_qr}
-                          qrPhotoUrl={p.orders.qr_photo_url}
-                          qrUploadedAt={p.orders.qr_photo_uploaded_at}
-                          compact
-                        />
+
+                    {/* Информация */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-sm font-semibold text-foreground">
+                          {p.orders.order_number}
+                        </span>
+                        <Badge variant="outline" className={POINT_STATUS_STYLES[p.status]}>
+                          {POINT_STATUS_LABELS[p.status]}
+                        </Badge>
+                        {typeof p.orders.latitude === "number" &&
+                        typeof p.orders.longitude === "number" ? (
+                          <Badge
+                            variant="outline"
+                            className="border-green-200 bg-green-100 text-green-900"
+                          >
+                            Есть координаты
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-amber-200 bg-amber-100 text-amber-900"
+                          >
+                            Нет координат
+                          </Badge>
+                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {PAYMENT_LABELS[p.orders.payment_type]}
+                        </span>
+                        {p.orders.requires_qr && (
+                          <TooltipProvider delayDuration={150}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Badge
+                                  variant="outline"
+                                  className={`cursor-help ${
+                                    p.orders.qr_received
+                                      ? "border-green-300 bg-green-100 text-green-900"
+                                      : "border-amber-300 bg-amber-100 text-amber-900"
+                                  }`}
+                                >
+                                  QR: {p.orders.qr_received ? "получен" : "не получен"}
+                                </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {p.orders.qr_photo_uploaded_at ? (
+                                  <div className="space-y-1 text-xs">
+                                    <div>
+                                      Загружено:{" "}
+                                      {new Date(p.orders.qr_photo_uploaded_at).toLocaleString("ru-RU")}
+                                    </div>
+                                    <div>
+                                      Кем: {p.orders.qr_photo_uploaded_by ?? "—"}
+                                    </div>
+                                    {p.orders.qr_photo_url && (
+                                      <a
+                                        href={p.orders.qr_photo_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="inline-block text-primary underline hover:no-underline"
+                                      >
+                                        Открыть фото в новой вкладке
+                                      </a>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-xs">QR-фото ещё не загружено</span>
+                                )}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
-                    )}
-                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      {p.planned_time && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          План: {p.planned_time.slice(0, 5)}
-                        </span>
+                      <div className="mt-2">
+                        <DeliveryLocation order={p.orders} />
+                      </div>
+                      {p.orders.comment && (
+                        <div className="mt-1 text-xs text-muted-foreground">{p.orders.comment}</div>
                       )}
-                      {p.arrived_at && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          Прибытие: {new Date(p.arrived_at).toLocaleTimeString("ru-RU", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+                      {(p.orders.requires_qr || p.orders.qr_photo_url) && (
+                        <div className="mt-2">
+                          <QrCapture
+                            orderId={p.orders.id}
+                            orderNumber={p.orders.order_number}
+                            requiresQr={p.orders.requires_qr}
+                            qrPhotoUrl={p.orders.qr_photo_url}
+                            qrUploadedAt={p.orders.qr_photo_uploaded_at}
+                            compact
+                          />
+                        </div>
                       )}
-                      {p.completed_at && (
-                        <span className="inline-flex items-center gap-1 font-medium text-foreground">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Доставлено: {new Date(p.completed_at).toLocaleTimeString("ru-RU", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      )}
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                        {p.planned_time && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            План: {p.planned_time.slice(0, 5)}
+                          </span>
+                        )}
+                        {p.arrived_at && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Прибытие: {new Date(p.arrived_at).toLocaleTimeString("ru-RU", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        )}
+                        {p.completed_at && (
+                          <span className="inline-flex items-center gap-1 font-medium text-foreground">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Доставлено: {new Date(p.completed_at).toLocaleTimeString("ru-RU", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        )}
+                      </div>
+                      <EtaPanel point={p} />
                     </div>
-                    <EtaPanel point={p} />
-                  </div>
 
-                  {/* Управление статусом */}
-                  <div className="shrink-0">
-                    <Select
-                      value={p.status}
-                      onValueChange={(v) =>
-                        updatePoint.mutate({
-                          pointId: p.id,
-                          status: v as PointStatus,
-                          orderId: p.order_id,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-36">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {POINT_STATUS_ORDER.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {POINT_STATUS_LABELS[s]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {/* Управление статусом */}
+                    <div className="shrink-0">
+                      <Select
+                        value={p.status}
+                        onValueChange={(v) =>
+                          updatePoint.mutate({
+                            pointId: p.id,
+                            status: v as PointStatus,
+                            orderId: p.order_id,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {POINT_STATUS_ORDER.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {POINT_STATUS_LABELS[s]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ol>
         )}
       </main>
