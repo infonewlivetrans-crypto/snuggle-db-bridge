@@ -331,6 +331,20 @@ function RouteDetailPage() {
                   <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                   {completedCount} / {totalCount} доставлено
                 </span>
+                {route.points_order_changed_at && (
+                  <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                    <History className="h-4 w-4" />
+                    Порядок изменён:{" "}
+                    {new Date(route.points_order_changed_at).toLocaleString("ru-RU", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {route.points_order_changed_by ? ` · ${route.points_order_changed_by}` : ""}
+                  </span>
+                )}
               </div>
               {route.comment && (
                 <div className="mt-3 inline-flex items-start gap-1.5 rounded-md bg-secondary px-3 py-2 text-sm text-foreground">
