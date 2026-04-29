@@ -259,6 +259,26 @@ function DirectorPage() {
     return counts;
   }, [filteredPoints]);
 
+  const costSummary = useMemo(() => {
+    let totalCost = 0;
+    let totalKm = 0;
+    let totalPoints = 0;
+    filteredRoutes.forEach((r) => {
+      totalCost += Number(r.delivery_cost) || 0;
+      totalKm += Number(r.total_distance_km) || 0;
+      totalPoints += Number(r.points_count) || 0;
+    });
+    const n = filteredRoutes.length;
+    return {
+      totalCost,
+      totalKm,
+      totalPoints,
+      avgPerRoute: n > 0 ? totalCost / n : 0,
+      avgPerPoint: totalPoints > 0 ? totalCost / totalPoints : 0,
+      avgPerKm: totalKm > 0 ? totalCost / totalKm : 0,
+    };
+  }, [filteredRoutes]);
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
