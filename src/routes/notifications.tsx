@@ -61,6 +61,7 @@ const KIND_TONE: Record<string, string> = {
 
 function NotificationsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: items = [], isLoading } = useQuery<Row[]>({
     queryKey: ["notifications", "all"],
