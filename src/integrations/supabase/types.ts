@@ -1520,6 +1520,45 @@ export type Database = {
         }
         Relationships: []
       }
+      system_issues: {
+        Row: {
+          comment: string | null
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          role: string
+          severity: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          role?: string
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          role?: string
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           category: string
