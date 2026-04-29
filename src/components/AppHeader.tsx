@@ -12,6 +12,7 @@ import {
   Receipt,
   ClipboardList,
   Bell,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Заказы", icon: BarChart3, match: (p: string) => p === "/" },
   { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p: string) => p.startsWith("/transport-requests") },
   { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon, match: (p: string) => p.startsWith("/delivery-routes") },
+  { to: "/route-reports", label: "Отчёты по маршрутам", icon: FileText, match: (p: string) => p.startsWith("/route-reports") },
   { to: "/routes", label: "Маршруты (план)", icon: RouteIcon, match: (p: string) => p.startsWith("/routes") },
   { to: "/carriers", label: "Перевозчики", icon: Building2, match: (p: string) => p.startsWith("/carriers") },
   { to: "/drivers", label: "Водители", icon: User, match: (p: string) => p.startsWith("/drivers") },
