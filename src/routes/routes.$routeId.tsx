@@ -394,6 +394,24 @@ function RouteDetailPage() {
           </div>
         )}
 
+        {/* Карта маршрута */}
+        {totalCount > 0 && (
+          <RouteMapBlock
+            points={points!.map((p) => ({
+              id: p.id,
+              point_number: p.point_number,
+              status: p.status,
+              order: {
+                order_number: p.orders.order_number,
+                contact_name: p.orders.contact_name,
+                delivery_address: p.orders.delivery_address,
+                latitude: p.orders.latitude,
+                longitude: p.orders.longitude,
+              },
+            }))}
+          />
+        )}
+
         {/* Точки */}
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Точки доставки</h2>
