@@ -275,7 +275,7 @@ function NotificationsPage() {
                       <TableCell className="text-sm">
                         {manager ?? <span className="text-muted-foreground">—</span>}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         {n.is_read ? (
                           <button
                             className="text-xs text-muted-foreground hover:underline"
