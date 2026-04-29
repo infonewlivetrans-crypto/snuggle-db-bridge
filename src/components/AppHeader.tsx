@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { to: "/admin/tariffs", label: "Тарифы", icon: Receipt, match: (p: string) => p.startsWith("/admin/tariffs") },
   { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p: string) => p.startsWith("/admin") && !p.startsWith("/admin/tariffs") },
   { to: "/system-test", label: "Тест системы", icon: ClipboardList, match: (p: string) => p.startsWith("/system-test") },
+  { to: "/system-issues", label: "Ошибки и доработки", icon: ClipboardList, match: (p: string) => p.startsWith("/system-issues") },
 ] as const;
 
 export function AppHeader() {
