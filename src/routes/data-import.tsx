@@ -10,18 +10,28 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Download, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, Info, Upload, History } from "lucide-react";
+import { Download, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, Info, Upload, History, Save, Wand2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   SCHEMAS,
+  MANDATORY_FIELDS,
   downloadTemplate,
   parseFile,
   importParsed,
+  readFilePreview,
+  validateMapping,
+  findMappingTemplate,
+  saveMappingTemplate,
+  listMappingTemplates,
+  deleteMappingTemplate,
   type ImportEntity,
   type ImportSource,
   type ParseResult,
   type ImportResult as DataImportResult,
   type DuplicateAction,
+  type ColumnMapping,
+  type FilePreview,
+  type MappingTemplate,
 } from "@/lib/data-excel-import";
 
 export const Route = createFileRoute("/data-import")({
