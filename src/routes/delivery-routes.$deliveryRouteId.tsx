@@ -334,6 +334,30 @@ function DeliveryRoutePage() {
               vehicle={data.assigned_vehicle}
             />
 
+            {/* Проверка маршрута и выдача водителю */}
+            <RouteIssueCheckBlock
+              deliveryRouteId={data.id}
+              status={data.status}
+              driver={data.assigned_driver}
+              vehicle={data.assigned_vehicle}
+              points={(points ?? []).map((p) => ({
+                point_number: p.point_number,
+                order: p.order
+                  ? {
+                      order_number: p.order.order_number,
+                      contact_name: p.order.contact_name,
+                      contact_phone: p.order.contact_phone,
+                      delivery_address: p.order.delivery_address,
+                      latitude: p.order.latitude,
+                      longitude: p.order.longitude,
+                      payment_type: p.order.payment_type,
+                      amount_due: p.order.amount_due,
+                      requires_qr: p.order.requires_qr,
+                    }
+                  : null,
+              }))}
+            />
+
             {/* Прогресс по точкам */}
             {(() => {
               const list = points ?? [];
