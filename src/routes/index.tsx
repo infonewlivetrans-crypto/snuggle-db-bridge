@@ -105,6 +105,17 @@ function OrdersPage() {
     setDialogOpen(true);
   };
 
+  // Открытие карточки заказа по ?orderId=... (например, из уведомлений)
+  useEffect(() => {
+    if (!orderIdParam || !orders) return;
+    const found = orders.find((o) => o.id === orderIdParam);
+    if (found) {
+      setSelectedOrder(found);
+      setDialogOpen(true);
+      navigate({ to: "/", search: {}, replace: true });
+    }
+  }, [orderIdParam, orders, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
