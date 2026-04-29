@@ -106,6 +106,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setAmountDue(order.amount_due != null ? String(order.amount_due) : "");
       setMarketplace(order.marketplace ?? "");
       setWorksWeekends(order.client_works_weekends ?? false);
+      setWindowFrom((order.delivery_window_from ?? "").slice(0, 5));
+      setWindowTo((order.delivery_window_to ?? "").slice(0, 5));
+      setClientType((order.client_type as ClientKind) ?? "");
+      setDeliveryTimeComment(order.delivery_time_comment ?? "");
     }
   });
 
