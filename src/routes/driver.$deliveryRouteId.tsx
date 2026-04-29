@@ -181,10 +181,10 @@ function DriverRoutePage() {
             <Truck className="h-5 w-5 text-primary" />
             <span className="font-semibold">Водитель</span>
           </div>
-          <Link to="/delivery-routes">
+          <Link to="/driver">
             <Button variant="ghost" size="sm" className="gap-1.5">
               <ArrowLeft className="h-4 w-4" />
-              Маршруты
+              Мои маршруты
             </Button>
           </Link>
         </div>
