@@ -56,6 +56,7 @@ import { OrderReturnBlock } from "@/components/OrderReturnBlock";
 import { OrderDeliveryResultBlock } from "@/components/OrderDeliveryResultBlock";
 import { MarketplaceQrBlock } from "@/components/MarketplaceQrBlock";
 import { PointActionsHistory } from "@/components/PointActionsHistory";
+import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock";
 
 type DeliveryReport = {
   id: string;
