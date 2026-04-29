@@ -343,6 +343,16 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             qrUploadedAt={order.qr_photo_uploaded_at}
           />
 
+          {/* QR-код маркетплейса */}
+          <MarketplaceQrBlock
+            orderId={order.id}
+            qrPhotoUrl={order.qr_photo_url}
+            qrUploadedAt={order.qr_photo_uploaded_at}
+            qrUploadedBy={order.qr_photo_uploaded_by ?? null}
+            qrReceived={order.qr_received}
+            requiresQr={order.requires_qr}
+          />
+
           {/* Комментарий */}
           <div className="rounded-lg border border-border p-4">
             <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
