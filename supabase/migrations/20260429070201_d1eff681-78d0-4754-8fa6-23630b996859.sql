@@ -1,0 +1,1 @@
+ALTER TYPE public.delivery_point_undelivered_reason ADD VALUE IF NOT EXISTS 'damage';
