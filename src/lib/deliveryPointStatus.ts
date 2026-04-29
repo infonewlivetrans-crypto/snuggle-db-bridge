@@ -45,16 +45,18 @@ export type DeliveryPointUndeliveredReason =
   | "client_refused"
   | "no_unloading"
   | "defective"
+  | "damage"
   | "other";
 
 export const DELIVERY_POINT_UNDELIVERED_REASON_ORDER: DeliveryPointUndeliveredReason[] = [
-  "client_absent",
-  "client_no_answer",
+  "client_refused",
   "no_payment",
   "no_qr",
-  "client_refused",
-  "no_unloading",
+  "client_absent",
+  "client_no_answer",
   "defective",
+  "damage",
+  "no_unloading",
   "other",
 ];
 
@@ -66,5 +68,6 @@ export const DELIVERY_POINT_UNDELIVERED_REASON_LABELS: Record<DeliveryPointUndel
   client_refused: "Отказ клиента",
   no_unloading: "Нет возможности выгрузки",
   defective: "Брак",
+  damage: "Повреждение",
   other: "Другое",
 };

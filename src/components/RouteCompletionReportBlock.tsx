@@ -4,6 +4,7 @@ import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, FileSpr
 import { Button } from "@/components/ui/button";
 import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as ExportPayload } from "@/lib/route-report-export";
 import { PaymentSummaryReportBlock } from "@/components/PaymentSummaryReportBlock";
+import { RouteReturnsBlock } from "@/components/RouteReturnsBlock";
 
 type ReportPayload = {
   delivery_route_id: string;
@@ -27,6 +28,9 @@ type ReportPayload = {
     delivery_address: string | null;
     dp_status: "delivered" | "not_delivered" | "returned_to_warehouse" | string;
     undelivered_reason: string | null;
+    return_warehouse_name?: string | null;
+    return_comment?: string | null;
+    expected_return_at?: string | null;
     amount_due: number | null;
     amount_received: number | null;
     amount_diff: number;
@@ -137,6 +141,11 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
       {/* Наличные и оплата */}
       <div className="mb-3">
         <PaymentSummaryReportBlock orders={p.orders} />
+      </div>
+
+      {/* Возвраты на склад */}
+      <div className="mb-3">
+        <RouteReturnsBlock orders={p.orders} />
       </div>
 
 
