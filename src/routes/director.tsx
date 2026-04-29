@@ -50,6 +50,20 @@ type RouteRow = {
   status: DeliveryRouteStatus;
   assigned_driver: string | null;
   assigned_vehicle: string | null;
+  delivery_cost?: number | null;
+  cost_method?: string | null;
+  cost_per_km?: number | null;
+  cost_per_point?: number | null;
+  total_distance_km?: number | null;
+  points_count?: number | null;
+  manual_cost?: boolean | null;
+};
+
+const COST_METHOD_LABELS: Record<string, string> = {
+  manual: "Вручную",
+  per_km: "За километр",
+  per_point: "За точку",
+  km_plus_point: "Км + точка",
 };
 
 type PointRow = {
