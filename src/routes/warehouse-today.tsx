@@ -165,7 +165,7 @@ function WarehouseTodayPage() {
   });
 
   // Точки маршрутов с возвратами на склад (по dp_status / status)
-  const routeIds = (routes ?? []).map((r) => r.id);
+  const routeIds = useMemo(() => (routes ?? []).map((r) => r.id), [routes]);
   const { data: returnPoints } = useQuery({
     queryKey: ["wh-today-returns", routeIds],
     enabled: routeIds.length > 0,
