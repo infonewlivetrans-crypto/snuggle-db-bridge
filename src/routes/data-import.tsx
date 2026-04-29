@@ -85,7 +85,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [result, setResult] = useState<ImportResult | null>(null);
+  const [result, setResult] = useState<DataImportResult | null>(null);
 
   const previewRows = useMemo(() => parsed?.rows.slice(0, 10) ?? [], [parsed]);
 
