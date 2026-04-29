@@ -32,19 +32,24 @@ type Props = {
     dp_return_warehouse_id: string | null;
     dp_return_comment: string | null;
     dp_expected_return_at: string | null;
+    dp_payment_comment?: string | null;
+    dp_amount_received?: number | null;
   };
   order?: {
     payment_type: string;
     requires_qr: boolean;
     cash_received: boolean;
     qr_received: boolean;
+    payment_status?: string;
+    amount_due?: number | null;
   };
   hasQrPhoto?: boolean;
   hasProblemPhoto?: boolean;
+  hasDocumentsPhoto?: boolean;
   onSaved?: () => void;
 };
 
-export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, hasProblemPhoto, onSaved }: Props) {
+export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, hasProblemPhoto, hasDocumentsPhoto, onSaved }: Props) {
   const qc = useQueryClient();
   const [status, setStatus] = useState<DeliveryPointStatus>(initial.dp_status);
   const [reason, setReason] = useState<DeliveryPointUndeliveredReason | "">(
@@ -52,6 +57,8 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
   );
   const [returnWh, setReturnWh] = useState<string>(initial.dp_return_warehouse_id ?? "");
   const [returnComment, setReturnComment] = useState<string>(initial.dp_return_comment ?? "");
+  const [deliveredComment, setDeliveredComment] = useState<string>(initial.dp_payment_comment ?? "");
+  const [notDeliveredComment, setNotDeliveredComment] = useState<string>(initial.dp_payment_comment ?? "");
   const [expectedReturn, setExpectedReturn] = useState<string>(
     initial.dp_expected_return_at ? toLocalDT(initial.dp_expected_return_at) : "",
   );
