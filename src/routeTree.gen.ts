@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
+import { Route as WarehouseStockRouteImport } from './routes/warehouse-stock'
 import { Route as WarehouseSettingsRouteImport } from './routes/warehouse-settings'
 import { Route as WarehouseScheduleRouteImport } from './routes/warehouse-schedule'
 import { Route as WarehouseReturnsRouteImport } from './routes/warehouse-returns'
@@ -55,6 +56,11 @@ const WorkspaceRoute = WorkspaceRouteImport.update({
 const WarehouseTodayRoute = WarehouseTodayRouteImport.update({
   id: '/warehouse-today',
   path: '/warehouse-today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseStockRoute = WarehouseStockRouteImport.update({
+  id: '/warehouse-stock',
+  path: '/warehouse-stock',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WarehouseSettingsRoute = WarehouseSettingsRouteImport.update({
@@ -250,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
+  '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
+  '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -329,6 +337,7 @@ export interface FileRoutesById {
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
+  '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -370,6 +379,7 @@ export interface FileRouteTypes {
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
+    | '/warehouse-stock'
     | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
@@ -409,6 +419,7 @@ export interface FileRouteTypes {
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
+    | '/warehouse-stock'
     | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
+    | '/warehouse-stock'
     | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
@@ -488,6 +500,7 @@ export interface RootRouteChildren {
   WarehouseReturnsRoute: typeof WarehouseReturnsRoute
   WarehouseScheduleRoute: typeof WarehouseScheduleRoute
   WarehouseSettingsRoute: typeof WarehouseSettingsRoute
+  WarehouseStockRoute: typeof WarehouseStockRoute
   WarehouseTodayRoute: typeof WarehouseTodayRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -527,6 +540,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-today'
       fullPath: '/warehouse-today'
       preLoaderRoute: typeof WarehouseTodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-stock': {
+      id: '/warehouse-stock'
+      path: '/warehouse-stock'
+      fullPath: '/warehouse-stock'
+      preLoaderRoute: typeof WarehouseStockRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/warehouse-settings': {
@@ -792,6 +812,7 @@ const rootRouteChildren: RootRouteChildren = {
   WarehouseReturnsRoute: WarehouseReturnsRoute,
   WarehouseScheduleRoute: WarehouseScheduleRoute,
   WarehouseSettingsRoute: WarehouseSettingsRoute,
+  WarehouseStockRoute: WarehouseStockRoute,
   WarehouseTodayRoute: WarehouseTodayRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
