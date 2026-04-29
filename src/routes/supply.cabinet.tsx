@@ -717,7 +717,11 @@ function SupplyEditDialog({
         ? new Date(`${expectedDate}T${expectedTime || "00:00"}:00`).toISOString()
         : null;
       // 1. Сохраняем план в заявке
-      await db.from("supply_requests").update(buildPatch()).eq("id", request.id);
+      const { error: saveError } = await db
+        .from("supply_requests")
+        .update(buildPatch())
+        .eq("id", request.id);
+      if (saveError) throw saveError;
       // 2. Создаём ожидаемое поступление
       const { data: shipment, error } = await db
         .from("inbound_shipments")
@@ -742,14 +746,15 @@ function SupplyEditDialog({
         .single();
       if (error) throw error;
       // 3. Состав поступления
-      await db.from("inbound_shipment_items").insert({
+      const { error: itemError } = await db.from("inbound_shipment_items").insert({
         shipment_id: (shipment as { id: string }).id,
         product_name: productName,
         qty_expected: request.qty,
         unit: productUnit,
       });
+      if (itemError) throw itemError;
       // 4. Привязываем поступление к заявке + ставим статус «ожидается»
-      await db
+      const { error: linkError } = await db
         .from("supply_requests")
         .update({
           inbound_shipment_id: (shipment as { id: string }).id,
@@ -757,12 +762,14 @@ function SupplyEditDialog({
           supply_status_changed_at: new Date().toISOString(),
         })
         .eq("id", request.id);
+      if (linkError) throw linkError;
     },
     onSuccess: () => {
       toast.success("Ожидаемое поступление создано");
       qc.invalidateQueries({ queryKey: ["supply-requests-cabinet"] });
       qc.invalidateQueries({ queryKey: ["supply-requests"] });
       qc.invalidateQueries({ queryKey: ["wh-inbound"] });
+      qc.invalidateQueries({ queryKey: ["stock-balances"] });
       onClose();
     },
     onError: (e: Error) => toast.error(e.message),
