@@ -1864,6 +1864,10 @@ export type Database = {
           source_type: Database["public"]["Enums"]["supply_request_source_type"]
           source_warehouse_id: string | null
           status: Database["public"]["Enums"]["supply_request_status"]
+          supply_comment: string | null
+          supply_status: string
+          supply_status_changed_at: string | null
+          supply_status_changed_by: string | null
           updated_at: string
         }
         Insert: {
@@ -1884,6 +1888,10 @@ export type Database = {
           source_type: Database["public"]["Enums"]["supply_request_source_type"]
           source_warehouse_id?: string | null
           status?: Database["public"]["Enums"]["supply_request_status"]
+          supply_comment?: string | null
+          supply_status?: string
+          supply_status_changed_at?: string | null
+          supply_status_changed_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -1904,6 +1912,10 @@ export type Database = {
           source_type?: Database["public"]["Enums"]["supply_request_source_type"]
           source_warehouse_id?: string | null
           status?: Database["public"]["Enums"]["supply_request_status"]
+          supply_comment?: string | null
+          supply_status?: string
+          supply_status_changed_at?: string | null
+          supply_status_changed_by?: string | null
           updated_at?: string
         }
         Relationships: []

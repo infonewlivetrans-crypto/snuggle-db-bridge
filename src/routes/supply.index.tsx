@@ -145,7 +145,13 @@ function SupplyPage() {
             <SummaryBadge level="critical" count={counts.critical} />
             <SummaryBadge level="low" count={counts.low} />
             <SummaryBadge level="ok" count={counts.ok} />
-            <Button asChild size="sm" className="ml-2">
+            <Button asChild size="sm" variant="outline" className="ml-2">
+              <Link to="/supply/cabinet">
+                <PackageSearch className="mr-2 h-4 w-4" />
+                Кабинет снабжения
+              </Link>
+            </Button>
+            <Button asChild size="sm">
               <Link to="/supply/requests">
                 <ClipboardList className="mr-2 h-4 w-4" />
                 Заявки на пополнение
