@@ -25,11 +25,14 @@ import {
   type Order,
   type OrderStatus,
   type PaymentStatus,
+  type ClientKind,
   STATUS_LABELS,
   STATUS_ORDER,
   STATUS_STYLES,
   PAYMENT_LABELS,
   PAYMENT_STATUS_LABELS,
+  CLIENT_KIND_LABELS,
+  CLIENT_KIND_ORDER,
 } from "@/lib/orders";
 import { Input } from "@/components/ui/input";
 import { OrderHistory } from "@/components/OrderHistory";
