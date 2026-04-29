@@ -23,7 +23,16 @@ export interface ParsedRow {
   rowNumber: number; // 1-based, including header
   data: Record<string, unknown>;
   errors: string[];
+  duplicate?: DuplicateInfo | null;
 }
+
+export interface DuplicateInfo {
+  existingId: string;
+  matchedBy: string[]; // column keys used as the match
+  description: string; // short human description, e.g. order_number=ORD-1
+}
+
+export type DuplicateAction = "skip" | "update" | "create";
 
 export interface ParseResult {
   rows: ParsedRow[];
@@ -31,11 +40,17 @@ export interface ParseResult {
   totalRows: number;
   validRows: number;
   invalidRows: number;
+  duplicateRows: number;
+  newRows: number;
 }
 
 export interface ImportResult {
   inserted: number;
+  updated: number;
+  skipped: number;
   failed: number;
+  duplicates: number;
+  duplicateAction: DuplicateAction;
   failedRows: { row: number; message: string }[];
 }
 
