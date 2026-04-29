@@ -197,6 +197,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       amount_due: amountDue === "" ? null : Number(amountDue),
       marketplace: marketplace.trim() || null,
       client_works_weekends: worksWeekends,
+      delivery_window_from: windowFrom ? `${windowFrom}:00` : null,
+      delivery_window_to: windowTo ? `${windowTo}:00` : null,
+      client_type: clientType || null,
+      delivery_time_comment: deliveryTimeComment.trim() || null,
     });
   };
 
