@@ -499,6 +499,17 @@ function RouteDetailPage() {
         {/* Сводка ETA по маршруту */}
         <RouteEtaSummary route={route} points={points ?? []} />
 
+        {/* Расстояние и время */}
+        <RouteTimingBlock
+          routeId={route.id}
+          totalDistanceKm={Number((route as unknown as { total_distance_km?: number }).total_distance_km ?? 0)}
+          totalDurationMinutes={Number((route as unknown as { total_duration_minutes?: number }).total_duration_minutes ?? 0)}
+          avgSpeedKmh={Number((route as unknown as { avg_speed_kmh?: number }).avg_speed_kmh ?? 35)}
+          defaultServiceMinutes={Number((route as unknown as { default_service_minutes?: number }).default_service_minutes ?? 20)}
+          pointsCount={totalCount}
+          plannedDepartureAt={route.planned_departure_at ?? null}
+        />
+
         {/* Статус движения водителя */}
         <DriverMovementCard route={route} points={points ?? []} />
 
