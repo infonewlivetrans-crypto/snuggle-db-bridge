@@ -393,6 +393,108 @@ export function RouteCostBlock({
         </div>
       )}
 
+      {/* Контроль процента доставки от стоимости товара */}
+      <div className="mt-4 rounded-md border border-border bg-muted/20 p-3">
+        <div className="mb-2 flex items-center gap-2">
+          <Percent className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold">Процент доставки от стоимости товара</h3>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label className="text-xs">Сумма заказов в маршруте, ₽</Label>
+            <Input
+              value={fmtMoney(ordersAmountFromData)}
+              readOnly
+              disabled
+              className="h-9 bg-muted"
+            />
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              Из данных заказов (товары)
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Сумма вручную / из Excel, ₽</Label>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={manualOrders}
+              onChange={(e) => setManualOrders(e.target.value)}
+              placeholder="Если 1С не передал"
+              className="h-9"
+            />
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              Используется, если заполнено
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Норматив процента доставки, %</Label>
+            <Input
+              type="number"
+              min={0}
+              step="0.1"
+              value={percentTarget}
+              onChange={(e) => setPercentTarget(e.target.value)}
+              className="h-9"
+            />
+          </div>
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded border border-border bg-card p-2">
+            <div className="text-[10px] uppercase text-muted-foreground">Сумма заказов</div>
+            <div className="text-base font-semibold">{fmtMoney(ordersAmount)} ₽</div>
+          </div>
+          <div className="rounded border border-border bg-card p-2">
+            <div className="text-[10px] uppercase text-muted-foreground">Стоимость доставки</div>
+            <div className="text-base font-semibold">{fmtMoney(computedTotal)} ₽</div>
+          </div>
+          <div
+            className={`rounded border p-2 ${
+              overTarget
+                ? "border-rose-300 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/30"
+                : deliveryPercent != null
+                ? "border-emerald-300 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/30"
+                : "border-border bg-card"
+            }`}
+          >
+            <div className="text-[10px] uppercase text-muted-foreground">% доставки</div>
+            <div
+              className={`text-base font-semibold ${
+                overTarget
+                  ? "text-rose-700 dark:text-rose-300"
+                  : deliveryPercent != null
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : ""
+              }`}
+            >
+              {deliveryPercent != null ? `${deliveryPercent.toFixed(2)} %` : "—"}
+            </div>
+            <div className="text-[10px] text-muted-foreground">Норматив: {targetPct} %</div>
+          </div>
+        </div>
+
+        {overTarget && (
+          <div className="mt-2 flex items-start gap-1.5 rounded border border-rose-300 bg-rose-50 p-2 text-xs text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              Стоимость доставки превышает норматив (
+              {deliveryPercent?.toFixed(2)} % &gt; {targetPct} %)
+            </span>
+          </div>
+        )}
+
+        {ordersAmount === 0 && (
+          <div className="mt-2 flex items-start gap-1.5 rounded border border-amber-300 bg-amber-50 p-2 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              Сумма заказов не известна. Введите её вручную или дождитесь импорта из Excel / 1С.
+            </span>
+          </div>
+        )}
+      </div>
+
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {method === "manual" && (
           <div>
