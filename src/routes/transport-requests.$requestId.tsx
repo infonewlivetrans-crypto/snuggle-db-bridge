@@ -82,7 +82,12 @@ type RequestDetail = {
 function TransportRequestDetailPage() {
   const { requestId } = Route.useParams();
   const [hasShortage, setHasShortage] = useState(false);
+  const [whStatus, setWhStatus] = useState<RequestWarehouseStatus | null>(null);
   const handleShortage = useCallback((v: boolean) => setHasShortage(v), []);
+  const handleWhStatus = useCallback(
+    (s: RequestWarehouseStatus | null) => setWhStatus(s),
+    [],
+  );
 
   const { data, isLoading } = useQuery({
     queryKey: ["transport-request", requestId],
