@@ -736,7 +736,8 @@ function CreateProductDialog({
           movement_type: "inbound",
           qty,
           reason: "initial_stock",
-          comment: "Начальный остаток",
+          comment: "Начальный остаток при создании товара",
+          created_by: "Склад",
         });
         if (mErr) throw mErr;
       }
