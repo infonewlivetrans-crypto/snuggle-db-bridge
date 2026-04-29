@@ -162,7 +162,10 @@ function DriverRoutePage() {
   });
 
   const finalize = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (errors: string[]) => {
+      if (errors.length > 0) {
+        throw new Error(errors[0]);
+      }
       const { error } = await supabase
         .from("delivery_routes")
         .update({ status: "completed" as DeliveryRouteStatus })
@@ -180,7 +183,47 @@ function DriverRoutePage() {
   const list = points ?? [];
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
   const isCompleted = data?.status === "completed";
-  const canFinalize = list.length > 0 && pendingCount === 0 && !isCompleted;
+
+  // Подробная проверка перед завершением маршрута
+  const validationErrors: string[] = (() => {
+    const errs: string[] = [];
+    if (list.length === 0) return errs;
+    if (pendingCount > 0) {
+      errs.push(`Нельзя завершить маршрут. Есть необработанные точки (${pendingCount}).`);
+    }
+    for (const p of list) {
+      const num = p.order?.order_number ?? `точка №${p.point_number}`;
+      const kinds = photoKindsByPoint?.[p.id];
+      if (p.dp_status === "delivered") {
+        if (p.order?.requires_qr) {
+          const hasQrPhoto = !!kinds?.has("qr");
+          if (!p.order.qr_received || !hasQrPhoto) {
+            errs.push(`По заказу №${num} не загружен QR-код.`);
+          }
+        }
+        const isPrepaid = p.order?.payment_status === "paid";
+        if (p.order?.payment_type === "cash" && !isPrepaid) {
+          if (p.dp_amount_received == null || Number(p.dp_amount_received) <= 0) {
+            errs.push(`По заказу №${num} не указана сумма оплаты.`);
+          }
+        }
+      } else if (p.dp_status === "not_delivered") {
+        if (!p.dp_undelivered_reason) {
+          errs.push(`По заказу №${num} не указана причина недоставки.`);
+        }
+      } else if (p.dp_status === "returned_to_warehouse") {
+        if (!p.dp_return_warehouse_id) {
+          errs.push(`По заказу №${num} не указан склад возврата.`);
+        }
+        if (!p.dp_undelivered_reason) {
+          errs.push(`По заказу №${num} не указана причина возврата.`);
+        }
+      }
+    }
+    return errs;
+  })();
+
+  const canFinalize = list.length > 0 && validationErrors.length === 0 && !isCompleted;
 
   return (
     <div className="min-h-screen bg-background">
@@ -275,17 +318,36 @@ function DriverRoutePage() {
                 <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
                   Маршрут завершён. Отчёт отправлен менеджеру.
                 </div>
-              ) : pendingCount > 0 ? (
-                <div className="flex items-start gap-1.5 rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm text-orange-700 dark:text-orange-300">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>Обработайте все точки ({pendingCount} осталось), затем завершите маршрут.</span>
+              ) : validationErrors.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-start gap-1.5 rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm font-medium text-orange-800 dark:text-orange-200">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>Перед завершением маршрута устраните проблемы:</span>
+                  </div>
+                  <ul className="space-y-1 rounded-md border border-orange-500/30 bg-orange-500/5 p-3 text-xs text-orange-900 dark:text-orange-200">
+                    {validationErrors.map((err, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="mt-0.5">•</span>
+                        <span>{err}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full gap-1.5"
+                    disabled
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Завершить маршрут и отправить отчёт
+                  </Button>
                 </div>
               ) : (
                 <Button
                   size="lg"
                   className="w-full gap-1.5"
                   disabled={!canFinalize || finalize.isPending}
-                  onClick={() => finalize.mutate()}
+                  onClick={() => finalize.mutate(validationErrors)}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Завершить маршрут и отправить отчёт
