@@ -88,6 +88,7 @@ type PointRow = {
 
 const STATUS_TONES: Record<DeliveryPointStatus, string> = {
   waiting: "bg-slate-100 text-slate-900 border-slate-200",
+  en_route: "bg-cyan-100 text-cyan-900 border-cyan-200",
   arrived: "bg-blue-100 text-blue-900 border-blue-200",
   unloading: "bg-indigo-100 text-indigo-900 border-indigo-200",
   delivered: "bg-emerald-100 text-emerald-900 border-emerald-200",
@@ -97,6 +98,7 @@ const STATUS_TONES: Record<DeliveryPointStatus, string> = {
 
 const STATUS_LABELS: Record<DeliveryPointStatus, string> = {
   waiting: "Ожидание",
+  en_route: "В пути",
   arrived: "Прибыл",
   unloading: "Разгрузка",
   delivered: "Доставлено",
