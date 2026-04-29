@@ -518,12 +518,11 @@ function EditStockDialog({
             }
           }
         }
-        // Запись в журнал (информационная, qty=0 у остатка не меняется)
         await logMovement({
           type: "adjustment",
-          qty: 0.0001 * 0, // not used
+          qty: Math.abs(reservedDiff),
           reason: "manual_reserved_change",
-          comment: `Резерв: ${reservedDiff > 0 ? "+" : ""}${reservedDiff}`,
+          comment: `Резерв: ${reservedDiff > 0 ? "+" : "−"}${Math.abs(reservedDiff)}`,
         });
       }
 
