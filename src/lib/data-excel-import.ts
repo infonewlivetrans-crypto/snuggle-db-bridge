@@ -246,11 +246,18 @@ export async function importParsed(
       const payload: Record<string, unknown> = {
         order_number: str(d.order_number),
         delivery_address: str(d.delivery_address),
-        contact_name: str(d.contact_name),
-        contact_phone: str(d.contact_phone),
+        contact_name: str(d.customer_name),
+        contact_phone: str(d.customer_phone),
+        manager_name: str(d.manager_name),
+        delivery_date: str(d.delivery_date),
+        delivery_time_from: str(d.delivery_time_from),
+        delivery_time_to: str(d.delivery_time_to),
+        coordinates: str(d.coordinates),
         payment_type: str(d.payment_type) ?? "cash",
-        delivery_cost: num(d.delivery_cost) ?? 0,
-        goods_amount: num(d.goods_amount),
+        prepaid: num(d.prepaid) ?? 0,
+        amount_to_collect: num(d.amount_to_collect),
+        requires_qr: ["yes", "true", "1", "да"].includes(String(d.requires_qr ?? "").toLowerCase()),
+        marketplace: str(d.marketplace),
         comment: str(d.comment),
         source,
       };
@@ -262,12 +269,15 @@ export async function importParsed(
     for (const r of valid) {
       const d = r.data;
       const payload = {
-        name: str(d.name)!,
-        sku: str(d.sku),
-        unit: str(d.unit),
-        weight_kg: num(d.weight_kg),
-        volume_m3: num(d.volume_m3),
+        name: str(d.product_name)!,
         category: str(d.category),
+        characteristic: str(d.characteristic),
+        weight_kg: num(d.weight),
+        volume_m3: num(d.volume),
+        length_m: num(d.length),
+        width_m: num(d.width),
+        height_m: num(d.height),
+        comment: str(d.comment),
         source,
       };
       const { error } = await supabase.from("products").insert(payload as never);
@@ -275,21 +285,20 @@ export async function importParsed(
       else inserted++;
     }
   } else if (entity === "stock") {
-    // resolve sku -> product_id, warehouse_name -> warehouse_id
-    const skus = Array.from(new Set(valid.map((r) => str(r.data.product_sku)).filter(Boolean) as string[]));
-    const whNames = Array.from(new Set(valid.map((r) => str(r.data.warehouse_name)).filter(Boolean) as string[]));
-    const { data: products } = await supabase.from("products").select("id, sku").in("sku", skus);
+    const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
+    const whNames = Array.from(new Set(valid.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
+    const { data: products } = await supabase.from("products").select("id, name").in("name", names);
     const { data: whs } = await supabase.from("warehouses").select("id, name").in("name", whNames);
-    const skuMap = new Map((products ?? []).map((p) => [p.sku, p.id]));
+    const prodMap = new Map((products ?? []).map((p) => [p.name, p.id]));
     const whMap = new Map((whs ?? []).map((w) => [w.name, w.id]));
     for (const r of valid) {
-      const sku = str(r.data.product_sku)!;
-      const whName = str(r.data.warehouse_name)!;
-      const qty = num(r.data.qty);
-      const productId = skuMap.get(sku);
+      const name = str(r.data.product_name)!;
+      const whName = str(r.data.warehouse)!;
+      const qty = num(r.data.available_quantity);
+      const productId = prodMap.get(name);
       const warehouseId = whMap.get(whName);
       if (!productId) {
-        failed.push({ row: r.rowNumber, message: `Товар с SKU "${sku}" не найден` });
+        failed.push({ row: r.rowNumber, message: `Товар "${name}" не найден` });
         continue;
       }
       if (!warehouseId) {
@@ -306,7 +315,6 @@ export async function importParsed(
         movement_type: "inbound",
         qty,
         reason: "excel_import",
-        comment: str(r.data.comment),
         source,
       } as never);
       if (error) failed.push({ row: r.rowNumber, message: error.message });
@@ -317,8 +325,8 @@ export async function importParsed(
       const d = r.data;
       const payload = {
         route_number: str(d.route_number)!,
-        route_date: str(d.route_date)!,
         driver_name: str(d.driver_name),
+        vehicle_number: str(d.vehicle_number),
         comment: str(d.comment),
         source,
       };
@@ -330,12 +338,10 @@ export async function importParsed(
     for (const r of valid) {
       const d = r.data;
       const payload = {
-        route_number: str(d.route_number)!,
-        route_date: str(d.route_date)!,
+        route_number: str(d.request_number)!,
+        route_date: str(d.planned_date)!,
         request_type: (str(d.request_type) ?? "client_delivery") as never,
-        required_capacity_kg: num(d.required_capacity_kg),
-        required_volume_m3: num(d.required_volume_m3),
-        transport_comment: str(d.transport_comment),
+        transport_comment: `${str(d.warehouse_from) ?? ""} → ${str(d.warehouse_to) ?? ""} ${str(d.planned_time) ?? ""}`.trim(),
         source,
       };
       const { error } = await supabase.from("routes").insert(payload as never);
