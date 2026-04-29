@@ -208,11 +208,14 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
       let pointNum = 1;
       for (const r of group.rows) {
         try {
-          if (!r.address && !r.map_link && r.latitude == null && r.longitude == null) {
-            throw new Error("Нужен адрес или координаты");
-          }
-          const orderNumber =
-            r.order_number?.trim() || `IMP-${String(orderCounter++).padStart(4, "0")}`;
+          const rowMissing: string[] = [];
+          if (!r.order_number?.trim()) rowMissing.push("номер заказа");
+          if (!r.client?.trim()) rowMissing.push("клиент");
+          if (!r.address && !r.map_link && r.latitude == null && r.longitude == null)
+            rowMissing.push("адрес или координаты");
+          if (rowMissing.length > 0)
+            throw new Error("Не заполнены обязательные данные: " + rowMissing.join(", "));
+          const orderNumber = r.order_number!.trim();
           const paymentRaw = r.payment_type ? normalizeKey(r.payment_type) : "";
           const payment_type = PAYMENT_MAP[paymentRaw] || "cash";
           const requiresQr = toBool(r.requires_qr) || payment_type === "qr";
