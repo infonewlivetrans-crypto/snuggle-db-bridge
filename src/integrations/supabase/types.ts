@@ -317,6 +317,9 @@ export type Database = {
           driver_access_enabled: boolean
           driver_access_token: string | null
           id: string
+          last_driver_lat: number | null
+          last_driver_lng: number | null
+          last_driver_location_at: string | null
           route_date: string
           route_number: string
           source_request_id: string
@@ -335,6 +338,9 @@ export type Database = {
           driver_access_enabled?: boolean
           driver_access_token?: string | null
           id?: string
+          last_driver_lat?: number | null
+          last_driver_lng?: number | null
+          last_driver_location_at?: string | null
           route_date?: string
           route_number: string
           source_request_id: string
@@ -353,6 +359,9 @@ export type Database = {
           driver_access_enabled?: boolean
           driver_access_token?: string | null
           id?: string
+          last_driver_lat?: number | null
+          last_driver_lng?: number | null
+          last_driver_location_at?: string | null
           route_date?: string
           route_number?: string
           source_request_id?: string
@@ -478,6 +487,47 @@ export type Database = {
           warehouse_id?: string | null
         }
         Relationships: []
+      }
+      driver_locations: {
+        Row: {
+          accuracy: number | null
+          captured_at: string
+          created_at: string
+          delivery_route_id: string
+          driver_name: string | null
+          id: string
+          latitude: number
+          longitude: number
+        }
+        Insert: {
+          accuracy?: number | null
+          captured_at?: string
+          created_at?: string
+          delivery_route_id: string
+          driver_name?: string | null
+          id?: string
+          latitude: number
+          longitude: number
+        }
+        Update: {
+          accuracy?: number | null
+          captured_at?: string
+          created_at?: string
+          delivery_route_id?: string
+          driver_name?: string | null
+          id?: string
+          latitude?: number
+          longitude?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_locations_delivery_route_id_fkey"
+            columns: ["delivery_route_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_routes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       drivers: {
         Row: {

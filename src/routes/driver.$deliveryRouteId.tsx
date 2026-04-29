@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { PointActionsHistory } from "@/components/PointActionsHistory";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
+import { DriverGeoTracker } from "@/components/DriverGeoTracker";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import {
@@ -319,6 +320,13 @@ function DriverRoutePage() {
                 </div>
               </div>
             </div>
+
+            {/* GPS-трекинг водителя — только при активном маршруте */}
+            <DriverGeoTracker
+              deliveryRouteId={deliveryRouteId}
+              driverName={data.assigned_driver}
+              active={data.status !== "completed"}
+            />
 
             {/* Точки */}
             {list.length === 0 ? (

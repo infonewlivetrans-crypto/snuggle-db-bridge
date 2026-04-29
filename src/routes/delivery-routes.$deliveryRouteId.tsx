@@ -30,6 +30,8 @@ import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
 import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBlock";
 import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
+import { DriverGeoBlock } from "@/components/DriverGeoBlock";
+import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
@@ -155,6 +157,24 @@ function DeliveryRoutePage() {
         map[r.route_point_id].add(r.kind);
       }
       return map;
+    },
+  });
+
+  const { data: driverGeo } = useQuery({
+    queryKey: ["driver-geo-map", deliveryRouteId],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("delivery_routes")
+        .select("last_driver_lat, last_driver_lng, last_driver_location_at")
+        .eq("id", deliveryRouteId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as {
+        last_driver_lat: number | null;
+        last_driver_lng: number | null;
+        last_driver_location_at: string | null;
+      } | null;
     },
   });
 
@@ -327,6 +347,40 @@ function DeliveryRoutePage() {
                 </Button>
               </div>
             </div>
+
+            {/* Геопозиция водителя */}
+            <DriverGeoBlock deliveryRouteId={deliveryRouteId} />
+
+            {/* Карта маршрута с позицией водителя */}
+            {(points ?? []).length > 0 && (
+              <RouteMapBlock
+                points={(points ?? []).map((p) => ({
+                  id: p.id,
+                  point_number: p.point_number,
+                  status: (p.dp_status === "delivered"
+                    ? "completed"
+                    : p.dp_status === "not_delivered" || p.dp_status === "returned_to_warehouse"
+                      ? "failed"
+                      : "pending") as "pending" | "completed" | "failed",
+                  order: {
+                    order_number: p.order?.order_number ?? "",
+                    contact_name: p.order?.contact_name ?? null,
+                    delivery_address: p.order?.delivery_address ?? null,
+                    latitude: p.order?.latitude ?? null,
+                    longitude: p.order?.longitude ?? null,
+                  },
+                }))}
+                driverLocation={
+                  driverGeo?.last_driver_lat != null && driverGeo?.last_driver_lng != null
+                    ? {
+                        latitude: driverGeo.last_driver_lat,
+                        longitude: driverGeo.last_driver_lng,
+                        capturedAt: driverGeo.last_driver_location_at,
+                      }
+                    : null
+                }
+              />
+            )}
 
             {/* Исполнение маршрута: водитель + транспорт */}
             <RouteExecutionBlock

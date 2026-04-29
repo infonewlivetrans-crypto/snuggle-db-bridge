@@ -24,20 +24,27 @@ type MapPoint = {
 /** Сборка статической карты Yandex с несколькими метками. */
 function multiPointStaticMap(
   pts: { lat: number; lng: number; n: number }[],
+  driver: { lat: number; lng: number } | null,
   opts: { width?: number; height?: number } = {},
 ): string | null {
-  if (pts.length === 0) return null;
+  if (pts.length === 0 && !driver) return null;
   const { width = 900, height = 360 } = opts;
-  // pm2rdm{n} — красная метка с номером (1-99)
-  const markers = pts
-    .map((p) => `${p.lng},${p.lat},pm2rdm${Math.min(p.n, 99)}`)
-    .join("~");
+  const pointMarkers = pts.map((p) => `${p.lng},${p.lat},pm2rdm${Math.min(p.n, 99)}`);
+  // Синяя метка водителя
+  if (driver) pointMarkers.push(`${driver.lng},${driver.lat},pm2blwtm`);
+  const markers = pointMarkers.join("~");
   const sizeW = Math.min(Math.max(width, 300), 650);
   const sizeH = Math.min(Math.max(height, 200), 450);
   return `https://static-maps.yandex.ru/1.x/?l=map&size=${sizeW},${sizeH}&pt=${markers}`;
 }
 
-export function RouteMapBlock({ points }: { points: MapPoint[] }) {
+export function RouteMapBlock({
+  points,
+  driverLocation = null,
+}: {
+  points: MapPoint[];
+  driverLocation?: { latitude: number; longitude: number; capturedAt?: string | null } | null;
+}) {
   const withCoords = points.filter(
     (p) =>
       typeof p.order.latitude === "number" &&
@@ -49,12 +56,17 @@ export function RouteMapBlock({ points }: { points: MapPoint[] }) {
       typeof p.order.longitude !== "number",
   );
 
+  const driverPin = driverLocation
+    ? { lat: driverLocation.latitude, lng: driverLocation.longitude }
+    : null;
+
   const mapUrl = multiPointStaticMap(
     withCoords.map((p) => ({
       lat: p.order.latitude as number,
       lng: p.order.longitude as number,
       n: p.point_number,
     })),
+    driverPin,
   );
 
   // Ссылка "посмотреть на я.картах": центрируем по первой точке
