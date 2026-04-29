@@ -158,6 +158,25 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
         update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
       }).update(payload).eq("id", routePointId);
       if (error) throw error;
+
+      // Авто-перевод маршрута в статус «В работе» при первом действии водителя
+      try {
+        const { data: rp } = await supabase
+          .from("route_points")
+          .select("route_id")
+          .eq("id", routePointId)
+          .maybeSingle();
+        const routeId = (rp as { route_id?: string } | null)?.route_id;
+        if (routeId) {
+          await supabase
+            .from("delivery_routes")
+            .update({ status: "in_progress" })
+            .eq("id", routeId)
+            .eq("status", "issued");
+        }
+      } catch {
+        // не критично для сохранения статуса точки
+      }
     },
     onSuccess: () => {
       toast.success("Статус точки сохранён");
