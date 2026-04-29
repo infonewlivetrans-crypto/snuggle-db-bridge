@@ -14,6 +14,7 @@ import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
 import { Route as WarehouseSettingsRouteImport } from './routes/warehouse-settings'
 import { Route as WarehouseScheduleRouteImport } from './routes/warehouse-schedule'
 import { Route as WarehouseReturnsRouteImport } from './routes/warehouse-returns'
+import { Route as WarehouseReportRouteImport } from './routes/warehouse-report'
 import { Route as WarehouseInboundRouteImport } from './routes/warehouse-inbound'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
@@ -69,6 +70,11 @@ const WarehouseScheduleRoute = WarehouseScheduleRouteImport.update({
 const WarehouseReturnsRoute = WarehouseReturnsRouteImport.update({
   id: '/warehouse-returns',
   path: '/warehouse-returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseReportRoute = WarehouseReportRouteImport.update({
+  id: '/warehouse-report',
+  path: '/warehouse-report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WarehouseInboundRoute = WarehouseInboundRouteImport.update({
@@ -240,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
+  '/warehouse-report': typeof WarehouseReportRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
@@ -278,6 +285,7 @@ export interface FileRoutesByTo {
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
+  '/warehouse-report': typeof WarehouseReportRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
@@ -317,6 +325,7 @@ export interface FileRoutesById {
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
+  '/warehouse-report': typeof WarehouseReportRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
+    | '/warehouse-report'
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
+    | '/warehouse-report'
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
+    | '/warehouse-report'
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
@@ -472,6 +484,7 @@ export interface RootRouteChildren {
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
   WarehouseInboundRoute: typeof WarehouseInboundRoute
+  WarehouseReportRoute: typeof WarehouseReportRoute
   WarehouseReturnsRoute: typeof WarehouseReturnsRoute
   WarehouseScheduleRoute: typeof WarehouseScheduleRoute
   WarehouseSettingsRoute: typeof WarehouseSettingsRoute
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-returns'
       fullPath: '/warehouse-returns'
       preLoaderRoute: typeof WarehouseReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-report': {
+      id: '/warehouse-report'
+      path: '/warehouse-report'
+      fullPath: '/warehouse-report'
+      preLoaderRoute: typeof WarehouseReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/warehouse-inbound': {
@@ -768,6 +788,7 @@ const rootRouteChildren: RootRouteChildren = {
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
   WarehouseInboundRoute: WarehouseInboundRoute,
+  WarehouseReportRoute: WarehouseReportRoute,
   WarehouseReturnsRoute: WarehouseReturnsRoute,
   WarehouseScheduleRoute: WarehouseScheduleRoute,
   WarehouseSettingsRoute: WarehouseSettingsRoute,
