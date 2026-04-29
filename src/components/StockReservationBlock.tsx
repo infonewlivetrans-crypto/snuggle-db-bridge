@@ -210,7 +210,10 @@ export function StockReservationBlock({
     qc.invalidateQueries({ queryKey: ["reservations", requestId] });
     qc.invalidateQueries({ queryKey: ["reserv-bal"] });
     qc.invalidateQueries({ queryKey: ["stock-check-bal"] });
+    qc.invalidateQueries({ queryKey: ["stock-check-own-reserv"] });
     qc.invalidateQueries({ queryKey: ["stock_balances"] });
+    qc.invalidateQueries({ queryKey: ["stock-balances"] });
+    qc.invalidateQueries({ queryKey: ["request-wh-status"] });
   };
 
   // Резервировать одну строку
