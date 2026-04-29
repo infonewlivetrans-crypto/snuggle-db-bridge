@@ -811,6 +811,66 @@ export type Database = {
         }
         Relationships: []
       }
+      order_items: {
+        Row: {
+          characteristic: string | null
+          comment: string | null
+          created_at: string
+          delivery_amount: number | null
+          external_id: string | null
+          id: string
+          nomenclature: string
+          order_amount: number | null
+          order_id: string
+          product_id: string | null
+          qty: number
+          quality: string | null
+          source: string
+          unit: string | null
+          updated_at: string
+          volume_m3: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          characteristic?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_amount?: number | null
+          external_id?: string | null
+          id?: string
+          nomenclature: string
+          order_amount?: number | null
+          order_id: string
+          product_id?: string | null
+          qty?: number
+          quality?: string | null
+          source?: string
+          unit?: string | null
+          updated_at?: string
+          volume_m3?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          characteristic?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_amount?: number | null
+          external_id?: string | null
+          id?: string
+          nomenclature?: string
+          order_amount?: number | null
+          order_id?: string
+          product_id?: string | null
+          qty?: number
+          quality?: string | null
+          source?: string
+          unit?: string | null
+          updated_at?: string
+          volume_m3?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       order_problem_reports: {
         Row: {
           comment: string | null
@@ -874,6 +934,7 @@ export type Database = {
           amount_due: number | null
           applied_tariff_id: string | null
           cash_received: boolean
+          characteristic: string | null
           client_works_weekends: boolean
           comment: string | null
           contact_name: string | null
@@ -897,6 +958,8 @@ export type Database = {
           manual_cost_set_by: string | null
           map_link: string | null
           marketplace: string | null
+          onec_order_number: string | null
+          onec_transport_request_number: string | null
           order_number: string
           payment_status: Database["public"]["Enums"]["payment_status"]
           payment_type: Database["public"]["Enums"]["payment_type"]
@@ -904,6 +967,7 @@ export type Database = {
           qr_photo_uploaded_by: string | null
           qr_photo_url: string | null
           qr_received: boolean
+          quality: string | null
           requires_qr: boolean
           source: string
           status: Database["public"]["Enums"]["order_status"]
@@ -916,6 +980,7 @@ export type Database = {
           amount_due?: number | null
           applied_tariff_id?: string | null
           cash_received?: boolean
+          characteristic?: string | null
           client_works_weekends?: boolean
           comment?: string | null
           contact_name?: string | null
@@ -939,6 +1004,8 @@ export type Database = {
           manual_cost_set_by?: string | null
           map_link?: string | null
           marketplace?: string | null
+          onec_order_number?: string | null
+          onec_transport_request_number?: string | null
           order_number: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
           payment_type?: Database["public"]["Enums"]["payment_type"]
@@ -946,6 +1013,7 @@ export type Database = {
           qr_photo_uploaded_by?: string | null
           qr_photo_url?: string | null
           qr_received?: boolean
+          quality?: string | null
           requires_qr?: boolean
           source?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -958,6 +1026,7 @@ export type Database = {
           amount_due?: number | null
           applied_tariff_id?: string | null
           cash_received?: boolean
+          characteristic?: string | null
           client_works_weekends?: boolean
           comment?: string | null
           contact_name?: string | null
@@ -981,6 +1050,8 @@ export type Database = {
           manual_cost_set_by?: string | null
           map_link?: string | null
           marketplace?: string | null
+          onec_order_number?: string | null
+          onec_transport_request_number?: string | null
           order_number?: string
           payment_status?: Database["public"]["Enums"]["payment_status"]
           payment_type?: Database["public"]["Enums"]["payment_type"]
@@ -988,6 +1059,7 @@ export type Database = {
           qr_photo_uploaded_by?: string | null
           qr_photo_url?: string | null
           qr_received?: boolean
+          quality?: string | null
           requires_qr?: boolean
           source?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -1322,16 +1394,22 @@ export type Database = {
         Row: {
           avg_speed_kmh: number
           carrier_cost: number
+          carrier_reward: number | null
           comment: string | null
           created_at: string
           default_service_minutes: number
+          delivery_amount: number | null
           delivery_cost: number
           departure_time: string | null
           destination_warehouse_id: string | null
           driver_id: string | null
           driver_name: string | null
+          external_id: string | null
           id: string
           manual_cost: boolean
+          mileage_km: number | null
+          onec_request_number: string | null
+          organization: string | null
           planned_departure_at: string | null
           points_count: number
           request_priority: Database["public"]["Enums"]["transport_request_priority"]
@@ -1349,12 +1427,16 @@ export type Database = {
           requires_tent: boolean
           route_date: string
           route_number: string
+          source: string
           status: Database["public"]["Enums"]["route_status"]
           total_distance_km: number
           total_duration_minutes: number
+          total_orders_amount: number | null
           total_volume_m3: number
           total_weight_kg: number
           transport_comment: string | null
+          transport_kind: string | null
+          unloading_zone: string | null
           updated_at: string
           vehicle_id: string | null
           warehouse_id: string | null
@@ -1362,16 +1444,22 @@ export type Database = {
         Insert: {
           avg_speed_kmh?: number
           carrier_cost?: number
+          carrier_reward?: number | null
           comment?: string | null
           created_at?: string
           default_service_minutes?: number
+          delivery_amount?: number | null
           delivery_cost?: number
           departure_time?: string | null
           destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
+          external_id?: string | null
           id?: string
           manual_cost?: boolean
+          mileage_km?: number | null
+          onec_request_number?: string | null
+          organization?: string | null
           planned_departure_at?: string | null
           points_count?: number
           request_priority?: Database["public"]["Enums"]["transport_request_priority"]
@@ -1389,12 +1477,16 @@ export type Database = {
           requires_tent?: boolean
           route_date?: string
           route_number: string
+          source?: string
           status?: Database["public"]["Enums"]["route_status"]
           total_distance_km?: number
           total_duration_minutes?: number
+          total_orders_amount?: number | null
           total_volume_m3?: number
           total_weight_kg?: number
           transport_comment?: string | null
+          transport_kind?: string | null
+          unloading_zone?: string | null
           updated_at?: string
           vehicle_id?: string | null
           warehouse_id?: string | null
@@ -1402,16 +1494,22 @@ export type Database = {
         Update: {
           avg_speed_kmh?: number
           carrier_cost?: number
+          carrier_reward?: number | null
           comment?: string | null
           created_at?: string
           default_service_minutes?: number
+          delivery_amount?: number | null
           delivery_cost?: number
           departure_time?: string | null
           destination_warehouse_id?: string | null
           driver_id?: string | null
           driver_name?: string | null
+          external_id?: string | null
           id?: string
           manual_cost?: boolean
+          mileage_km?: number | null
+          onec_request_number?: string | null
+          organization?: string | null
           planned_departure_at?: string | null
           points_count?: number
           request_priority?: Database["public"]["Enums"]["transport_request_priority"]
@@ -1429,12 +1527,16 @@ export type Database = {
           requires_tent?: boolean
           route_date?: string
           route_number?: string
+          source?: string
           status?: Database["public"]["Enums"]["route_status"]
           total_distance_km?: number
           total_duration_minutes?: number
+          total_orders_amount?: number | null
           total_volume_m3?: number
           total_weight_kg?: number
           transport_comment?: string | null
+          transport_kind?: string | null
+          unloading_zone?: string | null
           updated_at?: string
           vehicle_id?: string | null
           warehouse_id?: string | null
