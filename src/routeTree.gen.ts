@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
@@ -44,6 +45,11 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseTodayRoute = WarehouseTodayRouteImport.update({
+  id: '/warehouse-today',
+  path: '/warehouse-today',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemTestRoute = SystemTestRouteImport.update({
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -242,6 +249,7 @@ export interface FileRoutesByTo {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -344,6 +354,7 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -411,6 +423,7 @@ export interface RootRouteChildren {
   RouteReportsRoute: typeof RouteReportsRoute
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
+  WarehouseTodayRoute: typeof WarehouseTodayRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/workspace'
       fullPath: '/workspace'
       preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-today': {
+      id: '/warehouse-today'
+      path: '/warehouse-today'
+      fullPath: '/warehouse-today'
+      preLoaderRoute: typeof WarehouseTodayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/system-test': {
@@ -667,6 +687,7 @@ const rootRouteChildren: RootRouteChildren = {
   RouteReportsRoute: RouteReportsRoute,
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
+  WarehouseTodayRoute: WarehouseTodayRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
