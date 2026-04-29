@@ -15,6 +15,7 @@ import {
   FileText,
   PlayCircle,
   ArrowLeftRight,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -47,6 +48,7 @@ const NAV_ITEMS = [
   { to: "/warehouse-transfers", label: "Перемещения", icon: ArrowLeftRight, match: (p: string) => p.startsWith("/warehouse-transfers") },
   { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p: string) => p.startsWith("/supply") },
   { to: "/notifications", label: "Уведомления", icon: Bell, match: (p: string) => p.startsWith("/notifications") },
+  { to: "/data-import", label: "Импорт данных", icon: FileSpreadsheet, match: (p: string) => p.startsWith("/data-import") },
   { to: "/admin/tariffs", label: "Тарифы", icon: Receipt, match: (p: string) => p.startsWith("/admin/tariffs") },
   { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p: string) => p.startsWith("/admin") && !p.startsWith("/admin/tariffs") },
   { to: "/first-run", label: "Первый запуск", icon: PlayCircle, match: (p: string) => p.startsWith("/first-run") },
