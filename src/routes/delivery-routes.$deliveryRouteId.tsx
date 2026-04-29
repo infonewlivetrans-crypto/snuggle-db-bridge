@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck } from "lucide-react";
+import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/lib/deliveryRoutes";
 import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
+import { AddManualPointDialog } from "@/components/AddManualPointDialog";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
