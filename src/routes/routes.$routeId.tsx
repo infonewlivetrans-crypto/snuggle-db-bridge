@@ -40,6 +40,7 @@ import { PAYMENT_LABELS, CLIENT_KIND_LABELS, type ClientKind } from "@/lib/order
 import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteTimingBlock } from "@/components/RouteTimingBlock";
+import { RouteCostBlock, type CostMethod } from "@/components/RouteCostBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -508,6 +509,18 @@ function RouteDetailPage() {
           defaultServiceMinutes={Number((route as unknown as { default_service_minutes?: number }).default_service_minutes ?? 20)}
           pointsCount={totalCount}
           plannedDepartureAt={route.planned_departure_at ?? null}
+        />
+
+        {/* Стоимость доставки */}
+        <RouteCostBlock
+          routeId={route.id}
+          totalDistanceKm={Number((route as unknown as { total_distance_km?: number }).total_distance_km ?? 0)}
+          pointsCount={totalCount}
+          costMethod={((route as unknown as { cost_method?: string }).cost_method as CostMethod) ?? "manual"}
+          costPerKm={Number((route as unknown as { cost_per_km?: number }).cost_per_km ?? 0)}
+          costPerPoint={Number((route as unknown as { cost_per_point?: number }).cost_per_point ?? 0)}
+          fixedCost={Number((route as unknown as { fixed_cost?: number }).fixed_cost ?? 0)}
+          deliveryCost={Number((route as unknown as { delivery_cost?: number }).delivery_cost ?? 0)}
         />
 
         {/* Статус движения водителя */}

@@ -81,6 +81,30 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
     },
   });
 
+  const { data: routeCost } = useQuery({
+    queryKey: ["route-cost-summary", deliveryRouteId],
+    queryFn: async () => {
+      const { data: dr } = await supabase
+        .from("delivery_routes")
+        .select("route_id")
+        .eq("id", deliveryRouteId)
+        .maybeSingle();
+      const routeId = (dr as { route_id?: string } | null)?.route_id;
+      if (!routeId) return null;
+      const { data } = await supabase
+        .from("routes")
+        .select("delivery_cost, cost_method, total_distance_km, points_count")
+        .eq("id", routeId)
+        .maybeSingle();
+      return data as {
+        delivery_cost: number;
+        cost_method: string;
+        total_distance_km: number;
+        points_count: number;
+      } | null;
+    },
+  });
+
   if (!notif) return null;
   const p = notif.payload as ReportPayload;
 
@@ -134,6 +158,13 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
             accent={p.totals.amount_diff !== 0}
           />
         </div>
+        {routeCost && (
+          <div className="mt-2 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+            <Info label="Стоимость доставки" value={fmtMoney(routeCost.delivery_cost) + " ₽"} accent />
+            <Info label="Километров" value={fmtMoney(routeCost.total_distance_km)} />
+            <Info label="Точек" value={String(routeCost.points_count)} />
+          </div>
+        )}
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
