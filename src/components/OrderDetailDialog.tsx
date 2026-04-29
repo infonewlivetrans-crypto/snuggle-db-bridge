@@ -465,6 +465,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           {/* Все поля заказа */}
           <OrderAllFields order={order} />
 
+          {/* Проблемы по заказу (от водителя) */}
+          <OrderProblemReportsBlock orderId={order.id} />
+
           {/* История доставки (действия водителя) */}
           <PointActionsHistory orderId={order.id} title="История доставки" />
 
