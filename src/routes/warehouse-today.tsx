@@ -275,9 +275,31 @@ function WarehouseTodayPage() {
         const { error } = await supabase.from("warehouse_dock_events").insert(patch);
         if (error) throw error;
       }
+
+      // Если приняли возврат — синхронизируем точки маршрута, чтобы событие попало в отчёт склада
+      if (args.status === "return_accepted") {
+        const pts = (returnPoints ?? []).filter((p) => p.route_id === r.id);
+        if (pts.length > 0) {
+          const ids = pts.map((p) => p.id);
+          const { error } = await supabase
+            .from("route_points")
+            .update({
+              wh_return_status: "accepted",
+              wh_return_arrived_at: now,
+              wh_return_accepted_at: now,
+              wh_return_accepted_by: "Кладовщик",
+              wh_return_status_changed_at: now,
+              wh_return_status_changed_by: "Кладовщик",
+            })
+            .in("id", ids);
+          if (error) throw error;
+        }
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wh-today-events", date] });
+      qc.invalidateQueries({ queryKey: ["wh-today-returns"] });
+      qc.invalidateQueries({ queryKey: ["wh-returns"] });
       toast.success("Статус обновлён");
     },
     onError: (e: Error) => toast.error(e.message),
