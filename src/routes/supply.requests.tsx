@@ -473,8 +473,25 @@ function CreateRequestWizard({
           ? new Date(parsed.data.expected_at).toISOString()
           : null,
       };
-      const { error } = await db.from("supply_requests").insert(payload);
+      const { data: inserted, error } = await db
+        .from("supply_requests")
+        .insert(payload)
+        .select("id, request_number")
+        .single();
       if (error) throw error;
+      // Уведомление снабжению о созданной заявке
+      const whName = warehouses.find((w) => w.id === destWarehouseId)?.name ?? null;
+      const product = products.find((p) => p.id === productId);
+      await notifySupplyRequestCreated({
+        supplyRequestId: (inserted as { id: string }).id,
+        requestNumber: (inserted as { request_number: string }).request_number,
+        warehouseId: destWarehouseId,
+        warehouseName: whName,
+        productId: productId,
+        productName: product?.name ?? null,
+        qty: Number(qty),
+        unit: product?.unit ?? null,
+      });
     },
     onSuccess: () => {
       toast.success("Заявка создана");
