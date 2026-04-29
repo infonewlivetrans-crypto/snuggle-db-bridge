@@ -455,3 +455,17 @@ function DriverPointCard({
     </div>
   );
 }
+
+function buildMapUrl(
+  o: { map_link: string | null; latitude: number | null; longitude: number | null; delivery_address: string | null } | null | undefined,
+): string | null {
+  if (!o) return null;
+  if (o.map_link && /^https?:\/\//i.test(o.map_link)) return o.map_link;
+  if (o.latitude != null && o.longitude != null) {
+    return `https://yandex.ru/maps/?pt=${o.longitude},${o.latitude}&z=16&l=map`;
+  }
+  if (o.delivery_address && o.delivery_address.trim()) {
+    return `https://yandex.ru/maps/?text=${encodeURIComponent(o.delivery_address)}`;
+  }
+  return null;
+}
