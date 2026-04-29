@@ -426,6 +426,8 @@ function EditStockDialog({
   const [reserved, setReserved] = useState(String(balance.reserved ?? 0));
   const [inTransit, setInTransit] = useState(String(balance.in_transit ?? 0));
   const [minStock, setMinStock] = useState(String(balance.min_stock ?? 0));
+  const [author, setAuthor] = useState("");
+  const [comment, setComment] = useState("");
 
   const save = useMutation({
     mutationFn: async () => {
@@ -440,25 +442,42 @@ function EditStockDialog({
       if (!balance.warehouse_id) {
         throw new Error("У позиции не указан склад — отредактируйте товар");
       }
+      const actor = author.trim() || "Склад";
+      const note = comment.trim() || null;
 
-      // Целевой on_hand = доступно + резерв
-      const targetOnHand = newAvailable + newReserved;
-      const onHandDiff = targetOnHand - Number(balance.on_hand ?? 0);
-
-      // 1) Корректировка остатка через stock_movements (adjustment)
-      if (onHandDiff !== 0) {
+      // Хелпер для записи в журнал движения (без затрагивания остатка)
+      const logMovement = async (params: {
+        type: "adjustment" | "inbound" | "outbound";
+        qty: number;
+        reason: string;
+        comment: string;
+      }) => {
+        if (params.qty === 0) return;
         const { error } = await db.from("stock_movements").insert({
           product_id: balance.product_id,
           warehouse_id: balance.warehouse_id,
-          movement_type: "adjustment",
+          movement_type: params.type,
+          qty: params.qty,
+          reason: params.reason,
+          comment: note ? `${params.comment} · ${note}` : params.comment,
+          created_by: actor,
+        });
+        if (error) throw error;
+      };
+
+      // 1) Целевой on_hand = доступно + резерв → корректировка
+      const targetOnHand = newAvailable + newReserved;
+      const onHandDiff = targetOnHand - Number(balance.on_hand ?? 0);
+      if (onHandDiff !== 0) {
+        await logMovement({
+          type: "adjustment",
           qty: onHandDiff,
           reason: "manual_edit",
           comment: "Ручная корректировка остатка",
         });
-        if (error) throw error;
       }
 
-      // 2) Корректировка резерва: пересоздаём активные резервации в одну агрегированную «manual»
+      // 2) Корректировка резерва
       const reservedDiff = newReserved - Number(balance.reserved ?? 0);
       if (reservedDiff !== 0) {
         if (reservedDiff > 0) {
@@ -470,7 +489,6 @@ function EditStockDialog({
           });
           if (error) throw error;
         } else {
-          // Уменьшение: освобождаем активные резервации в порядке убывания, пока не закроем дельту
           let remaining = -reservedDiff;
           const { data: reservations, error: rerr } = await db
             .from("stock_reservations")
@@ -500,6 +518,13 @@ function EditStockDialog({
             }
           }
         }
+        // Запись в журнал (информационная, qty=0 у остатка не меняется)
+        await logMovement({
+          type: "adjustment",
+          qty: 0.0001 * 0, // not used
+          reason: "manual_reserved_change",
+          comment: `Резерв: ${reservedDiff > 0 ? "+" : ""}${reservedDiff}`,
+        });
       }
 
       // 3) Корректировка «в пути»
@@ -546,9 +571,15 @@ function EditStockDialog({
             }
           }
         }
+        await logMovement({
+          type: "adjustment",
+          qty: 0,
+          reason: "manual_in_transit_change",
+          comment: `В пути: ${transitDiff > 0 ? "+" : ""}${transitDiff}`,
+        });
       }
 
-      // 4) Минимальный остаток — upsert настроек
+      // 4) Минимальный остаток
       if (newMin !== Number(balance.min_stock ?? 0)) {
         const { error } = await db
           .from("product_stock_settings")
@@ -561,6 +592,12 @@ function EditStockDialog({
             { onConflict: "product_id,warehouse_id" },
           );
         if (error) throw error;
+        await logMovement({
+          type: "adjustment",
+          qty: 0,
+          reason: "manual_min_stock_change",
+          comment: `Мин. остаток: ${balance.min_stock} → ${newMin}`,
+        });
       }
     },
     onSuccess: () => {
