@@ -545,3 +545,40 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     </div>
   );
 }
+
+function SavedTemplatesMenu({ entity, onApply }: { entity: ImportEntity; onApply: (t: MappingTemplate) => void }) {
+  const [tick, setTick] = useState(0);
+  const templates = useMemo(() => listMappingTemplates(entity), [entity, tick]);
+  if (templates.length === 0) return null;
+  return (
+    <div className="flex items-center gap-2">
+      <Select onValueChange={(v) => {
+        const t = templates.find((x) => x.signature === v);
+        if (t) onApply(t);
+      }}>
+        <SelectTrigger className="h-9 w-[260px]">
+          <SelectValue placeholder={`Сохранённые шаблоны (${templates.length})`} />
+        </SelectTrigger>
+        <SelectContent>
+          {templates.map((t) => (
+            <SelectItem key={t.signature} value={t.signature}>
+              {t.name ?? t.signature.slice(0, 30)} · {new Date(t.savedAt).toLocaleDateString("ru-RU")}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Удалить все шаблоны для этого типа"
+        onClick={() => {
+          templates.forEach((t) => deleteMappingTemplate(entity, t.signature));
+          setTick((x) => x + 1);
+          toast.success("Шаблоны удалены");
+        }}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
