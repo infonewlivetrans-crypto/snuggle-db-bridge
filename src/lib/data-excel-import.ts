@@ -397,24 +397,50 @@ export async function importParsed(
   entity: ImportEntity,
   parsed: ParseResult,
   source: ImportSource,
-  meta?: { fileName?: string | null; importedBy?: string | null },
+  meta?: { fileName?: string | null; importedBy?: string | null; duplicateAction?: DuplicateAction },
 ): Promise<ImportResult & { logId?: string }> {
-  const failed: { row: number; message: string; raw?: Record<string, unknown> }[] = [];
-  const succeededRows: { row: number; raw: Record<string, unknown> }[] = [];
+  const duplicateAction: DuplicateAction = meta?.duplicateAction ?? "skip";
+  const failed: { row: number; message: string; raw?: Record<string, unknown>; matchedId?: string | null }[] = [];
+  const insertedLog: { row: number; raw: Record<string, unknown>; matchedId?: string | null }[] = [];
+  const updatedLog: { row: number; raw: Record<string, unknown>; matchedId: string }[] = [];
+  const skippedLog: { row: number; raw: Record<string, unknown>; matchedId: string }[] = [];
   let inserted = 0;
+  let updated = 0;
+  let skipped = 0;
   const valid = parsed.rows.filter((r) => r.errors.length === 0);
 
-  // pre-fail rows with errors
   for (const r of parsed.rows.filter((x) => x.errors.length > 0)) {
     failed.push({ row: r.rowNumber, message: r.errors.join("; "), raw: r.data });
   }
 
-  const recordOk = (r: ParsedRow) => {
-    inserted++;
-    succeededRows.push({ row: r.rowNumber, raw: r.data });
+  const recordOk = (r: ParsedRow) => { inserted++; insertedLog.push({ row: r.rowNumber, raw: r.data }); };
+  const recordUpdated = (r: ParsedRow, id: string) => { updated++; updatedLog.push({ row: r.rowNumber, raw: r.data, matchedId: id }); };
+  const recordSkipped = (r: ParsedRow, id: string) => { skipped++; skippedLog.push({ row: r.rowNumber, raw: r.data, matchedId: id }); };
+  const recordFail = (r: ParsedRow, msg: string, matchedId?: string | null) => {
+    failed.push({ row: r.rowNumber, message: msg, raw: r.data, matchedId: matchedId ?? null });
   };
-  const recordFail = (r: ParsedRow, msg: string) => {
-    failed.push({ row: r.rowNumber, message: msg, raw: r.data });
+
+  // Helpers per entity to build payload + perform DB op
+  const handleRow = async (
+    r: ParsedRow,
+    insertOp: () => Promise<{ error: { message: string } | null }>,
+    updateOp: ((id: string) => Promise<{ error: { message: string } | null }>) | null,
+  ) => {
+    const dup = r.duplicate;
+    if (dup) {
+      if (duplicateAction === "skip") { recordSkipped(r, dup.existingId); return; }
+      if (duplicateAction === "update") {
+        if (!updateOp) { recordFail(r, "Обновление не поддерживается для этого типа", dup.existingId); return; }
+        const { error } = await updateOp(dup.existingId);
+        if (error) recordFail(r, error.message, dup.existingId);
+        else recordUpdated(r, dup.existingId);
+        return;
+      }
+      // create — fall through to insertOp
+    }
+    const { error } = await insertOp();
+    if (error) recordFail(r, error.message);
+    else recordOk(r);
   };
 
   if (entity === "orders") {
@@ -438,9 +464,11 @@ export async function importParsed(
         comment: str(d.comment),
         source,
       };
-      const { error } = await supabase.from("orders").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        () => supabase.from("orders").insert(payload as never),
+        (id) => supabase.from("orders").update(payload as never).eq("id", id),
+      );
     }
   } else if (entity === "products") {
     for (const r of valid) {
@@ -457,9 +485,11 @@ export async function importParsed(
         comment: str(d.comment),
         source,
       };
-      const { error } = await supabase.from("products").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        () => supabase.from("products").insert(payload as never),
+        (id) => supabase.from("products").update(payload as never).eq("id", id),
+      );
     }
   } else if (entity === "stock") {
     const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
@@ -477,15 +507,19 @@ export async function importParsed(
       if (!productId) { recordFail(r, `Товар "${name}" не найден`); continue; }
       if (!warehouseId) { recordFail(r, `Склад "${whName}" не найден`); continue; }
       if (qty == null || qty <= 0) { recordFail(r, `Некорректное количество`); continue; }
+      // For stock balances, an "update" means correction adjustment — we still insert a movement
+      // but skip it when duplicate + action=skip.
+      if (r.duplicate && duplicateAction === "skip") { recordSkipped(r, r.duplicate.existingId); continue; }
       const { error } = await supabase.from("stock_movements").insert({
         product_id: productId,
         warehouse_id: warehouseId,
         movement_type: "inbound",
         qty,
-        reason: "excel_import",
+        reason: r.duplicate && duplicateAction === "update" ? "excel_correction" : "excel_import",
         source,
       } as never);
       if (error) recordFail(r, error.message);
+      else if (r.duplicate && duplicateAction === "update") recordUpdated(r, r.duplicate.existingId);
       else recordOk(r);
     }
   } else if (entity === "routes") {
@@ -498,9 +532,11 @@ export async function importParsed(
         comment: str(d.comment),
         source,
       };
-      const { error } = await supabase.from("routes").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        () => supabase.from("routes").insert(payload as never),
+        (id) => supabase.from("routes").update(payload as never).eq("id", id),
+      );
     }
   } else if (entity === "transport_requests") {
     for (const r of valid) {
@@ -512,9 +548,11 @@ export async function importParsed(
         transport_comment: `${str(d.warehouse_from) ?? ""} → ${str(d.warehouse_to) ?? ""} ${str(d.planned_time) ?? ""}`.trim(),
         source,
       };
-      const { error } = await supabase.from("routes").insert(payload as never);
-      if (error) recordFail(r, error.message);
-      else recordOk(r);
+      await handleRow(
+        r,
+        () => supabase.from("routes").insert(payload as never),
+        (id) => supabase.from("routes").update(payload as never).eq("id", id),
+      );
     }
   }
 
@@ -523,8 +561,9 @@ export async function importParsed(
   try {
     const totalRows = parsed.totalRows;
     const failedCount = failed.length;
+    const duplicatesFound = parsed.duplicateRows ?? 0;
     let status: "loaded" | "partial" | "error" = "loaded";
-    if (inserted === 0 && failedCount > 0) status = "error";
+    if (inserted + updated + skipped === 0 && failedCount > 0) status = "error";
     else if (failedCount > 0) status = "partial";
 
     const { data: logRow, error: logErr } = await supabase
@@ -537,6 +576,10 @@ export async function importParsed(
         total_rows: totalRows,
         inserted_rows: inserted,
         failed_rows: failedCount,
+        updated_rows: updated,
+        skipped_rows: skipped,
+        duplicate_rows: duplicatesFound,
+        duplicate_action: duplicateAction,
         status,
       } as never)
       .select("id")
@@ -544,19 +587,21 @@ export async function importParsed(
     if (!logErr && logRow) {
       logId = (logRow as { id: string }).id;
       const rowsPayload = [
-        ...succeededRows.map((s) => ({
-          import_log_id: logId,
-          row_number: s.row,
-          status: "inserted",
-          error_message: null,
-          raw_data: s.raw,
+        ...insertedLog.map((s) => ({
+          import_log_id: logId, row_number: s.row, status: "inserted",
+          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId ?? null,
+        })),
+        ...updatedLog.map((s) => ({
+          import_log_id: logId, row_number: s.row, status: "updated",
+          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId,
+        })),
+        ...skippedLog.map((s) => ({
+          import_log_id: logId, row_number: s.row, status: "skipped",
+          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId,
         })),
         ...failed.map((f) => ({
-          import_log_id: logId,
-          row_number: f.row,
-          status: "failed",
-          error_message: f.message,
-          raw_data: f.raw ?? {},
+          import_log_id: logId, row_number: f.row, status: "failed",
+          error_message: f.message, raw_data: f.raw ?? {}, matched_existing_id: f.matchedId ?? null,
         })),
       ];
       if (rowsPayload.length > 0) {
@@ -567,5 +612,14 @@ export async function importParsed(
     // logging failures should not break the import
   }
 
-  return { inserted, failed: failed.length, failedRows: failed.map(f => ({ row: f.row, message: f.message })), logId };
+  return {
+    inserted,
+    updated,
+    skipped,
+    failed: failed.length,
+    duplicates: parsed.duplicateRows ?? 0,
+    duplicateAction,
+    failedRows: failed.map((f) => ({ row: f.row, message: f.message })),
+    logId,
+  };
 }
