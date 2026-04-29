@@ -14,8 +14,19 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon } from "lucide-react";
+import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2 } from "lucide-react";
+
+const CARGO_POSITIONS: { value: string; label: string }[] = [
+  { value: "side", label: "У борта" },
+  { value: "top", label: "Сверху" },
+  { value: "bottom", label: "Снизу" },
+  { value: "deep", label: "В глубине кузова" },
+  { value: "left", label: "Слева" },
+  { value: "right", label: "Справа" },
+  { value: "return_trip", label: "На обратный путь" },
+];
 
 export const Route = createFileRoute("/warehouse-today")({
   head: () => ({
@@ -77,6 +88,8 @@ type DockEvent = {
   loaded_at: string | null;
   departed_at: string | null;
   return_accepted_at: string | null;
+  load_plan_confirmed_at: string | null;
+  load_plan_confirmed_by: string | null;
 };
 
 function WarehouseTodayPage() {
@@ -240,14 +253,103 @@ function WarehouseTodayPage() {
   }, [returnPoints]);
 
   const ordersByRoute = useMemo(() => {
-    const m = new Map<string, { orderId: string; pointNumber: number; status: string }[]>();
+    const m = new Map<string, { pointId: string; orderId: string; pointNumber: number; status: string }[]>();
     (routePoints ?? []).forEach((p) => {
       const arr = m.get(p.route_id) ?? [];
-      arr.push({ orderId: p.order_id, pointNumber: p.point_number, status: p.status });
+      arr.push({ pointId: p.id, orderId: p.order_id, pointNumber: p.point_number, status: p.status });
       m.set(p.route_id, arr);
     });
     return m;
   }, [routePoints]);
+
+  // План загрузки по точкам открытого маршрута
+  const openedPointIds = (openCard ? routePoints?.filter((p) => p.route_id === openCard) ?? [] : []).map(
+    (p) => p.id,
+  );
+  const { data: loadPlan } = useQuery({
+    queryKey: ["wh-load-plan", openCard, openedPointIds],
+    enabled: !!openCard && openedPointIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("warehouse_load_plan")
+        .select("*")
+        .in("route_point_id", openedPointIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const loadPlanByPoint = useMemo(() => {
+    const m = new Map<string, { id: string; cargo_position: string | null; warehouse_comment: string | null }>();
+    (loadPlan ?? []).forEach((lp) => m.set(lp.route_point_id, lp));
+    return m;
+  }, [loadPlan]);
+
+  const upsertLoadPlan = useMutation({
+    mutationFn: async (args: {
+      pointId: string;
+      routeId: string;
+      cargo_position?: string | null;
+      warehouse_comment?: string | null;
+    }) => {
+      const existing = loadPlanByPoint.get(args.pointId);
+      const patch: {
+        route_point_id: string;
+        delivery_route_id: string;
+        cargo_position?: string | null;
+        warehouse_comment?: string | null;
+      } = {
+        route_point_id: args.pointId,
+        delivery_route_id: args.routeId,
+      };
+      if (args.cargo_position !== undefined) patch.cargo_position = args.cargo_position;
+      if (args.warehouse_comment !== undefined) patch.warehouse_comment = args.warehouse_comment;
+      if (existing) {
+        const { error } = await supabase
+          .from("warehouse_load_plan")
+          .update(patch)
+          .eq("route_point_id", args.pointId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("warehouse_load_plan").insert(patch);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wh-load-plan", openCard] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const confirmLoadPlan = useMutation({
+    mutationFn: async () => {
+      if (!openedRoute) return;
+      const now = new Date().toISOString();
+      const existing = eventByRoute.get(openedRoute.id);
+      if (existing) {
+        const { error } = await supabase
+          .from("warehouse_dock_events")
+          .update({ load_plan_confirmed_at: now })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("warehouse_dock_events").insert({
+          delivery_route_id: openedRoute.id,
+          warehouse_id: openedRoute.source_warehouse_id,
+          event_date: date,
+          route_number: openedRoute.route_number,
+          driver_name: openedRoute.assigned_driver,
+          vehicle_plate: openedRoute.assigned_vehicle,
+          load_plan_confirmed_at: now,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wh-today-events", date] });
+      toast.success("План загрузки подтверждён");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const orderById = useMemo(() => {
     const m = new Map<string, NonNullable<typeof allOrders>[number]>();
@@ -409,17 +511,37 @@ function WarehouseTodayPage() {
               )}
 
               <div>
-                <div className="mb-2 inline-flex items-center gap-2 text-sm font-semibold">
-                  <Package className="h-4 w-4" /> Что нужно загрузить ({openedOrders.length})
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-2 text-sm font-semibold">
+                    <ClipboardCheck className="h-4 w-4" /> План загрузки ({openedOrders.length})
+                  </div>
+                  {openedEvent?.load_plan_confirmed_at && (
+                    <Badge variant="outline" className="bg-emerald-100 text-emerald-900 border-emerald-200">
+                      <CheckCircle2 className="mr-1 h-3 w-3" />
+                      План подтверждён
+                    </Badge>
+                  )}
                 </div>
+
+                <div className="mb-3 rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900 dark:bg-blue-900/20 dark:text-blue-100">
+                  <div className="inline-flex items-start gap-1.5">
+                    <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span>
+                      Грузить нужно с учётом порядка выгрузки: товар для последних точек грузится глубже,
+                      товар для первых точек должен быть доступен ближе к выгрузке.
+                    </span>
+                  </div>
+                </div>
+
                 {openedOrders.length === 0 ? (
                   <div className="text-xs text-muted-foreground">Заказов нет</div>
                 ) : (
-                  <ul className="divide-y divide-border rounded-md border border-border">
+                  <ul className="space-y-2">
                     {openedOrders.map((p) => {
                       const o = orderById.get(p.orderId);
+                      const plan = loadPlanByPoint.get(p.pointId);
                       return (
-                        <li key={p.orderId} className="px-3 py-2">
+                        <li key={p.pointId} className="rounded-md border border-border bg-card p-3">
                           <div className="flex items-center justify-between gap-2">
                             <div className="font-medium">
                               #{p.pointNumber}. Заказ {o?.order_number ?? p.orderId.slice(0, 6)}
@@ -428,13 +550,75 @@ function WarehouseTodayPage() {
                               {o?.items_count ?? 0} поз. · {o?.total_weight_kg ?? 0} кг
                             </div>
                           </div>
-                          {o?.delivery_address && (
-                            <div className="text-xs text-muted-foreground">{o.delivery_address}</div>
+                          {o?.contact_name && (
+                            <div className="text-xs text-muted-foreground">👤 {o.contact_name}</div>
                           )}
+                          {o?.delivery_address && (
+                            <div className="text-xs text-muted-foreground">📍 {o.delivery_address}</div>
+                          )}
+                          {o?.comment && (
+                            <div className="text-xs text-muted-foreground">💬 {o.comment}</div>
+                          )}
+                          <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <div>
+                              <label className="text-xs text-muted-foreground">Место в кузове</label>
+                              <Select
+                                value={plan?.cargo_position ?? ""}
+                                onValueChange={(v) =>
+                                  upsertLoadPlan.mutate({
+                                    pointId: p.pointId,
+                                    routeId: openedRoute.id,
+                                    cargo_position: v || null,
+                                  })
+                                }
+                              >
+                                <SelectTrigger className="mt-1 h-8">
+                                  <SelectValue placeholder="Выбрать…" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {CARGO_POSITIONS.map((cp) => (
+                                    <SelectItem key={cp.value} value={cp.value}>
+                                      {cp.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Комментарий кладовщика</label>
+                              <Input
+                                defaultValue={plan?.warehouse_comment ?? ""}
+                                placeholder="Например: хрупкое, не кантовать"
+                                className="mt-1 h-8"
+                                onBlur={(e) => {
+                                  const val = e.target.value.trim();
+                                  if (val === (plan?.warehouse_comment ?? "")) return;
+                                  upsertLoadPlan.mutate({
+                                    pointId: p.pointId,
+                                    routeId: openedRoute.id,
+                                    warehouse_comment: val || null,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </div>
                         </li>
                       );
                     })}
                   </ul>
+                )}
+
+                {openedOrders.length > 0 && (
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      onClick={() => confirmLoadPlan.mutate()}
+                      disabled={confirmLoadPlan.isPending}
+                      variant={openedEvent?.load_plan_confirmed_at ? "outline" : "default"}
+                    >
+                      <ClipboardCheck className="mr-2 h-4 w-4" />
+                      {openedEvent?.load_plan_confirmed_at ? "Подтвердить заново" : "Подтвердить план загрузки"}
+                    </Button>
+                  </div>
                 )}
               </div>
 
