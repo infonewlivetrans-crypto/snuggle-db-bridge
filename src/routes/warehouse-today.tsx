@@ -482,6 +482,44 @@ function WarehouseTodayPage() {
           </div>
         </div>
 
+        {/* Блок "Ближайшая машина" */}
+        {nextVehicle && nextVehicle.expected && (() => {
+          const eta = computeEta(nextVehicle.expected, now);
+          const cargoCount = ordersByRoute.get(nextVehicle.route.id)?.length ?? 0;
+          const tone = eta?.isLate
+            ? "border-destructive/40 bg-destructive/5"
+            : eta?.isSoon
+              ? "border-amber-300 bg-amber-50 dark:bg-amber-900/10"
+              : "border-blue-200 bg-blue-50 dark:bg-blue-900/10";
+          return (
+            <div className={`mb-4 rounded-lg border p-4 ${tone}`}>
+              <div className="mb-2 inline-flex items-center gap-2 text-sm font-semibold">
+                <Timer className="h-4 w-4" /> Ближайшая машина
+              </div>
+              <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <div>👤 Водитель: <span className="font-medium">{nextVehicle.route.assigned_driver ?? "—"}</span></div>
+                <div>🚚 Машина: <span className="font-medium">{nextVehicle.route.assigned_vehicle ?? "—"}</span></div>
+                <div>🧭 Маршрут: <span className="font-medium">№{nextVehicle.route.route_number}</span></div>
+                <div>🕒 Время: <span className="font-medium">{fmtTime(nextVehicle.expected)}</span></div>
+                <div className={eta?.isLate ? "text-destructive font-semibold" : eta?.isSoon ? "text-amber-700 font-semibold dark:text-amber-300" : ""}>
+                  ⏳ {eta?.label ?? "—"}
+                </div>
+                <div>📦 К загрузке: <span className="font-medium">{cargoCount} точ.</span></div>
+              </div>
+              {eta?.isLate && nextVehicle.status !== "arrived" && (
+                <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-xs font-semibold text-destructive">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Машина опаздывает
+                </div>
+              )}
+              {eta?.isSoon && !eta.isLate && (
+                <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900/30 dark:text-amber-100">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Машина прибудет через {eta.minutes} мин
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {(routes?.length ?? 0) === 0 ? (
           <div className="rounded-lg border border-dashed border-border bg-card py-12 text-center">
             <Truck className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
@@ -493,11 +531,25 @@ function WarehouseTodayPage() {
               const ev = eventByRoute.get(r.id);
               const status: DockStatus = ev?.status ?? "expected";
               const hasReturns = (returnsByRoute.get(r.id)?.length ?? 0) > 0;
+              const expected = ev?.expected_at ? new Date(ev.expected_at) : null;
+              const eta = computeEta(expected, now);
+              const showSoon = eta?.isSoon && !eta.isLate;
+              const showLate = eta?.isLate && status !== "arrived" && status !== "loading" && status !== "loaded" && status !== "departed";
+              const returns = returnsByRoute.get(r.id) ?? [];
+              const nextReturn = returns
+                .map((rp) => (rp.dp_expected_return_at ? new Date(rp.dp_expected_return_at) : null))
+                .filter((d): d is Date => !!d)
+                .sort((a, b) => a.getTime() - b.getTime())[0] ?? null;
+              const returnEta = computeEta(nextReturn, now);
+              // Значение для time input (HH:MM по локали)
+              const timeInputValue = expected
+                ? `${String(expected.getHours()).padStart(2, "0")}:${String(expected.getMinutes()).padStart(2, "0")}`
+                : "";
               return (
                 <div key={r.id} className="rounded-lg border border-border bg-card p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-foreground">Маршрут №{r.route_number}</span>
                         <Badge variant="outline" className={STATUS_STYLES[status]}>
                           {STATUS_LABELS[status]}
@@ -508,11 +560,64 @@ function WarehouseTodayPage() {
                             Ожидается возврат
                           </Badge>
                         )}
+                        {showLate && (
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">
+                            <AlertTriangle className="mr-1 h-3 w-3" />
+                            Машина опаздывает
+                          </Badge>
+                        )}
+                        {showSoon && (
+                          <Badge variant="outline" className="bg-amber-100 text-amber-900 border-amber-200">
+                            <Clock className="mr-1 h-3 w-3" />
+                            Машина прибудет через {eta!.minutes} мин
+                          </Badge>
+                        )}
                       </div>
                       <div className="mt-1.5 grid grid-cols-1 gap-1 text-sm text-muted-foreground sm:grid-cols-3">
                         <div>👤 {r.assigned_driver ?? "Водитель не назначен"}</div>
                         <div>🚚 {r.assigned_vehicle ?? "Машина не назначена"}</div>
                         <div>📦 Точек: {ordersByRoute.get(r.id)?.length ?? 0}</div>
+                      </div>
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                        <div className="inline-flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">Прибытие/отгрузка:</span>
+                          <Input
+                            type="time"
+                            value={timeInputValue}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (!v) {
+                                setExpectedAt.mutate({ route: r, isoTime: null });
+                                return;
+                              }
+                              const [hh, mm] = v.split(":").map(Number);
+                              const dt = new Date(date + "T00:00:00");
+                              dt.setHours(hh, mm, 0, 0);
+                              setExpectedAt.mutate({ route: r, isoTime: dt.toISOString() });
+                            }}
+                            className="h-7 w-[110px]"
+                          />
+                        </div>
+                        {eta && (
+                          <span
+                            className={
+                              eta.isLate
+                                ? "font-semibold text-destructive"
+                                : eta.isSoon
+                                  ? "font-semibold text-amber-700 dark:text-amber-300"
+                                  : "text-muted-foreground"
+                            }
+                          >
+                            ⏳ {eta.label}
+                          </span>
+                        )}
+                        {returnEta && (
+                          <span className="inline-flex items-center gap-1 text-xs text-orange-700 dark:text-orange-300">
+                            <RotateCcw className="h-3 w-3" />
+                            Ожидается возврат {returnEta.isLate ? `(опоздание ${Math.abs(returnEta.minutes)} мин)` : `через ${returnEta.minutes} мин`}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
