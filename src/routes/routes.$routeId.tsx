@@ -90,6 +90,8 @@ type RouteWithRefs = DeliveryRoute & {
     volume_m3: number | null;
   } | null;
   driver: { id: string; full_name: string; phone: string | null } | null;
+  points_order_changed_at?: string | null;
+  points_order_changed_by?: string | null;
 };
 
 export const Route = createFileRoute("/routes/$routeId")({
