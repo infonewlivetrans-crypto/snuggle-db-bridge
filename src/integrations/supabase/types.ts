@@ -665,12 +665,16 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          logist_comment: string | null
           manager_name: string | null
           manager_phone: string | null
           order_id: string
           photo_url: string | null
           reason: string
           reported_by: string | null
+          resolution_status: string
+          resolved_at: string | null
+          resolved_by: string | null
           route_id: string | null
           route_point_id: string | null
           urgency: Database["public"]["Enums"]["problem_urgency"]
@@ -679,12 +683,16 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          logist_comment?: string | null
           manager_name?: string | null
           manager_phone?: string | null
           order_id: string
           photo_url?: string | null
           reason: string
           reported_by?: string | null
+          resolution_status?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
           route_id?: string | null
           route_point_id?: string | null
           urgency?: Database["public"]["Enums"]["problem_urgency"]
@@ -693,12 +701,16 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          logist_comment?: string | null
           manager_name?: string | null
           manager_phone?: string | null
           order_id?: string
           photo_url?: string | null
           reason?: string
           reported_by?: string | null
+          resolution_status?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
           route_id?: string | null
           route_point_id?: string | null
           urgency?: Database["public"]["Enums"]["problem_urgency"]
