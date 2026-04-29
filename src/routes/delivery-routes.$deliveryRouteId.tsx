@@ -525,20 +525,36 @@ function DeliveryRoutePage() {
 
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
-              <div className="border-b border-border px-4 py-3">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <h2 className="flex items-center gap-2 text-sm font-semibold">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
                   Точки маршрута
                   <span className="text-muted-foreground">({points?.length ?? 0})</span>
                 </h2>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => setAddPointOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                  Добавить точку
+                </Button>
               </div>
+              <AddManualPointDialog
+                open={addPointOpen}
+                onOpenChange={setAddPointOpen}
+                sourceRequestId={data.source_request_id}
+                deliveryRouteId={data.id}
+                currentPointsCount={points?.length ?? 0}
+              />
               <div className="divide-y divide-border">
                 {(points ?? []).length === 0 ? (
                   <div className="px-4 py-6 text-center text-muted-foreground">
-                    В заявке нет точек доставки
+                    В маршруте пока нет точек. Нажмите «Добавить точку».
                   </div>
                 ) : (
-                  (points ?? []).map((p) => (
+                  (points ?? []).map((p, idx, arr) => (
                     <div key={p.id} className="space-y-3 px-4 py-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
@@ -563,6 +579,28 @@ function DeliveryRoutePage() {
                             )}
                             {p.order?.comment && <span>{p.order.comment}</span>}
                           </div>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-7 w-7"
+                            disabled={idx === 0 || reorder.isPending}
+                            onClick={() => reorder.mutate({ pointId: p.id, direction: "up" })}
+                            title="Переместить выше"
+                          >
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-7 w-7"
+                            disabled={idx === arr.length - 1 || reorder.isPending}
+                            onClick={() => reorder.mutate({ pointId: p.id, direction: "down" })}
+                            title="Переместить ниже"
+                          >
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                       {p.order && (
