@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
 import { Route as RouteImportTemplateRouteImport } from './routes/route-import-template'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -37,6 +38,11 @@ import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrie
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 
+const WorkspaceRoute = WorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RouteReportsRoute = RouteReportsRouteImport.update({
   id: '/route-reports',
   path: '/route-reports',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -211,6 +218,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -272,6 +281,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/route-import-template'
     | '/route-reports'
+    | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
     | '/carriers/$carrierId'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/route-import-template'
     | '/route-reports'
+    | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
     | '/carriers/$carrierId'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/route-import-template'
     | '/route-reports'
+    | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
     | '/carriers/$carrierId'
@@ -360,6 +372,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   RouteImportTemplateRoute: typeof RouteImportTemplateRoute
   RouteReportsRoute: typeof RouteReportsRoute
+  WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
@@ -385,6 +398,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workspace': {
+      id: '/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/route-reports': {
       id: '/route-reports'
       path: '/route-reports'
@@ -584,6 +604,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   RouteImportTemplateRoute: RouteImportTemplateRoute,
   RouteReportsRoute: RouteReportsRoute,
+  WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
