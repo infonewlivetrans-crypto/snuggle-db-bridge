@@ -91,6 +91,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const schema = SCHEMAS[entity];
   const [file, setFile] = useState<File | null>(null);
   const [source, setSource] = useState<ImportSource>("excel");
+  const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>("skip");
   const [parsed, setParsed] = useState<ParseResult | null>(null);
   const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -112,7 +113,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
       } else if (r.totalRows === 0) {
         toast.warning("Файл пуст");
       } else {
-        toast.success(`Найдено строк: ${r.totalRows} (готовы: ${r.validRows})`);
+        toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
@@ -134,9 +135,9 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setImporting(true);
     setResult(null);
     try {
-      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null });
+      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null, duplicateAction });
       setResult(r);
-      if (r.failed === 0) toast.success(`Импортировано строк: ${r.inserted}`);
+      if (r.failed === 0) toast.success(`Загружено: ${r.inserted} · обновлено: ${r.updated} · пропущено: ${r.skipped}`);
       else toast.warning(`Загружено: ${r.inserted}, ошибок: ${r.failed}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Ошибка импорта");
