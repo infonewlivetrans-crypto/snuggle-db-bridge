@@ -615,7 +615,10 @@ function ManagerInfoAndActions({
           variant="outline"
           size="lg"
           className="h-11 gap-1.5 border-orange-500/40 text-orange-700 hover:bg-orange-500/10 dark:text-orange-300"
-          onClick={() => setProblemOpen(true)}
+          onClick={() => {
+            log("report_problem");
+            setProblemOpen(true);
+          }}
         >
           <AlertTriangle className="h-4 w-4" />
           Сообщить о проблеме
