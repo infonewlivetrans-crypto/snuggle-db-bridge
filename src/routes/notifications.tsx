@@ -50,6 +50,7 @@ const KIND_LABEL: Record<string, string> = {
   delivery_report: "Отчёт по доставке",
   route_completed_report: "Маршрут завершён",
   driver_problem_reported: "Проблема по заказу",
+  transport_request_warehouse_status: "Склад · заявка",
 };
 
 const KIND_TONE: Record<string, string> = {
