@@ -591,9 +591,10 @@ function EditStockDialog({
             { onConflict: "product_id,warehouse_id" },
           );
         if (error) throw error;
+        const minDiff = newMin - Number(balance.min_stock ?? 0);
         await logMovement({
           type: "adjustment",
-          qty: 0,
+          qty: Math.abs(minDiff) || 1,
           reason: "manual_min_stock_change",
           comment: `Мин. остаток: ${balance.min_stock} → ${newMin}`,
         });
