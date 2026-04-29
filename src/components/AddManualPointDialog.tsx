@@ -76,7 +76,9 @@ export function AddManualPointDialog({
   const add = useMutation({
     mutationFn: async () => {
       if (!orderNumber.trim()) throw new Error("Укажите номер заказа");
-      if (!address.trim()) throw new Error("Укажите адрес");
+      const hasAddr = address.trim().length > 0;
+      const hasCoords = latitude.trim().length > 0 && longitude.trim().length > 0;
+      if (!hasAddr && !hasCoords) throw new Error("Укажите адрес или координаты");
 
       // 1) Создаём заказ
       const lat = latitude.trim() ? Number(latitude) : null;
