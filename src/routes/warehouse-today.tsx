@@ -198,7 +198,7 @@ function WarehouseTodayPage() {
       const r = args.route;
       const existing = eventByRoute.get(r.id);
       const now = new Date().toISOString();
-      const patch: Partial<DockEvent> & Record<string, unknown> = {
+      const patch: Partial<DockEvent> = {
         status: args.status,
         delivery_route_id: r.id,
         warehouse_id: r.source_warehouse_id,
