@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 export type PointActionKind =
   | "point_opened"
   | "call_client"
+  | "message_client"
+  | "call_manager"
+  | "report_problem"
   | "open_map"
   | "status_delivered"
   | "status_not_delivered"
