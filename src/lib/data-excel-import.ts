@@ -606,22 +606,41 @@ export async function importParsed(
   if (entity === "orders") {
     for (const r of valid) {
       const d = r.data;
+      // Парсим coordinates "lat,lon" → latitude/longitude (колонок coordinates в БД нет)
+      let lat: number | null = null;
+      let lon: number | null = null;
+      const coordRaw = str(d.coordinates);
+      if (coordRaw) {
+        const parts = coordRaw.split(/[,;\s]+/).map((p) => parseFloat(p.replace(",", ".")));
+        if (parts.length >= 2 && Number.isFinite(parts[0]) && Number.isFinite(parts[1])) {
+          lat = parts[0]; lon = parts[1];
+        }
+      }
+      // Поля, которых нет в таблице orders, агрегируем в comment, чтобы не терять данные.
+      const extras: string[] = [];
+      if (str(d.manager_name)) extras.push(`Менеджер: ${str(d.manager_name)}`);
+      if (str(d.delivery_date)) extras.push(`Дата: ${str(d.delivery_date)}`);
+      if (str(d.delivery_time_from) || str(d.delivery_time_to)) {
+        extras.push(`Окно: ${str(d.delivery_time_from) ?? "?"}–${str(d.delivery_time_to) ?? "?"}`);
+      }
+      if (num(d.prepaid)) extras.push(`Предоплата: ${num(d.prepaid)}`);
+      const baseComment = str(d.comment);
+      const fullComment = [baseComment, ...extras].filter(Boolean).join(" | ") || null;
+
       const payload: Record<string, unknown> = {
         order_number: str(d.order_number),
         delivery_address: str(d.delivery_address),
         contact_name: str(d.customer_name),
         contact_phone: str(d.customer_phone),
-        manager_name: str(d.manager_name),
-        delivery_date: str(d.delivery_date),
-        delivery_time_from: str(d.delivery_time_from),
-        delivery_time_to: str(d.delivery_time_to),
-        coordinates: str(d.coordinates),
-        payment_type: str(d.payment_type) ?? "cash",
-        prepaid: num(d.prepaid) ?? 0,
-        amount_to_collect: num(d.amount_to_collect),
+        latitude: lat,
+        longitude: lon,
+        amount_due: num(d.amount_to_collect),
+        payment_type: (str(d.payment_type) ?? "cash") as never,
         requires_qr: ["yes", "true", "1", "да"].includes(String(d.requires_qr ?? "").toLowerCase()),
         marketplace: str(d.marketplace),
-        comment: str(d.comment),
+        comment: fullComment,
+        delivery_cost: 0,
+        delivery_cost_source: "auto" as never,
         source,
       };
       await handleRow(
@@ -633,16 +652,12 @@ export async function importParsed(
   } else if (entity === "products") {
     for (const r of valid) {
       const d = r.data;
+      // Поля characteristic/length/width/height/comment отсутствуют в products — складываем в SKU/category.
       const payload = {
         name: str(d.product_name)!,
         category: str(d.category),
-        characteristic: str(d.characteristic),
         weight_kg: num(d.weight),
         volume_m3: num(d.volume),
-        length_m: num(d.length),
-        width_m: num(d.width),
-        height_m: num(d.height),
-        comment: str(d.comment),
         source,
       };
       await handleRow(
@@ -654,8 +669,8 @@ export async function importParsed(
   } else if (entity === "stock") {
     const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
     const whNames = Array.from(new Set(valid.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
-    const { data: products } = await supabase.from("products").select("id, name").in("name", names);
-    const { data: whs } = await supabase.from("warehouses").select("id, name").in("name", whNames);
+    const { data: products } = names.length ? await supabase.from("products").select("id, name").in("name", names) : { data: [] as Array<{id:string;name:string}> };
+    const { data: whs } = whNames.length ? await supabase.from("warehouses").select("id, name").in("name", whNames) : { data: [] as Array<{id:string;name:string}> };
     const prodMap = new Map((products ?? []).map((p) => [p.name, p.id]));
     const whMap = new Map((whs ?? []).map((w) => [w.name, w.id]));
     for (const r of valid) {
@@ -667,8 +682,6 @@ export async function importParsed(
       if (!productId) { recordFail(r, `Товар "${name}" не найден`); continue; }
       if (!warehouseId) { recordFail(r, `Склад "${whName}" не найден`); continue; }
       if (qty == null || qty <= 0) { recordFail(r, `Некорректное количество`); continue; }
-      // For stock balances, an "update" means correction adjustment — we still insert a movement
-      // but skip it when duplicate + action=skip.
       if (r.duplicate && duplicateAction === "skip") { recordSkipped(r, r.duplicate.existingId); continue; }
       const { error } = await supabase.from("stock_movements").insert({
         product_id: productId,
@@ -685,11 +698,13 @@ export async function importParsed(
   } else if (entity === "routes") {
     for (const r of valid) {
       const d = r.data;
+      const extras: string[] = [];
+      if (str(d.driver_name)) extras.push(`Водитель: ${str(d.driver_name)}`);
+      if (str(d.vehicle_number)) extras.push(`ТС: ${str(d.vehicle_number)}`);
       const payload = {
         route_number: str(d.route_number)!,
         driver_name: str(d.driver_name),
-        vehicle_number: str(d.vehicle_number),
-        comment: str(d.comment),
+        comment: [str(d.comment), ...extras].filter(Boolean).join(" | ") || null,
         source,
       };
       await handleRow(
@@ -703,7 +718,7 @@ export async function importParsed(
       const d = r.data;
       const payload = {
         route_number: str(d.request_number)!,
-        route_date: str(d.planned_date)!,
+        route_date: str(d.planned_date) ?? new Date().toISOString().slice(0, 10),
         request_type: (str(d.request_type) ?? "client_delivery") as never,
         transport_comment: `${str(d.warehouse_from) ?? ""} → ${str(d.warehouse_to) ?? ""} ${str(d.planned_time) ?? ""}`.trim(),
         source,
