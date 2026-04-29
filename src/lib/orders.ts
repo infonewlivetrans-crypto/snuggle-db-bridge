@@ -56,9 +56,8 @@ export type Order = {
   marketplace?: string | null;
   client_works_weekends?: boolean;
   // Источник создания записи
-  source?: string | null;
+  source?: string;
   external_id?: string | null;
-  // Координаты сборные (для предупреждений в маршрутах)
 };
 
 
