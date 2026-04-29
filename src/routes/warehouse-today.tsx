@@ -240,14 +240,98 @@ function WarehouseTodayPage() {
   }, [returnPoints]);
 
   const ordersByRoute = useMemo(() => {
-    const m = new Map<string, { orderId: string; pointNumber: number; status: string }[]>();
+    const m = new Map<string, { pointId: string; orderId: string; pointNumber: number; status: string }[]>();
     (routePoints ?? []).forEach((p) => {
       const arr = m.get(p.route_id) ?? [];
-      arr.push({ orderId: p.order_id, pointNumber: p.point_number, status: p.status });
+      arr.push({ pointId: p.id, orderId: p.order_id, pointNumber: p.point_number, status: p.status });
       m.set(p.route_id, arr);
     });
     return m;
   }, [routePoints]);
+
+  // План загрузки по точкам открытого маршрута
+  const openedPointIds = (openCard ? routePoints?.filter((p) => p.route_id === openCard) ?? [] : []).map(
+    (p) => p.id,
+  );
+  const { data: loadPlan } = useQuery({
+    queryKey: ["wh-load-plan", openCard, openedPointIds],
+    enabled: !!openCard && openedPointIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("warehouse_load_plan")
+        .select("*")
+        .in("route_point_id", openedPointIds);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const loadPlanByPoint = useMemo(() => {
+    const m = new Map<string, { id: string; cargo_position: string | null; warehouse_comment: string | null }>();
+    (loadPlan ?? []).forEach((lp) => m.set(lp.route_point_id, lp));
+    return m;
+  }, [loadPlan]);
+
+  const upsertLoadPlan = useMutation({
+    mutationFn: async (args: {
+      pointId: string;
+      routeId: string;
+      cargo_position?: string | null;
+      warehouse_comment?: string | null;
+    }) => {
+      const existing = loadPlanByPoint.get(args.pointId);
+      const patch: Record<string, unknown> = {
+        route_point_id: args.pointId,
+        delivery_route_id: args.routeId,
+      };
+      if (args.cargo_position !== undefined) patch.cargo_position = args.cargo_position;
+      if (args.warehouse_comment !== undefined) patch.warehouse_comment = args.warehouse_comment;
+      if (existing) {
+        const { error } = await supabase
+          .from("warehouse_load_plan")
+          .update(patch)
+          .eq("route_point_id", args.pointId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("warehouse_load_plan").insert(patch);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wh-load-plan", openCard] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const confirmLoadPlan = useMutation({
+    mutationFn: async () => {
+      if (!openedRoute) return;
+      const now = new Date().toISOString();
+      const existing = eventByRoute.get(openedRoute.id);
+      if (existing) {
+        const { error } = await supabase
+          .from("warehouse_dock_events")
+          .update({ load_plan_confirmed_at: now })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("warehouse_dock_events").insert({
+          delivery_route_id: openedRoute.id,
+          warehouse_id: openedRoute.source_warehouse_id,
+          event_date: date,
+          route_number: openedRoute.route_number,
+          driver_name: openedRoute.assigned_driver,
+          vehicle_plate: openedRoute.assigned_vehicle,
+          load_plan_confirmed_at: now,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wh-today-events", date] });
+      toast.success("План загрузки подтверждён");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const orderById = useMemo(() => {
     const m = new Map<string, NonNullable<typeof allOrders>[number]>();
