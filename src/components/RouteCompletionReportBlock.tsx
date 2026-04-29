@@ -42,7 +42,7 @@ const STATUS_LABEL: Record<string, string> = {
   returned_to_warehouse: "Возврат на склад",
 };
 
-const STATUS_ICON: Record<string, JSX.Element> = {
+const STATUS_ICON: Record<string, React.ReactNode> = {
   delivered: <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />,
   not_delivered: <XCircle className="h-3.5 w-3.5 text-red-600" />,
   returned_to_warehouse: <RotateCcw className="h-3.5 w-3.5 text-orange-600" />,
