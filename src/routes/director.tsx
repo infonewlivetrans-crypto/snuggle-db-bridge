@@ -366,6 +366,94 @@ function DirectorPage() {
           </div>
         </section>
 
+        {/* Стоимость доставки */}
+        <section className="mb-6 rounded-lg border border-border bg-card">
+          <div className="flex items-center gap-2 border-b border-border p-4">
+            <Wallet className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold">Стоимость доставки</h2>
+          </div>
+
+          <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard icon={<Wallet className="h-4 w-4 text-primary" />} label="Общая стоимость" value={fmt(costSummary.totalCost) + " ₽"} />
+            <KpiCard icon={<Truck className="h-4 w-4" />} label="Средняя на маршрут" value={fmt(costSummary.avgPerRoute) + " ₽"} />
+            <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Средняя на точку" value={fmt(costSummary.avgPerPoint) + " ₽"} />
+            <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Средняя на 1 км" value={fmt(costSummary.avgPerKm) + " ₽"} />
+          </div>
+
+          {filteredRoutes.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              Нет данных за выбранный период
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="px-3 py-2 text-left">№ маршрута</th>
+                    <th className="px-3 py-2 text-left">Водитель</th>
+                    <th className="px-3 py-2 text-left">Машина</th>
+                    <th className="px-3 py-2 text-left">Дата</th>
+                    <th className="px-3 py-2 text-right">Точек</th>
+                    <th className="px-3 py-2 text-right">Км</th>
+                    <th className="px-3 py-2 text-left">Способ</th>
+                    <th className="px-3 py-2 text-right">За км, ₽</th>
+                    <th className="px-3 py-2 text-right">За точку, ₽</th>
+                    <th className="px-3 py-2 text-right">Итого, ₽</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRoutes.map((r) => {
+                    const km = Number(r.total_distance_km) || 0;
+                    const pts = Number(r.points_count) || 0;
+                    const total = Number(r.delivery_cost) || 0;
+                    const method = r.cost_method ?? "manual";
+                    return (
+                      <tr key={`cost-${r.id}`} className="border-t border-border hover:bg-muted/30">
+                        <td className="px-3 py-2">
+                          <Link
+                            to="/delivery-routes/$deliveryRouteId"
+                            params={{ deliveryRouteId: r.id }}
+                            className="font-medium text-primary hover:underline"
+                          >
+                            {r.route_number}
+                          </Link>
+                        </td>
+                        <td className="px-3 py-2">{r.assigned_driver ?? "—"}</td>
+                        <td className="px-3 py-2">{r.assigned_vehicle ?? "—"}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          {new Date(r.route_date).toLocaleDateString("ru-RU")}
+                        </td>
+                        <td className="px-3 py-2 text-right">{pts}</td>
+                        <td className="px-3 py-2 text-right">{fmt(km)}</td>
+                        <td className="px-3 py-2">
+                          <Badge variant="outline">{COST_METHOD_LABELS[method] ?? method}</Badge>
+                          {r.manual_cost && (
+                            <div className="mt-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+                              Стоимость изменена вручную
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-right">{fmt(Number(r.cost_per_km) || 0)}</td>
+                        <td className="px-3 py-2 text-right">{fmt(Number(r.cost_per_point) || 0)}</td>
+                        <td className="px-3 py-2 text-right font-semibold text-primary">{fmt(total)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot className="bg-muted/30 text-xs">
+                  <tr className="border-t border-border">
+                    <td colSpan={4} className="px-3 py-2 text-right font-semibold">Итого:</td>
+                    <td className="px-3 py-2 text-right font-semibold">{costSummary.totalPoints}</td>
+                    <td className="px-3 py-2 text-right font-semibold">{fmt(costSummary.totalKm)}</td>
+                    <td colSpan={3}></td>
+                    <td className="px-3 py-2 text-right font-bold text-primary">{fmt(costSummary.totalCost)} ₽</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </section>
+
         {/* Таблица маршрутов */}
         <section className="rounded-lg border border-border bg-card">
           <div className="border-b border-border p-4">
