@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Truck, Package, RotateCcw, Warehouse as WhIcon, Calendar, MessageSquare, ImageIcon, ClipboardCheck, Info, CheckCircle2, Clock, AlertTriangle, Timer } from "lucide-react";
 import { DockLoadingChecklistBlock } from "@/components/DockLoadingChecklistBlock";
+import { RequestWarehouseStatusBadge } from "@/components/RequestWarehouseStatusBadge";
 
 /** Тикающие "часы" (обновляются каждые 30 секунд) для пересчёта таймеров */
 function useNowTick(intervalMs = 30_000) {
