@@ -168,6 +168,11 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
               </span>
             </div>
             <div className="text-muted-foreground">{o.delivery_address ?? "—"}</div>
+            {o.dp_status === "not_delivered" && o.undelivered_reason && (
+              <div className="mt-1 inline-flex rounded border border-red-500/40 bg-red-500/10 px-1.5 py-0.5 text-[10px] font-medium text-red-700 dark:text-red-300">
+                Причина: {DELIVERY_POINT_UNDELIVERED_REASON_LABELS[o.undelivered_reason as DeliveryPointUndeliveredReason] ?? o.undelivered_reason}
+              </div>
+            )}
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-muted-foreground">
               {o.amount_due != null && <span>К получению: {fmtMoney(o.amount_due)}</span>}
               {o.amount_received != null && <span>Получено: {fmtMoney(o.amount_received)}</span>}
@@ -181,6 +186,7 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
             </div>
             {(o.payment_comment || o.order_comment) && (
               <div className="mt-1 italic text-muted-foreground">
+                <span className="font-medium not-italic text-foreground">Комментарий водителя: </span>
                 {[o.order_comment, o.payment_comment].filter(Boolean).join(" · ")}
               </div>
             )}
