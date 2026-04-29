@@ -321,6 +321,13 @@ function DriverRoutePage() {
               </div>
             </div>
 
+            {/* GPS-трекинг водителя — только при активном маршруте */}
+            <DriverGeoTracker
+              deliveryRouteId={deliveryRouteId}
+              driverName={data.assigned_driver}
+              active={data.status !== "completed"}
+            />
+
             {/* Точки */}
             {list.length === 0 ? (
               <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
