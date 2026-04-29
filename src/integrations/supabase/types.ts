@@ -1631,6 +1631,7 @@ export type Database = {
           ref_route_id: string | null
           ref_supply_id: string | null
           ref_transport_request_id: string | null
+          source: string
           warehouse_id: string
         }
         Insert: {
@@ -1646,6 +1647,7 @@ export type Database = {
           ref_route_id?: string | null
           ref_supply_id?: string | null
           ref_transport_request_id?: string | null
+          source?: string
           warehouse_id: string
         }
         Update: {
@@ -1661,6 +1663,7 @@ export type Database = {
           ref_route_id?: string | null
           ref_supply_id?: string | null
           ref_transport_request_id?: string | null
+          source?: string
           warehouse_id?: string
         }
         Relationships: []
