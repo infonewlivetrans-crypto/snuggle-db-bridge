@@ -46,6 +46,7 @@ const KIND_LABEL: Record<string, string> = {
   payment_received: "Оплата",
   low_stock: "Остаток",
   delivery_report: "Отчёт по доставке",
+  route_completed_report: "Маршрут завершён",
 };
 
 const KIND_TONE: Record<string, string> = {
@@ -55,6 +56,7 @@ const KIND_TONE: Record<string, string> = {
   order_awaiting_return: "border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300",
   order_return_accepted: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   delivery_report: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  route_completed_report: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300",
 };
 
 function NotificationsPage() {

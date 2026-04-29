@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag } from "lucide-react";
+import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import {
@@ -25,6 +25,7 @@ import { RouteExecutionBlock } from "@/components/RouteExecutionBlock";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
+import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
@@ -199,11 +200,19 @@ function DeliveryRoutePage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <Link to="/delivery-routes">
-          <Button variant="ghost" size="sm" className="mb-4 gap-1.5">
-            <ArrowLeft className="h-4 w-4" />К списку маршрутов
-          </Button>
-        </Link>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <Link to="/delivery-routes">
+            <Button variant="ghost" size="sm" className="gap-1.5">
+              <ArrowLeft className="h-4 w-4" />К списку маршрутов
+            </Button>
+          </Link>
+          <Link to="/driver/$deliveryRouteId" params={{ deliveryRouteId }}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <Truck className="h-4 w-4" />
+              Открыть как водитель
+            </Button>
+          </Link>
+        </div>
 
         {isLoading ? (
           <div className="text-muted-foreground">Загрузка...</div>
@@ -480,6 +489,9 @@ function DeliveryRoutePage() {
                 </div>
               );
             })()}
+
+            {/* Сводный отчёт менеджеру (после завершения маршрута) */}
+            <RouteCompletionReportBlock deliveryRouteId={data.id} />
 
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">

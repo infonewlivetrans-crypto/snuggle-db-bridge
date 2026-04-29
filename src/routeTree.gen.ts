@@ -24,6 +24,7 @@ import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicl
 import { Route as TransportRequestsRequestIdRouteImport } from './routes/transport-requests.$requestId'
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
+import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
@@ -106,6 +107,11 @@ const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   path: '/routes/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriverDeliveryRouteIdRoute = DriverDeliveryRouteIdRouteImport.update({
+  id: '/driver/$deliveryRouteId',
+  path: '/driver/$deliveryRouteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DeliveryRoutesDeliveryRouteIdRoute =
   DeliveryRoutesDeliveryRouteIdRouteImport.update({
     id: '/delivery-routes/$deliveryRouteId',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
+  '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
+  '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
+  '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/delivery-routes/$deliveryRouteId'
+    | '/driver/$deliveryRouteId'
     | '/routes/$routeId'
     | '/supply/requests'
     | '/transport-requests/$requestId'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/delivery-routes/$deliveryRouteId'
+    | '/driver/$deliveryRouteId'
     | '/routes/$routeId'
     | '/supply/requests'
     | '/transport-requests/$requestId'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/delivery-routes/$deliveryRouteId'
+    | '/driver/$deliveryRouteId'
     | '/routes/$routeId'
     | '/supply/requests'
     | '/transport-requests/$requestId'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
+  DriverDeliveryRouteIdRoute: typeof DriverDeliveryRouteIdRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyRequestsRoute: typeof SupplyRequestsRoute
   TransportRequestsRequestIdRoute: typeof TransportRequestsRequestIdRoute
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoutesRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/driver/$deliveryRouteId': {
+      id: '/driver/$deliveryRouteId'
+      path: '/driver/$deliveryRouteId'
+      fullPath: '/driver/$deliveryRouteId'
+      preLoaderRoute: typeof DriverDeliveryRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/delivery-routes/$deliveryRouteId': {
       id: '/delivery-routes/$deliveryRouteId'
       path: '/delivery-routes/$deliveryRouteId'
@@ -445,6 +465,7 @@ const rootRouteChildren: RootRouteChildren = {
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
+  DriverDeliveryRouteIdRoute: DriverDeliveryRouteIdRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyRequestsRoute: SupplyRequestsRoute,
   TransportRequestsRequestIdRoute: TransportRequestsRequestIdRoute,
