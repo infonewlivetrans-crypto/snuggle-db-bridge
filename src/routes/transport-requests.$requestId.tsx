@@ -302,6 +302,13 @@ function TransportRequestDetailPage() {
               onShortageChange={handleShortage}
             />
 
+            {/* Складской статус заявки */}
+            <RequestWarehouseStatusBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              onStatusChange={handleWhStatus}
+            />
+
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
               requestId={data.id}
@@ -309,6 +316,12 @@ function TransportRequestDetailPage() {
               routeDate={data.route_date}
               ordersCount={totals?.count ?? 0}
               blockedByShortage={hasShortage}
+              blockedByWarehouseStatus={
+                !!whStatus && !REQ_WH_STATUS_OK_FOR_DRIVER.includes(whStatus)
+              }
+              warehouseStatusLabel={
+                whStatus ? REQ_WH_STATUS_LABELS[whStatus] : undefined
+              }
             />
 
             {/* Точки доставки */}
