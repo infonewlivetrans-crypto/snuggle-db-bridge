@@ -312,6 +312,10 @@ export type Database = {
           comment: string | null
           created_at: string
           created_by: string | null
+          driver_access_created_at: string | null
+          driver_access_created_by: string | null
+          driver_access_enabled: boolean
+          driver_access_token: string | null
           id: string
           route_date: string
           route_number: string
@@ -326,6 +330,10 @@ export type Database = {
           comment?: string | null
           created_at?: string
           created_by?: string | null
+          driver_access_created_at?: string | null
+          driver_access_created_by?: string | null
+          driver_access_enabled?: boolean
+          driver_access_token?: string | null
           id?: string
           route_date?: string
           route_number: string
@@ -340,6 +348,10 @@ export type Database = {
           comment?: string | null
           created_at?: string
           created_by?: string | null
+          driver_access_created_at?: string | null
+          driver_access_created_by?: string | null
+          driver_access_enabled?: boolean
+          driver_access_token?: string | null
           id?: string
           route_date?: string
           route_number?: string
