@@ -1720,6 +1720,66 @@ export type Database = {
           },
         ]
       }
+      warehouse_dock_events: {
+        Row: {
+          arrived_at: string | null
+          comment: string | null
+          created_at: string
+          delivery_route_id: string | null
+          departed_at: string | null
+          driver_name: string | null
+          event_date: string
+          expected_at: string | null
+          id: string
+          loaded_at: string | null
+          loading_started_at: string | null
+          return_accepted_at: string | null
+          route_number: string | null
+          status: string
+          updated_at: string
+          vehicle_plate: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          arrived_at?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_route_id?: string | null
+          departed_at?: string | null
+          driver_name?: string | null
+          event_date?: string
+          expected_at?: string | null
+          id?: string
+          loaded_at?: string | null
+          loading_started_at?: string | null
+          return_accepted_at?: string | null
+          route_number?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_plate?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          arrived_at?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_route_id?: string | null
+          departed_at?: string | null
+          driver_name?: string | null
+          event_date?: string
+          expected_at?: string | null
+          id?: string
+          loaded_at?: string | null
+          loading_started_at?: string | null
+          return_accepted_at?: string | null
+          route_number?: string | null
+          status?: string
+          updated_at?: string
+          vehicle_plate?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: []
+      }
       warehouse_dock_slots: {
         Row: {
           arrived_at: string | null
