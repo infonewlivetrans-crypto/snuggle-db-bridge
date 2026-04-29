@@ -151,6 +151,34 @@ export function ReportProblemDialog({
         <div className="space-y-3">
           <div>
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Быстрые шаблоны
+            </Label>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {QUICK_TEMPLATES.map((t) => {
+                const isActive = reason === t.reason;
+                return (
+                  <button
+                    key={t.reason}
+                    type="button"
+                    onClick={() => {
+                      setReason(t.reason);
+                      if (!comment.trim()) setComment(t.comment);
+                    }}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+                      isActive
+                        ? "border-orange-600 bg-orange-600 text-white"
+                        : "border-border bg-background hover:bg-muted"
+                    }`}
+                  >
+                    {t.reason}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
               Причина проблемы *
             </Label>
             <Select value={reason} onValueChange={setReason}>
