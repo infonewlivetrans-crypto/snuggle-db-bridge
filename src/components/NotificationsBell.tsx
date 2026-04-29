@@ -218,12 +218,17 @@ export function NotificationsBell() {
             <ul className="divide-y divide-border">
               {items.map((n) => {
                 const Icon = KIND_ICON[n.kind] ?? Bell;
+                const routeId = (n.payload as { delivery_route_id?: string } | null)?.delivery_route_id;
                 return (
                   <li
                     key={n.id}
-                    className={`flex gap-3 px-3 py-2.5 ${n.is_read ? "" : "bg-primary/5"}`}
+                    className={`flex cursor-pointer gap-3 px-3 py-2.5 hover:bg-muted/50 ${n.is_read ? "" : "bg-primary/5"}`}
                     onClick={() => {
                       if (!n.is_read) markOne.mutate(n.id);
+                      if (n.kind === "route_completed_report" && routeId) {
+                        setOpen(false);
+                        navigate({ to: "/delivery-routes/$deliveryRouteId", params: { deliveryRouteId: routeId } });
+                      }
                     }}
                   >
                     <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${KIND_COLOR[n.kind] ?? ""}`} />
