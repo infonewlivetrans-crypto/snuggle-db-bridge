@@ -363,7 +363,20 @@ function DriverPointCard({
           disabled={!o?.contact_phone}
           className="h-11 gap-1.5"
         >
-          <a href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}>
+          <a
+            href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}
+            onClick={() => {
+              if (!o?.contact_phone) return;
+              logPointAction({
+                routePointId: p.id,
+                orderId: p.order_id,
+                routeId,
+                action: "call_client",
+                actor: driverName ?? "Водитель",
+                details: { phone: o.contact_phone },
+              });
+            }}
+          >
             <Phone className="h-4 w-4" />
             Позвонить
           </a>
@@ -379,6 +392,18 @@ function DriverPointCard({
             href={buildMapUrl(o) ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              const url = buildMapUrl(o);
+              if (!url) return;
+              logPointAction({
+                routePointId: p.id,
+                orderId: p.order_id,
+                routeId,
+                action: "open_map",
+                actor: driverName ?? "Водитель",
+                details: { url },
+              });
+            }}
           >
             <MapPin className="h-4 w-4" />
             Открыть карту
