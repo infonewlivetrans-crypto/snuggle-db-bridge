@@ -111,6 +111,27 @@ function OrdersPage() {
     setDialogOpen(true);
   };
 
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const allVisible = filtered.map((o) => o.id);
+      const everySelected = allVisible.every((id) => prev.has(id));
+      if (everySelected) return new Set();
+      return new Set(allVisible);
+    });
+  };
+  const selectedOrders = useMemo(
+    () => (orders ?? []).filter((o) => selectedIds.has(o.id)),
+    [orders, selectedIds],
+  );
+
   // Открытие карточки заказа по ?orderId=... (например, из уведомлений)
   useEffect(() => {
     if (!orderIdParam || !orders) return;
