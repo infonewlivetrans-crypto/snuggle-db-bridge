@@ -231,7 +231,10 @@ function WarehouseTodayPage() {
     },
   });
 
-  const allOrderIds = Array.from(new Set((routePoints ?? []).map((p) => p.order_id)));
+  const allOrderIds = useMemo(
+    () => Array.from(new Set((routePoints ?? []).map((p) => p.order_id))),
+    [routePoints],
+  );
   const { data: allOrders } = useQuery({
     queryKey: ["wh-today-all-orders", allOrderIds],
     enabled: allOrderIds.length > 0,
