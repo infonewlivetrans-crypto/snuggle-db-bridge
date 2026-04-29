@@ -16,6 +16,7 @@ export type RouteImportRow = {
   payment_type?: string;
   prepaid?: string;
   requires_qr?: string;
+  marketplace?: string;
   manager_comment?: string;
 };
 
