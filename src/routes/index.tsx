@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
 import { OrderDetailDialog } from "@/components/OrderDetailDialog";
@@ -42,6 +43,9 @@ import {
 import { Search, QrCode, RefreshCw, Package2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Заказы — Радиус Трек" },
@@ -52,6 +56,8 @@ export const Route = createFileRoute("/")({
 });
 
 function OrdersPage() {
+  const { orderId: orderIdParam } = Route.useSearch();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -98,6 +104,17 @@ function OrdersPage() {
     setSelectedOrder(order);
     setDialogOpen(true);
   };
+
+  // Открытие карточки заказа по ?orderId=... (например, из уведомлений)
+  useEffect(() => {
+    if (!orderIdParam || !orders) return;
+    const found = orders.find((o) => o.id === orderIdParam);
+    if (found) {
+      setSelectedOrder(found);
+      setDialogOpen(true);
+      navigate({ to: "/", search: {}, replace: true });
+    }
+  }, [orderIdParam, orders, navigate]);
 
   return (
     <div className="min-h-screen bg-background">

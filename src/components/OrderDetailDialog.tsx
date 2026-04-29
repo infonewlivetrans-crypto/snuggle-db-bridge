@@ -54,6 +54,7 @@ import {
 import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog";
 import { OrderReturnBlock } from "@/components/OrderReturnBlock";
 import { OrderDeliveryResultBlock } from "@/components/OrderDeliveryResultBlock";
+import { MarketplaceQrBlock } from "@/components/MarketplaceQrBlock";
 
 type DeliveryReport = {
   id: string;
@@ -340,6 +341,16 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             requiresQr={order.requires_qr}
             qrPhotoUrl={order.qr_photo_url}
             qrUploadedAt={order.qr_photo_uploaded_at}
+          />
+
+          {/* QR-код маркетплейса */}
+          <MarketplaceQrBlock
+            orderId={order.id}
+            qrPhotoUrl={order.qr_photo_url}
+            qrUploadedAt={order.qr_photo_uploaded_at}
+            qrUploadedBy={order.qr_photo_uploaded_by ?? null}
+            qrReceived={order.qr_received}
+            requiresQr={order.requires_qr}
           />
 
           {/* Комментарий */}

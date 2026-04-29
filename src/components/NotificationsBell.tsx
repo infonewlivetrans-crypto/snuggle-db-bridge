@@ -219,6 +219,7 @@ export function NotificationsBell() {
               {items.map((n) => {
                 const Icon = KIND_ICON[n.kind] ?? Bell;
                 const routeId = (n.payload as { delivery_route_id?: string } | null)?.delivery_route_id;
+                const orderId = n.order_id ?? (n.payload as { order_id?: string } | null)?.order_id;
                 return (
                   <li
                     key={n.id}
@@ -228,6 +229,9 @@ export function NotificationsBell() {
                       if (n.kind === "route_completed_report" && routeId) {
                         setOpen(false);
                         navigate({ to: "/delivery-routes/$deliveryRouteId", params: { deliveryRouteId: routeId } });
+                      } else if (n.kind === "qr_uploaded" && orderId) {
+                        setOpen(false);
+                        navigate({ to: "/", search: { orderId } });
                       }
                     }}
                   >
