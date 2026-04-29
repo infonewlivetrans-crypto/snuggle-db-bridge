@@ -149,6 +149,12 @@ export function RouteCostBlock({
         <div className="flex items-center gap-2">
           <Wallet className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold">Стоимость доставки</h2>
+          {method === "manual" && (
+            <span className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300">
+              <Pencil className="h-3 w-3" />
+              Стоимость изменена вручную
+            </span>
+          )}
         </div>
         <div className="text-sm">
           <span className="text-muted-foreground">Итого: </span>
