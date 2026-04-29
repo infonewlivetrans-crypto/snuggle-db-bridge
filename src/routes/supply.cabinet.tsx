@@ -48,6 +48,7 @@ import {
   Bell,
   CheckCheck,
   Circle,
+  PackageCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { notifyLowStock } from "@/lib/supplyNotifications";
