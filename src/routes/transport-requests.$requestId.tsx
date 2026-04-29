@@ -276,6 +276,13 @@ function TransportRequestDetailPage() {
               warehouseId={data.warehouse_id}
             />
 
+            {/* Резервирование товара под заявку */}
+            <StockReservationBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              routeNumber={data.route_number}
+            />
+
             {/* Проверка наличия товара перед выдачей маршрута водителю */}
             <StockAvailabilityCheckBlock
               requestId={data.id}
