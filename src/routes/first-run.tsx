@@ -65,7 +65,7 @@ function FirstRunPage() {
         supabase.from("delivery_routes").select("id", { count: "exact", head: true }).not("driver_access_token" as never, "is", null),
         supabase.from("route_point_photos").select("id", { count: "exact", head: true }),
         supabase.from("route_point_photos").select("id", { count: "exact", head: true }).eq("kind" as never, "qr"),
-        supabase.from("route_points").select("id", { count: "exact", head: true }).gt("payment_amount_received" as never, 0),
+        supabase.from("route_points").select("id", { count: "exact", head: true }).gt("dp_amount_received" as never, 0),
         supabase.from("delivery_reports").select("id", { count: "exact", head: true }),
         supabase.from("notifications").select("id", { count: "exact", head: true }),
       ]);
