@@ -1041,6 +1041,13 @@ export type Database = {
           service_minutes: number | null
           status: Database["public"]["Enums"]["point_status"]
           travel_minutes: number
+          wh_return_accepted_at: string | null
+          wh_return_accepted_by: string | null
+          wh_return_arrived_at: string | null
+          wh_return_comment: string | null
+          wh_return_status: string
+          wh_return_status_changed_at: string | null
+          wh_return_status_changed_by: string | null
         }
         Insert: {
           arrived_at?: string | null
@@ -1083,6 +1090,13 @@ export type Database = {
           service_minutes?: number | null
           status?: Database["public"]["Enums"]["point_status"]
           travel_minutes?: number
+          wh_return_accepted_at?: string | null
+          wh_return_accepted_by?: string | null
+          wh_return_arrived_at?: string | null
+          wh_return_comment?: string | null
+          wh_return_status?: string
+          wh_return_status_changed_at?: string | null
+          wh_return_status_changed_by?: string | null
         }
         Update: {
           arrived_at?: string | null
@@ -1125,6 +1139,13 @@ export type Database = {
           service_minutes?: number | null
           status?: Database["public"]["Enums"]["point_status"]
           travel_minutes?: number
+          wh_return_accepted_at?: string | null
+          wh_return_accepted_by?: string | null
+          wh_return_arrived_at?: string | null
+          wh_return_comment?: string | null
+          wh_return_status?: string
+          wh_return_status_changed_at?: string | null
+          wh_return_status_changed_by?: string | null
         }
         Relationships: [
           {
