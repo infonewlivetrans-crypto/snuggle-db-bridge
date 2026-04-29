@@ -139,6 +139,11 @@ export function CreateRouteFromRequestBlock({
             <Plus className="h-4 w-4" />
             Ещё один маршрут
           </Button>
+          {blockedByShortage && (
+            <p className="text-xs font-medium text-red-700 dark:text-red-300">
+              Нельзя выдать маршрут водителю: не хватает товара на складе
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
