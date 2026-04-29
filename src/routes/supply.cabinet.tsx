@@ -159,10 +159,11 @@ type SupplyNotification = {
 };
 
 const SUPPLY_STATUS_LABELS: Record<SupplyStatus, string> = {
-  created: "Создана",
+  created: "Заявка создана",
   in_progress: "В работе",
   ordered: "Заказано",
-  awaiting: "Ожидается",
+  awaiting: "Ожидается поставка",
+  received: "Поступило на склад",
   closed: "Закрыта",
 };
 
@@ -171,6 +172,7 @@ const SUPPLY_STATUS_STYLES: Record<SupplyStatus, string> = {
   in_progress: "border-blue-300 bg-blue-100 text-blue-900",
   ordered: "border-indigo-300 bg-indigo-100 text-indigo-900",
   awaiting: "border-amber-300 bg-amber-100 text-amber-900",
+  received: "border-emerald-300 bg-emerald-100 text-emerald-900",
   closed: "border-green-300 bg-green-100 text-green-900",
 };
 
