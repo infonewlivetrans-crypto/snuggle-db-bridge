@@ -36,7 +36,7 @@ import {
 } from "@/lib/routes";
 import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
-import { PAYMENT_LABELS } from "@/lib/orders";
+import { PAYMENT_LABELS, CLIENT_KIND_LABELS, type ClientKind } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteTimingBlock } from "@/components/RouteTimingBlock";
@@ -784,9 +784,10 @@ function RouteDetailPage() {
                         )}
                       </div>
                       {(() => {
+                        const o = p.orders;
                         const hasCoords =
-                          typeof p.orders.latitude === "number" &&
-                          typeof p.orders.longitude === "number";
+                          typeof o.latitude === "number" &&
+                          typeof o.longitude === "number";
                         const eta = p.eta_at ? new Date(p.eta_at) : null;
                         const svc =
                           p.service_minutes ??
@@ -804,6 +805,39 @@ function RouteDetailPage() {
                                 minute: "2-digit",
                               })
                             : "—";
+                        // Окно клиента: приоритет — поле заказа, fallback — поле точки
+                        const wf =
+                          (o.delivery_window_from as string | null) ??
+                          (p.client_window_from as string | null);
+                        const wt =
+                          (o.delivery_window_to as string | null) ??
+                          (p.client_window_to as string | null);
+                        const ck = o.client_type as ClientKind | null | undefined;
+
+                        // Проверка попадания в окно
+                        let outsideWindow = false;
+                        if (eta && (wf || wt)) {
+                          const hh = eta.getHours();
+                          const mm = eta.getMinutes();
+                          const etaMin = hh * 60 + mm;
+                          const toMin = (s: string) => {
+                            const [h, m] = s.split(":").map(Number);
+                            return (h || 0) * 60 + (m || 0);
+                          };
+                          if (wf && etaMin < toMin(wf)) outsideWindow = true;
+                          if (wt && etaMin > toMin(wt)) outsideWindow = true;
+                        }
+
+                        // Проверка выходного для организаций
+                        const dow = new Date(route.route_date).getDay(); // 0 — вс, 6 — сб
+                        const isWeekend = dow === 0 || dow === 6;
+                        const isOrgLike =
+                          ck === "organization" ||
+                          ck === "shop" ||
+                          ck === "factory";
+                        const weekendIssue =
+                          isWeekend && isOrgLike && !o.client_works_weekends;
+
                         return (
                           <div className="mt-2 grid grid-cols-1 gap-1.5 rounded-md border border-border bg-secondary/30 p-2 text-xs sm:grid-cols-3">
                             <div>
@@ -818,10 +852,54 @@ function RouteDetailPage() {
                               <span className="text-muted-foreground">Завершение: </span>
                               <span className="font-semibold text-foreground">{fmt(finish)}</span>
                             </div>
+
+                            {/* Окно клиента / тип клиента / выходные */}
+                            <div className="sm:col-span-3 flex flex-wrap items-center gap-2 pt-1">
+                              {(wf || wt) && (
+                                <Badge variant="outline" className="border-border bg-background">
+                                  Окно: {wf ? wf.slice(0, 5) : "…"}–{wt ? wt.slice(0, 5) : "…"}
+                                </Badge>
+                              )}
+                              {ck && (
+                                <Badge variant="outline" className="border-border bg-background">
+                                  {CLIENT_KIND_LABELS[ck]}
+                                </Badge>
+                              )}
+                              <Badge
+                                variant="outline"
+                                className={
+                                  o.client_works_weekends
+                                    ? "border-green-200 bg-green-100 text-green-900"
+                                    : "border-border bg-background text-muted-foreground"
+                                }
+                              >
+                                {o.client_works_weekends
+                                  ? "Работает в выходные"
+                                  : "Не работает в выходные"}
+                              </Badge>
+                              {o.delivery_time_comment && (
+                                <span className="text-muted-foreground">
+                                  · {o.delivery_time_comment}
+                                </span>
+                              )}
+                            </div>
+
                             {!hasCoords && (
                               <div className="rt-alert rt-alert-warning sm:col-span-3">
                                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                                 <span>Невозможно точно рассчитать время — нет координат</span>
+                              </div>
+                            )}
+                            {outsideWindow && (
+                              <div className="rt-alert rt-alert-danger sm:col-span-3">
+                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span>Время прибытия не попадает в окно клиента</span>
+                              </div>
+                            )}
+                            {weekendIssue && (
+                              <div className="rt-alert rt-alert-warning sm:col-span-3">
+                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                <span>Клиент не работает в выходные</span>
                               </div>
                             )}
                           </div>

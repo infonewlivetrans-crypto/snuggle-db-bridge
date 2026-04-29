@@ -16,6 +16,14 @@ export type OrderStatus =
 export type PaymentType = "cash" | "card" | "online" | "qr";
 export type PaymentStatus = "not_paid" | "partial" | "paid" | "refunded";
 
+export type ClientKind =
+  | "individual"
+  | "organization"
+  | "shop"
+  | "factory"
+  | "snt"
+  | "dacha";
+
 export type Order = {
   id: string;
   order_number: string;
@@ -55,10 +63,33 @@ export type Order = {
   payment_status?: PaymentStatus;
   marketplace?: string | null;
   client_works_weekends?: boolean;
+  // Временное окно доставки и тип клиента
+  delivery_window_from?: string | null;
+  delivery_window_to?: string | null;
+  client_type?: ClientKind | null;
+  delivery_time_comment?: string | null;
   // Источник создания записи
   source?: string;
   external_id?: string | null;
 };
+
+export const CLIENT_KIND_LABELS: Record<ClientKind, string> = {
+  individual: "Частник",
+  organization: "Организация",
+  shop: "Магазин",
+  factory: "Завод",
+  snt: "СНТ",
+  dacha: "Дача",
+};
+
+export const CLIENT_KIND_ORDER: ClientKind[] = [
+  "individual",
+  "organization",
+  "shop",
+  "factory",
+  "snt",
+  "dacha",
+];
 
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {

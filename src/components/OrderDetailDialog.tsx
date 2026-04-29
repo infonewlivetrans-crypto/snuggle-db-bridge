@@ -25,11 +25,14 @@ import {
   type Order,
   type OrderStatus,
   type PaymentStatus,
+  type ClientKind,
   STATUS_LABELS,
   STATUS_ORDER,
   STATUS_STYLES,
   PAYMENT_LABELS,
   PAYMENT_STATUS_LABELS,
+  CLIENT_KIND_LABELS,
+  CLIENT_KIND_ORDER,
 } from "@/lib/orders";
 import { Input } from "@/components/ui/input";
 import { OrderHistory } from "@/components/OrderHistory";
@@ -86,6 +89,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [amountDue, setAmountDue] = useState<string>(order?.amount_due != null ? String(order.amount_due) : "");
   const [marketplace, setMarketplace] = useState<string>(order?.marketplace ?? "");
   const [worksWeekends, setWorksWeekends] = useState<boolean>(order?.client_works_weekends ?? false);
+  const [windowFrom, setWindowFrom] = useState<string>((order?.delivery_window_from ?? "").slice(0, 5));
+  const [windowTo, setWindowTo] = useState<string>((order?.delivery_window_to ?? "").slice(0, 5));
+  const [clientType, setClientType] = useState<ClientKind | "">((order?.client_type as ClientKind) ?? "");
+  const [deliveryTimeComment, setDeliveryTimeComment] = useState<string>(order?.delivery_time_comment ?? "");
 
   // Reset local state when a new order opens
   const orderId = order?.id;
@@ -99,6 +106,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setAmountDue(order.amount_due != null ? String(order.amount_due) : "");
       setMarketplace(order.marketplace ?? "");
       setWorksWeekends(order.client_works_weekends ?? false);
+      setWindowFrom((order.delivery_window_from ?? "").slice(0, 5));
+      setWindowTo((order.delivery_window_to ?? "").slice(0, 5));
+      setClientType((order.client_type as ClientKind) ?? "");
+      setDeliveryTimeComment(order.delivery_time_comment ?? "");
     }
   });
 
@@ -186,6 +197,10 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       amount_due: amountDue === "" ? null : Number(amountDue),
       marketplace: marketplace.trim() || null,
       client_works_weekends: worksWeekends,
+      delivery_window_from: windowFrom ? `${windowFrom}:00` : null,
+      delivery_window_to: windowTo ? `${windowTo}:00` : null,
+      client_type: clientType || null,
+      delivery_time_comment: deliveryTimeComment.trim() || null,
     });
   };
 
@@ -463,6 +478,72 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
                 Клиент работает в выходные
               </Label>
               <Switch id="weekends" checked={worksWeekends} onCheckedChange={setWorksWeekends} />
+            </div>
+          </div>
+
+          {/* Временное окно доставки и тип клиента */}
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Временное окно доставки
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="window-from" className="text-xs text-muted-foreground">
+                  Время доставки с
+                </Label>
+                <Input
+                  id="window-from"
+                  type="time"
+                  value={windowFrom}
+                  onChange={(e) => setWindowFrom(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="window-to" className="text-xs text-muted-foreground">
+                  Время доставки до
+                </Label>
+                <Input
+                  id="window-to"
+                  type="time"
+                  value={windowTo}
+                  onChange={(e) => setWindowTo(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="client-type" className="text-xs text-muted-foreground">
+                Тип клиента
+              </Label>
+              <Select
+                value={clientType || "__none__"}
+                onValueChange={(v) => setClientType(v === "__none__" ? "" : (v as ClientKind))}
+              >
+                <SelectTrigger id="client-type" className="mt-1.5">
+                  <SelectValue placeholder="Не указан" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Не указан</SelectItem>
+                  {CLIENT_KIND_ORDER.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {CLIENT_KIND_LABELS[k]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="dt-comment" className="text-xs text-muted-foreground">
+                Комментарий по времени доставки
+              </Label>
+              <Input
+                id="dt-comment"
+                value={deliveryTimeComment}
+                onChange={(e) => setDeliveryTimeComment(e.target.value)}
+                placeholder="Например: только до обеда, после 14:00..."
+                className="mt-1.5"
+              />
             </div>
           </div>
 
