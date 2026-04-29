@@ -235,6 +235,7 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
               amount_due: r.amount_due ?? null,
               payment_status: prepaid ? "paid" : "not_paid",
               comment: r.manager_comment ?? null,
+              marketplace: r.marketplace ?? null,
               source: "manual",
               status: "ready_for_delivery",
             })
