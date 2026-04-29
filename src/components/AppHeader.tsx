@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Bell,
   FileText,
+  PlayCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";

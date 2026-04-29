@@ -16,6 +16,7 @@ import { Route as RouteReportsRouteImport } from './routes/route-reports'
 import { Route as RouteImportTemplateRouteImport } from './routes/route-import-template'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LogistRouteImport } from './routes/logist'
+import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DirectorRouteImport } from './routes/director'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WarehousesIndexRouteImport } from './routes/warehouses.index'
@@ -73,6 +74,11 @@ const NotificationsRoute = NotificationsRouteImport.update({
 const LogistRoute = LogistRouteImport.update({
   id: '/logist',
   path: '/logist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FirstRunRoute = FirstRunRouteImport.update({
+  id: '/first-run',
+  path: '/first-run',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectorRoute = DirectorRouteImport.update({
@@ -196,6 +202,7 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/director': typeof DirectorRoute
+  '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/director': typeof DirectorRoute
+  '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
@@ -261,6 +269,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/director': typeof DirectorRoute
+  '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
   '/route-import-template': typeof RouteImportTemplateRoute
@@ -295,6 +304,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/director'
+    | '/first-run'
     | '/logist'
     | '/notifications'
     | '/route-import-template'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/director'
+    | '/first-run'
     | '/logist'
     | '/notifications'
     | '/route-import-template'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/director'
+    | '/first-run'
     | '/logist'
     | '/notifications'
     | '/route-import-template'
@@ -392,6 +404,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DirectorRoute: typeof DirectorRoute
+  FirstRunRoute: typeof FirstRunRoute
   LogistRoute: typeof LogistRoute
   NotificationsRoute: typeof NotificationsRoute
   RouteImportTemplateRoute: typeof RouteImportTemplateRoute
@@ -471,6 +484,13 @@ declare module '@tanstack/react-router' {
       path: '/logist'
       fullPath: '/logist'
       preLoaderRoute: typeof LogistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/first-run': {
+      id: '/first-run'
+      path: '/first-run'
+      fullPath: '/first-run'
+      preLoaderRoute: typeof FirstRunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/director': {
@@ -640,6 +660,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DirectorRoute: DirectorRoute,
+  FirstRunRoute: FirstRunRoute,
   LogistRoute: LogistRoute,
   NotificationsRoute: NotificationsRoute,
   RouteImportTemplateRoute: RouteImportTemplateRoute,
