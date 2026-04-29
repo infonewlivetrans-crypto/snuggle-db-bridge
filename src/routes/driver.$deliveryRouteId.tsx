@@ -438,6 +438,8 @@ function DriverPointCard({
           dp_return_warehouse_id: p.dp_return_warehouse_id,
           dp_return_comment: p.dp_return_comment,
           dp_expected_return_at: p.dp_expected_return_at,
+          dp_payment_comment: p.dp_payment_comment,
+          dp_amount_received: p.dp_amount_received,
         }}
         order={
           o
@@ -446,11 +448,14 @@ function DriverPointCard({
                 requires_qr: o.requires_qr,
                 cash_received: o.cash_received,
                 qr_received: o.qr_received,
+                payment_status: o.payment_status,
+                amount_due: o.amount_due,
               }
             : undefined
         }
         hasQrPhoto={!!photoKinds?.has("qr")}
         hasProblemPhoto={!!photoKinds?.has("problem")}
+        hasDocumentsPhoto={!!photoKinds?.has("documents")}
       />
     </div>
   );
