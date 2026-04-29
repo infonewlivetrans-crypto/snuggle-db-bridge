@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { PointActionsHistory } from "@/components/PointActionsHistory";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
+import { DriverGeoTracker } from "@/components/DriverGeoTracker";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import {
