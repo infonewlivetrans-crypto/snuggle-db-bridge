@@ -1075,6 +1075,7 @@ export type Database = {
           applied_tariff_id: string | null
           cash_received: boolean
           characteristic: string | null
+          client_type: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends: boolean
           comment: string | null
           contact_name: string | null
@@ -1084,6 +1085,9 @@ export type Database = {
           delivery_cost: number
           delivery_cost_source: Database["public"]["Enums"]["delivery_cost_source"]
           delivery_photo_url: string | null
+          delivery_time_comment: string | null
+          delivery_window_from: string | null
+          delivery_window_to: string | null
           delivery_zone: string | null
           destination_city: string | null
           external_id: string | null
@@ -1121,6 +1125,7 @@ export type Database = {
           applied_tariff_id?: string | null
           cash_received?: boolean
           characteristic?: string | null
+          client_type?: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends?: boolean
           comment?: string | null
           contact_name?: string | null
@@ -1130,6 +1135,9 @@ export type Database = {
           delivery_cost?: number
           delivery_cost_source?: Database["public"]["Enums"]["delivery_cost_source"]
           delivery_photo_url?: string | null
+          delivery_time_comment?: string | null
+          delivery_window_from?: string | null
+          delivery_window_to?: string | null
           delivery_zone?: string | null
           destination_city?: string | null
           external_id?: string | null
@@ -1167,6 +1175,7 @@ export type Database = {
           applied_tariff_id?: string | null
           cash_received?: boolean
           characteristic?: string | null
+          client_type?: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends?: boolean
           comment?: string | null
           contact_name?: string | null
@@ -1176,6 +1185,9 @@ export type Database = {
           delivery_cost?: number
           delivery_cost_source?: Database["public"]["Enums"]["delivery_cost_source"]
           delivery_photo_url?: string | null
+          delivery_time_comment?: string | null
+          delivery_window_from?: string | null
+          delivery_window_to?: string | null
           delivery_zone?: string | null
           destination_city?: string | null
           external_id?: string | null
@@ -2663,6 +2675,13 @@ export type Database = {
         | "long_vehicle"
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
+      client_kind:
+        | "individual"
+        | "organization"
+        | "shop"
+        | "factory"
+        | "snt"
+        | "dacha"
       delivery_cost_source: "auto" | "manual" | "tariff"
       delivery_point_status:
         | "waiting"
@@ -2921,6 +2940,14 @@ export const Constants = {
       ],
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
+      client_kind: [
+        "individual",
+        "organization",
+        "shop",
+        "factory",
+        "snt",
+        "dacha",
+      ],
       delivery_cost_source: ["auto", "manual", "tariff"],
       delivery_point_status: [
         "waiting",
