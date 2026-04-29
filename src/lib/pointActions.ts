@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type PointActionKind =
   | "point_opened"
+  | "arrived"
   | "call_client"
   | "message_client"
   | "call_manager"
@@ -17,7 +18,8 @@ export type PointActionKind =
   | "photo_qr_uploaded"
   | "photo_documents_uploaded"
   | "photo_problem_uploaded"
-  | "photo_uploaded";
+  | "photo_uploaded"
+  | "route_completed";
 
 export interface PointActionRow {
   id: string;
