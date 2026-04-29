@@ -56,12 +56,17 @@ export function RouteMapBlock({
       typeof p.order.longitude !== "number",
   );
 
+  const driverPin = driverLocation
+    ? { lat: driverLocation.latitude, lng: driverLocation.longitude }
+    : null;
+
   const mapUrl = multiPointStaticMap(
     withCoords.map((p) => ({
       lat: p.order.latitude as number,
       lng: p.order.longitude as number,
       n: p.point_number,
     })),
+    driverPin,
   );
 
   // Ссылка "посмотреть на я.картах": центрируем по первой точке
