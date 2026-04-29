@@ -34,7 +34,7 @@ type Props = {
   currentPointsCount: number;
 };
 
-const PAYMENT_TYPES: PaymentType[] = ["cash", "card", "prepaid", "invoice"];
+const PAYMENT_TYPES: PaymentType[] = ["cash", "card", "online", "qr"];
 
 export function AddManualPointDialog({
   open,
