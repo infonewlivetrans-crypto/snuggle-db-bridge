@@ -142,6 +142,7 @@ function TransportRequestsPage() {
                 <TableHead className="font-semibold text-foreground">Номер</TableHead>
                 <TableHead className="font-semibold text-foreground">Тип</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
+                <TableHead className="font-semibold text-foreground">Склад</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад отправления</TableHead>
                 <TableHead className="font-semibold text-foreground">Склад назначения</TableHead>
                 <TableHead className="font-semibold text-foreground">Дата отправки</TableHead>
