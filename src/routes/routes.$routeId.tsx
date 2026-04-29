@@ -511,6 +511,18 @@ function RouteDetailPage() {
           plannedDepartureAt={route.planned_departure_at ?? null}
         />
 
+        {/* Стоимость доставки */}
+        <RouteCostBlock
+          routeId={route.id}
+          totalDistanceKm={Number((route as unknown as { total_distance_km?: number }).total_distance_km ?? 0)}
+          pointsCount={totalCount}
+          costMethod={((route as unknown as { cost_method?: string }).cost_method as CostMethod) ?? "manual"}
+          costPerKm={Number((route as unknown as { cost_per_km?: number }).cost_per_km ?? 0)}
+          costPerPoint={Number((route as unknown as { cost_per_point?: number }).cost_per_point ?? 0)}
+          fixedCost={Number((route as unknown as { fixed_cost?: number }).fixed_cost ?? 0)}
+          deliveryCost={Number((route as unknown as { delivery_cost?: number }).delivery_cost ?? 0)}
+        />
+
         {/* Статус движения водителя */}
         <DriverMovementCard route={route} points={points ?? []} />
 
