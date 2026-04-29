@@ -150,11 +150,13 @@ function DirectorPage() {
         total_distance_km: number;
         points_count: number;
         manual_cost: boolean;
+        manual_orders_amount: number | null;
+        delivery_percent_target: number | null;
       }>();
       if (reqIds.length > 0) {
         const { data: rs } = await supabase
           .from("routes")
-          .select("id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost")
+          .select("id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost, manual_orders_amount, delivery_percent_target")
           .in("id", reqIds);
         (rs ?? []).forEach((x) => costMap.set(x.id as string, x as never));
       }
@@ -170,6 +172,8 @@ function DirectorPage() {
           total_distance_km: c?.total_distance_km ?? 0,
           points_count: c?.points_count ?? 0,
           manual_cost: c?.manual_cost ?? false,
+          manual_orders_amount: c?.manual_orders_amount ?? null,
+          delivery_percent_target: c?.delivery_percent_target ?? 5,
         } as RouteRow;
       });
     },
