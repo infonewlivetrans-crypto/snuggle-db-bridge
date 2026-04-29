@@ -24,7 +24,23 @@ import { AlertTriangle, Camera, Loader2 } from "lucide-react";
 
 const ROUTE_POINT_PHOTOS_BUCKET = "route-point-photos";
 
+// Быстрые шаблоны проблем для водителя (по ТЗ)
+const QUICK_TEMPLATES: { reason: string; comment: string }[] = [
+  { reason: "Нужен звонок менеджера", comment: "Прошу менеджера срочно связаться со мной по точке." },
+  { reason: "Клиент просит перенести доставку", comment: "Клиент просит перенести доставку — нужен новый слот." },
+  { reason: "Клиент спорит по оплате", comment: "У клиента вопросы / спор по сумме оплаты." },
+  { reason: "Клиент не принимает товар", comment: "Клиент отказывается принимать товар на месте." },
+  { reason: "Нужен возврат на склад", comment: "Не могу выгрузить — нужен возврат на склад." },
+  { reason: "Нужна замена товара", comment: "Клиент просит замену — текущий товар не подходит / повреждён." },
+];
+
 const REASONS = [
+  "Нужен звонок менеджера",
+  "Клиент просит перенести доставку",
+  "Клиент спорит по оплате",
+  "Клиент не принимает товар",
+  "Нужен возврат на склад",
+  "Нужна замена товара",
   "Клиент отказывается принимать",
   "Нет оплаты",
   "Нет QR-кода",
@@ -133,6 +149,34 @@ export function ReportProblemDialog({
         </DialogHeader>
 
         <div className="space-y-3">
+          <div>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">
+              Быстрые шаблоны
+            </Label>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {QUICK_TEMPLATES.map((t) => {
+                const isActive = reason === t.reason;
+                return (
+                  <button
+                    key={t.reason}
+                    type="button"
+                    onClick={() => {
+                      setReason(t.reason);
+                      if (!comment.trim()) setComment(t.comment);
+                    }}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+                      isActive
+                        ? "border-orange-600 bg-orange-600 text-white"
+                        : "border-border bg-background hover:bg-muted"
+                    }`}
+                  >
+                    {t.reason}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div>
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">
               Причина проблемы *
