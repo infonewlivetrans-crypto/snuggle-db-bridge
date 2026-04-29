@@ -254,6 +254,8 @@ function DriverRoutePage() {
                   <DriverPointCard
                     key={p.id}
                     p={p}
+                    routeId={data.source_request_id}
+                    driverName={data.assigned_driver}
                     photoKinds={photoKindsByPoint?.[p.id]}
                   />
                 ))}
