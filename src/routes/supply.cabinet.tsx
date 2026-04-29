@@ -345,11 +345,12 @@ function SupplyCabinetPage() {
         </div>
 
         {/* Сводка */}
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           <SummaryCard icon={AlertTriangle} label="Дефицит" value={counts.deficit} accent="text-red-700" />
           <SummaryCard icon={ClipboardList} label="Заявки в работе" value={counts.requests} accent="text-blue-700" />
           <SummaryCard icon={ArrowLeftRight} label="Перемещения" value={counts.transfers} accent="text-indigo-700" />
           <SummaryCard icon={Truck} label="В пути" value={counts.inTransit} accent="text-amber-700" />
+          <SummaryCard icon={Bell} label="Новые уведомления" value={counts.notifications} accent="text-rose-700" />
         </div>
 
         <Tabs defaultValue="deficit" className="w-full">
@@ -369,6 +370,10 @@ function SupplyCabinetPage() {
             <TabsTrigger value="transit">
               <Truck className="mr-2 h-4 w-4" />
               Товары в пути
+            </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="mr-2 h-4 w-4" />
+              Уведомления{unreadCount > 0 ? ` (${unreadCount})` : ""}
             </TabsTrigger>
           </TabsList>
 
@@ -402,6 +407,11 @@ function SupplyCabinetPage() {
               warehouseById={warehouseById}
               productById={productById}
             />
+          </TabsContent>
+
+          {/* Уведомления */}
+          <TabsContent value="notifications">
+            <NotificationsTable items={notifications ?? []} />
           </TabsContent>
         </Tabs>
       </main>
