@@ -318,17 +318,36 @@ function DriverRoutePage() {
                 <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
                   Маршрут завершён. Отчёт отправлен менеджеру.
                 </div>
-              ) : pendingCount > 0 ? (
-                <div className="flex items-start gap-1.5 rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm text-orange-700 dark:text-orange-300">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-                  <span>Обработайте все точки ({pendingCount} осталось), затем завершите маршрут.</span>
+              ) : validationErrors.length > 0 ? (
+                <div className="space-y-2">
+                  <div className="flex items-start gap-1.5 rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-sm font-medium text-orange-800 dark:text-orange-200">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>Перед завершением маршрута устраните проблемы:</span>
+                  </div>
+                  <ul className="space-y-1 rounded-md border border-orange-500/30 bg-orange-500/5 p-3 text-xs text-orange-900 dark:text-orange-200">
+                    {validationErrors.map((err, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="mt-0.5">•</span>
+                        <span>{err}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full gap-1.5"
+                    disabled
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Завершить маршрут и отправить отчёт
+                  </Button>
                 </div>
               ) : (
                 <Button
                   size="lg"
                   className="w-full gap-1.5"
                   disabled={!canFinalize || finalize.isPending}
-                  onClick={() => finalize.mutate()}
+                  onClick={() => finalize.mutate(validationErrors)}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Завершить маршрут и отправить отчёт
