@@ -44,8 +44,12 @@ import {
   ArrowLeftRight,
   Truck,
   MessageSquare,
+  Bell,
+  CheckCheck,
+  Circle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { notifyLowStock } from "@/lib/supplyNotifications";
 
 export const Route = createFileRoute("/supply/cabinet")({
   head: () => ({
