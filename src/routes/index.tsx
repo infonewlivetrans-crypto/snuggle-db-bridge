@@ -43,6 +43,9 @@ import {
 import { Search, QrCode, RefreshCw, Package2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Заказы — Радиус Трек" },
