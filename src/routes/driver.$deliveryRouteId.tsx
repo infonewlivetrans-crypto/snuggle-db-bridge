@@ -562,9 +562,14 @@ function DriverPointCard({
                 qr_received: o.qr_received,
                 payment_status: o.payment_status,
                 amount_due: o.amount_due,
+                latitude: o.latitude,
+                longitude: o.longitude,
               }
             : undefined
         }
+        orderId={p.order_id}
+        routeId={routeId}
+        driverName={driverName}
         hasQrPhoto={!!photoKinds?.has("qr")}
         hasProblemPhoto={!!photoKinds?.has("problem")}
         hasDocumentsPhoto={!!photoKinds?.has("documents")}
