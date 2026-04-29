@@ -1806,6 +1806,36 @@ export type Database = {
         }
         Relationships: []
       }
+      supply_notification_log: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          product_id: string | null
+          supply_request_id: string | null
+          transport_request_id: string | null
+          warehouse_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          product_id?: string | null
+          supply_request_id?: string | null
+          transport_request_id?: string | null
+          warehouse_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          product_id?: string | null
+          supply_request_id?: string | null
+          transport_request_id?: string | null
+          warehouse_id?: string | null
+        }
+        Relationships: []
+      }
       supply_request_status_history: {
         Row: {
           changed_at: string
