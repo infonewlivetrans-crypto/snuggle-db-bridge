@@ -158,6 +158,13 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
             accent={p.totals.amount_diff !== 0}
           />
         </div>
+        {routeCost && (
+          <div className="mt-2 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
+            <Info label="Стоимость доставки" value={fmtMoney(routeCost.delivery_cost) + " ₽"} accent />
+            <Info label="Километров" value={fmtMoney(routeCost.total_distance_km)} />
+            <Info label="Точек" value={String(routeCost.points_count)} />
+          </div>
+        )}
       </div>
 
       <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
