@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
+import { Route as WarehouseSettingsRouteImport } from './routes/warehouse-settings'
+import { Route as WarehouseScheduleRouteImport } from './routes/warehouse-schedule'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
@@ -50,6 +52,16 @@ const WorkspaceRoute = WorkspaceRouteImport.update({
 const WarehouseTodayRoute = WarehouseTodayRouteImport.update({
   id: '/warehouse-today',
   path: '/warehouse-today',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseSettingsRoute = WarehouseSettingsRouteImport.update({
+  id: '/warehouse-settings',
+  path: '/warehouse-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseScheduleRoute = WarehouseScheduleRouteImport.update({
+  id: '/warehouse-schedule',
+  path: '/warehouse-schedule',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemTestRoute = SystemTestRouteImport.update({
@@ -215,6 +227,8 @@ export interface FileRoutesByFullPath {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-schedule': typeof WarehouseScheduleRoute
+  '/warehouse-settings': typeof WarehouseSettingsRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -249,6 +263,8 @@ export interface FileRoutesByTo {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-schedule': typeof WarehouseScheduleRoute
+  '/warehouse-settings': typeof WarehouseSettingsRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -284,6 +300,8 @@ export interface FileRoutesById {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-schedule': typeof WarehouseScheduleRoute
+  '/warehouse-settings': typeof WarehouseSettingsRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -320,6 +338,8 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-schedule'
+    | '/warehouse-settings'
     | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
@@ -354,6 +374,8 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-schedule'
+    | '/warehouse-settings'
     | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
@@ -388,6 +410,8 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-schedule'
+    | '/warehouse-settings'
     | '/warehouse-today'
     | '/workspace'
     | '/admin/settings'
@@ -423,6 +447,8 @@ export interface RootRouteChildren {
   RouteReportsRoute: typeof RouteReportsRoute
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
+  WarehouseScheduleRoute: typeof WarehouseScheduleRoute
+  WarehouseSettingsRoute: typeof WarehouseSettingsRoute
   WarehouseTodayRoute: typeof WarehouseTodayRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -462,6 +488,20 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-today'
       fullPath: '/warehouse-today'
       preLoaderRoute: typeof WarehouseTodayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-settings': {
+      id: '/warehouse-settings'
+      path: '/warehouse-settings'
+      fullPath: '/warehouse-settings'
+      preLoaderRoute: typeof WarehouseSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-schedule': {
+      id: '/warehouse-schedule'
+      path: '/warehouse-schedule'
+      fullPath: '/warehouse-schedule'
+      preLoaderRoute: typeof WarehouseScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/system-test': {
@@ -687,6 +727,8 @@ const rootRouteChildren: RootRouteChildren = {
   RouteReportsRoute: RouteReportsRoute,
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
+  WarehouseScheduleRoute: WarehouseScheduleRoute,
+  WarehouseSettingsRoute: WarehouseSettingsRoute,
   WarehouseTodayRoute: WarehouseTodayRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
