@@ -197,6 +197,12 @@ function TransportRequestsPage() {
                         {REQUEST_STATUS_LABELS[r.status] ?? r.status}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <RequestWarehouseStatusBadge
+                        requestId={r.id}
+                        warehouseId={r.warehouse_id}
+                      />
+                    </TableCell>
                     <TableCell className="text-sm">
                       {r.warehouses?.name ?? (
                         r.request_type === "factory_to_warehouse" ? (
