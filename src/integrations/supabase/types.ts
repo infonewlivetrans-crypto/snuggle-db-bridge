@@ -1305,6 +1305,42 @@ export type Database = {
         }
         Relationships: []
       }
+      route_cost_history: {
+        Row: {
+          changed_by: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          new_cost: number
+          new_method: string | null
+          old_cost: number
+          old_method: string | null
+          route_id: string
+        }
+        Insert: {
+          changed_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          new_cost?: number
+          new_method?: string | null
+          old_cost?: number
+          old_method?: string | null
+          route_id: string
+        }
+        Update: {
+          changed_by?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          new_cost?: number
+          new_method?: string | null
+          old_cost?: number
+          old_method?: string | null
+          route_id?: string
+        }
+        Relationships: []
+      }
       route_point_actions: {
         Row: {
           action: string
