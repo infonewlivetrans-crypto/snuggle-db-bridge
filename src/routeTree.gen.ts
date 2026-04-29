@@ -16,6 +16,7 @@ import { Route as WarehouseSettingsRouteImport } from './routes/warehouse-settin
 import { Route as WarehouseScheduleRouteImport } from './routes/warehouse-schedule'
 import { Route as WarehouseReturnsRouteImport } from './routes/warehouse-returns'
 import { Route as WarehouseReportRouteImport } from './routes/warehouse-report'
+import { Route as WarehouseMovementsRouteImport } from './routes/warehouse-movements'
 import { Route as WarehouseInboundRouteImport } from './routes/warehouse-inbound'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
@@ -81,6 +82,11 @@ const WarehouseReturnsRoute = WarehouseReturnsRouteImport.update({
 const WarehouseReportRoute = WarehouseReportRouteImport.update({
   id: '/warehouse-report',
   path: '/warehouse-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseMovementsRoute = WarehouseMovementsRouteImport.update({
+  id: '/warehouse-movements',
+  path: '/warehouse-movements',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WarehouseInboundRoute = WarehouseInboundRouteImport.update({
@@ -252,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
+  '/warehouse-movements': typeof WarehouseMovementsRoute
   '/warehouse-report': typeof WarehouseReportRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
@@ -292,6 +299,7 @@ export interface FileRoutesByTo {
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
+  '/warehouse-movements': typeof WarehouseMovementsRoute
   '/warehouse-report': typeof WarehouseReportRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
@@ -333,6 +341,7 @@ export interface FileRoutesById {
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
+  '/warehouse-movements': typeof WarehouseMovementsRoute
   '/warehouse-report': typeof WarehouseReportRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
+    | '/warehouse-movements'
     | '/warehouse-report'
     | '/warehouse-returns'
     | '/warehouse-schedule'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
+    | '/warehouse-movements'
     | '/warehouse-report'
     | '/warehouse-returns'
     | '/warehouse-schedule'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
+    | '/warehouse-movements'
     | '/warehouse-report'
     | '/warehouse-returns'
     | '/warehouse-schedule'
@@ -496,6 +508,7 @@ export interface RootRouteChildren {
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
   WarehouseInboundRoute: typeof WarehouseInboundRoute
+  WarehouseMovementsRoute: typeof WarehouseMovementsRoute
   WarehouseReportRoute: typeof WarehouseReportRoute
   WarehouseReturnsRoute: typeof WarehouseReturnsRoute
   WarehouseScheduleRoute: typeof WarehouseScheduleRoute
@@ -575,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-report'
       fullPath: '/warehouse-report'
       preLoaderRoute: typeof WarehouseReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-movements': {
+      id: '/warehouse-movements'
+      path: '/warehouse-movements'
+      fullPath: '/warehouse-movements'
+      preLoaderRoute: typeof WarehouseMovementsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/warehouse-inbound': {
@@ -808,6 +828,7 @@ const rootRouteChildren: RootRouteChildren = {
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
   WarehouseInboundRoute: WarehouseInboundRoute,
+  WarehouseMovementsRoute: WarehouseMovementsRoute,
   WarehouseReportRoute: WarehouseReportRoute,
   WarehouseReturnsRoute: WarehouseReturnsRoute,
   WarehouseScheduleRoute: WarehouseScheduleRoute,
