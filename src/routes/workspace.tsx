@@ -157,7 +157,7 @@ function DriverPanel() {
       const { data: routes } = await supabase
         .from("delivery_routes")
         .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle")
-        .in("status", ["issued_to_driver", "in_progress"])
+        .in("status", ["issued", "in_progress"])
         .order("route_date", { ascending: false })
         .limit(20);
       const list = routes ?? [];
