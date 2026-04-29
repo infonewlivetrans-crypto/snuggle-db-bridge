@@ -33,6 +33,7 @@ import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteDeviationBlock } from "@/components/RouteDeviationBlock";
+import { RouteEtaBlock } from "@/components/RouteEtaBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
@@ -363,6 +364,28 @@ function DeliveryRoutePage() {
                 order: p.order
                   ? { latitude: p.order.latitude, longitude: p.order.longitude }
                   : null,
+              }))}
+              driverLat={driverGeo?.last_driver_lat ?? null}
+              driverLng={driverGeo?.last_driver_lng ?? null}
+              lastUpdateAt={driverGeo?.last_driver_location_at ?? null}
+            />
+
+            {/* ETA — прогноз времени прибытия */}
+            <RouteEtaBlock
+              deliveryRouteId={deliveryRouteId}
+              routeNumber={data.route_number}
+              sourceRouteId={data.source_request_id}
+              points={(points ?? []).map((p) => ({
+                point_number: p.point_number,
+                status: p.dp_status,
+                latitude: p.order?.latitude ?? null,
+                longitude: p.order?.longitude ?? null,
+                client_window_from: p.client_window_from,
+                client_window_to: p.client_window_to,
+                planned_arrival_at: p.dp_planned_arrival_at,
+                order_id: p.order?.id ?? p.order_id,
+                order_number: p.order?.order_number ?? "",
+                contact_name: p.order?.contact_name ?? null,
               }))}
               driverLat={driverGeo?.last_driver_lat ?? null}
               driverLng={driverGeo?.last_driver_lng ?? null}
