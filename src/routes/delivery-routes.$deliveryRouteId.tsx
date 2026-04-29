@@ -31,6 +31,7 @@ import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBl
 import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
+import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
