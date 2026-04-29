@@ -409,6 +409,18 @@ function DirectorPage() {
 
           <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard icon={<Wallet className="h-4 w-4 text-primary" />} label="Общая стоимость" value={fmt(costSummary.totalCost) + " ₽"} />
+            <KpiCard icon={<Wallet className="h-4 w-4" />} label="Сумма заказов" value={fmt(costSummary.totalOrders) + " ₽"} />
+            <KpiCard
+              icon={<BarChart3 className="h-4 w-4" />}
+              label="% доставки от товара"
+              value={costSummary.overallPercent != null ? costSummary.overallPercent.toFixed(2) + " %" : "—"}
+            />
+            <KpiCard
+              icon={<AlertTriangle className={`h-4 w-4 ${costSummary.overCount > 0 ? "text-rose-600" : "text-muted-foreground"}`} />}
+              label="Маршрутов сверх норматива"
+              value={String(costSummary.overCount)}
+              tone={costSummary.overCount > 0 ? "warn" : "neutral"}
+            />
             <KpiCard icon={<Truck className="h-4 w-4" />} label="Средняя на маршрут" value={fmt(costSummary.avgPerRoute) + " ₽"} />
             <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Средняя на точку" value={fmt(costSummary.avgPerPoint) + " ₽"} />
             <KpiCard icon={<BarChart3 className="h-4 w-4" />} label="Средняя на 1 км" value={fmt(costSummary.avgPerKm) + " ₽"} />
@@ -432,7 +444,10 @@ function DirectorPage() {
                     <th className="px-3 py-2 text-left">Способ</th>
                     <th className="px-3 py-2 text-right">За км, ₽</th>
                     <th className="px-3 py-2 text-right">За точку, ₽</th>
-                    <th className="px-3 py-2 text-right">Итого, ₽</th>
+                    <th className="px-3 py-2 text-right">Сумма заказов, ₽</th>
+                    <th className="px-3 py-2 text-right">Стоимость, ₽</th>
+                    <th className="px-3 py-2 text-right">% доставки</th>
+                    <th className="px-3 py-2 text-center">Превышение</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -441,8 +456,12 @@ function DirectorPage() {
                     const pts = Number(r.points_count) || 0;
                     const total = Number(r.delivery_cost) || 0;
                     const method = r.cost_method ?? "manual";
+                    const orders = ordersAmountByRoute.get(r.id) ?? 0;
+                    const target = Number(r.delivery_percent_target) || 0;
+                    const pct = orders > 0 ? (total / orders) * 100 : null;
+                    const over = pct != null && target > 0 && pct > target;
                     return (
-                      <tr key={`cost-${r.id}`} className="border-t border-border hover:bg-muted/30">
+                      <tr key={`cost-${r.id}`} className={`border-t border-border hover:bg-muted/30 ${over ? "bg-rose-50/50 dark:bg-rose-950/10" : ""}`}>
                         <td className="px-3 py-2">
                           <Link
                             to="/delivery-routes/$deliveryRouteId"
@@ -469,7 +488,26 @@ function DirectorPage() {
                         </td>
                         <td className="px-3 py-2 text-right">{fmt(Number(r.cost_per_km) || 0)}</td>
                         <td className="px-3 py-2 text-right">{fmt(Number(r.cost_per_point) || 0)}</td>
+                        <td className="px-3 py-2 text-right">
+                          {orders > 0 ? fmt(orders) : <span className="text-muted-foreground">—</span>}
+                          {r.manual_orders_amount != null && Number(r.manual_orders_amount) > 0 && (
+                            <div className="text-[10px] text-muted-foreground">введено вручную</div>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-right font-semibold text-primary">{fmt(total)}</td>
+                        <td className={`px-3 py-2 text-right font-medium ${over ? "text-rose-700 dark:text-rose-300" : pct != null ? "text-emerald-700 dark:text-emerald-300" : ""}`}>
+                          {pct != null ? `${pct.toFixed(2)} %` : "—"}
+                          <div className="text-[10px] text-muted-foreground">норма {target} %</div>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {over ? (
+                            <Badge className="bg-rose-600 hover:bg-rose-600">да</Badge>
+                          ) : pct != null ? (
+                            <Badge variant="outline">нет</Badge>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
@@ -480,7 +518,14 @@ function DirectorPage() {
                     <td className="px-3 py-2 text-right font-semibold">{costSummary.totalPoints}</td>
                     <td className="px-3 py-2 text-right font-semibold">{fmt(costSummary.totalKm)}</td>
                     <td colSpan={3}></td>
+                    <td className="px-3 py-2 text-right font-semibold">{fmt(costSummary.totalOrders)} ₽</td>
                     <td className="px-3 py-2 text-right font-bold text-primary">{fmt(costSummary.totalCost)} ₽</td>
+                    <td className="px-3 py-2 text-right font-semibold">
+                      {costSummary.overallPercent != null ? costSummary.overallPercent.toFixed(2) + " %" : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-center font-semibold">
+                      {costSummary.overCount > 0 ? `${costSummary.overCount} шт.` : "—"}
+                    </td>
                   </tr>
                 </tfoot>
               </table>
