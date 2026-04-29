@@ -162,7 +162,10 @@ function DriverRoutePage() {
   });
 
   const finalize = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (errors: string[]) => {
+      if (errors.length > 0) {
+        throw new Error(errors[0]);
+      }
       const { error } = await supabase
         .from("delivery_routes")
         .update({ status: "completed" as DeliveryRouteStatus })
