@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Download, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, Info, Upload } from "lucide-react";
+import { Download, FileSpreadsheet, Loader2, AlertTriangle, CheckCircle2, Info, Upload, History } from "lucide-react";
 import { toast } from "sonner";
 import {
   SCHEMAS,
@@ -41,14 +41,22 @@ function DataImportPage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className="mb-6">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-            <FileSpreadsheet className="h-6 w-6 text-muted-foreground" />
-            Импорт данных
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Импорт Excel. Скачайте шаблон, заполните, проверьте предпросмотр и загрузите.
-          </p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+              <FileSpreadsheet className="h-6 w-6 text-muted-foreground" />
+              Импорт данных
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Импорт Excel. Скачайте шаблон, заполните, проверьте предпросмотр и загрузите.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/data-import/history">
+              <History className="h-4 w-4" />
+              История импорта
+            </Link>
+          </Button>
         </div>
 
         <Alert className="mb-6">
@@ -125,7 +133,7 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setImporting(true);
     setResult(null);
     try {
-      const r = await importParsed(entity, parsed, source);
+      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null });
       setResult(r);
       if (r.failed === 0) toast.success(`Импортировано строк: ${r.inserted}`);
       else toast.warning(`Загружено: ${r.inserted}, ошибок: ${r.failed}`);

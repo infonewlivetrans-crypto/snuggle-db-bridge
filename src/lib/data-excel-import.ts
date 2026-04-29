@@ -230,15 +230,25 @@ export async function importParsed(
   entity: ImportEntity,
   parsed: ParseResult,
   source: ImportSource,
-): Promise<ImportResult> {
-  const failed: { row: number; message: string }[] = [];
+  meta?: { fileName?: string | null; importedBy?: string | null },
+): Promise<ImportResult & { logId?: string }> {
+  const failed: { row: number; message: string; raw?: Record<string, unknown> }[] = [];
+  const succeededRows: { row: number; raw: Record<string, unknown> }[] = [];
   let inserted = 0;
   const valid = parsed.rows.filter((r) => r.errors.length === 0);
 
   // pre-fail rows with errors
   for (const r of parsed.rows.filter((x) => x.errors.length > 0)) {
-    failed.push({ row: r.rowNumber, message: r.errors.join("; ") });
+    failed.push({ row: r.rowNumber, message: r.errors.join("; "), raw: r.data });
   }
+
+  const recordOk = (r: ParsedRow) => {
+    inserted++;
+    succeededRows.push({ row: r.rowNumber, raw: r.data });
+  };
+  const recordFail = (r: ParsedRow, msg: string) => {
+    failed.push({ row: r.rowNumber, message: msg, raw: r.data });
+  };
 
   if (entity === "orders") {
     for (const r of valid) {
@@ -262,8 +272,8 @@ export async function importParsed(
         source,
       };
       const { error } = await supabase.from("orders").insert(payload as never);
-      if (error) failed.push({ row: r.rowNumber, message: error.message });
-      else inserted++;
+      if (error) recordFail(r, error.message);
+      else recordOk(r);
     }
   } else if (entity === "products") {
     for (const r of valid) {
@@ -281,8 +291,8 @@ export async function importParsed(
         source,
       };
       const { error } = await supabase.from("products").insert(payload as never);
-      if (error) failed.push({ row: r.rowNumber, message: error.message });
-      else inserted++;
+      if (error) recordFail(r, error.message);
+      else recordOk(r);
     }
   } else if (entity === "stock") {
     const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
@@ -297,18 +307,9 @@ export async function importParsed(
       const qty = num(r.data.available_quantity);
       const productId = prodMap.get(name);
       const warehouseId = whMap.get(whName);
-      if (!productId) {
-        failed.push({ row: r.rowNumber, message: `Товар "${name}" не найден` });
-        continue;
-      }
-      if (!warehouseId) {
-        failed.push({ row: r.rowNumber, message: `Склад "${whName}" не найден` });
-        continue;
-      }
-      if (qty == null || qty <= 0) {
-        failed.push({ row: r.rowNumber, message: `Некорректное количество` });
-        continue;
-      }
+      if (!productId) { recordFail(r, `Товар "${name}" не найден`); continue; }
+      if (!warehouseId) { recordFail(r, `Склад "${whName}" не найден`); continue; }
+      if (qty == null || qty <= 0) { recordFail(r, `Некорректное количество`); continue; }
       const { error } = await supabase.from("stock_movements").insert({
         product_id: productId,
         warehouse_id: warehouseId,
@@ -317,8 +318,8 @@ export async function importParsed(
         reason: "excel_import",
         source,
       } as never);
-      if (error) failed.push({ row: r.rowNumber, message: error.message });
-      else inserted++;
+      if (error) recordFail(r, error.message);
+      else recordOk(r);
     }
   } else if (entity === "routes") {
     for (const r of valid) {
@@ -331,8 +332,8 @@ export async function importParsed(
         source,
       };
       const { error } = await supabase.from("routes").insert(payload as never);
-      if (error) failed.push({ row: r.rowNumber, message: error.message });
-      else inserted++;
+      if (error) recordFail(r, error.message);
+      else recordOk(r);
     }
   } else if (entity === "transport_requests") {
     for (const r of valid) {
@@ -345,10 +346,59 @@ export async function importParsed(
         source,
       };
       const { error } = await supabase.from("routes").insert(payload as never);
-      if (error) failed.push({ row: r.rowNumber, message: error.message });
-      else inserted++;
+      if (error) recordFail(r, error.message);
+      else recordOk(r);
     }
   }
 
-  return { inserted, failed: failed.length, failedRows: failed };
+  // Write import log
+  let logId: string | undefined;
+  try {
+    const totalRows = parsed.totalRows;
+    const failedCount = failed.length;
+    let status: "loaded" | "partial" | "error" = "loaded";
+    if (inserted === 0 && failedCount > 0) status = "error";
+    else if (failedCount > 0) status = "partial";
+
+    const { data: logRow, error: logErr } = await supabase
+      .from("import_logs")
+      .insert({
+        entity,
+        file_name: meta?.fileName ?? null,
+        source,
+        imported_by: meta?.importedBy ?? null,
+        total_rows: totalRows,
+        inserted_rows: inserted,
+        failed_rows: failedCount,
+        status,
+      } as never)
+      .select("id")
+      .single();
+    if (!logErr && logRow) {
+      logId = (logRow as { id: string }).id;
+      const rowsPayload = [
+        ...succeededRows.map((s) => ({
+          import_log_id: logId,
+          row_number: s.row,
+          status: "inserted",
+          error_message: null,
+          raw_data: s.raw,
+        })),
+        ...failed.map((f) => ({
+          import_log_id: logId,
+          row_number: f.row,
+          status: "failed",
+          error_message: f.message,
+          raw_data: f.raw ?? {},
+        })),
+      ];
+      if (rowsPayload.length > 0) {
+        await supabase.from("import_log_rows").insert(rowsPayload as never);
+      }
+    }
+  } catch {
+    // logging failures should not break the import
+  }
+
+  return { inserted, failed: failed.length, failedRows: failed.map(f => ({ row: f.row, message: f.message })), logId };
 }

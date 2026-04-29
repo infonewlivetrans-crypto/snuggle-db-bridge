@@ -589,6 +589,86 @@ export type Database = {
         }
         Relationships: []
       }
+      import_log_rows: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          import_log_id: string
+          raw_data: Json
+          row_number: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_log_id: string
+          raw_data?: Json
+          row_number: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_log_id?: string
+          raw_data?: Json
+          row_number?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_log_rows_import_log_id_fkey"
+            columns: ["import_log_id"]
+            isOneToOne: false
+            referencedRelation: "import_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_logs: {
+        Row: {
+          created_at: string
+          entity: string
+          failed_rows: number
+          file_name: string | null
+          id: string
+          imported_by: string | null
+          inserted_rows: number
+          source: string
+          status: string
+          total_rows: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity: string
+          failed_rows?: number
+          file_name?: string | null
+          id?: string
+          imported_by?: string | null
+          inserted_rows?: number
+          source?: string
+          status?: string
+          total_rows?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity?: string
+          failed_rows?: number
+          file_name?: string | null
+          id?: string
+          imported_by?: string | null
+          inserted_rows?: number
+          source?: string
+          status?: string
+          total_rows?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inbound_shipment_items: {
         Row: {
           comment: string | null
