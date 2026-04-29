@@ -83,6 +83,9 @@ export function RouteCostBlock({
   costPerPoint,
   fixedCost,
   deliveryCost,
+  ordersAmountFromData,
+  manualOrdersAmount,
+  deliveryPercentTarget,
 }: Props) {
   const qc = useQueryClient();
   const [method, setMethod] = useState<CostMethod>(costMethod);
@@ -93,6 +96,12 @@ export function RouteCostBlock({
   const [comment, setComment] = useState<string>("");
   const [tariffId, setTariffId] = useState<string>(appliedTariffId ?? "");
   const [reason, setReason] = useState<string>("");
+  const [manualOrders, setManualOrders] = useState<string>(
+    manualOrdersAmount != null ? String(manualOrdersAmount) : ""
+  );
+  const [percentTarget, setPercentTarget] = useState<string>(
+    String(deliveryPercentTarget ?? 5)
+  );
 
   useEffect(() => {
     setMethod(costMethod);
@@ -101,7 +110,9 @@ export function RouteCostBlock({
     setFixed(String(fixedCost ?? 0));
     setManualTotal(String(deliveryCost ?? 0));
     setTariffId(appliedTariffId ?? "");
-  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost, appliedTariffId]);
+    setManualOrders(manualOrdersAmount != null ? String(manualOrdersAmount) : "");
+    setPercentTarget(String(deliveryPercentTarget ?? 5));
+  }, [costMethod, costPerKm, costPerPoint, fixedCost, deliveryCost, appliedTariffId, manualOrdersAmount, deliveryPercentTarget]);
 
   const { data: tariffs = [] } = useQuery({
     queryKey: ["delivery-tariffs-for-route", warehouseId ?? "any"],
