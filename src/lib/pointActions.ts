@@ -71,6 +71,7 @@ export async function logPointAction(args: {
 
 export const POINT_ACTION_LABELS: Record<string, string> = {
   point_opened: "Открыл точку",
+  arrived: "Нажал «Прибыл»",
   call_client: "Позвонил клиенту",
   message_client: "Написал клиенту",
   call_manager: "Позвонил менеджеру",
@@ -87,4 +88,5 @@ export const POINT_ACTION_LABELS: Record<string, string> = {
   photo_documents_uploaded: "Загрузил фото документов",
   photo_problem_uploaded: "Загрузил фото проблемы",
   photo_uploaded: "Загрузил фото",
+  route_completed: "Завершил маршрут",
 };
