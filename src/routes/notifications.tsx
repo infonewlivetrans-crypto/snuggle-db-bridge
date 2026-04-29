@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/notifications")({
@@ -61,6 +61,7 @@ const KIND_TONE: Record<string, string> = {
 
 function NotificationsPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: items = [], isLoading } = useQuery<Row[]>({
     queryKey: ["notifications", "all"],
@@ -129,6 +130,81 @@ function NotificationsPage() {
             Прочитать все
           </Button>
         </div>
+
+        {/* Завершённые маршруты — отдельный блок (web + mobile) */}
+        {(() => {
+          const routeItems = items.filter((i) => i.kind === "route_completed_report");
+          if (routeItems.length === 0) return null;
+          return (
+            <div className="mb-6">
+              <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <FileText className="h-4 w-4" />
+                Маршруты завершены
+              </h2>
+              <div className="space-y-2">
+                {routeItems.map((n) => {
+                  const p = n.payload as Record<string, unknown>;
+                  const totals = (p.totals as Record<string, number> | undefined) ?? {};
+                  const routeId = p.delivery_route_id as string | undefined;
+                  const routeNumber = (p.route_number as string | undefined) ?? "—";
+                  const driver = (p.driver as string | undefined) ?? "—";
+                  const vehicle = (p.vehicle as string | undefined) ?? "—";
+                  const diff = totals.amount_diff ?? 0;
+                  return (
+                    <button
+                      key={n.id}
+                      type="button"
+                      onClick={() => {
+                        if (!n.is_read) toggleRead.mutate({ id: n.id, read: true });
+                        if (routeId) {
+                          navigate({
+                            to: "/delivery-routes/$deliveryRouteId",
+                            params: { deliveryRouteId: routeId },
+                          });
+                        }
+                      }}
+                      className={`block w-full rounded-lg border border-border bg-card p-3 text-left transition-colors hover:border-primary ${
+                        n.is_read ? "" : "bg-primary/5"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="font-semibold">Маршрут № {routeNumber}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(n.created_at).toLocaleString("ru-RU")}
+                        </div>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Водитель: {driver} · Машина: {vehicle}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                        <span className="text-emerald-700 dark:text-emerald-400">
+                          Доставлено: {totals.delivered ?? 0}
+                        </span>
+                        <span className="text-red-600">
+                          Не доставлено: {totals.not_delivered ?? 0}
+                        </span>
+                        <span className="text-orange-600">
+                          Возврат: {totals.returned ?? 0}
+                        </span>
+                        {diff !== 0 && (
+                          <span className="font-medium text-red-600">
+                            Расхождение по оплате: {(diff > 0 ? "+" : "") + diff.toLocaleString("ru-RU")}
+                          </span>
+                        )}
+                      </div>
+                      {!n.is_read && (
+                        <div className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                          <span className="h-2 w-2 rounded-full bg-primary" />
+                          Новое
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="rounded-lg border border-border bg-card">
           <Table>

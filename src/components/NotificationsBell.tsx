@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch } from "lucide-react";
+import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,8 @@ type NotificationKind =
   | "order_failed"
   | "order_returned"
   | "payment_received"
-  | "low_stock";
+  | "low_stock"
+  | "route_completed_report";
 
 type Notification = {
   id: string;
@@ -36,6 +38,7 @@ const KIND_ICON: Record<NotificationKind, typeof Bell> = {
   order_returned: PackageX,
   payment_received: CheckCircle2,
   low_stock: PackageSearch,
+  route_completed_report: FileText,
 };
 
 const KIND_COLOR: Record<NotificationKind, string> = {
@@ -45,10 +48,12 @@ const KIND_COLOR: Record<NotificationKind, string> = {
   order_returned: "text-purple-600",
   payment_received: "text-green-600",
   low_stock: "text-orange-600",
+  route_completed_report: "text-blue-600",
 };
 
 export function NotificationsBell() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   const { data: items = [] } = useQuery<Notification[]>({
@@ -107,6 +112,7 @@ export function NotificationsBell() {
           else if (n.kind === "order_failed") toast.error(n.title, { description: n.body ?? "" });
           else if (n.kind === "order_returned") toast.warning(n.title, { description: n.body ?? "" });
           else if (n.kind === "low_stock") toast.warning(n.title, { description: n.body ?? "" });
+          else if (n.kind === "route_completed_report") toast.success(n.title, { description: n.body ?? "" });
           else toast(n.title, { description: n.body ?? "" });
         },
       )
@@ -212,12 +218,17 @@ export function NotificationsBell() {
             <ul className="divide-y divide-border">
               {items.map((n) => {
                 const Icon = KIND_ICON[n.kind] ?? Bell;
+                const routeId = (n.payload as { delivery_route_id?: string } | null)?.delivery_route_id;
                 return (
                   <li
                     key={n.id}
-                    className={`flex gap-3 px-3 py-2.5 ${n.is_read ? "" : "bg-primary/5"}`}
+                    className={`flex cursor-pointer gap-3 px-3 py-2.5 hover:bg-muted/50 ${n.is_read ? "" : "bg-primary/5"}`}
                     onClick={() => {
                       if (!n.is_read) markOne.mutate(n.id);
+                      if (n.kind === "route_completed_report" && routeId) {
+                        setOpen(false);
+                        navigate({ to: "/delivery-routes/$deliveryRouteId", params: { deliveryRouteId: routeId } });
+                      }
                     }}
                   >
                     <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${KIND_COLOR[n.kind] ?? ""}`} />
