@@ -75,6 +75,9 @@ type PointRow = {
     payment_status: string;
     cash_received: boolean;
     qr_received: boolean;
+    map_link: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null;
 };
 
