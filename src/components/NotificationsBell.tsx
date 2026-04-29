@@ -38,6 +38,7 @@ const KIND_ICON: Record<NotificationKind, typeof Bell> = {
   order_returned: PackageX,
   payment_received: CheckCircle2,
   low_stock: PackageSearch,
+  route_completed_report: FileText,
 };
 
 const KIND_COLOR: Record<NotificationKind, string> = {
@@ -47,10 +48,12 @@ const KIND_COLOR: Record<NotificationKind, string> = {
   order_returned: "text-purple-600",
   payment_received: "text-green-600",
   low_stock: "text-orange-600",
+  route_completed_report: "text-blue-600",
 };
 
 export function NotificationsBell() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   const { data: items = [] } = useQuery<Notification[]>({
