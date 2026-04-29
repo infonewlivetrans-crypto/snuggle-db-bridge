@@ -180,7 +180,7 @@ function WarehouseTodayPage() {
     },
   });
 
-  const orderIds = (returnPoints ?? []).map((p) => p.order_id);
+  const orderIds = useMemo(() => (returnPoints ?? []).map((p) => p.order_id), [returnPoints]);
   const { data: returnOrders } = useQuery({
     queryKey: ["wh-today-return-orders", orderIds],
     enabled: orderIds.length > 0,
@@ -194,7 +194,7 @@ function WarehouseTodayPage() {
     },
   });
 
-  const pointIds = (returnPoints ?? []).map((p) => p.id);
+  const pointIds = useMemo(() => (returnPoints ?? []).map((p) => p.id), [returnPoints]);
   const { data: returnPhotos } = useQuery({
     queryKey: ["wh-today-return-photos", pointIds],
     enabled: pointIds.length > 0,
