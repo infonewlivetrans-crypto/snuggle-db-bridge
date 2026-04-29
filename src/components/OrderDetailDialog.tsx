@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { OrderItemsBlock } from "@/components/OrderItemsBlock";
 import {
   Dialog,
   DialogContent,
@@ -354,6 +355,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             qrReceived={order.qr_received}
             requiresQr={order.requires_qr}
           />
+
+          {/* Состав заказа (структура 1С) */}
+          <OrderItemsBlock orderId={order.id} />
 
           {/* Комментарий */}
           <div className="rounded-lg border border-border p-4">
