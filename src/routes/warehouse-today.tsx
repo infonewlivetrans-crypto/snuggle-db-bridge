@@ -417,6 +417,52 @@ function WarehouseTodayPage() {
   const openedReturns = openCard ? returnsByRoute.get(openCard) ?? [] : [];
   const openedOrders = openCard ? ordersByRoute.get(openCard) ?? [] : [];
 
+  // === Таймеры ===
+  const now = useNowTick(30_000);
+
+  // Сохранение ожидаемого времени отгрузки/прибытия машины
+  const setExpectedAt = useMutation({
+    mutationFn: async (args: { route: NonNullable<typeof routes>[number]; isoTime: string | null }) => {
+      const existing = eventByRoute.get(args.route.id);
+      const patch = {
+        delivery_route_id: args.route.id,
+        warehouse_id: args.route.source_warehouse_id,
+        event_date: date,
+        route_number: args.route.route_number,
+        driver_name: args.route.assigned_driver,
+        vehicle_plate: args.route.assigned_vehicle,
+        expected_at: args.isoTime,
+      };
+      if (existing) {
+        const { error } = await supabase
+          .from("warehouse_dock_events")
+          .update({ expected_at: args.isoTime })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("warehouse_dock_events").insert(patch);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["wh-today-events", date] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Ближайшая ожидаемая/прибывающая машина
+  const nextVehicle = useMemo(() => {
+    const list = (routes ?? [])
+      .map((r) => {
+        const ev = eventByRoute.get(r.id);
+        const status: DockStatus = ev?.status ?? "expected";
+        const expected = ev?.expected_at ? new Date(ev.expected_at) : null;
+        return { route: r, ev, status, expected };
+      })
+      .filter((x) => x.expected && (x.status === "expected" || x.status === "arrived" || x.status === "loading"))
+      .sort((a, b) => (a.expected!.getTime() - b.expected!.getTime()));
+    return list[0] ?? null;
+  }, [routes, eventByRoute]);
+
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
