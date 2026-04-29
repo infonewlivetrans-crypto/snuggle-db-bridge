@@ -244,6 +244,18 @@ function NotificationsPage() {
                       return;
                     }
                   }
+                  if (n.kind === "transport_request_warehouse_status") {
+                    const reqId =
+                      (n.payload?.transport_request_id as string | undefined) ??
+                      undefined;
+                    if (reqId) {
+                      navigate({
+                        to: "/transport-requests/$requestId",
+                        params: { requestId: reqId },
+                      });
+                      return;
+                    }
+                  }
                   const orderId = n.order_id ?? (n.payload?.order_id as string | undefined);
                   if (orderId) {
                     navigate({ to: "/", search: { orderId } });
