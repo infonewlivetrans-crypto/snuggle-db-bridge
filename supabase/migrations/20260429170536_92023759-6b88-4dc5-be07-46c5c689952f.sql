@@ -1,0 +1,8 @@
+ALTER TABLE public.import_logs
+  ADD COLUMN IF NOT EXISTS duplicate_rows INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS duplicate_action TEXT NOT NULL DEFAULT 'skip',
+  ADD COLUMN IF NOT EXISTS updated_rows INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS skipped_rows INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE public.import_log_rows
+  ADD COLUMN IF NOT EXISTS matched_existing_id TEXT;
