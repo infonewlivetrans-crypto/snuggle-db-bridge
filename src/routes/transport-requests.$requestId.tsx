@@ -11,6 +11,7 @@ import {
 } from "./transport-requests.index";
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
+import { RequestLoadingListBlock } from "@/components/RequestLoadingListBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
