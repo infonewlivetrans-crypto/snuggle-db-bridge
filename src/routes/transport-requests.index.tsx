@@ -156,13 +156,13 @@ function TransportRequestsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={12} className="py-12 text-center text-muted-foreground">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11} className="py-12 text-center">
+                  <TableCell colSpan={12} className="py-12 text-center">
                     <ClipboardList className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заявки не найдены</div>
                   </TableCell>
