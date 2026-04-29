@@ -35,6 +35,9 @@ type Props = {
   costPerPoint: number;
   fixedCost: number;
   deliveryCost: number;
+  ordersAmountFromData: number;
+  manualOrdersAmount: number | null;
+  deliveryPercentTarget: number;
 };
 
 type TariffRow = {
