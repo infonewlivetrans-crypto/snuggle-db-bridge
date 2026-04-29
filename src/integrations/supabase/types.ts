@@ -1950,7 +1950,12 @@ export type Database = {
         | "other"
         | "damage"
         | "wrong_address"
-      delivery_route_status: "draft" | "formed" | "in_progress" | "completed"
+      delivery_route_status:
+        | "draft"
+        | "formed"
+        | "issued"
+        | "in_progress"
+        | "completed"
       dock_slot_kind: "shipment" | "inbound_factory" | "inbound_return"
       dock_slot_status:
         | "planned"
@@ -2205,7 +2210,13 @@ export const Constants = {
         "damage",
         "wrong_address",
       ],
-      delivery_route_status: ["draft", "formed", "in_progress", "completed"],
+      delivery_route_status: [
+        "draft",
+        "formed",
+        "issued",
+        "in_progress",
+        "completed",
+      ],
       dock_slot_kind: ["shipment", "inbound_factory", "inbound_return"],
       dock_slot_status: [
         "planned",

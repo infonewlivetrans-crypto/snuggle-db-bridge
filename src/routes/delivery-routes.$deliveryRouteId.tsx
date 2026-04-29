@@ -28,6 +28,7 @@ import { PointStatusEditor } from "@/components/PointStatusEditor";
 import { OrderNotificationsBlock } from "@/components/OrderNotificationsBlock";
 import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
 import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBlock";
+import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
@@ -88,7 +89,10 @@ type PointRow = {
     id: string;
     order_number: string;
     contact_name: string | null;
+    contact_phone: string | null;
     delivery_address: string | null;
+    latitude: number | null;
+    longitude: number | null;
     comment: string | null;
     payment_type: string;
     amount_due: number | null;
@@ -125,7 +129,7 @@ function DeliveryRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
+          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, latitude, longitude, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
@@ -328,6 +332,30 @@ function DeliveryRoutePage() {
               deliveryRouteId={data.id}
               driver={data.assigned_driver}
               vehicle={data.assigned_vehicle}
+            />
+
+            {/* Проверка маршрута и выдача водителю */}
+            <RouteIssueCheckBlock
+              deliveryRouteId={data.id}
+              status={data.status}
+              driver={data.assigned_driver}
+              vehicle={data.assigned_vehicle}
+              points={(points ?? []).map((p) => ({
+                point_number: p.point_number,
+                order: p.order
+                  ? {
+                      order_number: p.order.order_number,
+                      contact_name: p.order.contact_name,
+                      contact_phone: p.order.contact_phone,
+                      delivery_address: p.order.delivery_address,
+                      latitude: p.order.latitude,
+                      longitude: p.order.longitude,
+                      payment_type: p.order.payment_type,
+                      amount_due: p.order.amount_due,
+                      requires_qr: p.order.requires_qr,
+                    }
+                  : null,
+              }))}
             />
 
             {/* Прогресс по точкам */}

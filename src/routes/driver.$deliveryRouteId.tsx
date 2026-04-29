@@ -250,6 +250,18 @@ function DriverRoutePage() {
           <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
             Маршрут не найден
           </div>
+        ) : data.status === "draft" || data.status === "formed" ? (
+          <div className="rounded-lg border border-border bg-card p-6 text-center">
+            <div className="text-base font-medium">Маршрут ещё не выдан водителю</div>
+            <div className="mt-1 text-sm text-muted-foreground">
+              Дождитесь, пока менеджер проверит маршрут и выдаст его водителю.
+            </div>
+            <div className="mt-3">
+              <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[data.status]}>
+                {DELIVERY_ROUTE_STATUS_LABELS[data.status]}
+              </Badge>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             {/* Шапка маршрута */}
