@@ -61,12 +61,14 @@ export function RouteTimingBlock(props: Props) {
       const sv = Number(service);
       if (!Number.isFinite(sp) || sp <= 0) throw new Error("Скорость должна быть > 0");
       if (!Number.isFinite(sv) || sv < 0) throw new Error("Время разгрузки должно быть ≥ 0");
-      const payload: Record<string, unknown> = {
-        avg_speed_kmh: sp,
-        default_service_minutes: sv,
-        planned_departure_at: departure ? new Date(departure).toISOString() : null,
-      };
-      const { error } = await supabase.from("routes").update(payload).eq("id", props.routeId);
+      const { error } = await supabase
+        .from("routes")
+        .update({
+          avg_speed_kmh: sp,
+          default_service_minutes: sv,
+          planned_departure_at: departure ? new Date(departure).toISOString() : null,
+        })
+        .eq("id", props.routeId);
       if (error) throw error;
     },
     onSuccess: () => {
