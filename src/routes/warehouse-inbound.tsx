@@ -74,6 +74,12 @@ const SOURCE_LABELS: Record<SourceType, string> = {
   return: "Возврат",
 };
 
+function sourceLabel(sourceType: string | null | undefined) {
+  if (sourceType === "warehouse") return "Другой склад";
+  if (sourceType === "supplier") return "Поставщик";
+  return SOURCE_LABELS[sourceType as SourceType] ?? sourceType ?? "—";
+}
+
 function fmt(iso?: string | null) {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("ru-RU", {
@@ -268,7 +274,7 @@ function WarehouseInboundPage() {
                     <div>
                       <div className="font-mono text-sm font-semibold">{s.shipment_number}</div>
                       <div className="text-xs text-muted-foreground">
-                        {SOURCE_LABELS[s.source_type as SourceType] ?? s.source_type}
+                        {sourceLabel(s.source_type)}
                         {s.source_name ? ` · ${s.source_name}` : ""}
                       </div>
                     </div>
@@ -331,7 +337,7 @@ function WarehouseInboundPage() {
                 <DialogHeader>
                   <DialogTitle>Поступление {open.shipment_number}</DialogTitle>
                   <DialogDescription>
-                    {SOURCE_LABELS[open.source_type as SourceType]}
+                    {sourceLabel(open.source_type)}
                     {open.source_name ? ` · ${open.source_name}` : ""}
                   </DialogDescription>
                 </DialogHeader>
