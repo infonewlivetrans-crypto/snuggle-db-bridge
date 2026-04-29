@@ -168,11 +168,24 @@ function DriverRoutePage() {
       if (errors.length > 0) {
         throw new Error(errors[0]);
       }
+      const gps = await getCurrentCoords();
       const { error } = await supabase
         .from("delivery_routes")
         .update({ status: "completed" as DeliveryRouteStatus })
         .eq("id", deliveryRouteId);
       if (error) throw error;
+      // Лог завершения маршрута с GPS — пишем по последней точке (или просто к маршруту)
+      const lastPoint = (points ?? [])[ (points ?? []).length - 1 ];
+      if (lastPoint) {
+        await logPointAction({
+          routePointId: lastPoint.id,
+          orderId: lastPoint.order_id,
+          routeId: data?.source_request_id ?? null,
+          action: "route_completed",
+          actor: data?.assigned_driver ?? "Водитель",
+          details: gps ? { gps } : { gps_unavailable: true },
+        });
+      }
     },
     onSuccess: () => {
       toast.success("Маршрут завершён. Отчёт отправлен менеджеру.");
