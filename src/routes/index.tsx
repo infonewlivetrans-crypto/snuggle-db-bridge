@@ -43,7 +43,9 @@ import {
 import { Search, QrCode, RefreshCw, Package2, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { orderId?: string } => ({
     orderId: typeof search.orderId === "string" ? search.orderId : undefined,
   }),
   head: () => ({
@@ -112,7 +114,7 @@ function OrdersPage() {
     if (found) {
       setSelectedOrder(found);
       setDialogOpen(true);
-      navigate({ to: "/", search: {}, replace: true });
+      navigate({ to: "/", search: { orderId: undefined }, replace: true });
     }
   }, [orderIdParam, orders, navigate]);
 

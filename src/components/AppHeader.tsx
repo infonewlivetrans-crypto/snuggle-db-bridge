@@ -89,7 +89,7 @@ export function AppHeader() {
             </SheetContent>
           </Sheet>
 
-          <Link to="/" className="flex min-w-0 items-center">
+          <Link to="/" search={{ orderId: undefined }} className="flex min-w-0 items-center">
             {/* На самых узких показываем только знак, чтобы не ломать шапку */}
             <span className="md:hidden">
               <BrandLogo size={32} />
