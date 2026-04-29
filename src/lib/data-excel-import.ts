@@ -487,8 +487,8 @@ export async function importParsed(
       };
       await handleRow(
         r,
-        () => supabase.from("products").insert(payload as never),
-        (id) => supabase.from("products").update(payload as never).eq("id", id),
+        async () => await supabase.from("products").insert(payload as never),
+        async (id) => await supabase.from("products").update(payload as never).eq("id", id),
       );
     }
   } else if (entity === "stock") {
