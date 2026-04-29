@@ -332,6 +332,38 @@ function DriverPointCard({
         )}
       </div>
 
+      {/* Быстрые действия — крупные кнопки для телефона */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!o?.contact_phone}
+          className="h-11 gap-1.5"
+        >
+          <a href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}>
+            <Phone className="h-4 w-4" />
+            Позвонить
+          </a>
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!buildMapUrl(o)}
+          className="h-11 gap-1.5"
+        >
+          <a
+            href={buildMapUrl(o) ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MapPin className="h-4 w-4" />
+            Открыть карту
+          </a>
+        </Button>
+      </div>
+
       {/* Краткая сводка по оплате/QR */}
       <div className="flex flex-wrap gap-1.5 text-xs">
         {o?.amount_due != null && (
