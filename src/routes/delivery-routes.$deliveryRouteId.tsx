@@ -329,6 +329,9 @@ function DeliveryRoutePage() {
               </div>
             </div>
 
+            {/* Геопозиция водителя */}
+            <DriverGeoBlock deliveryRouteId={deliveryRouteId} />
+
             {/* Исполнение маршрута: водитель + транспорт */}
             <RouteExecutionBlock
               deliveryRouteId={data.id}
