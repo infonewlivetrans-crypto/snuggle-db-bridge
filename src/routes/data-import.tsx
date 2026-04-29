@@ -287,13 +287,17 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
                     <TableRow key={r.rowNumber}>
                       <TableCell className="font-mono text-xs">{r.rowNumber}</TableCell>
                       <TableCell>
-                        {r.errors.length === 0 ? (
-                          <Badge variant="secondary" className="gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> OK
-                          </Badge>
-                        ) : (
+                        {r.errors.length > 0 ? (
                           <Badge variant="destructive" className="gap-1" title={r.errors.join("; ")}>
                             <AlertTriangle className="h-3 w-3" /> Ошибка
+                          </Badge>
+                        ) : r.duplicate ? (
+                          <Badge className="gap-1 bg-amber-500 text-white hover:bg-amber-500" title={r.duplicate.description}>
+                            <AlertTriangle className="h-3 w-3" /> Дубль
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <CheckCircle2 className="h-3 w-3" /> Новая
                           </Badge>
                         )}
                       </TableCell>
