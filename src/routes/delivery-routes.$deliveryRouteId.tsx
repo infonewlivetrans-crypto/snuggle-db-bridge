@@ -32,6 +32,7 @@ import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
+import { RouteDeviationBlock } from "@/components/RouteDeviationBlock";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { PointTimeTracker } from "@/components/PointTimeTracker";
@@ -350,6 +351,23 @@ function DeliveryRoutePage() {
 
             {/* Геопозиция водителя */}
             <DriverGeoBlock deliveryRouteId={deliveryRouteId} />
+
+            {/* Отклонение от маршрута по GPS */}
+            <RouteDeviationBlock
+              deliveryRouteId={deliveryRouteId}
+              routeNumber={data.route_number}
+              driverName={data.assigned_driver}
+              points={(points ?? []).map((p) => ({
+                point_number: p.point_number,
+                dp_status: p.dp_status,
+                order: p.order
+                  ? { latitude: p.order.latitude, longitude: p.order.longitude }
+                  : null,
+              }))}
+              driverLat={driverGeo?.last_driver_lat ?? null}
+              driverLng={driverGeo?.last_driver_lng ?? null}
+              lastUpdateAt={driverGeo?.last_driver_location_at ?? null}
+            />
 
             {/* Карта маршрута с позицией водителя */}
             {(points ?? []).length > 0 && (
