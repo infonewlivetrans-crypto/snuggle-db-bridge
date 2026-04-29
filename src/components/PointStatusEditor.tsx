@@ -73,6 +73,7 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
   const [expectedReturn, setExpectedReturn] = useState<string>(
     initial.dp_expected_return_at ? toLocalDT(initial.dp_expected_return_at) : "",
   );
+  const [farFromPointWarning, setFarFromPointWarning] = useState<string | null>(null);
 
   useEffect(() => {
     setDeliveredComment(initial.dp_payment_comment ?? "");
