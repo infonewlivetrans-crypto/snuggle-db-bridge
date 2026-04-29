@@ -133,22 +133,6 @@ export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteI
         <Info label="Машина" value={p.vehicle ?? "—"} />
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
-        <Info label="Всего" value={String(p.totals.total)} />
-        <Info label="Доставлено" value={String(p.totals.delivered)} />
-        <Info label="Не доставлено" value={String(p.totals.not_delivered)} />
-        <Info label="Возврат" value={String(p.totals.returned)} />
-      </div>
-
-      <div className="mb-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-3">
-        <Info label="К получению" value={fmtMoney(p.totals.amount_due)} />
-        <Info label="Получено" value={fmtMoney(p.totals.amount_received)} />
-        <Info
-          label="Расхождение"
-          value={(p.totals.amount_diff > 0 ? "+" : "") + fmtMoney(p.totals.amount_diff)}
-          accent={p.totals.amount_diff !== 0}
-        />
-      </div>
 
       <div className="space-y-2">
         {p.orders.map((o) => (
