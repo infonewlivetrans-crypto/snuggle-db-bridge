@@ -265,6 +265,12 @@ function TransportRequestDetailPage() {
             {/* Товары из заказов (структура 1С) */}
             <RequestOrderItemsBlock requestId={data.id} />
 
+            {/* Список товаров к загрузке — агрегировано по товарам с проверкой остатков на складе */}
+            <RequestLoadingListBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+            />
+
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
               requestId={data.id}
