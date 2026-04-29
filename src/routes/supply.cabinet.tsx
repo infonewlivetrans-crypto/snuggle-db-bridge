@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { db } from "@/lib/db";
 import { AppHeader } from "@/components/AppHeader";
@@ -44,8 +44,12 @@ import {
   ArrowLeftRight,
   Truck,
   MessageSquare,
+  Bell,
+  CheckCheck,
+  Circle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { notifyLowStock } from "@/lib/supplyNotifications";
 
 export const Route = createFileRoute("/supply/cabinet")({
   head: () => ({
@@ -122,6 +126,30 @@ type InTransit = {
 
 type Warehouse = { id: string; name: string };
 type Product = { id: string; name: string; sku: string | null; unit: string | null };
+
+type SupplyNotification = {
+  id: string;
+  title: string;
+  body: string | null;
+  created_at: string;
+  is_read: boolean;
+  read_at: string | null;
+  route_id: string | null;
+  payload: {
+    reason?: string;
+    warehouse_id?: string | null;
+    warehouse_name?: string | null;
+    product_id?: string | null;
+    product_name?: string | null;
+    transport_request_id?: string | null;
+    route_number?: string | null;
+    request_number?: string | null;
+    available?: number;
+    min_stock?: number;
+    deficit?: number;
+    qty?: number;
+  } | null;
+};
 
 const SUPPLY_STATUS_LABELS: Record<SupplyStatus, string> = {
   created: "Создана",
@@ -244,11 +272,55 @@ function SupplyCabinetPage() {
     [balances]
   );
 
+  // Уведомление снабжению о низком остатке (с дедупликацией на стороне БД)
+  useEffect(() => {
+    if (!balances) return;
+    const lowStock = balances.filter(
+      (b) =>
+        b.warehouse_id &&
+        b.product_id &&
+        Number(b.min_stock ?? 0) > 0 &&
+        Number(b.available ?? 0) < Number(b.min_stock ?? 0),
+    );
+    if (lowStock.length === 0) return;
+    (async () => {
+      for (const b of lowStock) {
+        await notifyLowStock({
+          warehouseId: b.warehouse_id as string,
+          warehouseName: b.warehouse_name ?? "—",
+          productId: b.product_id,
+          productName: b.product_name,
+          available: Number(b.available ?? 0),
+          minStock: Number(b.min_stock ?? 0),
+          unit: b.unit,
+        });
+      }
+    })();
+  }, [balances]);
+
+  // Уведомления снабжению
+  const { data: notifications } = useQuery({
+    queryKey: ["supply-notifications"],
+    queryFn: async (): Promise<SupplyNotification[]> => {
+      const { data, error } = await db
+        .from("notifications")
+        .select("*")
+        .eq("kind", "supply_alert")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return (data ?? []) as unknown as SupplyNotification[];
+    },
+  });
+
+  const unreadCount = (notifications ?? []).filter((n) => !n.is_read).length;
+
   const counts = {
     deficit: deficitItems.length,
     requests: (requests ?? []).filter((r) => r.supply_status !== "closed").length,
     transfers: (transfers ?? []).filter((t) => !["accepted", "cancelled"].includes(t.status)).length,
     inTransit: (inTransit ?? []).length,
+    notifications: unreadCount,
   };
 
   return (
@@ -273,11 +345,12 @@ function SupplyCabinetPage() {
         </div>
 
         {/* Сводка */}
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
           <SummaryCard icon={AlertTriangle} label="Дефицит" value={counts.deficit} accent="text-red-700" />
           <SummaryCard icon={ClipboardList} label="Заявки в работе" value={counts.requests} accent="text-blue-700" />
           <SummaryCard icon={ArrowLeftRight} label="Перемещения" value={counts.transfers} accent="text-indigo-700" />
           <SummaryCard icon={Truck} label="В пути" value={counts.inTransit} accent="text-amber-700" />
+          <SummaryCard icon={Bell} label="Новые уведомления" value={counts.notifications} accent="text-rose-700" />
         </div>
 
         <Tabs defaultValue="deficit" className="w-full">
@@ -297,6 +370,10 @@ function SupplyCabinetPage() {
             <TabsTrigger value="transit">
               <Truck className="mr-2 h-4 w-4" />
               Товары в пути
+            </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="mr-2 h-4 w-4" />
+              Уведомления{unreadCount > 0 ? ` (${unreadCount})` : ""}
             </TabsTrigger>
           </TabsList>
 
@@ -330,6 +407,11 @@ function SupplyCabinetPage() {
               warehouseById={warehouseById}
               productById={productById}
             />
+          </TabsContent>
+
+          {/* Уведомления */}
+          <TabsContent value="notifications">
+            <NotificationsTable items={notifications ?? []} />
           </TabsContent>
         </Tabs>
       </main>
@@ -759,5 +841,142 @@ function InTransitTable({
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+// ===== Уведомления =====
+const REASON_LABELS: Record<string, string> = {
+  low_stock: "Низкий остаток на складе",
+  shortage: "Нехватка товара под заявку",
+  supply_request_created: "Создана заявка на пополнение",
+};
+
+function NotificationsTable({ items }: { items: SupplyNotification[] }) {
+  const qc = useQueryClient();
+
+  const markRead = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await db
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["supply-notifications"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const markAllRead = useMutation({
+    mutationFn: async () => {
+      const { error } = await db
+        .from("notifications")
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq("kind", "supply_alert")
+        .eq("is_read", false);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Все уведомления прочитаны");
+      qc.invalidateQueries({ queryKey: ["supply-notifications"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        Уведомлений нет
+      </div>
+    );
+  }
+
+  const hasUnread = items.some((i) => !i.is_read);
+
+  return (
+    <>
+      {hasUnread && (
+        <div className="mb-3 flex justify-end">
+          <Button size="sm" variant="outline" onClick={() => markAllRead.mutate()}>
+            <CheckCheck className="mr-1 h-3.5 w-3.5" />
+            Прочитать все
+          </Button>
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[140px]">Дата и время</TableHead>
+              <TableHead>Склад</TableHead>
+              <TableHead>Товар</TableHead>
+              <TableHead>Причина</TableHead>
+              <TableHead>Заявка на транспорт</TableHead>
+              <TableHead>Статус</TableHead>
+              <TableHead className="text-right"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((n) => {
+              const p = n.payload ?? {};
+              const reasonLabel = p.reason ? REASON_LABELS[p.reason] ?? n.title : n.title;
+              const transportLink = p.transport_request_id ? (
+                <Link
+                  to="/transport-requests/$requestId"
+                  params={{ requestId: p.transport_request_id }}
+                  className="font-mono text-xs text-blue-700 hover:underline"
+                  onClick={() => !n.is_read && markRead.mutate(n.id)}
+                >
+                  № {p.route_number ?? "—"}
+                </Link>
+              ) : (
+                <span className="text-xs text-muted-foreground">—</span>
+              );
+              return (
+                <TableRow key={n.id} className={n.is_read ? "" : "bg-rose-50/40"}>
+                  <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                    {new Date(n.created_at).toLocaleString("ru-RU")}
+                  </TableCell>
+                  <TableCell className="text-sm">{p.warehouse_name ?? "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="font-medium">{p.product_name ?? "—"}</div>
+                    {n.body && (
+                      <div className="text-xs text-muted-foreground">{n.body}</div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm">{reasonLabel}</TableCell>
+                  <TableCell>{transportLink}</TableCell>
+                  <TableCell>
+                    {n.is_read ? (
+                      <Badge variant="outline" className="border-slate-300 bg-slate-100 text-slate-700">
+                        <CheckCheck className="mr-1 h-3 w-3" />
+                        Прочитано
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-rose-300 bg-rose-100 text-rose-900">
+                        <Circle className="mr-1 h-3 w-3 fill-rose-600 text-rose-600" />
+                        Новое
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {!n.is_read && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => markRead.mutate(n.id)}
+                        disabled={markRead.isPending}
+                      >
+                        Прочитано
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

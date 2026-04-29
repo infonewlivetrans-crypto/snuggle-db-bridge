@@ -19,6 +19,10 @@ import {
   PackageSearch,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  notifyShortageForRequest,
+  notifySupplyRequestCreated,
+} from "@/lib/supplyNotifications";
 
 type Pt = { order_id: string };
 type Item = {
@@ -191,29 +195,82 @@ export function StockAvailabilityCheckBlock({
     onShortageChange?.(hasShortage);
   }, [hasShortage, onShortageChange]);
 
+  // Уведомление снабжению о нехватке товара под заявку (по каждой позиции с дефицитом)
+  useEffect(() => {
+    if (!warehouseId || !routeNumber) return;
+    const shortageRows = rows.filter(
+      (r) => r.enough === false && r.product_id && r.deficit > 0,
+    );
+    if (shortageRows.length === 0) return;
+    (async () => {
+      const { data: wh } = await db
+        .from("warehouses")
+        .select("name")
+        .eq("id", warehouseId)
+        .maybeSingle();
+      const whName = (wh as { name?: string } | null)?.name ?? null;
+      for (const r of shortageRows) {
+        await notifyShortageForRequest({
+          transportRequestId: requestId,
+          routeNumber,
+          warehouseId,
+          warehouseName: whName,
+          productId: r.product_id as string,
+          productName: r.nomenclature,
+          deficit: r.deficit,
+          unit: r.unit,
+        });
+      }
+    })();
+  }, [rows, warehouseId, routeNumber, requestId]);
+
   // 6. Создание заявки на пополнение
   const createSupply = useMutation({
     mutationFn: async (args: {
       product_id: string;
       qty: number;
       nomenclature: string;
+      unit: string | null;
     }) => {
       if (!warehouseId) throw new Error("Не указан склад отгрузки");
       const reason = routeNumber
         ? `Нехватка товара под отгрузку (заявка ${routeNumber})`
         : "Нехватка товара под отгрузку";
-      const { error } = await db.from("supply_requests").insert({
-        source_type: "factory",
-        source_name: null,
-        destination_warehouse_id: warehouseId,
-        product_id: args.product_id,
-        qty: args.qty,
-        priority: "high",
-        status: "draft",
-        comment: `${reason}. Товар: ${args.nomenclature}. Дефицит: ${fmt(args.qty)}.`,
-        created_by: "Логист",
-      });
+      const { data: inserted, error } = await db
+        .from("supply_requests")
+        .insert({
+          source_type: "factory",
+          source_name: null,
+          destination_warehouse_id: warehouseId,
+          product_id: args.product_id,
+          qty: args.qty,
+          priority: "high",
+          status: "draft",
+          comment: `${reason}. Товар: ${args.nomenclature}. Дефицит: ${fmt(args.qty)}.`,
+          created_by: "Логист",
+        })
+        .select("id, request_number")
+        .single();
       if (error) throw error;
+      // Уведомление снабжению
+      const { data: wh } = await db
+        .from("warehouses")
+        .select("name")
+        .eq("id", warehouseId)
+        .maybeSingle();
+      const whName = (wh as { name?: string } | null)?.name ?? null;
+      await notifySupplyRequestCreated({
+        supplyRequestId: (inserted as { id: string }).id,
+        requestNumber: (inserted as { request_number: string }).request_number,
+        warehouseId,
+        warehouseName: whName,
+        productId: args.product_id,
+        productName: args.nomenclature,
+        qty: args.qty,
+        unit: args.unit,
+        transportRequestId: requestId,
+        routeNumber: routeNumber ?? null,
+      });
     },
     onSuccess: () => {
       toast.success("Заявка на пополнение создана");
@@ -345,6 +402,7 @@ export function StockAvailabilityCheckBlock({
                           product_id: r.product_id!,
                           qty: r.deficit,
                           nomenclature: r.nomenclature,
+                          unit: r.unit,
                         })
                       }
                     >
