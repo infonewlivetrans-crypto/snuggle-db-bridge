@@ -2641,7 +2641,7 @@ export type Database = {
         | "unloading_place"
       route_status: "planned" | "in_progress" | "completed" | "cancelled"
       supply_request_priority: "low" | "normal" | "high" | "urgent"
-      supply_request_source_type: "factory" | "warehouse"
+      supply_request_source_type: "factory" | "warehouse" | "supplier"
       supply_request_status:
         | "draft"
         | "pending"
@@ -2907,7 +2907,7 @@ export const Constants = {
       ],
       route_status: ["planned", "in_progress", "completed", "cancelled"],
       supply_request_priority: ["low", "normal", "high", "urgent"],
-      supply_request_source_type: ["factory", "warehouse"],
+      supply_request_source_type: ["factory", "warehouse", "supplier"],
       supply_request_status: [
         "draft",
         "pending",
