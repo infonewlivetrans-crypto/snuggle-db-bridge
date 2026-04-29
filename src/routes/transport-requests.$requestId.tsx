@@ -10,6 +10,7 @@ import {
   REQUEST_STATUS_LABELS,
 } from "./transport-requests.index";
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
+import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
@@ -259,6 +260,9 @@ function TransportRequestDetailPage() {
 
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />
+
+            {/* Товары из заказов (структура 1С) */}
+            <RequestOrderItemsBlock requestId={data.id} />
 
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
