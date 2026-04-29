@@ -655,6 +655,7 @@ export type Database = {
           source_type: string
           source_warehouse_id: string | null
           status: string
+          supply_request_id: string | null
           updated_at: string
           vehicle_plate: string | null
           warehouse_comment: string | null
@@ -680,6 +681,7 @@ export type Database = {
           source_type?: string
           source_warehouse_id?: string | null
           status?: string
+          supply_request_id?: string | null
           updated_at?: string
           vehicle_plate?: string | null
           warehouse_comment?: string | null
@@ -705,6 +707,7 @@ export type Database = {
           source_type?: string
           source_warehouse_id?: string | null
           status?: string
+          supply_request_id?: string | null
           updated_at?: string
           vehicle_plate?: string | null
           warehouse_comment?: string | null
@@ -1883,8 +1886,12 @@ export type Database = {
           created_by: string | null
           destination_warehouse_id: string
           expected_at: string | null
+          expected_time: string | null
           id: string
           in_transit_id: string | null
+          inbound_shipment_id: string | null
+          planned_carrier: string | null
+          planned_vehicle: string | null
           priority: Database["public"]["Enums"]["supply_request_priority"]
           product_id: string
           qty: number
@@ -1907,8 +1914,12 @@ export type Database = {
           created_by?: string | null
           destination_warehouse_id: string
           expected_at?: string | null
+          expected_time?: string | null
           id?: string
           in_transit_id?: string | null
+          inbound_shipment_id?: string | null
+          planned_carrier?: string | null
+          planned_vehicle?: string | null
           priority?: Database["public"]["Enums"]["supply_request_priority"]
           product_id: string
           qty: number
@@ -1931,8 +1942,12 @@ export type Database = {
           created_by?: string | null
           destination_warehouse_id?: string
           expected_at?: string | null
+          expected_time?: string | null
           id?: string
           in_transit_id?: string | null
+          inbound_shipment_id?: string | null
+          planned_carrier?: string | null
+          planned_vehicle?: string | null
           priority?: Database["public"]["Enums"]["supply_request_priority"]
           product_id?: string
           qty?: number
