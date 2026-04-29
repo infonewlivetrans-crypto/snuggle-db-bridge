@@ -64,12 +64,9 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
   );
 
   useEffect(() => {
-    setStatus(initial.dp_status);
-    setReason(initial.dp_undelivered_reason ?? "");
-    setReturnWh(initial.dp_return_warehouse_id ?? "");
-    setReturnComment(initial.dp_return_comment ?? "");
-    setExpectedReturn(initial.dp_expected_return_at ? toLocalDT(initial.dp_expected_return_at) : "");
-  }, [routePointId, initial.dp_status, initial.dp_undelivered_reason, initial.dp_return_warehouse_id, initial.dp_return_comment, initial.dp_expected_return_at]);
+    setDeliveredComment(initial.dp_payment_comment ?? "");
+    setNotDeliveredComment(initial.dp_payment_comment ?? "");
+  }, [routePointId, initial.dp_payment_comment]);
 
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-list"],
@@ -87,18 +84,50 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
   const save = useMutation({
     mutationFn: async () => {
       if (status === "delivered" && order) {
-        if (order.requires_qr && !order.qr_received) {
-          throw new Error("Нельзя поставить «Доставлено»: QR-код ещё не получен");
+        // 1) QR обязателен
+        if (order.requires_qr && (!order.qr_received || !hasQrPhoto)) {
+          throw new Error("Нельзя завершить доставку без QR-кода.");
         }
-        if (order.requires_qr && !hasQrPhoto) {
-          throw new Error("Нельзя поставить «Доставлено»: не загружено фото QR-кода");
+        // 2) Наличные + не оплачено заранее → подтверждение оплаты
+        const isPrepaid = order.payment_status === "paid";
+        if (order.payment_type === "cash" && !isPrepaid) {
+          const amountReceived = initial.dp_amount_received;
+          if (!order.cash_received || amountReceived == null || Number(amountReceived) <= 0) {
+            throw new Error("Нельзя завершить доставку без подтверждения оплаты.");
+          }
         }
-        if (order.payment_type === "cash" && !order.cash_received) {
-          throw new Error("Нельзя поставить «Доставлено»: наличная оплата ещё не получена");
+        // 3) Фото документов обязательно
+        if (!hasDocumentsPhoto) {
+          throw new Error("Нельзя завершить доставку без фото документов.");
+        }
+        // Комментарий обязателен, если есть расхождение по оплате
+        const due = Number(order.amount_due ?? 0);
+        const got = Number(initial.dp_amount_received ?? 0);
+        if (due > 0 && got > 0 && got !== due && !deliveredComment.trim()) {
+          throw new Error("Укажите комментарий: есть расхождение по оплате.");
         }
       }
-      if ((status === "not_delivered" || status === "returned_to_warehouse") && !hasProblemPhoto) {
-        throw new Error("Нужно загрузить фото проблемы для статуса «Не доставлено» / «Возврат на склад»");
+      if (status === "not_delivered") {
+        if (!reason) {
+          throw new Error("Укажите причину недоставки.");
+        }
+        if (!hasProblemPhoto) {
+          throw new Error("Загрузите фото проблемы для статуса «Не доставлено».");
+        }
+        if (!notDeliveredComment.trim()) {
+          throw new Error("Укажите комментарий к недоставке.");
+        }
+      }
+      if (status === "returned_to_warehouse") {
+        if (!returnWh) {
+          throw new Error("Выберите склад возврата.");
+        }
+        if (!hasProblemPhoto) {
+          throw new Error("Загрузите фото для возврата на склад.");
+        }
+        if (!returnComment.trim()) {
+          throw new Error("Укажите причину возврата в комментарии.");
+        }
       }
       const payload: Record<string, unknown> = {
         dp_status: status,
@@ -110,6 +139,12 @@ export function PointStatusEditor({ routePointId, initial, order, hasQrPhoto, ha
           status === "returned_to_warehouse" && expectedReturn
             ? new Date(expectedReturn).toISOString()
             : null,
+        dp_payment_comment:
+          status === "delivered"
+            ? (deliveredComment.trim() || null)
+            : status === "not_delivered"
+              ? (notDeliveredComment.trim() || null)
+              : initial.dp_payment_comment ?? null,
       };
       const { error } = await (supabase.from("route_points") as unknown as {
         update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
