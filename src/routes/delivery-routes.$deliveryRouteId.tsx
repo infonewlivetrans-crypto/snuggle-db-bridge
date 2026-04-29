@@ -160,6 +160,24 @@ function DeliveryRoutePage() {
     },
   });
 
+  const { data: driverGeo } = useQuery({
+    queryKey: ["driver-geo-map", deliveryRouteId],
+    refetchInterval: 30_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("delivery_routes")
+        .select("last_driver_lat, last_driver_lng, last_driver_location_at")
+        .eq("id", deliveryRouteId)
+        .maybeSingle();
+      if (error) throw error;
+      return (data ?? null) as {
+        last_driver_lat: number | null;
+        last_driver_lng: number | null;
+        last_driver_location_at: string | null;
+      } | null;
+    },
+  });
+
   const [status, setStatus] = useState<DeliveryRouteStatus>("formed");
   const [comment, setComment] = useState("");
   const [addPointOpen, setAddPointOpen] = useState(false);
