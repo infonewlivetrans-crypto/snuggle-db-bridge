@@ -657,6 +657,22 @@ function EditStockDialog({
               onChange={(e) => setMinStock(e.target.value)}
             />
           </div>
+          <div className="col-span-2">
+            <Label>Кто внёс изменение</Label>
+            <Input
+              placeholder="Имя кладовщика"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Комментарий</Label>
+            <Input
+              placeholder="Основание / пояснение"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
