@@ -445,7 +445,8 @@
  * ========================================================== */
 
 /* Не дать таблицам и широким карточкам пробивать viewport */
-html, body { max-width: 100%; overflow-x: hidden; }
+html { max-width: 100%; }
+body { max-width: 100%; overflow-x: hidden; }
 
 /* Любая обёртка с .overflow-x-auto должна нормально работать на тач-экранах */
 .overflow-x-auto { -webkit-overflow-scrolling: touch; }

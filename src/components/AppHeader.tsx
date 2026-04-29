@@ -64,7 +64,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8 xl:h-16">
         <div className="flex min-w-0 items-center gap-3 md:gap-8">
           {/* Мобильное меню — гамбургер */}
           <Sheet open={open} onOpenChange={setOpen}>
