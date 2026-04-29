@@ -25,7 +25,8 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 const NAV_ITEMS = [
   { to: "/workspace", label: "Рабочий стол", icon: BarChart3, match: (p: string) => p.startsWith("/workspace") },
   { to: "/", label: "Заказы", icon: BarChart3, match: (p: string) => p === "/" },
-  { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p: string) => p.startsWith("/transport-requests") },
+  { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p: string) => p.startsWith("/transport-requests") && !p.startsWith("/transport-requests/picker") },
+  { to: "/transport-requests/picker", label: "Подбор заказов", icon: ClipboardList, match: (p: string) => p.startsWith("/transport-requests/picker") },
   { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon, match: (p: string) => p.startsWith("/delivery-routes") },
   { to: "/logist", label: "Кабинет логиста", icon: ClipboardList, match: (p: string) => p.startsWith("/logist") },
   { to: "/route-reports", label: "Отчёты по маршрутам", icon: FileText, match: (p: string) => p.startsWith("/route-reports") },
