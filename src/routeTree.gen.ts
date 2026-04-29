@@ -14,6 +14,7 @@ import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
 import { Route as WarehouseSettingsRouteImport } from './routes/warehouse-settings'
 import { Route as WarehouseScheduleRouteImport } from './routes/warehouse-schedule'
 import { Route as WarehouseReturnsRouteImport } from './routes/warehouse-returns'
+import { Route as WarehouseInboundRouteImport } from './routes/warehouse-inbound'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
@@ -68,6 +69,11 @@ const WarehouseScheduleRoute = WarehouseScheduleRouteImport.update({
 const WarehouseReturnsRoute = WarehouseReturnsRouteImport.update({
   id: '/warehouse-returns',
   path: '/warehouse-returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WarehouseInboundRoute = WarehouseInboundRouteImport.update({
+  id: '/warehouse-inbound',
+  path: '/warehouse-inbound',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemTestRoute = SystemTestRouteImport.update({
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-inbound': typeof WarehouseInboundRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-inbound': typeof WarehouseInboundRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/route-reports': typeof RouteReportsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/warehouse-inbound': typeof WarehouseInboundRoute
   '/warehouse-returns': typeof WarehouseReturnsRoute
   '/warehouse-schedule': typeof WarehouseScheduleRoute
   '/warehouse-settings': typeof WarehouseSettingsRoute
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-inbound'
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-inbound'
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
@@ -421,6 +432,7 @@ export interface FileRouteTypes {
     | '/route-reports'
     | '/system-issues'
     | '/system-test'
+    | '/warehouse-inbound'
     | '/warehouse-returns'
     | '/warehouse-schedule'
     | '/warehouse-settings'
@@ -459,6 +471,7 @@ export interface RootRouteChildren {
   RouteReportsRoute: typeof RouteReportsRoute
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
+  WarehouseInboundRoute: typeof WarehouseInboundRoute
   WarehouseReturnsRoute: typeof WarehouseReturnsRoute
   WarehouseScheduleRoute: typeof WarehouseScheduleRoute
   WarehouseSettingsRoute: typeof WarehouseSettingsRoute
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-returns'
       fullPath: '/warehouse-returns'
       preLoaderRoute: typeof WarehouseReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/warehouse-inbound': {
+      id: '/warehouse-inbound'
+      path: '/warehouse-inbound'
+      fullPath: '/warehouse-inbound'
+      preLoaderRoute: typeof WarehouseInboundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/system-test': {
@@ -747,6 +767,7 @@ const rootRouteChildren: RootRouteChildren = {
   RouteReportsRoute: RouteReportsRoute,
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
+  WarehouseInboundRoute: WarehouseInboundRoute,
   WarehouseReturnsRoute: WarehouseReturnsRoute,
   WarehouseScheduleRoute: WarehouseScheduleRoute,
   WarehouseSettingsRoute: WarehouseSettingsRoute,

@@ -38,6 +38,7 @@ const NAV_ITEMS = [
   { to: "/warehouse-settings", label: "Настройки склада", icon: Settings, match: (p: string) => p.startsWith("/warehouse-settings") },
   { to: "/warehouse-schedule", label: "График отгрузок", icon: ClipboardList, match: (p: string) => p.startsWith("/warehouse-schedule") },
   { to: "/warehouse-returns", label: "Возвраты", icon: ClipboardList, match: (p: string) => p.startsWith("/warehouse-returns") },
+  { to: "/warehouse-inbound", label: "Приём товара", icon: PackageSearch, match: (p: string) => p.startsWith("/warehouse-inbound") },
   { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p: string) => p.startsWith("/supply") },
   { to: "/notifications", label: "Уведомления", icon: Bell, match: (p: string) => p.startsWith("/notifications") },
   { to: "/admin/tariffs", label: "Тарифы", icon: Receipt, match: (p: string) => p.startsWith("/admin/tariffs") },
