@@ -127,6 +127,30 @@ type InTransit = {
 type Warehouse = { id: string; name: string };
 type Product = { id: string; name: string; sku: string | null; unit: string | null };
 
+type SupplyNotification = {
+  id: string;
+  title: string;
+  body: string | null;
+  created_at: string;
+  is_read: boolean;
+  read_at: string | null;
+  route_id: string | null;
+  payload: {
+    reason?: string;
+    warehouse_id?: string | null;
+    warehouse_name?: string | null;
+    product_id?: string | null;
+    product_name?: string | null;
+    transport_request_id?: string | null;
+    route_number?: string | null;
+    request_number?: string | null;
+    available?: number;
+    min_stock?: number;
+    deficit?: number;
+    qty?: number;
+  } | null;
+};
+
 const SUPPLY_STATUS_LABELS: Record<SupplyStatus, string> = {
   created: "Создана",
   in_progress: "В работе",
