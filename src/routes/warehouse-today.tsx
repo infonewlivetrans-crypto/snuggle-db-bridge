@@ -88,6 +88,8 @@ type DockEvent = {
   loaded_at: string | null;
   departed_at: string | null;
   return_accepted_at: string | null;
+  load_plan_confirmed_at: string | null;
+  load_plan_confirmed_by: string | null;
 };
 
 function WarehouseTodayPage() {
