@@ -198,8 +198,9 @@ export function DockLoadingChecklistBlock({
             .eq("product_id", args.product_id)
             .eq("warehouse_id", warehouseId)
             .eq("status", "active");
-          ownReserved = (rs ?? []).reduce(
-            (s, r) => s + (Number((r as { qty: number }).qty) || 0),
+          const list = (rs ?? []) as Array<{ qty: number }>;
+          ownReserved = list.reduce(
+            (s, r) => s + (Number(r.qty) || 0),
             0,
           );
         }
