@@ -172,27 +172,29 @@ function normalizeKey(s: string): string {
   return String(s ?? "").trim().toLowerCase();
 }
 
+function emptyResult(missingColumns: string[]): ParseResult {
+  return { rows: [], missingColumns, totalRows: 0, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 };
+}
+
 export async function parseFile(file: File, entity: ImportEntity): Promise<ParseResult> {
   const schema = SCHEMAS[entity];
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
   if (!ws) {
-    return { rows: [], missingColumns: schema.columns.filter(c => c.required).map(c => c.label), totalRows: 0, validRows: 0, invalidRows: 0 };
+    return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
   }
   const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
   if (aoa.length === 0) {
-    return { rows: [], missingColumns: schema.columns.filter(c => c.required).map(c => c.label), totalRows: 0, validRows: 0, invalidRows: 0 };
+    return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
   }
   const headerRow = (aoa[0] as unknown[]).map((h) => normalizeKey(String(h)));
-  // Map column key -> index by matching label OR key
   const colIndex: Record<string, number> = {};
   for (const col of schema.columns) {
     const labelN = normalizeKey(col.label);
     const keyN = normalizeKey(col.key);
     let idx = headerRow.findIndex((h) => h === labelN || h === keyN);
     if (idx < 0) {
-      // partial match by label start
       idx = headerRow.findIndex((h) => h.startsWith(labelN.split(" ")[0]) && labelN.length > 3);
     }
     if (idx >= 0) colIndex[col.key] = idx;
@@ -216,16 +218,166 @@ export async function parseFile(file: File, entity: ImportEntity): Promise<Parse
       }
       data[col.key] = isEmpty ? null : val;
     }
-    rows.push({ rowNumber: i + 1, data, errors });
+    rows.push({ rowNumber: i + 1, data, errors, duplicate: null });
   }
+
+  // Detect duplicates against existing data
+  await detectDuplicates(entity, rows);
+
   const validRows = rows.filter((r) => r.errors.length === 0).length;
+  const duplicateRows = rows.filter((r) => r.duplicate).length;
+  const newRows = rows.filter((r) => r.errors.length === 0 && !r.duplicate).length;
   return {
     rows,
     missingColumns,
     totalRows: rows.length,
     validRows,
     invalidRows: rows.length - validRows,
+    duplicateRows,
+    newRows,
   };
+}
+
+// ====== Duplicate detection ======
+
+interface DuplicateMatcher {
+  keys: string[]; // columns from data row used as match
+  fetch: (rows: ParsedRow[]) => Promise<Map<string, DuplicateInfo>>;
+  rowKey: (row: ParsedRow) => string | null;
+}
+
+const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
+
+function buildKey(parts: Array<unknown>): string | null {
+  if (parts.some((p) => p == null || String(p).trim() === "")) return null;
+  return parts.map(norm).join("||");
+}
+
+async function detectDuplicates(entity: ImportEntity, rows: ParsedRow[]): Promise<void> {
+  const matcher = getMatcher(entity);
+  if (!matcher) return;
+  const validRows = rows.filter((r) => r.errors.length === 0);
+  if (validRows.length === 0) return;
+  const map = await matcher.fetch(validRows);
+  for (const r of rows) {
+    const k = matcher.rowKey(r);
+    if (k && map.has(k)) {
+      r.duplicate = map.get(k)!;
+    }
+  }
+}
+
+function getMatcher(entity: ImportEntity): DuplicateMatcher | null {
+  if (entity === "orders") {
+    return {
+      keys: ["order_number"],
+      rowKey: (r) => buildKey([r.data.order_number]),
+      fetch: async (rows) => {
+        const vals = Array.from(new Set(rows.map((r) => str(r.data.order_number)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (vals.length === 0) return map;
+        const { data } = await supabase.from("orders").select("id, order_number").in("order_number", vals);
+        for (const d of data ?? []) {
+          const k = buildKey([d.order_number]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["order_number"], description: `order_number=${d.order_number}` });
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "products") {
+    return {
+      keys: ["product_name", "characteristic"],
+      rowKey: (r) => buildKey([r.data.product_name, r.data.characteristic ?? ""]),
+      fetch: async (rows) => {
+        const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (names.length === 0) return map;
+        const { data } = await supabase.from("products").select("id, name, characteristic").in("name", names);
+        for (const d of (data ?? []) as Array<{ id: string; name: string; characteristic: string | null }>) {
+          const k = buildKey([d.name, d.characteristic ?? ""]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["product_name", "characteristic"], description: `${d.name}${d.characteristic ? " / " + d.characteristic : ""}` });
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "stock") {
+    return {
+      keys: ["warehouse", "product_name"],
+      rowKey: (r) => buildKey([r.data.warehouse, r.data.product_name]),
+      fetch: async (rows) => {
+        const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
+        const whs = Array.from(new Set(rows.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (names.length === 0 || whs.length === 0) return map;
+        // Existing inbound stock_movements with these product+warehouse already imply existing balance
+        const { data: prods } = await supabase.from("products").select("id, name").in("name", names);
+        const { data: whRows } = await supabase.from("warehouses").select("id, name").in("name", whs);
+        const prodMap = new Map((prods ?? []).map((p) => [p.id, p.name]));
+        const whMap = new Map((whRows ?? []).map((w) => [w.id, w.name]));
+        const prodIds = Array.from(prodMap.keys());
+        const whIds = Array.from(whMap.keys());
+        if (prodIds.length === 0 || whIds.length === 0) return map;
+        const { data: moves } = await supabase
+          .from("stock_movements")
+          .select("id, product_id, warehouse_id")
+          .in("product_id", prodIds)
+          .in("warehouse_id", whIds)
+          .limit(2000);
+        for (const m of (moves ?? []) as Array<{ id: string; product_id: string; warehouse_id: string }>) {
+          const pname = prodMap.get(m.product_id);
+          const wname = whMap.get(m.warehouse_id);
+          if (!pname || !wname) continue;
+          const k = buildKey([wname, pname]);
+          if (k && !map.has(k)) {
+            map.set(k, { existingId: m.id, matchedBy: ["warehouse", "product_name"], description: `${wname} / ${pname}` });
+          }
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "routes") {
+    return {
+      keys: ["route_number", "order_number"],
+      rowKey: (r) => buildKey([r.data.route_number, r.data.order_number ?? ""]),
+      fetch: async (rows) => {
+        const nums = Array.from(new Set(rows.map((r) => str(r.data.route_number)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (nums.length === 0) return map;
+        const { data } = await supabase.from("routes").select("id, route_number").in("route_number", nums);
+        for (const d of (data ?? []) as Array<{ id: string; route_number: string }>) {
+          // Match all rows with same route_number regardless of order_number value
+          for (const r of rows) {
+            if (str(r.data.route_number) === d.route_number) {
+              const k = buildKey([d.route_number, r.data.order_number ?? ""]);
+              if (k) map.set(k, { existingId: d.id, matchedBy: ["route_number"], description: `route_number=${d.route_number}` });
+            }
+          }
+        }
+        return map;
+      },
+    };
+  }
+  if (entity === "transport_requests") {
+    return {
+      keys: ["request_number"],
+      rowKey: (r) => buildKey([r.data.request_number]),
+      fetch: async (rows) => {
+        const nums = Array.from(new Set(rows.map((r) => str(r.data.request_number)).filter(Boolean) as string[]));
+        const map = new Map<string, DuplicateInfo>();
+        if (nums.length === 0) return map;
+        const { data } = await supabase.from("routes").select("id, route_number").in("route_number", nums);
+        for (const d of (data ?? []) as Array<{ id: string; route_number: string }>) {
+          const k = buildKey([d.route_number]);
+          if (k) map.set(k, { existingId: d.id, matchedBy: ["request_number"], description: `request_number=${d.route_number}` });
+        }
+        return map;
+      },
+    };
+  }
+  return null;
 }
 
 // ====== Import ======
