@@ -275,12 +275,21 @@ function TransportRequestDetailPage() {
               warehouseId={data.warehouse_id}
             />
 
+            {/* Проверка наличия товара перед выдачей маршрута водителю */}
+            <StockAvailabilityCheckBlock
+              requestId={data.id}
+              warehouseId={data.warehouse_id}
+              routeNumber={data.route_number}
+              onShortageChange={handleShortage}
+            />
+
             {/* Создание маршрута на основе заявки */}
             <CreateRouteFromRequestBlock
               requestId={data.id}
               warehouseId={data.warehouse_id}
               routeDate={data.route_date}
               ordersCount={totals?.count ?? 0}
+              blockedByShortage={hasShortage}
             />
 
             {/* Точки доставки */}
