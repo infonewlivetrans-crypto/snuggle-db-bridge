@@ -6,6 +6,10 @@ import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as Expo
 import { PaymentSummaryReportBlock } from "@/components/PaymentSummaryReportBlock";
 import { RouteReturnsBlock } from "@/components/RouteReturnsBlock";
 import { PointActionsHistory } from "@/components/PointActionsHistory";
+import {
+  DELIVERY_POINT_UNDELIVERED_REASON_LABELS,
+  type DeliveryPointUndeliveredReason,
+} from "@/lib/deliveryPointStatus";
 
 type ReportPayload = {
   delivery_route_id: string;
