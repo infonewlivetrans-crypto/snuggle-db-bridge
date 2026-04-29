@@ -1627,6 +1627,7 @@ export type Database = {
           ref_order_id: string | null
           ref_route_id: string | null
           ref_supply_id: string | null
+          ref_transport_request_id: string | null
           warehouse_id: string
         }
         Insert: {
@@ -1641,6 +1642,7 @@ export type Database = {
           ref_order_id?: string | null
           ref_route_id?: string | null
           ref_supply_id?: string | null
+          ref_transport_request_id?: string | null
           warehouse_id: string
         }
         Update: {
@@ -1655,38 +1657,48 @@ export type Database = {
           ref_order_id?: string | null
           ref_route_id?: string | null
           ref_supply_id?: string | null
+          ref_transport_request_id?: string | null
           warehouse_id?: string
         }
         Relationships: []
       }
       stock_reservations: {
         Row: {
+          comment: string | null
           created_at: string
+          created_by: string | null
           id: string
           order_id: string | null
           product_id: string
           qty: number
           status: string
+          transport_request_id: string | null
           updated_at: string
           warehouse_id: string
         }
         Insert: {
+          comment?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           order_id?: string | null
           product_id: string
           qty: number
           status?: string
+          transport_request_id?: string | null
           updated_at?: string
           warehouse_id: string
         }
         Update: {
+          comment?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           order_id?: string | null
           product_id?: string
           qty?: number
           status?: string
+          transport_request_id?: string | null
           updated_at?: string
           warehouse_id?: string
         }
