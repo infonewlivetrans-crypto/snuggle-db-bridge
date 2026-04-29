@@ -377,7 +377,8 @@ export function StockReservationBlock({
       if (qe) throw qe;
       if (!active || active.length === 0) return;
 
-      const ids = active.map((r) => r.id);
+      const list = active as Array<{ id: string; product_id: string; qty: number }>;
+      const ids = list.map((r) => r.id);
       const { error: ue } = await db
         .from("stock_reservations")
         .update({ status: "released" })
@@ -386,7 +387,7 @@ export function StockReservationBlock({
 
       // Группируем по product_id для журнала
       const byProduct = new Map<string, number>();
-      for (const r of active) {
+      for (const r of list) {
         byProduct.set(
           r.product_id,
           (byProduct.get(r.product_id) ?? 0) + (Number(r.qty) || 0),
