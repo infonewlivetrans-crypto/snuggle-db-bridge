@@ -13,6 +13,7 @@ import {
 import { RequestOrdersBlock } from "@/components/RequestOrdersBlock";
 import { RequestOrderItemsBlock } from "@/components/RequestOrderItemsBlock";
 import { RequestLoadingListBlock } from "@/components/RequestLoadingListBlock";
+import { StockAvailabilityCheckBlock } from "@/components/StockAvailabilityCheckBlock";
 import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
