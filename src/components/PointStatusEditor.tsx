@@ -25,6 +25,8 @@ import {
   type DeliveryPointStatus,
   type DeliveryPointUndeliveredReason,
 } from "@/lib/deliveryPointStatus";
+import { logPointAction, type PointActionKind } from "@/lib/pointActions";
+import { getCurrentCoords, distanceMeters, NEAR_POINT_THRESHOLD_METERS } from "@/lib/gps";
 
 type Props = {
   routePointId: string;
@@ -44,7 +46,14 @@ type Props = {
     qr_received: boolean;
     payment_status?: string;
     amount_due?: number | null;
+    /** Координаты адреса доставки — для проверки "Прибыл" */
+    latitude?: number | null;
+    longitude?: number | null;
   };
+  /** Контекст для лога действий */
+  orderId?: string;
+  routeId?: string | null;
+  driverName?: string | null;
   hasQrPhoto?: boolean;
   hasProblemPhoto?: boolean;
   hasDocumentsPhoto?: boolean;
