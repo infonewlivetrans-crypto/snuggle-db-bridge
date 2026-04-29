@@ -229,41 +229,8 @@ function RouteDetailPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (routeLoading || pointsLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <div className="mx-auto max-w-5xl px-4 py-12 text-center text-muted-foreground">
-          Загрузка маршрута...
-        </div>
-      </div>
-    );
-  }
-
-  if (!route) {
-    return (
-      <div className="min-h-screen bg-background">
-        <AppHeader />
-        <div className="mx-auto max-w-3xl px-4 py-12 text-center">
-          <h2 className="text-xl font-semibold">Маршрут не найден</h2>
-          <Link to="/routes" className="mt-4 inline-block text-sm text-primary hover:underline">
-            ← К списку маршрутов
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const completedCount = points?.filter((p) => p.status === "completed").length ?? 0;
-  const totalCount = points?.length ?? 0;
-  const defectiveCount = points?.filter((p) => p.status === "defective").length ?? 0;
-  const failedCount =
-    points?.filter((p) => {
-      const o = pointStatusToOrderStatus(p.status);
-      return o === "not_delivered";
-    }).length ?? 0;
-
   // ========= Черновой порядок точек (ручное редактирование) =========
+  // ВАЖНО: все хуки должны быть до ранних return, иначе нарушаются правила хуков
   const [draftIds, setDraftIds] = useState<string[]>([]);
   // Синхронизируем черновик при смене серверных данных
   useEffect(() => {
@@ -376,6 +343,40 @@ function RouteDetailPage() {
     });
     handleDragEnd();
   };
+
+  if (routeLoading || pointsLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <div className="mx-auto max-w-5xl px-4 py-12 text-center text-muted-foreground">
+          Загрузка маршрута...
+        </div>
+      </div>
+    );
+  }
+
+  if (!route) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <div className="mx-auto max-w-3xl px-4 py-12 text-center">
+          <h2 className="text-xl font-semibold">Маршрут не найден</h2>
+          <Link to="/routes" className="mt-4 inline-block text-sm text-primary hover:underline">
+            ← К списку маршрутов
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const completedCount = points?.filter((p) => p.status === "completed").length ?? 0;
+  const totalCount = points?.length ?? 0;
+  const defectiveCount = points?.filter((p) => p.status === "defective").length ?? 0;
+  const failedCount =
+    points?.filter((p) => {
+      const o = pointStatusToOrderStatus(p.status);
+      return o === "not_delivered";
+    }).length ?? 0;
 
 
   return (
