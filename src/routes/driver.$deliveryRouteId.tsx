@@ -402,6 +402,17 @@ function DriverPointCard({
         </div>
       )}
 
+      {/* Оплата и наличные — сводка с подсказками */}
+      {o && (
+        <PaymentSummaryBlock
+          paymentType={o.payment_type}
+          paymentStatus={o.payment_status}
+          amountDue={o.amount_due}
+          amountReceived={p.dp_amount_received}
+          paymentComment={p.dp_payment_comment}
+        />
+      )}
+
       {/* Оплата / QR — переиспользуем существующий блок */}
       {o && (
         <PaymentQrBlock
