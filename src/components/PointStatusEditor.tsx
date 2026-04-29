@@ -275,6 +275,12 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
         </Button>
       </div>
 
+      {farFromPointWarning && (
+        <div className="rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-xs text-orange-800 dark:text-orange-200">
+          ⚠ {farFromPointWarning}
+        </div>
+      )}
+
       {status === "delivered" && (
         <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3 space-y-2">
           <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
