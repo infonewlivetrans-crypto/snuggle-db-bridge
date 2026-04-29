@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { db } from "@/lib/db";
@@ -40,6 +40,7 @@ import {
   CircleCheck,
   Truck,
   Pencil,
+  History,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -338,14 +339,29 @@ function WarehouseStockPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setEditing(b)}
-                            aria-label="Редактировать"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditing(b)}
+                              aria-label="Редактировать"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              asChild
+                              variant="ghost"
+                              size="icon"
+                              aria-label="История движения"
+                            >
+                              <Link
+                                to="/warehouse-movements"
+                                search={{ productId: b.product_id }}
+                              >
+                                <History className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -364,6 +380,7 @@ function WarehouseStockPage() {
           onSaved={() => {
             setEditing(null);
             qc.invalidateQueries({ queryKey: ["stock-balances"] });
+            qc.invalidateQueries({ queryKey: ["stock-movements"] });
           }}
         />
       )}
@@ -376,6 +393,7 @@ function WarehouseStockPage() {
             setCreating(false);
             qc.invalidateQueries({ queryKey: ["products-with-category"] });
             qc.invalidateQueries({ queryKey: ["stock-balances"] });
+            qc.invalidateQueries({ queryKey: ["stock-movements"] });
           }}
         />
       )}
@@ -410,6 +428,8 @@ function EditStockDialog({
   const [reserved, setReserved] = useState(String(balance.reserved ?? 0));
   const [inTransit, setInTransit] = useState(String(balance.in_transit ?? 0));
   const [minStock, setMinStock] = useState(String(balance.min_stock ?? 0));
+  const [author, setAuthor] = useState("");
+  const [comment, setComment] = useState("");
 
   const save = useMutation({
     mutationFn: async () => {
@@ -424,25 +444,42 @@ function EditStockDialog({
       if (!balance.warehouse_id) {
         throw new Error("У позиции не указан склад — отредактируйте товар");
       }
+      const actor = author.trim() || "Склад";
+      const note = comment.trim() || null;
 
-      // Целевой on_hand = доступно + резерв
-      const targetOnHand = newAvailable + newReserved;
-      const onHandDiff = targetOnHand - Number(balance.on_hand ?? 0);
-
-      // 1) Корректировка остатка через stock_movements (adjustment)
-      if (onHandDiff !== 0) {
+      // Хелпер для записи в журнал движения (без затрагивания остатка)
+      const logMovement = async (params: {
+        type: "adjustment" | "inbound" | "outbound";
+        qty: number;
+        reason: string;
+        comment: string;
+      }) => {
+        if (params.qty === 0) return;
         const { error } = await db.from("stock_movements").insert({
           product_id: balance.product_id,
           warehouse_id: balance.warehouse_id,
-          movement_type: "adjustment",
+          movement_type: params.type,
+          qty: params.qty,
+          reason: params.reason,
+          comment: note ? `${params.comment} · ${note}` : params.comment,
+          created_by: actor,
+        });
+        if (error) throw error;
+      };
+
+      // 1) Целевой on_hand = доступно + резерв → корректировка
+      const targetOnHand = newAvailable + newReserved;
+      const onHandDiff = targetOnHand - Number(balance.on_hand ?? 0);
+      if (onHandDiff !== 0) {
+        await logMovement({
+          type: "adjustment",
           qty: onHandDiff,
           reason: "manual_edit",
           comment: "Ручная корректировка остатка",
         });
-        if (error) throw error;
       }
 
-      // 2) Корректировка резерва: пересоздаём активные резервации в одну агрегированную «manual»
+      // 2) Корректировка резерва
       const reservedDiff = newReserved - Number(balance.reserved ?? 0);
       if (reservedDiff !== 0) {
         if (reservedDiff > 0) {
@@ -454,7 +491,6 @@ function EditStockDialog({
           });
           if (error) throw error;
         } else {
-          // Уменьшение: освобождаем активные резервации в порядке убывания, пока не закроем дельту
           let remaining = -reservedDiff;
           const { data: reservations, error: rerr } = await db
             .from("stock_reservations")
@@ -484,6 +520,12 @@ function EditStockDialog({
             }
           }
         }
+        await logMovement({
+          type: "adjustment",
+          qty: Math.abs(reservedDiff),
+          reason: "manual_reserved_change",
+          comment: `Резерв: ${reservedDiff > 0 ? "+" : "−"}${Math.abs(reservedDiff)}`,
+        });
       }
 
       // 3) Корректировка «в пути»
@@ -530,9 +572,15 @@ function EditStockDialog({
             }
           }
         }
+        await logMovement({
+          type: "adjustment",
+          qty: Math.abs(transitDiff),
+          reason: "manual_in_transit_change",
+          comment: `В пути: ${transitDiff > 0 ? "+" : "−"}${Math.abs(transitDiff)}`,
+        });
       }
 
-      // 4) Минимальный остаток — upsert настроек
+      // 4) Минимальный остаток
       if (newMin !== Number(balance.min_stock ?? 0)) {
         const { error } = await db
           .from("product_stock_settings")
@@ -545,6 +593,13 @@ function EditStockDialog({
             { onConflict: "product_id,warehouse_id" },
           );
         if (error) throw error;
+        const minDiff = newMin - Number(balance.min_stock ?? 0);
+        await logMovement({
+          type: "adjustment",
+          qty: Math.abs(minDiff) || 1,
+          reason: "manual_min_stock_change",
+          comment: `Мин. остаток: ${balance.min_stock} → ${newMin}`,
+        });
       }
     },
     onSuccess: () => {
@@ -602,6 +657,22 @@ function EditStockDialog({
               step="any"
               value={minStock}
               onChange={(e) => setMinStock(e.target.value)}
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Кто внёс изменение</Label>
+            <Input
+              placeholder="Имя кладовщика"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Комментарий</Label>
+            <Input
+              placeholder="Основание / пояснение"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
             />
           </div>
         </div>
@@ -667,7 +738,8 @@ function CreateProductDialog({
           movement_type: "inbound",
           qty,
           reason: "initial_stock",
-          comment: "Начальный остаток",
+          comment: "Начальный остаток при создании товара",
+          created_by: "Склад",
         });
         if (mErr) throw mErr;
       }
