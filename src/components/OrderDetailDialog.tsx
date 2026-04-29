@@ -55,6 +55,7 @@ import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog"
 import { OrderReturnBlock } from "@/components/OrderReturnBlock";
 import { OrderDeliveryResultBlock } from "@/components/OrderDeliveryResultBlock";
 import { MarketplaceQrBlock } from "@/components/MarketplaceQrBlock";
+import { PointActionsHistory } from "@/components/PointActionsHistory";
 
 type DeliveryReport = {
   id: string;
