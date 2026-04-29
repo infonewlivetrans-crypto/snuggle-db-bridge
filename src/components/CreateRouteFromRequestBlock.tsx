@@ -172,6 +172,11 @@ export function CreateRouteFromRequestBlock({
             <p className="text-xs font-medium text-red-700 dark:text-red-300">
               Нельзя выдать маршрут водителю: не хватает товара на складе
             </p>
+          ) : blockedByWarehouseStatus ? (
+            <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+              Заявка ещё не готова к отгрузке
+              {warehouseStatusLabel ? ` (${warehouseStatusLabel})` : ""}
+            </p>
           ) : disabled ? (
             <p className="text-xs text-amber-700 dark:text-amber-300">
               Добавьте заказы в заявку, чтобы создать маршрут.
