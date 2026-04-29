@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch } from "lucide-react";
+import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,8 @@ type NotificationKind =
   | "order_failed"
   | "order_returned"
   | "payment_received"
-  | "low_stock";
+  | "low_stock"
+  | "route_completed_report";
 
 type Notification = {
   id: string;
