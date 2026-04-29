@@ -7,7 +7,9 @@ import { AppHeader } from "@/components/AppHeader";
 import { OrderDetailDialog } from "@/components/OrderDetailDialog";
 import { CreateOrderDialog } from "@/components/CreateOrderDialog";
 import { ImportOrdersDialog } from "@/components/ImportOrdersDialog";
+import { CreateRouteFromOrdersDialog } from "@/components/CreateRouteFromOrdersDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -40,7 +42,7 @@ import {
   STATUS_STYLES,
   PAYMENT_LABELS,
 } from "@/lib/orders";
-import { Search, QrCode, RefreshCw, Package2, Plus } from "lucide-react";
+import { Search, QrCode, RefreshCw, Package2, Plus, Route as RouteIcon, FileSpreadsheet } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   validateSearch: (
@@ -66,6 +68,8 @@ function OrdersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [routeDialogOpen, setRouteDialogOpen] = useState(false);
 
   const { data: orders, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["orders"],
@@ -106,6 +110,27 @@ function OrdersPage() {
     setSelectedOrder(order);
     setDialogOpen(true);
   };
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const allVisible = filtered.map((o) => o.id);
+      const everySelected = allVisible.every((id) => prev.has(id));
+      if (everySelected) return new Set();
+      return new Set(allVisible);
+    });
+  };
+  const selectedOrders = useMemo(
+    () => (orders ?? []).filter((o) => selectedIds.has(o.id)),
+    [orders, selectedIds],
+  );
 
   // Открытие карточки заказа по ?orderId=... (например, из уведомлений)
   useEffect(() => {
@@ -193,41 +218,97 @@ function OrdersPage() {
           </Select>
         </div>
 
+        {/* Панель действий с выбранными заказами */}
+        {selectedIds.size > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3">
+            <div className="text-sm font-medium text-foreground">
+              Выбрано заказов: {selectedIds.size}
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setRouteDialogOpen(true)}
+              className="ml-auto gap-2"
+            >
+              <RouteIcon className="h-4 w-4" />
+              Создать маршрут из выбранных заказов
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Сбросить
+            </Button>
+          </div>
+        )}
+
         {/* Таблица */}
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={
+                      filtered.length > 0 &&
+                      filtered.every((o) => selectedIds.has(o.id))
+                    }
+                    onCheckedChange={() => toggleAll()}
+                    aria-label="Выбрать все"
+                  />
+                </TableHead>
                 <TableHead className="font-semibold text-foreground">Номер</TableHead>
+                <TableHead className="font-semibold text-foreground">Источник</TableHead>
                 <TableHead className="font-semibold text-foreground">Статус</TableHead>
                 <TableHead className="font-semibold text-foreground">Адрес доставки</TableHead>
-                <TableHead className="font-semibold text-foreground">Оплата</TableHead>
-                <TableHead className="font-semibold text-foreground">QR</TableHead>
+                <TableHead className="font-semibold text-foreground col-secondary">Оплата</TableHead>
+                <TableHead className="font-semibold text-foreground col-secondary">QR</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
                     Загрузка заказов...
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={7} className="py-12 text-center">
                     <Package2 className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заказы не найдены</div>
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((order) => (
+                filtered.map((order) => {
+                  const isExcel = (order.source ?? "").toLowerCase() === "excel";
+                  const is1c = (order.source ?? "").toLowerCase() === "1c";
+                  return (
                   <TableRow
                     key={order.id}
                     className="cursor-pointer"
+                    data-state={selectedIds.has(order.id) ? "selected" : undefined}
                     onClick={() => openOrder(order)}
                   >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(order.id)}
+                        onCheckedChange={() => toggleOne(order.id)}
+                        aria-label={`Выбрать заказ ${order.order_number}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-mono text-sm font-semibold text-foreground">
                       {order.order_number}
+                    </TableCell>
+                    <TableCell>
+                      {isExcel ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                          <FileSpreadsheet className="h-3 w-3 text-status-success" />
+                          Excel
+                        </span>
+                      ) : is1c ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                          1С
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Вручную</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={STATUS_STYLES[order.status]}>
@@ -248,10 +329,10 @@ function OrdersPage() {
                         )
                       )}
                     </TableCell>
-                    <TableCell className="text-sm text-foreground">
+                    <TableCell className="text-sm text-foreground col-secondary">
                       {PAYMENT_LABELS[order.payment_type]}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="col-secondary">
                       {order.requires_qr ? (
                         <TooltipProvider delayDuration={150}>
                           <Tooltip>
@@ -300,7 +381,8 @@ function OrdersPage() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
@@ -318,6 +400,14 @@ function OrdersPage() {
       />
       <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ImportOrdersDialog open={importOpen} onOpenChange={setImportOpen} />
+      <CreateRouteFromOrdersDialog
+        open={routeDialogOpen}
+        onOpenChange={(o) => {
+          setRouteDialogOpen(o);
+          if (!o) setSelectedIds(new Set());
+        }}
+        orders={selectedOrders}
+      />
     </div>
   );
 }

@@ -55,6 +55,9 @@ export type Order = {
   payment_status?: PaymentStatus;
   marketplace?: string | null;
   client_works_weekends?: boolean;
+  // Источник создания записи
+  source?: string;
+  external_id?: string | null;
 };
 
 
