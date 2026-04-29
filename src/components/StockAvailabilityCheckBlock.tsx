@@ -402,6 +402,7 @@ export function StockAvailabilityCheckBlock({
                           product_id: r.product_id!,
                           qty: r.deficit,
                           nomenclature: r.nomenclature,
+                          unit: r.unit,
                         })
                       }
                     >
