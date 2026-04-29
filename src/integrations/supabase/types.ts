@@ -437,6 +437,48 @@ export type Database = {
         }
         Relationships: []
       }
+      dock_loaded_items: {
+        Row: {
+          comment: string | null
+          created_at: string
+          delivery_route_id: string
+          id: string
+          loaded_by: string | null
+          nomenclature: string
+          product_id: string | null
+          qty_loaded: number
+          unit: string | null
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          delivery_route_id: string
+          id?: string
+          loaded_by?: string | null
+          nomenclature: string
+          product_id?: string | null
+          qty_loaded?: number
+          unit?: string | null
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          delivery_route_id?: string
+          id?: string
+          loaded_by?: string | null
+          nomenclature?: string
+          product_id?: string | null
+          qty_loaded?: number
+          unit?: string | null
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: []
+      }
       drivers: {
         Row: {
           carrier_id: string
