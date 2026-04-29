@@ -75,6 +75,9 @@ type PointRow = {
     payment_status: string;
     cash_received: boolean;
     qr_received: boolean;
+    map_link: string | null;
+    latitude: number | null;
+    longitude: number | null;
   } | null;
 };
 
@@ -124,7 +127,7 @@ function DriverRoutePage() {
       const { data: pts, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, order_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, payment_status, cash_received, qr_received)",
+          "id, point_number, order_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, payment_status, cash_received, qr_received, map_link, latitude, longitude)",
         )
         .eq("route_id", data!.source_request_id)
         .order("point_number", { ascending: true });
@@ -181,10 +184,10 @@ function DriverRoutePage() {
             <Truck className="h-5 w-5 text-primary" />
             <span className="font-semibold">Водитель</span>
           </div>
-          <Link to="/delivery-routes">
+          <Link to="/driver">
             <Button variant="ghost" size="sm" className="gap-1.5">
               <ArrowLeft className="h-4 w-4" />
-              Маршруты
+              Мои маршруты
             </Button>
           </Link>
         </div>
@@ -329,6 +332,38 @@ function DriverPointCard({
         )}
       </div>
 
+      {/* Быстрые действия — крупные кнопки для телефона */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!o?.contact_phone}
+          className="h-11 gap-1.5"
+        >
+          <a href={o?.contact_phone ? `tel:${o.contact_phone}` : "#"}>
+            <Phone className="h-4 w-4" />
+            Позвонить
+          </a>
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          disabled={!buildMapUrl(o)}
+          className="h-11 gap-1.5"
+        >
+          <a
+            href={buildMapUrl(o) ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MapPin className="h-4 w-4" />
+            Открыть карту
+          </a>
+        </Button>
+      </div>
+
       {/* Краткая сводка по оплате/QR */}
       <div className="flex flex-wrap gap-1.5 text-xs">
         {o?.amount_due != null && (
@@ -419,4 +454,18 @@ function DriverPointCard({
       />
     </div>
   );
+}
+
+function buildMapUrl(
+  o: { map_link: string | null; latitude: number | null; longitude: number | null; delivery_address: string | null } | null | undefined,
+): string | null {
+  if (!o) return null;
+  if (o.map_link && /^https?:\/\//i.test(o.map_link)) return o.map_link;
+  if (o.latitude != null && o.longitude != null) {
+    return `https://yandex.ru/maps/?pt=${o.longitude},${o.latitude}&z=16&l=map`;
+  }
+  if (o.delivery_address && o.delivery_address.trim()) {
+    return `https://yandex.ru/maps/?text=${encodeURIComponent(o.delivery_address)}`;
+  }
+  return null;
 }
