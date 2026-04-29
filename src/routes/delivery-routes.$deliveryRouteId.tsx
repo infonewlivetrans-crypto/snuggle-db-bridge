@@ -482,6 +482,9 @@ function DeliveryRoutePage() {
               );
             })()}
 
+            {/* Сводный отчёт менеджеру (после завершения маршрута) */}
+            <RouteCompletionReportBlock deliveryRouteId={data.id} />
+
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
               <div className="border-b border-border px-4 py-3">
