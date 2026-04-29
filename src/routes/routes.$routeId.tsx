@@ -37,6 +37,7 @@ import { pointStatusToOrderStatus } from "@/lib/routes";
 import type { Order } from "@/lib/orders";
 import { PAYMENT_LABELS } from "@/lib/orders";
 import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -393,6 +394,24 @@ function RouteDetailPage() {
           </div>
         )}
 
+        {/* Карта маршрута */}
+        {totalCount > 0 && (
+          <RouteMapBlock
+            points={points!.map((p) => ({
+              id: p.id,
+              point_number: p.point_number,
+              status: p.status,
+              order: {
+                order_number: p.orders.order_number,
+                contact_name: p.orders.contact_name,
+                delivery_address: p.orders.delivery_address,
+                latitude: p.orders.latitude,
+                longitude: p.orders.longitude,
+              },
+            }))}
+          />
+        )}
+
         {/* Точки */}
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-foreground">Точки доставки</h2>
@@ -426,6 +445,22 @@ function RouteDetailPage() {
                       <Badge variant="outline" className={POINT_STATUS_STYLES[p.status]}>
                         {POINT_STATUS_LABELS[p.status]}
                       </Badge>
+                      {typeof p.orders.latitude === "number" &&
+                      typeof p.orders.longitude === "number" ? (
+                        <Badge
+                          variant="outline"
+                          className="border-green-200 bg-green-100 text-green-900"
+                        >
+                          Есть координаты
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-100 text-amber-900"
+                        >
+                          Нет координат
+                        </Badge>
+                      )}
                       <span className="text-xs text-muted-foreground">
                         {PAYMENT_LABELS[p.orders.payment_type]}
                       </span>
@@ -475,7 +510,7 @@ function RouteDetailPage() {
                       )}
                     </div>
                     <div className="mt-2">
-                      <DeliveryLocation order={p.orders} compact />
+                      <DeliveryLocation order={p.orders} />
                     </div>
                     {p.orders.comment && (
                       <div className="mt-1 text-xs text-muted-foreground">{p.orders.comment}</div>
