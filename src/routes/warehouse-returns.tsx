@@ -239,7 +239,7 @@ function WarehouseReturnsPage() {
       if (typeof args.comment === "string" && args.comment.trim().length > 0) {
         patch.wh_return_comment = args.comment.trim();
       }
-      const { error } = await supabase.from("route_points").update(patch).eq("id", args.id);
+      const { error } = await supabase.from("route_points").update(patch as any).eq("id", args.id);
       if (error) throw error;
     },
     onSuccess: () => {
