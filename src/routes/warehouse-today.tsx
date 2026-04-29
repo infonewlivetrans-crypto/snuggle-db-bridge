@@ -582,6 +582,12 @@ function WarehouseTodayPage() {
                         <Badge variant="outline" className={STATUS_STYLES[status]}>
                           {STATUS_LABELS[status]}
                         </Badge>
+                        {r.source_request_id && (
+                          <RequestWarehouseStatusBadge
+                            requestId={r.source_request_id}
+                            warehouseId={r.source_warehouse_id}
+                          />
+                        )}
                         {hasReturns && (
                           <Badge variant="outline" className="bg-orange-100 text-orange-900 border-orange-200">
                             <RotateCcw className="mr-1 h-3 w-3" />
