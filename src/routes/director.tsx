@@ -266,25 +266,52 @@ function DirectorPage() {
     return counts;
   }, [filteredPoints]);
 
+  // Сумма заказов (товаров) по каждому маршруту: ручной ввод приоритетнее
+  const ordersAmountByRoute = useMemo(() => {
+    const fromPoints = new Map<string, number>();
+    points.forEach((p) => {
+      const v = Number(p.order?.goods_amount ?? p.order?.amount_due ?? 0) || 0;
+      fromPoints.set(p.route_id, (fromPoints.get(p.route_id) ?? 0) + v);
+    });
+    const result = new Map<string, number>();
+    filteredRoutes.forEach((r) => {
+      const manual = r.manual_orders_amount;
+      const auto = fromPoints.get(r.id) ?? 0;
+      const eff = manual != null && Number(manual) > 0 ? Number(manual) : auto;
+      result.set(r.id, eff);
+    });
+    return result;
+  }, [points, filteredRoutes]);
+
   const costSummary = useMemo(() => {
     let totalCost = 0;
     let totalKm = 0;
     let totalPoints = 0;
+    let totalOrders = 0;
+    let overCount = 0;
     filteredRoutes.forEach((r) => {
-      totalCost += Number(r.delivery_cost) || 0;
+      const cost = Number(r.delivery_cost) || 0;
+      const orders = ordersAmountByRoute.get(r.id) ?? 0;
+      const target = Number(r.delivery_percent_target) || 0;
+      totalCost += cost;
       totalKm += Number(r.total_distance_km) || 0;
       totalPoints += Number(r.points_count) || 0;
+      totalOrders += orders;
+      if (orders > 0 && target > 0 && (cost / orders) * 100 > target) overCount += 1;
     });
     const n = filteredRoutes.length;
     return {
       totalCost,
       totalKm,
       totalPoints,
+      totalOrders,
+      overCount,
       avgPerRoute: n > 0 ? totalCost / n : 0,
       avgPerPoint: totalPoints > 0 ? totalCost / totalPoints : 0,
       avgPerKm: totalKm > 0 ? totalCost / totalKm : 0,
+      overallPercent: totalOrders > 0 ? (totalCost / totalOrders) * 100 : null,
     };
-  }, [filteredRoutes]);
+  }, [filteredRoutes, ordersAmountByRoute]);
 
   return (
     <div className="min-h-screen bg-background">
