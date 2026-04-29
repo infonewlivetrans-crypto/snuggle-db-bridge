@@ -624,6 +624,7 @@ function RequestsTable({
         onClose={() => setEditing(null)}
         productName={editing ? productById.get(editing.product_id)?.name ?? "—" : ""}
         warehouseName={editing ? warehouseById.get(editing.destination_warehouse_id) ?? "—" : ""}
+        productUnit={editing ? productById.get(editing.product_id)?.unit ?? null : null}
       />
     </>
   );
