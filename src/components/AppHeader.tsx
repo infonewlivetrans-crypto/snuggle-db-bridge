@@ -19,7 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
-import { BrandLogo } from "@/components/BrandLogo";
+import { BrandLogo, BrandMark } from "@/components/BrandLogo";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "@/components/NotificationsBell";
@@ -140,19 +140,26 @@ export function AppHeader() {
             </SheetContent>
           </Sheet>
 
-          {/* Логотип — фиксированная ширина, не сжимается */}
+          {/* Логотип: на узких экранах — только знак, на широких — знак + текст */}
           <Link
             to="/"
             search={{ orderId: undefined }}
-            className="flex w-[40px] shrink-0 items-center"
+            className="flex shrink-0 items-center"
             aria-label="На главную"
           >
-            <BrandLogo size={32} />
+            {/* Только знак на экранах < 1367px */}
+            <span className="inline-flex min-[1367px]:hidden">
+              <BrandMark size={32} />
+            </span>
+            {/* Полный логотип на широких экранах */}
+            <span className="hidden min-[1367px]:inline-flex">
+              <BrandLogo size={32} />
+            </span>
           </Link>
 
           {/* Активный раздел — текстовый индикатор только на узких экранах */}
           {activeItem ? (
-            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground sm:ml-2 min-[1367px]:hidden">
+            <div className="ml-2 min-w-0 truncate text-sm font-semibold text-foreground min-[1367px]:hidden">
               {activeItem.label}
             </div>
           ) : null}
