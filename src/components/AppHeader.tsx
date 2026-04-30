@@ -96,7 +96,7 @@ export function AppHeader() {
       <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-16">
         {/* Левая часть: бургер (на узких) + логотип */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          {/* Бургер: показывается на экранах < 1366px */}
+          {/* Бургер: показывается на экранах < 1440px */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button
