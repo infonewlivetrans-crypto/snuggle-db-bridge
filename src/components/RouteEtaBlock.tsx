@@ -170,6 +170,29 @@ export function RouteEtaBlock({
                     Риск опоздания к клиенту (после {formatTime(e.window_to_iso)}).
                   </div>
                 )}
+                <div className="basis-full">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1.5 text-[11px]"
+                    onClick={async () => {
+                      const text = buildClientEtaMessage({
+                        orderNumber: meta?.order_number ?? "",
+                        etaAtIso: e.eta_at,
+                        isLateRisk: e.risk === "late" || e.risk === "tight",
+                        driverName,
+                        driverPhone: null,
+                      });
+                      const ok = await copyToClipboard(text);
+                      if (ok) toast.success("ETA для клиента скопировано");
+                      else toast.error("Не удалось скопировать");
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                    Скопировать ETA для клиента
+                  </Button>
+                </div>
               </div>
             );
           })}
