@@ -54,7 +54,9 @@ const ListInput = z.object({
   role: z.string().optional().nullable(),
   section: z.string().optional().nullable(),
   action: z.string().optional().nullable(),
-  limit: z.number().int().min(1).max(2000).optional(),
+  search: z.string().max(200).optional().nullable(),
+  page: z.number().int().min(1).max(10000).optional(),
+  pageSize: z.number().int().min(1).max(200).optional(),
 });
 
 export const listAuditFn = createServerFn({ method: "POST" })
