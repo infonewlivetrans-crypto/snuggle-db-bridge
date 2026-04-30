@@ -62,6 +62,7 @@ import { MarketplaceQrBlock } from "@/components/MarketplaceQrBlock";
 import { PointActionsHistory } from "@/components/PointActionsHistory";
 import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock";
 import { OrderEtaBlock } from "@/components/OrderEtaBlock";
+import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
 
 type DeliveryReport = {
   id: string;
@@ -260,6 +261,12 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           <DeliveryLocation order={order} />
           {/* Ожидаемое время прибытия (ETA) */}
           <OrderEtaBlock orderId={order.id} />
+          {/* Сообщение клиенту: автоген + копирование + позвонить */}
+          <OrderClientMessageBlock
+            orderId={order.id}
+            orderNumber={order.order_number}
+            clientPhone={order.contact_phone ?? null}
+          />
 
           {/* Отчёт о доставке (если есть) */}
           {latestReport && (

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, Timer, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Clock, Timer, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   computeRouteEta,
   ETA_RISK_LABELS,
@@ -10,6 +12,7 @@ import {
   type EtaInputPoint,
   type EtaRiskLevel,
 } from "@/lib/eta";
+import { buildClientEtaMessage, copyToClipboard } from "@/lib/clientMessage";
 
 const LATE_NOTIFY_MINUTES = 20; // опаздывает >20 мин — уведомление
 const NOTIFY_COOLDOWN_MS = 30 * 60 * 1000;
@@ -28,6 +31,7 @@ export function RouteEtaBlock({
   driverLat,
   driverLng,
   lastUpdateAt,
+  driverName,
 }: {
   deliveryRouteId: string;
   routeNumber: string;
@@ -36,6 +40,7 @@ export function RouteEtaBlock({
   driverLat: number | null | undefined;
   driverLng: number | null | undefined;
   lastUpdateAt: string | null | undefined;
+  driverName?: string | null;
 }) {
   const { data: routeSettings } = useQuery({
     enabled: !!sourceRouteId,
@@ -165,6 +170,29 @@ export function RouteEtaBlock({
                     Риск опоздания к клиенту (после {formatTime(e.window_to_iso)}).
                   </div>
                 )}
+                <div className="basis-full">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 gap-1.5 text-[11px]"
+                    onClick={async () => {
+                      const text = buildClientEtaMessage({
+                        orderNumber: meta?.order_number ?? "",
+                        etaAtIso: e.eta_at,
+                        isLateRisk: e.risk === "late" || e.risk === "tight",
+                        driverName,
+                        driverPhone: null,
+                      });
+                      const ok = await copyToClipboard(text);
+                      if (ok) toast.success("ETA для клиента скопировано");
+                      else toast.error("Не удалось скопировать");
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                    Скопировать ETA для клиента
+                  </Button>
+                </div>
               </div>
             );
           })}
