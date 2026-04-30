@@ -197,7 +197,7 @@ function BackupsPage() {
                 <TableHead>Кто запустил</TableHead>
                 <TableHead>Тип</TableHead>
                 <TableHead>Комментарий</TableHead>
-                {isAdmin ? <TableHead className="text-right">Файл</TableHead> : null}
+                {isAdmin ? <TableHead className="text-right">Действия</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -228,14 +228,27 @@ function BackupsPage() {
                     {isAdmin ? (
                       <TableCell className="text-right">
                         {b.status === "success" && b.storage_path ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => download.mutate(b.id)}
-                            disabled={download.isPending}
-                          >
-                            <Download className="mr-1 h-3.5 w-3.5" /> Скачать
-                          </Button>
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => download.mutate(b.id)}
+                              disabled={download.isPending}
+                            >
+                              <Download className="mr-1 h-3.5 w-3.5" /> Скачать
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                setConfirmText("");
+                                setRestoreTarget({ id: b.id, created_at: b.created_at });
+                              }}
+                              disabled={restore.isPending}
+                            >
+                              <RotateCcw className="mr-1 h-3.5 w-3.5" /> Восстановить
+                            </Button>
+                          </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
