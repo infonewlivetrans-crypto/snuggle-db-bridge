@@ -3,6 +3,170 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type ImportEntity = "orders" | "products" | "stock" | "routes" | "transport_requests";
 export type ImportSource = "manual" | "excel" | "1c";
+export type FileFormat = "xlsx" | "xls" | "csv" | "txt" | "json";
+export type CsvDelimiter = "," | ";" | "\t";
+
+export interface ParseOptions {
+  delimiter?: CsvDelimiter;        // для CSV / TXT
+  jsonArrayPath?: string;          // dot-path до массива внутри JSON, "" = корень
+}
+
+export function detectFileFormat(file: File): FileFormat {
+  const name = (file.name || "").toLowerCase();
+  if (name.endsWith(".xlsx")) return "xlsx";
+  if (name.endsWith(".xls")) return "xls";
+  if (name.endsWith(".csv")) return "csv";
+  if (name.endsWith(".json")) return "json";
+  if (name.endsWith(".txt")) return "txt";
+  // По MIME
+  const mt = (file.type || "").toLowerCase();
+  if (mt.includes("json")) return "json";
+  if (mt.includes("csv")) return "csv";
+  if (mt.includes("sheet") || mt.includes("excel")) return "xlsx";
+  return "txt";
+}
+
+export const FILE_FORMAT_LABEL: Record<FileFormat, string> = {
+  xlsx: "Excel (.xlsx)",
+  xls: "Excel (.xls)",
+  csv: "CSV",
+  txt: "Текст (TXT)",
+  json: "JSON",
+};
+
+function autoDetectDelimiter(sample: string): CsvDelimiter {
+  // Берём первые 10 строк, считаем кандидатов
+  const lines = sample.split(/\r?\n/).filter((l) => l.trim().length > 0).slice(0, 10);
+  const candidates: CsvDelimiter[] = [",", ";", "\t"];
+  let best: CsvDelimiter = ",";
+  let bestScore = -1;
+  for (const d of candidates) {
+    const counts = lines.map((l) => l.split(d).length);
+    if (counts.length === 0) continue;
+    const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+    const consistent = counts.every((c) => c === counts[0]) ? 1 : 0;
+    const score = avg * 10 + consistent * 5;
+    if (avg > 1 && score > bestScore) {
+      bestScore = score;
+      best = d;
+    }
+  }
+  return best;
+}
+
+function parseCsvText(text: string, delimiter: CsvDelimiter): unknown[][] {
+  // Простой CSV-парсер с поддержкой кавычек
+  const out: unknown[][] = [];
+  let row: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        cur += ch;
+      }
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === delimiter) { row.push(cur); cur = ""; }
+      else if (ch === "\n") { row.push(cur); out.push(row); row = []; cur = ""; }
+      else if (ch === "\r") { /* skip */ }
+      else cur += ch;
+    }
+  }
+  if (cur.length > 0 || row.length > 0) { row.push(cur); out.push(row); }
+  return out.filter((r) => !(r.length === 1 && String(r[0]).trim() === ""));
+}
+
+function getByPath(obj: unknown, path: string): unknown {
+  if (!path) return obj;
+  const parts = path.split(".").filter(Boolean);
+  let cur: unknown = obj;
+  for (const p of parts) {
+    if (cur && typeof cur === "object") cur = (cur as Record<string, unknown>)[p];
+    else return undefined;
+  }
+  return cur;
+}
+
+/** Возвращает список dot-path до массивов внутри JSON (включая корень, если корень — массив). */
+export function listJsonArrayPaths(obj: unknown, prefix = "", out: string[] = [], depth = 0): string[] {
+  if (depth > 5) return out;
+  if (Array.isArray(obj)) {
+    out.push(prefix);
+    return out;
+  }
+  if (obj && typeof obj === "object") {
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      listJsonArrayPaths(v, prefix ? `${prefix}.${k}` : k, out, depth + 1);
+    }
+  }
+  return out;
+}
+
+interface RawSheet { headers: string[]; rows: unknown[][] }
+
+async function readRawSheet(file: File, format: FileFormat, options: ParseOptions): Promise<RawSheet> {
+  if (format === "xlsx" || format === "xls") {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    if (!ws) return { headers: [], rows: [] };
+    const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
+    if (aoa.length === 0) return { headers: [], rows: [] };
+    return {
+      headers: (aoa[0] as unknown[]).map((h) => String(h ?? "").trim()),
+      rows: aoa.slice(1) as unknown[][],
+    };
+  }
+  if (format === "csv" || format === "txt") {
+    const text = await file.text();
+    const delimiter = options.delimiter ?? autoDetectDelimiter(text);
+    const aoa = parseCsvText(text, delimiter);
+    if (aoa.length === 0) return { headers: [], rows: [] };
+    return {
+      headers: (aoa[0] as unknown[]).map((h) => String(h ?? "").trim()),
+      rows: aoa.slice(1) as unknown[][],
+    };
+  }
+  if (format === "json") {
+    const text = await file.text();
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); }
+    catch (e) { throw new Error("Не удалось разобрать JSON: " + (e instanceof Error ? e.message : "")); }
+    const path = options.jsonArrayPath ?? "";
+    let arr = getByPath(parsed, path);
+    if (!Array.isArray(arr)) {
+      // Попытка автоопределения: если корень массив — берём корень
+      if (Array.isArray(parsed)) arr = parsed;
+      else {
+        const paths = listJsonArrayPaths(parsed);
+        if (paths.length > 0) arr = getByPath(parsed, paths[0]);
+      }
+    }
+    if (!Array.isArray(arr)) throw new Error("В JSON не найден массив объектов");
+    // Собираем заголовки как объединение ключей объектов
+    const keySet = new Set<string>();
+    for (const item of arr) {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        for (const k of Object.keys(item as Record<string, unknown>)) keySet.add(k);
+      }
+    }
+    const headers = Array.from(keySet);
+    const rows = arr.map((item) => {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        const o = item as Record<string, unknown>;
+        return headers.map((h) => o[h] ?? "");
+      }
+      return headers.map(() => "");
+    });
+    return { headers, rows };
+  }
+  return { headers: [], rows: [] };
+}
 
 export interface ColumnDef {
   key: string;
