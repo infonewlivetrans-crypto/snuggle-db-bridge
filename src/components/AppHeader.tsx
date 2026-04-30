@@ -63,23 +63,26 @@ export function AppHeader() {
   const path = location.pathname;
   const [open, setOpen] = useState(false);
 
+  // Активный пункт — для отображения в "узкой" шапке
+  const activeItem = NAV_ITEMS.find((it) => it.match(path));
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8 xl:h-16">
-        <div className="flex min-w-0 items-center gap-3 md:gap-8">
-          {/* Мобильное меню — гамбургер */}
+      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-16">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          {/* Гамбургер — на всех экранах, т.к. пунктов слишком много */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden"
+                className="shrink-0"
                 aria-label="Открыть меню"
               >
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0">
+            <SheetContent side="left" className="w-80 max-w-[85vw] p-0">
               <SheetTitle className="sr-only">Навигация</SheetTitle>
               <SheetDescription className="sr-only">
                 Главное меню приложения «Радиус Трек»
@@ -87,7 +90,7 @@ export function AppHeader() {
               <div className="border-b border-border px-5 py-4">
                 <BrandLogo size={32} />
               </div>
-              <nav className="flex flex-col gap-1 p-3">
+              <nav className="flex max-h-[calc(100vh-72px)] flex-col gap-1 overflow-y-auto p-3">
                 {NAV_ITEMS.map((item) => {
                   const active = item.match(path);
                   const Icon = item.icon;
@@ -111,47 +114,29 @@ export function AppHeader() {
             </SheetContent>
           </Sheet>
 
-          <Link to="/" search={{ orderId: undefined }} className="flex min-w-0 items-center">
-            {/* На самых узких показываем только знак, чтобы не ломать шапку */}
-            <span className="md:hidden">
-              <BrandLogo size={32} />
-            </span>
-            <span className="hidden md:inline-flex">
-              <BrandLogo size={36} />
-            </span>
+          <Link
+            to="/"
+            search={{ orderId: undefined }}
+            className="flex shrink-0 items-center"
+          >
+            <BrandLogo size={32} />
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
-            {NAV_ITEMS.map((item) => {
-              const active = item.match(path);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-foreground text-background"
-                      : "text-foreground hover:bg-secondary"
-                  }`}
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Активный раздел — текстовый индикатор, чтобы шапка оставалась информативной */}
+          {activeItem ? (
+            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground sm:ml-3 sm:text-base">
+              {activeItem.label}
+            </div>
+          ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationsBell />
-          <div className="hidden text-right sm:block">
-            <div className="text-sm font-medium text-foreground">Менеджер логистики</div>
+          <div className="hidden text-right md:block">
+            <div className="text-sm font-medium leading-tight text-foreground">Менеджер логистики</div>
             <div className="text-xs text-muted-foreground">Радиус Трек</div>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
             МЛ
           </div>
         </div>
