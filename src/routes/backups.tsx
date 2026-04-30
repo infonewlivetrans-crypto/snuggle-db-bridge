@@ -1,15 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Database, Download, Loader2, RefreshCw } from "lucide-react";
+import { AlertTriangle, Database, Download, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import { createBackupFn, getBackupUrlFn, listBackupsFn } from "@/server/backups.functions";
+import { createBackupFn, getBackupUrlFn, listBackupsFn, restoreBackupFn } from "@/server/backups.functions";
 
 export const Route = createFileRoute("/backups")({
   head: () => ({ meta: [{ title: "Резервные копии — Радиус Трек" }] }),
