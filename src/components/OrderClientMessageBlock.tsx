@@ -85,6 +85,23 @@ export function OrderClientMessageBlock({
     },
   });
 
+  const driverName = deliveryRoute?.assigned_driver?.trim() || null;
+
+  const { data: driverRow } = useQuery({
+    enabled: !!driverName,
+    queryKey: ["order-msg-driver-phone", driverName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("drivers")
+        .select("phone")
+        .eq("full_name", driverName!)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { phone: string | null } | null;
+    },
+  });
+
   const { data: allPoints } = useQuery({
     enabled: !!sourceRouteId,
     queryKey: ["order-msg-points", sourceRouteId],
@@ -145,8 +162,8 @@ export function OrderClientMessageBlock({
     orderNumber,
     etaAtIso,
     isLateRisk,
-    driverName: deliveryRoute?.assigned_driver ?? null,
-    driverPhone: null,
+    driverName,
+    driverPhone: driverRow?.phone ?? null,
   });
 
   const handleCopy = async () => {
@@ -179,7 +196,7 @@ export function OrderClientMessageBlock({
           className="gap-1.5"
         >
           {clientPhone ? (
-            <a href={`tel:${clientPhone}`}>
+            <a href={`tel:${clientPhone.replace(/[^+\d]/g, "")}`}>
               <Phone className="h-3.5 w-3.5" />
               Позвонить клиенту
             </a>

@@ -176,6 +176,7 @@ export function RouteEtaBlock({
                     size="sm"
                     variant="outline"
                     className="h-7 gap-1.5 text-[11px]"
+                    disabled={!e.eta_at}
                     onClick={async () => {
                       const text = buildClientEtaMessage({
                         orderNumber: meta?.order_number ?? "",

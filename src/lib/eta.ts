@@ -20,7 +20,9 @@ export const ETA_RISK_STYLES: Record<EtaRiskLevel, string> = {
 
 export function formatTime(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("ru-RU", {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleTimeString("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
   });

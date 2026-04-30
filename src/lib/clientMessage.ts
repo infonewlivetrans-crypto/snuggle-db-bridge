@@ -18,10 +18,12 @@ export function buildClientEtaMessage(input: ClientMessageInput): string {
   let toStr = "—";
   if (input.etaAtIso) {
     const eta = new Date(input.etaAtIso);
-    const from = new Date(eta.getTime() - minutes * 60_000);
-    const to = new Date(eta.getTime() + minutes * 60_000);
-    fromStr = formatTime(from.toISOString());
-    toStr = formatTime(to.toISOString());
+    if (!Number.isNaN(eta.getTime())) {
+      const from = new Date(eta.getTime() - minutes * 60_000);
+      const to = new Date(eta.getTime() + minutes * 60_000);
+      fromStr = formatTime(from.toISOString());
+      toStr = formatTime(to.toISOString());
+    }
   }
 
   if (input.isLateRisk) {
