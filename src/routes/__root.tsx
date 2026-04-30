@@ -6,6 +6,10 @@ import { SettingsProvider } from "@/lib/settings-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostLoginRedirect } from "@/components/auth/PostLoginRedirect";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorState } from "@/components/ErrorState";
+import { useEffect } from "react";
+import { reportError } from "@/lib/errorReporter";
 
 import appCss from "../styles.css?url";
 
@@ -45,7 +49,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
+  errorComponent: ({ error, reset }) => (
+    <div className="min-h-screen bg-background px-4 py-10">
+      <div className="mx-auto max-w-2xl">
+        <ErrorState error={error} section="router" action="render" onRetry={reset} />
+      </div>
+    </div>
+  ),
 });
+
+function GlobalErrorListener() {
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      void reportError(e.error ?? e.message, { section: "window", action: "error", severity: "error" });
+    };
+    const onRejection = (e: PromiseRejectionEvent) => {
+      void reportError(e.reason, { section: "window", action: "unhandled_rejection", severity: "error" });
+    };
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
+  return null;
+}
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
@@ -67,9 +96,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <SettingsProvider>
+          <GlobalErrorListener />
           <PostLoginRedirect />
           <AuthGate>
-            <Outlet />
+            <ErrorBoundary section="app">
+              <Outlet />
+            </ErrorBoundary>
           </AuthGate>
           <AppVersionGate />
           <Toaster />
