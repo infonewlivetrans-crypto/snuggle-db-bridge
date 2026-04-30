@@ -397,21 +397,28 @@ function autoSuggestMapping(entity: ImportEntity, headers: string[]): ColumnMapp
   return map;
 }
 
-export async function readFilePreview(file: File, entity: ImportEntity): Promise<FilePreview> {
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  if (!ws) return { headers: [], sampleRows: [], totalRows: 0, suggestedMapping: {} };
-  const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
-  if (aoa.length === 0) return { headers: [], sampleRows: [], totalRows: 0, suggestedMapping: {} };
-  const headers = (aoa[0] as unknown[]).map((h) => String(h ?? "").trim());
-  const dataRows = aoa.slice(1) as unknown[][];
+export async function readFilePreview(
+  file: File,
+  entity: ImportEntity,
+  options: ParseOptions = {},
+): Promise<FilePreview> {
+  const format = detectFileFormat(file);
+  const { headers, rows } = await readRawSheet(file, format, options);
   return {
     headers,
-    sampleRows: dataRows.slice(0, 5),
-    totalRows: dataRows.length,
+    sampleRows: rows.slice(0, 5),
+    totalRows: rows.length,
     suggestedMapping: autoSuggestMapping(entity, headers),
   };
+}
+
+/** Возвращает дерево JSON-путей с массивами (для UI выбора). Доступно для JSON-файлов. */
+export async function inspectJsonStructure(file: File): Promise<{ paths: string[]; preview: string }> {
+  const text = await file.text();
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return { paths: [], preview: text.slice(0, 500) }; }
+  const paths = listJsonArrayPaths(parsed);
+  return { paths: paths.length ? paths : [""], preview: JSON.stringify(parsed, null, 2).slice(0, 1500) };
 }
 
 // ====== Mapping templates (localStorage) ======
