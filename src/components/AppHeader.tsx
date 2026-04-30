@@ -19,7 +19,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState } from "react";
-import { BrandLogo } from "@/components/BrandLogo";
+import { BrandLogo, BrandMark } from "@/components/BrandLogo";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "@/components/NotificationsBell";
