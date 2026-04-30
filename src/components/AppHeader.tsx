@@ -86,15 +86,31 @@ const ALL_NAV: readonly NavItem[] = [
   { to: "/pilot", label: "Пилотный запуск", icon: PlayCircle, match: (p) => p.startsWith("/pilot") },
   { to: "/system-test", label: "Тест системы", icon: ClipboardList, match: (p) => p.startsWith("/system-test") },
   { to: "/system-issues", label: "Ошибки и доработки", icon: ClipboardList, match: (p) => p.startsWith("/system-issues") },
+  { to: "/users", label: "Пользователи", icon: UsersIcon, match: (p) => p.startsWith("/users") },
 ];
 
 export function AppHeader() {
   const location = useLocation();
   const path = location.pathname;
   const [open, setOpen] = useState(false);
+  const { user, profile, roles, signOut } = useAuth();
 
-  const moreActive = MORE_NAV.find((it) => it.match(path));
-  const activeItem = ALL_NAV.find((it) => it.match(path));
+  // Фильтруем пункты по ролям пользователя
+  const visibleAll = ALL_NAV.filter((it) => canAccess(it.to, roles));
+  const visiblePrimary = PRIMARY_NAV.filter((it) => canAccess(it.to, roles));
+  const visibleMore = MORE_NAV.filter((it) => canAccess(it.to, roles));
+
+  const moreActive = visibleMore.find((it) => it.match(path));
+  const activeItem = visibleAll.find((it) => it.match(path));
+
+  const initials = (profile?.full_name ?? user?.email ?? "?")
+    .split(/\s+/)
+    .map((s) => s[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const roleLabel = roles.length > 0 ? ROLE_LABELS[roles[0]] : "Пользователь";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
