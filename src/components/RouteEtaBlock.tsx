@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Clock, Timer, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Clock, Timer, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   computeRouteEta,
   ETA_RISK_LABELS,
@@ -10,6 +12,7 @@ import {
   type EtaInputPoint,
   type EtaRiskLevel,
 } from "@/lib/eta";
+import { buildClientEtaMessage, copyToClipboard } from "@/lib/clientMessage";
 
 const LATE_NOTIFY_MINUTES = 20; // опаздывает >20 мин — уведомление
 const NOTIFY_COOLDOWN_MS = 30 * 60 * 1000;
