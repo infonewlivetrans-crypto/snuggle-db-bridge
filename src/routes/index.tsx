@@ -305,7 +305,7 @@ function OrdersPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                    Загрузка заказов...
+                    Данные загружаются…
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
