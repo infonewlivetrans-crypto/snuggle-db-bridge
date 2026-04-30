@@ -93,7 +93,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-16">
+      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-[68px]">
         {/* Левая часть: бургер (на узких) + логотип */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {/* Бургер: показывается на экранах < 1440px */}
