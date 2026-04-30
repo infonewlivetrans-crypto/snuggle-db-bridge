@@ -15,17 +15,26 @@ export function PostLoginRedirect() {
 
   useEffect(() => {
     if (loading || !user) return;
+    // Ждём, пока роли загрузятся — иначе редирект уйдёт по фолбэку на "/"
+    if (roles.length === 0) return;
     if (redirectedFor.current === user.id) return;
-    redirectedFor.current = user.id;
 
     const path = location.pathname;
-    // Если пользователь зашёл на корневую или ему сюда нельзя — редиректим
+    // Публичные маршруты (driver-токен) — не редиректим
+    if (path.startsWith("/d/")) {
+      redirectedFor.current = user.id;
+      return;
+    }
+    // Если пользователь зашёл на корневую или ему сюда нельзя — редиректим в его «домашний» раздел
     if (path === "/" || !canAccess(path, roles)) {
       const target = landingPathForRoles(roles);
       if (target !== path) {
-        navigate({ to: target, search: target === "/" ? { orderId: undefined } : undefined as never });
+        redirectedFor.current = user.id;
+        navigate({ to: target, search: target === "/" ? { orderId: undefined } : (undefined as never) });
+        return;
       }
     }
+    redirectedFor.current = user.id;
   }, [loading, user, roles, location.pathname, navigate]);
 
   return null;
