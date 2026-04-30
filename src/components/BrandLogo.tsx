@@ -1,56 +1,44 @@
 import { cn } from "@/lib/utils";
+import brandLogoSrc from "@/assets/brand-logo.jpeg";
 
 interface BrandLogoProps {
-  /** Размер иконки в px */
+  /** Размер иконки в px (определяет высоту лого) */
   size?: number;
   /** Показывать ли текст «Радиус Трек» рядом с иконкой */
   withText?: boolean;
-  /** Вариант текста: тёмный (на светлом фоне) или светлый (на тёмном) */
+  /** Вариант текста (оставлен для совместимости API; не влияет, т.к. лого — изображение) */
   textTone?: "dark" | "light";
   className?: string;
 }
 
 /**
  * Фирменный логотип «Радиус Трек».
- * Круг (жёлтый) с чек-маркером и стрелкой роста внутри + текст бренда.
- * Используется в header, экране входа, панелях и т.п.
+ * Используется одно изображение бренда (знак + текст).
  */
-export function BrandLogo({
-  size = 36,
-  withText = true,
-  textTone = "dark",
-  className,
-}: BrandLogoProps) {
+export function BrandLogo({ size = 36, withText = true, className }: BrandLogoProps) {
+  // Пропорции исходного изображения ~ 1:1 (знак занимает левую часть).
+  // При withText=true показываем целиком; иначе — только знак (через BrandMark).
+  if (!withText) {
+    return <BrandMark size={size} className={className} />;
+  }
+
+  // Высота = size, ширина auto — изображение само сохраняет пропорции.
   return (
-    <div className={cn("inline-flex items-center gap-2.5", className)}>
-      <BrandMark size={size} />
-      {withText && (
-        <div className="flex flex-col leading-tight">
-          <span
-            className={cn(
-              "text-[15px] font-extrabold tracking-tight",
-              textTone === "dark" ? "text-foreground" : "text-white",
-            )}
-          >
-            Радиус&nbsp;Трек
-          </span>
-          <span
-            className={cn(
-              "text-[10px] uppercase tracking-[0.14em]",
-              textTone === "dark" ? "text-muted-foreground" : "text-white/70",
-            )}
-          >
-            Логистика · Трекинг
-          </span>
-        </div>
-      )}
+    <div className={cn("inline-flex items-center", className)}>
+      <img
+        src={brandLogoSrc}
+        alt="Радиус Трек"
+        style={{ height: size }}
+        className="block w-auto select-none"
+        draggable={false}
+      />
     </div>
   );
 }
 
 /**
- * Только знак (без текста) — для favicon-подобных мест,
- * аватарок, кнопок и компактных хедеров.
+ * Только знак (без текста). Реализован как кроп левой части лого
+ * через фиксированную ширину контейнера и object-position.
  */
 export function BrandMark({
   size = 36,
@@ -61,47 +49,19 @@ export function BrandMark({
 }) {
   return (
     <span
-      className={cn(
-        "relative inline-flex shrink-0 items-center justify-center rounded-full bg-primary shadow-card",
-        className,
-      )}
+      className={cn("relative inline-block shrink-0 overflow-hidden", className)}
       style={{ width: size, height: size }}
       aria-label="Радиус Трек"
     >
-      <svg
-        viewBox="0 0 40 40"
-        width={size * 0.66}
-        height={size * 0.66}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        {/* Чек-маркер */}
-        <path
-          d="M9 21.5 L17 29 L26 16"
-          stroke="currentColor"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-foreground"
-        />
-        {/* Стрелка роста (вверх-вправо) */}
-        <path
-          d="M24 14 L32 6"
-          stroke="currentColor"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          className="text-foreground"
-        />
-        <path
-          d="M26 6 L32 6 L32 12"
-          stroke="currentColor"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-foreground"
-        />
-      </svg>
+      <img
+        src={brandLogoSrc}
+        alt="Радиус Трек"
+        // Оригинал ~1:1, знак занимает примерно левую треть.
+        // Растягиваем по высоте x3, выравниваем по левому краю — видна только иконка.
+        style={{ height: size, width: size * 3, objectPosition: "left center" }}
+        className="block max-w-none object-cover select-none"
+        draggable={false}
+      />
     </span>
   );
 }
