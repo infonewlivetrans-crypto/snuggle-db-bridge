@@ -24,6 +24,9 @@ import {
   saveMappingTemplate,
   listMappingTemplates,
   deleteMappingTemplate,
+  detectFileFormat,
+  inspectJsonStructure,
+  FILE_FORMAT_LABEL,
   type ImportEntity,
   type ImportSource,
   type ParseResult,
@@ -32,6 +35,8 @@ import {
   type ColumnMapping,
   type FilePreview,
   type MappingTemplate,
+  type FileFormat,
+  type CsvDelimiter,
 } from "@/lib/data-excel-import";
 
 export const Route = createFileRoute("/data-import")({
@@ -73,8 +78,8 @@ function DataImportPage() {
         <Alert className="mb-6">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Поддерживаются .xlsx и .xls. Источник данных сохраняется у каждой записи (manual / excel / 1c).
-            Интеграция с 1С будет добавлена позже — структура импорта подготовлена заранее.
+            Поддерживаются: Excel (.xlsx, .xls), CSV, TXT и JSON. Формат определяется автоматически.
+            Для CSV/TXT можно выбрать разделитель, для JSON — массив данных внутри файла.
           </AlertDescription>
         </Alert>
 
@@ -101,6 +106,11 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const schema = SCHEMAS[entity];
   const requiredKeys = MANDATORY_FIELDS[entity] ?? [];
   const [file, setFile] = useState<File | null>(null);
+  const [fileFormat, setFileFormat] = useState<FileFormat | null>(null);
+  const [delimiter, setDelimiter] = useState<CsvDelimiter>(",");
+  const [jsonPaths, setJsonPaths] = useState<string[]>([]);
+  const [jsonPath, setJsonPath] = useState<string>("");
+  const [jsonPreviewText, setJsonPreviewText] = useState<string>("");
   const [source, setSource] = useState<ImportSource>("excel");
   const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>("skip");
   const [preview, setPreview] = useState<FilePreview | null>(null);
@@ -114,6 +124,35 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const previewRows = useMemo(() => parsed?.rows.slice(0, 10) ?? [], [parsed]);
   const mappingValidation = useMemo(() => validateMapping(entity, mapping), [entity, mapping]);
 
+  const reloadPreview = async (
+    f: File,
+    fmt: FileFormat,
+    opts: { delimiter?: CsvDelimiter; jsonArrayPath?: string },
+  ) => {
+    setParsing(true);
+    try {
+      const p = await readFilePreview(f, entity, opts);
+      setPreview(p);
+      const tpl = findMappingTemplate(entity, p.headers);
+      if (tpl) {
+        setSavedTemplate(tpl);
+        setMapping(tpl.mapping);
+        toast.success("Найден сохранённый шаблон сопоставления — применён автоматически");
+      } else {
+        setSavedTemplate(null);
+        setMapping(p.suggestedMapping);
+        toast.success(
+          `Файл (${FILE_FORMAT_LABEL[fmt]}): ${p.headers.length} колонок, ${p.totalRows} строк. Проверьте сопоставление.`,
+        );
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
+      setPreview(null);
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const handleFile = async (f: File | null) => {
     setFile(f);
     setPreview(null);
@@ -121,25 +160,47 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setSavedTemplate(null);
     setParsed(null);
     setResult(null);
-    if (!f) return;
-    setParsing(true);
-    try {
-      const p = await readFilePreview(f, entity);
-      setPreview(p);
-      // Ищем сохранённый шаблон сопоставления
-      const tpl = findMappingTemplate(entity, p.headers);
-      if (tpl) {
-        setSavedTemplate(tpl);
-        setMapping(tpl.mapping);
-        toast.success("Найден сохранённый шаблон сопоставления — применён автоматически");
-      } else {
-        setMapping(p.suggestedMapping);
-        toast.success(`Файл прочитан: ${p.headers.length} колонок, ${p.totalRows} строк. Проверьте сопоставление.`);
+    setJsonPaths([]);
+    setJsonPath("");
+    setJsonPreviewText("");
+    if (!f) { setFileFormat(null); return; }
+    const fmt = detectFileFormat(f);
+    setFileFormat(fmt);
+    setSource(fmt === "xlsx" || fmt === "xls" ? "excel" : "manual");
+
+    if (fmt === "json") {
+      try {
+        const info = await inspectJsonStructure(f);
+        setJsonPaths(info.paths);
+        const initial = info.paths[0] ?? "";
+        setJsonPath(initial);
+        setJsonPreviewText(info.preview);
+        await reloadPreview(f, fmt, { jsonArrayPath: initial });
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Ошибка чтения JSON");
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
-    } finally {
-      setParsing(false);
+      return;
+    }
+    if (fmt === "csv" || fmt === "txt") {
+      await reloadPreview(f, fmt, { delimiter });
+      return;
+    }
+    await reloadPreview(f, fmt, {});
+  };
+
+  const handleChangeDelimiter = async (d: CsvDelimiter) => {
+    setDelimiter(d);
+    setParsed(null);
+    if (file && (fileFormat === "csv" || fileFormat === "txt")) {
+      await reloadPreview(file, fileFormat, { delimiter: d });
+    }
+  };
+
+  const handleChangeJsonPath = async (p: string) => {
+    setJsonPath(p);
+    setParsed(null);
+    if (file && fileFormat === "json") {
+      await reloadPreview(file, fileFormat, { jsonArrayPath: p });
     }
   };
 
@@ -153,7 +214,10 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setParsed(null);
     setResult(null);
     try {
-      const r = await parseFile(file, entity, mapping);
+      const r = await parseFile(file, entity, mapping, {
+        delimiter: fileFormat === "csv" || fileFormat === "txt" ? delimiter : undefined,
+        jsonArrayPath: fileFormat === "json" ? jsonPath : undefined,
+      });
       setParsed(r);
       if (r.totalRows === 0) toast.warning("Нет данных для импорта");
       else toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
@@ -189,7 +253,11 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setImporting(true);
     setResult(null);
     try {
-      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null, duplicateAction });
+      const r = await importParsed(entity, parsed, source, {
+        fileName: file?.name ?? null,
+        duplicateAction,
+        fileFormat: fileFormat ?? undefined,
+      });
       setResult(r);
       if (r.failed === 0) toast.success(`Загружено: ${r.inserted} · обновлено: ${r.updated} · пропущено: ${r.skipped}`);
       else toast.warning(`Загружено: ${r.inserted}, ошибок: ${r.failed}`);
@@ -215,14 +283,70 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
             </Button>
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`file-${entity}`}>Файл Excel</Label>
+            <Label htmlFor={`file-${entity}`}>Загрузить файл</Label>
             <Input
               id={`file-${entity}`}
               type="file"
-              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              accept=".xlsx,.xls,.csv,.txt,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain,application/json"
               onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
             />
+            <p className="text-xs text-muted-foreground">
+              Поддерживаются: Excel (.xlsx, .xls), CSV, TXT, JSON. Формат определяется автоматически.
+            </p>
+            {fileFormat && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Badge variant="secondary">Формат: {FILE_FORMAT_LABEL[fileFormat]}</Badge>
+                {file && <span className="font-mono text-xs text-muted-foreground">{file.name}</span>}
+              </div>
+            )}
           </div>
+
+          {(fileFormat === "csv" || fileFormat === "txt") && (
+            <div className="space-y-2">
+              <Label>Разделитель колонок</Label>
+              <Select value={delimiter} onValueChange={(v) => void handleChangeDelimiter(v as CsvDelimiter)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value=",">Запятая ( , )</SelectItem>
+                  <SelectItem value=";">Точка с запятой ( ; )</SelectItem>
+                  <SelectItem value={"\t"}>Табуляция ( Tab )</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Изменение разделителя обновит предпросмотр и сопоставление колонок.
+              </p>
+            </div>
+          )}
+
+          {fileFormat === "json" && (
+            <div className="space-y-2">
+              <Label>Массив данных в JSON</Label>
+              {jsonPaths.length > 0 ? (
+                <Select value={jsonPath} onValueChange={(v) => void handleChangeJsonPath(v)}>
+                  <SelectTrigger><SelectValue placeholder="— массив не выбран —" /></SelectTrigger>
+                  <SelectContent>
+                    {jsonPaths.map((p) => (
+                      <SelectItem key={p || "__root__"} value={p}>
+                        {p === "" ? "(корень файла)" : p}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-xs text-muted-foreground">В файле не найдено ни одного массива объектов.</p>
+              )}
+              {jsonPreviewText && (
+                <details className="rounded-md border border-border bg-muted/30 p-2">
+                  <summary className="cursor-pointer text-xs text-muted-foreground">
+                    Структура JSON (предпросмотр)
+                  </summary>
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-[11px] leading-tight">
+                    {jsonPreviewText}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Источник данных (source)</Label>
             <Select value={source} onValueChange={(v) => setSource(v as ImportSource)}>

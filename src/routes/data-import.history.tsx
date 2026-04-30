@@ -27,6 +27,7 @@ interface ImportLog {
   id: string;
   entity: ImportEntity;
   file_name: string | null;
+  file_format: string | null;
   source: string;
   imported_by: string | null;
   total_rows: number;
@@ -124,6 +125,7 @@ function HistoryPage() {
                     <TableHead>Дата и время</TableHead>
                     <TableHead>Тип</TableHead>
                     <TableHead>Файл</TableHead>
+                    <TableHead>Формат</TableHead>
                     <TableHead>Кто загрузил</TableHead>
                     <TableHead className="text-right">Всего</TableHead>
                     <TableHead className="text-right">Успех</TableHead>
@@ -134,7 +136,7 @@ function HistoryPage() {
                 <TableBody>
                   {logs.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={8} className="py-10 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={9} className="py-10 text-center text-sm text-muted-foreground">
                         {loading ? "Загрузка…" : "Импортов пока нет"}
                       </TableCell>
                     </TableRow>
@@ -146,6 +148,7 @@ function HistoryPage() {
                       </TableCell>
                       <TableCell className="text-sm">{entityLabel(l.entity)}</TableCell>
                       <TableCell className="font-mono text-xs">{l.file_name ?? "—"}</TableCell>
+                      <TableCell className="text-xs uppercase">{l.file_format ?? "—"}</TableCell>
                       <TableCell className="text-sm">{l.imported_by ?? "—"}</TableCell>
                       <TableCell className="text-right">{l.total_rows}</TableCell>
                       <TableCell className="text-right text-status-success">{l.inserted_rows}</TableCell>
@@ -252,7 +255,7 @@ function LogDetailDialog({
                 Импорт {entityLabel(log.entity)} от {new Date(log.created_at).toLocaleString("ru-RU")}
               </DialogTitle>
               <DialogDescription>
-                Файл: <span className="font-mono">{log.file_name ?? "—"}</span> · Источник: {log.source} · Статус: {STATUS_LABEL[log.status]}
+                Файл: <span className="font-mono">{log.file_name ?? "—"}</span> · Формат: <b className="uppercase">{log.file_format ?? "—"}</b> · Источник: {log.source} · Статус: {STATUS_LABEL[log.status]}
               </DialogDescription>
             </DialogHeader>
 

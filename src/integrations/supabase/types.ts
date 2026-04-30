@@ -687,6 +687,7 @@ export type Database = {
           duplicate_rows: number
           entity: string
           failed_rows: number
+          file_format: string
           file_name: string | null
           id: string
           imported_by: string | null
@@ -704,6 +705,7 @@ export type Database = {
           duplicate_rows?: number
           entity: string
           failed_rows?: number
+          file_format?: string
           file_name?: string | null
           id?: string
           imported_by?: string | null
@@ -721,6 +723,7 @@ export type Database = {
           duplicate_rows?: number
           entity?: string
           failed_rows?: number
+          file_format?: string
           file_name?: string | null
           id?: string
           imported_by?: string | null
