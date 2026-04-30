@@ -85,6 +85,23 @@ export function OrderClientMessageBlock({
     },
   });
 
+  const driverName = deliveryRoute?.assigned_driver?.trim() || null;
+
+  const { data: driverRow } = useQuery({
+    enabled: !!driverName,
+    queryKey: ["order-msg-driver-phone", driverName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("drivers")
+        .select("phone")
+        .eq("full_name", driverName!)
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { phone: string | null } | null;
+    },
+  });
+
   const { data: allPoints } = useQuery({
     enabled: !!sourceRouteId,
     queryKey: ["order-msg-points", sourceRouteId],
