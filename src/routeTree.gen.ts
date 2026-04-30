@@ -32,6 +32,7 @@ import { Route as DataImportRouteImport } from './routes/data-import'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WarehousesIndexRouteImport } from './routes/warehouses.index'
 import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
+import { Route as UsersIndexRouteImport } from './routes/users.index'
 import { Route as TransportRequestsIndexRouteImport } from './routes/transport-requests.index'
 import { Route as SupplyIndexRouteImport } from './routes/supply.index'
 import { Route as RoutesIndexRouteImport } from './routes/routes.index'
@@ -168,6 +169,11 @@ const WarehousesIndexRoute = WarehousesIndexRouteImport.update({
 const VehiclesIndexRoute = VehiclesIndexRouteImport.update({
   id: '/vehicles/',
   path: '/vehicles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersIndexRoute = UsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransportRequestsIndexRoute = TransportRequestsIndexRouteImport.update({
@@ -327,6 +333,7 @@ export interface FileRoutesByFullPath {
   '/routes/': typeof RoutesIndexRoute
   '/supply/': typeof SupplyIndexRoute
   '/transport-requests/': typeof TransportRequestsIndexRoute
+  '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
 }
@@ -374,6 +381,7 @@ export interface FileRoutesByTo {
   '/routes': typeof RoutesIndexRoute
   '/supply': typeof SupplyIndexRoute
   '/transport-requests': typeof TransportRequestsIndexRoute
+  '/users': typeof UsersIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
 }
@@ -422,6 +430,7 @@ export interface FileRoutesById {
   '/routes/': typeof RoutesIndexRoute
   '/supply/': typeof SupplyIndexRoute
   '/transport-requests/': typeof TransportRequestsIndexRoute
+  '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
 }
@@ -471,6 +480,7 @@ export interface FileRouteTypes {
     | '/routes/'
     | '/supply/'
     | '/transport-requests/'
+    | '/users/'
     | '/vehicles/'
     | '/warehouses/'
   fileRoutesByTo: FileRoutesByTo
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/routes'
     | '/supply'
     | '/transport-requests'
+    | '/users'
     | '/vehicles'
     | '/warehouses'
   id:
@@ -565,6 +576,7 @@ export interface FileRouteTypes {
     | '/routes/'
     | '/supply/'
     | '/transport-requests/'
+    | '/users/'
     | '/vehicles/'
     | '/warehouses/'
   fileRoutesById: FileRoutesById
@@ -612,6 +624,7 @@ export interface RootRouteChildren {
   RoutesIndexRoute: typeof RoutesIndexRoute
   SupplyIndexRoute: typeof SupplyIndexRoute
   TransportRequestsIndexRoute: typeof TransportRequestsIndexRoute
+  UsersIndexRoute: typeof UsersIndexRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
   WarehousesIndexRoute: typeof WarehousesIndexRoute
 }
@@ -777,6 +790,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles'
       fullPath: '/vehicles/'
       preLoaderRoute: typeof VehiclesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/': {
+      id: '/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof UsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transport-requests/': {
@@ -991,6 +1011,7 @@ const rootRouteChildren: RootRouteChildren = {
   RoutesIndexRoute: RoutesIndexRoute,
   SupplyIndexRoute: SupplyIndexRoute,
   TransportRequestsIndexRoute: TransportRequestsIndexRoute,
+  UsersIndexRoute: UsersIndexRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
   WarehousesIndexRoute: WarehousesIndexRoute,
 }

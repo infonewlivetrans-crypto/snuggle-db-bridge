@@ -3,6 +3,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { AppVersionGate } from "@/components/AppVersionGate";
 import { SettingsProvider } from "@/lib/settings-provider";
+import { AuthProvider } from "@/lib/auth/auth-context";
+import { AuthGate } from "@/components/auth/AuthGate";
+import { PostLoginRedirect } from "@/components/auth/PostLoginRedirect";
 
 import appCss from "../styles.css?url";
 
@@ -62,11 +65,16 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <SettingsProvider>
-        <Outlet />
-        <AppVersionGate />
-        <Toaster />
-      </SettingsProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <PostLoginRedirect />
+          <AuthGate>
+            <Outlet />
+          </AuthGate>
+          <AppVersionGate />
+          <Toaster />
+        </SettingsProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
