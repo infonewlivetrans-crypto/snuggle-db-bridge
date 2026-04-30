@@ -1,25 +1,60 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth/auth-context";
 import { LoginPage } from "@/components/auth/LoginPage";
+import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
+import { supabase } from "@/integrations/supabase/client";
 
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
 export function AuthGate({ children }: { children: ReactNode }) {
-  const { loading, user, profile, roles } = useAuth();
+  const { loading, user, profile, roles, refresh } = useAuth();
   const location = useLocation();
   const path = location.pathname;
+
+  const [hasAdmin, setHasAdmin] = useState<boolean | null>(null);
+
+  const checkAdmin = async () => {
+    const { data, error } = await supabase.rpc("has_any_admin");
+    if (error) {
+      // На ошибку считаем, что админ есть, чтобы не блокировать систему
+      setHasAdmin(true);
+      return;
+    }
+    setHasAdmin(Boolean(data));
+  };
+
+  useEffect(() => {
+    if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return;
+    if (user) {
+      setHasAdmin(true);
+      return;
+    }
+    checkAdmin();
+  }, [user, path]);
 
   // Публичные маршруты — без проверки
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
 
-  if (loading) {
+  if (loading || hasAdmin === null) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Загрузка…
       </div>
+    );
+  }
+
+  // Первый запуск — нет ни одного админа и пользователь не вошёл
+  if (!user && !hasAdmin) {
+    return (
+      <FirstAdminSetup
+        onCreated={async () => {
+          setHasAdmin(true);
+          await refresh();
+        }}
+      />
     );
   }
 
