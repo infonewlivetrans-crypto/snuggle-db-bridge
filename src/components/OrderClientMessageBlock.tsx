@@ -196,7 +196,7 @@ export function OrderClientMessageBlock({
           className="gap-1.5"
         >
           {clientPhone ? (
-            <a href={`tel:${clientPhone}`}>
+            <a href={`tel:${clientPhone.replace(/[^+\d]/g, "")}`}>
               <Phone className="h-3.5 w-3.5" />
               Позвонить клиенту
             </a>
