@@ -214,7 +214,10 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setParsed(null);
     setResult(null);
     try {
-      const r = await parseFile(file, entity, mapping);
+      const r = await parseFile(file, entity, mapping, {
+        delimiter: fileFormat === "csv" || fileFormat === "txt" ? delimiter : undefined,
+        jsonArrayPath: fileFormat === "json" ? jsonPath : undefined,
+      });
       setParsed(r);
       if (r.totalRows === 0) toast.warning("Нет данных для импорта");
       else toast.success(`Строк: ${r.totalRows} · новых: ${r.newRows} · дублей: ${r.duplicateRows} · ошибок: ${r.invalidRows}`);
@@ -250,7 +253,11 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setImporting(true);
     setResult(null);
     try {
-      const r = await importParsed(entity, parsed, source, { fileName: file?.name ?? null, duplicateAction });
+      const r = await importParsed(entity, parsed, source, {
+        fileName: file?.name ?? null,
+        duplicateAction,
+        fileFormat: fileFormat ?? undefined,
+      });
       setResult(r);
       if (r.failed === 0) toast.success(`Загружено: ${r.inserted} · обновлено: ${r.updated} · пропущено: ${r.skipped}`);
       else toast.warning(`Загружено: ${r.inserted}, ошибок: ${r.failed}`);
