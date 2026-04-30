@@ -738,6 +738,66 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          bad: string | null
+          broken: string | null
+          comment: string | null
+          created_at: string
+          good: string | null
+          id: string
+          needed: string | null
+          rating_convenience: number | null
+          rating_speed: number | null
+          rating_stability: number | null
+          role: string
+          route_id: string | null
+          route_label: string | null
+          severity: string
+          unclear: string | null
+          user_id: string
+          user_name: string | null
+        }
+        Insert: {
+          bad?: string | null
+          broken?: string | null
+          comment?: string | null
+          created_at?: string
+          good?: string | null
+          id?: string
+          needed?: string | null
+          rating_convenience?: number | null
+          rating_speed?: number | null
+          rating_stability?: number | null
+          role: string
+          route_id?: string | null
+          route_label?: string | null
+          severity?: string
+          unclear?: string | null
+          user_id: string
+          user_name?: string | null
+        }
+        Update: {
+          bad?: string | null
+          broken?: string | null
+          comment?: string | null
+          created_at?: string
+          good?: string | null
+          id?: string
+          needed?: string | null
+          rating_convenience?: number | null
+          rating_speed?: number | null
+          rating_stability?: number | null
+          role?: string
+          route_id?: string | null
+          route_label?: string | null
+          severity?: string
+          unclear?: string | null
+          user_id?: string
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       import_log_rows: {
         Row: {
           created_at: string
