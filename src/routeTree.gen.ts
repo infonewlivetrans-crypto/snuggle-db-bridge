@@ -21,6 +21,7 @@ import { Route as WarehouseMovementsRouteImport } from './routes/warehouse-movem
 import { Route as WarehouseInboundRouteImport } from './routes/warehouse-inbound'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
+import { Route as SystemErrorsRouteImport } from './routes/system-errors'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
 import { Route as RouteImportTemplateRouteImport } from './routes/route-import-template'
 import { Route as PilotRouteImport } from './routes/pilot'
@@ -116,6 +117,11 @@ const SystemTestRoute = SystemTestRouteImport.update({
 const SystemIssuesRoute = SystemIssuesRouteImport.update({
   id: '/system-issues',
   path: '/system-issues',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemErrorsRoute = SystemErrorsRouteImport.update({
+  id: '/system-errors',
+  path: '/system-errors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RouteReportsRoute = RouteReportsRouteImport.update({
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/pilot': typeof PilotRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
@@ -363,6 +370,7 @@ export interface FileRoutesByTo {
   '/pilot': typeof PilotRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
@@ -414,6 +422,7 @@ export interface FileRoutesById {
   '/pilot': typeof PilotRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
@@ -466,6 +475,7 @@ export interface FileRouteTypes {
     | '/pilot'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-errors'
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
@@ -516,6 +526,7 @@ export interface FileRouteTypes {
     | '/pilot'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-errors'
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
@@ -566,6 +577,7 @@ export interface FileRouteTypes {
     | '/pilot'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-errors'
     | '/system-issues'
     | '/system-test'
     | '/warehouse-inbound'
@@ -617,6 +629,7 @@ export interface RootRouteChildren {
   PilotRoute: typeof PilotRoute
   RouteImportTemplateRoute: typeof RouteImportTemplateRoute
   RouteReportsRoute: typeof RouteReportsRoute
+  SystemErrorsRoute: typeof SystemErrorsRoute
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
   WarehouseInboundRoute: typeof WarehouseInboundRoute
@@ -739,6 +752,13 @@ declare module '@tanstack/react-router' {
       path: '/system-issues'
       fullPath: '/system-issues'
       preLoaderRoute: typeof SystemIssuesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system-errors': {
+      id: '/system-errors'
+      path: '/system-errors'
+      fullPath: '/system-errors'
+      preLoaderRoute: typeof SystemErrorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/route-reports': {
@@ -1020,6 +1040,7 @@ const rootRouteChildren: RootRouteChildren = {
   PilotRoute: PilotRoute,
   RouteImportTemplateRoute: RouteImportTemplateRoute,
   RouteReportsRoute: RouteReportsRoute,
+  SystemErrorsRoute: SystemErrorsRoute,
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
   WarehouseInboundRoute: WarehouseInboundRoute,
