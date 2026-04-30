@@ -51,7 +51,20 @@ export function usePaginatedTable<T = unknown>(opts: Options) {
     enabled,
     placeholderData: keepPreviousData,
     queryFn: async (): Promise<{ rows: T[]; total: number }> => {
-      let q = supabase.from(table).select(select, { count: "exact" });
+      // Динамическая таблица — строгие типы supabase здесь не помогают.
+      type Q = {
+        order: (col: string, opts: { ascending: boolean }) => Q;
+        eq: (col: string, val: unknown) => Q;
+        or: (expr: string) => Q;
+        range: (
+          a: number,
+          b: number,
+        ) => Promise<{ data: unknown[] | null; error: { message: string } | null; count: number | null }>;
+      };
+      const client = supabase as unknown as {
+        from: (t: string) => { select: (cols: string, opts: { count: "exact" }) => Q };
+      };
+      let q = client.from(table).select(select, { count: "exact" });
       for (const o of order) {
         q = q.order(o.column, { ascending: o.ascending ?? false });
       }
@@ -66,9 +79,8 @@ export function usePaginatedTable<T = unknown>(opts: Options) {
         const orExpr = searchColumns.map((c) => `${c}.ilike.%${s}%`).join(",");
         q = q.or(orExpr);
       }
-      q = q.range(fromIdx, toIdx);
-      const { data, error, count } = await q;
-      if (error) throw error;
+      const { data, error, count } = await q.range(fromIdx, toIdx);
+      if (error) throw new Error(error.message);
       return { rows: (data ?? []) as T[], total: count ?? 0 };
     },
   });
