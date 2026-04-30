@@ -725,7 +725,7 @@ export async function importParsed(
   entity: ImportEntity,
   parsed: ParseResult,
   source: ImportSource,
-  meta?: { fileName?: string | null; importedBy?: string | null; duplicateAction?: DuplicateAction },
+  meta?: { fileName?: string | null; importedBy?: string | null; duplicateAction?: DuplicateAction; fileFormat?: FileFormat },
 ): Promise<ImportResult & { logId?: string }> {
   const duplicateAction: DuplicateAction = meta?.duplicateAction ?? "skip";
   const failed: { row: number; message: string; raw?: Record<string, unknown>; matchedId?: string | null }[] = [];
@@ -914,6 +914,7 @@ export async function importParsed(
       .insert({
         entity,
         file_name: meta?.fileName ?? null,
+        file_format: meta?.fileFormat ?? "xlsx",
         source,
         imported_by: meta?.importedBy ?? null,
         total_rows: totalRows,
