@@ -123,14 +123,14 @@ function OrdersPage() {
   const refetch = paged.refetch;
   const filtered = orders ?? [];
 
-  // Лёгкая статистика по статусам — отдельный быстрый запрос
-  const { data: stats } = useQuery({
+  // Лёгкая статистика по статусам — отдельный быстрый запрос (count-only)
+  const { data: statsData } = useQuery({
     queryKey: ["orders", "stats"],
     queryFn: async () => {
       const counts = async (status?: OrderStatus) => {
-        let q = supabase.from("orders").select("id", { count: "exact", head: true });
-        if (status) q = q.eq("status", status);
-        const { count } = await q;
+        let qb = supabase.from("orders").select("id", { count: "exact", head: true });
+        if (status) qb = qb.eq("status", status);
+        const { count } = await qb;
         return count ?? 0;
       };
       const [total, neu, inProgress, delivering, completed] = await Promise.all([
@@ -143,18 +143,7 @@ function OrdersPage() {
       return { total, new: neu, inProgress, delivering, completed };
     },
   });
-
-
-  const stats = useMemo(() => {
-    if (!orders) return { total: 0, new: 0, inProgress: 0, delivering: 0, completed: 0 };
-    return {
-      total: orders.length,
-      new: orders.filter((o) => o.status === "new").length,
-      inProgress: orders.filter((o) => o.status === "in_progress").length,
-      delivering: orders.filter((o) => o.status === "delivering").length,
-      completed: orders.filter((o) => o.status === "completed").length,
-    };
-  }, [orders]);
+  const stats = statsData ?? { total: 0, new: 0, inProgress: 0, delivering: 0, completed: 0 };
 
   const openOrder = (order: Order) => {
     setSelectedOrder(order);
