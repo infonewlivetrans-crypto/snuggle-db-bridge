@@ -92,7 +92,7 @@ type TestRoute = {
   route_number: string;
   route_date: string;
   status: DeliveryRouteStatus;
-  driver_name: string | null;
+  assigned_driver: string | null;
   points_count: number | null;
   created_at: string;
 };
@@ -160,7 +160,7 @@ function PilotPage() {
     queryFn: async (): Promise<TestRoute[]> => {
       const { data, error } = await supabase
         .from("delivery_routes")
-        .select("id, route_number, route_date, status, driver_name, points_count, created_at")
+        .select("id, route_number, route_date, status, assigned_driver, points_count, created_at")
         .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
@@ -358,7 +358,7 @@ function PilotPage() {
                       <div className="truncate text-xs text-muted-foreground">
                         {new Date(rt.route_date).toLocaleDateString("ru-RU")}
                         {" · "}
-                        {rt.driver_name ?? "водитель не назначен"}
+                        {rt.assigned_driver ?? "водитель не назначен"}
                         {" · "}
                         точек: {rt.points_count ?? 0}
                       </div>
