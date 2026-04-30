@@ -113,6 +113,51 @@ export type Database = {
         }
         Relationships: []
       }
+      backups: {
+        Row: {
+          comment: string | null
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          size_bytes: number | null
+          status: string
+          storage_path: string | null
+          tables: Json | null
+          trigger_kind: string
+          triggered_by: string | null
+          triggered_by_name: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string | null
+          tables?: Json | null
+          trigger_kind?: string
+          triggered_by?: string | null
+          triggered_by_name?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string | null
+          tables?: Json | null
+          trigger_kind?: string
+          triggered_by?: string | null
+          triggered_by_name?: string | null
+        }
+        Relationships: []
+      }
       carrier_documents: {
         Row: {
           carrier_id: string | null
