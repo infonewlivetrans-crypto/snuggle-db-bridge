@@ -283,14 +283,70 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
             </Button>
           </div>
           <div className="space-y-2">
-            <Label htmlFor={`file-${entity}`}>Файл Excel</Label>
+            <Label htmlFor={`file-${entity}`}>Загрузить файл</Label>
             <Input
               id={`file-${entity}`}
               type="file"
-              accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              accept=".xlsx,.xls,.csv,.txt,.json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain,application/json"
               onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
             />
+            <p className="text-xs text-muted-foreground">
+              Поддерживаются: Excel (.xlsx, .xls), CSV, TXT, JSON. Формат определяется автоматически.
+            </p>
+            {fileFormat && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Badge variant="secondary">Формат: {FILE_FORMAT_LABEL[fileFormat]}</Badge>
+                {file && <span className="font-mono text-xs text-muted-foreground">{file.name}</span>}
+              </div>
+            )}
           </div>
+
+          {(fileFormat === "csv" || fileFormat === "txt") && (
+            <div className="space-y-2">
+              <Label>Разделитель колонок</Label>
+              <Select value={delimiter} onValueChange={(v) => void handleChangeDelimiter(v as CsvDelimiter)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value=",">Запятая ( , )</SelectItem>
+                  <SelectItem value=";">Точка с запятой ( ; )</SelectItem>
+                  <SelectItem value={"\t"}>Табуляция ( Tab )</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Изменение разделителя обновит предпросмотр и сопоставление колонок.
+              </p>
+            </div>
+          )}
+
+          {fileFormat === "json" && (
+            <div className="space-y-2">
+              <Label>Массив данных в JSON</Label>
+              {jsonPaths.length > 0 ? (
+                <Select value={jsonPath} onValueChange={(v) => void handleChangeJsonPath(v)}>
+                  <SelectTrigger><SelectValue placeholder="— массив не выбран —" /></SelectTrigger>
+                  <SelectContent>
+                    {jsonPaths.map((p) => (
+                      <SelectItem key={p || "__root__"} value={p}>
+                        {p === "" ? "(корень файла)" : p}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-xs text-muted-foreground">В файле не найдено ни одного массива объектов.</p>
+              )}
+              {jsonPreviewText && (
+                <details className="rounded-md border border-border bg-muted/30 p-2">
+                  <summary className="cursor-pointer text-xs text-muted-foreground">
+                    Структура JSON (предпросмотр)
+                  </summary>
+                  <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap text-[11px] leading-tight">
+                    {jsonPreviewText}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
           <div className="space-y-2">
             <Label>Источник данных (source)</Label>
             <Select value={source} onValueChange={(v) => setSource(v as ImportSource)}>
