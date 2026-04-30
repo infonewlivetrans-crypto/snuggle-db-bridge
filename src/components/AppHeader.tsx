@@ -17,6 +17,8 @@ import {
   ArrowLeftRight,
   FileSpreadsheet,
   ChevronDown,
+  Users as UsersIcon,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
@@ -27,8 +29,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccess, ROLE_LABELS } from "@/lib/auth/roles";
 
 type NavItem = {
   to: string;
