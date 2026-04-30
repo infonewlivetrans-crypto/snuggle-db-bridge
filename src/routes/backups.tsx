@@ -72,6 +72,19 @@ function BackupsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const [restoreTarget, setRestoreTarget] = useState<null | { id: string; created_at: string }>(null);
+  const [confirmText, setConfirmText] = useState("");
+  const restore = useMutation({
+    mutationFn: (id: string) => restoreBackupFn({ data: { id, confirm: confirmText } }),
+    onSuccess: () => {
+      toast.success("Данные восстановлены из резервной копии");
+      setRestoreTarget(null);
+      setConfirmText("");
+      qc.invalidateQueries({ queryKey: ["backups"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const last = useMemo(() => (data && data.length > 0 ? data[0] : null), [data]);
   const lastSuccess = useMemo(() => (data ?? []).find((b) => b.status === "success") ?? null, [data]);
   const isStale = useMemo(() => {
