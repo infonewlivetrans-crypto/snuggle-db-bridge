@@ -12,7 +12,7 @@ export type ListSearch = {
 export function parseListSearch(
   search: Record<string, unknown>,
   defaults: { pageSize?: PageSize } = {},
-): Required<Pick<ListSearch, "page" | "pageSize">> & { q: string } {
+): { page: number; pageSize: PageSize; q: string } {
   const rawSize = Number(search.pageSize);
   const pageSize = (PAGE_SIZE_OPTIONS as readonly number[]).includes(rawSize)
     ? (rawSize as PageSize)
@@ -22,29 +22,28 @@ export function parseListSearch(
   return { page, pageSize, q };
 }
 
-/** Хук, возвращающий текущее состояние и сеттеры, синхронизированные с URL. */
-export function useListSearch<TFrom extends string>(routePath: TFrom) {
-  const search = useSearch({ from: routePath }) as Required<
-    Pick<ListSearch, "page" | "pageSize">
-  > & { q: string };
+/** Хук: читает page/pageSize/q из URL и обновляет их без потери остальных параметров. */
+export function useListSearch() {
+  const raw = useSearch({ strict: false }) as Record<string, unknown>;
   const navigate = useNavigate();
+  const { page, pageSize, q } = parseListSearch(raw);
 
   const update = (
     patch: Partial<{ page: number; pageSize: PageSize; q: string }>,
   ) => {
     navigate({
-      to: routePath,
+      to: ".",
       search: (prev: Record<string, unknown>) => ({ ...prev, ...patch }),
       replace: true,
-    });
+    } as never);
   };
 
   return {
-    page: search.page,
-    pageSize: search.pageSize,
-    q: search.q,
+    page,
+    pageSize,
+    q,
     setPage: (p: number) => update({ page: Math.max(1, p) }),
     setPageSize: (size: PageSize) => update({ pageSize: size, page: 1 }),
-    setQuery: (q: string) => update({ q, page: 1 }),
+    setQuery: (next: string) => update({ q: next, page: 1 }),
   };
 }
