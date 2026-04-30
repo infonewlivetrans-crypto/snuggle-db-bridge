@@ -93,7 +93,7 @@ type TestRoute = {
   route_date: string;
   status: DeliveryRouteStatus;
   assigned_driver: string | null;
-  points_count: number | null;
+  points_count?: number;
   created_at: string;
 };
 
@@ -160,11 +160,27 @@ function PilotPage() {
     queryFn: async (): Promise<TestRoute[]> => {
       const { data, error } = await supabase
         .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, points_count, created_at")
+        .select("id, route_number, route_date, status, assigned_driver, created_at")
         .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      return (data ?? []) as TestRoute[];
+      const rows = (data ?? []) as TestRoute[];
+      // Подсчёт точек по каждому маршруту
+      const ids = rows.map((r) => r.id);
+      if (ids.length > 0) {
+        const { data: pts } = await supabase
+          .from("route_points")
+          .select("route_id")
+          .in("route_id", ids);
+        const counts = new Map<string, number>();
+        (pts ?? []).forEach((p: { route_id: string }) => {
+          counts.set(p.route_id, (counts.get(p.route_id) ?? 0) + 1);
+        });
+        rows.forEach((r) => {
+          r.points_count = counts.get(r.id) ?? 0;
+        });
+      }
+      return rows;
     },
     refetchInterval: 10000,
   });
