@@ -6,10 +6,28 @@ import {
   adminSetUserActive,
   adminSetUserRole,
   assertCallerIsAdmin,
+  bootstrapFirstAdmin,
+  hasAnyAdmin,
 } from "./users.server";
 import { APP_ROLES, type AppRole } from "@/lib/auth/roles";
 
 const ROLE_SET = new Set<AppRole>(APP_ROLES);
+
+export const hasAnyAdminFn = createServerFn({ method: "GET" }).handler(async () => {
+  return { hasAdmin: await hasAnyAdmin() };
+});
+
+export const bootstrapFirstAdminFn = createServerFn({ method: "POST" })
+  .inputValidator((input: { email: string; password: string; fullName: string }) => {
+    if (!input?.email || !input?.password || !input?.fullName) {
+      throw new Error("Заполните все поля");
+    }
+    if (input.password.length < 6) throw new Error("Пароль должен быть не короче 6 символов");
+    return input;
+  })
+  .handler(async ({ data }) => {
+    return bootstrapFirstAdmin(data);
+  });
 
 export const listUsersFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
