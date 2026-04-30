@@ -158,7 +158,7 @@ export function AppHeader() {
           ) : null}
         </div>
 
-        {/* Горизонтальная навигация — только на широком экране (>= 1366px) */}
+        {/* Горизонтальная навигация — только на широком экране (>= 1440px) */}
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1440px]:flex">
           {PRIMARY_NAV.map((item) => {
             const active = item.match(path);
