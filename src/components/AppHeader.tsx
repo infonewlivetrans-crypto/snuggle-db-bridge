@@ -37,18 +37,18 @@ type NavItem = {
   match: (p: string) => boolean;
 };
 
-// Основные разделы — показываются на широком экране
+// Основные разделы — показываются на широком экране (5 пунктов)
 const PRIMARY_NAV: readonly NavItem[] = [
   { to: "/", label: "Заказы", icon: BarChart3, match: (p) => p === "/" },
   { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p) => p.startsWith("/transport-requests") && !p.startsWith("/transport-requests/picker") },
   { to: "/transport-requests/picker", label: "Подбор заказов", icon: ClipboardList, match: (p) => p.startsWith("/transport-requests/picker") },
   { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon, match: (p) => p.startsWith("/delivery-routes") },
   { to: "/logist", label: "Кабинет логиста", icon: ClipboardList, match: (p) => p.startsWith("/logist") },
-  { to: "/route-reports", label: "Отчёты", icon: FileText, match: (p) => p.startsWith("/route-reports") },
 ];
 
 // Второстепенные — в выпадающем меню «Ещё»
 const MORE_NAV: readonly NavItem[] = [
+  { to: "/route-reports", label: "Отчёты", icon: FileText, match: (p) => p.startsWith("/route-reports") },
   { to: "/director", label: "Отчёт руководителя", icon: BarChart3, match: (p) => p.startsWith("/director") },
   { to: "/routes", label: "Маршруты (план)", icon: RouteIcon, match: (p) => p.startsWith("/routes") },
   { to: "/carriers", label: "Перевозчики", icon: Building2, match: (p) => p.startsWith("/carriers") },
