@@ -28,6 +28,7 @@ import { Route as PilotRouteImport } from './routes/pilot'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LogistRouteImport } from './routes/logist'
 import { Route as FirstRunRouteImport } from './routes/first-run'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DirectorRouteImport } from './routes/director'
 import { Route as DataImportRouteImport } from './routes/data-import'
 import { Route as BackupsRouteImport } from './routes/backups'
@@ -152,6 +153,11 @@ const LogistRoute = LogistRouteImport.update({
 const FirstRunRoute = FirstRunRouteImport.update({
   id: '/first-run',
   path: '/first-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DirectorRoute = DirectorRouteImport.update({
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/backups': typeof BackupsRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
+  '/feedback': typeof FeedbackRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
@@ -364,6 +371,7 @@ export interface FileRoutesByTo {
   '/backups': typeof BackupsRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
+  '/feedback': typeof FeedbackRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
@@ -416,6 +424,7 @@ export interface FileRoutesById {
   '/backups': typeof BackupsRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
+  '/feedback': typeof FeedbackRoute
   '/first-run': typeof FirstRunRoute
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/backups'
     | '/data-import'
     | '/director'
+    | '/feedback'
     | '/first-run'
     | '/logist'
     | '/notifications'
@@ -520,6 +530,7 @@ export interface FileRouteTypes {
     | '/backups'
     | '/data-import'
     | '/director'
+    | '/feedback'
     | '/first-run'
     | '/logist'
     | '/notifications'
@@ -571,6 +582,7 @@ export interface FileRouteTypes {
     | '/backups'
     | '/data-import'
     | '/director'
+    | '/feedback'
     | '/first-run'
     | '/logist'
     | '/notifications'
@@ -623,6 +635,7 @@ export interface RootRouteChildren {
   BackupsRoute: typeof BackupsRoute
   DataImportRoute: typeof DataImportRouteWithChildren
   DirectorRoute: typeof DirectorRoute
+  FeedbackRoute: typeof FeedbackRoute
   FirstRunRoute: typeof FirstRunRoute
   LogistRoute: typeof LogistRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -801,6 +814,13 @@ declare module '@tanstack/react-router' {
       path: '/first-run'
       fullPath: '/first-run'
       preLoaderRoute: typeof FirstRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/director': {
@@ -1034,6 +1054,7 @@ const rootRouteChildren: RootRouteChildren = {
   BackupsRoute: BackupsRoute,
   DataImportRoute: DataImportRouteWithChildren,
   DirectorRoute: DirectorRoute,
+  FeedbackRoute: FeedbackRoute,
   FirstRunRoute: FirstRunRoute,
   LogistRoute: LogistRoute,
   NotificationsRoute: NotificationsRoute,
