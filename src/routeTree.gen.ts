@@ -29,6 +29,7 @@ import { Route as LogistRouteImport } from './routes/logist'
 import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as DirectorRouteImport } from './routes/director'
 import { Route as DataImportRouteImport } from './routes/data-import'
+import { Route as AuditLogRouteImport } from './routes/audit-log'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WarehousesIndexRouteImport } from './routes/warehouses.index'
 import { Route as VehiclesIndexRouteImport } from './routes/vehicles.index'
@@ -154,6 +155,11 @@ const DirectorRoute = DirectorRouteImport.update({
 const DataImportRoute = DataImportRouteImport.update({
   id: '/data-import',
   path: '/data-import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuditLogRoute = AuditLogRouteImport.update({
+  id: '/audit-log',
+  path: '/audit-log',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -291,6 +297,7 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/audit-log': typeof AuditLogRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/audit-log': typeof AuditLogRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
@@ -388,6 +396,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/audit-log': typeof AuditLogRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/first-run': typeof FirstRunRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/audit-log'
     | '/data-import'
     | '/director'
     | '/first-run'
@@ -486,6 +496,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/audit-log'
     | '/data-import'
     | '/director'
     | '/first-run'
@@ -534,6 +545,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/audit-log'
     | '/data-import'
     | '/director'
     | '/first-run'
@@ -583,6 +595,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuditLogRoute: typeof AuditLogRoute
   DataImportRoute: typeof DataImportRouteWithChildren
   DirectorRoute: typeof DirectorRoute
   FirstRunRoute: typeof FirstRunRoute
@@ -769,6 +782,13 @@ declare module '@tanstack/react-router' {
       path: '/data-import'
       fullPath: '/data-import'
       preLoaderRoute: typeof DataImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit-log': {
+      id: '/audit-log'
+      path: '/audit-log'
+      fullPath: '/audit-log'
+      preLoaderRoute: typeof AuditLogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -970,6 +990,7 @@ const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuditLogRoute: AuditLogRoute,
   DataImportRoute: DataImportRouteWithChildren,
   DirectorRoute: DirectorRoute,
   FirstRunRoute: FirstRunRoute,
