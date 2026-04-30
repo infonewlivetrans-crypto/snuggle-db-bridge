@@ -487,19 +487,18 @@ export function deleteMappingTemplate(entity: ImportEntity, signature: string): 
 
 // ====== Parse ======
 
-export async function parseFile(file: File, entity: ImportEntity, mapping?: ColumnMapping): Promise<ParseResult> {
+export async function parseFile(
+  file: File,
+  entity: ImportEntity,
+  mapping?: ColumnMapping,
+  options: ParseOptions = {},
+): Promise<ParseResult> {
   const schema = SCHEMAS[entity];
-  const buf = await file.arrayBuffer();
-  const wb = XLSX.read(buf, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  if (!ws) {
+  const format = detectFileFormat(file);
+  const { headers, rows: dataRows } = await readRawSheet(file, format, options);
+  if (headers.length === 0 && dataRows.length === 0) {
     return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
   }
-  const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
-  if (aoa.length === 0) {
-    return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
-  }
-  const headers = (aoa[0] as unknown[]).map((h) => String(h ?? "").trim());
 
   // Определяем сопоставление: пользовательское или автоподбор
   const effectiveMapping: ColumnMapping = mapping ?? autoSuggestMapping(entity, headers);
@@ -525,8 +524,8 @@ export async function parseFile(file: File, entity: ImportEntity, mapping?: Colu
   }
 
   const rows: ParsedRow[] = [];
-  for (let i = 1; i < aoa.length; i++) {
-    const raw = aoa[i] as unknown[];
+  for (let i = 0; i < dataRows.length; i++) {
+    const raw = dataRows[i];
     if (!raw || raw.every((v) => v === "" || v == null)) continue;
     const data: Record<string, unknown> = {};
     const errors: string[] = [];
@@ -536,7 +535,6 @@ export async function parseFile(file: File, entity: ImportEntity, mapping?: Colu
       const isEmpty = val === "" || val == null;
       data[col.key] = isEmpty ? null : val;
     }
-    // Проверка обязательных по UI
     for (const k of MANDATORY_FIELDS[entity] ?? []) {
       if (data[k] == null || data[k] === "") {
         const col = schema.columns.find((c) => c.key === k);
@@ -549,10 +547,9 @@ export async function parseFile(file: File, entity: ImportEntity, mapping?: Colu
         errors.push("Не заполнено: адрес или координаты");
       }
     }
-    rows.push({ rowNumber: i + 1, data, errors, duplicate: null });
+    rows.push({ rowNumber: i + 2, data, errors, duplicate: null });
   }
 
-  // Detect duplicates against existing data
   await detectDuplicates(entity, rows);
 
   const validRows = rows.filter((r) => r.errors.length === 0).length;
