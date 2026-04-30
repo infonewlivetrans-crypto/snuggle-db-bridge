@@ -162,8 +162,8 @@ export function OrderClientMessageBlock({
     orderNumber,
     etaAtIso,
     isLateRisk,
-    driverName: deliveryRoute?.assigned_driver ?? null,
-    driverPhone: null,
+    driverName,
+    driverPhone: driverRow?.phone ?? null,
   });
 
   const handleCopy = async () => {
