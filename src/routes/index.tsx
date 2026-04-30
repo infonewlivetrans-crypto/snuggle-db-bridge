@@ -43,13 +43,30 @@ import {
   PAYMENT_LABELS,
 } from "@/lib/orders";
 import { Search, QrCode, RefreshCw, Package2, Plus, Route as RouteIcon, FileSpreadsheet } from "lucide-react";
+import { DataTablePagination } from "@/components/DataTablePagination";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { parseListSearch, useListSearch } from "@/hooks/use-list-search";
+import { usePaginatedTable } from "@/hooks/use-paginated-table";
 
 export const Route = createFileRoute("/")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { orderId?: string } => ({
-    orderId: typeof search.orderId === "string" ? search.orderId : undefined,
-  }),
+  ): {
+    orderId?: string;
+    page?: number;
+    pageSize?: 25 | 50 | 100;
+    q?: string;
+    status?: string;
+  } => {
+    const list = parseListSearch(search, { pageSize: 25 });
+    return {
+      orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+      status: typeof search.status === "string" ? search.status : undefined,
+      page: list.page,
+      pageSize: list.pageSize,
+      q: list.q || undefined,
+    };
+  },
   head: () => ({
     meta: [
       { title: "Заказы — Радиус Трек" },
@@ -60,10 +77,25 @@ export const Route = createFileRoute("/")({
 });
 
 function OrdersPage() {
-  const { orderId: orderIdParam } = Route.useSearch();
+  const { orderId: orderIdParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const { page, pageSize, q, setPage, setPageSize, setQuery } = useListSearch();
+  const [searchInput, setSearchInput] = useState(q);
+  const debounced = useDebouncedValue(searchInput, 300);
+  useEffect(() => {
+    if (debounced !== q) setQuery(debounced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced]);
+
+  const statusFilter = (statusParam ?? "all") as OrderStatus | "all";
+  const setStatusFilter = (v: OrderStatus | "all") => {
+    navigate({
+      to: "/",
+      search: (prev) => ({ ...prev, status: v === "all" ? undefined : v, page: 1 }),
+      replace: true,
+    });
+  };
+
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -71,40 +103,47 @@ function OrdersPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [routeDialogOpen, setRouteDialogOpen] = useState(false);
 
-  const { data: orders, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["orders"],
-    queryFn: async (): Promise<Order[]> => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Order[];
-    },
+  // Серверная пагинация и поиск
+  const paged = usePaginatedTable<Order>({
+    queryKey: ["orders", "paged", statusFilter],
+    table: "orders",
+    select: "*",
+    order: [{ column: "created_at", ascending: false }],
+    page,
+    pageSize,
+    search: q,
+    searchColumns: ["order_number", "delivery_address", "client_name"],
+    eqFilters: { status: statusFilter === "all" ? undefined : statusFilter },
   });
 
-  const filtered = useMemo(() => {
-    if (!orders) return [];
-    return orders.filter((o) => {
-      const matchSearch =
-        !search ||
-        o.order_number.toLowerCase().includes(search.toLowerCase()) ||
-        (o.delivery_address?.toLowerCase().includes(search.toLowerCase()) ?? false);
-      const matchStatus = statusFilter === "all" || o.status === statusFilter;
-      return matchSearch && matchStatus;
-    });
-  }, [orders, search, statusFilter]);
+  const orders = paged.data?.rows;
+  const total = paged.data?.total ?? 0;
+  const isLoading = paged.isLoading;
+  const isFetching = paged.isFetching;
+  const refetch = paged.refetch;
+  const filtered = orders ?? [];
 
-  const stats = useMemo(() => {
-    if (!orders) return { total: 0, new: 0, inProgress: 0, delivering: 0, completed: 0 };
-    return {
-      total: orders.length,
-      new: orders.filter((o) => o.status === "new").length,
-      inProgress: orders.filter((o) => o.status === "in_progress").length,
-      delivering: orders.filter((o) => o.status === "delivering").length,
-      completed: orders.filter((o) => o.status === "completed").length,
-    };
-  }, [orders]);
+  // Лёгкая статистика по статусам — отдельный быстрый запрос (count-only)
+  const { data: statsData } = useQuery({
+    queryKey: ["orders", "stats"],
+    queryFn: async () => {
+      const counts = async (status?: OrderStatus) => {
+        let qb = supabase.from("orders").select("id", { count: "exact", head: true });
+        if (status) qb = qb.eq("status", status);
+        const { count } = await qb;
+        return count ?? 0;
+      };
+      const [total, neu, inProgress, delivering, completed] = await Promise.all([
+        counts(),
+        counts("new"),
+        counts("in_progress"),
+        counts("delivering"),
+        counts("completed"),
+      ]);
+      return { total, new: neu, inProgress, delivering, completed };
+    },
+  });
+  const stats = statsData ?? { total: 0, new: 0, inProgress: 0, delivering: 0, completed: 0 };
 
   const openOrder = (order: Order) => {
     setSelectedOrder(order);
@@ -197,9 +236,9 @@ function OrdersPage() {
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Поиск по номеру или адресу..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Поиск по номеру, адресу, клиенту..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -239,7 +278,8 @@ function OrdersPage() {
         )}
 
         {/* Таблица */}
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
@@ -265,7 +305,7 @@ function OrdersPage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
-                    Загрузка заказов...
+                    Данные загружаются…
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
@@ -386,6 +426,15 @@ function OrdersPage() {
               )}
             </TableBody>
           </Table>
+          </div>
+          <DataTablePagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            isLoading={isFetching}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
 
         <p className="mt-3 text-xs text-muted-foreground">
