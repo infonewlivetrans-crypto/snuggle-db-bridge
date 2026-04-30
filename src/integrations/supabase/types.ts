@@ -2776,6 +2776,7 @@ export type Database = {
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
+      has_any_admin: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

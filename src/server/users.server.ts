@@ -1,6 +1,27 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { AppRole } from "@/lib/auth/roles";
 
+export async function hasAnyAdmin(): Promise<boolean> {
+  const { count, error } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id", { count: "exact", head: true })
+    .eq("role", "admin");
+  if (error) throw new Error(error.message);
+  return (count ?? 0) > 0;
+}
+
+export async function bootstrapFirstAdmin(args: {
+  email: string;
+  password: string;
+  fullName: string;
+}) {
+  // Защита от гонки: если админ уже есть — отказать
+  if (await hasAnyAdmin()) {
+    throw new Error("Администратор уже создан");
+  }
+  return adminCreateUser({ ...args, role: "admin" });
+}
+
 export async function assertCallerIsAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
     .from("user_roles")
