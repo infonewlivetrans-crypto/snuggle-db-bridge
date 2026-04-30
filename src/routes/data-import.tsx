@@ -78,8 +78,8 @@ function DataImportPage() {
         <Alert className="mb-6">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Поддерживаются .xlsx и .xls. Источник данных сохраняется у каждой записи (manual / excel / 1c).
-            Интеграция с 1С будет добавлена позже — структура импорта подготовлена заранее.
+            Поддерживаются: Excel (.xlsx, .xls), CSV, TXT и JSON. Формат определяется автоматически.
+            Для CSV/TXT можно выбрать разделитель, для JSON — массив данных внутри файла.
           </AlertDescription>
         </Alert>
 
