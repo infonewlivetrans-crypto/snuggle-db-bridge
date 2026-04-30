@@ -59,6 +59,60 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          new_value: Json | null
+          object_id: string | null
+          object_label: string | null
+          object_type: string | null
+          old_value: Json | null
+          section: string | null
+          user_agent: string | null
+          user_id: string | null
+          user_name: string | null
+          user_role: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          object_id?: string | null
+          object_label?: string | null
+          object_type?: string | null
+          old_value?: Json | null
+          section?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_name?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          object_id?: string | null
+          object_label?: string | null
+          object_type?: string | null
+          old_value?: Json | null
+          section?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_name?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       carrier_documents: {
         Row: {
           carrier_id: string | null
@@ -2768,6 +2822,14 @@ export type Database = {
       }
     }
     Functions: {
+      _audit_current_user_info: {
+        Args: never
+        Returns: {
+          uid: string
+          uname: string
+          urole: string
+        }[]
+      }
       calc_order_delivery_cost: {
         Args: { p_order_id: string }
         Returns: number
