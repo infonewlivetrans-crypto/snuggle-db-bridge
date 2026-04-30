@@ -93,7 +93,7 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-16">
+      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-[68px]">
         {/* Левая часть: бургер (на узких) + логотип */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {/* Бургер: показывается на экранах < 1440px */}
@@ -140,20 +140,35 @@ export function AppHeader() {
             </SheetContent>
           </Sheet>
 
-          {/* Логотип: на узких экранах — только знак, на широких — знак + текст */}
+          {/*
+            Логотип в шапке.
+            Требования:
+            - высота: 36px на мобильном, 40px на ноутбуке, 44px на десктопе
+            - min-width блока: 110 / 130 / 150 px
+            - не сжимается, выровнен по центру
+            - вторая строка скрывается при нехватке места
+          */}
           <Link
             to="/"
             search={{ orderId: undefined }}
-            className="flex shrink-0 items-center"
-            aria-label="На главную"
+            className="flex shrink-0 items-center gap-2 self-center min-w-[110px] sm:gap-2.5 lg:min-w-[130px] xl:min-w-[150px]"
+            aria-label="На главную — Радиус Трек"
           >
-            {/* Только знак на экранах < 1367px */}
-            <span className="inline-flex min-[1367px]:hidden">
-              <BrandMark size={32} />
-            </span>
-            {/* Полный логотип на широких экранах */}
-            <span className="hidden min-[1367px]:inline-flex">
-              <BrandLogo size={32} />
+            {/* Знак — всегда видимый, читаемый размер */}
+            <BrandMark
+              size={36}
+              className="shrink-0 lg:!h-10 lg:!w-10 xl:!h-11 xl:!w-11"
+            />
+            {/* Текстовая часть бренда — независимо от логотипа-картинки,
+                чтобы корректно скрывать вторую строку и оставаться читаемой */}
+            <span className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-[15px] font-extrabold tracking-tight text-foreground lg:text-base xl:text-[17px]">
+                Радиус&nbsp;Трек
+              </span>
+              {/* Вторая строка — только на широких экранах, где есть место */}
+              <span className="hidden truncate text-[10px] uppercase tracking-[0.14em] text-muted-foreground xl:inline">
+                Логистика · Трекинг
+              </span>
             </span>
           </Link>
 
