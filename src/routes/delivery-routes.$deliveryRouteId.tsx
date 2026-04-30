@@ -390,6 +390,7 @@ function DeliveryRoutePage() {
               driverLat={driverGeo?.last_driver_lat ?? null}
               driverLng={driverGeo?.last_driver_lng ?? null}
               lastUpdateAt={driverGeo?.last_driver_location_at ?? null}
+              driverName={data.assigned_driver}
             />
 
             {/* Карта маршрута с позицией водителя */}
