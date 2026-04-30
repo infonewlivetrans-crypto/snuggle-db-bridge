@@ -42,13 +42,20 @@ export async function listAudit(filters: {
   role?: string | null;
   section?: string | null;
   action?: string | null;
-  limit?: number;
+  search?: string | null;
+  page?: number;
+  pageSize?: number;
 }) {
+  const page = Math.max(1, filters.page ?? 1);
+  const pageSize = Math.min(Math.max(1, filters.pageSize ?? 25), 200);
+  const fromIdx = (page - 1) * pageSize;
+  const toIdx = fromIdx + pageSize - 1;
+
   let q = supabaseAdmin
     .from("audit_log")
-    .select("*")
+    .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
-    .limit(Math.min(filters.limit ?? 500, 2000));
+    .range(fromIdx, toIdx);
 
   if (filters.from) q = q.gte("created_at", filters.from);
   if (filters.to) q = q.lte("created_at", filters.to);
@@ -56,8 +63,14 @@ export async function listAudit(filters: {
   if (filters.role) q = q.eq("user_role", filters.role);
   if (filters.section) q = q.eq("section", filters.section);
   if (filters.action) q = q.eq("action", filters.action);
+  if (filters.search && filters.search.trim()) {
+    const s = filters.search.trim().replace(/[%_]/g, "\\$&");
+    q = q.or(
+      `user_name.ilike.%${s}%,object_label.ilike.%${s}%,action.ilike.%${s}%`,
+    );
+  }
 
-  const { data, error } = await q;
+  const { data, error, count } = await q;
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return { rows: data ?? [], total: count ?? 0 };
 }
