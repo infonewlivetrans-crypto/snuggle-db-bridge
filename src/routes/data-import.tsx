@@ -106,6 +106,11 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const schema = SCHEMAS[entity];
   const requiredKeys = MANDATORY_FIELDS[entity] ?? [];
   const [file, setFile] = useState<File | null>(null);
+  const [fileFormat, setFileFormat] = useState<FileFormat | null>(null);
+  const [delimiter, setDelimiter] = useState<CsvDelimiter>(",");
+  const [jsonPaths, setJsonPaths] = useState<string[]>([]);
+  const [jsonPath, setJsonPath] = useState<string>("");
+  const [jsonPreviewText, setJsonPreviewText] = useState<string>("");
   const [source, setSource] = useState<ImportSource>("excel");
   const [duplicateAction, setDuplicateAction] = useState<DuplicateAction>("skip");
   const [preview, setPreview] = useState<FilePreview | null>(null);
@@ -119,6 +124,35 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
   const previewRows = useMemo(() => parsed?.rows.slice(0, 10) ?? [], [parsed]);
   const mappingValidation = useMemo(() => validateMapping(entity, mapping), [entity, mapping]);
 
+  const reloadPreview = async (
+    f: File,
+    fmt: FileFormat,
+    opts: { delimiter?: CsvDelimiter; jsonArrayPath?: string },
+  ) => {
+    setParsing(true);
+    try {
+      const p = await readFilePreview(f, entity, opts);
+      setPreview(p);
+      const tpl = findMappingTemplate(entity, p.headers);
+      if (tpl) {
+        setSavedTemplate(tpl);
+        setMapping(tpl.mapping);
+        toast.success("Найден сохранённый шаблон сопоставления — применён автоматически");
+      } else {
+        setSavedTemplate(null);
+        setMapping(p.suggestedMapping);
+        toast.success(
+          `Файл (${FILE_FORMAT_LABEL[fmt]}): ${p.headers.length} колонок, ${p.totalRows} строк. Проверьте сопоставление.`,
+        );
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
+      setPreview(null);
+    } finally {
+      setParsing(false);
+    }
+  };
+
   const handleFile = async (f: File | null) => {
     setFile(f);
     setPreview(null);
@@ -126,25 +160,47 @@ function ImportPanel({ entity }: { entity: ImportEntity }) {
     setSavedTemplate(null);
     setParsed(null);
     setResult(null);
-    if (!f) return;
-    setParsing(true);
-    try {
-      const p = await readFilePreview(f, entity);
-      setPreview(p);
-      // Ищем сохранённый шаблон сопоставления
-      const tpl = findMappingTemplate(entity, p.headers);
-      if (tpl) {
-        setSavedTemplate(tpl);
-        setMapping(tpl.mapping);
-        toast.success("Найден сохранённый шаблон сопоставления — применён автоматически");
-      } else {
-        setMapping(p.suggestedMapping);
-        toast.success(`Файл прочитан: ${p.headers.length} колонок, ${p.totalRows} строк. Проверьте сопоставление.`);
+    setJsonPaths([]);
+    setJsonPath("");
+    setJsonPreviewText("");
+    if (!f) { setFileFormat(null); return; }
+    const fmt = detectFileFormat(f);
+    setFileFormat(fmt);
+    setSource(fmt === "xlsx" || fmt === "xls" ? "excel" : "manual");
+
+    if (fmt === "json") {
+      try {
+        const info = await inspectJsonStructure(f);
+        setJsonPaths(info.paths);
+        const initial = info.paths[0] ?? "";
+        setJsonPath(initial);
+        setJsonPreviewText(info.preview);
+        await reloadPreview(f, fmt, { jsonArrayPath: initial });
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Ошибка чтения JSON");
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Ошибка чтения файла");
-    } finally {
-      setParsing(false);
+      return;
+    }
+    if (fmt === "csv" || fmt === "txt") {
+      await reloadPreview(f, fmt, { delimiter });
+      return;
+    }
+    await reloadPreview(f, fmt, {});
+  };
+
+  const handleChangeDelimiter = async (d: CsvDelimiter) => {
+    setDelimiter(d);
+    setParsed(null);
+    if (file && (fileFormat === "csv" || fileFormat === "txt")) {
+      await reloadPreview(file, fileFormat, { delimiter: d });
+    }
+  };
+
+  const handleChangeJsonPath = async (p: string) => {
+    setJsonPath(p);
+    setParsed(null);
+    if (file && fileFormat === "json") {
+      await reloadPreview(file, fileFormat, { jsonArrayPath: p });
     }
   };
 
