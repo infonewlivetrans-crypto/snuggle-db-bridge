@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Users as UsersIcon,
   LogOut,
+  History,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
