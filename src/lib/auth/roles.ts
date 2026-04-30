@@ -47,8 +47,10 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/delivery-routes") || p.startsWith("/routes"), roles: ["admin", "logist", "manager", "director"] },
   { test: (p) => p.startsWith("/route-reports"), roles: ["admin", "logist", "manager", "director"] },
 
-  { test: (p) => p.startsWith("/warehouse"), roles: ["admin", "warehouse", "logist", "director"] },
-  { test: (p) => p.startsWith("/supply"), roles: ["admin", "supply", "warehouse"] },
+  // Руководитель — только отчёт склада (чтение), без редактирования складских операций
+  { test: (p) => p.startsWith("/warehouse-report"), roles: ["admin", "warehouse", "logist", "director"] },
+  { test: (p) => p.startsWith("/warehouse"), roles: ["admin", "warehouse", "logist"] },
+  { test: (p) => p.startsWith("/supply"), roles: ["admin", "supply"] },
 
   { test: (p) => p.startsWith("/carriers") || p.startsWith("/drivers") || p.startsWith("/vehicles"), roles: ["admin", "logist", "director"] },
 
