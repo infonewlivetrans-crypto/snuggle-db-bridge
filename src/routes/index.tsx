@@ -426,6 +426,15 @@ function OrdersPage() {
               )}
             </TableBody>
           </Table>
+          </div>
+          <DataTablePagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            isLoading={isFetching}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
 
         <p className="mt-3 text-xs text-muted-foreground">
