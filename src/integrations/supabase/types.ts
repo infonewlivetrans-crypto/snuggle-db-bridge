@@ -1358,6 +1358,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       route_cost_history: {
         Row: {
           changed_by: string | null
@@ -2326,6 +2356,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       vehicles: {
         Row: {
           body_height_m: number | null
@@ -2725,6 +2776,13 @@ export type Database = {
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       notify_low_stock_for_product: {
         Args: { p_product_id: string; p_warehouse_id: string }
         Returns: undefined
@@ -2772,6 +2830,14 @@ export type Database = {
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
     }
     Enums: {
+      app_role:
+        | "admin"
+        | "director"
+        | "logist"
+        | "manager"
+        | "warehouse"
+        | "supply"
+        | "driver"
       body_type:
         | "tent"
         | "isotherm"
@@ -3036,6 +3102,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: [
+        "admin",
+        "director",
+        "logist",
+        "manager",
+        "warehouse",
+        "supply",
+        "driver",
+      ],
       body_type: [
         "tent",
         "isotherm",

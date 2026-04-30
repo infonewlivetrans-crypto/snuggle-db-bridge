@@ -1,0 +1,69 @@
+// Роли пользователей системы
+export const APP_ROLES = [
+  "admin",
+  "director",
+  "logist",
+  "manager",
+  "warehouse",
+  "supply",
+  "driver",
+] as const;
+
+export type AppRole = (typeof APP_ROLES)[number];
+
+export const ROLE_LABELS: Record<AppRole, string> = {
+  admin: "Администратор",
+  director: "Руководитель",
+  logist: "Логист",
+  manager: "Менеджер",
+  warehouse: "Склад",
+  supply: "Снабжение",
+  driver: "Водитель",
+};
+
+// Куда отправлять пользователя после входа (по приоритету)
+export function landingPathForRoles(roles: AppRole[]): string {
+  if (roles.includes("admin")) return "/";
+  if (roles.includes("director")) return "/director";
+  if (roles.includes("logist")) return "/logist";
+  if (roles.includes("manager")) return "/";
+  if (roles.includes("warehouse")) return "/warehouse-today";
+  if (roles.includes("supply")) return "/supply";
+  if (roles.includes("driver")) return "/driver";
+  return "/";
+}
+
+// Какие роли могут открывать тот или иной путь.
+// Пустой массив = доступно всем авторизованным.
+const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
+  { test: (p) => p.startsWith("/admin"), roles: ["admin"] },
+  { test: (p) => p.startsWith("/users"), roles: ["admin"] },
+  { test: (p) => p.startsWith("/director"), roles: ["admin", "director"] },
+  { test: (p) => p.startsWith("/system-issues") || p.startsWith("/system-test") || p.startsWith("/first-run") || p.startsWith("/pilot"), roles: ["admin"] },
+  { test: (p) => p.startsWith("/data-import"), roles: ["admin", "logist", "manager"] },
+
+  { test: (p) => p.startsWith("/logist"), roles: ["admin", "logist"] },
+  { test: (p) => p.startsWith("/transport-requests"), roles: ["admin", "logist", "manager"] },
+  { test: (p) => p.startsWith("/delivery-routes") || p.startsWith("/routes"), roles: ["admin", "logist", "manager", "director"] },
+  { test: (p) => p.startsWith("/route-reports"), roles: ["admin", "logist", "manager", "director"] },
+
+  { test: (p) => p.startsWith("/warehouse"), roles: ["admin", "warehouse", "logist", "director"] },
+  { test: (p) => p.startsWith("/supply"), roles: ["admin", "supply", "warehouse"] },
+
+  { test: (p) => p.startsWith("/carriers") || p.startsWith("/drivers") || p.startsWith("/vehicles"), roles: ["admin", "logist", "director"] },
+
+  { test: (p) => p.startsWith("/driver") && !p.startsWith("/drivers"), roles: ["admin", "driver"] },
+  { test: (p) => p.startsWith("/d/"), roles: [] }, // публичные ссылки водителя по токену
+
+  { test: (p) => p === "/" || p.startsWith("/?"), roles: ["admin", "manager", "logist", "director"] },
+  { test: (p) => p.startsWith("/notifications"), roles: [] },
+  { test: (p) => p.startsWith("/workspace"), roles: [] },
+];
+
+export function canAccess(path: string, roles: AppRole[]): boolean {
+  if (roles.includes("admin")) return true;
+  const rule = RULES.find((r) => r.test(path));
+  if (!rule) return true; // нет явного правила — разрешено всем авторизованным
+  if (rule.roles.length === 0) return true;
+  return rule.roles.some((r) => roles.includes(r));
+}

@@ -17,6 +17,8 @@ import {
   ArrowLeftRight,
   FileSpreadsheet,
   ChevronDown,
+  Users as UsersIcon,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
@@ -27,8 +29,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canAccess, ROLE_LABELS } from "@/lib/auth/roles";
 
 type NavItem = {
   to: string;
@@ -81,15 +86,31 @@ const ALL_NAV: readonly NavItem[] = [
   { to: "/pilot", label: "Пилотный запуск", icon: PlayCircle, match: (p) => p.startsWith("/pilot") },
   { to: "/system-test", label: "Тест системы", icon: ClipboardList, match: (p) => p.startsWith("/system-test") },
   { to: "/system-issues", label: "Ошибки и доработки", icon: ClipboardList, match: (p) => p.startsWith("/system-issues") },
+  { to: "/users", label: "Пользователи", icon: UsersIcon, match: (p) => p.startsWith("/users") },
 ];
 
 export function AppHeader() {
   const location = useLocation();
   const path = location.pathname;
   const [open, setOpen] = useState(false);
+  const { user, profile, roles, signOut } = useAuth();
 
-  const moreActive = MORE_NAV.find((it) => it.match(path));
-  const activeItem = ALL_NAV.find((it) => it.match(path));
+  // Фильтруем пункты по ролям пользователя
+  const visibleAll = ALL_NAV.filter((it) => canAccess(it.to, roles));
+  const visiblePrimary = PRIMARY_NAV.filter((it) => canAccess(it.to, roles));
+  const visibleMore = MORE_NAV.filter((it) => canAccess(it.to, roles));
+
+  const moreActive = visibleMore.find((it) => it.match(path));
+  const activeItem = visibleAll.find((it) => it.match(path));
+
+  const initials = (profile?.full_name ?? user?.email ?? "?")
+    .split(/\s+/)
+    .map((s) => s[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+  const roleLabel = roles.length > 0 ? ROLE_LABELS[roles[0]] : "Пользователь";
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
@@ -117,7 +138,7 @@ export function AppHeader() {
                 <BrandLogo size={32} />
               </div>
               <nav className="flex max-h-[calc(100vh-72px)] flex-col gap-1 overflow-y-auto p-3">
-                {ALL_NAV.map((item) => {
+                {visibleAll.map((item) => {
                   const active = item.match(path);
                   const Icon = item.icon;
                   return (
@@ -182,7 +203,7 @@ export function AppHeader() {
 
         {/* Горизонтальная навигация — только на широком экране (>= 1440px) */}
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1367px]:flex">
-          {PRIMARY_NAV.map((item) => {
+          {visiblePrimary.map((item) => {
             const active = item.match(path);
             const Icon = item.icon;
             return (
@@ -217,7 +238,7 @@ export function AppHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
-              {MORE_NAV.map((item) => {
+              {visibleMore.map((item) => {
                 const Icon = item.icon;
                 const active = item.match(path);
                 return (
@@ -241,13 +262,39 @@ export function AppHeader() {
         {/* Правая часть */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
           <NotificationsBell />
-          <div className="hidden text-right md:block">
-            <div className="text-sm font-medium leading-tight text-foreground">Менеджер логистики</div>
-            <div className="text-xs text-muted-foreground">Радиус Трек</div>
-          </div>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
-            МЛ
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 rounded-full pr-1 transition-colors hover:bg-secondary">
+                <div className="hidden text-right md:block">
+                  <div className="text-sm font-medium leading-tight text-foreground">
+                    {profile?.full_name ?? user?.email ?? "Пользователь"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{roleLabel}</div>
+                </div>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-sm font-semibold text-background">
+                  {initials || "?"}
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                {profile?.email ?? user?.email}
+              </div>
+              <DropdownMenuSeparator />
+              {roles.includes("admin") ? (
+                <DropdownMenuItem asChild>
+                  <Link to="/users" className="flex cursor-pointer items-center gap-2">
+                    <UsersIcon className="h-4 w-4" />
+                    Пользователи
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Выйти
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
