@@ -255,7 +255,7 @@ function LogDetailDialog({
                 Импорт {entityLabel(log.entity)} от {new Date(log.created_at).toLocaleString("ru-RU")}
               </DialogTitle>
               <DialogDescription>
-                Файл: <span className="font-mono">{log.file_name ?? "—"}</span> · Источник: {log.source} · Статус: {STATUS_LABEL[log.status]}
+                Файл: <span className="font-mono">{log.file_name ?? "—"}</span> · Формат: <b className="uppercase">{log.file_format ?? "—"}</b> · Источник: {log.source} · Статус: {STATUS_LABEL[log.status]}
               </DialogDescription>
             </DialogHeader>
 
