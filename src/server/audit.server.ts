@@ -17,7 +17,7 @@ export type AuditEvent = {
 };
 
 export async function writeAudit(e: AuditEvent) {
-  const { error } = await supabaseAdmin.from("audit_log").insert({
+  const { error } = await (supabaseAdmin.from("audit_log") as unknown as { insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).insert({
     user_id: e.userId ?? null,
     user_name: e.userName ?? null,
     user_role: e.userRole ?? null,
