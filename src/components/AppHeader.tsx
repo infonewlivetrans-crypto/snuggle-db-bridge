@@ -102,7 +102,7 @@ export function AppHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0 min-[1440px]:hidden"
+                className="shrink-0 min-[1367px]:hidden"
                 aria-label="Открыть меню"
               >
                 <Menu className="h-5 w-5" />
@@ -152,14 +152,14 @@ export function AppHeader() {
 
           {/* Активный раздел — текстовый индикатор только на узких экранах */}
           {activeItem ? (
-            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground sm:ml-2 min-[1440px]:hidden">
+            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground sm:ml-2 min-[1367px]:hidden">
               {activeItem.label}
             </div>
           ) : null}
         </div>
 
         {/* Горизонтальная навигация — только на широком экране (>= 1440px) */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1440px]:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1367px]:flex">
           {PRIMARY_NAV.map((item) => {
             const active = item.match(path);
             const Icon = item.icon;
