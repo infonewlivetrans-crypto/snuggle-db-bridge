@@ -31,6 +31,7 @@ export function RouteEtaBlock({
   driverLat,
   driverLng,
   lastUpdateAt,
+  driverName,
 }: {
   deliveryRouteId: string;
   routeNumber: string;
@@ -39,6 +40,7 @@ export function RouteEtaBlock({
   driverLat: number | null | undefined;
   driverLng: number | null | undefined;
   lastUpdateAt: string | null | undefined;
+  driverName?: string | null;
 }) {
   const { data: routeSettings } = useQuery({
     enabled: !!sourceRouteId,
