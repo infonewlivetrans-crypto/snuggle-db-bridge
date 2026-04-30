@@ -53,16 +53,18 @@ export const Route = createFileRoute("/")({
     search: Record<string, unknown>,
   ): {
     orderId?: string;
-    page: number;
-    pageSize: 25 | 50 | 100;
-    q: string;
+    page?: number;
+    pageSize?: 25 | 50 | 100;
+    q?: string;
     status?: string;
   } => {
     const list = parseListSearch(search, { pageSize: 25 });
     return {
       orderId: typeof search.orderId === "string" ? search.orderId : undefined,
       status: typeof search.status === "string" ? search.status : undefined,
-      ...list,
+      page: list.page,
+      pageSize: list.pageSize,
+      q: list.q || undefined,
     };
   },
   head: () => ({
