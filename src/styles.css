@@ -503,3 +503,16 @@ main, main > * { min-width: 0; }
 /* Защита от горизонтального переполнения */
 .rt-actions-row { max-width: 100%; }
 .rt-actions-row > * { min-width: 0; }
+
+/* Карточки статистики — переносятся на следующую строку, не ломают сетку.
+ * Универсальный фикс для grid-сеток с дашбордов: разрешаем перенос элементов. */
+.grid > * { min-width: 0; }
+
+/* Кнопки в правой части карточек/строк не должны выходить за экран:
+ * любые flex-контейнеры с justify-between должны давать min-width: 0 детям. */
+.flex > * { min-width: 0; }
+.flex.shrink-0 > *,
+.shrink-0 { min-width: auto; }
+
+/* Запрет переноса текста пунктов меню в две строки */
+header nav a, header nav button { white-space: nowrap; }

@@ -96,13 +96,13 @@ export function AppHeader() {
       <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-16">
         {/* Левая часть: бургер (на узких) + логотип */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          {/* Бургер: показывается на экранах < 1366px */}
+          {/* Бургер: показывается на экранах < 1440px */}
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0 min-[1366px]:hidden"
+                className="shrink-0 min-[1440px]:hidden"
                 aria-label="Открыть меню"
               >
                 <Menu className="h-5 w-5" />
@@ -152,14 +152,14 @@ export function AppHeader() {
 
           {/* Активный раздел — текстовый индикатор только на узких экранах */}
           {activeItem ? (
-            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground sm:ml-2 min-[1366px]:hidden">
+            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground sm:ml-2 min-[1440px]:hidden">
               {activeItem.label}
             </div>
           ) : null}
         </div>
 
-        {/* Горизонтальная навигация — только на широком экране (>= 1366px) */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1366px]:flex">
+        {/* Горизонтальная навигация — только на широком экране (>= 1440px) */}
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1440px]:flex">
           {PRIMARY_NAV.map((item) => {
             const active = item.match(path);
             const Icon = item.icon;
