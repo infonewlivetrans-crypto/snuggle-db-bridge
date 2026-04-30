@@ -2323,6 +2323,84 @@ export type Database = {
         }
         Relationships: []
       }
+      system_errors: {
+        Row: {
+          action: string | null
+          admin_note: string | null
+          code: string
+          created_at: string
+          fingerprint: string | null
+          id: string
+          ip_address: string | null
+          last_seen_at: string
+          message: string | null
+          occurrences: number
+          resolved_at: string | null
+          resolved_by: string | null
+          section: string | null
+          severity: string
+          status: string
+          technical: string | null
+          title: string
+          updated_at: string
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+          user_name: string | null
+          user_role: string | null
+        }
+        Insert: {
+          action?: string | null
+          admin_note?: string | null
+          code?: string
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          last_seen_at?: string
+          message?: string | null
+          occurrences?: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          section?: string | null
+          severity?: string
+          status?: string
+          technical?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_name?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          action?: string | null
+          admin_note?: string | null
+          code?: string
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          last_seen_at?: string
+          message?: string | null
+          occurrences?: number
+          resolved_at?: string | null
+          resolved_by?: string | null
+          section?: string | null
+          severity?: string
+          status?: string
+          technical?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_name?: string | null
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       system_issues: {
         Row: {
           comment: string | null
