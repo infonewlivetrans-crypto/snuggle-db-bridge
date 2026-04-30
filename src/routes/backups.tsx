@@ -1,15 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Database, Download, Loader2, RefreshCw } from "lucide-react";
+import { AlertTriangle, Database, Download, Loader2, RefreshCw, RotateCcw } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import { createBackupFn, getBackupUrlFn, listBackupsFn } from "@/server/backups.functions";
+import { createBackupFn, getBackupUrlFn, listBackupsFn, restoreBackupFn } from "@/server/backups.functions";
 
 export const Route = createFileRoute("/backups")({
   head: () => ({ meta: [{ title: "Резервные копии — Радиус Трек" }] }),
@@ -60,6 +68,19 @@ function BackupsPage() {
     mutationFn: (id: string) => getBackupUrlFn({ data: { id } }),
     onSuccess: ({ url }) => {
       window.open(url, "_blank", "noopener");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const [restoreTarget, setRestoreTarget] = useState<null | { id: string; created_at: string }>(null);
+  const [confirmText, setConfirmText] = useState("");
+  const restore = useMutation({
+    mutationFn: (id: string) => restoreBackupFn({ data: { id, confirm: confirmText } }),
+    onSuccess: () => {
+      toast.success("Данные восстановлены из резервной копии");
+      setRestoreTarget(null);
+      setConfirmText("");
+      qc.invalidateQueries({ queryKey: ["backups"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -176,7 +197,7 @@ function BackupsPage() {
                 <TableHead>Кто запустил</TableHead>
                 <TableHead>Тип</TableHead>
                 <TableHead>Комментарий</TableHead>
-                {isAdmin ? <TableHead className="text-right">Файл</TableHead> : null}
+                {isAdmin ? <TableHead className="text-right">Действия</TableHead> : null}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -207,14 +228,27 @@ function BackupsPage() {
                     {isAdmin ? (
                       <TableCell className="text-right">
                         {b.status === "success" && b.storage_path ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => download.mutate(b.id)}
-                            disabled={download.isPending}
-                          >
-                            <Download className="mr-1 h-3.5 w-3.5" /> Скачать
-                          </Button>
+                          <div className="flex flex-wrap justify-end gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => download.mutate(b.id)}
+                              disabled={download.isPending}
+                            >
+                              <Download className="mr-1 h-3.5 w-3.5" /> Скачать
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                setConfirmText("");
+                                setRestoreTarget({ id: b.id, created_at: b.created_at });
+                              }}
+                              disabled={restore.isPending}
+                            >
+                              <RotateCcw className="mr-1 h-3.5 w-3.5" /> Восстановить
+                            </Button>
+                          </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
@@ -226,6 +260,58 @@ function BackupsPage() {
             </TableBody>
           </Table>
         </div>
+
+        <Dialog open={!!restoreTarget} onOpenChange={(o) => { if (!o) { setRestoreTarget(null); setConfirmText(""); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Восстановление из резервной копии</DialogTitle>
+              <DialogDescription>
+                Восстановление заменит текущие данные. Продолжить?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 text-sm">
+              {restoreTarget ? (
+                <div className="rounded-md border border-border bg-secondary/40 p-3 text-xs">
+                  Копия от: <span className="font-medium">{new Date(restoreTarget.created_at).toLocaleString("ru-RU")}</span>
+                </div>
+              ) : null}
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                Внимание: текущее содержимое таблиц (заказы, маршруты, склад, остатки, снабжение, пользователи, журнал и др.)
+                будет заменено данными из выбранной копии.
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="confirm-restore" className="text-xs">
+                  Для подтверждения введите слово <span className="font-mono font-bold">ВОССТАНОВИТЬ</span>
+                </Label>
+                <Input
+                  id="confirm-restore"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="ВОССТАНОВИТЬ"
+                  autoComplete="off"
+                  disabled={restore.isPending}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => { setRestoreTarget(null); setConfirmText(""); }}
+                disabled={restore.isPending}
+              >
+                Отмена
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => restoreTarget && restore.mutate(restoreTarget.id)}
+                disabled={restore.isPending || confirmText !== "ВОССТАНОВИТЬ"}
+              >
+                {restore.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RotateCcw className="mr-2 h-4 w-4" />}
+                Восстановить
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

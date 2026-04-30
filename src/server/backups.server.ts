@@ -181,3 +181,90 @@ export async function getBackupDownloadUrl(storagePath: string, expiresInSec = 3
   if (error) throw new Error(error.message);
   return data.signedUrl;
 }
+
+export type RestoreResult = {
+  backupId: string;
+  restoredTables: Record<string, number>;
+  skippedTables: string[];
+};
+
+// Восстановление: для каждой таблицы — DELETE всех строк + INSERT данных из копии.
+// Чанками по 500. Не трогаем таблицы, которых нет в копии или нет в проекте.
+export async function restoreFromBackup(backupId: string): Promise<RestoreResult> {
+  const { data: row, error: rowErr } = await supabaseAdmin
+    .from("backups")
+    .select("id, status, storage_path")
+    .eq("id", backupId)
+    .maybeSingle();
+  if (rowErr) throw new Error(rowErr.message);
+  const r = row as { id: string; status: string; storage_path: string | null } | null;
+  if (!r) throw new Error("Резервная копия не найдена");
+  if (r.status !== "success" || !r.storage_path) {
+    throw new Error("Эта копия не пригодна для восстановления");
+  }
+
+  const dl = await supabaseAdmin.storage.from("backups").download(r.storage_path);
+  if (dl.error || !dl.data) throw new Error(`Загрузка файла копии: ${dl.error?.message ?? "нет данных"}`);
+  const text = await dl.data.text();
+  let payload: { data?: Record<string, unknown[]> };
+  try {
+    payload = JSON.parse(text) as { data?: Record<string, unknown[]> };
+  } catch (e) {
+    throw new Error(`Файл копии повреждён: ${(e as Error).message}`);
+  }
+  const dump = payload.data ?? {};
+
+  const restored: Record<string, number> = {};
+  const skipped: string[] = [];
+
+  // Восстанавливаем в обратном порядке (чтобы FK-зависимости не блокировали удаление верхних таблиц)
+  const orderForDelete = [...BACKUP_TABLES].reverse();
+  // Удаляем
+  for (const name of orderForDelete) {
+    if (!(name in dump)) {
+      skipped.push(name);
+      continue;
+    }
+    const del = await (supabaseAdmin as SbAdmin)
+      .from(name as never)
+      .delete()
+      .not("id", "is", null);
+    if (del.error) {
+      // если таблицы нет — пропустим
+      if (/relation .* does not exist/i.test(del.error.message)) {
+        skipped.push(name);
+        continue;
+      }
+      throw new Error(`Очистка таблицы ${name}: ${del.error.message}`);
+    }
+  }
+
+  // Вставляем в прямом порядке
+  for (const name of BACKUP_TABLES) {
+    const rows = dump[name];
+    if (!Array.isArray(rows)) continue;
+    if (rows.length === 0) {
+      restored[name] = 0;
+      continue;
+    }
+    const CHUNK = 500;
+    let inserted = 0;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const slice = rows.slice(i, i + CHUNK);
+      const ins = await (supabaseAdmin as SbAdmin)
+        .from(name as never)
+        .insert(slice as never);
+      if (ins.error) {
+        if (/relation .* does not exist/i.test(ins.error.message)) {
+          skipped.push(name);
+          break;
+        }
+        throw new Error(`Вставка в таблицу ${name}: ${ins.error.message}`);
+      }
+      inserted += slice.length;
+    }
+    restored[name] = inserted;
+  }
+
+  return { backupId, restoredTables: restored, skippedTables: skipped };
+}
