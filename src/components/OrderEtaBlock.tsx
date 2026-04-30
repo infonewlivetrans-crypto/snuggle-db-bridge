@@ -130,9 +130,10 @@ export function OrderEtaBlock({ orderId }: { orderId: string }) {
   });
 
   const mine = eta.find((e) => e.point_number === routePoint.point_number);
-  if (!mine) return null;
+  if (!mine || !mine.eta_at) return null;
 
-  const etaDate = new Date(mine.eta_at!);
+  const etaDate = new Date(mine.eta_at);
+  if (Number.isNaN(etaDate.getTime())) return null;
   const fromDate = new Date(etaDate.getTime() - 15 * 60_000);
   const toDate = new Date(etaDate.getTime() + 15 * 60_000);
 
