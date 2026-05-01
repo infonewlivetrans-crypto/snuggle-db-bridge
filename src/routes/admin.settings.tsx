@@ -17,6 +17,8 @@ import {
   type SystemSetting,
   type AppVersion,
 } from "@/lib/system-settings";
+import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules } from "@/lib/modules";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettingsPage,
