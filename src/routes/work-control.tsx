@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 export const Route = createFileRoute("/work-control")({
   head: () => ({
@@ -79,6 +80,7 @@ function todayRange() {
 
 function WorkControlPage() {
   const { startIso, endIso, dateStr } = useMemo(todayRange, []);
+  const launchMode = useLaunchMode();
 
   const { data, isLoading, isFetching, refetch, dataUpdatedAt } = useQuery({
     queryKey: ["work-control", dateStr],
@@ -494,7 +496,7 @@ function WorkControlPage() {
               </CardContent>
             </Card>
           ) : (
-            problems.map((p) => <ProblemCard key={p.key} problem={p} />)
+            problems.map((p) => <ProblemCard key={p.key} problem={p} launchMode={launchMode} />)
           )}
         </div>
       </main>
@@ -530,7 +532,8 @@ function SummaryCard({
   );
 }
 
-function ProblemCard({ problem }: { problem: Problem }) {
+function ProblemCard({ problem, launchMode }: { problem: Problem; launchMode: "minimal" | "full" }) {
+  const actionVisible = isPathVisibleInLaunchMode(problem.actionHref, launchMode);
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -552,42 +555,52 @@ function ProblemCard({ problem }: { problem: Problem }) {
               {problem.description}
             </p>
           </div>
-          <Button asChild size="sm" variant="outline">
-            <Link to={problem.actionHref}>
-              {problem.actionLabel}
-              <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Link>
-          </Button>
+          {actionVisible ? (
+            <Button asChild size="sm" variant="outline">
+              <Link to={problem.actionHref}>
+                {problem.actionLabel}
+                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          ) : (
+            <span className="rounded-md border border-dashed border-border px-2 py-1 text-xs text-muted-foreground">
+              Раздел скрыт в минимальном режиме
+            </span>
+          )}
         </div>
       </CardHeader>
       {problem.items.length > 0 ? (
         <CardContent className="pt-0">
           <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
-            {problem.items.map((it) => (
-              <li
-                key={it.id}
-                className="flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs"
-              >
-                <div className="min-w-0">
-                  <div className="truncate font-medium text-foreground">
-                    {it.label}
-                  </div>
-                  {it.sub ? (
-                    <div className="truncate text-muted-foreground">
-                      {it.sub}
+            {problem.items.map((it) => {
+              const itemHrefVisible =
+                it.href && isPathVisibleInLaunchMode(it.href, launchMode);
+              return (
+                <li
+                  key={it.id}
+                  className="flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-foreground">
+                      {it.label}
                     </div>
+                    {it.sub ? (
+                      <div className="truncate text-muted-foreground">
+                        {it.sub}
+                      </div>
+                    ) : null}
+                  </div>
+                  {itemHrefVisible ? (
+                    <Link
+                      to={it.href!}
+                      className="shrink-0 text-primary hover:underline"
+                    >
+                      Открыть
+                    </Link>
                   ) : null}
-                </div>
-                {it.href ? (
-                  <Link
-                    to={it.href}
-                    className="shrink-0 text-primary hover:underline"
-                  >
-                    Открыть
-                  </Link>
-                ) : null}
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
           {problem.count > problem.items.length ? (
             <p className="mt-2 text-xs text-muted-foreground">
