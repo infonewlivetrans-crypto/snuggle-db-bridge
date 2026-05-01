@@ -110,10 +110,18 @@ export function AppHeader() {
   const [open, setOpen] = useState(false);
   const { user, profile, roles, signOut } = useAuth();
 
-  // Фильтруем пункты по ролям пользователя
-  const visibleAll = ALL_NAV.filter((it) => canAccess(it.to, roles));
-  const visiblePrimary = PRIMARY_NAV.filter((it) => canAccess(it.to, roles));
-  const visibleMore = MORE_NAV.filter((it) => canAccess(it.to, roles));
+  const enabledModules = useEnabledModules();
+
+  // Фильтруем пункты по ролям пользователя и включённым модулям
+  const visibleAll = ALL_NAV.filter(
+    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
+  );
+  const visiblePrimary = PRIMARY_NAV.filter(
+    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
+  );
+  const visibleMore = MORE_NAV.filter(
+    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
+  );
 
   const moreActive = visibleMore.find((it) => it.match(path));
   const activeItem = visibleAll.find((it) => it.match(path));
