@@ -89,11 +89,11 @@ function CarrierPaymentsPage() {
     queryFn: async (): Promise<Record<string, string>> => {
       const { data, error } = await supabase
         .from("carriers")
-        .select("id, name")
+        .select("id, company_name")
         .in("id", carrierIds);
       if (error) throw error;
       const map: Record<string, string> = {};
-      for (const c of (data ?? []) as Carrier[]) map[c.id] = c.name;
+      for (const c of (data ?? []) as Carrier[]) map[c.id] = c.company_name;
       return map;
     },
   });
