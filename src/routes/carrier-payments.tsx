@@ -55,7 +55,7 @@ type Row = {
   total_distance_km: number | null;
 };
 
-type Carrier = { id: string; name: string };
+type Carrier = { id: string; company_name: string };
 
 function CarrierPaymentsPage() {
   const [filter, setFilter] = useState<CarrierPaymentStatus | "all">("all");
