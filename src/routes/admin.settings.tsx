@@ -116,6 +116,8 @@ const CATEGORY_LABELS: Record<string, string> = {
   roles: "Роли",
   order: "Заказы",
   general: "Общие",
+  modules: "Модули системы",
+  gps: "GPS",
 };
 
 function SettingEditor({ setting, onChanged }: { setting: SystemSetting; onChanged: () => void }) {
