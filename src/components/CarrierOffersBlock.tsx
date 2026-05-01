@@ -483,7 +483,7 @@ function AvailabilityBadge({
   );
 }
 
-import { useQuery as useQueryWrap } from "@tanstack/react-query";
+
 
 /**
  * Обёртка: грузит требования из routes по routeId и рендерит CarrierOffersBlock.
