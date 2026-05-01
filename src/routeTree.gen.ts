@@ -34,6 +34,7 @@ import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DirectorRouteImport } from './routes/director'
 import { Route as DataImportRouteImport } from './routes/data-import'
 import { Route as CarrierRoutesRouteImport } from './routes/carrier-routes'
+import { Route as CarrierPaymentsRouteImport } from './routes/carrier-payments'
 import { Route as CarrierOffersRouteImport } from './routes/carrier-offers'
 import { Route as BackupsRouteImport } from './routes/backups'
 import { Route as AuditLogRouteImport } from './routes/audit-log'
@@ -189,6 +190,11 @@ const CarrierRoutesRoute = CarrierRoutesRouteImport.update({
   path: '/carrier-routes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarrierPaymentsRoute = CarrierPaymentsRouteImport.update({
+  id: '/carrier-payments',
+  path: '/carrier-payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CarrierOffersRoute = CarrierOffersRouteImport.update({
   id: '/carrier-offers',
   path: '/carrier-offers',
@@ -342,6 +348,7 @@ export interface FileRoutesByFullPath {
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
   '/carrier-offers': typeof CarrierOffersRoute
+  '/carrier-payments': typeof CarrierPaymentsRoute
   '/carrier-routes': typeof CarrierRoutesRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
@@ -398,6 +405,7 @@ export interface FileRoutesByTo {
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
   '/carrier-offers': typeof CarrierOffersRoute
+  '/carrier-payments': typeof CarrierPaymentsRoute
   '/carrier-routes': typeof CarrierRoutesRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
@@ -455,6 +463,7 @@ export interface FileRoutesById {
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
   '/carrier-offers': typeof CarrierOffersRoute
+  '/carrier-payments': typeof CarrierPaymentsRoute
   '/carrier-routes': typeof CarrierRoutesRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
@@ -513,6 +522,7 @@ export interface FileRouteTypes {
     | '/audit-log'
     | '/backups'
     | '/carrier-offers'
+    | '/carrier-payments'
     | '/carrier-routes'
     | '/data-import'
     | '/director'
@@ -569,6 +579,7 @@ export interface FileRouteTypes {
     | '/audit-log'
     | '/backups'
     | '/carrier-offers'
+    | '/carrier-payments'
     | '/carrier-routes'
     | '/data-import'
     | '/director'
@@ -625,6 +636,7 @@ export interface FileRouteTypes {
     | '/audit-log'
     | '/backups'
     | '/carrier-offers'
+    | '/carrier-payments'
     | '/carrier-routes'
     | '/data-import'
     | '/director'
@@ -682,6 +694,7 @@ export interface RootRouteChildren {
   AuditLogRoute: typeof AuditLogRoute
   BackupsRoute: typeof BackupsRoute
   CarrierOffersRoute: typeof CarrierOffersRoute
+  CarrierPaymentsRoute: typeof CarrierPaymentsRoute
   CarrierRoutesRoute: typeof CarrierRoutesRoute
   DataImportRoute: typeof DataImportRouteWithChildren
   DirectorRoute: typeof DirectorRoute
@@ -910,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarrierRoutesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carrier-payments': {
+      id: '/carrier-payments'
+      path: '/carrier-payments'
+      fullPath: '/carrier-payments'
+      preLoaderRoute: typeof CarrierPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/carrier-offers': {
       id: '/carrier-offers'
       path: '/carrier-offers'
@@ -1133,6 +1153,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuditLogRoute: AuditLogRoute,
   BackupsRoute: BackupsRoute,
   CarrierOffersRoute: CarrierOffersRoute,
+  CarrierPaymentsRoute: CarrierPaymentsRoute,
   CarrierRoutesRoute: CarrierRoutesRoute,
   DataImportRoute: DataImportRouteWithChildren,
   DirectorRoute: DirectorRoute,
