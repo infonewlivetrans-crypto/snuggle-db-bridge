@@ -267,6 +267,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             orderNumber={order.order_number}
             clientPhone={order.contact_phone ?? null}
           />
+          {/* Контакты по заказу: клиент, менеджер, логист, водитель, перевозчик */}
+          <OrderContactsBlock orderId={order.id} clientName={order.contact_name ?? null} clientPhone={order.contact_phone ?? null} />
 
           {/* Отчёт о доставке (если есть) */}
           {latestReport && (
