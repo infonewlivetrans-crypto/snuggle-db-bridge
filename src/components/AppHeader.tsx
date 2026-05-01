@@ -71,6 +71,7 @@ const MORE_NAV: readonly NavItem[] = [
   { to: "/backups", label: "Резервные копии", icon: Database, match: (p) => p.startsWith("/backups") },
   { to: "/system-errors", label: "Ошибки системы", icon: AlertTriangle, match: (p) => p.startsWith("/system-errors") },
   { to: "/feedback", label: "Обратная связь", icon: MessageSquare, match: (p) => p.startsWith("/feedback") },
+  { to: "/pilot-tasks", label: "Задачи и доработки", icon: ClipboardList, match: (p) => p.startsWith("/pilot-tasks") },
 ];
 
 // Полный список — для бургер-меню (никакие страницы не теряются)

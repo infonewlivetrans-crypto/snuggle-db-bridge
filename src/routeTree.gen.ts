@@ -24,6 +24,7 @@ import { Route as SystemIssuesRouteImport } from './routes/system-issues'
 import { Route as SystemErrorsRouteImport } from './routes/system-errors'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
 import { Route as RouteImportTemplateRouteImport } from './routes/route-import-template'
+import { Route as PilotTasksRouteImport } from './routes/pilot-tasks'
 import { Route as PilotRouteImport } from './routes/pilot'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LogistRouteImport } from './routes/logist'
@@ -133,6 +134,11 @@ const RouteReportsRoute = RouteReportsRouteImport.update({
 const RouteImportTemplateRoute = RouteImportTemplateRouteImport.update({
   id: '/route-import-template',
   path: '/route-import-template',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PilotTasksRoute = PilotTasksRouteImport.update({
+  id: '/pilot-tasks',
+  path: '/pilot-tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PilotRoute = PilotRouteImport.update({
@@ -324,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
   '/pilot': typeof PilotRoute
+  '/pilot-tasks': typeof PilotTasksRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
   '/system-errors': typeof SystemErrorsRoute
@@ -376,6 +383,7 @@ export interface FileRoutesByTo {
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
   '/pilot': typeof PilotRoute
+  '/pilot-tasks': typeof PilotTasksRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
   '/system-errors': typeof SystemErrorsRoute
@@ -429,6 +437,7 @@ export interface FileRoutesById {
   '/logist': typeof LogistRoute
   '/notifications': typeof NotificationsRoute
   '/pilot': typeof PilotRoute
+  '/pilot-tasks': typeof PilotTasksRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
   '/system-errors': typeof SystemErrorsRoute
@@ -483,6 +492,7 @@ export interface FileRouteTypes {
     | '/logist'
     | '/notifications'
     | '/pilot'
+    | '/pilot-tasks'
     | '/route-import-template'
     | '/route-reports'
     | '/system-errors'
@@ -535,6 +545,7 @@ export interface FileRouteTypes {
     | '/logist'
     | '/notifications'
     | '/pilot'
+    | '/pilot-tasks'
     | '/route-import-template'
     | '/route-reports'
     | '/system-errors'
@@ -587,6 +598,7 @@ export interface FileRouteTypes {
     | '/logist'
     | '/notifications'
     | '/pilot'
+    | '/pilot-tasks'
     | '/route-import-template'
     | '/route-reports'
     | '/system-errors'
@@ -640,6 +652,7 @@ export interface RootRouteChildren {
   LogistRoute: typeof LogistRoute
   NotificationsRoute: typeof NotificationsRoute
   PilotRoute: typeof PilotRoute
+  PilotTasksRoute: typeof PilotTasksRoute
   RouteImportTemplateRoute: typeof RouteImportTemplateRoute
   RouteReportsRoute: typeof RouteReportsRoute
   SystemErrorsRoute: typeof SystemErrorsRoute
@@ -786,6 +799,13 @@ declare module '@tanstack/react-router' {
       path: '/route-import-template'
       fullPath: '/route-import-template'
       preLoaderRoute: typeof RouteImportTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilot-tasks': {
+      id: '/pilot-tasks'
+      path: '/pilot-tasks'
+      fullPath: '/pilot-tasks'
+      preLoaderRoute: typeof PilotTasksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pilot': {
@@ -1059,6 +1079,7 @@ const rootRouteChildren: RootRouteChildren = {
   LogistRoute: LogistRoute,
   NotificationsRoute: NotificationsRoute,
   PilotRoute: PilotRoute,
+  PilotTasksRoute: PilotTasksRoute,
   RouteImportTemplateRoute: RouteImportTemplateRoute,
   RouteReportsRoute: RouteReportsRoute,
   SystemErrorsRoute: SystemErrorsRoute,
