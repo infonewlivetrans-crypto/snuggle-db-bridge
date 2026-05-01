@@ -14,6 +14,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, refresh } = useAuth();
   const location = useLocation();
   const path = location.pathname;
+  const enabledModules = useEnabledModules();
 
   const [hasAdmin, setHasAdmin] = useState<boolean | null>(null);
 
