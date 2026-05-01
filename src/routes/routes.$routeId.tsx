@@ -45,6 +45,7 @@ import { CarrierOffersBlock } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
+import { CarrierPayoutBlock } from "@/components/CarrierPayoutBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -556,6 +557,9 @@ function RouteDetailPage() {
 
         {/* Документы по рейсу от перевозчика */}
         <CarrierDocumentsBlock routeId={route.id} mode="logist" />
+
+        {/* Контроль оплаты перевозчику */}
+        <CarrierPayoutBlock routeId={route.id} />
 
         {/* Подбор перевозчиков (Радиус Трек) */}
         <CarrierOffersBlock

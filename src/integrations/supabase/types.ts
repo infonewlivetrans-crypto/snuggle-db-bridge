@@ -2452,6 +2452,15 @@ export type Database = {
           carrier_docs_uploaded_by: string | null
           carrier_id: string | null
           carrier_payment_status: Database["public"]["Enums"]["carrier_payment_status"]
+          carrier_payout_changed_at: string | null
+          carrier_payout_changed_by: string | null
+          carrier_payout_comment: string | null
+          carrier_payout_paid_amount: number
+          carrier_payout_paid_at: string | null
+          carrier_payout_scheduled_date: string | null
+          carrier_payout_status:
+            | Database["public"]["Enums"]["carrier_payout_status"]
+            | null
           carrier_reward: number | null
           comment: string | null
           company_id: string | null
@@ -2529,6 +2538,15 @@ export type Database = {
           carrier_docs_uploaded_by?: string | null
           carrier_id?: string | null
           carrier_payment_status?: Database["public"]["Enums"]["carrier_payment_status"]
+          carrier_payout_changed_at?: string | null
+          carrier_payout_changed_by?: string | null
+          carrier_payout_comment?: string | null
+          carrier_payout_paid_amount?: number
+          carrier_payout_paid_at?: string | null
+          carrier_payout_scheduled_date?: string | null
+          carrier_payout_status?:
+            | Database["public"]["Enums"]["carrier_payout_status"]
+            | null
           carrier_reward?: number | null
           comment?: string | null
           company_id?: string | null
@@ -2606,6 +2624,15 @@ export type Database = {
           carrier_docs_uploaded_by?: string | null
           carrier_id?: string | null
           carrier_payment_status?: Database["public"]["Enums"]["carrier_payment_status"]
+          carrier_payout_changed_at?: string | null
+          carrier_payout_changed_by?: string | null
+          carrier_payout_comment?: string | null
+          carrier_payout_paid_amount?: number
+          carrier_payout_paid_at?: string | null
+          carrier_payout_scheduled_date?: string | null
+          carrier_payout_status?:
+            | Database["public"]["Enums"]["carrier_payout_status"]
+            | null
           carrier_reward?: number | null
           comment?: string | null
           company_id?: string | null
@@ -3852,6 +3879,12 @@ export type Database = {
         | "review"
         | "approved"
         | "to_pay"
+      carrier_payout_status:
+        | "to_pay"
+        | "scheduled"
+        | "paid"
+        | "partially_paid"
+        | "cancelled"
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
       client_kind:
@@ -4135,6 +4168,13 @@ export const Constants = {
         "review",
         "approved",
         "to_pay",
+      ],
+      carrier_payout_status: [
+        "to_pay",
+        "scheduled",
+        "paid",
+        "partially_paid",
+        "cancelled",
       ],
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
