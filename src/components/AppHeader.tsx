@@ -25,6 +25,7 @@ import {
   MessageSquare,
   Activity,
   Sun,
+  Upload,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
@@ -73,6 +74,7 @@ const MORE_NAV: readonly NavItem[] = [
   { to: "/warehouse-today", label: "Склад сегодня", icon: Warehouse, match: (p) => p.startsWith("/warehouse-today") },
   { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p) => p.startsWith("/supply") },
   { to: "/data-import", label: "Импорт данных", icon: FileSpreadsheet, match: (p) => p.startsWith("/data-import") && !p.startsWith("/data-import/history") },
+  { to: "/upload", label: "Загрузка файлов", icon: Upload, match: (p) => p.startsWith("/upload") },
   { to: "/audit-log", label: "Журнал действий", icon: History, match: (p) => p.startsWith("/audit-log") },
   { to: "/backups", label: "Резервные копии", icon: Database, match: (p) => p.startsWith("/backups") },
   { to: "/system-errors", label: "Ошибки системы", icon: AlertTriangle, match: (p) => p.startsWith("/system-errors") },
