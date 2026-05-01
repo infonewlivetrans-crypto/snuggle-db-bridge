@@ -21,6 +21,7 @@ import { Route as WarehouseReturnsRouteImport } from './routes/warehouse-returns
 import { Route as WarehouseReportRouteImport } from './routes/warehouse-report'
 import { Route as WarehouseMovementsRouteImport } from './routes/warehouse-movements'
 import { Route as WarehouseInboundRouteImport } from './routes/warehouse-inbound'
+import { Route as UploadRouteImport } from './routes/upload'
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
 import { Route as SystemErrorsRouteImport } from './routes/system-errors'
@@ -126,6 +127,11 @@ const WarehouseMovementsRoute = WarehouseMovementsRouteImport.update({
 const WarehouseInboundRoute = WarehouseInboundRouteImport.update({
   id: '/warehouse-inbound',
   path: '/warehouse-inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SystemTestRoute = SystemTestRouteImport.update({
@@ -382,6 +388,7 @@ export interface FileRoutesByFullPath {
   '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/upload': typeof UploadRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
   '/warehouse-movements': typeof WarehouseMovementsRoute
   '/warehouse-report': typeof WarehouseReportRoute
@@ -442,6 +449,7 @@ export interface FileRoutesByTo {
   '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/upload': typeof UploadRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
   '/warehouse-movements': typeof WarehouseMovementsRoute
   '/warehouse-report': typeof WarehouseReportRoute
@@ -503,6 +511,7 @@ export interface FileRoutesById {
   '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
+  '/upload': typeof UploadRoute
   '/warehouse-inbound': typeof WarehouseInboundRoute
   '/warehouse-movements': typeof WarehouseMovementsRoute
   '/warehouse-report': typeof WarehouseReportRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/system-errors'
     | '/system-issues'
     | '/system-test'
+    | '/upload'
     | '/warehouse-inbound'
     | '/warehouse-movements'
     | '/warehouse-report'
@@ -625,6 +635,7 @@ export interface FileRouteTypes {
     | '/system-errors'
     | '/system-issues'
     | '/system-test'
+    | '/upload'
     | '/warehouse-inbound'
     | '/warehouse-movements'
     | '/warehouse-report'
@@ -685,6 +696,7 @@ export interface FileRouteTypes {
     | '/system-errors'
     | '/system-issues'
     | '/system-test'
+    | '/upload'
     | '/warehouse-inbound'
     | '/warehouse-movements'
     | '/warehouse-report'
@@ -746,6 +758,7 @@ export interface RootRouteChildren {
   SystemErrorsRoute: typeof SystemErrorsRoute
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
+  UploadRoute: typeof UploadRoute
   WarehouseInboundRoute: typeof WarehouseInboundRoute
   WarehouseMovementsRoute: typeof WarehouseMovementsRoute
   WarehouseReportRoute: typeof WarehouseReportRoute
@@ -869,6 +882,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouse-inbound'
       fullPath: '/warehouse-inbound'
       preLoaderRoute: typeof WarehouseInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/system-test': {
@@ -1229,6 +1249,7 @@ const rootRouteChildren: RootRouteChildren = {
   SystemErrorsRoute: SystemErrorsRoute,
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
+  UploadRoute: UploadRoute,
   WarehouseInboundRoute: WarehouseInboundRoute,
   WarehouseMovementsRoute: WarehouseMovementsRoute,
   WarehouseReportRoute: WarehouseReportRoute,
