@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
 import { Route as WorkDayRouteImport } from './routes/work-day'
+import { Route as WorkControlRouteImport } from './routes/work-control'
 import { Route as WarehouseTransfersRouteImport } from './routes/warehouse-transfers'
 import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
 import { Route as WarehouseStockRouteImport } from './routes/warehouse-stock'
@@ -74,6 +75,11 @@ const WorkspaceRoute = WorkspaceRouteImport.update({
 const WorkDayRoute = WorkDayRouteImport.update({
   id: '/work-day',
   path: '/work-day',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkControlRoute = WorkControlRouteImport.update({
+  id: '/work-control',
+  path: '/work-control',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WarehouseTransfersRoute = WarehouseTransfersRouteImport.update({
@@ -379,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/warehouse-transfers': typeof WarehouseTransfersRoute
+  '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -437,6 +444,7 @@ export interface FileRoutesByTo {
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/warehouse-transfers': typeof WarehouseTransfersRoute
+  '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -496,6 +504,7 @@ export interface FileRoutesById {
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/warehouse-transfers': typeof WarehouseTransfersRoute
+  '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -556,6 +565,7 @@ export interface FileRouteTypes {
     | '/warehouse-stock'
     | '/warehouse-today'
     | '/warehouse-transfers'
+    | '/work-control'
     | '/work-day'
     | '/workspace'
     | '/admin/settings'
@@ -614,6 +624,7 @@ export interface FileRouteTypes {
     | '/warehouse-stock'
     | '/warehouse-today'
     | '/warehouse-transfers'
+    | '/work-control'
     | '/work-day'
     | '/workspace'
     | '/admin/settings'
@@ -672,6 +683,7 @@ export interface FileRouteTypes {
     | '/warehouse-stock'
     | '/warehouse-today'
     | '/warehouse-transfers'
+    | '/work-control'
     | '/work-day'
     | '/workspace'
     | '/admin/settings'
@@ -731,6 +743,7 @@ export interface RootRouteChildren {
   WarehouseStockRoute: typeof WarehouseStockRoute
   WarehouseTodayRoute: typeof WarehouseTodayRoute
   WarehouseTransfersRoute: typeof WarehouseTransfersRoute
+  WorkControlRoute: typeof WorkControlRoute
   WorkDayRoute: typeof WorkDayRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -773,6 +786,13 @@ declare module '@tanstack/react-router' {
       path: '/work-day'
       fullPath: '/work-day'
       preLoaderRoute: typeof WorkDayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/work-control': {
+      id: '/work-control'
+      path: '/work-control'
+      fullPath: '/work-control'
+      preLoaderRoute: typeof WorkControlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/warehouse-transfers': {
@@ -1198,6 +1218,7 @@ const rootRouteChildren: RootRouteChildren = {
   WarehouseStockRoute: WarehouseStockRoute,
   WarehouseTodayRoute: WarehouseTodayRoute,
   WarehouseTransfersRoute: WarehouseTransfersRoute,
+  WorkControlRoute: WorkControlRoute,
   WorkDayRoute: WorkDayRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
