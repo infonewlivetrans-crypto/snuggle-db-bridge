@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     try {
-      const { logAuditFn } = await import("@/server/audit.functions");
+      const { logAuditFn } = await import("@/lib/server-functions/audit.functions");
       await logAuditFn({ data: { section: "auth", action: "login", objectType: "user", objectLabel: email } });
     } catch {
       // не блокируем вход, если аудит недоступен
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { logAuditFn } = await import("@/server/audit.functions");
+      const { logAuditFn } = await import("@/lib/server-functions/audit.functions");
       await logAuditFn({ data: { section: "auth", action: "logout", objectType: "user" } });
     } catch {
       // ignore

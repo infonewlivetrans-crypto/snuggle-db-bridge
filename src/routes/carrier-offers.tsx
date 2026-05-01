@@ -33,7 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth/auth-context";
-import { respondToOffer } from "@/server/route-offers.functions";
+import { respondToOffer } from "@/lib/server-functions/route-offers.functions";
 import { BODY_TYPE_LABELS, type BodyType } from "@/lib/carriers";
 
 export const Route = createFileRoute("/carrier-offers")({

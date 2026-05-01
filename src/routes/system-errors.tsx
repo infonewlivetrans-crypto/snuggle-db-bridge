@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import {
   listSystemErrorsFn,
   updateSystemErrorFn,
-} from "@/server/system-errors.functions";
+} from "@/lib/server-functions/system-errors.functions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ErrorState } from "@/components/ErrorState";
 

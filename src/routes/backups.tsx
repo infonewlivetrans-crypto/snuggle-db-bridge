@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import { createBackupFn, getBackupUrlFn, listBackupsFn, restoreBackupFn } from "@/server/backups.functions";
+import { createBackupFn, getBackupUrlFn, listBackupsFn, restoreBackupFn } from "@/lib/server-functions/backups.functions";
 
 export const Route = createFileRoute("/backups")({
   head: () => ({ meta: [{ title: "Резервные копии — Радиус Трек" }] }),

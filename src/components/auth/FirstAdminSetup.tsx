@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
-import { bootstrapFirstAdminFn } from "@/server/users.functions";
+import { bootstrapFirstAdminFn } from "@/lib/server-functions/users.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 export function FirstAdminSetup({ onCreated }: { onCreated: () => void }) {

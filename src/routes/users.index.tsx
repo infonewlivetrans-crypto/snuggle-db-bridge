@@ -27,7 +27,7 @@ import {
   listUsersFn,
   setUserActiveFn,
   setUserRoleFn,
-} from "@/server/users.functions";
+} from "@/lib/server-functions/users.functions";
 import { toast } from "sonner";
 import { Plus, ShieldOff, ShieldCheck } from "lucide-react";
 
