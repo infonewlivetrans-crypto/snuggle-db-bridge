@@ -64,6 +64,7 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/notifications"), roles: [] },
   { test: (p) => p.startsWith("/workspace"), roles: [] },
   { test: (p) => p.startsWith("/feedback"), roles: [] },
+  { test: (p) => p.startsWith("/pilot-tasks"), roles: ["admin", "director"] },
 ];
 
 export function canAccess(path: string, roles: AppRole[]): boolean {
