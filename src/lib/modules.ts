@@ -95,6 +95,7 @@ const MINIMAL_ALLOWED_PREFIXES: readonly string[] = [
   "/work-day",
   "/work-control",
   "/data-import",
+  "/upload",
   "/", // заказы (точное совпадение проверяем отдельно)
   "/orders",
   "/delivery-routes",
