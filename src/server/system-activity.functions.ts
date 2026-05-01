@@ -25,15 +25,13 @@ function startOfDayIso(daysAgo: number): string {
   return d.toISOString();
 }
 
-async function countHead(
-  table: string,
-  build: (q: ReturnType<typeof supabaseAdmin.from>) => unknown,
-): Promise<number> {
-  const q = supabaseAdmin.from(table).select("*", { count: "exact", head: true });
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const res: any = await (build(q as any) as any);
-  if (res?.error) return 0;
-  return Number(res?.count ?? 0);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sb = supabaseAdmin as any;
+
+async function countWith(builder: Promise<{ count: number | null; error: unknown }>): Promise<number> {
+  const res = await builder;
+  if (res.error) return 0;
+  return Number(res.count ?? 0);
 }
 
 export const systemActivityFn = createServerFn({ method: "POST" })
@@ -54,15 +52,13 @@ export const systemActivityFn = createServerFn({ method: "POST" })
       reportsToday,
       driverLocationsToday,
     ] = await Promise.all([
-      countHead("delivery_routes", (q) => q.gte("created_at", todayStart)),
-      countHead("delivery_routes", (q) =>
-        q.eq("status", "completed").gte("updated_at", todayStart),
-      ),
-      countHead("orders", (q) => q.gte("updated_at", todayStart)),
-      countHead("system_errors", (q) => q.gte("created_at", todayStart)),
-      countHead("route_points", (q) => q.not("completed_at", "is", null).gte("completed_at", todayStart)),
-      countHead("delivery_reports", (q) => q.gte("created_at", todayStart)),
-      countHead("driver_locations", (q) => q.gte("captured_at", todayStart)),
+      countWith(sb.from("delivery_routes").select("*", { count: "exact", head: true }).gte("created_at", todayStart)),
+      countWith(sb.from("delivery_routes").select("*", { count: "exact", head: true }).eq("status", "completed").gte("updated_at", todayStart)),
+      countWith(sb.from("orders").select("*", { count: "exact", head: true }).gte("updated_at", todayStart)),
+      countWith(sb.from("system_errors").select("*", { count: "exact", head: true }).gte("created_at", todayStart)),
+      countWith(sb.from("route_points").select("*", { count: "exact", head: true }).not("completed_at", "is", null).gte("completed_at", todayStart)),
+      countWith(sb.from("delivery_reports").select("*", { count: "exact", head: true }).gte("created_at", todayStart)),
+      countWith(sb.from("driver_locations").select("*", { count: "exact", head: true }).gte("captured_at", todayStart)),
     ]);
 
     // === Уникальные пользователи, заходившие сегодня (по audit_log) ===
