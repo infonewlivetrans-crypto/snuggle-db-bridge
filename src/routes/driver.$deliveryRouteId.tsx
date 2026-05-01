@@ -30,6 +30,7 @@ import { DriverGeoTracker } from "@/components/DriverGeoTracker";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
+import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
