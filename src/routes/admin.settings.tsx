@@ -55,13 +55,18 @@ function AdminSettingsPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-6">
-        <Tabs defaultValue="settings">
+        <Tabs defaultValue="modules">
           <TabsList>
+            <TabsTrigger value="modules">Модули</TabsTrigger>
             <TabsTrigger value="settings">Настройки</TabsTrigger>
             <TabsTrigger value="versions">
               <Smartphone className="h-4 w-4 mr-1" /> Версии приложения
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="modules" className="mt-4">
+            <ModuleTogglesPanel items={data.settings} onChanged={() => router.invalidate()} />
+          </TabsContent>
 
           <TabsContent value="settings" className="mt-4">
             <SettingsList items={data.settings} onChanged={() => router.invalidate()} />
@@ -73,6 +78,77 @@ function AdminSettingsPage() {
         </Tabs>
       </main>
     </div>
+  );
+}
+
+function ModuleTogglesPanel({
+  items,
+  onChanged,
+}: {
+  items: SystemSetting[];
+  onChanged: () => void;
+}) {
+  const setting = items.find((s) => s.setting_key === "modules.enabled");
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  if (!setting) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-muted-foreground">
+          Настройка модулей не найдена.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const value = (setting.setting_value as Partial<EnabledModules>) ?? {};
+  const keys: ModuleKey[] = ["warehouse", "supply", "accounting", "carriers", "onec", "excel_import"];
+
+  const toggle = async (key: ModuleKey, next: boolean) => {
+    setBusy(key);
+    try {
+      await updateSetting(setting.id, { ...value, [key]: next });
+      toast.success(`${MODULE_LABELS[key]}: ${next ? "включён" : "выключен"}`);
+      qc.invalidateQueries({ queryKey: ["modules.enabled"] });
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сохранения");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Опциональные модули</CardTitle>
+        <CardDescription>
+          Если модуль выключен, его разделы скрываются из меню. Маршруты, склад
+          и водитель продолжают работать независимо друг от друга.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="divide-y divide-border">
+        {keys.map((k) => {
+          const enabled = value[k] !== false;
+          return (
+            <div key={k} className="flex items-start justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <div className="font-medium">{MODULE_LABELS[k]}</div>
+                <div className="text-xs text-muted-foreground">
+                  {MODULE_DESCRIPTIONS[k]}
+                </div>
+              </div>
+              <Switch
+                checked={enabled}
+                disabled={busy === k}
+                onCheckedChange={(v) => toggle(k, v)}
+              />
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 }
 
