@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceRouteImport } from './routes/workspace'
+import { Route as WorkDayRouteImport } from './routes/work-day'
 import { Route as WarehouseTransfersRouteImport } from './routes/warehouse-transfers'
 import { Route as WarehouseTodayRouteImport } from './routes/warehouse-today'
 import { Route as WarehouseStockRouteImport } from './routes/warehouse-stock'
@@ -68,6 +69,11 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkDayRoute = WorkDayRouteImport.update({
+  id: '/work-day',
+  path: '/work-day',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WarehouseTransfersRoute = WarehouseTransfersRouteImport.update({
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/warehouse-transfers': typeof WarehouseTransfersRoute
+  '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -430,6 +437,7 @@ export interface FileRoutesByTo {
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/warehouse-transfers': typeof WarehouseTransfersRoute
+  '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -488,6 +496,7 @@ export interface FileRoutesById {
   '/warehouse-stock': typeof WarehouseStockRoute
   '/warehouse-today': typeof WarehouseTodayRoute
   '/warehouse-transfers': typeof WarehouseTransfersRoute
+  '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -547,6 +556,7 @@ export interface FileRouteTypes {
     | '/warehouse-stock'
     | '/warehouse-today'
     | '/warehouse-transfers'
+    | '/work-day'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -604,6 +614,7 @@ export interface FileRouteTypes {
     | '/warehouse-stock'
     | '/warehouse-today'
     | '/warehouse-transfers'
+    | '/work-day'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -661,6 +672,7 @@ export interface FileRouteTypes {
     | '/warehouse-stock'
     | '/warehouse-today'
     | '/warehouse-transfers'
+    | '/work-day'
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -719,6 +731,7 @@ export interface RootRouteChildren {
   WarehouseStockRoute: typeof WarehouseStockRoute
   WarehouseTodayRoute: typeof WarehouseTodayRoute
   WarehouseTransfersRoute: typeof WarehouseTransfersRoute
+  WorkDayRoute: typeof WorkDayRoute
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
@@ -753,6 +766,13 @@ declare module '@tanstack/react-router' {
       path: '/workspace'
       fullPath: '/workspace'
       preLoaderRoute: typeof WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/work-day': {
+      id: '/work-day'
+      path: '/work-day'
+      fullPath: '/work-day'
+      preLoaderRoute: typeof WorkDayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/warehouse-transfers': {
@@ -1178,6 +1198,7 @@ const rootRouteChildren: RootRouteChildren = {
   WarehouseStockRoute: WarehouseStockRoute,
   WarehouseTodayRoute: WarehouseTodayRoute,
   WarehouseTransfersRoute: WarehouseTransfersRoute,
+  WorkDayRoute: WorkDayRoute,
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,

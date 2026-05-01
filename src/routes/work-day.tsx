@@ -67,7 +67,7 @@ function WorkDayPage() {
       // Рейсы за сегодня (по route_date)
       const routesQ = supabase
         .from("routes")
-        .select("id, status, driver_id, driver_name, issued_at")
+        .select("id, status, driver_id, driver_name")
         .gte("route_date", start.slice(0, 10))
         .lt("route_date", end.slice(0, 10));
 
@@ -81,10 +81,8 @@ function WorkDayPage() {
       const routesWithDriver = routes.filter(
         (r) => Boolean(r.driver_id) || Boolean(r.driver_name),
       ).length;
-      const routesIssued = routes.filter(
-        (r) =>
-          Boolean(r.issued_at) ||
-          ["in_progress", "completed", "closed"].includes(String(r.status)),
+      const routesIssued = routes.filter((r) =>
+        ["issued", "in_progress", "completed", "closed"].includes(String(r.status)),
       ).length;
       const routesCompleted = routes.filter((r) =>
         ["completed", "closed"].includes(String(r.status)),
