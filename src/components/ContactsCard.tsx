@@ -91,18 +91,15 @@ export function useRouteContacts(params: {
     enabled: !!(routeId || deliveryRouteId),
     queryKey: ["route-contacts", routeId ?? null, deliveryRouteId ?? null],
     queryFn: async (): Promise<ContactPerson[]> => {
-      // 1. Заявка-источник
-      let request: {
-        id: string;
-        driver_name: string | null;
-        created_by: string | null;
-      } | null = null;
-
-      let dr: {
+      // 1. Заявка-источник + рейс
+      type RequestRow = { id: string; driver_name: string | null; created_by: string | null };
+      type DRRow = {
         assigned_driver: string | null;
         carrier_id: string | null;
         source_request_id: string;
-      } | null = null;
+      };
+      let request: RequestRow | null = null;
+      let dr: DRRow | null = null;
 
       if (deliveryRouteId) {
         const { data } = await supabase
@@ -110,7 +107,7 @@ export function useRouteContacts(params: {
           .select("assigned_driver, carrier_id, source_request_id")
           .eq("id", deliveryRouteId)
           .maybeSingle();
-        dr = (data as typeof dr) ?? null;
+        dr = (data as unknown as DRRow | null) ?? null;
       }
       const reqId = routeId ?? dr?.source_request_id ?? null;
       if (reqId) {
@@ -119,7 +116,7 @@ export function useRouteContacts(params: {
           .select("id, driver_name, created_by")
           .eq("id", reqId)
           .maybeSingle();
-        request = (data as typeof request) ?? null;
+        request = (data as unknown as RequestRow | null) ?? null;
       }
 
       // 2. Первая точка — берём клиента и менеджера клиента
@@ -184,19 +181,19 @@ export function useRouteContacts(params: {
         }
       }
 
-      // 5. Логист — пытаемся вытащить из profiles по created_by
+      // 5. Логист — берём из created_by (имя/email из profiles)
       let logistName: string | null = request?.created_by ?? null;
-      let logistPhone: string | null = null;
+      const logistPhone: string | null = null;
       if (logistName) {
         const { data: pr } = await supabase
           .from("profiles")
-          .select("display_name, phone")
-          .or(`display_name.ilike.${logistName},email.ilike.${logistName}`)
+          .select("full_name, email")
+          .or(`full_name.ilike.${logistName},email.ilike.${logistName}`)
           .limit(1)
           .maybeSingle();
-        if (pr) {
-          logistName = (pr as any).display_name ?? logistName;
-          logistPhone = (pr as any).phone ?? null;
+        const prAny = pr as { full_name: string | null; email: string | null } | null;
+        if (prAny) {
+          logistName = prAny.full_name ?? logistName;
         }
       }
 
