@@ -48,7 +48,7 @@ type Row = {
 };
 
 type Carrier = { id: string; company_name: string };
-type Vehicle = { id: string; brand: string | null; model: string | null; license_plate: string | null };
+type Vehicle = { id: string; brand: string | null; model: string | null; plate_number: string | null };
 
 function CarrierPaymentsPage() {
   const [filter, setFilter] = useState<CarrierPayoutStatus | "all" | "overdue">("all");
