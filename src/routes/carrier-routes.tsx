@@ -34,7 +34,7 @@ type Row = {
 };
 
 const ACTIVE_STATUSES: DeliveryRouteStatus[] = ["formed", "issued", "in_progress"];
-const FINISHED_STATUSES: DeliveryRouteStatus[] = ["completed", "cancelled"];
+const FINISHED_STATUSES: DeliveryRouteStatus[] = ["completed"];
 
 function CarrierRoutesPage() {
   const { profile } = useAuth();
