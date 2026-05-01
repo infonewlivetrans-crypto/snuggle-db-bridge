@@ -82,6 +82,67 @@ function AdminSettingsPage() {
   );
 }
 
+function LaunchModePanel({
+  items,
+  onChanged,
+}: {
+  items: SystemSetting[];
+  onChanged: () => void;
+}) {
+  const setting = items.find((s) => s.setting_key === "launch.mode");
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  if (!setting) {
+    return null;
+  }
+
+  const current: LaunchMode = setting.setting_value === "minimal" ? "minimal" : "full";
+  const isMinimal = current === "minimal";
+
+  const setMode = async (next: LaunchMode) => {
+    setBusy(true);
+    try {
+      await updateSetting(setting.id, next);
+      toast.success(`Режим: ${LAUNCH_MODE_LABELS[next]}`);
+      qc.invalidateQueries({ queryKey: ["launch.mode"] });
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сохранения");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Режим запуска</CardTitle>
+        <CardDescription>
+          В режиме «Минимальный запуск» в меню остаются только базовые разделы:
+          Рабочий день, Импорт данных, Заказы, Маршруты, Водитель, Отчёты, Контроль работы.
+          Остальные разделы скрываются (но не удаляются).
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-medium">{LAUNCH_MODE_LABELS[current]}</div>
+          <div className="text-xs text-muted-foreground">
+            {isMinimal
+              ? "Включён минимальный набор разделов."
+              : "Доступны все разделы, разрешённые ролью и модулями."}
+          </div>
+        </div>
+        <Switch
+          checked={isMinimal}
+          disabled={busy}
+          onCheckedChange={(v) => setMode(v ? "minimal" : "full")}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
 function ModuleTogglesPanel({
   items,
   onChanged,
