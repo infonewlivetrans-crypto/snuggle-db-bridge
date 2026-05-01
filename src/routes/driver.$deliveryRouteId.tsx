@@ -34,6 +34,7 @@ import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
+import { formatRuPhone } from "@/lib/phone";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
@@ -544,7 +545,7 @@ function DriverPointCard({
             className="flex items-center gap-1.5 text-primary hover:underline"
           >
             <Phone className="h-3.5 w-3.5" />
-            {o.contact_phone}
+            {formatRuPhone(o.contact_phone)}
           </a>
         )}
       </div>
