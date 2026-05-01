@@ -6,7 +6,7 @@ import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS } from "@/lib/modules";
+import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
@@ -15,6 +15,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const location = useLocation();
   const path = location.pathname;
   const enabledModules = useEnabledModules();
+  const launchMode = useLaunchMode();
 
   const [hasAdmin, setHasAdmin] = useState<boolean | null>(null);
 
@@ -101,6 +102,22 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <p className="mt-2 text-sm text-muted-foreground">
             Раздел «{moduleLabel}» сейчас отключён в настройках системы.
             Включите модуль в «Настройки → Модули», чтобы продолжить работу.
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  // Минимальный режим запуска — скрываем всё, что не входит в базовый сценарий
+  if (!isPathVisibleInLaunchMode(path, launchMode)) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Раздел недоступен</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Сейчас включён режим «Минимальный запуск». Этот раздел скрыт.
+            Переключите режим в «Настройки → Модули», чтобы открыть полный набор разделов.
           </p>
         </main>
       </div>

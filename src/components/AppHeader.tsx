@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccess, ROLE_LABELS } from "@/lib/auth/roles";
-import { useEnabledModules, isPathEnabled } from "@/lib/modules";
+import { useEnabledModules, isPathEnabled, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 type NavItem = {
   to: string;
@@ -114,17 +114,17 @@ export function AppHeader() {
   const { user, profile, roles, signOut } = useAuth();
 
   const enabledModules = useEnabledModules();
+  const launchMode = useLaunchMode();
 
-  // Фильтруем пункты по ролям пользователя и включённым модулям
-  const visibleAll = ALL_NAV.filter(
-    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
-  );
-  const visiblePrimary = PRIMARY_NAV.filter(
-    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
-  );
-  const visibleMore = MORE_NAV.filter(
-    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
-  );
+  // Фильтруем пункты по ролям, включённым модулям и режиму запуска
+  const isItemVisible = (to: string) =>
+    canAccess(to, roles) &&
+    isPathEnabled(to, enabledModules) &&
+    isPathVisibleInLaunchMode(to, launchMode);
+
+  const visibleAll = ALL_NAV.filter((it) => isItemVisible(it.to));
+  const visiblePrimary = PRIMARY_NAV.filter((it) => isItemVisible(it.to));
+  const visibleMore = MORE_NAV.filter((it) => isItemVisible(it.to));
 
   const moreActive = visibleMore.find((it) => it.match(path));
   const activeItem = visibleAll.find((it) => it.match(path));

@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { useEnabledModules } from "@/lib/modules";
+import { useEnabledModules, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 export const Route = createFileRoute("/work-day")({
   head: () => ({
@@ -51,6 +51,7 @@ function todayRange() {
 
 function WorkDayPage() {
   const enabled = useEnabledModules();
+  const launchMode = useLaunchMode();
   const { start, end } = useMemo(todayRange, []);
 
   // Считаем сегодняшние данные напрямую — отдельной бизнес-логики не вводим
@@ -344,7 +345,9 @@ function WorkDayPage() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {section.steps.map((step) => {
                     const Icon = step.icon;
-                    const visibleActions = step.actions.filter((a) => !a.hidden);
+                    const visibleActions = step.actions.filter(
+                      (a) => !a.hidden && isPathVisibleInLaunchMode(a.to, launchMode),
+                    );
                     return (
                       <Card key={step.title} className={step.done ? "border-emerald-500/40" : ""}>
                         <CardContent className="p-4">

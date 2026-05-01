@@ -80,3 +80,70 @@ export function isPathEnabled(path: string, modules: EnabledModules): boolean {
   if (!m) return true;
   return modules[m];
 }
+
+// ===== Режим запуска =====
+
+export type LaunchMode = "minimal" | "full";
+
+/**
+ * Пути, видимые в режиме «Минимальный запуск».
+ * Только базовый сценарий: рабочий день, импорт, заказы, маршруты, водитель,
+ * отчёты менеджеру, контроль работы. Плюс служебное (настройки, пользователи,
+ * уведомления, выход).
+ */
+const MINIMAL_ALLOWED_PREFIXES: readonly string[] = [
+  "/work-day",
+  "/work-control",
+  "/data-import",
+  "/", // заказы (точное совпадение проверяем отдельно)
+  "/delivery-routes",
+  "/routes",
+  "/driver",
+  "/route-reports",
+  // Служебные — нужны для управления самим режимом и пользователями
+  "/admin",
+  "/users",
+  "/notifications",
+  "/feedback",
+  "/d/",
+  "/workspace",
+];
+
+/** Точные пути «Заказов» — корневой роут. */
+function isOrdersPath(path: string): boolean {
+  return path === "/" || path.startsWith("/?");
+}
+
+/** Видим ли путь в текущем режиме запуска. */
+export function isPathVisibleInLaunchMode(path: string, mode: LaunchMode): boolean {
+  if (mode === "full") return true;
+  if (isOrdersPath(path)) return true;
+  // Исключаем "/" из общего префиксного сравнения, чтобы не открыть всё
+  return MINIMAL_ALLOWED_PREFIXES.some(
+    (p) => p !== "/" && (path === p || path.startsWith(p === "/d/" ? p : `${p}/`) || path === p),
+  );
+}
+
+/** Чтение режима запуска. */
+export function useLaunchMode(): LaunchMode {
+  const { data } = useQuery({
+    queryKey: ["launch.mode"],
+    staleTime: 60_000,
+    queryFn: async (): Promise<LaunchMode> => {
+      const { data, error } = await supabase
+        .from("system_settings")
+        .select("setting_value")
+        .eq("setting_key", "launch.mode")
+        .maybeSingle();
+      if (error) return "full";
+      const v = data?.setting_value;
+      return v === "minimal" ? "minimal" : "full";
+    },
+  });
+  return data ?? "full";
+}
+
+export const LAUNCH_MODE_LABELS: Record<LaunchMode, string> = {
+  minimal: "Минимальный запуск",
+  full: "Полный режим",
+};
