@@ -6,6 +6,7 @@ import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS } from "@/lib/modules";
 
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
