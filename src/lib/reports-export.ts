@@ -141,7 +141,7 @@ export async function exportDeliveryReport(format: "xlsx" | "docx") {
     const json = rowsArr.map((row) =>
       Object.fromEntries(headers.map((h, i) => [h, row[i]])),
     );
-    downloadXlsx(json, "Доставки", `delivery_report_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Доставки", `delivery_report_${Date.now()}.xlsx`);
   } else {
     await downloadDocx("Отчёт по доставкам", headers, rowsArr, `delivery_report_${Date.now()}.docx`);
   }
@@ -169,7 +169,7 @@ export async function exportPaymentsReport(format: "xlsx" | "docx") {
 
   if (format === "xlsx") {
     const json = rowsArr.map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
-    downloadXlsx(json, "Оплаты", `payments_report_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Оплаты", `payments_report_${Date.now()}.xlsx`);
   } else {
     await downloadDocx("Отчёт по оплатам", headers, rowsArr, `payments_report_${Date.now()}.docx`);
   }
@@ -219,7 +219,7 @@ export async function exportDriversReport(format: "xlsx" | "docx") {
 
   if (format === "xlsx") {
     const json = rowsArr.map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
-    downloadXlsx(json, "Водители", `drivers_report_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Водители", `drivers_report_${Date.now()}.xlsx`);
   } else {
     await downloadDocx("Отчёт по водителям", headers, rowsArr, `drivers_report_${Date.now()}.docx`);
   }
@@ -254,7 +254,7 @@ export async function exportTransportRequestsReport(format: "xlsx" | "docx") {
 
   if (format === "xlsx") {
     const json = rowsArr.map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
-    downloadXlsx(json, "Заявки", `transport_requests_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Заявки", `transport_requests_${Date.now()}.xlsx`);
   } else {
     await downloadDocx(
       "Отчёт по заявкам на транспорт",
