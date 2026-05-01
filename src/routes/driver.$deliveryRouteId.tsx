@@ -19,6 +19,8 @@ import {
   Hash,
   Flag,
   AlertTriangle,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
