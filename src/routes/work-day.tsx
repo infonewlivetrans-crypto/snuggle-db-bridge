@@ -345,7 +345,9 @@ function WorkDayPage() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {section.steps.map((step) => {
                     const Icon = step.icon;
-                    const visibleActions = step.actions.filter((a) => !a.hidden);
+                    const visibleActions = step.actions.filter(
+                      (a) => !a.hidden && isPathVisibleInLaunchMode(a.to, launchMode),
+                    );
                     return (
                       <Card key={step.title} className={step.done ? "border-emerald-500/40" : ""}>
                         <CardContent className="p-4">
