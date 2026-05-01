@@ -71,7 +71,11 @@ export function CarrierPaymentBlock({ routeId }: { routeId: string }) {
 
   const setStatus = useMutation({
     mutationFn: async (status: CarrierPaymentStatus) => {
-      const patch: Record<string, unknown> = {
+      const patch: {
+        carrier_payment_status: CarrierPaymentStatus;
+        carrier_cost_comment: string | null;
+        carrier_cost_approved_at?: string | null;
+      } = {
         carrier_payment_status: status,
         carrier_cost_comment: comment.trim() || data?.carrier_cost_comment || null,
       };
