@@ -10,6 +10,7 @@ type Profile = {
   full_name: string | null;
   email: string | null;
   is_active: boolean;
+  carrier_id?: string | null;
 };
 
 type AuthContextValue = {
