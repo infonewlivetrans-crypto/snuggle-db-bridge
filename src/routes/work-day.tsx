@@ -51,6 +51,7 @@ function todayRange() {
 
 function WorkDayPage() {
   const enabled = useEnabledModules();
+  const launchMode = useLaunchMode();
   const { start, end } = useMemo(todayRange, []);
 
   // Считаем сегодняшние данные напрямую — отдельной бизнес-логики не вводим
