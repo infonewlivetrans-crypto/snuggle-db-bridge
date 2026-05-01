@@ -41,6 +41,7 @@ import { DeliveryLocation } from "@/components/DeliveryLocation";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteTimingBlock } from "@/components/RouteTimingBlock";
 import { RouteCostBlock, type CostMethod } from "@/components/RouteCostBlock";
+import { CarrierOffersBlock } from "@/components/CarrierOffersBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -542,6 +543,28 @@ function RouteDetailPage() {
           deliveryPercentTarget={Number(
             (route as unknown as { delivery_percent_target?: number }).delivery_percent_target ?? 5,
           )}
+        />
+
+        {/* Подбор перевозчиков (Радиус Трек) */}
+        <CarrierOffersBlock
+          routeId={route.id}
+          requirements={{
+            required_body_type: route.required_body_type ?? null,
+            required_capacity_kg: route.required_capacity_kg ?? null,
+            required_volume_m3: route.required_volume_m3 ?? null,
+            required_body_length_m:
+              (route as unknown as { required_body_length_m?: number | null })
+                .required_body_length_m ?? null,
+            requires_tent:
+              (route as unknown as { requires_tent?: boolean | null }).requires_tent ?? null,
+            requires_manipulator:
+              (route as unknown as { requires_manipulator?: boolean | null })
+                .requires_manipulator ?? null,
+            requires_straps:
+              (route as unknown as { requires_straps?: boolean | null }).requires_straps ?? null,
+            warehouse_city: route.warehouse?.city ?? null,
+            planned_departure_at: route.planned_departure_at ?? null,
+          }}
         />
 
         {/* Статус движения водителя */}

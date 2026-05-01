@@ -3544,6 +3544,7 @@ export type Database = {
       recalc_route_etas: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
+      vehicle_busy_until: { Args: { _vehicle_id: string }; Returns: string }
     }
     Enums: {
       app_role:
