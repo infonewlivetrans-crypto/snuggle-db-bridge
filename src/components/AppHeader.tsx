@@ -23,6 +23,7 @@ import {
   Database,
   AlertTriangle,
   MessageSquare,
+  Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
@@ -70,6 +71,7 @@ const MORE_NAV: readonly NavItem[] = [
   { to: "/audit-log", label: "Журнал действий", icon: History, match: (p) => p.startsWith("/audit-log") },
   { to: "/backups", label: "Резервные копии", icon: Database, match: (p) => p.startsWith("/backups") },
   { to: "/system-errors", label: "Ошибки системы", icon: AlertTriangle, match: (p) => p.startsWith("/system-errors") },
+  { to: "/system-activity", label: "Активность системы", icon: Activity, match: (p) => p.startsWith("/system-activity") },
   { to: "/feedback", label: "Обратная связь", icon: MessageSquare, match: (p) => p.startsWith("/feedback") },
   { to: "/pilot-tasks", label: "Задачи и доработки", icon: ClipboardList, match: (p) => p.startsWith("/pilot-tasks") },
 ];

@@ -42,6 +42,7 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/audit-log"), roles: ["admin", "director"] },
   { test: (p) => p.startsWith("/backups"), roles: ["admin", "director"] },
   { test: (p) => p.startsWith("/system-errors"), roles: ["admin", "director"] },
+  { test: (p) => p.startsWith("/system-activity"), roles: ["admin", "director"] },
   { test: (p) => p.startsWith("/system-issues") || p.startsWith("/system-test") || p.startsWith("/first-run") || p.startsWith("/pilot"), roles: ["admin"] },
   { test: (p) => p.startsWith("/data-import"), roles: ["admin", "logist", "manager"] },
 
