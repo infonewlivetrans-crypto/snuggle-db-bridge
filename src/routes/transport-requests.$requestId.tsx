@@ -33,6 +33,7 @@ import {
 } from "@/components/TransportRequestStatusBlock";
 import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
 import { DeliveryPointsBlock } from "@/components/DeliveryPointsBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import { CreateRouteFromRequestBlock } from "@/components/CreateRouteFromRequestBlock";
 import {
   PRIORITY_LABELS,
@@ -282,6 +283,9 @@ function TransportRequestDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* Контакты по заявке */}
+            <RequestContactsBlock requestId={data.id} />
 
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />

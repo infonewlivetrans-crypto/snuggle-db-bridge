@@ -33,6 +33,7 @@ import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteDeviationBlock } from "@/components/RouteDeviationBlock";
 import { RouteEtaBlock } from "@/components/RouteEtaBlock";
@@ -351,6 +352,9 @@ function DeliveryRoutePage() {
                 </Button>
               </div>
             </div>
+
+            {/* Контакты по рейсу */}
+            <DeliveryRouteContactsBlock deliveryRouteId={deliveryRouteId} />
 
             {/* Геопозиция водителя */}
             <DriverGeoBlock deliveryRouteId={deliveryRouteId} />
