@@ -22,6 +22,7 @@ import { Route as WarehouseInboundRouteImport } from './routes/warehouse-inbound
 import { Route as SystemTestRouteImport } from './routes/system-test'
 import { Route as SystemIssuesRouteImport } from './routes/system-issues'
 import { Route as SystemErrorsRouteImport } from './routes/system-errors'
+import { Route as SystemActivityRouteImport } from './routes/system-activity'
 import { Route as RouteReportsRouteImport } from './routes/route-reports'
 import { Route as RouteImportTemplateRouteImport } from './routes/route-import-template'
 import { Route as PilotTasksRouteImport } from './routes/pilot-tasks'
@@ -124,6 +125,11 @@ const SystemIssuesRoute = SystemIssuesRouteImport.update({
 const SystemErrorsRoute = SystemErrorsRouteImport.update({
   id: '/system-errors',
   path: '/system-errors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemActivityRoute = SystemActivityRouteImport.update({
+  id: '/system-activity',
+  path: '/system-activity',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RouteReportsRoute = RouteReportsRouteImport.update({
@@ -333,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/pilot-tasks': typeof PilotTasksRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-activity': typeof SystemActivityRoute
   '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
@@ -386,6 +393,7 @@ export interface FileRoutesByTo {
   '/pilot-tasks': typeof PilotTasksRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-activity': typeof SystemActivityRoute
   '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
@@ -440,6 +448,7 @@ export interface FileRoutesById {
   '/pilot-tasks': typeof PilotTasksRoute
   '/route-import-template': typeof RouteImportTemplateRoute
   '/route-reports': typeof RouteReportsRoute
+  '/system-activity': typeof SystemActivityRoute
   '/system-errors': typeof SystemErrorsRoute
   '/system-issues': typeof SystemIssuesRoute
   '/system-test': typeof SystemTestRoute
@@ -495,6 +504,7 @@ export interface FileRouteTypes {
     | '/pilot-tasks'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-activity'
     | '/system-errors'
     | '/system-issues'
     | '/system-test'
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/pilot-tasks'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-activity'
     | '/system-errors'
     | '/system-issues'
     | '/system-test'
@@ -601,6 +612,7 @@ export interface FileRouteTypes {
     | '/pilot-tasks'
     | '/route-import-template'
     | '/route-reports'
+    | '/system-activity'
     | '/system-errors'
     | '/system-issues'
     | '/system-test'
@@ -655,6 +667,7 @@ export interface RootRouteChildren {
   PilotTasksRoute: typeof PilotTasksRoute
   RouteImportTemplateRoute: typeof RouteImportTemplateRoute
   RouteReportsRoute: typeof RouteReportsRoute
+  SystemActivityRoute: typeof SystemActivityRoute
   SystemErrorsRoute: typeof SystemErrorsRoute
   SystemIssuesRoute: typeof SystemIssuesRoute
   SystemTestRoute: typeof SystemTestRoute
@@ -785,6 +798,13 @@ declare module '@tanstack/react-router' {
       path: '/system-errors'
       fullPath: '/system-errors'
       preLoaderRoute: typeof SystemErrorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/system-activity': {
+      id: '/system-activity'
+      path: '/system-activity'
+      fullPath: '/system-activity'
+      preLoaderRoute: typeof SystemActivityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/route-reports': {
@@ -1082,6 +1102,7 @@ const rootRouteChildren: RootRouteChildren = {
   PilotTasksRoute: PilotTasksRoute,
   RouteImportTemplateRoute: RouteImportTemplateRoute,
   RouteReportsRoute: RouteReportsRoute,
+  SystemActivityRoute: SystemActivityRoute,
   SystemErrorsRoute: SystemErrorsRoute,
   SystemIssuesRoute: SystemIssuesRoute,
   SystemTestRoute: SystemTestRoute,
