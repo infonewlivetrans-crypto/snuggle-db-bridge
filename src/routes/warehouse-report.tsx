@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FileText, Download, Truck, Package, RotateCcw, AlertTriangle } from "lucide-react";
-import * as XLSX from "xlsx";
+// `xlsx` подключается лениво при экспорте.
 
 export const Route = createFileRoute("/warehouse-report")({
   head: () => ({
@@ -380,7 +380,8 @@ function WarehouseReportPage() {
     [events],
   );
 
-  const downloadXlsx = () => {
+  const downloadXlsx = async () => {
+    const XLSX = await import("xlsx");
     const rows = filtered.map((e) => ({
       "Дата и время": fmtDateTime(e.at),
       "Тип события": EVENT_LABEL[e.type],
