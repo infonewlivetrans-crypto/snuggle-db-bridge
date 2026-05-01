@@ -6,6 +6,7 @@ import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
+import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS } from "@/lib/modules";
 
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
@@ -13,6 +14,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, refresh } = useAuth();
   const location = useLocation();
   const path = location.pathname;
+  const enabledModules = useEnabledModules();
 
   const [hasAdmin, setHasAdmin] = useState<boolean | null>(null);
 
@@ -81,6 +83,24 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <h1 className="text-2xl font-bold text-foreground">Нет доступа к этому разделу</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             У вашей роли нет прав на просмотр этой страницы.
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  // Модуль выключен в системных настройках — скрываем раздел даже при прямом переходе по URL
+  if (!isPathEnabled(path, enabledModules)) {
+    const moduleKey = pathBelongsToModule(path);
+    const moduleLabel = moduleKey ? MODULE_LABELS[moduleKey] : "этот";
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Модуль отключён</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Раздел «{moduleLabel}» сейчас отключён в настройках системы.
+            Включите модуль в «Настройки → Модули», чтобы продолжить работу.
           </p>
         </main>
       </div>

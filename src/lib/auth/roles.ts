@@ -28,7 +28,7 @@ export function landingPathForRoles(roles: AppRole[]): string {
   if (roles.includes("admin")) return "/";
   if (roles.includes("director")) return "/director";
   if (roles.includes("logist")) return "/logist";
-  if (roles.includes("manager")) return "/";
+  if (roles.includes("manager")) return "/route-reports";
   if (roles.includes("warehouse")) return "/warehouse-today";
   if (roles.includes("supply")) return "/supply";
   if (roles.includes("driver")) return "/driver";
