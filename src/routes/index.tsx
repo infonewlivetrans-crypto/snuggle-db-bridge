@@ -9,6 +9,7 @@ import { CreateOrderDialog } from "@/components/CreateOrderDialog";
 import { ImportOrdersDialog } from "@/components/ImportOrdersDialog";
 import { CreateRouteFromOrdersDialog } from "@/components/CreateRouteFromOrdersDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
+import { DemoModeBanner } from "@/components/DemoModeBanner";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -187,6 +188,7 @@ function OrdersPage() {
       <AppHeader />
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <DemoModeBanner />
         {/* Заголовок */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>

@@ -32,6 +32,7 @@ import { BrandLogo, BrandMark } from "@/components/BrandLogo";
 import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { DemoModeBadge } from "@/components/DemoModeBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -290,6 +291,7 @@ export function AppHeader() {
 
         {/* Правая часть */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <DemoModeBadge />
           <NotificationsBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
