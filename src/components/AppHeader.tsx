@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   MessageSquare,
   Activity,
+  Sun,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
