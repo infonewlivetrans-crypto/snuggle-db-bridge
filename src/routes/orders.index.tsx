@@ -211,7 +211,7 @@ function OrdersPage() {
     for (const r of rows) {
       if (r.route?.route_number) {
         const from = r.route.warehouse?.city ?? "—";
-        const to = r.route.destination_warehouse?.city ?? r.destination_city ?? "—";
+        const to = r.destination_city ?? "—";
         map.set(r.route.route_number, `${r.route.route_number} · ${from} → ${to}`);
       }
     }
