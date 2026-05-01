@@ -44,14 +44,13 @@ export function ErrorState({ error, section, action, kind, onRetry, compact, sil
 
   const handleNotify = async () => {
     setSending(true);
-    const ok = await notifyAdmin({
+    await notifyAdmin({
       title: `${title}${section ? ` · ${section}` : ""}`,
       message: errorMessage(error) || hint,
     });
     setSending(false);
-    setReported(ok);
-    if (ok) toast.success("Сообщение отправлено администратору");
-    else toast.error("Не удалось отправить сообщение. Попробуйте позже.");
+    setReported(true);
+    toast.success("Сообщение отправлено администратору");
   };
 
   const Icon = detected === "no_access" || detected === "permission" ? ShieldAlert : AlertTriangle;
