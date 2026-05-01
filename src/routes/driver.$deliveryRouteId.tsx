@@ -368,13 +368,18 @@ function DriverRoutePage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {list.map((p) => (
+                {list.map((p, idx) => (
                   <DriverPointCard
                     key={p.id}
                     p={p}
+                    index={idx}
+                    total={list.length}
                     routeId={data.source_request_id}
                     driverName={data.assigned_driver}
                     photoKinds={photoKindsByPoint?.[p.id]}
+                    onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
+                    reordering={reorderPoints.isPending}
+                    locked={isCompleted}
                   />
                 ))}
               </div>
