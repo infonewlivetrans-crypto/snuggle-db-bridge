@@ -47,10 +47,12 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/system-errors"), roles: ["admin", "director"] },
   { test: (p) => p.startsWith("/system-activity"), roles: ["admin", "director"] },
   { test: (p) => p.startsWith("/system-issues") || p.startsWith("/system-test") || p.startsWith("/first-run") || p.startsWith("/pilot"), roles: ["admin"] },
-  { test: (p) => p.startsWith("/data-import"), roles: ["admin", "logist", "manager"] },
+  // Импорт Excel — только логист/админ. Менеджер не загружает данные.
+  { test: (p) => p.startsWith("/data-import"), roles: ["admin", "logist"] },
 
   { test: (p) => p.startsWith("/logist"), roles: ["admin", "logist"] },
-  { test: (p) => p.startsWith("/transport-requests"), roles: ["admin", "logist", "manager"] },
+  // Менеджер не создаёт заявки и не редактирует рейсы — только просмотр отчётов.
+  { test: (p) => p.startsWith("/transport-requests"), roles: ["admin", "logist"] },
   { test: (p) => p.startsWith("/delivery-routes") || p.startsWith("/routes"), roles: ["admin", "logist", "manager", "director"] },
   { test: (p) => p.startsWith("/route-reports"), roles: ["admin", "logist", "manager", "director"] },
 

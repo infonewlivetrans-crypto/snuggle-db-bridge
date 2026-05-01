@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccess, ROLE_LABELS } from "@/lib/auth/roles";
+import { useEnabledModules, isPathEnabled } from "@/lib/modules";
 
 type NavItem = {
   to: string;
@@ -109,10 +110,18 @@ export function AppHeader() {
   const [open, setOpen] = useState(false);
   const { user, profile, roles, signOut } = useAuth();
 
-  // Фильтруем пункты по ролям пользователя
-  const visibleAll = ALL_NAV.filter((it) => canAccess(it.to, roles));
-  const visiblePrimary = PRIMARY_NAV.filter((it) => canAccess(it.to, roles));
-  const visibleMore = MORE_NAV.filter((it) => canAccess(it.to, roles));
+  const enabledModules = useEnabledModules();
+
+  // Фильтруем пункты по ролям пользователя и включённым модулям
+  const visibleAll = ALL_NAV.filter(
+    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
+  );
+  const visiblePrimary = PRIMARY_NAV.filter(
+    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
+  );
+  const visibleMore = MORE_NAV.filter(
+    (it) => canAccess(it.to, roles) && isPathEnabled(it.to, enabledModules),
+  );
 
   const moreActive = visibleMore.find((it) => it.match(path));
   const activeItem = visibleAll.find((it) => it.match(path));
