@@ -44,6 +44,7 @@ import { RouteCostBlock, type CostMethod } from "@/components/RouteCostBlock";
 import { CarrierOffersBlock } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
+import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -552,6 +553,9 @@ function RouteDetailPage() {
 
         {/* Стоимость перевозчику и статус расчёта */}
         <CarrierPaymentBlock routeId={route.id} />
+
+        {/* Документы по рейсу от перевозчика */}
+        <CarrierDocumentsBlock routeId={route.id} mode="logist" />
 
         {/* Подбор перевозчиков (Радиус Трек) */}
         <CarrierOffersBlock

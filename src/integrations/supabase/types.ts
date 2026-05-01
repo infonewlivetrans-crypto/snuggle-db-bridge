@@ -1934,6 +1934,57 @@ export type Database = {
           },
         ]
       }
+      route_carrier_documents: {
+        Row: {
+          carrier_id: string | null
+          comment: string | null
+          created_at: string
+          file_url: string
+          id: string
+          kind: string
+          route_id: string
+          uploaded_by: string | null
+          uploaded_by_label: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          comment?: string | null
+          created_at?: string
+          file_url: string
+          id?: string
+          kind: string
+          route_id: string
+          uploaded_by?: string | null
+          uploaded_by_label?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          comment?: string | null
+          created_at?: string
+          file_url?: string
+          id?: string
+          kind?: string
+          route_id?: string
+          uploaded_by?: string | null
+          uploaded_by_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_carrier_documents_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_carrier_documents_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_carrier_history: {
         Row: {
           action: string
@@ -2392,6 +2443,13 @@ export type Database = {
           carrier_cost_approved_at: string | null
           carrier_cost_approved_by: string | null
           carrier_cost_comment: string | null
+          carrier_docs_accepted_at: string | null
+          carrier_docs_accepted_by: string | null
+          carrier_docs_comment: string | null
+          carrier_docs_fix_reason: string | null
+          carrier_docs_status: Database["public"]["Enums"]["carrier_docs_status"]
+          carrier_docs_uploaded_at: string | null
+          carrier_docs_uploaded_by: string | null
           carrier_id: string | null
           carrier_payment_status: Database["public"]["Enums"]["carrier_payment_status"]
           carrier_reward: number | null
@@ -2462,6 +2520,13 @@ export type Database = {
           carrier_cost_approved_at?: string | null
           carrier_cost_approved_by?: string | null
           carrier_cost_comment?: string | null
+          carrier_docs_accepted_at?: string | null
+          carrier_docs_accepted_by?: string | null
+          carrier_docs_comment?: string | null
+          carrier_docs_fix_reason?: string | null
+          carrier_docs_status?: Database["public"]["Enums"]["carrier_docs_status"]
+          carrier_docs_uploaded_at?: string | null
+          carrier_docs_uploaded_by?: string | null
           carrier_id?: string | null
           carrier_payment_status?: Database["public"]["Enums"]["carrier_payment_status"]
           carrier_reward?: number | null
@@ -2532,6 +2597,13 @@ export type Database = {
           carrier_cost_approved_at?: string | null
           carrier_cost_approved_by?: string | null
           carrier_cost_comment?: string | null
+          carrier_docs_accepted_at?: string | null
+          carrier_docs_accepted_by?: string | null
+          carrier_docs_comment?: string | null
+          carrier_docs_fix_reason?: string | null
+          carrier_docs_status?: Database["public"]["Enums"]["carrier_docs_status"]
+          carrier_docs_uploaded_at?: string | null
+          carrier_docs_uploaded_by?: string | null
           carrier_id?: string | null
           carrier_payment_status?: Database["public"]["Enums"]["carrier_payment_status"]
           carrier_reward?: number | null
@@ -3773,6 +3845,7 @@ export type Database = {
         | "gazelle"
         | "sideboard"
         | "long_vehicle"
+      carrier_docs_status: "awaiting" | "uploaded" | "needs_fix" | "accepted"
       carrier_payment_status:
         | "not_calculated"
         | "calculated"
@@ -4055,6 +4128,7 @@ export const Constants = {
         "sideboard",
         "long_vehicle",
       ],
+      carrier_docs_status: ["awaiting", "uploaded", "needs_fix", "accepted"],
       carrier_payment_status: [
         "not_calculated",
         "calculated",

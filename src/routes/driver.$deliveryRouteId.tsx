@@ -30,6 +30,7 @@ import { DriverGeoTracker } from "@/components/DriverGeoTracker";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
+import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
@@ -360,7 +361,13 @@ function DriverRoutePage() {
                     Маршрут завершён. Отчёт отправлен менеджеру.
                   </div>
                   {data?.source_request_id && (
-                    <CarrierPaymentBlock routeId={data.source_request_id} />
+                    <>
+                      <CarrierDocumentsBlock
+                        routeId={data.source_request_id}
+                        mode="carrier"
+                      />
+                      <CarrierPaymentBlock routeId={data.source_request_id} />
+                    </>
                   )}
                 </div>
               ) : validationErrors.length > 0 ? (
