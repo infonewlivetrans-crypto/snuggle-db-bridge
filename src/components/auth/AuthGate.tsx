@@ -89,5 +89,23 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Модуль выключен в системных настройках — скрываем раздел даже при прямом переходе по URL
+  if (!isPathEnabled(path, enabledModules)) {
+    const moduleKey = pathBelongsToModule(path);
+    const moduleLabel = moduleKey ? MODULE_LABELS[moduleKey] : "этот";
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Модуль отключён</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Раздел «{moduleLabel}» сейчас отключён в настройках системы.
+            Включите модуль в «Настройки → Модули», чтобы продолжить работу.
+          </p>
+        </main>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
