@@ -458,6 +458,12 @@ function DeliveryRoutePage() {
 
             {/* Доступ водителя по уникальной ссылке */}
             <DriverAccessLinkBlock deliveryRouteId={data.id} />
+
+            {/* Подбор перевозчиков (Радиус Трек) */}
+            {data.source_request_id && (
+              <CarrierOffersBlockForRoute routeId={data.source_request_id} />
+            )}
+
             {/* Прогресс по точкам */}
             {(() => {
               const list = points ?? [];
