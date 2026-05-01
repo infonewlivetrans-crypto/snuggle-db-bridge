@@ -1,4 +1,5 @@
-import * as XLSX from "xlsx";
+// Тяжёлая библиотека `xlsx` подключается лениво внутри функций,
+// чтобы не попадать в initial bundle.
 import { supabase } from "@/integrations/supabase/client";
 
 export type ImportResult = {
@@ -63,7 +64,8 @@ const TEMPLATE_HEADERS = [
   "Тип оплаты",
 ];
 
-export function downloadOrdersTemplate() {
+export async function downloadOrdersTemplate() {
+  const XLSX = await import("xlsx");
   const example = ["ORD-1001", "Иван Иванов", "+7 999 000 00 00", "г. Москва, ул. Ленина, 1", "55.7558, 37.6173", "Доска 50х50", 12.5, 0.05, 5000, "cash"];
   const ws = XLSX.utils.aoa_to_sheet([TEMPLATE_HEADERS, example]);
   const wb = XLSX.utils.book_new();
@@ -81,6 +83,7 @@ function mapHeaderRow(headerRow: unknown[]): Record<number, string> {
 }
 
 export async function importOrdersFromFile(file: File): Promise<ImportResult> {
+  const XLSX = await import("xlsx");
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array" });
   const ws = wb.Sheets[wb.SheetNames[0]];
