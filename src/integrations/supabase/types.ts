@@ -2389,7 +2389,11 @@ export type Database = {
           carrier_assigned_by: string | null
           carrier_assignment_status: string
           carrier_cost: number
+          carrier_cost_approved_at: string | null
+          carrier_cost_approved_by: string | null
+          carrier_cost_comment: string | null
           carrier_id: string | null
+          carrier_payment_status: Database["public"]["Enums"]["carrier_payment_status"]
           carrier_reward: number | null
           comment: string | null
           company_id: string | null
@@ -2455,7 +2459,11 @@ export type Database = {
           carrier_assigned_by?: string | null
           carrier_assignment_status?: string
           carrier_cost?: number
+          carrier_cost_approved_at?: string | null
+          carrier_cost_approved_by?: string | null
+          carrier_cost_comment?: string | null
           carrier_id?: string | null
+          carrier_payment_status?: Database["public"]["Enums"]["carrier_payment_status"]
           carrier_reward?: number | null
           comment?: string | null
           company_id?: string | null
@@ -2521,7 +2529,11 @@ export type Database = {
           carrier_assigned_by?: string | null
           carrier_assignment_status?: string
           carrier_cost?: number
+          carrier_cost_approved_at?: string | null
+          carrier_cost_approved_by?: string | null
+          carrier_cost_comment?: string | null
           carrier_id?: string | null
+          carrier_payment_status?: Database["public"]["Enums"]["carrier_payment_status"]
           carrier_reward?: number | null
           comment?: string | null
           company_id?: string | null
@@ -3761,6 +3773,12 @@ export type Database = {
         | "gazelle"
         | "sideboard"
         | "long_vehicle"
+      carrier_payment_status:
+        | "not_calculated"
+        | "calculated"
+        | "review"
+        | "approved"
+        | "to_pay"
       carrier_type: "self_employed" | "ip" | "ooo"
       carrier_verification_status: "new" | "in_review" | "approved" | "rejected"
       client_kind:
@@ -4036,6 +4054,13 @@ export const Constants = {
         "gazelle",
         "sideboard",
         "long_vehicle",
+      ],
+      carrier_payment_status: [
+        "not_calculated",
+        "calculated",
+        "review",
+        "approved",
+        "to_pay",
       ],
       carrier_type: ["self_employed", "ip", "ooo"],
       carrier_verification_status: ["new", "in_review", "approved", "rejected"],
