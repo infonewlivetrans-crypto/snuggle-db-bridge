@@ -11,18 +11,38 @@ function fmtDate(s: string | null | undefined): string {
   return d.toLocaleString("ru-RU");
 }
 
-function downloadXlsx(rows: Array<Record<string, unknown>>, sheetName: string, fileName: string) {
+async function downloadXlsx(rows: Array<Record<string, unknown>>, sheetName: string, fileName: string) {
+  const XLSX = await import("xlsx");
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));
   XLSX.writeFile(wb, fileName);
 }
 
-const cellBorder = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
-const cellBorders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
+async function downloadDocx(title: string, headers: string[], rows: string[][], fileName: string) {
+  const [
+    {
+      Document,
+      Packer,
+      Paragraph,
+      TextRun,
+      HeadingLevel,
+      Table,
+      TableRow,
+      TableCell,
+      WidthType,
+      BorderStyle,
+      ShadingType,
+      AlignmentType,
+    },
+    FileSaverMod,
+  ] = await Promise.all([import("docx"), import("file-saver")]);
+  const saveAs = (FileSaverMod as unknown as { default: { saveAs: (b: Blob, n: string) => void } }).default.saveAs;
 
-function docTable(headers: string[], rows: string[][]): Table {
-  const head = new TableRow({
+  const cellBorder = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
+  const cellBorders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
+
+  const headRow = new TableRow({
     tableHeader: true,
     children: headers.map(
       (h) =>
@@ -34,7 +54,7 @@ function docTable(headers: string[], rows: string[][]): Table {
         }),
     ),
   });
-  const body = rows.map(
+  const bodyRows = rows.map(
     (r) =>
       new TableRow({
         children: r.map(
@@ -47,24 +67,16 @@ function docTable(headers: string[], rows: string[][]): Table {
         ),
       }),
   );
-  return new Table({
+  const table = new Table({
     width: { size: 9360, type: WidthType.DXA },
-    rows: [head, ...body],
+    rows: [headRow, ...bodyRows],
   });
-}
 
-async function downloadDocx(title: string, headers: string[], rows: string[][], fileName: string) {
   const doc = new Document({
-    styles: {
-      default: { document: { run: { font: "Arial", size: 22 } } },
-    },
+    styles: { default: { document: { run: { font: "Arial", size: 22 } } } },
     sections: [
       {
-        properties: {
-          page: {
-            margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
-          },
-        },
+        properties: { page: { margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } } },
         children: [
           new Paragraph({
             heading: HeadingLevel.HEADING_1,
@@ -82,7 +94,7 @@ async function downloadDocx(title: string, headers: string[], rows: string[][], 
             ],
           }),
           new Paragraph({ children: [new TextRun(" ")] }),
-          docTable(headers, rows),
+          table,
         ],
       },
     ],
