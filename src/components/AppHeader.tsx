@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   MessageSquare,
   Activity,
+  Sun,
 } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
@@ -59,6 +60,7 @@ const PRIMARY_NAV: readonly NavItem[] = [
 
 // Второстепенные — в выпадающем меню «Ещё»
 const MORE_NAV: readonly NavItem[] = [
+  { to: "/work-day", label: "Рабочий день", icon: Sun, match: (p) => p.startsWith("/work-day") },
   { to: "/route-reports", label: "Отчёты", icon: FileText, match: (p) => p.startsWith("/route-reports") },
   { to: "/director", label: "Отчёт руководителя", icon: BarChart3, match: (p) => p.startsWith("/director") },
   { to: "/routes", label: "Маршруты (план)", icon: RouteIcon, match: (p) => p.startsWith("/routes") },
