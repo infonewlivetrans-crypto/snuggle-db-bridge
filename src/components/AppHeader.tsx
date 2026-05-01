@@ -75,6 +75,7 @@ const MORE_NAV: readonly NavItem[] = [
   { to: "/feedback", label: "Обратная связь", icon: MessageSquare, match: (p) => p.startsWith("/feedback") },
   { to: "/carrier-offers", label: "Предложения рейсов", icon: Truck, match: (p) => p.startsWith("/carrier-offers") },
   { to: "/carrier-routes", label: "Мои рейсы", icon: RouteIcon, match: (p) => p.startsWith("/carrier-routes") },
+  { to: "/carrier-payments", label: "Расчёты с перевозчиками", icon: Receipt, match: (p) => p.startsWith("/carrier-payments") },
   { to: "/pilot-tasks", label: "Задачи и доработки", icon: ClipboardList, match: (p) => p.startsWith("/pilot-tasks") },
 ];
 

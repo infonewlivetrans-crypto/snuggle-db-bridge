@@ -29,6 +29,7 @@ import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { DriverGeoTracker } from "@/components/DriverGeoTracker";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
+import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
@@ -354,8 +355,13 @@ function DriverRoutePage() {
                 <span className="font-semibold">Завершение маршрута</span>
               </div>
               {isCompleted ? (
-                <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
-                  Маршрут завершён. Отчёт отправлен менеджеру.
+                <div className="space-y-3">
+                  <div className="rounded-md border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+                    Маршрут завершён. Отчёт отправлен менеджеру.
+                  </div>
+                  {data?.source_request_id && (
+                    <CarrierPaymentBlock routeId={data.source_request_id} />
+                  )}
                 </div>
               ) : validationErrors.length > 0 ? (
                 <div className="space-y-2">
