@@ -857,3 +857,15 @@ function ManagerInfoAndActions({
     </div>
   );
 }
+
+function DriverContactsBlock({ deliveryRouteId }: { deliveryRouteId: string }) {
+  const { data, isLoading } = useRouteContacts({ deliveryRouteId });
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Загрузка контактов…
+      </div>
+    );
+  }
+  return <ContactsCard contacts={data ?? []} title="Контакты по рейсу" />;
+}
