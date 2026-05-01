@@ -6,7 +6,7 @@ import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS } from "@/lib/modules";
+import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
@@ -15,6 +15,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const location = useLocation();
   const path = location.pathname;
   const enabledModules = useEnabledModules();
+  const launchMode = useLaunchMode();
 
   const [hasAdmin, setHasAdmin] = useState<boolean | null>(null);
 
