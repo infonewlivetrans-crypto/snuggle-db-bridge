@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccess, ROLE_LABELS } from "@/lib/auth/roles";
+import { useEnabledModules, isPathEnabled } from "@/lib/modules";
 
 type NavItem = {
   to: string;
