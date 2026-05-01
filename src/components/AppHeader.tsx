@@ -73,6 +73,7 @@ const MORE_NAV: readonly NavItem[] = [
   { to: "/system-errors", label: "Ошибки системы", icon: AlertTriangle, match: (p) => p.startsWith("/system-errors") },
   { to: "/system-activity", label: "Активность системы", icon: Activity, match: (p) => p.startsWith("/system-activity") },
   { to: "/feedback", label: "Обратная связь", icon: MessageSquare, match: (p) => p.startsWith("/feedback") },
+  { to: "/carrier-offers", label: "Предложения рейсов", icon: Truck, match: (p) => p.startsWith("/carrier-offers") },
   { to: "/pilot-tasks", label: "Задачи и доработки", icon: ClipboardList, match: (p) => p.startsWith("/pilot-tasks") },
 ];
 

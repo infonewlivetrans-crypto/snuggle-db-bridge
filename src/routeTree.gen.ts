@@ -33,6 +33,7 @@ import { Route as FirstRunRouteImport } from './routes/first-run'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DirectorRouteImport } from './routes/director'
 import { Route as DataImportRouteImport } from './routes/data-import'
+import { Route as CarrierOffersRouteImport } from './routes/carrier-offers'
 import { Route as BackupsRouteImport } from './routes/backups'
 import { Route as AuditLogRouteImport } from './routes/audit-log'
 import { Route as IndexRouteImport } from './routes/index'
@@ -182,6 +183,11 @@ const DataImportRoute = DataImportRouteImport.update({
   path: '/data-import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarrierOffersRoute = CarrierOffersRouteImport.update({
+  id: '/carrier-offers',
+  path: '/carrier-offers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BackupsRoute = BackupsRouteImport.update({
   id: '/backups',
   path: '/backups',
@@ -329,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
+  '/carrier-offers': typeof CarrierOffersRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/feedback': typeof FeedbackRoute
@@ -383,6 +390,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
+  '/carrier-offers': typeof CarrierOffersRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/feedback': typeof FeedbackRoute
@@ -438,6 +446,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
+  '/carrier-offers': typeof CarrierOffersRoute
   '/data-import': typeof DataImportRouteWithChildren
   '/director': typeof DirectorRoute
   '/feedback': typeof FeedbackRoute
@@ -494,6 +503,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit-log'
     | '/backups'
+    | '/carrier-offers'
     | '/data-import'
     | '/director'
     | '/feedback'
@@ -548,6 +558,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit-log'
     | '/backups'
+    | '/carrier-offers'
     | '/data-import'
     | '/director'
     | '/feedback'
@@ -602,6 +613,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit-log'
     | '/backups'
+    | '/carrier-offers'
     | '/data-import'
     | '/director'
     | '/feedback'
@@ -657,6 +669,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditLogRoute: typeof AuditLogRoute
   BackupsRoute: typeof BackupsRoute
+  CarrierOffersRoute: typeof CarrierOffersRoute
   DataImportRoute: typeof DataImportRouteWithChildren
   DirectorRoute: typeof DirectorRoute
   FeedbackRoute: typeof FeedbackRoute
@@ -877,6 +890,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DataImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carrier-offers': {
+      id: '/carrier-offers'
+      path: '/carrier-offers'
+      fullPath: '/carrier-offers'
+      preLoaderRoute: typeof CarrierOffersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/backups': {
       id: '/backups'
       path: '/backups'
@@ -1092,6 +1112,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
   BackupsRoute: BackupsRoute,
+  CarrierOffersRoute: CarrierOffersRoute,
   DataImportRoute: DataImportRouteWithChildren,
   DirectorRoute: DirectorRoute,
   FeedbackRoute: FeedbackRoute,

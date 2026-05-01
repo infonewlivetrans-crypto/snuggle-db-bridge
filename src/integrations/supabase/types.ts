@@ -1875,6 +1875,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          carrier_id: string | null
           company_id: string | null
           created_at: string
           email: string | null
@@ -1885,6 +1886,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          carrier_id?: string | null
           company_id?: string | null
           created_at?: string
           email?: string | null
@@ -1895,6 +1897,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          carrier_id?: string | null
           company_id?: string | null
           created_at?: string
           email?: string | null
@@ -1905,6 +1908,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_company_id_fkey"
             columns: ["company_id"]
@@ -1949,6 +1959,81 @@ export type Database = {
           route_id?: string
         }
         Relationships: []
+      }
+      route_offers: {
+        Row: {
+          carrier_id: string
+          comment: string | null
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          decline_reason: string | null
+          driver_id: string | null
+          expires_at: string | null
+          id: string
+          responded_at: string | null
+          route_id: string | null
+          sent_at: string
+          status: string
+          transport_request_id: string | null
+          updated_at: string
+          vehicle_id: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          carrier_id: string
+          comment?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          decline_reason?: string | null
+          driver_id?: string | null
+          expires_at?: string | null
+          id?: string
+          responded_at?: string | null
+          route_id?: string | null
+          sent_at?: string
+          status?: string
+          transport_request_id?: string | null
+          updated_at?: string
+          vehicle_id?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          carrier_id?: string
+          comment?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          decline_reason?: string | null
+          driver_id?: string | null
+          expires_at?: string | null
+          id?: string
+          responded_at?: string | null
+          route_id?: string | null
+          sent_at?: string
+          status?: string
+          transport_request_id?: string | null
+          updated_at?: string
+          vehicle_id?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_offers_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_offers_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_point_actions: {
         Row: {
@@ -3555,6 +3640,7 @@ export type Database = {
         | "warehouse"
         | "supply"
         | "driver"
+        | "carrier"
       body_type:
         | "tent"
         | "isotherm"
@@ -3828,6 +3914,7 @@ export const Constants = {
         "warehouse",
         "supply",
         "driver",
+        "carrier",
       ],
       body_type: [
         "tent",
