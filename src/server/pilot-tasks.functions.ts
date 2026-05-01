@@ -142,7 +142,10 @@ export const updatePilotTaskFn = createServerFn({ method: "POST" })
     if (data.whereBroke !== undefined) patch.where_broke = data.whereBroke;
     if (data.howToReproduce !== undefined) patch.how_to_reproduce = data.howToReproduce;
 
-    const { error } = await supabaseAdmin.from("pilot_tasks").update(patch).eq("id", data.id);
+    const { error } = await supabaseAdmin
+      .from("pilot_tasks")
+      .update(patch as never)
+      .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
