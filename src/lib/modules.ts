@@ -61,8 +61,14 @@ export function useEnabledModules(): EnabledModules {
 export function pathBelongsToModule(path: string): ModuleKey | null {
   if (path.startsWith("/warehouse")) return "warehouse";
   if (path.startsWith("/supply")) return "supply";
+  // Финансы перевозчикам — модуль «Бухгалтерия»
   if (path.startsWith("/carrier-payments")) return "accounting";
-  if (path.startsWith("/carriers") || path.startsWith("/carrier-offers") || path.startsWith("/carrier-routes")) {
+  // Всё остальное «перевозчицкое» — модуль «Перевозчики»
+  if (
+    path.startsWith("/carriers") ||
+    path.startsWith("/carrier-offers") ||
+    path.startsWith("/carrier-routes")
+  ) {
     return "carriers";
   }
   if (path.startsWith("/data-import")) return "excel_import";
