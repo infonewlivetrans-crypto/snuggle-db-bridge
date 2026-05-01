@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { writeAudit } from "@/server/audit.server";
-import { getBackupDownloadUrl, listBackups, runBackup } from "@/server/backups.server";
+import { writeAudit } from "../../server/audit.server";
+import { getBackupDownloadUrl, listBackups, runBackup } from "../../server/backups.server";
 
 async function getRoles(userId: string): Promise<Set<string>> {
   const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
@@ -102,7 +102,7 @@ export const restoreBackupFn = createServerFn({ method: "POST" })
       throw new Error("Подтверждение не совпадает. Введите ВОССТАНОВИТЬ.");
     }
     const name = await getName(context.userId);
-    const { restoreFromBackup } = await import("@/server/backups.server");
+    const { restoreFromBackup } = await import("../../server/backups.server");
     const result = await restoreFromBackup(data.id);
     try {
       await writeAudit({

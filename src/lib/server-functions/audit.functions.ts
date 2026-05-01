@@ -3,7 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { listAudit, writeAudit } from "@/server/audit.server";
+import { listAudit, writeAudit } from "../../server/audit.server";
 
 async function userInfo(userId: string) {
   const [{ data: prof }, { data: roles }] = await Promise.all([
