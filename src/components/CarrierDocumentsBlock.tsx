@@ -308,7 +308,7 @@ export function CarrierDocumentsBlock({
         )}
 
         {/* Upload (carrier only) */}
-        {canUpload && status !== "accepted" && (
+        {canUpload && (
           <div className="rounded-md border border-dashed border-border p-3 space-y-2">
             <Label className="text-xs uppercase tracking-wider text-muted-foreground">
               Загрузить документ
