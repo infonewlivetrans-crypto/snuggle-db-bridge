@@ -73,7 +73,6 @@ type OrderRow = {
     organization: string | null;
     transport_kind: string | null;
     warehouse?: { id: string; name: string; city: string | null } | null;
-    destination_warehouse?: { id: string; name: string; city: string | null } | null;
     carrier?: { id: string; company_name: string } | null;
     driver?: { id: string; full_name: string; phone: string | null } | null;
     vehicle?: {
@@ -135,7 +134,6 @@ function demo(
       organization: "ООО «РадиусТрек»",
       transport_kind: "Фура 20 т",
       warehouse: { id: "w1", name: `Склад ${from}`, city: from },
-      destination_warehouse: { id: "w2", name: `Склад ${to}`, city: to },
       carrier: { id: "c1", company_name: "ООО «РадиусЛогистик» (демо)" },
       driver: { id: "d1", full_name: driver, phone: "+7 000 000-00-00" },
       vehicle: { id: "v1", plate_number: plate, brand: "MAN", model: "TGS" },
@@ -178,7 +176,6 @@ function OrdersPage() {
             route:route_id (
               id, route_number, route_date, driver_name, status, organization, transport_kind,
               warehouse:warehouse_id ( id, name, city ),
-              destination_warehouse:destination_warehouse_id ( id, name, city ),
               carrier:carrier_id ( id, company_name ),
               driver:driver_id ( id, full_name, phone ),
               vehicle:vehicle_id ( id, plate_number, brand, model )
