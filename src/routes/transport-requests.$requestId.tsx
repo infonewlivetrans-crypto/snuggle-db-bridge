@@ -25,6 +25,7 @@ import { RequestTotalsCards } from "@/components/RequestTotalsCards";
 import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
 import { TransportCapacityCheck } from "@/components/TransportCapacityCheck";
+import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
 import {
   TransportRequestStatusBlock,
   type RequestStatus,
