@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+// Тяжёлая библиотека `xlsx` подключается лениво внутри функций.
 import { supabase } from "@/integrations/supabase/client";
 
 export type RouteImportRow = {
@@ -123,7 +123,8 @@ function parseCoords(s: string | undefined): { lat: number | null; lon: number |
   return { lat: toNumber(m[1]), lon: toNumber(m[2]) };
 }
 
-export function parseRouteWorkbook(file: ArrayBuffer): RouteImportRow[] {
+export async function parseRouteWorkbook(file: ArrayBuffer): Promise<RouteImportRow[]> {
+  const XLSX = await import("xlsx");
   const wb = XLSX.read(file, { type: "array" });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: "" });
@@ -145,7 +146,7 @@ export function parseRouteWorkbook(file: ArrayBuffer): RouteImportRow[] {
 
 export async function importRouteFromFile(file: File): Promise<RouteImportResult> {
   const buf = await file.arrayBuffer();
-  const rows = parseRouteWorkbook(buf);
+  const rows = await parseRouteWorkbook(buf);
   const result: RouteImportResult = {
     totalRows: rows.length,
     routesCreated: 0,
@@ -300,7 +301,8 @@ export async function importRouteFromFile(file: File): Promise<RouteImportResult
   return result;
 }
 
-export function downloadRouteTemplate() {
+export async function downloadRouteTemplate() {
+  const XLSX = await import("xlsx");
   const headers = [
     "route_number",
     "driver_name",

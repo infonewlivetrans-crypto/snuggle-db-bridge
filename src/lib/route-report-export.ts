@@ -1,6 +1,4 @@
-import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+// Тяжёлые библиотеки `xlsx`, `jspdf`, `jspdf-autotable` подключаются лениво.
 
 export type ReportPayload = {
   delivery_route_id: string;
@@ -64,7 +62,8 @@ function urlsByKind(photos: Array<{ kind: string; url: string }>, kind: string):
   return photos.filter((ph) => ph.kind === kind).map((ph) => ph.url).join("\n");
 }
 
-export function exportRouteReportXlsx(p: ReportPayload) {
+export async function exportRouteReportXlsx(p: ReportPayload) {
+  const XLSX = await import("xlsx");
   const wb = XLSX.utils.book_new();
 
   // Лист 1: Точки маршрута
@@ -125,7 +124,11 @@ export function exportRouteReportXlsx(p: ReportPayload) {
   XLSX.writeFile(wb, `${fileBase(p)}.xlsx`);
 }
 
-export function exportRouteReportPdf(p: ReportPayload) {
+export async function exportRouteReportPdf(p: ReportPayload) {
+  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+  ]);
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
 
   doc.setFontSize(14);

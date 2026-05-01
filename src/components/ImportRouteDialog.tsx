@@ -103,7 +103,7 @@ export function ImportRouteDialog({
             type="button"
             variant="outline"
             size="sm"
-            onClick={downloadRouteTemplate}
+            onClick={() => { void downloadRouteTemplate(); }}
             className="gap-2"
           >
             <Download className="h-4 w-4" />

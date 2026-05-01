@@ -1,20 +1,5 @@
-import * as XLSX from "xlsx";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  BorderStyle,
-  ShadingType,
-  AlignmentType,
-} from "docx";
-import FileSaver from "file-saver";
-const { saveAs } = FileSaver;
+// Тяжёлые библиотеки `xlsx`, `docx`, `file-saver` подключаются лениво
+// внутри функций, чтобы не попадать в initial bundle.
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_LABELS, PAYMENT_LABELS, type OrderStatus, type PaymentType } from "@/lib/orders";
 
@@ -26,18 +11,38 @@ function fmtDate(s: string | null | undefined): string {
   return d.toLocaleString("ru-RU");
 }
 
-function downloadXlsx(rows: Array<Record<string, unknown>>, sheetName: string, fileName: string) {
+async function downloadXlsx(rows: Array<Record<string, unknown>>, sheetName: string, fileName: string) {
+  const XLSX = await import("xlsx");
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName.slice(0, 31));
   XLSX.writeFile(wb, fileName);
 }
 
-const cellBorder = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
-const cellBorders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
+async function downloadDocx(title: string, headers: string[], rows: string[][], fileName: string) {
+  const [
+    {
+      Document,
+      Packer,
+      Paragraph,
+      TextRun,
+      HeadingLevel,
+      Table,
+      TableRow,
+      TableCell,
+      WidthType,
+      BorderStyle,
+      ShadingType,
+      AlignmentType,
+    },
+    FileSaverMod,
+  ] = await Promise.all([import("docx"), import("file-saver")]);
+  const saveAs = (FileSaverMod as unknown as { default: { saveAs: (b: Blob, n: string) => void } }).default.saveAs;
 
-function docTable(headers: string[], rows: string[][]): Table {
-  const head = new TableRow({
+  const cellBorder = { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" };
+  const cellBorders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
+
+  const headRow = new TableRow({
     tableHeader: true,
     children: headers.map(
       (h) =>
@@ -49,7 +54,7 @@ function docTable(headers: string[], rows: string[][]): Table {
         }),
     ),
   });
-  const body = rows.map(
+  const bodyRows = rows.map(
     (r) =>
       new TableRow({
         children: r.map(
@@ -62,24 +67,16 @@ function docTable(headers: string[], rows: string[][]): Table {
         ),
       }),
   );
-  return new Table({
+  const table = new Table({
     width: { size: 9360, type: WidthType.DXA },
-    rows: [head, ...body],
+    rows: [headRow, ...bodyRows],
   });
-}
 
-async function downloadDocx(title: string, headers: string[], rows: string[][], fileName: string) {
   const doc = new Document({
-    styles: {
-      default: { document: { run: { font: "Arial", size: 22 } } },
-    },
+    styles: { default: { document: { run: { font: "Arial", size: 22 } } } },
     sections: [
       {
-        properties: {
-          page: {
-            margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 },
-          },
-        },
+        properties: { page: { margin: { top: 1080, right: 1080, bottom: 1080, left: 1080 } } },
         children: [
           new Paragraph({
             heading: HeadingLevel.HEADING_1,
@@ -97,7 +94,7 @@ async function downloadDocx(title: string, headers: string[], rows: string[][], 
             ],
           }),
           new Paragraph({ children: [new TextRun(" ")] }),
-          docTable(headers, rows),
+          table,
         ],
       },
     ],
@@ -144,7 +141,7 @@ export async function exportDeliveryReport(format: "xlsx" | "docx") {
     const json = rowsArr.map((row) =>
       Object.fromEntries(headers.map((h, i) => [h, row[i]])),
     );
-    downloadXlsx(json, "Доставки", `delivery_report_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Доставки", `delivery_report_${Date.now()}.xlsx`);
   } else {
     await downloadDocx("Отчёт по доставкам", headers, rowsArr, `delivery_report_${Date.now()}.docx`);
   }
@@ -172,7 +169,7 @@ export async function exportPaymentsReport(format: "xlsx" | "docx") {
 
   if (format === "xlsx") {
     const json = rowsArr.map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
-    downloadXlsx(json, "Оплаты", `payments_report_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Оплаты", `payments_report_${Date.now()}.xlsx`);
   } else {
     await downloadDocx("Отчёт по оплатам", headers, rowsArr, `payments_report_${Date.now()}.docx`);
   }
@@ -222,7 +219,7 @@ export async function exportDriversReport(format: "xlsx" | "docx") {
 
   if (format === "xlsx") {
     const json = rowsArr.map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
-    downloadXlsx(json, "Водители", `drivers_report_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Водители", `drivers_report_${Date.now()}.xlsx`);
   } else {
     await downloadDocx("Отчёт по водителям", headers, rowsArr, `drivers_report_${Date.now()}.docx`);
   }
@@ -257,7 +254,7 @@ export async function exportTransportRequestsReport(format: "xlsx" | "docx") {
 
   if (format === "xlsx") {
     const json = rowsArr.map((row) => Object.fromEntries(headers.map((h, i) => [h, row[i]])));
-    downloadXlsx(json, "Заявки", `transport_requests_${Date.now()}.xlsx`);
+    await downloadXlsx(json, "Заявки", `transport_requests_${Date.now()}.xlsx`);
   } else {
     await downloadDocx(
       "Отчёт по заявкам на транспорт",

@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+// `xlsx` подключается лениво внутри функций.
 import { supabase } from "@/integrations/supabase/client";
 
 export type ImportEntity = "orders" | "products" | "stock" | "routes" | "transport_requests";
@@ -111,6 +111,7 @@ interface RawSheet { headers: string[]; rows: unknown[][] }
 
 async function readRawSheet(file: File, format: FileFormat, options: ParseOptions): Promise<RawSheet> {
   if (format === "xlsx" || format === "xls") {
+    const XLSX = await import("xlsx");
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type: "array" });
     const ws = wb.Sheets[wb.SheetNames[0]];
@@ -319,7 +320,8 @@ export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
 
 // ====== Template download ======
 
-export function downloadTemplate(entity: ImportEntity) {
+export async function downloadTemplate(entity: ImportEntity) {
+  const XLSX = await import("xlsx");
   const schema = SCHEMAS[entity];
   const headers = schema.columns.map((c) => c.label);
   const exampleRow = schema.columns.map((c) => c.example ?? "");

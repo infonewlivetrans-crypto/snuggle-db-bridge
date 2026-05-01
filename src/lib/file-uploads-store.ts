@@ -2,7 +2,7 @@
 // Метаданные — в localStorage, содержимое — в IndexedDB как Blob.
 // Полностью клиентский модуль, без обращения к серверу.
 
-import * as XLSX from "xlsx";
+// `xlsx` подключается лениво в местах использования.
 
 export type SupportedFormat = "xlsx" | "xls" | "csv" | "txt" | "json" | "pdf" | "unknown";
 
@@ -261,6 +261,7 @@ export async function buildPreview(record: UploadRecord): Promise<FilePreview> {
   }
 
   if (record.format === "xlsx" || record.format === "xls") {
+    const XLSX = await import("xlsx");
     const buf = await blob.arrayBuffer();
     const wb = XLSX.read(buf, { type: "array" });
     const sheetName = wb.SheetNames[0];
@@ -383,6 +384,7 @@ export async function importWithMapping(
   let dataRows: string[][] = [];
 
   if (record.format === "xlsx" || record.format === "xls") {
+    const XLSX = await import("xlsx");
     const wb = XLSX.read(await blob.arrayBuffer(), { type: "array" });
     const ws = wb.Sheets[wb.SheetNames[0]];
     const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false }) as unknown[][];
