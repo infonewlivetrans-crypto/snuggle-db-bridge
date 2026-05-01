@@ -1,20 +1,5 @@
-import * as XLSX from "xlsx";
-import {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  HeadingLevel,
-  Table,
-  TableRow,
-  TableCell,
-  WidthType,
-  BorderStyle,
-  ShadingType,
-  AlignmentType,
-} from "docx";
-import FileSaver from "file-saver";
-const { saveAs } = FileSaver;
+// Тяжёлые библиотеки `xlsx`, `docx`, `file-saver` подключаются лениво
+// внутри функций, чтобы не попадать в initial bundle.
 import { supabase } from "@/integrations/supabase/client";
 import { STATUS_LABELS, PAYMENT_LABELS, type OrderStatus, type PaymentType } from "@/lib/orders";
 
