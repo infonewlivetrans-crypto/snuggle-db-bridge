@@ -19,6 +19,8 @@ import {
   Hash,
   Flag,
   AlertTriangle,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
@@ -198,6 +200,35 @@ function DriverRoutePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reorderPoints = useMutation({
+    mutationFn: async ({ index, dir }: { index: number; dir: -1 | 1 }) => {
+      const list = points ?? [];
+      const j = index + dir;
+      if (j < 0 || j >= list.length) return;
+      const a = list[index];
+      const b = list[j];
+      const tmp = -Math.floor(Math.random() * 1_000_000) - 1;
+      const e1 = await supabase.from("route_points").update({ point_number: tmp }).eq("id", a.id);
+      if (e1.error) throw e1.error;
+      const e2 = await supabase
+        .from("route_points")
+        .update({ point_number: a.point_number })
+        .eq("id", b.id);
+      if (e2.error) throw e2.error;
+      const e3 = await supabase
+        .from("route_points")
+        .update({ point_number: b.point_number })
+        .eq("id", a.id);
+      if (e3.error) throw e3.error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
+      qc.invalidateQueries({ queryKey: ["request-orders", data?.source_request_id] });
+      toast.success("Порядок точек сохранён");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const FINAL: DeliveryPointStatus[] = ["delivered", "not_delivered", "returned_to_warehouse"];
   const list = points ?? [];
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
@@ -337,13 +368,18 @@ function DriverRoutePage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {list.map((p) => (
+                {list.map((p, idx) => (
                   <DriverPointCard
                     key={p.id}
                     p={p}
+                    index={idx}
+                    total={list.length}
                     routeId={data.source_request_id}
                     driverName={data.assigned_driver}
                     photoKinds={photoKindsByPoint?.[p.id]}
+                    onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
+                    reordering={reorderPoints.isPending}
+                    locked={isCompleted}
                   />
                 ))}
               </div>
@@ -415,14 +451,24 @@ function DriverRoutePage() {
 
 function DriverPointCard({
   p,
+  index,
+  total,
   routeId,
   driverName,
   photoKinds,
+  onReorder,
+  reordering,
+  locked,
 }: {
   p: PointRow;
+  index: number;
+  total: number;
   routeId: string;
   driverName: string | null;
   photoKinds: Set<string> | undefined;
+  onReorder: (dir: -1 | 1) => void;
+  reordering: boolean;
+  locked: boolean;
 }) {
   const o = p.order;
 
@@ -451,6 +497,30 @@ function DriverPointCard({
               {p.point_number}
             </span>
             <span className="font-semibold">{o?.order_number ?? "—"}</span>
+            {!locked && (
+              <div className="ml-1 flex gap-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => onReorder(-1)}
+                  disabled={index === 0 || reordering}
+                  aria-label="Выше"
+                >
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => onReorder(1)}
+                  disabled={index === total - 1 || reordering}
+                  aria-label="Ниже"
+                >
+                  <ArrowDown className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
           </div>
           <div className="mt-1 text-sm font-medium">{o?.contact_name ?? "—"}</div>
         </div>
