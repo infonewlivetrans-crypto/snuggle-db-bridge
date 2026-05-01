@@ -108,12 +108,12 @@ function CarrierPaymentsPage() {
     queryFn: async (): Promise<Record<string, string>> => {
       const { data, error } = await supabase
         .from("vehicles")
-        .select("id, brand, model, license_plate")
+        .select("id, brand, model, plate_number")
         .in("id", vehicleIds);
       if (error) throw error;
       const map: Record<string, string> = {};
       for (const v of (data ?? []) as Vehicle[]) {
-        map[v.id] = [v.brand, v.model, v.license_plate].filter(Boolean).join(" ");
+        map[v.id] = [v.brand, v.model, v.plate_number].filter(Boolean).join(" ");
       }
       return map;
     },
