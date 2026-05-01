@@ -82,7 +82,7 @@ export function ImportOrdersDialog({
             type="button"
             variant="outline"
             size="sm"
-            onClick={downloadOrdersTemplate}
+            onClick={() => { void downloadOrdersTemplate(); }}
             className="gap-2"
           >
             <Download className="h-4 w-4" />

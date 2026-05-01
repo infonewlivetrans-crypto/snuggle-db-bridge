@@ -131,7 +131,7 @@ function RouteImportTemplatePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={downloadRouteTemplate} className="gap-2">
+              <Button onClick={() => { void downloadRouteTemplate(); }} className="gap-2">
                 <Download className="h-4 w-4" />
                 Скачать шаблон Excel
               </Button>
