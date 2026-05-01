@@ -29,6 +29,7 @@ import { RoutePointPhotosBlock } from "@/components/RoutePointPhotosBlock";
 import { DriverGeoTracker } from "@/components/DriverGeoTracker";
 import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
+import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
