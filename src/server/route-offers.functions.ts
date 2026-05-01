@@ -184,3 +184,197 @@ export const respondToOffer = createServerFn({ method: "POST" })
 
     return { ok: true, status: patch.status as string };
   });
+
+const decisionSchema = z.object({
+  routeId: z.string().uuid(),
+  comment: z.string().max(2000).optional().nullable(),
+});
+
+/**
+ * Логист подтверждает перевозчика, ранее принявшего предложение.
+ * - rоute.carrier_id, vehicle_id, driver_id обновляются из принятого offer
+ * - rоute.carrier_assignment_status = 'assigned'
+ * - перевозчик получает уведомление "Вы назначены на рейс №___"
+ */
+export const confirmCarrierForRoute = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => decisionSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const supa = context.supabase as unknown as AnyClient;
+
+    // 1) текущий рейс
+    const { data: route, error: rErr } = await supa
+      .from("routes")
+      .select(
+        "id, route_number, carrier_assignment_status, pending_offer_id, carrier_id, vehicle_id, driver_id",
+      )
+      .eq("id", data.routeId)
+      .maybeSingle();
+    if (rErr) throw new Error(rErr.message);
+    if (!route) throw new Error("Рейс не найден");
+    if (route.carrier_assignment_status !== "pending" || !route.pending_offer_id) {
+      throw new Error("Нет принятого предложения, ожидающего подтверждения");
+    }
+
+    // 2) принятое предложение
+    const { data: offer, error: oErr } = await supa
+      .from("route_offers")
+      .select("id, carrier_id, vehicle_id, driver_id")
+      .eq("id", route.pending_offer_id)
+      .maybeSingle();
+    if (oErr) throw new Error(oErr.message);
+    if (!offer) throw new Error("Предложение не найдено");
+
+    const now = new Date().toISOString();
+
+    // 3) обновляем рейс: закрепляем перевозчика
+    const { error: updErr } = await supa
+      .from("routes")
+      .update({
+        carrier_id: offer.carrier_id,
+        vehicle_id: offer.vehicle_id ?? route.vehicle_id,
+        driver_id: offer.driver_id ?? route.driver_id,
+        carrier_assignment_status: "assigned",
+        carrier_assigned_at: now,
+        carrier_assigned_by: context.userId,
+      })
+      .eq("id", data.routeId);
+    if (updErr) throw new Error(updErr.message);
+
+    // 4) истечь все остальные открытые предложения по этому рейсу
+    await supa
+      .from("route_offers")
+      .update({ status: "expired" })
+      .eq("route_id", data.routeId)
+      .neq("id", offer.id)
+      .in("status", ["sent", "viewed"]);
+
+    // 5) запись в историю
+    await supa.from("route_carrier_history").insert({
+      route_id: data.routeId,
+      offer_id: offer.id,
+      carrier_id: offer.carrier_id,
+      vehicle_id: offer.vehicle_id,
+      driver_id: offer.driver_id,
+      action: "confirmed_by_logist",
+      actor_user_id: context.userId,
+      comment: data.comment ?? null,
+    });
+
+    // 6) уведомление перевозчику
+    const routeLabel = route.route_number ? `№${route.route_number}` : "(без номера)";
+    try {
+      await supa.from("notifications").insert({
+        kind: "carrier_assigned",
+        title: `Вы назначены на рейс ${routeLabel}`,
+        body:
+          data.comment ??
+          "Логист подтвердил ваше назначение. Водитель получает доступ к маршруту.",
+        route_id: data.routeId,
+        payload: {
+          offer_id: offer.id,
+          carrier_id: offer.carrier_id,
+          vehicle_id: offer.vehicle_id,
+          driver_id: offer.driver_id,
+        },
+      });
+    } catch {
+      // не блокируем подтверждение
+    }
+
+    return { ok: true };
+  });
+
+/**
+ * Логист отклоняет принятого перевозчика.
+ * - сбрасывает pending-состояние рейса (можно предложить другим)
+ * - помечает offer как 'declined' (с причиной от логиста)
+ * - уведомляет перевозчика
+ */
+export const rejectCarrierForRoute = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => decisionSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const supa = context.supabase as unknown as AnyClient;
+
+    const { data: route, error: rErr } = await supa
+      .from("routes")
+      .select("id, route_number, carrier_assignment_status, pending_offer_id")
+      .eq("id", data.routeId)
+      .maybeSingle();
+    if (rErr) throw new Error(rErr.message);
+    if (!route) throw new Error("Рейс не найден");
+    if (route.carrier_assignment_status !== "pending" || !route.pending_offer_id) {
+      throw new Error("Нет принятого предложения для отклонения");
+    }
+
+    const { data: offer } = await supa
+      .from("route_offers")
+      .select("id, carrier_id, vehicle_id, driver_id")
+      .eq("id", route.pending_offer_id)
+      .maybeSingle();
+
+    const now = new Date().toISOString();
+    const reason = data.comment?.trim() || "Отклонено логистом";
+
+    // 1) Сбросить состояние рейса
+    const { error: updErr } = await supa
+      .from("routes")
+      .update({
+        carrier_assignment_status: "rejected",
+        pending_offer_id: null,
+      })
+      .eq("id", data.routeId);
+    if (updErr) throw new Error(updErr.message);
+
+    // 2) Пометить offer как expired (предложение закрыто решением логиста)
+    if (offer) {
+      await supa
+        .from("route_offers")
+        .update({
+          status: "expired",
+          decline_reason: `Отклонено логистом: ${reason}`,
+          responded_at: now,
+        })
+        .eq("id", offer.id);
+
+      // 3) История
+      await supa.from("route_carrier_history").insert({
+        route_id: data.routeId,
+        offer_id: offer.id,
+        carrier_id: offer.carrier_id,
+        vehicle_id: offer.vehicle_id,
+        driver_id: offer.driver_id,
+        action: "rejected_by_logist",
+        actor_user_id: context.userId,
+        reason,
+      });
+
+      // 4) Уведомление перевозчику
+      const routeLabel = route.route_number ? `№${route.route_number}` : "(без номера)";
+      try {
+        await supa.from("notifications").insert({
+          kind: "carrier_offer_rejected_by_logist",
+          title: `Логист отклонил вашу заявку на рейс ${routeLabel}`,
+          body: `Причина: ${reason}`,
+          route_id: data.routeId,
+          payload: {
+            offer_id: offer.id,
+            carrier_id: offer.carrier_id,
+            reason,
+          },
+        });
+      } catch {
+        // не блокируем
+      }
+    }
+
+    // Сразу после отказа — рейс снова доступен для предложений другим перевозчикам.
+    // Если логист хочет начать заново, он может вручную вернуть статус в 'none'.
+    await supa
+      .from("routes")
+      .update({ carrier_assignment_status: "none" })
+      .eq("id", data.routeId);
+
+    return { ok: true };
+  });
