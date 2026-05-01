@@ -482,3 +482,41 @@ function AvailabilityBadge({
     </Badge>
   );
 }
+
+import { useQuery as useQueryWrap } from "@tanstack/react-query";
+
+/**
+ * Обёртка: грузит требования из routes по routeId и рендерит CarrierOffersBlock.
+ */
+export function CarrierOffersBlockForRoute({ routeId }: { routeId: string }) {
+  const { data, isLoading } = useQueryWrap({
+    queryKey: ["route-offers-requirements", routeId],
+    queryFn: async (): Promise<OfferRequirements | null> => {
+      const { data, error } = await db
+        .from("routes")
+        .select(
+          "required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, planned_departure_at, warehouse:warehouse_id(city)",
+        )
+        .eq("id", routeId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const r = data as Record<string, unknown>;
+      const wh = r.warehouse as { city?: string | null } | null;
+      return {
+        required_body_type: (r.required_body_type as BodyType) ?? null,
+        required_capacity_kg: (r.required_capacity_kg as number) ?? null,
+        required_volume_m3: (r.required_volume_m3 as number) ?? null,
+        required_body_length_m: (r.required_body_length_m as number) ?? null,
+        requires_tent: (r.requires_tent as boolean) ?? null,
+        requires_manipulator: (r.requires_manipulator as boolean) ?? null,
+        requires_straps: (r.requires_straps as boolean) ?? null,
+        warehouse_city: wh?.city ?? null,
+        planned_departure_at: (r.planned_departure_at as string) ?? null,
+      };
+    },
+  });
+
+  if (isLoading || !data) return null;
+  return <CarrierOffersBlock routeId={routeId} requirements={data} />;
+}
