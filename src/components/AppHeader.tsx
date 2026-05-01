@@ -49,9 +49,10 @@ type NavItem = {
   match: (p: string) => boolean;
 };
 
-// Основные разделы — показываются на широком экране (5 пунктов)
+// Основные разделы — показываются на широком экране
 const PRIMARY_NAV: readonly NavItem[] = [
   { to: "/", label: "Заказы", icon: BarChart3, match: (p) => p === "/" },
+  { to: "/orders", label: "Заказы и клиенты", icon: ClipboardList, match: (p) => p.startsWith("/orders") },
   { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p) => p.startsWith("/transport-requests") && !p.startsWith("/transport-requests/picker") },
   { to: "/transport-requests/picker", label: "Подбор заказов", icon: ClipboardList, match: (p) => p.startsWith("/transport-requests/picker") },
   { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon, match: (p) => p.startsWith("/delivery-routes") },

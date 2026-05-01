@@ -71,7 +71,7 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/carrier-payments"), roles: ["admin", "logist", "director"] },
   { test: (p) => p.startsWith("/d/"), roles: [] }, // публичные ссылки водителя по токену
 
-  { test: (p) => p === "/" || p.startsWith("/?"), roles: ["admin", "manager", "logist", "director"] },
+  { test: (p) => p === "/" || p.startsWith("/?") || p.startsWith("/orders"), roles: ["admin", "manager", "logist", "director"] },
   { test: (p) => p.startsWith("/notifications"), roles: [] },
   { test: (p) => p.startsWith("/workspace"), roles: [] },
   { test: (p) => p.startsWith("/feedback"), roles: [] },
