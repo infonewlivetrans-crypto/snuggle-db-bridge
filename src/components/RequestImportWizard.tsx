@@ -101,15 +101,10 @@ export function RequestImportWizard({
     if (!file) return;
     setBusy(true);
     try {
-      const { error } = await supabase.from("file_uploads" as never).insert({
-        request_id: requestId,
-        file_name: file.name,
-        file_size: file.size,
-        file_format: file.name.split(".").pop()?.toLowerCase() ?? "bin",
-        status: "awaiting_setup",
-      } as never);
-      if (error) throw error;
-      toast.success("Файл сохранён, ожидает настройки");
+      const { addUpload, updateUpload } = await import("@/lib/file-uploads-store");
+      const rec = await addUpload(file);
+      updateUpload(rec.id, { status: "needs_mapping" });
+      toast.success("Файл сохранён в «Импорт данных», ожидает настройки");
       onOpenChange(false);
       reset();
     } catch (e) {
