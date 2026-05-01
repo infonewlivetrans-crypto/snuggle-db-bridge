@@ -26,6 +26,7 @@ import { RequestWarehousesEditor } from "@/components/RequestWarehousesEditor";
 import { TransportRequirementsBlock } from "@/components/TransportRequirementsBlock";
 import { TransportCapacityCheck } from "@/components/TransportCapacityCheck";
 import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
+import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import {
   TransportRequestStatusBlock,
   type RequestStatus,
@@ -237,6 +238,9 @@ function TransportRequestDetailPage() {
               requiredCapacityKg={data.required_capacity_kg}
               requiredVolumeM3={data.required_volume_m3}
             />
+
+            {/* Подтверждение перевозчика логистом */}
+            <CarrierConfirmationBlock routeId={data.id} />
 
             {/* Подбор перевозчиков (Радиус Трек) */}
             <CarrierOffersBlockForRoute routeId={data.id} />

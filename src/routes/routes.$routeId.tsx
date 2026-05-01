@@ -42,6 +42,7 @@ import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteTimingBlock } from "@/components/RouteTimingBlock";
 import { RouteCostBlock, type CostMethod } from "@/components/RouteCostBlock";
 import { CarrierOffersBlock } from "@/components/CarrierOffersBlock";
+import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
@@ -544,6 +545,9 @@ function RouteDetailPage() {
             (route as unknown as { delivery_percent_target?: number }).delivery_percent_target ?? 5,
           )}
         />
+
+        {/* Подтверждение перевозчика логистом */}
+        <CarrierConfirmationBlock routeId={route.id} />
 
         {/* Подбор перевозчиков (Радиус Трек) */}
         <CarrierOffersBlock

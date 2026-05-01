@@ -31,6 +31,7 @@ import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBl
 import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
 import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
+import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteDeviationBlock } from "@/components/RouteDeviationBlock";
@@ -459,9 +460,12 @@ function DeliveryRoutePage() {
             {/* Доступ водителя по уникальной ссылке */}
             <DriverAccessLinkBlock deliveryRouteId={data.id} />
 
-            {/* Подбор перевозчиков (Радиус Трек) */}
+            {/* Подтверждение перевозчика логистом + подбор перевозчиков (Радиус Трек) */}
             {data.source_request_id && (
-              <CarrierOffersBlockForRoute routeId={data.source_request_id} />
+              <>
+                <CarrierConfirmationBlock routeId={data.source_request_id} />
+                <CarrierOffersBlockForRoute routeId={data.source_request_id} />
+              </>
             )}
 
             {/* Прогресс по точкам */}
