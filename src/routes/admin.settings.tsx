@@ -17,7 +17,7 @@ import {
   type SystemSetting,
   type AppVersion,
 } from "@/lib/system-settings";
-import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules } from "@/lib/modules";
+import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules, LAUNCH_MODE_LABELS, type LaunchMode } from "@/lib/modules";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/settings")({
@@ -64,7 +64,8 @@ function AdminSettingsPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="modules" className="mt-4">
+          <TabsContent value="modules" className="mt-4 space-y-4">
+            <LaunchModePanel items={data.settings} onChanged={() => router.invalidate()} />
             <ModuleTogglesPanel items={data.settings} onChanged={() => router.invalidate()} />
           </TabsContent>
 
