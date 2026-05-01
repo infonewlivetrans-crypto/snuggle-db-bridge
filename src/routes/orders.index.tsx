@@ -401,7 +401,7 @@ function OrdersPage() {
                   ) : (
                     filtered.map((r) => {
                       const from = r.route?.warehouse?.city ?? "—";
-                      const to = r.route?.destination_warehouse?.city ?? r.destination_city ?? "—";
+                      const to = r.destination_city ?? "—";
                       return (
                         <TableRow key={r.id}>
                           <TableCell className="font-mono text-xs">
