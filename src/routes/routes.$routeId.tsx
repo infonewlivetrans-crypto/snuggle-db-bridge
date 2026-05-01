@@ -545,6 +545,28 @@ function RouteDetailPage() {
           )}
         />
 
+        {/* Подбор перевозчиков (Радиус Трек) */}
+        <CarrierOffersBlock
+          routeId={route.id}
+          requirements={{
+            required_body_type: route.required_body_type ?? null,
+            required_capacity_kg: route.required_capacity_kg ?? null,
+            required_volume_m3: route.required_volume_m3 ?? null,
+            required_body_length_m:
+              (route as unknown as { required_body_length_m?: number | null })
+                .required_body_length_m ?? null,
+            requires_tent:
+              (route as unknown as { requires_tent?: boolean | null }).requires_tent ?? null,
+            requires_manipulator:
+              (route as unknown as { requires_manipulator?: boolean | null })
+                .requires_manipulator ?? null,
+            requires_straps:
+              (route as unknown as { requires_straps?: boolean | null }).requires_straps ?? null,
+            warehouse_city: route.warehouse?.city ?? null,
+            planned_departure_at: route.planned_departure_at ?? null,
+          }}
+        />
+
         {/* Статус движения водителя */}
         <DriverMovementCard route={route} points={points ?? []} />
 
