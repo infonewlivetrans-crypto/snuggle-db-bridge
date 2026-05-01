@@ -30,6 +30,7 @@ import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
 import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBlock";
 import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
+import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
 import { RouteMapBlock } from "@/components/RouteMapBlock";
 import { RouteDeviationBlock } from "@/components/RouteDeviationBlock";
