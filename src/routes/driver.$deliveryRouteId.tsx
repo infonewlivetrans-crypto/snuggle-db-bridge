@@ -33,6 +33,7 @@ import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
