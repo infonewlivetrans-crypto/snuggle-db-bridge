@@ -81,3 +81,106 @@ export const updateOfferStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const DECLINE_REASON_LABELS: Record<string, string> = {
+  time: "не подходит время",
+  price: "не подходит цена",
+  no_vehicle: "нет машины",
+  direction: "не подходит направление",
+  other: "другое",
+};
+
+const respondSchema = z.object({
+  offerId: z.string().uuid(),
+  action: z.enum(["accept", "decline"]),
+  declineReason: z.enum(["time", "price", "no_vehicle", "direction", "other"]).optional().nullable(),
+  declineComment: z.string().max(1000).optional().nullable(),
+});
+
+/**
+ * Перевозчик отвечает на предложение: принимает или отклоняет.
+ * После ответа создаётся уведомление для логистов.
+ */
+export const respondToOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => respondSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const supa = context.supabase as unknown as AnyClient;
+
+    // Берём текущее предложение, чтобы знать route_id, carrier_id и номер рейса
+    const { data: offer, error: getErr } = await supa
+      .from("route_offers")
+      .select("id, route_id, carrier_id, status")
+      .eq("id", data.offerId)
+      .maybeSingle();
+    if (getErr) throw new Error(getErr.message);
+    if (!offer) throw new Error("Предложение не найдено");
+    if (offer.status === "accepted" || offer.status === "declined" || offer.status === "expired") {
+      throw new Error("На это предложение уже дан ответ");
+    }
+
+    const now = new Date().toISOString();
+    const patch: Record<string, unknown> = { responded_at: now };
+
+    if (data.action === "accept") {
+      patch.status = "accepted";
+    } else {
+      patch.status = "declined";
+      const reasonLabel = data.declineReason ? DECLINE_REASON_LABELS[data.declineReason] : "не указана";
+      patch.decline_reason = data.declineComment
+        ? `${reasonLabel}: ${data.declineComment}`
+        : reasonLabel;
+    }
+
+    const { error: updErr } = await supa
+      .from("route_offers")
+      .update(patch)
+      .eq("id", data.offerId);
+    if (updErr) throw new Error(updErr.message);
+
+    // Подтянуть номер рейса и название перевозчика для уведомления
+    let routeNumber: string | null = null;
+    if (offer.route_id) {
+      const { data: r } = await supa
+        .from("routes")
+        .select("route_number")
+        .eq("id", offer.route_id)
+        .maybeSingle();
+      routeNumber = (r as { route_number?: string } | null)?.route_number ?? null;
+    }
+    const { data: c } = await supa
+      .from("carriers")
+      .select("company_name")
+      .eq("id", offer.carrier_id)
+      .maybeSingle();
+    const carrierName = (c as { company_name?: string } | null)?.company_name ?? "Перевозчик";
+
+    const routeLabel = routeNumber ? `№${routeNumber}` : "(без номера)";
+    const title =
+      data.action === "accept"
+        ? `Перевозчик принял предложение по рейсу ${routeLabel}`
+        : `Перевозчик отклонил рейс ${routeLabel}`;
+    const body =
+      data.action === "accept"
+        ? `${carrierName} принял предложение. Подтвердите назначение в карточке рейса.`
+        : `${carrierName} отклонил предложение. Причина: ${patch.decline_reason as string}`;
+
+    try {
+      await supa.from("notifications").insert({
+        kind: data.action === "accept" ? "carrier_offer_accepted" : "carrier_offer_declined",
+        title,
+        body,
+        route_id: offer.route_id ?? null,
+        payload: {
+          offer_id: offer.id,
+          carrier_id: offer.carrier_id,
+          action: data.action,
+          decline_reason: patch.decline_reason ?? null,
+        },
+      });
+    } catch {
+      // не блокируем ответ перевозчика
+    }
+
+    return { ok: true, status: patch.status as string };
+  });
