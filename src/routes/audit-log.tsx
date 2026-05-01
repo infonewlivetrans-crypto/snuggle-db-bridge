@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { listAuditFn } from "@/server/audit.functions";
+import { listAuditFn } from "@/lib/server-functions/audit.functions";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";

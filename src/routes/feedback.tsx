@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import { listFeedbackFn, submitFeedbackFn } from "@/server/feedback.functions";
+import { listFeedbackFn, submitFeedbackFn } from "@/lib/server-functions/feedback.functions";
 
 export const Route = createFileRoute("/feedback")({
   head: () => ({ meta: [{ title: "Обратная связь — Радиус Трек" }] }),

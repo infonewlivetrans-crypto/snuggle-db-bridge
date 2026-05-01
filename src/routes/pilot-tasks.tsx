@@ -33,7 +33,7 @@ import {
   listPilotTasksFn,
   listTaskCommentsFn,
   updatePilotTaskFn,
-} from "@/server/pilot-tasks.functions";
+} from "@/lib/server-functions/pilot-tasks.functions";
 
 export const Route = createFileRoute("/pilot-tasks")({
   head: () => ({ meta: [{ title: "Задачи и доработки — Радиус Трек" }] }),

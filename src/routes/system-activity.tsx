@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import { systemActivityFn } from "@/server/system-activity.functions";
+import { systemActivityFn } from "@/lib/server-functions/system-activity.functions";
 
 export const Route = createFileRoute("/system-activity")({
   head: () => ({ meta: [{ title: "Активность системы — Радиус Трек" }] }),

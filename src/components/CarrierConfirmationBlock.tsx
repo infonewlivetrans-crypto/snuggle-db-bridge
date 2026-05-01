@@ -30,7 +30,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import {
   confirmCarrierForRoute,
   rejectCarrierForRoute,
-} from "@/server/route-offers.functions";
+} from "@/lib/server-functions/route-offers.functions";
 
 type Props = { routeId: string };
 
