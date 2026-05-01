@@ -451,14 +451,24 @@ function DriverRoutePage() {
 
 function DriverPointCard({
   p,
+  index,
+  total,
   routeId,
   driverName,
   photoKinds,
+  onReorder,
+  reordering,
+  locked,
 }: {
   p: PointRow;
+  index: number;
+  total: number;
   routeId: string;
   driverName: string | null;
   photoKinds: Set<string> | undefined;
+  onReorder: (dir: -1 | 1) => void;
+  reordering: boolean;
+  locked: boolean;
 }) {
   const o = p.order;
 
@@ -487,6 +497,30 @@ function DriverPointCard({
               {p.point_number}
             </span>
             <span className="font-semibold">{o?.order_number ?? "—"}</span>
+            {!locked && (
+              <div className="ml-1 flex gap-0.5">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => onReorder(-1)}
+                  disabled={index === 0 || reordering}
+                  aria-label="Выше"
+                >
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={() => onReorder(1)}
+                  disabled={index === total - 1 || reordering}
+                  aria-label="Ниже"
+                >
+                  <ArrowDown className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
           </div>
           <div className="mt-1 text-sm font-medium">{o?.contact_name ?? "—"}</div>
         </div>
