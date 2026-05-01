@@ -354,6 +354,9 @@ function DriverRoutePage() {
               </div>
             </div>
 
+            {/* Контакты по рейсу: клиент, менеджер, логист, водитель, перевозчик */}
+            <DriverContactsBlock deliveryRouteId={deliveryRouteId} />
+
             {/* GPS-трекинг водителя — только при активном маршруте */}
             <DriverGeoTracker
               deliveryRouteId={deliveryRouteId}
