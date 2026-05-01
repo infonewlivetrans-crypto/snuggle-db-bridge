@@ -44,6 +44,7 @@ import { RouteCostBlock, type CostMethod } from "@/components/RouteCostBlock";
 import { CarrierOffersBlock } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
+import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { BODY_TYPE_LABELS } from "@/lib/carriers";
 import type { BodyType } from "@/lib/carriers";
 import {
