@@ -63,6 +63,7 @@ import { PointActionsHistory } from "@/components/PointActionsHistory";
 import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock";
 import { OrderEtaBlock } from "@/components/OrderEtaBlock";
 import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 
 type DeliveryReport = {
   id: string;
@@ -685,4 +686,65 @@ function DeliveryCostBlock({
       )}
     </div>
   );
+}
+
+function OrderContactsBlock({
+  orderId,
+  clientName,
+  clientPhone,
+}: {
+  orderId: string;
+  clientName: string | null;
+  clientPhone: string | null;
+}) {
+  // Найдём маршрут (заявку) и фактический рейс по этому заказу
+  const { data: routeInfo } = useQuery({
+    queryKey: ["order-route-link", orderId],
+    queryFn: async () => {
+      const { data: pt } = await supabase
+        .from("route_points")
+        .select("route_id")
+        .eq("order_id", orderId)
+        .limit(1)
+        .maybeSingle();
+      const routeId = (pt as { route_id: string } | null)?.route_id ?? null;
+      let deliveryRouteId: string | null = null;
+      if (routeId) {
+        const { data: dr } = await supabase
+          .from("delivery_routes")
+          .select("id")
+          .eq("source_request_id", routeId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        deliveryRouteId = (dr as { id: string } | null)?.id ?? null;
+      }
+      return { routeId, deliveryRouteId };
+    },
+  });
+
+  const { data: contacts, isLoading } = useRouteContacts({
+    routeId: routeInfo?.routeId ?? null,
+    deliveryRouteId: routeInfo?.deliveryRouteId ?? null,
+  });
+
+  // Если заказ ещё не в маршруте — покажем хотя бы клиента
+  if (!routeInfo?.routeId && !routeInfo?.deliveryRouteId) {
+    return (
+      <ContactsCard
+        title="Контакты по заказу"
+        contacts={[
+          { role: "client", label: "Клиент", name: clientName, phone: clientPhone },
+        ]}
+      />
+    );
+  }
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Загрузка контактов…
+      </div>
+    );
+  }
+  return <ContactsCard contacts={contacts ?? []} title="Контакты по заказу" />;
 }
