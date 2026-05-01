@@ -7,6 +7,7 @@ export const APP_ROLES = [
   "warehouse",
   "supply",
   "driver",
+  "carrier",
 ] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
@@ -19,6 +20,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   warehouse: "Склад",
   supply: "Снабжение",
   driver: "Водитель",
+  carrier: "Перевозчик",
 };
 
 // Куда отправлять пользователя после входа (по приоритету)
@@ -30,6 +32,7 @@ export function landingPathForRoles(roles: AppRole[]): string {
   if (roles.includes("warehouse")) return "/warehouse-today";
   if (roles.includes("supply")) return "/supply";
   if (roles.includes("driver")) return "/driver";
+  if (roles.includes("carrier")) return "/carrier-offers";
   return "/";
 }
 
@@ -59,6 +62,7 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/carriers") || p.startsWith("/drivers") || p.startsWith("/vehicles"), roles: ["admin", "logist", "director"] },
 
   { test: (p) => p.startsWith("/driver") && !p.startsWith("/drivers"), roles: ["admin", "driver"] },
+  { test: (p) => p.startsWith("/carrier-offers"), roles: ["admin", "logist", "carrier"] },
   { test: (p) => p.startsWith("/d/"), roles: [] }, // публичные ссылки водителя по токену
 
   { test: (p) => p === "/" || p.startsWith("/?"), roles: ["admin", "manager", "logist", "director"] },
