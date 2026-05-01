@@ -108,5 +108,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Минимальный режим запуска — скрываем всё, что не входит в базовый сценарий
+  if (!isPathVisibleInLaunchMode(path, launchMode)) {
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-3xl px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold text-foreground">Раздел недоступен</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Сейчас включён режим «Минимальный запуск». Этот раздел скрыт.
+            Переключите режим в «Настройки → Модули», чтобы открыть полный набор разделов.
+          </p>
+        </main>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }
