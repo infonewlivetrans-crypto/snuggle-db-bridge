@@ -1433,6 +1433,107 @@ export type Database = {
         }
         Relationships: []
       }
+      pilot_task_comments: {
+        Row: {
+          author_name: string | null
+          author_user_id: string | null
+          body: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          author_name?: string | null
+          author_user_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          author_name?: string | null
+          author_user_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "pilot_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pilot_tasks: {
+        Row: {
+          assignee: string | null
+          closed_at: string | null
+          created_at: string
+          description: string | null
+          feedback_id: string | null
+          how_to_reproduce: string | null
+          id: string
+          priority: string
+          reporter_name: string | null
+          reporter_role: string | null
+          reporter_user_id: string | null
+          route_id: string | null
+          route_label: string | null
+          source: string
+          status: string
+          title: string
+          updated_at: string
+          what_broke: string | null
+          where_broke: string | null
+        }
+        Insert: {
+          assignee?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          feedback_id?: string | null
+          how_to_reproduce?: string | null
+          id?: string
+          priority?: string
+          reporter_name?: string | null
+          reporter_role?: string | null
+          reporter_user_id?: string | null
+          route_id?: string | null
+          route_label?: string | null
+          source?: string
+          status?: string
+          title: string
+          updated_at?: string
+          what_broke?: string | null
+          where_broke?: string | null
+        }
+        Update: {
+          assignee?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description?: string | null
+          feedback_id?: string | null
+          how_to_reproduce?: string | null
+          id?: string
+          priority?: string
+          reporter_name?: string | null
+          reporter_role?: string | null
+          reporter_user_id?: string | null
+          route_id?: string | null
+          route_label?: string | null
+          source?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          what_broke?: string | null
+          where_broke?: string | null
+        }
+        Relationships: []
+      }
       product_stock_settings: {
         Row: {
           created_at: string
