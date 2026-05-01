@@ -489,7 +489,7 @@ function AvailabilityBadge({
  * Обёртка: грузит требования из routes по routeId и рендерит CarrierOffersBlock.
  */
 export function CarrierOffersBlockForRoute({ routeId }: { routeId: string }) {
-  const { data, isLoading } = useQueryWrap({
+  const { data, isLoading } = useQuery({
     queryKey: ["route-offers-requirements", routeId],
     queryFn: async (): Promise<OfferRequirements | null> => {
       const { data, error } = await db
