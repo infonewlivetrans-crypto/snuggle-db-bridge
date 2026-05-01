@@ -1924,6 +1924,73 @@ export type Database = {
           },
         ]
       }
+      route_carrier_history: {
+        Row: {
+          action: string
+          actor_label: string | null
+          actor_user_id: string | null
+          carrier_id: string | null
+          comment: string | null
+          created_at: string
+          driver_id: string | null
+          id: string
+          offer_id: string | null
+          reason: string | null
+          route_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_label?: string | null
+          actor_user_id?: string | null
+          carrier_id?: string | null
+          comment?: string | null
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          offer_id?: string | null
+          reason?: string | null
+          route_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_label?: string | null
+          actor_user_id?: string | null
+          carrier_id?: string | null
+          comment?: string | null
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          offer_id?: string | null
+          reason?: string | null
+          route_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_carrier_history_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_carrier_history_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "route_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_carrier_history_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_cost_history: {
         Row: {
           changed_by: string | null
@@ -2308,7 +2375,11 @@ export type Database = {
         Row: {
           applied_tariff_id: string | null
           avg_speed_kmh: number
+          carrier_assigned_at: string | null
+          carrier_assigned_by: string | null
+          carrier_assignment_status: string
           carrier_cost: number
+          carrier_id: string | null
           carrier_reward: number | null
           comment: string | null
           company_id: string | null
@@ -2333,6 +2404,7 @@ export type Database = {
           mileage_km: number | null
           onec_request_number: string | null
           organization: string | null
+          pending_offer_id: string | null
           planned_departure_at: string | null
           points_count: number
           points_order_changed_at: string | null
@@ -2369,7 +2441,11 @@ export type Database = {
         Insert: {
           applied_tariff_id?: string | null
           avg_speed_kmh?: number
+          carrier_assigned_at?: string | null
+          carrier_assigned_by?: string | null
+          carrier_assignment_status?: string
           carrier_cost?: number
+          carrier_id?: string | null
           carrier_reward?: number | null
           comment?: string | null
           company_id?: string | null
@@ -2394,6 +2470,7 @@ export type Database = {
           mileage_km?: number | null
           onec_request_number?: string | null
           organization?: string | null
+          pending_offer_id?: string | null
           planned_departure_at?: string | null
           points_count?: number
           points_order_changed_at?: string | null
@@ -2430,7 +2507,11 @@ export type Database = {
         Update: {
           applied_tariff_id?: string | null
           avg_speed_kmh?: number
+          carrier_assigned_at?: string | null
+          carrier_assigned_by?: string | null
+          carrier_assignment_status?: string
           carrier_cost?: number
+          carrier_id?: string | null
           carrier_reward?: number | null
           comment?: string | null
           company_id?: string | null
@@ -2455,6 +2536,7 @@ export type Database = {
           mileage_km?: number | null
           onec_request_number?: string | null
           organization?: string | null
+          pending_offer_id?: string | null
           planned_departure_at?: string | null
           points_count?: number
           points_order_changed_at?: string | null
@@ -2490,6 +2572,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "routes_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "routes_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -2501,6 +2590,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "routes_pending_offer_id_fkey"
+            columns: ["pending_offer_id"]
+            isOneToOne: false
+            referencedRelation: "route_offers"
             referencedColumns: ["id"]
           },
           {
