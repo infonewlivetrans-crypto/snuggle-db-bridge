@@ -361,7 +361,13 @@ function DriverRoutePage() {
                     Маршрут завершён. Отчёт отправлен менеджеру.
                   </div>
                   {data?.source_request_id && (
-                    <CarrierPaymentBlock routeId={data.source_request_id} />
+                    <>
+                      <CarrierDocumentsBlock
+                        routeId={data.source_request_id}
+                        mode="carrier"
+                      />
+                      <CarrierPaymentBlock routeId={data.source_request_id} />
+                    </>
                   )}
                 </div>
               ) : validationErrors.length > 0 ? (
