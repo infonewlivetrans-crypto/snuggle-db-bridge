@@ -554,6 +554,9 @@ function RouteDetailPage() {
         {/* Стоимость перевозчику и статус расчёта */}
         <CarrierPaymentBlock routeId={route.id} />
 
+        {/* Документы по рейсу от перевозчика */}
+        <CarrierDocumentsBlock routeId={route.id} mode="logist" />
+
         {/* Подбор перевозчиков (Радиус Трек) */}
         <CarrierOffersBlock
           routeId={route.id}
