@@ -33,6 +33,7 @@ import {
 } from "@/components/TransportRequestStatusBlock";
 import { RequestSchedulingBlock } from "@/components/RequestSchedulingBlock";
 import { DeliveryPointsBlock } from "@/components/DeliveryPointsBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import { CreateRouteFromRequestBlock } from "@/components/CreateRouteFromRequestBlock";
 import {
   PRIORITY_LABELS,
@@ -283,6 +284,9 @@ function TransportRequestDetailPage() {
               </div>
             </div>
 
+            {/* Контакты по заявке */}
+            <RequestContactsBlock requestId={data.id} />
+
             {/* Заказы в заявке */}
             <RequestOrdersBlock requestId={data.id} />
 
@@ -368,4 +372,16 @@ function Stat({ label, value }: { label: string; value: React.ReactNode }) {
       <div className="mt-1 text-xl font-bold text-foreground">{value}</div>
     </div>
   );
+}
+
+function RequestContactsBlock({ requestId }: { requestId: string }) {
+  const { data, isLoading } = useRouteContacts({ routeId: requestId });
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Загрузка контактов…
+      </div>
+    );
+  }
+  return <ContactsCard contacts={data ?? []} title="Контакты по заявке" />;
 }

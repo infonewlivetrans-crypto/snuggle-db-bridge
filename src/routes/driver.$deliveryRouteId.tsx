@@ -33,6 +33,8 @@ import { PaymentQrBlock } from "@/components/PaymentQrBlock";
 import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
+import { formatRuPhone } from "@/lib/phone";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
@@ -354,6 +356,9 @@ function DriverRoutePage() {
               </div>
             </div>
 
+            {/* Контакты по рейсу: клиент, менеджер, логист, водитель, перевозчик */}
+            <DriverContactsBlock deliveryRouteId={deliveryRouteId} />
+
             {/* GPS-трекинг водителя — только при активном маршруте */}
             <DriverGeoTracker
               deliveryRouteId={deliveryRouteId}
@@ -540,7 +545,7 @@ function DriverPointCard({
             className="flex items-center gap-1.5 text-primary hover:underline"
           >
             <Phone className="h-3.5 w-3.5" />
-            {o.contact_phone}
+            {formatRuPhone(o.contact_phone)}
           </a>
         )}
       </div>
@@ -852,4 +857,16 @@ function ManagerInfoAndActions({
       />
     </div>
   );
+}
+
+function DriverContactsBlock({ deliveryRouteId }: { deliveryRouteId: string }) {
+  const { data, isLoading } = useRouteContacts({ deliveryRouteId });
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Загрузка контактов…
+      </div>
+    );
+  }
+  return <ContactsCard contacts={data ?? []} title="Контакты по рейсу" />;
 }
