@@ -250,6 +250,7 @@ export type Database = {
           bank_name: string | null
           carrier_type: Database["public"]["Enums"]["carrier_type"]
           city: string | null
+          company_id: string | null
           company_name: string
           contact_person: string | null
           created_at: string
@@ -272,6 +273,7 @@ export type Database = {
           bank_name?: string | null
           carrier_type: Database["public"]["Enums"]["carrier_type"]
           city?: string | null
+          company_id?: string | null
           company_name: string
           contact_person?: string | null
           created_at?: string
@@ -294,6 +296,7 @@ export type Database = {
           bank_name?: string | null
           carrier_type?: Database["public"]["Enums"]["carrier_type"]
           city?: string | null
+          company_id?: string | null
           company_name?: string
           contact_person?: string | null
           created_at?: string
@@ -309,11 +312,20 @@ export type Database = {
           verification_comment?: string | null
           verification_status?: Database["public"]["Enums"]["carrier_verification_status"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "carriers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
           address: string | null
+          company_id: string | null
           created_at: string
           email: string | null
           external_id: string | null
@@ -328,6 +340,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          company_id?: string | null
           created_at?: string
           email?: string | null
           external_id?: string | null
@@ -342,6 +355,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          company_id?: string | null
           created_at?: string
           email?: string | null
           external_id?: string | null
@@ -354,12 +368,83 @@ export type Database = {
           source?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "clients_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          company_type: Database["public"]["Enums"]["company_type"]
+          created_at: string
+          id: string
+          inn: string | null
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          company_type?: Database["public"]["Enums"]["company_type"]
+          created_at?: string
+          id?: string
+          inn?: string | null
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          company_type?: Database["public"]["Enums"]["company_type"]
+          created_at?: string
+          id?: string
+          inn?: string | null
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
         Relationships: []
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          is_default: boolean
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_reports: {
         Row: {
           cash_received: boolean
           comment: string | null
+          company_id: string | null
           created_at: string
           delivered_at: string
           driver_name: string | null
@@ -375,6 +460,7 @@ export type Database = {
         Insert: {
           cash_received?: boolean
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           delivered_at?: string
           driver_name?: string | null
@@ -390,6 +476,7 @@ export type Database = {
         Update: {
           cash_received?: boolean
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           delivered_at?: string
           driver_name?: string | null
@@ -402,13 +489,22 @@ export type Database = {
           route_id?: string | null
           route_point_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "delivery_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_routes: {
         Row: {
           assigned_driver: string | null
           assigned_vehicle: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           created_by: string | null
           driver_access_created_at: string | null
@@ -430,6 +526,7 @@ export type Database = {
           assigned_driver?: string | null
           assigned_vehicle?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           driver_access_created_at?: string | null
@@ -451,6 +548,7 @@ export type Database = {
           assigned_driver?: string | null
           assigned_vehicle?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           driver_access_created_at?: string | null
@@ -468,13 +566,22 @@ export type Database = {
           status?: Database["public"]["Enums"]["delivery_route_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "delivery_routes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       delivery_tariffs: {
         Row: {
           base_price: number | null
           city: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           destination_city: string | null
           fixed_price: number | null
@@ -499,6 +606,7 @@ export type Database = {
           base_price?: number | null
           city?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           destination_city?: string | null
           fixed_price?: number | null
@@ -523,6 +631,7 @@ export type Database = {
           base_price?: number | null
           city?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           destination_city?: string | null
           fixed_price?: number | null
@@ -543,7 +652,15 @@ export type Database = {
           warehouse_id?: string
           zone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "delivery_tariffs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dock_loaded_items: {
         Row: {
@@ -591,6 +708,7 @@ export type Database = {
         Row: {
           accuracy: number | null
           captured_at: string
+          company_id: string | null
           created_at: string
           delivery_route_id: string
           driver_name: string | null
@@ -601,6 +719,7 @@ export type Database = {
         Insert: {
           accuracy?: number | null
           captured_at?: string
+          company_id?: string | null
           created_at?: string
           delivery_route_id: string
           driver_name?: string | null
@@ -611,6 +730,7 @@ export type Database = {
         Update: {
           accuracy?: number | null
           captured_at?: string
+          company_id?: string | null
           created_at?: string
           delivery_route_id?: string
           driver_name?: string | null
@@ -619,6 +739,13 @@ export type Database = {
           longitude?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "driver_locations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "driver_locations_delivery_route_id_fkey"
             columns: ["delivery_route_id"]
@@ -632,6 +759,7 @@ export type Database = {
         Row: {
           carrier_id: string
           comment: string | null
+          company_id: string | null
           created_at: string
           external_id: string | null
           full_name: string
@@ -654,6 +782,7 @@ export type Database = {
         Insert: {
           carrier_id: string
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           external_id?: string | null
           full_name: string
@@ -676,6 +805,7 @@ export type Database = {
         Update: {
           carrier_id?: string
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           external_id?: string | null
           full_name?: string
@@ -701,6 +831,13 @@ export type Database = {
             columns: ["carrier_id"]
             isOneToOne: false
             referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drivers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -743,6 +880,7 @@ export type Database = {
           bad: string | null
           broken: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           good: string | null
           id: string
@@ -762,6 +900,7 @@ export type Database = {
           bad?: string | null
           broken?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           good?: string | null
           id?: string
@@ -781,6 +920,7 @@ export type Database = {
           bad?: string | null
           broken?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           good?: string | null
           id?: string
@@ -796,10 +936,19 @@ export type Database = {
           user_id?: string
           user_name?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "feedback_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       import_log_rows: {
         Row: {
+          company_id: string | null
           created_at: string
           error_message: string | null
           id: string
@@ -810,6 +959,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -820,6 +970,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
@@ -831,6 +982,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "import_log_rows_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "import_log_rows_import_log_id_fkey"
             columns: ["import_log_id"]
             isOneToOne: false
@@ -841,6 +999,7 @@ export type Database = {
       }
       import_logs: {
         Row: {
+          company_id: string | null
           created_at: string
           duplicate_action: string
           duplicate_rows: number
@@ -859,6 +1018,7 @@ export type Database = {
           updated_rows: number
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           duplicate_action?: string
           duplicate_rows?: number
@@ -877,6 +1037,7 @@ export type Database = {
           updated_rows?: number
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           duplicate_action?: string
           duplicate_rows?: number
@@ -894,11 +1055,20 @@ export type Database = {
           updated_at?: string
           updated_rows?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "import_logs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       inbound_shipment_items: {
         Row: {
           comment: string | null
+          company_id: string | null
           created_at: string
           id: string
           product_name: string
@@ -910,6 +1080,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           id?: string
           product_name: string
@@ -921,6 +1092,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           id?: string
           product_name?: string
@@ -931,6 +1103,13 @@ export type Database = {
           unit?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inbound_shipment_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inbound_shipment_items_shipment_id_fkey"
             columns: ["shipment_id"]
@@ -946,6 +1125,7 @@ export type Database = {
           accepted_by: string | null
           arrived_at: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           destination_warehouse_id: string | null
           docs_photo_urls: Json
@@ -972,6 +1152,7 @@ export type Database = {
           accepted_by?: string | null
           arrived_at?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           destination_warehouse_id?: string | null
           docs_photo_urls?: Json
@@ -998,6 +1179,7 @@ export type Database = {
           accepted_by?: string | null
           arrived_at?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           destination_warehouse_id?: string | null
           docs_photo_urls?: Json
@@ -1020,6 +1202,13 @@ export type Database = {
           warehouse_comment?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "inbound_shipments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "inbound_shipments_destination_warehouse_id_fkey"
             columns: ["destination_warehouse_id"]
@@ -1135,6 +1324,7 @@ export type Database = {
           changed_at: string
           changed_by: string | null
           comment: string | null
+          company_id: string | null
           field: string
           id: string
           new_value: string | null
@@ -1145,6 +1335,7 @@ export type Database = {
           changed_at?: string
           changed_by?: string | null
           comment?: string | null
+          company_id?: string | null
           field: string
           id?: string
           new_value?: string | null
@@ -1155,18 +1346,28 @@ export type Database = {
           changed_at?: string
           changed_by?: string | null
           comment?: string | null
+          company_id?: string | null
           field?: string
           id?: string
           new_value?: string | null
           old_value?: string | null
           order_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_history_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
           characteristic: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           delivery_amount: number | null
           external_id: string | null
@@ -1186,6 +1387,7 @@ export type Database = {
         Insert: {
           characteristic?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           delivery_amount?: number | null
           external_id?: string | null
@@ -1205,6 +1407,7 @@ export type Database = {
         Update: {
           characteristic?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           delivery_amount?: number | null
           external_id?: string | null
@@ -1221,11 +1424,20 @@ export type Database = {
           volume_m3?: number | null
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_problem_reports: {
         Row: {
           comment: string | null
+          company_id: string | null
           created_at: string
           id: string
           logist_comment: string | null
@@ -1244,6 +1456,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           id?: string
           logist_comment?: string | null
@@ -1262,6 +1475,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           id?: string
           logist_comment?: string | null
@@ -1278,7 +1492,15 @@ export type Database = {
           route_point_id?: string | null
           urgency?: Database["public"]["Enums"]["problem_urgency"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_problem_reports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -1290,6 +1512,7 @@ export type Database = {
           client_type: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends: boolean
           comment: string | null
+          company_id: string | null
           contact_name: string | null
           contact_phone: string | null
           created_at: string
@@ -1340,6 +1563,7 @@ export type Database = {
           client_type?: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends?: boolean
           comment?: string | null
+          company_id?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -1390,6 +1614,7 @@ export type Database = {
           client_type?: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends?: boolean
           comment?: string | null
+          company_id?: string | null
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -1431,7 +1656,15 @@ export type Database = {
           total_weight_kg?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pilot_task_comments: {
         Row: {
@@ -1472,6 +1705,7 @@ export type Database = {
         Row: {
           assignee: string | null
           closed_at: string | null
+          company_id: string | null
           created_at: string
           description: string | null
           feedback_id: string | null
@@ -1493,6 +1727,7 @@ export type Database = {
         Insert: {
           assignee?: string | null
           closed_at?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string | null
           feedback_id?: string | null
@@ -1514,6 +1749,7 @@ export type Database = {
         Update: {
           assignee?: string | null
           closed_at?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string | null
           feedback_id?: string | null
@@ -1532,7 +1768,15 @@ export type Database = {
           what_broke?: string | null
           where_broke?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "pilot_tasks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_stock_settings: {
         Row: {
@@ -1573,6 +1817,7 @@ export type Database = {
       products: {
         Row: {
           category: string | null
+          company_id: string | null
           created_at: string
           external_id: string | null
           id: string
@@ -1588,6 +1833,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          company_id?: string | null
           created_at?: string
           external_id?: string | null
           id?: string
@@ -1603,6 +1849,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          company_id?: string | null
           created_at?: string
           external_id?: string | null
           id?: string
@@ -1616,10 +1863,19 @@ export type Database = {
           warehouse_id?: string | null
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
+          company_id: string | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -1629,6 +1885,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -1638,6 +1895,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
@@ -1646,7 +1904,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_cost_history: {
         Row: {
@@ -1689,6 +1955,7 @@ export type Database = {
           action: string
           actor: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           details: Json
           id: string
@@ -1700,6 +1967,7 @@ export type Database = {
           action: string
           actor?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           details?: Json
           id?: string
@@ -1711,6 +1979,7 @@ export type Database = {
           action?: string
           actor?: string | null
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           details?: Json
           id?: string
@@ -1718,11 +1987,20 @@ export type Database = {
           route_id?: string | null
           route_point_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "route_point_actions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_point_photos: {
         Row: {
           comment: string | null
+          company_id: string | null
           created_at: string
           file_url: string
           id: string
@@ -1734,6 +2012,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           file_url: string
           id?: string
@@ -1745,6 +2024,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           file_url?: string
           id?: string
@@ -1754,13 +2034,22 @@ export type Database = {
           storage_path?: string | null
           uploaded_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "route_point_photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       route_points: {
         Row: {
           arrived_at: string | null
           client_window_from: string | null
           client_window_to: string | null
+          company_id: string | null
           completed_at: string | null
           created_at: string
           dp_actual_arrival_at: string | null
@@ -1810,6 +2099,7 @@ export type Database = {
           arrived_at?: string | null
           client_window_from?: string | null
           client_window_to?: string | null
+          company_id?: string | null
           completed_at?: string | null
           created_at?: string
           dp_actual_arrival_at?: string | null
@@ -1859,6 +2149,7 @@ export type Database = {
           arrived_at?: string | null
           client_window_from?: string | null
           client_window_to?: string | null
+          company_id?: string | null
           completed_at?: string | null
           created_at?: string
           dp_actual_arrival_at?: string | null
@@ -1906,6 +2197,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "route_points_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "route_points_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -1928,6 +2226,7 @@ export type Database = {
           carrier_cost: number
           carrier_reward: number | null
           comment: string | null
+          company_id: string | null
           cost_method: string
           cost_per_km: number
           cost_per_point: number
@@ -1988,6 +2287,7 @@ export type Database = {
           carrier_cost?: number
           carrier_reward?: number | null
           comment?: string | null
+          company_id?: string | null
           cost_method?: string
           cost_per_km?: number
           cost_per_point?: number
@@ -2048,6 +2348,7 @@ export type Database = {
           carrier_cost?: number
           carrier_reward?: number | null
           comment?: string | null
+          company_id?: string | null
           cost_method?: string
           cost_per_km?: number
           cost_per_point?: number
@@ -2104,6 +2405,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "routes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "routes_driver_id_fkey"
             columns: ["driver_id"]
             isOneToOne: false
@@ -2136,6 +2444,7 @@ export type Database = {
       stock_movements: {
         Row: {
           comment: string | null
+          company_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -2152,6 +2461,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2168,6 +2478,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -2182,7 +2493,15 @@ export type Database = {
           source?: string
           warehouse_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stock_reservations: {
         Row: {
@@ -2286,6 +2605,7 @@ export type Database = {
       supply_in_transit: {
         Row: {
           comment: string | null
+          company_id: string | null
           created_at: string
           destination_warehouse_id: string
           expected_at: string | null
@@ -2300,6 +2620,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           destination_warehouse_id: string
           expected_at?: string | null
@@ -2314,6 +2635,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           destination_warehouse_id?: string
           expected_at?: string | null
@@ -2326,7 +2648,15 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "supply_in_transit_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supply_notification_log: {
         Row: {
@@ -2400,6 +2730,7 @@ export type Database = {
       supply_requests: {
         Row: {
           comment: string | null
+          company_id: string | null
           confirmed_at: string | null
           created_at: string
           created_by: string | null
@@ -2428,6 +2759,7 @@ export type Database = {
         }
         Insert: {
           comment?: string | null
+          company_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -2456,6 +2788,7 @@ export type Database = {
         }
         Update: {
           comment?: string | null
+          company_id?: string | null
           confirmed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -2482,7 +2815,15 @@ export type Database = {
           supply_status_changed_by?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "supply_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_errors: {
         Row: {
@@ -2725,6 +3066,7 @@ export type Database = {
           capacity_kg: number | null
           carrier_id: string
           comment: string | null
+          company_id: string | null
           created_at: string
           has_manipulator: boolean
           has_straps: boolean
@@ -2752,6 +3094,7 @@ export type Database = {
           capacity_kg?: number | null
           carrier_id: string
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           has_manipulator?: boolean
           has_straps?: boolean
@@ -2779,6 +3122,7 @@ export type Database = {
           capacity_kg?: number | null
           carrier_id?: string
           comment?: string | null
+          company_id?: string | null
           created_at?: string
           has_manipulator?: boolean
           has_straps?: boolean
@@ -2803,6 +3147,13 @@ export type Database = {
             columns: ["carrier_id"]
             isOneToOne: false
             referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vehicles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -3019,6 +3370,7 @@ export type Database = {
           address: string | null
           breaks: Json
           city: string | null
+          company_id: string | null
           contact_person: string | null
           created_at: string
           delivery_radius_km: number | null
@@ -3041,6 +3393,7 @@ export type Database = {
           address?: string | null
           breaks?: Json
           city?: string | null
+          company_id?: string | null
           contact_person?: string | null
           created_at?: string
           delivery_radius_km?: number | null
@@ -3063,6 +3416,7 @@ export type Database = {
           address?: string | null
           breaks?: Json
           city?: string | null
+          company_id?: string | null
           contact_person?: string | null
           created_at?: string
           delivery_radius_km?: number | null
@@ -3081,7 +3435,15 @@ export type Database = {
           updated_at?: string
           working_hours?: Json
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "warehouses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -3118,11 +3480,16 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: number
       }
+      default_company_id: { Args: { _user_id: string }; Returns: string }
       generate_delivery_route_number: { Args: never; Returns: string }
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
       has_any_admin: { Args: never; Returns: boolean }
+      has_company_access: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3145,6 +3512,7 @@ export type Database = {
           base_price: number | null
           city: string | null
           comment: string | null
+          company_id: string | null
           created_at: string
           destination_city: string | null
           fixed_price: number | null
@@ -3175,6 +3543,7 @@ export type Database = {
       recalc_route_costs: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_etas: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
+      user_company_ids: { Args: { _user_id: string }; Returns: string[] }
     }
     Enums: {
       app_role:
@@ -3208,6 +3577,7 @@ export type Database = {
         | "factory"
         | "snt"
         | "dacha"
+      company_type: "shipper" | "carrier" | "mixed"
       delivery_cost_source: "auto" | "manual" | "tariff"
       delivery_point_status:
         | "waiting"
@@ -3483,6 +3853,7 @@ export const Constants = {
         "snt",
         "dacha",
       ],
+      company_type: ["shipper", "carrier", "mixed"],
       delivery_cost_source: ["auto", "manual", "tariff"],
       delivery_point_status: [
         "waiting",
