@@ -503,6 +503,7 @@ export type Database = {
         Row: {
           assigned_driver: string | null
           assigned_vehicle: string | null
+          carrier_id: string | null
           comment: string | null
           company_id: string | null
           created_at: string
@@ -525,6 +526,7 @@ export type Database = {
         Insert: {
           assigned_driver?: string | null
           assigned_vehicle?: string | null
+          carrier_id?: string | null
           comment?: string | null
           company_id?: string | null
           created_at?: string
@@ -547,6 +549,7 @@ export type Database = {
         Update: {
           assigned_driver?: string | null
           assigned_vehicle?: string | null
+          carrier_id?: string | null
           comment?: string | null
           company_id?: string | null
           created_at?: string
@@ -567,6 +570,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "delivery_routes_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "delivery_routes_company_id_fkey"
             columns: ["company_id"]
