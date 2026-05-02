@@ -137,6 +137,22 @@ function DriverRoutePage() {
     },
   });
 
+  // Реалтайм: изменения рейса/точек/заказов с других устройств — автоматически инвалидируем кэш
+  useRealtimeInvalidate("delivery_routes", [["driver-route", deliveryRouteId]], {
+    filter: `id=eq.${deliveryRouteId}`,
+  });
+  useRealtimeInvalidate(
+    "route_points",
+    [["delivery-route-points", data?.source_request_id]],
+    {
+      enabled: !!data?.source_request_id,
+      filter: `route_id=eq.${data?.source_request_id}`,
+    },
+  );
+  useRealtimeInvalidate("orders", [["delivery-route-points", data?.source_request_id]], {
+    enabled: !!data?.source_request_id,
+  });
+
   const { data: points } = useQuery({
     enabled: !!data?.source_request_id,
     queryKey: ["delivery-route-points", data?.source_request_id],
