@@ -236,7 +236,77 @@ const GROUPS: readonly NavGroup[] = [
   },
 ];
 
-export function AppHeader() {
+// =============================================================
+// Кнопка одного блока меню (с дропдауном подпунктов).
+// Вынесена отдельно, чтобы можно было показывать на разных
+// breakpoint-ах без дублирования JSX.
+// =============================================================
+function GroupButton({
+  group,
+  path,
+  isActive,
+  className = "",
+}: {
+  group: NavGroup;
+  path: string;
+  isActive: boolean;
+  className?: string;
+}) {
+  const GIcon = group.icon;
+  const baseCls = `inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
+    isActive
+      ? "bg-foreground text-background"
+      : "text-foreground hover:bg-secondary"
+  } ${className}`;
+
+  if (group.items.length === 1) {
+    return (
+      <Link to={group.items[0].to} className={baseCls}>
+        <GIcon className="h-4 w-4" />
+        <span className="whitespace-nowrap">{group.label}</span>
+      </Link>
+    );
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button type="button" className={baseCls}>
+          <GIcon className="h-4 w-4" />
+          <span className="whitespace-nowrap">{group.label}</span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <GIcon className="h-4 w-4" />
+          {group.label}
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {group.items.map((item) => {
+          const Icon = item.icon;
+          const itemActive =
+            path === item.to ||
+            (item.to !== "/" && path.startsWith(item.to + "/"));
+          return (
+            <DropdownMenuItem key={item.to} asChild>
+              <Link
+                to={item.to}
+                className={`flex w-full cursor-pointer items-center gap-2 ${
+                  itemActive ? "bg-secondary font-semibold" : ""
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
   const location = useLocation();
   const path = location.pathname;
   const [mobileOpen, setMobileOpen] = useState(false);
