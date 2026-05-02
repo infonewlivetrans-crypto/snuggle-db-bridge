@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { LoadingFallback } from "@/components/LoadingFallback";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -148,7 +149,7 @@ function OrdersPage() {
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [routeFilter, setRouteFilter] = useState<string>("all");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["orders-overview"],
     queryFn: async (): Promise<OrderRow[]> => {
       // Подтянем заказы вместе с маршрутом, на котором они стоят (через route_points)
@@ -388,8 +389,8 @@ function OrdersPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
-                        Загрузка…
+                      <TableCell colSpan={10} className="py-6">
+                        <LoadingFallback onRefresh={() => refetch()} />
                       </TableCell>
                     </TableRow>
                   ) : filtered.length === 0 ? (
