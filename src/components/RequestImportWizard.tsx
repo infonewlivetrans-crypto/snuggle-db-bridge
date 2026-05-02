@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { FileSpreadsheet, Loader2, ChevronLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { parseFile, autoMap, TARGET_FIELDS, type ParsedTable, type TargetKey } from "@/lib/file-parser";
+import { upsertClientSilent, buildOrderAutofillFromClient } from "@/lib/client-autofill";
 import { toast } from "sonner";
 
 type Step = "upload" | "preview" | "mapping" | "done";
