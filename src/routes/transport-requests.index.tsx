@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { LoadingFallback } from "@/components/LoadingFallback";
 import {
   Table,
   TableBody,
@@ -73,7 +74,7 @@ function TransportRequestsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["transport-requests"],
     queryFn: async (): Promise<RequestRow[]> => {
       const { data, error } = await supabase
@@ -156,8 +157,8 @@ function TransportRequestsPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={12} className="py-12 text-center text-muted-foreground">
-                    Загрузка...
+                  <TableCell colSpan={12} className="py-6">
+                    <LoadingFallback onRefresh={() => refetch()} />
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (

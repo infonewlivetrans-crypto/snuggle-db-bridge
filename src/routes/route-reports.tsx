@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { LoadingFallback } from "@/components/LoadingFallback";
 import { FileText, Truck, CheckCircle2, XCircle, RotateCcw, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/route-reports")({
@@ -40,7 +41,7 @@ type Notif = {
 const fmt = (n: number | null | undefined) => (n ?? 0).toLocaleString("ru-RU");
 
 function RouteReportsPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["route-completed-reports-list"],
     queryFn: async (): Promise<Notif[]> => {
       const { data, error } = await supabase
@@ -67,7 +68,7 @@ function RouteReportsPage() {
         </p>
 
         {isLoading ? (
-          <div className="text-muted-foreground">Загрузка...</div>
+          <LoadingFallback onRefresh={() => refetch()} />
         ) : !data || data.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
             Завершённых маршрутов пока нет
