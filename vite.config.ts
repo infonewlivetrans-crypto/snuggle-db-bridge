@@ -8,6 +8,9 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   vite: {
+    server: {
+      allowedHosts: ["radius-track.ru", "www.radius-track.ru"],
+    },
     build: {
       // Чанки для тяжёлых клиентских библиотек, чтобы не входили в initial bundle
       // и грузились только при первом использовании соответствующих экранов/действий.
