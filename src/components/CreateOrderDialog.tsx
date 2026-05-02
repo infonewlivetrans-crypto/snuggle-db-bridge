@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
 import { parseCoords } from "@/lib/geo";
+import { findClient, upsertClientSilent } from "@/lib/client-autofill";
 import { MapPin, Compass, Upload, Loader2, X } from "lucide-react";
 
 interface CreateOrderDialogProps {
