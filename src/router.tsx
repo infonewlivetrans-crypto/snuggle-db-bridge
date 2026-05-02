@@ -57,18 +57,32 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 }
 
 export const getRouter = () => {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Данные считаются свежими 30 секунд — при возврате назад нет «фликера» загрузок
+        staleTime: 30_000,
+        gcTime: 5 * 60_000,
+        refetchOnWindowFocus: false,
+        retry: 1,
+      },
+    },
+  });
   const router = createRouter({
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
+    // Префетчим код+данные роута при наведении/тапе по ссылке — переход становится «мгновенным»
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
+    defaultPreloadDelay: 30,
     defaultPendingComponent: RouteSkeleton,
-    defaultPendingMs: 200,
-    defaultPendingMinMs: 150,
+    // Скелетон показывается почти сразу: убирает ощущение «клик не сработал»
+    defaultPendingMs: 50,
+    defaultPendingMinMs: 200,
     defaultErrorComponent: DefaultErrorComponent,
   });
 
   return router;
 };
+
