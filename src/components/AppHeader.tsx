@@ -1,14 +1,16 @@
-// Шапка приложения с группированной навигацией.
+// Лёгкая шапка приложения.
 //
-// Структура:
-// 1) Верхняя строка — короткая шапка с 8 крупными блоками
-//    (Рабочий стол, Логистика, Склад, Снабжение, Заказы и клиенты,
-//     Финансы, Отчёты, Администрирование) + правая зона (уведомления, профиль).
-// 2) Под шапкой — лента подразделов АКТИВНОЙ группы (на десктопе/планшете).
-//    На узких экранах эта лента скрывается — доступ через бургер.
-// 3) Бургер открывает Sheet со всеми группами и их подразделами.
+// Архитектура:
+// 1) Верхняя строка содержит ТОЛЬКО 7 крупных блоков:
+//    Рабочий стол, Логистика, Склад, Заказы, Финансы, Отчёты, Администрирование.
+// 2) Подразделы каждого блока открываются:
+//    - на десктопе/ноутбуке — через выпадающее меню (DropdownMenu) при клике
+//      на блок (сама плитка блока — это ссылка на основной маршрут);
+//    - на мобильном — через бургер (Sheet) с раскрывающимися группами.
+// 3) Шапка не импортирует страницы и не содержит тяжёлой логики —
+//    только статический список ссылок и иконки.
 //
-// Маршруты НЕ меняются — мы только реорганизуем меню.
+// Маршруты НЕ меняются.
 import { Link, useLocation } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
@@ -23,7 +25,6 @@ import {
   PackageSearch,
   Receipt,
   ClipboardList,
-  Bell,
   FileText,
   PlayCircle,
   ArrowLeftRight,
@@ -41,8 +42,9 @@ import {
   Wallet,
   ShieldCheck,
   ChevronDown,
+  Bell,
 } from "lucide-react";
-import { BrandLogo, BrandMark } from "@/components/BrandLogo";
+import { BrandMark } from "@/components/BrandLogo";
 import {
   Sheet,
   SheetContent,
@@ -57,6 +59,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -86,20 +89,25 @@ type NavGroup = {
   id: string;
   label: string;
   icon: Icon;
-  /** Пути, по которым считается, что мы находимся в этой группе. */
+  /** Пути, по которым блок считается активным. */
   match: (p: string) => boolean;
   items: readonly NavItem[];
 };
 
 // =============================================================
-// 8 крупных блоков. Внутри каждого — реальные существующие маршруты.
+// 7 крупных блоков. Внутри — реальные маршруты, которые остаются.
 // =============================================================
 const GROUPS: readonly NavGroup[] = [
   {
     id: "workspace",
     label: "Рабочий стол",
     icon: LayoutDashboard,
-    match: (p) => p === "/" || p.startsWith("/workspace") || p.startsWith("/work-day") || p.startsWith("/work-control"),
+    match: (p) =>
+      p === "/" ||
+      p.startsWith("/workspace") ||
+      p.startsWith("/work-day") ||
+      p.startsWith("/work-control") ||
+      p.startsWith("/notifications"),
     items: [
       { to: "/", label: "Обзор", icon: LayoutDashboard },
       { to: "/workspace", label: "Рабочий стол", icon: LayoutDashboard },
@@ -139,7 +147,10 @@ const GROUPS: readonly NavGroup[] = [
     id: "warehouse",
     label: "Склад",
     icon: Warehouse,
-    match: (p) => p.startsWith("/warehouse") || (p.startsWith("/warehouses") && !p.startsWith("/warehouse-")),
+    match: (p) =>
+      p.startsWith("/warehouse") ||
+      (p.startsWith("/warehouses") && !p.startsWith("/warehouse-")) ||
+      p.startsWith("/supply"),
     items: [
       { to: "/warehouse-today", label: "Склад сегодня", icon: Warehouse },
       { to: "/warehouses", label: "Склады", icon: Warehouse },
@@ -151,14 +162,6 @@ const GROUPS: readonly NavGroup[] = [
       { to: "/warehouse-transfers", label: "Перемещения между складами", icon: ArrowLeftRight },
       { to: "/warehouse-report", label: "Отчёт склада", icon: FileText },
       { to: "/warehouse-settings", label: "Настройки склада", icon: Settings },
-    ],
-  },
-  {
-    id: "supply",
-    label: "Снабжение",
-    icon: PackageSearch,
-    match: (p) => p.startsWith("/supply"),
-    items: [
       { to: "/supply", label: "Снабжение — обзор", icon: PackageSearch },
       { to: "/supply/requests", label: "Заявки на пополнение", icon: ClipboardList },
       { to: "/supply/cabinet", label: "Кабинет снабжения", icon: PackageSearch },
@@ -166,9 +169,12 @@ const GROUPS: readonly NavGroup[] = [
   },
   {
     id: "orders",
-    label: "Заказы и клиенты",
+    label: "Заказы",
     icon: ClipboardList,
-    match: (p) => p.startsWith("/orders") || p.startsWith("/data-import") || p.startsWith("/upload"),
+    match: (p) =>
+      p.startsWith("/orders") ||
+      p.startsWith("/data-import") ||
+      p.startsWith("/upload"),
     items: [
       { to: "/orders", label: "Заказы и клиенты", icon: ClipboardList },
       { to: "/data-import", label: "Импорт заказов", icon: FileSpreadsheet },
@@ -244,7 +250,7 @@ export function AppHeader() {
     isPathEnabled(to, enabledModules) &&
     isPathVisibleInLaunchMode(to, launchMode);
 
-  // Фильтруем подпункты по правам/модулям, потом скрываем пустые группы.
+  // Фильтрация подпунктов по правам/модулям; пустые блоки скрываем.
   const visibleGroups = useMemo(() => {
     return GROUPS.map((g) => ({
       ...g,
@@ -253,12 +259,8 @@ export function AppHeader() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roles.join("|"), JSON.stringify(enabledModules), launchMode]);
 
-  // Активная группа: совпадение по match, иначе первая видимая.
   const activeGroup =
     visibleGroups.find((g) => g.match(path)) ?? visibleGroups[0] ?? null;
-  const activeItem = activeGroup?.items.find(
-    (it) => path === it.to || (it.to !== "/" && path.startsWith(it.to + "/")) || path === it.to,
-  );
 
   const initials = (profile?.full_name ?? user?.email ?? "?")
     .split(/\s+/)
@@ -271,11 +273,10 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      {/* === Верхняя строка: логотип + крупные блоки + правая зона === */}
       <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
         {/* Левая часть: бургер (узкие экраны) + логотип */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          {/* Бургер: < 1024px */}
+          {/* Бургер: <1024px */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -292,8 +293,11 @@ export function AppHeader() {
               <SheetDescription className="sr-only">
                 Главное меню приложения «Радиус Трек»
               </SheetDescription>
-              <div className="border-b border-border px-5 py-4">
-                <BrandLogo size={32} />
+              <div className="flex items-center gap-2 border-b border-border px-5 py-4">
+                <BrandMark size={32} />
+                <span className="text-sm font-extrabold tracking-tight">
+                  Радиус&nbsp;Трек
+                </span>
               </div>
               <nav className="flex max-h-[calc(100vh-72px)] flex-col gap-1 overflow-y-auto p-2">
                 {visibleGroups.map((g) => {
@@ -347,12 +351,12 @@ export function AppHeader() {
           <Link
             to="/"
             search={{ orderId: undefined }}
-            className="flex shrink-0 items-center gap-2 self-center min-w-[110px] sm:gap-2.5 lg:min-w-[150px]"
+            className="flex shrink-0 items-center gap-2 self-center min-w-[110px] sm:gap-2.5"
             aria-label="На главную — Радиус Трек"
           >
-            <BrandMark size={32} className="shrink-0 lg:!h-9 lg:!w-9" />
-            <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-[14px] font-extrabold tracking-tight text-foreground lg:text-[15px]">
+            <BrandMark size={32} className="shrink-0" />
+            <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+              <span className="truncate text-[14px] font-extrabold tracking-tight text-foreground">
                 Радиус&nbsp;Трек
               </span>
               <span className="hidden truncate text-[10px] uppercase tracking-[0.14em] text-muted-foreground xl:inline">
@@ -361,7 +365,7 @@ export function AppHeader() {
             </span>
           </Link>
 
-          {/* Активный блок — текстовый индикатор на узких экранах */}
+          {/* На узких экранах показываем активный блок текстом */}
           {activeGroup ? (
             <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground lg:hidden">
               {activeGroup.label}
@@ -369,26 +373,74 @@ export function AppHeader() {
           ) : null}
         </div>
 
-        {/* === Крупные блоки — горизонтально, только на >=1024px === */}
+        {/* === Только 7 крупных блоков, через выпадающие меню === */}
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
           {visibleGroups.map((g) => {
             const GIcon = g.icon;
             const isActive = activeGroup?.id === g.id;
-            // Первый пункт группы — основной маршрут блока
             const primary = g.items[0];
+
+            // Если в блоке только один пункт — сразу ссылка, без меню.
+            if (g.items.length === 1) {
+              return (
+                <Link
+                  key={g.id}
+                  to={primary.to}
+                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
+                    isActive
+                      ? "bg-foreground text-background"
+                      : "text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  <GIcon className="h-4 w-4" />
+                  <span className="whitespace-nowrap">{g.label}</span>
+                </Link>
+              );
+            }
+
             return (
-              <Link
-                key={g.id}
-                to={primary.to}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
-                  isActive
-                    ? "bg-foreground text-background"
-                    : "text-foreground hover:bg-secondary"
-                }`}
-              >
-                <GIcon className="h-4 w-4" />
-                <span className="whitespace-nowrap">{g.label}</span>
-              </Link>
+              <DropdownMenu key={g.id}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
+                      isActive
+                        ? "bg-foreground text-background"
+                        : "text-foreground hover:bg-secondary"
+                    }`}
+                  >
+                    <GIcon className="h-4 w-4" />
+                    <span className="whitespace-nowrap">{g.label}</span>
+                    <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <GIcon className="h-4 w-4" />
+                    {g.label}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {g.items.map((item) => {
+                    const Icon = item.icon;
+                    const itemActive =
+                      path === item.to ||
+                      (item.to !== "/" && path.startsWith(item.to + "/"));
+                    return (
+                      <DropdownMenuItem key={item.to} asChild>
+                        <Link
+                          to={item.to}
+                          className={`flex w-full cursor-pointer items-center gap-2 ${
+                            itemActive ? "bg-secondary font-semibold" : ""
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
             );
           })}
         </nav>
@@ -435,37 +487,6 @@ export function AppHeader() {
           </DropdownMenu>
         </div>
       </div>
-
-      {/* === Подменю активной группы — горизонтальная лента (>=1024px) === */}
-      {activeGroup && activeGroup.items.length > 1 ? (
-        <div className="hidden border-t border-border bg-muted/30 lg:block">
-          <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-4 lg:px-6">
-            <div className="flex items-center gap-1 overflow-x-auto py-1.5">
-              {activeGroup.items.map((item) => {
-                const Icon = item.icon;
-                const itemActive =
-                  path === item.to ||
-                  (item.to !== "/" && path.startsWith(item.to + "/")) ||
-                  (activeItem?.to === item.to);
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                      itemActive
-                        ? "bg-background text-foreground shadow-sm ring-1 ring-border"
-                        : "text-muted-foreground hover:bg-background hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span className="whitespace-nowrap">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : null}
     </header>
   );
 }
