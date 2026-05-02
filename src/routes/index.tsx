@@ -1,15 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
-import { OrderDetailDialog } from "@/components/OrderDetailDialog";
-import { CreateOrderDialog } from "@/components/CreateOrderDialog";
-import { ImportOrdersDialog } from "@/components/ImportOrdersDialog";
-import { CreateRouteFromOrdersDialog } from "@/components/CreateRouteFromOrdersDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
 import { DemoModeBanner } from "@/components/DemoModeBanner";
+
+// Тяжёлые диалоги — подгружаются только когда пользователь их открывает,
+// чтобы уменьшить initial JS bundle главной страницы.
+const OrderDetailDialog = lazy(() =>
+  import("@/components/OrderDetailDialog").then((m) => ({ default: m.OrderDetailDialog })),
+);
+const CreateOrderDialog = lazy(() =>
+  import("@/components/CreateOrderDialog").then((m) => ({ default: m.CreateOrderDialog })),
+);
+const ImportOrdersDialog = lazy(() =>
+  import("@/components/ImportOrdersDialog").then((m) => ({ default: m.ImportOrdersDialog })),
+);
+const CreateRouteFromOrdersDialog = lazy(() =>
+  import("@/components/CreateRouteFromOrdersDialog").then((m) => ({ default: m.CreateRouteFromOrdersDialog })),
+);
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
