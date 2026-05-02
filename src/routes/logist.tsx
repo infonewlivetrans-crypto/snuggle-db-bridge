@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { LoadingFallback } from "@/components/LoadingFallback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,7 +117,7 @@ function LogistPage() {
   const [driverFilter, setDriverFilter] = useState<string>("all");
   const [openProblem, setOpenProblem] = useState<ProblemRow | null>(null);
 
-  const { data: routes = [], isLoading: routesLoading } = useQuery({
+  const { data: routes = [], isLoading: routesLoading, refetch: refetchRoutes } = useQuery({
     queryKey: ["logist-routes"],
     queryFn: async (): Promise<RouteRow[]> => {
       const { data, error } = await supabase
@@ -141,7 +142,7 @@ function LogistPage() {
     },
   });
 
-  const { data: problems = [], isLoading: problemsLoading } = useQuery({
+  const { data: problems = [], isLoading: problemsLoading, refetch: refetchProblems } = useQuery({
     queryKey: ["logist-problems"],
     queryFn: async (): Promise<ProblemRow[]> => {
       const { data, error } = await supabase
@@ -285,8 +286,8 @@ function LogistPage() {
             Маршруты ({filteredRoutes.length})
           </h2>
           {routesLoading ? (
-            <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-              Загрузка...
+            <div className="rounded-lg border border-border bg-card p-6">
+              <LoadingFallback onRefresh={() => refetchRoutes()} />
             </div>
           ) : filteredRoutes.length === 0 ? (
             <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
@@ -351,8 +352,8 @@ function LogistPage() {
             Проблемные доставки ({problems.length})
           </h2>
           {problemsLoading ? (
-            <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-              Загрузка...
+            <div className="rounded-lg border border-border bg-card p-6">
+              <LoadingFallback onRefresh={() => refetchProblems()} />
             </div>
           ) : problems.length === 0 ? (
             <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
