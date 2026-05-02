@@ -1,4 +1,16 @@
+// Шапка приложения с группированной навигацией.
+//
+// Структура:
+// 1) Верхняя строка — короткая шапка с 8 крупными блоками
+//    (Рабочий стол, Логистика, Склад, Снабжение, Заказы и клиенты,
+//     Финансы, Отчёты, Администрирование) + правая зона (уведомления, профиль).
+// 2) Под шапкой — лента подразделов АКТИВНОЙ группы (на десктопе/планшете).
+//    На узких экранах эта лента скрывается — доступ через бургер.
+// 3) Бургер открывает Sheet со всеми группами и их подразделами.
+//
+// Маршруты НЕ меняются — мы только реорганизуем меню.
 import { Link, useLocation } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import {
   BarChart3,
   Route as RouteIcon,
@@ -16,7 +28,6 @@ import {
   PlayCircle,
   ArrowLeftRight,
   FileSpreadsheet,
-  ChevronDown,
   Users as UsersIcon,
   LogOut,
   History,
@@ -26,10 +37,19 @@ import {
   Activity,
   Sun,
   Upload,
+  LayoutDashboard,
+  Wallet,
+  ShieldCheck,
+  ChevronDown,
 } from "lucide-react";
-import { useState } from "react";
 import { BrandLogo, BrandMark } from "@/components/BrandLogo";
-import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { DemoModeBadge } from "@/components/DemoModeBadge";
@@ -40,98 +60,205 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canAccess, ROLE_LABELS } from "@/lib/auth/roles";
-import { useEnabledModules, isPathEnabled, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
+import {
+  useEnabledModules,
+  isPathEnabled,
+  useLaunchMode,
+  isPathVisibleInLaunchMode,
+} from "@/lib/modules";
+
+type Icon = React.ComponentType<{ className?: string }>;
 
 type NavItem = {
   to: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  match: (p: string) => boolean;
+  icon: Icon;
 };
 
-// Основные разделы — показываются на широком экране
-const PRIMARY_NAV: readonly NavItem[] = [
-  { to: "/", label: "Заказы", icon: BarChart3, match: (p) => p === "/" },
-  { to: "/orders", label: "Заказы и клиенты", icon: ClipboardList, match: (p) => p.startsWith("/orders") },
-  { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList, match: (p) => p.startsWith("/transport-requests") && !p.startsWith("/transport-requests/picker") },
-  { to: "/transport-requests/picker", label: "Подбор заказов", icon: ClipboardList, match: (p) => p.startsWith("/transport-requests/picker") },
-  { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon, match: (p) => p.startsWith("/delivery-routes") },
-  { to: "/logist", label: "Кабинет логиста", icon: ClipboardList, match: (p) => p.startsWith("/logist") },
-];
+type NavGroup = {
+  id: string;
+  label: string;
+  icon: Icon;
+  /** Пути, по которым считается, что мы находимся в этой группе. */
+  match: (p: string) => boolean;
+  items: readonly NavItem[];
+};
 
-// Второстепенные — в выпадающем меню «Ещё»
-const MORE_NAV: readonly NavItem[] = [
-  { to: "/work-day", label: "Рабочий день", icon: Sun, match: (p) => p.startsWith("/work-day") },
-  { to: "/work-control", label: "Контроль работы", icon: AlertTriangle, match: (p) => p.startsWith("/work-control") },
-  { to: "/route-reports", label: "Отчёты", icon: FileText, match: (p) => p.startsWith("/route-reports") },
-  { to: "/director", label: "Отчёт руководителя", icon: BarChart3, match: (p) => p.startsWith("/director") },
-  { to: "/routes", label: "Маршруты (план)", icon: RouteIcon, match: (p) => p.startsWith("/routes") },
-  { to: "/carriers", label: "Перевозчики", icon: Building2, match: (p) => p.startsWith("/carriers") },
-  { to: "/drivers", label: "Водители", icon: User, match: (p) => p.startsWith("/drivers") },
-  { to: "/vehicles", label: "Авто", icon: Truck, match: (p) => p.startsWith("/vehicles") },
-  { to: "/warehouses", label: "Склады", icon: Warehouse, match: (p) => p.startsWith("/warehouses") },
-  { to: "/warehouse-today", label: "Склад сегодня", icon: Warehouse, match: (p) => p.startsWith("/warehouse-today") },
-  { to: "/supply", label: "Снабжение", icon: PackageSearch, match: (p) => p.startsWith("/supply") },
-  { to: "/data-import", label: "Импорт данных", icon: FileSpreadsheet, match: (p) => p.startsWith("/data-import") && !p.startsWith("/data-import/history") },
-  { to: "/upload", label: "Загрузка файлов", icon: Upload, match: (p) => p.startsWith("/upload") },
-  { to: "/audit-log", label: "Журнал действий", icon: History, match: (p) => p.startsWith("/audit-log") },
-  { to: "/backups", label: "Резервные копии", icon: Database, match: (p) => p.startsWith("/backups") },
-  { to: "/system-errors", label: "Ошибки системы", icon: AlertTriangle, match: (p) => p.startsWith("/system-errors") },
-  { to: "/system-activity", label: "Активность системы", icon: Activity, match: (p) => p.startsWith("/system-activity") },
-  { to: "/feedback", label: "Обратная связь", icon: MessageSquare, match: (p) => p.startsWith("/feedback") },
-  { to: "/carrier-offers", label: "Предложения рейсов", icon: Truck, match: (p) => p.startsWith("/carrier-offers") },
-  { to: "/carrier-routes", label: "Мои рейсы", icon: RouteIcon, match: (p) => p.startsWith("/carrier-routes") },
-  { to: "/carrier-payments", label: "Оплаты перевозчикам", icon: Receipt, match: (p) => p.startsWith("/carrier-payments") },
-  { to: "/pilot-tasks", label: "Задачи и доработки", icon: ClipboardList, match: (p) => p.startsWith("/pilot-tasks") },
-];
-
-// Полный список — для бургер-меню (никакие страницы не теряются)
-const ALL_NAV: readonly NavItem[] = [
-  { to: "/workspace", label: "Рабочий стол", icon: BarChart3, match: (p) => p.startsWith("/workspace") },
-  ...PRIMARY_NAV,
-  ...MORE_NAV,
-  { to: "/warehouse-settings", label: "Настройки склада", icon: Settings, match: (p) => p.startsWith("/warehouse-settings") },
-  { to: "/warehouse-schedule", label: "График отгрузок", icon: ClipboardList, match: (p) => p.startsWith("/warehouse-schedule") },
-  { to: "/warehouse-returns", label: "Возвраты", icon: ClipboardList, match: (p) => p.startsWith("/warehouse-returns") },
-  { to: "/warehouse-inbound", label: "Приём товара", icon: PackageSearch, match: (p) => p.startsWith("/warehouse-inbound") },
-  { to: "/warehouse-report", label: "Отчёт склада", icon: FileText, match: (p) => p.startsWith("/warehouse-report") },
-  { to: "/warehouse-stock", label: "Остатки", icon: PackageSearch, match: (p) => p.startsWith("/warehouse-stock") },
-  { to: "/warehouse-movements", label: "Движение товара", icon: ClipboardList, match: (p) => p.startsWith("/warehouse-movements") },
-  { to: "/warehouse-transfers", label: "Перемещения", icon: ArrowLeftRight, match: (p) => p.startsWith("/warehouse-transfers") },
-  { to: "/data-import/history", label: "История импорта", icon: FileSpreadsheet, match: (p) => p.startsWith("/data-import/history") },
-  { to: "/notifications", label: "Уведомления", icon: Bell, match: (p) => p.startsWith("/notifications") },
-  { to: "/admin/tariffs", label: "Тарифы", icon: Receipt, match: (p) => p.startsWith("/admin/tariffs") },
-  { to: "/admin/settings", label: "Настройки", icon: Settings, match: (p) => p.startsWith("/admin") && !p.startsWith("/admin/tariffs") },
-  { to: "/first-run", label: "Первый запуск", icon: PlayCircle, match: (p) => p.startsWith("/first-run") },
-  { to: "/pilot", label: "Пилотный запуск", icon: PlayCircle, match: (p) => p.startsWith("/pilot") },
-  { to: "/system-test", label: "Тест системы", icon: ClipboardList, match: (p) => p.startsWith("/system-test") },
-  { to: "/system-issues", label: "Ошибки и доработки", icon: ClipboardList, match: (p) => p.startsWith("/system-issues") },
-  { to: "/users", label: "Пользователи", icon: UsersIcon, match: (p) => p.startsWith("/users") },
+// =============================================================
+// 8 крупных блоков. Внутри каждого — реальные существующие маршруты.
+// =============================================================
+const GROUPS: readonly NavGroup[] = [
+  {
+    id: "workspace",
+    label: "Рабочий стол",
+    icon: LayoutDashboard,
+    match: (p) => p === "/" || p.startsWith("/workspace") || p.startsWith("/work-day") || p.startsWith("/work-control"),
+    items: [
+      { to: "/", label: "Обзор", icon: LayoutDashboard },
+      { to: "/workspace", label: "Рабочий стол", icon: LayoutDashboard },
+      { to: "/work-day", label: "Рабочий день", icon: Sun },
+      { to: "/work-control", label: "Контроль работы", icon: AlertTriangle },
+      { to: "/notifications", label: "Уведомления", icon: Bell },
+    ],
+  },
+  {
+    id: "logistics",
+    label: "Логистика",
+    icon: RouteIcon,
+    match: (p) =>
+      p.startsWith("/transport-requests") ||
+      p.startsWith("/delivery-routes") ||
+      p.startsWith("/routes") ||
+      p.startsWith("/logist") ||
+      p.startsWith("/carriers") ||
+      p.startsWith("/drivers") ||
+      p.startsWith("/vehicles") ||
+      p.startsWith("/carrier-offers") ||
+      p.startsWith("/carrier-routes"),
+    items: [
+      { to: "/logist", label: "Кабинет логиста", icon: ClipboardList },
+      { to: "/transport-requests", label: "Заявки на транспорт", icon: ClipboardList },
+      { to: "/transport-requests/picker", label: "Подбор заказов", icon: ClipboardList },
+      { to: "/delivery-routes", label: "Маршруты", icon: RouteIcon },
+      { to: "/routes", label: "Рейсы (план)", icon: RouteIcon },
+      { to: "/carrier-offers", label: "Предложения рейсов", icon: Truck },
+      { to: "/carrier-routes", label: "Мои рейсы (перевозчик)", icon: RouteIcon },
+      { to: "/carriers", label: "Перевозчики", icon: Building2 },
+      { to: "/drivers", label: "Водители", icon: User },
+      { to: "/vehicles", label: "Транспорт", icon: Truck },
+    ],
+  },
+  {
+    id: "warehouse",
+    label: "Склад",
+    icon: Warehouse,
+    match: (p) => p.startsWith("/warehouse") || (p.startsWith("/warehouses") && !p.startsWith("/warehouse-")),
+    items: [
+      { to: "/warehouse-today", label: "Склад сегодня", icon: Warehouse },
+      { to: "/warehouses", label: "Склады", icon: Warehouse },
+      { to: "/warehouse-stock", label: "Остатки", icon: PackageSearch },
+      { to: "/warehouse-inbound", label: "Приёмка", icon: PackageSearch },
+      { to: "/warehouse-schedule", label: "Отгрузка (график)", icon: ClipboardList },
+      { to: "/warehouse-returns", label: "Возвраты", icon: ClipboardList },
+      { to: "/warehouse-movements", label: "Движение товара", icon: ClipboardList },
+      { to: "/warehouse-transfers", label: "Перемещения между складами", icon: ArrowLeftRight },
+      { to: "/warehouse-report", label: "Отчёт склада", icon: FileText },
+      { to: "/warehouse-settings", label: "Настройки склада", icon: Settings },
+    ],
+  },
+  {
+    id: "supply",
+    label: "Снабжение",
+    icon: PackageSearch,
+    match: (p) => p.startsWith("/supply"),
+    items: [
+      { to: "/supply", label: "Снабжение — обзор", icon: PackageSearch },
+      { to: "/supply/requests", label: "Заявки на пополнение", icon: ClipboardList },
+      { to: "/supply/cabinet", label: "Кабинет снабжения", icon: PackageSearch },
+    ],
+  },
+  {
+    id: "orders",
+    label: "Заказы и клиенты",
+    icon: ClipboardList,
+    match: (p) => p.startsWith("/orders") || p.startsWith("/data-import") || p.startsWith("/upload"),
+    items: [
+      { to: "/orders", label: "Заказы и клиенты", icon: ClipboardList },
+      { to: "/data-import", label: "Импорт заказов", icon: FileSpreadsheet },
+      { to: "/data-import/history", label: "История импорта", icon: History },
+      { to: "/upload", label: "Загрузка файлов", icon: Upload },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Финансы",
+    icon: Wallet,
+    match: (p) => p.startsWith("/carrier-payments") || p.startsWith("/admin/tariffs"),
+    items: [
+      { to: "/carrier-payments", label: "Оплаты перевозчикам", icon: Receipt },
+      { to: "/admin/tariffs", label: "Тарифы", icon: Receipt },
+    ],
+  },
+  {
+    id: "reports",
+    label: "Отчёты",
+    icon: BarChart3,
+    match: (p) => p.startsWith("/route-reports") || p.startsWith("/director"),
+    items: [
+      { to: "/route-reports", label: "Отчёты по рейсам", icon: FileText },
+      { to: "/director", label: "Отчёт руководителя", icon: BarChart3 },
+    ],
+  },
+  {
+    id: "admin",
+    label: "Администрирование",
+    icon: ShieldCheck,
+    match: (p) =>
+      p.startsWith("/users") ||
+      (p.startsWith("/admin") && !p.startsWith("/admin/tariffs")) ||
+      p.startsWith("/audit-log") ||
+      p.startsWith("/backups") ||
+      p.startsWith("/system-errors") ||
+      p.startsWith("/system-activity") ||
+      p.startsWith("/system-issues") ||
+      p.startsWith("/system-test") ||
+      p.startsWith("/feedback") ||
+      p.startsWith("/pilot-tasks") ||
+      p.startsWith("/pilot") ||
+      p.startsWith("/first-run"),
+    items: [
+      { to: "/users", label: "Пользователи и роли", icon: UsersIcon },
+      { to: "/admin/settings", label: "Настройки модулей", icon: Settings },
+      { to: "/audit-log", label: "Журнал действий", icon: History },
+      { to: "/backups", label: "Резервные копии", icon: Database },
+      { to: "/system-errors", label: "Ошибки системы", icon: AlertTriangle },
+      { to: "/system-activity", label: "Активность системы", icon: Activity },
+      { to: "/system-issues", label: "Ошибки и доработки", icon: ClipboardList },
+      { to: "/system-test", label: "Тест системы", icon: ClipboardList },
+      { to: "/feedback", label: "Обратная связь", icon: MessageSquare },
+      { to: "/pilot-tasks", label: "Задачи пилота", icon: ClipboardList },
+      { to: "/pilot", label: "Пилотный запуск", icon: PlayCircle },
+      { to: "/first-run", label: "Первый запуск", icon: PlayCircle },
+    ],
+  },
 ];
 
 export function AppHeader() {
   const location = useLocation();
   const path = location.pathname;
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { user, profile, roles, signOut } = useAuth();
 
   const enabledModules = useEnabledModules();
   const launchMode = useLaunchMode();
 
-  // Фильтруем пункты по ролям, включённым модулям и режиму запуска
   const isItemVisible = (to: string) =>
     canAccess(to, roles) &&
     isPathEnabled(to, enabledModules) &&
     isPathVisibleInLaunchMode(to, launchMode);
 
-  const visibleAll = ALL_NAV.filter((it) => isItemVisible(it.to));
-  const visiblePrimary = PRIMARY_NAV.filter((it) => isItemVisible(it.to));
-  const visibleMore = MORE_NAV.filter((it) => isItemVisible(it.to));
+  // Фильтруем подпункты по правам/модулям, потом скрываем пустые группы.
+  const visibleGroups = useMemo(() => {
+    return GROUPS.map((g) => ({
+      ...g,
+      items: g.items.filter((it) => isItemVisible(it.to)),
+    })).filter((g) => g.items.length > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roles.join("|"), JSON.stringify(enabledModules), launchMode]);
 
-  const moreActive = visibleMore.find((it) => it.match(path));
-  const activeItem = visibleAll.find((it) => it.match(path));
+  // Активная группа: совпадение по match, иначе первая видимая.
+  const activeGroup =
+    visibleGroups.find((g) => g.match(path)) ?? visibleGroups[0] ?? null;
+  const activeItem = activeGroup?.items.find(
+    (it) => path === it.to || (it.to !== "/" && path.startsWith(it.to + "/")) || path === it.to,
+  );
 
   const initials = (profile?.full_name ?? user?.email ?? "?")
     .split(/\s+/)
@@ -144,16 +271,17 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-4 sm:px-4 lg:px-6 xl:h-[68px]">
-        {/* Левая часть: бургер (на узких) + логотип */}
+      {/* === Верхняя строка: логотип + крупные блоки + правая зона === */}
+      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
+        {/* Левая часть: бургер (узкие экраны) + логотип */}
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          {/* Бургер: показывается на экранах < 1440px */}
-          <Sheet open={open} onOpenChange={setOpen}>
+          {/* Бургер: < 1024px */}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0 min-[1440px]:hidden"
+                className="shrink-0 lg:hidden"
                 aria-label="Открыть меню"
               >
                 <Menu className="h-5 w-5" />
@@ -167,126 +295,102 @@ export function AppHeader() {
               <div className="border-b border-border px-5 py-4">
                 <BrandLogo size={32} />
               </div>
-              <nav className="flex max-h-[calc(100vh-72px)] flex-col gap-1 overflow-y-auto p-3">
-                {visibleAll.map((item) => {
-                  const active = item.match(path);
-                  const Icon = item.icon;
+              <nav className="flex max-h-[calc(100vh-72px)] flex-col gap-1 overflow-y-auto p-2">
+                {visibleGroups.map((g) => {
+                  const GIcon = g.icon;
+                  const isActive = activeGroup?.id === g.id;
                   return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setOpen(false)}
-                      className={`inline-flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
-                        active
-                          ? "bg-foreground text-background"
-                          : "text-foreground hover:bg-secondary"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
+                    <Collapsible key={g.id} defaultOpen={isActive}>
+                      <CollapsibleTrigger
+                        className={`flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                          isActive
+                            ? "bg-foreground text-background"
+                            : "text-foreground hover:bg-secondary"
+                        }`}
+                      >
+                        <span className="inline-flex min-w-0 items-center gap-2">
+                          <GIcon className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{g.label}</span>
+                        </span>
+                        <ChevronDown className="h-4 w-4 shrink-0 transition-transform data-[state=open]:rotate-180" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="ml-2 mt-1 flex flex-col gap-0.5 border-l border-border pl-2">
+                        {g.items.map((item) => {
+                          const Icon = item.icon;
+                          const itemActive =
+                            path === item.to ||
+                            (item.to !== "/" && path.startsWith(item.to + "/"));
+                          return (
+                            <Link
+                              key={item.to}
+                              to={item.to}
+                              onClick={() => setMobileOpen(false)}
+                              className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors ${
+                                itemActive
+                                  ? "bg-secondary font-semibold text-foreground"
+                                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                              }`}
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{item.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </CollapsibleContent>
+                    </Collapsible>
                   );
                 })}
               </nav>
             </SheetContent>
           </Sheet>
 
-          {/*
-            Логотип в шапке.
-            Требования:
-            - высота: 36px на мобильном, 40px на ноутбуке, 44px на десктопе
-            - min-width блока: 110 / 130 / 150 px
-            - не сжимается, выровнен по центру
-            - вторая строка скрывается при нехватке места
-          */}
           <Link
             to="/"
             search={{ orderId: undefined }}
-            className="flex shrink-0 items-center gap-2 self-center min-w-[110px] sm:gap-2.5 lg:min-w-[130px] xl:min-w-[150px]"
+            className="flex shrink-0 items-center gap-2 self-center min-w-[110px] sm:gap-2.5 lg:min-w-[150px]"
             aria-label="На главную — Радиус Трек"
           >
-            {/* Знак — всегда видимый, читаемый размер */}
-            <BrandMark
-              size={36}
-              className="shrink-0 lg:!h-10 lg:!w-10 xl:!h-11 xl:!w-11"
-            />
-            {/* Текстовая часть бренда — независимо от логотипа-картинки,
-                чтобы корректно скрывать вторую строку и оставаться читаемой */}
+            <BrandMark size={32} className="shrink-0 lg:!h-9 lg:!w-9" />
             <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-[15px] font-extrabold tracking-tight text-foreground lg:text-base xl:text-[17px]">
+              <span className="truncate text-[14px] font-extrabold tracking-tight text-foreground lg:text-[15px]">
                 Радиус&nbsp;Трек
               </span>
-              {/* Вторая строка — только на широких экранах, где есть место */}
               <span className="hidden truncate text-[10px] uppercase tracking-[0.14em] text-muted-foreground xl:inline">
                 Логистика · Трекинг
               </span>
             </span>
           </Link>
 
-          {/* Активный раздел — текстовый индикатор только на узких экранах */}
-          {activeItem ? (
-            <div className="ml-2 min-w-0 truncate text-sm font-semibold text-foreground min-[1440px]:hidden">
-              {activeItem.label}
+          {/* Активный блок — текстовый индикатор на узких экранах */}
+          {activeGroup ? (
+            <div className="ml-1 min-w-0 truncate text-sm font-semibold text-foreground lg:hidden">
+              {activeGroup.label}
             </div>
           ) : null}
         </div>
 
-        {/* Горизонтальная навигация — только на широком экране (>= 1440px) */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 min-[1440px]:flex">
-          {visiblePrimary.map((item) => {
-            const active = item.match(path);
-            const Icon = item.icon;
+        {/* === Крупные блоки — горизонтально, только на >=1024px === */}
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
+          {visibleGroups.map((g) => {
+            const GIcon = g.icon;
+            const isActive = activeGroup?.id === g.id;
+            // Первый пункт группы — основной маршрут блока
+            const primary = g.items[0];
             return (
               <Link
-                key={item.to}
-                to={item.to}
-                className={`inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  active
+                key={g.id}
+                to={primary.to}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
+                  isActive
                     ? "bg-foreground text-background"
                     : "text-foreground hover:bg-secondary"
                 }`}
               >
-                <Icon className="h-4 w-4" />
-                <span className="whitespace-nowrap">{item.label}</span>
+                <GIcon className="h-4 w-4" />
+                <span className="whitespace-nowrap">{g.label}</span>
               </Link>
             );
           })}
-
-          {/* Меню «Ещё» */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className={`h-9 shrink-0 gap-1 px-3 text-sm font-medium ${
-                  moreActive ? "bg-foreground text-background hover:bg-foreground/90 hover:text-background" : ""
-                }`}
-              >
-                <span className="whitespace-nowrap">
-                  {moreActive ? moreActive.label : "Ещё"}
-                </span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64">
-              {visibleMore.map((item) => {
-                const Icon = item.icon;
-                const active = item.match(path);
-                return (
-                  <DropdownMenuItem key={item.to} asChild>
-                    <Link
-                      to={item.to}
-                      className={`flex w-full cursor-pointer items-center gap-2 ${
-                        active ? "bg-secondary font-semibold" : ""
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </Link>
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </nav>
 
         {/* Правая часть */}
@@ -320,7 +424,10 @@ export function AppHeader() {
                   </Link>
                 </DropdownMenuItem>
               ) : null}
-              <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer text-destructive focus:text-destructive">
+              <DropdownMenuItem
+                onClick={() => signOut()}
+                className="cursor-pointer text-destructive focus:text-destructive"
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Выйти
               </DropdownMenuItem>
@@ -328,6 +435,37 @@ export function AppHeader() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* === Подменю активной группы — горизонтальная лента (>=1024px) === */}
+      {activeGroup && activeGroup.items.length > 1 ? (
+        <div className="hidden border-t border-border bg-muted/30 lg:block">
+          <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-4 lg:px-6">
+            <div className="flex items-center gap-1 overflow-x-auto py-1.5">
+              {activeGroup.items.map((item) => {
+                const Icon = item.icon;
+                const itemActive =
+                  path === item.to ||
+                  (item.to !== "/" && path.startsWith(item.to + "/")) ||
+                  (activeItem?.to === item.to);
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      itemActive
+                        ? "bg-background text-foreground shadow-sm ring-1 ring-border"
+                        : "text-muted-foreground hover:bg-background hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }
