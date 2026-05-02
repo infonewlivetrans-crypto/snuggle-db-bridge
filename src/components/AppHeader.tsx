@@ -307,6 +307,7 @@ function GroupButton({
   );
 }
 
+export function AppHeader() {
   const location = useLocation();
   const path = location.pathname;
   const [mobileOpen, setMobileOpen] = useState(false);
