@@ -1,7 +1,10 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { routeTree } from "./routeTree.gen";
 import { RouteSkeleton } from "./components/RouteSkeleton";
+import { APP_CLIENT_VERSION } from "./lib/system-settings";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
