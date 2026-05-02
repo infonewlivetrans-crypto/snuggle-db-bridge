@@ -11,6 +11,9 @@ export default defineConfig({
     server: {
       allowedHosts: ["radius-track.ru", "www.radius-track.ru"],
     },
+    preview: {
+      allowedHosts: ["radius-track.ru", "www.radius-track.ru"],
+    },
     build: {
       // Чанки для тяжёлых клиентских библиотек, чтобы не входили в initial bundle
       // и грузились только при первом использовании соответствующих экранов/действий.
