@@ -79,6 +79,51 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
     }
   };
 
+  // Автоподстановка данных по существующему клиенту (по имени или телефону).
+  // Заполняем ТОЛЬКО пустые поля формы, чтобы не затирать ручной ввод.
+  const tryAutofillFromClient = async () => {
+    if (!contactName.trim() && !contactPhone.trim()) return;
+    try {
+      const client = await findClient({ name: contactName, phone: contactPhone });
+      if (!client) return;
+      let filled = 0;
+      if (!deliveryAddress && client.address) {
+        setDeliveryAddress(client.address);
+        filled++;
+      }
+      if (!latitude && client.latitude != null) {
+        setLatitude(String(client.latitude));
+        filled++;
+      }
+      if (!longitude && client.longitude != null) {
+        setLongitude(String(client.longitude));
+        filled++;
+      }
+      if (!contactPhone && client.phone) {
+        setContactPhone(client.phone);
+        filled++;
+      }
+      if (!contactName && client.name) {
+        setContactName(client.name);
+        filled++;
+      }
+      if (!accessInstructions) {
+        const notes = [client.access_notes, client.unloading_notes, client.driver_instructions]
+          .filter(Boolean)
+          .join("\n");
+        if (notes) {
+          setAccessInstructions(notes);
+          filled++;
+        }
+      }
+      if (filled > 0) {
+        toast.success(`Подставлены данные клиента (${filled} полей)`);
+      }
+    } catch {
+      // тихо
+    }
+  };
+
   const handlePhoto = async (file: File) => {
     if (!file) return;
     setUploading(true);
