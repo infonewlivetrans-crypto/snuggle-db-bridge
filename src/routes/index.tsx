@@ -455,21 +455,27 @@ function OrdersPage() {
         </p>
       </main>
 
-      <OrderDetailDialog
-        order={selectedOrder}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
-      <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />
-      <ImportOrdersDialog open={importOpen} onOpenChange={setImportOpen} />
-      <CreateRouteFromOrdersDialog
-        open={routeDialogOpen}
-        onOpenChange={(o) => {
-          setRouteDialogOpen(o);
-          if (!o) setSelectedIds(new Set());
-        }}
-        orders={selectedOrders}
-      />
+      <Suspense fallback={null}>
+        {(dialogOpen || selectedOrder) && (
+          <OrderDetailDialog
+            order={selectedOrder}
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+          />
+        )}
+        {createOpen && <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />}
+        {importOpen && <ImportOrdersDialog open={importOpen} onOpenChange={setImportOpen} />}
+        {routeDialogOpen && (
+          <CreateRouteFromOrdersDialog
+            open={routeDialogOpen}
+            onOpenChange={(o) => {
+              setRouteDialogOpen(o);
+              if (!o) setSelectedIds(new Set());
+            }}
+            orders={selectedOrders}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }
