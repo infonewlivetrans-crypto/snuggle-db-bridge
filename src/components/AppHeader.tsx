@@ -351,9 +351,9 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
+      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-3 px-3 sm:gap-4 sm:px-4 lg:gap-6 lg:px-6">
         {/* ===== ЛЕВАЯ ЧАСТЬ: бургер + ЛОГОТИП фиксированной ширины ===== */}
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3 lg:min-w-[180px]">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3 lg:mr-2 lg:min-w-[200px]">
           {/* Бургер: <1024px */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -452,7 +452,7 @@ export function AppHeader() {
         </div>
 
         {/* ===== ЦЕНТР: навигация в одну строку, без переноса, с overflow ===== */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-start gap-1 lg:flex">
           {/* Основные группы — видны на lg+ */}
           {primaryGroups.map((g) => (
             <GroupButton
