@@ -99,7 +99,7 @@ function NotificationsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterKey>("all");
 
-  const { data: items = [], isLoading } = useQuery<Row[]>({
+  const { data: items = [], isLoading, refetch } = useQuery<Row[]>({
     queryKey: ["notifications", "all"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -219,8 +219,8 @@ function NotificationsPage() {
         </div>
 
         {isLoading ? (
-          <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
-            Загрузка...
+          <div className="rounded-lg border border-border bg-card p-6">
+            <LoadingFallback onRefresh={() => refetch()} />
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
