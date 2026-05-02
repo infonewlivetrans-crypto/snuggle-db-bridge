@@ -355,6 +355,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 placeholder="Иван Петров"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
+                onBlur={tryAutofillFromClient}
                 className="mt-1.5"
               />
             </div>
@@ -366,6 +367,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 placeholder="+7 900 000-00-00"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
+                onBlur={tryAutofillFromClient}
                 className="mt-1.5"
               />
             </div>
