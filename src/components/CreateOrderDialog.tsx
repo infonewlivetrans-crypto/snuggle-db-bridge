@@ -177,6 +177,21 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         status: "new",
       });
       if (error) throw error;
+
+      // Тихий upsert клиента, чтобы при следующем заказе данные подставились
+      if (contactName.trim()) {
+        try {
+          await upsertClientSilent({
+            name: contactName.trim(),
+            phone: contactPhone.trim() || null,
+            address: deliveryAddress.trim() || null,
+            latitude: lat ?? null,
+            longitude: lng ?? null,
+          });
+        } catch {
+          // не блокируем UX
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
