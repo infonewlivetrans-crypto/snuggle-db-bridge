@@ -103,7 +103,7 @@ function OrdersPage() {
   const setStatusFilter = (v: OrderStatus | "all") => {
     navigate({
       to: "/",
-      search: (prev) => ({ ...prev, status: v === "all" ? undefined : v, page: 1 }),
+      search: (prev: Record<string, unknown>) => ({ ...prev, status: v === "all" ? undefined : v, page: 1 }),
       replace: true,
     });
   };

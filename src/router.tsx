@@ -1,7 +1,10 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { routeTree } from "./routeTree.gen";
 import { RouteSkeleton } from "./components/RouteSkeleton";
+import { APP_CLIENT_VERSION } from "./lib/system-settings";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
@@ -60,24 +63,52 @@ export const getRouter = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Данные считаются свежими 30 секунд — при возврате назад нет «фликера» загрузок
-        staleTime: 30_000,
-        gcTime: 5 * 60_000,
+        // Свежесть данных 60с — повторное открытие/возврат к экрану не дёргает сеть зря.
+        staleTime: 60_000,
+        // gcTime >= maxAge персистера, иначе GC чистит до восстановления.
+        gcTime: 24 * 60 * 60_000,
         refetchOnWindowFocus: false,
+        refetchOnReconnect: "always",
         retry: 1,
       },
     },
   });
+
+  // Сохраняем кэш React Query в localStorage (только в браузере, не в SSR).
+  // buster = APP_CLIENT_VERSION — при новой версии старый кэш отбрасывается.
+  if (typeof window !== "undefined") {
+    try {
+      const persister = createSyncStoragePersister({
+        storage: window.localStorage,
+        key: "rt-query-cache-v1",
+        throttleTime: 1000,
+      });
+      persistQueryClient({
+        queryClient,
+        persister,
+        maxAge: 24 * 60 * 60_000,
+        buster: APP_CLIENT_VERSION,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (q) =>
+            q.state.status === "success" &&
+            !q.queryKey.some(
+              (k) => typeof k === "string" && (k.startsWith("realtime:") || k.startsWith("live:")),
+            ),
+        },
+      });
+    } catch {
+      // localStorage недоступен (приватный режим, квота) — работаем без персиста.
+    }
+  }
+
   const router = createRouter({
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
-    // Префетчим код+данные роута при наведении/тапе по ссылке — переход становится «мгновенным»
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     defaultPreloadDelay: 30,
     defaultPendingComponent: RouteSkeleton,
-    // Скелетон показывается почти сразу: убирает ощущение «клик не сработал»
     defaultPendingMs: 50,
     defaultPendingMinMs: 200,
     defaultErrorComponent: DefaultErrorComponent,
@@ -85,4 +116,3 @@ export const getRouter = () => {
 
   return router;
 };
-
