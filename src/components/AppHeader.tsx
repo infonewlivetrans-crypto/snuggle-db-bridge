@@ -271,11 +271,18 @@ export function AppHeader() {
     .toUpperCase();
   const roleLabel = roles.length > 0 ? ROLE_LABELS[roles[0]] : "Пользователь";
 
+  // Какие группы показываем «всегда» в десктопной шапке (lg+),
+  // а какие уезжают в кнопку «Ещё» на средних экранах (lg..xl-1).
+  // На xl+ показываем все.
+  const PRIMARY_IDS = new Set(["workspace", "logistics", "warehouse", "orders"]);
+  const primaryGroups = visibleGroups.filter((g) => PRIMARY_IDS.has(g.id));
+  const secondaryGroups = visibleGroups.filter((g) => !PRIMARY_IDS.has(g.id));
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">
-      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
-        {/* Левая часть: бургер (узкие экраны) + логотип */}
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="mx-auto flex h-14 w-full max-w-[1440px] items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
+        {/* ===== ЛЕВАЯ ЧАСТЬ: бургер + ЛОГОТИП фиксированной ширины ===== */}
+        <div className="flex shrink-0 items-center gap-2 sm:gap-3 lg:min-w-[180px]">
           {/* Бургер: <1024px */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
@@ -351,15 +358,15 @@ export function AppHeader() {
           <Link
             to="/"
             search={{ orderId: undefined }}
-            className="flex shrink-0 items-center gap-2 self-center min-w-[110px] sm:gap-2.5"
+            className="flex shrink-0 items-center gap-2 self-center sm:gap-2.5"
             aria-label="На главную — Радиус Трек"
           >
             <BrandMark size={32} className="shrink-0" />
-            <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-              <span className="truncate text-[14px] font-extrabold tracking-tight text-foreground">
+            <span className="hidden flex-col leading-tight sm:flex">
+              <span className="whitespace-nowrap text-[14px] font-extrabold tracking-tight text-foreground">
                 Радиус&nbsp;Трек
               </span>
-              <span className="hidden truncate text-[10px] uppercase tracking-[0.14em] text-muted-foreground xl:inline">
+              <span className="hidden whitespace-nowrap text-[10px] uppercase tracking-[0.14em] text-muted-foreground 2xl:inline">
                 Логистика · Трекинг
               </span>
             </span>
@@ -373,77 +380,74 @@ export function AppHeader() {
           ) : null}
         </div>
 
-        {/* === Только 7 крупных блоков, через выпадающие меню === */}
+        {/* ===== ЦЕНТР: навигация в одну строку, без переноса, с overflow ===== */}
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
-          {visibleGroups.map((g) => {
-            const GIcon = g.icon;
-            const isActive = activeGroup?.id === g.id;
-            const primary = g.items[0];
-
-            // Если в блоке только один пункт — сразу ссылка, без меню.
-            if (g.items.length === 1) {
-              return (
-                <Link
-                  key={g.id}
-                  to={primary.to}
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
-                    isActive
-                      ? "bg-foreground text-background"
-                      : "text-foreground hover:bg-secondary"
-                  }`}
+          {/* Основные группы — видны на lg+ */}
+          {primaryGroups.map((g) => (
+            <GroupButton
+              key={g.id}
+              group={g}
+              path={path}
+              isActive={activeGroup?.id === g.id}
+              className=""
+            />
+          ))}
+          {/* Второстепенные группы: видны на xl+ как отдельные кнопки... */}
+          {secondaryGroups.map((g) => (
+            <GroupButton
+              key={g.id}
+              group={g}
+              path={path}
+              isActive={activeGroup?.id === g.id}
+              className="hidden xl:inline-flex"
+            />
+          ))}
+          {/* ...а на lg..xl-1 уезжают в "Ещё" */}
+          {secondaryGroups.length > 0 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="ml-1 inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary xl:hidden"
                 >
-                  <GIcon className="h-4 w-4" />
-                  <span className="whitespace-nowrap">{g.label}</span>
-                </Link>
-              );
-            }
-
-            return (
-              <DropdownMenu key={g.id}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors xl:px-3 xl:py-2 ${
-                      isActive
-                        ? "bg-foreground text-background"
-                        : "text-foreground hover:bg-secondary"
-                    }`}
-                  >
-                    <GIcon className="h-4 w-4" />
-                    <span className="whitespace-nowrap">{g.label}</span>
-                    <ChevronDown className="h-3.5 w-3.5 opacity-70" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64">
-                  <DropdownMenuLabel className="flex items-center gap-2">
-                    <GIcon className="h-4 w-4" />
-                    {g.label}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {g.items.map((item) => {
-                    const Icon = item.icon;
-                    const itemActive =
-                      path === item.to ||
-                      (item.to !== "/" && path.startsWith(item.to + "/"));
-                    return (
-                      <DropdownMenuItem key={item.to} asChild>
-                        <Link
-                          to={item.to}
-                          className={`flex w-full cursor-pointer items-center gap-2 ${
-                            itemActive ? "bg-secondary font-semibold" : ""
-                          }`}
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{item.label}</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            );
-          })}
+                  Ещё
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                {secondaryGroups.map((g) => {
+                  const GIcon = g.icon;
+                  return (
+                    <div key={g.id}>
+                      <DropdownMenuLabel className="flex items-center gap-2">
+                        <GIcon className="h-4 w-4" />
+                        {g.label}
+                      </DropdownMenuLabel>
+                      {g.items.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <DropdownMenuItem key={item.to} asChild>
+                            <Link
+                              to={item.to}
+                              className="flex w-full cursor-pointer items-center gap-2"
+                            >
+                              <Icon className="h-4 w-4 shrink-0" />
+                              <span className="truncate">{item.label}</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                      <DropdownMenuSeparator />
+                    </div>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
         </nav>
+
+        {/* Спейсер для мобильных, чтобы правый блок был справа */}
+        <div className="flex-1 lg:hidden" />
 
         {/* Правая часть */}
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
