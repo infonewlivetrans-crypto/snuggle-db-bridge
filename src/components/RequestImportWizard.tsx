@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { FileSpreadsheet, Loader2, ChevronLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { parseFile, autoMap, TARGET_FIELDS, type ParsedTable, type TargetKey } from "@/lib/file-parser";
+import { upsertClientSilent, buildOrderAutofillFromClient } from "@/lib/client-autofill";
 import { toast } from "sonner";
 
 type Step = "upload" | "preview" | "mapping" | "done";
@@ -133,11 +134,15 @@ export function RequestImportWizard({
         const orderNumber =
           str(get("order_number")) ?? `IMP-${Date.now().toString().slice(-6)}-${i + 1}`;
 
-        const payload = {
+        const contactName = str(get("contact_name"));
+        const contactPhone = str(get("contact_phone"));
+        const deliveryAddress = str(get("delivery_address")) ?? str(get("pickup_address"));
+
+        const payload: Record<string, unknown> = {
           order_number: orderNumber,
-          contact_name: str(get("contact_name")),
-          contact_phone: str(get("contact_phone")),
-          delivery_address: str(get("delivery_address")) ?? str(get("pickup_address")),
+          contact_name: contactName,
+          contact_phone: contactPhone,
+          delivery_address: deliveryAddress,
           total_weight_kg: num(get("total_weight_kg")),
           total_volume_m3: num(get("total_volume_m3")),
           goods_amount: num(get("goods_amount")),
@@ -146,6 +151,26 @@ export function RequestImportWizard({
           delivery_cost: 0,
           source: "import",
         };
+
+        // Тихий upsert клиента + автоподстановка пустых полей заказа
+        if (contactName) {
+          try {
+            const client = await upsertClientSilent({
+              name: contactName,
+              phone: contactPhone,
+              address: deliveryAddress,
+            });
+            if (client) {
+              const fill = buildOrderAutofillFromClient(client, {
+                delivery_address: payload.delivery_address as string | null,
+                contact_phone: payload.contact_phone as string | null,
+              });
+              Object.assign(payload, fill);
+            }
+          } catch {
+            // не блокируем импорт заказа из-за проблемы с клиентом
+          }
+        }
 
         const { data: ord, error: ordErr } = await supabase
           .from("orders")

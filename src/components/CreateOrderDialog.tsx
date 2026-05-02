@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
 import { parseCoords } from "@/lib/geo";
+import { findClient, upsertClientSilent } from "@/lib/client-autofill";
 import { MapPin, Compass, Upload, Loader2, X } from "lucide-react";
 
 interface CreateOrderDialogProps {
@@ -75,6 +76,51 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
     if (parsed) {
       setLatitude(String(parsed.lat));
       setLongitude(String(parsed.lng));
+    }
+  };
+
+  // Автоподстановка данных по существующему клиенту (по имени или телефону).
+  // Заполняем ТОЛЬКО пустые поля формы, чтобы не затирать ручной ввод.
+  const tryAutofillFromClient = async () => {
+    if (!contactName.trim() && !contactPhone.trim()) return;
+    try {
+      const client = await findClient({ name: contactName, phone: contactPhone });
+      if (!client) return;
+      let filled = 0;
+      if (!deliveryAddress && client.address) {
+        setDeliveryAddress(client.address);
+        filled++;
+      }
+      if (!latitude && client.latitude != null) {
+        setLatitude(String(client.latitude));
+        filled++;
+      }
+      if (!longitude && client.longitude != null) {
+        setLongitude(String(client.longitude));
+        filled++;
+      }
+      if (!contactPhone && client.phone) {
+        setContactPhone(client.phone);
+        filled++;
+      }
+      if (!contactName && client.name) {
+        setContactName(client.name);
+        filled++;
+      }
+      if (!accessInstructions) {
+        const notes = [client.access_notes, client.unloading_notes, client.driver_instructions]
+          .filter(Boolean)
+          .join("\n");
+        if (notes) {
+          setAccessInstructions(notes);
+          filled++;
+        }
+      }
+      if (filled > 0) {
+        toast.success(`Подставлены данные клиента (${filled} полей)`);
+      }
+    } catch {
+      // тихо
     }
   };
 
@@ -131,6 +177,21 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         status: "new",
       });
       if (error) throw error;
+
+      // Тихий upsert клиента, чтобы при следующем заказе данные подставились
+      if (contactName.trim()) {
+        try {
+          await upsertClientSilent({
+            name: contactName.trim(),
+            phone: contactPhone.trim() || null,
+            address: deliveryAddress.trim() || null,
+            latitude: lat ?? null,
+            longitude: lng ?? null,
+          });
+        } catch {
+          // не блокируем UX
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -309,6 +370,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 placeholder="Иван Петров"
                 value={contactName}
                 onChange={(e) => setContactName(e.target.value)}
+                onBlur={tryAutofillFromClient}
                 className="mt-1.5"
               />
             </div>
@@ -320,6 +382,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
                 placeholder="+7 900 000-00-00"
                 value={contactPhone}
                 onChange={(e) => setContactPhone(e.target.value)}
+                onBlur={tryAutofillFromClient}
                 className="mt-1.5"
               />
             </div>

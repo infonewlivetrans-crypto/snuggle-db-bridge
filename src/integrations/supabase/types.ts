@@ -324,49 +324,82 @@ export type Database = {
       }
       clients: {
         Row: {
+          access_notes: string | null
           address: string | null
+          client_type: Database["public"]["Enums"]["client_kind"] | null
           company_id: string | null
           created_at: string
+          driver_instructions: string | null
           email: string | null
           external_id: string | null
+          extra_attrs: Json
           id: string
           inn: string | null
+          latitude: number | null
+          longitude: number | null
           manager_name: string | null
           manager_phone: string | null
           name: string
           phone: string | null
+          phone_alt: string | null
+          preferred_delivery_time: string | null
           source: string
+          unloading_notes: string | null
           updated_at: string
+          working_hours: string | null
+          works_weekends: boolean
         }
         Insert: {
+          access_notes?: string | null
           address?: string | null
+          client_type?: Database["public"]["Enums"]["client_kind"] | null
           company_id?: string | null
           created_at?: string
+          driver_instructions?: string | null
           email?: string | null
           external_id?: string | null
+          extra_attrs?: Json
           id?: string
           inn?: string | null
+          latitude?: number | null
+          longitude?: number | null
           manager_name?: string | null
           manager_phone?: string | null
           name: string
           phone?: string | null
+          phone_alt?: string | null
+          preferred_delivery_time?: string | null
           source?: string
+          unloading_notes?: string | null
           updated_at?: string
+          working_hours?: string | null
+          works_weekends?: boolean
         }
         Update: {
+          access_notes?: string | null
           address?: string | null
+          client_type?: Database["public"]["Enums"]["client_kind"] | null
           company_id?: string | null
           created_at?: string
+          driver_instructions?: string | null
           email?: string | null
           external_id?: string | null
+          extra_attrs?: Json
           id?: string
           inn?: string | null
+          latitude?: number | null
+          longitude?: number | null
           manager_name?: string | null
           manager_phone?: string | null
           name?: string
           phone?: string | null
+          phone_alt?: string | null
+          preferred_delivery_time?: string | null
           source?: string
+          unloading_notes?: string | null
           updated_at?: string
+          working_hours?: string | null
+          works_weekends?: boolean
         }
         Relationships: [
           {
