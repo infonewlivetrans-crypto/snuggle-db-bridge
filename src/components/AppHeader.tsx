@@ -452,7 +452,7 @@ export function AppHeader() {
         </div>
 
         {/* ===== ЦЕНТР: навигация в одну строку, без переноса, с overflow ===== */}
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-start gap-1 lg:flex">
           {/* Основные группы — видны на lg+ */}
           {primaryGroups.map((g) => (
             <GroupButton
