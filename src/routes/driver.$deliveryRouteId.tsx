@@ -23,6 +23,7 @@ import {
   ArrowDown,
 } from "lucide-react";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
 import { toast } from "sonner";
 import { PointStatusEditor } from "@/components/PointStatusEditor";
@@ -134,6 +135,22 @@ function DriverRoutePage() {
       if (error) throw error;
       return data as unknown as Detail | null;
     },
+  });
+
+  // Реалтайм: изменения рейса/точек/заказов с других устройств — автоматически инвалидируем кэш
+  useRealtimeInvalidate("delivery_routes", [["driver-route", deliveryRouteId]], {
+    filter: `id=eq.${deliveryRouteId}`,
+  });
+  useRealtimeInvalidate(
+    "route_points",
+    [["delivery-route-points", data?.source_request_id]],
+    {
+      enabled: !!data?.source_request_id,
+      filter: `route_id=eq.${data?.source_request_id}`,
+    },
+  );
+  useRealtimeInvalidate("orders", [["delivery-route-points", data?.source_request_id]], {
+    enabled: !!data?.source_request_id,
   });
 
   const { data: points } = useQuery({

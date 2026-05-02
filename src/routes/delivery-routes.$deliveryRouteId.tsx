@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -128,6 +129,22 @@ function DeliveryRoutePage() {
       if (error) throw error;
       return data as unknown as Detail | null;
     },
+  });
+
+  // Реалтайм-синхронизация между устройствами (логист видит действия водителя и наоборот)
+  useRealtimeInvalidate("delivery_routes", [["delivery-route", deliveryRouteId], ["delivery-routes"]], {
+    filter: `id=eq.${deliveryRouteId}`,
+  });
+  useRealtimeInvalidate(
+    "route_points",
+    [["delivery-route-points", data?.source_request_id]],
+    {
+      enabled: !!data?.source_request_id,
+      filter: `route_id=eq.${data?.source_request_id}`,
+    },
+  );
+  useRealtimeInvalidate("orders", [["delivery-route-points", data?.source_request_id]], {
+    enabled: !!data?.source_request_id,
   });
 
   const { data: points } = useQuery({
