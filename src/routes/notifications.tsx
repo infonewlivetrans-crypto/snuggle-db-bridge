@@ -271,6 +271,14 @@ function NotificationsPage() {
             ))}
           </div>
         )}
+
+        {!isLoading && !showAll && items.length >= 20 && (
+          <div className="mt-4 flex justify-center">
+            <Button variant="outline" size="sm" onClick={() => setShowAll(true)}>
+              Показать ещё
+            </Button>
+          </div>
+        )}
       </main>
     </div>
   );
