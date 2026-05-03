@@ -87,6 +87,8 @@ function TransportRequestsPage() {
       if (error) throw error;
       return (data ?? []) as unknown as RequestRow[];
     },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
   });
 
   const filtered = useMemo(() => {
