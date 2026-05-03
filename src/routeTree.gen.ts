@@ -72,9 +72,15 @@ import { Route as ApiUserRoleRouteImport } from './routes/api/user-role'
 import { Route as ApiTransportRequestsRouteImport } from './routes/api/transport-requests'
 import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-settings'
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
+import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
+import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
+import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
+import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
+import { Route as ApiDeliveryPhotosRouteImport } from './routes/api/delivery-photos'
+import { Route as ApiDeliveryDocumentsRouteImport } from './routes/api/delivery-documents'
 import { Route as ApiClientsRouteImport } from './routes/api/clients'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -396,9 +402,19 @@ const ApiRoutesRoute = ApiRoutesRouteImport.update({
   path: '/api/routes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRouteStatusesRoute = ApiRouteStatusesRouteImport.update({
+  id: '/api/route-statuses',
+  path: '/api/route-statuses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiProfileRoute = ApiProfileRouteImport.update({
   id: '/api/profile',
   path: '/api/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPaymentsRoute = ApiPaymentsRouteImport.update({
+  id: '/api/payments',
+  path: '/api/payments',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOrdersRoute = ApiOrdersRouteImport.update({
@@ -406,9 +422,29 @@ const ApiOrdersRoute = ApiOrdersRouteImport.update({
   path: '/api/orders',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrderStatusesRoute = ApiOrderStatusesRouteImport.update({
+  id: '/api/order-statuses',
+  path: '/api/order-statuses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
+  id: '/api/notifications',
+  path: '/api/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDriversRoute = ApiDriversRouteImport.update({
   id: '/api/drivers',
   path: '/api/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDeliveryPhotosRoute = ApiDeliveryPhotosRouteImport.update({
+  id: '/api/delivery-photos',
+  path: '/api/delivery-photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDeliveryDocumentsRoute = ApiDeliveryDocumentsRouteImport.update({
+  id: '/api/delivery-documents',
+  path: '/api/delivery-documents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiClientsRoute = ApiClientsRouteImport.update({
@@ -464,9 +500,15 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/clients': typeof ApiClientsRoute
+  '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
+  '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/drivers': typeof ApiDriversRoute
+  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRoute
+  '/api/payments': typeof ApiPaymentsRoute
   '/api/profile': typeof ApiProfileRoute
+  '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
@@ -535,9 +577,15 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/clients': typeof ApiClientsRoute
+  '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
+  '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/drivers': typeof ApiDriversRoute
+  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRoute
+  '/api/payments': typeof ApiPaymentsRoute
   '/api/profile': typeof ApiProfileRoute
+  '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
@@ -607,9 +655,15 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/clients': typeof ApiClientsRoute
+  '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
+  '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/drivers': typeof ApiDriversRoute
+  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRoute
+  '/api/payments': typeof ApiPaymentsRoute
   '/api/profile': typeof ApiProfileRoute
+  '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
@@ -680,9 +734,15 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/tariffs'
     | '/api/clients'
+    | '/api/delivery-documents'
+    | '/api/delivery-photos'
     | '/api/drivers'
+    | '/api/notifications'
+    | '/api/order-statuses'
     | '/api/orders'
+    | '/api/payments'
     | '/api/profile'
+    | '/api/route-statuses'
     | '/api/routes'
     | '/api/system-settings'
     | '/api/transport-requests'
@@ -751,9 +811,15 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/tariffs'
     | '/api/clients'
+    | '/api/delivery-documents'
+    | '/api/delivery-photos'
     | '/api/drivers'
+    | '/api/notifications'
+    | '/api/order-statuses'
     | '/api/orders'
+    | '/api/payments'
     | '/api/profile'
+    | '/api/route-statuses'
     | '/api/routes'
     | '/api/system-settings'
     | '/api/transport-requests'
@@ -822,9 +888,15 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/tariffs'
     | '/api/clients'
+    | '/api/delivery-documents'
+    | '/api/delivery-photos'
     | '/api/drivers'
+    | '/api/notifications'
+    | '/api/order-statuses'
     | '/api/orders'
+    | '/api/payments'
     | '/api/profile'
+    | '/api/route-statuses'
     | '/api/routes'
     | '/api/system-settings'
     | '/api/transport-requests'
@@ -894,9 +966,15 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
   ApiClientsRoute: typeof ApiClientsRoute
+  ApiDeliveryDocumentsRoute: typeof ApiDeliveryDocumentsRoute
+  ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
   ApiDriversRoute: typeof ApiDriversRoute
+  ApiNotificationsRoute: typeof ApiNotificationsRoute
+  ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
   ApiOrdersRoute: typeof ApiOrdersRoute
+  ApiPaymentsRoute: typeof ApiPaymentsRoute
   ApiProfileRoute: typeof ApiProfileRoute
+  ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
   ApiRoutesRoute: typeof ApiRoutesRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
@@ -1371,11 +1449,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRoutesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/route-statuses': {
+      id: '/api/route-statuses'
+      path: '/api/route-statuses'
+      fullPath: '/api/route-statuses'
+      preLoaderRoute: typeof ApiRouteStatusesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/profile': {
       id: '/api/profile'
       path: '/api/profile'
       fullPath: '/api/profile'
       preLoaderRoute: typeof ApiProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payments': {
+      id: '/api/payments'
+      path: '/api/payments'
+      fullPath: '/api/payments'
+      preLoaderRoute: typeof ApiPaymentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/orders': {
@@ -1385,11 +1477,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/order-statuses': {
+      id: '/api/order-statuses'
+      path: '/api/order-statuses'
+      fullPath: '/api/order-statuses'
+      preLoaderRoute: typeof ApiOrderStatusesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/notifications': {
+      id: '/api/notifications'
+      path: '/api/notifications'
+      fullPath: '/api/notifications'
+      preLoaderRoute: typeof ApiNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/drivers': {
       id: '/api/drivers'
       path: '/api/drivers'
       fullPath: '/api/drivers'
       preLoaderRoute: typeof ApiDriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/delivery-photos': {
+      id: '/api/delivery-photos'
+      path: '/api/delivery-photos'
+      fullPath: '/api/delivery-photos'
+      preLoaderRoute: typeof ApiDeliveryPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/delivery-documents': {
+      id: '/api/delivery-documents'
+      path: '/api/delivery-documents'
+      fullPath: '/api/delivery-documents'
+      preLoaderRoute: typeof ApiDeliveryDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/clients': {
@@ -1465,9 +1585,15 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
   ApiClientsRoute: ApiClientsRoute,
+  ApiDeliveryDocumentsRoute: ApiDeliveryDocumentsRoute,
+  ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
   ApiDriversRoute: ApiDriversRoute,
+  ApiNotificationsRoute: ApiNotificationsRoute,
+  ApiOrderStatusesRoute: ApiOrderStatusesRoute,
   ApiOrdersRoute: ApiOrdersRoute,
+  ApiPaymentsRoute: ApiPaymentsRoute,
   ApiProfileRoute: ApiProfileRoute,
+  ApiRouteStatusesRoute: ApiRouteStatusesRoute,
   ApiRoutesRoute: ApiRoutesRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,

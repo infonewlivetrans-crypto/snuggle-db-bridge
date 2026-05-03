@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -33,15 +33,16 @@ export function OrderNotificationsBlock({ orderId }: { orderId: string }) {
   const { data: items = [], isLoading } = useQuery<Row[]>({
     queryKey: ["notifications", "order", orderId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("id, kind, title, body, is_read, created_at, payload")
-        .eq("order_id", orderId)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (error) throw error;
-      return (data ?? []) as unknown as Row[];
+      const { rows } = await fetchListViaApi<Row>("/api/notifications", {
+        limit: 20,
+        extra: {
+          order_id: orderId,
+          fields: "id, kind, title, body, is_read, created_at, payload",
+        },
+      });
+      return rows;
     },
+    staleTime: 30_000,
   });
 
   return (

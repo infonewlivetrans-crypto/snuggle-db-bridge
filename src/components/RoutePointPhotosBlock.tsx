@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -39,14 +40,12 @@ export function RoutePointPhotosBlock({
   const { data: photos } = useQuery({
     queryKey: ["route-point-photos", routePointId],
     queryFn: async (): Promise<Photo[]> => {
-      const { data, error } = await supabase
-        .from("route_point_photos")
-        .select("id, route_point_id, order_id, kind, file_url, storage_path, created_at")
-        .eq("route_point_id", routePointId)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Photo[];
+      const { rows } = await apiGetAuth<{ rows: Photo[] }>(
+        `/api/delivery-photos?route_point_id=${encodeURIComponent(routePointId)}`,
+      );
+      return rows;
     },
+    staleTime: 3 * 60_000,
   });
 
   const list = photos ?? [];

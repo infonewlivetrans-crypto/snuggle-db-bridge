@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
@@ -105,13 +106,10 @@ function NotificationsPage() {
   const { data: items = [], isLoading, refetch } = useQuery<Row[]>({
     queryKey: ["notifications", "all", showAll ? "full" : "initial"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("id, kind, title, body, order_id, payload, is_read, created_at")
-        .order("created_at", { ascending: false })
-        .limit(showAll ? 200 : 20);
-      if (error) throw error;
-      return (data ?? []) as unknown as Row[];
+      const { rows } = await fetchListViaApi<Row>("/api/notifications", {
+        limit: showAll ? 200 : 20,
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.NOTIFICATIONS,
     placeholderData: (prev) => prev,
