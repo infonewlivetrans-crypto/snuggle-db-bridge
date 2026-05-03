@@ -266,6 +266,17 @@ function TransportRequestsPage() {
             </TableBody>
           </Table>
         </div>
+        {!isLoading && (data?.length ?? 0) >= pageSize && (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setPageSize((n) => n + 50)}
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            >
+              Показать ещё
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
