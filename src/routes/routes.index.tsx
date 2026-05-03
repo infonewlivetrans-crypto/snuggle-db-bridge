@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { CreateRouteDialog } from "@/components/CreateRouteDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
@@ -65,32 +65,24 @@ function RoutesPage() {
   const { data: routes, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["routes", showAll ? "all" : "active"],
     queryFn: async (): Promise<RouteWithCount[]> => {
-      let q = supabase
-        .from("routes")
-        .select("*, route_points(eta_at, eta_risk)")
-        .order("route_date", { ascending: false })
-        .order("created_at", { ascending: false });
-      if (!showAll) {
-        q = q.in("status", ["planned", "in_progress"]).limit(20);
-      } else {
-        q = q.limit(200);
-      }
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []).map(
-        (r: DeliveryRoute & {
+      const { rows } = await fetchListViaApi<
+        DeliveryRoute & {
           route_points: Array<{ eta_at?: string | null; eta_risk?: string | null }>;
-        }) => {
-          const pts = r.route_points ?? [];
-          const eta = summarizeRouteEta(
-            pts.map((x) => ({
-              eta_at: x.eta_at ?? null,
-              eta_risk: (x.eta_risk ?? "unknown") as EtaRiskLevel,
-            })),
-          );
-          return { ...r, points_count: pts.length, _eta: eta } as RouteWithCount;
-        },
-      );
+        }
+      >("/api/routes", {
+        limit: showAll ? 200 : 20,
+        extra: showAll ? {} : { activeOnly: 1 },
+      });
+      return rows.map((r) => {
+        const pts = r.route_points ?? [];
+        const eta = summarizeRouteEta(
+          pts.map((x) => ({
+            eta_at: x.eta_at ?? null,
+            eta_risk: (x.eta_risk ?? "unknown") as EtaRiskLevel,
+          })),
+        );
+        return { ...r, points_count: pts.length, _eta: eta } as RouteWithCount;
+      });
     },
     staleTime: CACHE_TIMES.BUSINESS,
     placeholderData: (prev) => prev,
