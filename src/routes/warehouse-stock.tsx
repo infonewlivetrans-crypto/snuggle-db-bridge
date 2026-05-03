@@ -138,6 +138,7 @@ function WarehouseStockPage() {
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: CACHE_TIMES.REFERENCE,
   });
 
   const { data: products } = useQuery({
@@ -150,6 +151,7 @@ function WarehouseStockPage() {
       if (error) throw error;
       return (data ?? []) as ProductRow[];
     },
+    staleTime: CACHE_TIMES.REFERENCE,
   });
 
   const { data: balances, isLoading } = useQuery({
@@ -162,6 +164,8 @@ function WarehouseStockPage() {
       if (error) throw error;
       return (data ?? []) as StockBalance[];
     },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
   });
 
   const categoryByProduct = useMemo(() => {
