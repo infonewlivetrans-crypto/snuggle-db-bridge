@@ -67,6 +67,7 @@ function AdminSettingsPage() {
           <TabsContent value="modules" className="mt-4 space-y-4">
             <LaunchModePanel items={data.settings} onChanged={() => router.invalidate()} />
             <DemoModePanel items={data.settings} onChanged={() => router.invalidate()} />
+            <DriverDocumentPhotosPanel items={data.settings} onChanged={() => router.invalidate()} />
             <ModuleTogglesPanel items={data.settings} onChanged={() => router.invalidate()} />
           </TabsContent>
 
@@ -193,6 +194,61 @@ function DemoModePanel({
             {enabled
               ? "Показываются демо-бейдж и подсказки."
               : "Бейдж и баннеры скрыты, отображаются реальные данные."}
+          </div>
+        </div>
+        <Switch checked={enabled} disabled={busy} onCheckedChange={toggle} />
+      </CardContent>
+    </Card>
+  );
+}
+
+function DriverDocumentPhotosPanel({
+  items,
+  onChanged,
+}: {
+  items: SystemSetting[];
+  onChanged: () => void;
+}) {
+  const setting = items.find((s) => s.setting_key === "driver_document_photos_enabled");
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  if (!setting) return null;
+
+  const raw = setting.setting_value as unknown;
+  const enabled = raw === true || raw === "true";
+
+  const toggle = async (next: boolean) => {
+    setBusy(true);
+    try {
+      await updateSetting(setting.id, next);
+      toast.success(`Фото документов: ${next ? "включены" : "выключены"}`);
+      qc.invalidateQueries({ queryKey: ["system-settings"] });
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сохранения");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Фото документов водителя</CardTitle>
+        <CardDescription>
+          Когда включено — водитель видит дополнительные блоки загрузки фото
+          (подписанные документы, оплата, место выгрузки). QR-код всегда обязателен
+          независимо от этой настройки.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-medium">{enabled ? "Включены" : "Выключены"}</div>
+          <div className="text-xs text-muted-foreground">
+            {enabled
+              ? "Водитель загружает фото документов и оплаты."
+              : "Водитель загружает только QR-код и фото проблем."}
           </div>
         </div>
         <Switch checked={enabled} disabled={busy} onCheckedChange={toggle} />
