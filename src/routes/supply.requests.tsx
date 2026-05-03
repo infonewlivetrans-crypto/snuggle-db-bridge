@@ -144,7 +144,7 @@ function SupplyRequestsPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db.from("warehouses").select("id, name").order("name");
+      const { data, error } = await db.from("warehouses").select("id, name").eq("is_active", true).order("name");
       if (error) throw error;
       return (data ?? []) as Warehouse[];
     },
