@@ -100,9 +100,10 @@ function NotificationsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [showAll, setShowAll] = useState(false);
 
   const { data: items = [], isLoading, refetch } = useQuery<Row[]>({
-    queryKey: ["notifications", "all"],
+    queryKey: ["notifications", "all", showAll ? "full" : "initial"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
