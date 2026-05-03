@@ -66,6 +66,7 @@ function AdminSettingsPage() {
 
           <TabsContent value="modules" className="mt-4 space-y-4">
             <LaunchModePanel items={data.settings} onChanged={() => router.invalidate()} />
+            <DemoModePanel items={data.settings} onChanged={() => router.invalidate()} />
             <ModuleTogglesPanel items={data.settings} onChanged={() => router.invalidate()} />
           </TabsContent>
 
