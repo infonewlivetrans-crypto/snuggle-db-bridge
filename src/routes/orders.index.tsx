@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
@@ -154,49 +155,11 @@ function OrdersPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["orders-overview", pageSize],
     queryFn: async (): Promise<OrderRow[]> => {
-      // Подтянем заказы вместе с маршрутом, на котором они стоят (через route_points)
-      const { data: orders, error } = await supabase
-        .from("orders")
-        .select(
-          `
-          id, order_number, status, payment_status, amount_due, delivery_cost, goods_amount,
-          total_weight_kg, total_volume_m3, destination_city, delivery_address,
-          contact_name, contact_phone, created_at, updated_at
-          `,
-        )
-        .order("created_at", { ascending: false })
-        .limit(pageSize);
-      if (error) throw error;
-
-      const ids = (orders ?? []).map((o) => o.id);
-      let routeMap = new Map<string, OrderRow["route"]>();
-      if (ids.length > 0) {
-        const { data: pts } = await supabase
-          .from("route_points")
-          .select(
-            `
-            order_id,
-            route:route_id (
-              id, route_number, route_date, driver_name, status, organization, transport_kind,
-              warehouse:warehouse_id ( id, name, city ),
-              carrier:carrier_id ( id, company_name ),
-              driver:driver_id ( id, full_name, phone ),
-              vehicle:vehicle_id ( id, plate_number, brand, model )
-            )
-            `,
-          )
-          .in("order_id", ids);
-        for (const p of pts ?? []) {
-          if (p.order_id && p.route && !routeMap.has(p.order_id)) {
-            routeMap.set(p.order_id, p.route as OrderRow["route"]);
-          }
-        }
-      }
-
-      return (orders ?? []).map((o) => ({
-        ...(o as OrderRow),
-        route: routeMap.get(o.id) ?? null,
-      }));
+      const { rows } = await fetchListViaApi<OrderRow>("/api/orders", {
+        limit: pageSize,
+        extra: { includeRoutes: 1 },
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.BUSINESS,
     placeholderData: (prev) => prev,

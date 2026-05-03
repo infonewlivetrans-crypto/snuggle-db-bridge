@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { db } from "@/lib/db";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { VehicleFormDialog } from "@/components/VehicleFormDialog";
 import { Badge } from "@/components/ui/badge";
@@ -45,13 +46,13 @@ function VehiclesPage() {
   const [activeOnly, setActiveOnly] = useState(true);
   const [open, setOpen] = useState(false);
 
-  const { data: vehicles, isLoading } = useQuery({
+  const { data: vehicles, isLoading, refetch } = useQuery({
     queryKey: ["vehicles"],
     queryFn: async (): Promise<Vehicle[]> => {
-      const { data, error } = await db.from("vehicles").select("*").order("plate_number", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Vehicle>("/api/vehicles", { limit: 100 });
+      return rows;
     },
+    staleTime: 5 * 60_000,
   });
 
   const { data: carriers } = useQuery({
@@ -169,6 +170,9 @@ function VehiclesPage() {
                 <div className="py-12 text-center">
                   <Truck className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                   <div className="text-sm text-muted-foreground">Автомобили не найдены</div>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
+                    Обновить
+                  </Button>
                 </div>
               ) : (
                 <ul className="divide-y divide-border">

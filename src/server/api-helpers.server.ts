@@ -44,3 +44,35 @@ export async function requireUser(
   if (error || !data?.claims?.sub) return null;
   return { userId: data.claims.sub as string, client };
 }
+
+/**
+ * Парсит ?limit=&offset=&search= из URL запроса.
+ * limit ограничен 1..100, по умолчанию 20.
+ */
+export function parseListParams(request: Request): {
+  limit: number;
+  offset: number;
+  search: string;
+  url: URL;
+} {
+  const url = new URL(request.url);
+  const limit = Math.min(
+    Math.max(1, Number(url.searchParams.get("limit")) || 20),
+    100,
+  );
+  const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
+  const search = (url.searchParams.get("search") ?? "").trim();
+  return { limit, offset, search, url };
+}
+
+/**
+ * Отдаёт ответ с заголовком приватного кеша на N секунд (для авторизованных
+ * списков). Браузер положит ответ в HTTP-кеш — Realtime/мутации уже
+ * инвалидируют React Query, так что фронт получит свежие данные при
+ * необходимости.
+ */
+export function cacheHeaders(seconds: number, isPublic = false): HeadersInit {
+  return {
+    "cache-control": `${isPublic ? "public" : "private"}, max-age=${seconds}`,
+  };
+}

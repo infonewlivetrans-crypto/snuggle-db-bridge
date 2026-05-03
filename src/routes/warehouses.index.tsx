@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { db } from "@/lib/db";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,17 +80,15 @@ function WarehousesPage() {
   const [form, setForm] = useState<WarehouseForm>(EMPTY_FORM);
   const [confirmDelete, setConfirmDelete] = useState<Warehouse | null>(null);
 
-  const { data: warehouses, isLoading } = useQuery({
+  const { data: warehouses, isLoading, refetch } = useQuery({
     queryKey: ["warehouses"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("*")
-        .order("is_active", { ascending: false })
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 100,
+      });
+      return rows;
     },
+    staleTime: 10 * 60_000,
   });
 
   function openCreate() {
@@ -219,6 +218,9 @@ function WarehousesPage() {
           <div className="rounded-lg border border-dashed border-border bg-card py-12 text-center">
             <WarehouseIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <div className="text-sm text-muted-foreground">Складов пока нет</div>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
+              Обновить
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
