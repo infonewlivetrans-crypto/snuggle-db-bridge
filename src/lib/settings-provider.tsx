@@ -2,19 +2,21 @@ import { createContext, useContext, useEffect, useMemo, type ReactNode } from "r
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  fetchAllSettings,
   fetchAppVersion,
   type SystemSetting,
   type AppVersion,
   APP_CLIENT_PLATFORM,
 } from "@/lib/system-settings";
+import { fetchSystemSettingsViaApi } from "@/lib/api-client";
 
 const SETTINGS_QUERY_KEY = ["system-settings"] as const;
 const VERSION_QUERY_KEY = ["app-version", APP_CLIENT_PLATFORM] as const;
 
-// Cache settings for 5 min — realtime invalidates earlier when something changes.
-const STALE_TIME = 5 * 60 * 1000;
+// system_settings — кэш 10 минут (через сервер), realtime инвалидирует раньше.
+const STALE_TIME = 10 * 60 * 1000;
 const GC_TIME = 30 * 60 * 1000;
+
+const DEFAULT_SETTINGS: SystemSetting[] = [];
 
 interface SettingsContextValue {
   settings: Map<string, SystemSetting>;
