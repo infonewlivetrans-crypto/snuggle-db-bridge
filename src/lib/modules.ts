@@ -132,14 +132,17 @@ export function useLaunchMode(): LaunchMode {
     queryKey: ["launch.mode"],
     staleTime: 60_000,
     queryFn: async (): Promise<LaunchMode> => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("setting_value")
-        .eq("setting_key", "launch.mode")
-        .maybeSingle();
-      if (error) return "full";
-      const v = data?.setting_value;
-      return v === "minimal" ? "minimal" : "full";
+      try {
+        const { fetchSystemSettingsViaApi } = await import("@/lib/api-client");
+        const all = await fetchSystemSettingsViaApi<{
+          setting_key: string;
+          setting_value: unknown;
+        }>();
+        const row = all.find((s) => s.setting_key === "launch.mode");
+        return row?.setting_value === "minimal" ? "minimal" : "full";
+      } catch {
+        return "full";
+      }
     },
   });
   return data ?? "full";
