@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import {
@@ -78,17 +78,13 @@ function TransportRequestsPage() {
   const [pageSize, setPageSize] = useState(20);
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["transport-requests", pageSize],
+    queryKey: ["transport-requests", pageSize, typeFilter],
     queryFn: async (): Promise<RequestRow[]> => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "id, route_number, request_type, status, route_date, departure_time, request_priority, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, warehouses:warehouse_id(name), destination:destination_warehouse_id(name)",
-        )
-        .order("route_date", { ascending: false })
-        .limit(pageSize);
-      if (error) throw error;
-      return (data ?? []) as unknown as RequestRow[];
+      const { rows } = await fetchListViaApi<RequestRow>("/api/transport-requests", {
+        limit: pageSize,
+        extra: { type: typeFilter },
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.BUSINESS,
     placeholderData: (prev) => prev,
