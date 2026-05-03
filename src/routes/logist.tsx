@@ -223,6 +223,19 @@ function LogistPage() {
           Контроль маршрутов и проблемных доставок.
         </p>
 
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Button
+            variant={showHistory ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowHistory((v) => !v)}
+          >
+            {showHistory ? "Только активные" : "Показать историю"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetchRoutes()}>
+            Обновить
+          </Button>
+        </div>
+
         {/* Статусные фильтры */}
         <div className="mb-3 -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
           {STATUS_FILTERS.map((f) => {
