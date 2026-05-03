@@ -84,6 +84,8 @@ function RoutesPage() {
         },
       );
     },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
   });
 
   const filtered = useMemo(() => {
