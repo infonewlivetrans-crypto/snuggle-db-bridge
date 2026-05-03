@@ -14,6 +14,18 @@ export default defineConfig({
     preview: {
       allowedHosts: ["radius-track.ru", "www.radius-track.ru"],
     },
+    // Префикс CDN для статики (JS/CSS/шрифты/картинки) только в production-сборке.
+    // HTML, API и авторизация остаются на основном домене — маршрутизация не меняется.
+    // Управляется через переменную окружения VITE_ASSET_URL (например: https://cdn.radius-track.ru).
+    experimental: {
+      renderBuiltUrl(filename: string, { hostType }: { hostType: "js" | "css" | "html" }) {
+        const cdn = process.env.VITE_ASSET_URL?.replace(/\/+$/, "");
+        if (!cdn || hostType === "html") {
+          return { relative: true };
+        }
+        return `${cdn}/${filename}`;
+      },
+    },
     build: {
       // Чанки для тяжёлых клиентских библиотек, чтобы не входили в initial bundle
       // и грузились только при первом использовании соответствующих экранов/действий.
