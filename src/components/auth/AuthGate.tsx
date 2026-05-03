@@ -43,11 +43,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
 
   if (loading || hasAdmin === null) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Загрузка…
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   // Первый запуск — нет ни одного админа и пользователь не вошёл
