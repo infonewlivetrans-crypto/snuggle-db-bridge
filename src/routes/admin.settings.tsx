@@ -144,6 +144,63 @@ function LaunchModePanel({
   );
 }
 
+function DemoModePanel({
+  items,
+  onChanged,
+}: {
+  items: SystemSetting[];
+  onChanged: () => void;
+}) {
+  const setting = items.find((s) => s.setting_key === "demo_mode_enabled");
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  if (!setting) return null;
+
+  const raw = setting.setting_value as unknown;
+  const enabled =
+    raw === true ||
+    raw === "true" ||
+    (typeof raw === "object" && raw !== null && (raw as { enabled?: boolean }).enabled === true);
+
+  const toggle = async (next: boolean) => {
+    setBusy(true);
+    try {
+      await updateSetting(setting.id, next);
+      toast.success(`Демо-режим: ${next ? "включён" : "выключен"}`);
+      qc.invalidateQueries({ queryKey: ["demo-mode"] });
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сохранения");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Демо-режим</CardTitle>
+        <CardDescription>
+          Когда включён — в шапке отображается бейдж «Демо-режим», на главной показывается
+          подсказка о тестовых данных. Выключите, когда система переходит на реальные данные.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-medium">{enabled ? "Включён" : "Выключен"}</div>
+          <div className="text-xs text-muted-foreground">
+            {enabled
+              ? "Показываются демо-бейдж и подсказки."
+              : "Бейдж и баннеры скрыты, отображаются реальные данные."}
+          </div>
+        </div>
+        <Switch checked={enabled} disabled={busy} onCheckedChange={toggle} />
+      </CardContent>
+    </Card>
+  );
+}
+
 function ModuleTogglesPanel({
   items,
   onChanged,
