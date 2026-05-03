@@ -218,6 +218,9 @@ function WarehousesPage() {
           <div className="rounded-lg border border-dashed border-border bg-card py-12 text-center">
             <WarehouseIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
             <div className="text-sm text-muted-foreground">Складов пока нет</div>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
+              Обновить
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
