@@ -53,9 +53,16 @@ export function RoutePointPhotosBlock({
   const hasQr = list.some((p) => p.kind === "qr");
   const hasProblem = list.some((p) => p.kind === "problem");
 
+  const docsRequired = useSetting<boolean>("driver_document_photos_enabled", false);
+
   const isFailed = pointStatus === "not_delivered" || pointStatus === "returned_to_warehouse";
   const qrMissing = requiresQr && !hasQr;
   const problemMissing = isFailed && !hasProblem;
+
+  // Когда фото документов отключены настройкой — оставляем только QR и фото проблемы.
+  const visibleKinds = docsRequired
+    ? ROUTE_POINT_PHOTO_KIND_ORDER
+    : ROUTE_POINT_PHOTO_KIND_ORDER.filter((k) => k === "qr" || k === "problem");
 
   return (
     <div className="space-y-3 rounded-md border border-border bg-muted/20 p-3">
@@ -78,7 +85,7 @@ export function RoutePointPhotosBlock({
       )}
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {ROUTE_POINT_PHOTO_KIND_ORDER.map((kind) => (
+        {visibleKinds.map((kind) => (
           <PhotoKindRow
             key={kind}
             kind={kind}
