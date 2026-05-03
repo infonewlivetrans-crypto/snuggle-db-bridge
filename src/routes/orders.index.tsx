@@ -149,9 +149,10 @@ function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [routeFilter, setRouteFilter] = useState<string>("all");
+  const [pageSize, setPageSize] = useState(20);
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["orders-overview"],
+    queryKey: ["orders-overview", pageSize],
     queryFn: async (): Promise<OrderRow[]> => {
       // Подтянем заказы вместе с маршрутом, на котором они стоят (через route_points)
       const { data: orders, error } = await supabase
@@ -164,7 +165,7 @@ function OrdersPage() {
           `,
         )
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(pageSize);
       if (error) throw error;
 
       const ids = (orders ?? []).map((o) => o.id);
