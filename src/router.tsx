@@ -5,6 +5,7 @@ import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { routeTree } from "./routeTree.gen";
 import { RouteSkeleton } from "./components/RouteSkeleton";
 import { APP_CLIENT_VERSION } from "./lib/system-settings";
+import { isPersistableQueryKey } from "./lib/queryCache";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
