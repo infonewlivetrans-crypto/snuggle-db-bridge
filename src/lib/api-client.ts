@@ -112,3 +112,11 @@ export async function fetchListViaApi<T>(
     timeoutMs,
   });
 }
+
+/** Произвольный авторизованный GET с таймаутом — для одиночных ресурсов. */
+export async function apiGetAuth<T>(
+  path: string,
+  timeoutMs = 5000,
+): Promise<T> {
+  return apiGet<T>(path, { auth: true, timeoutMs });
+}
