@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth/auth-context";
 import { LoginPage } from "@/components/auth/LoginPage";
+import { SplashScreen } from "@/components/SplashScreen";
 import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
