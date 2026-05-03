@@ -12,7 +12,7 @@ import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, u
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
 export function AuthGate({ children }: { children: ReactNode }) {
-  const { loading, user, profile, roles, refresh } = useAuth();
+  const { loading, user, profile, roles, loadError, refresh } = useAuth();
   const location = useLocation();
   const path = location.pathname;
   const enabledModules = useEnabledModules();
