@@ -196,6 +196,8 @@ function OrdersPage() {
         route: routeMap.get(o.id) ?? null,
       }));
     },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
   });
 
   const isDemo = !isLoading && (data?.length ?? 0) === 0;
