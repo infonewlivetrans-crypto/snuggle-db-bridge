@@ -111,6 +111,8 @@ function NotificationsPage() {
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
     },
+    staleTime: CACHE_TIMES.NOTIFICATIONS,
+    placeholderData: (prev) => prev,
   });
 
   const markAll = useMutation({
