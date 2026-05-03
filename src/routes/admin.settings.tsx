@@ -200,6 +200,7 @@ function DemoModePanel({
       </CardContent>
     </Card>
   );
+}
 
 function DriverDocumentPhotosPanel({
   items,
