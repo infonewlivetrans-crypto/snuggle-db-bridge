@@ -91,10 +91,7 @@ export const getRouter = () => {
         buster: APP_CLIENT_VERSION,
         dehydrateOptions: {
           shouldDehydrateQuery: (q) =>
-            q.state.status === "success" &&
-            !q.queryKey.some(
-              (k) => typeof k === "string" && (k.startsWith("realtime:") || k.startsWith("live:")),
-            ),
+            q.state.status === "success" && isPersistableQueryKey(q.queryKey),
         },
       });
     } catch {
