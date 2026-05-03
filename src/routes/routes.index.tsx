@@ -134,6 +134,13 @@ function RoutesPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              variant={showAll ? "default" : "outline"}
+              onClick={() => setShowAll((v) => !v)}
+              className="gap-2"
+            >
+              {showAll ? "Только активные" : "Показать все"}
+            </Button>
+            <Button
               variant="outline"
               onClick={() => refetch()}
               disabled={isFetching}
