@@ -19,6 +19,7 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   roles: AppRole[];
+  loadError: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
