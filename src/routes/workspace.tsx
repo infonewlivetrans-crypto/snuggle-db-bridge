@@ -484,10 +484,20 @@ function DirectorPanel() {
           tone={(data?.problems ?? 0) > 0 ? "warning" : "default"}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Link to="/director">
           <Button variant="outline" size="sm">Открыть отчёт руководителя</Button>
         </Link>
+        {!enabled && (
+          <Button size="sm" onClick={() => setEnabled(true)}>
+            Загрузить сводку за 30 дней
+          </Button>
+        )}
+        {enabled && (
+          <span className="text-xs text-muted-foreground self-center">
+            {isFetching ? "Обновление…" : isLoading ? "Загрузка…" : "Готово"}
+          </span>
+        )}
       </div>
     </Section>
   );
