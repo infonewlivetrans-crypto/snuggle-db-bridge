@@ -256,6 +256,7 @@ function DriverDocumentPhotosPanel({
   );
 }
 
+function ModuleTogglesPanel({
   items,
   onChanged,
 }: {
