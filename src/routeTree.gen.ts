@@ -66,6 +66,7 @@ import { Route as DataImportHistoryRouteImport } from './routes/data-import.hist
 import { Route as DTokenRouteImport } from './routes/d.$token'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
+import { Route as ApiProfileRouteImport } from './routes/api/profile'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 
@@ -356,6 +357,11 @@ const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
   path: '/carriers/$carrierId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProfileRoute = ApiProfileRouteImport.update({
+  id: '/api/profile',
+  path: '/api/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminTariffsRoute = AdminTariffsRouteImport.update({
   id: '/admin/tariffs',
   path: '/admin/tariffs',
@@ -403,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
+  '/api/profile': typeof ApiProfileRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
@@ -464,6 +471,7 @@ export interface FileRoutesByTo {
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
+  '/api/profile': typeof ApiProfileRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
@@ -526,6 +534,7 @@ export interface FileRoutesById {
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
+  '/api/profile': typeof ApiProfileRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
@@ -589,6 +598,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
+    | '/api/profile'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
@@ -650,6 +660,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
+    | '/api/profile'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
@@ -711,6 +722,7 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
+    | '/api/profile'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
@@ -773,6 +785,7 @@ export interface RootRouteChildren {
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
+  ApiProfileRoute: typeof ApiProfileRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   DTokenRoute: typeof DTokenRoute
@@ -1199,6 +1212,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarriersCarrierIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/profile': {
+      id: '/api/profile'
+      path: '/api/profile'
+      fullPath: '/api/profile'
+      preLoaderRoute: typeof ApiProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/tariffs': {
       id: '/admin/tariffs'
       path: '/admin/tariffs'
@@ -1264,6 +1284,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
+  ApiProfileRoute: ApiProfileRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   DTokenRoute: DTokenRoute,
