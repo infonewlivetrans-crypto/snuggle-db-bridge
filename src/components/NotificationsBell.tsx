@@ -3,6 +3,7 @@ import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, Packag
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -59,24 +60,13 @@ export function NotificationsBell() {
   const { data: items = [] } = useQuery<Notification[]>({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data, error } = await (
-        supabase.from as unknown as (n: string) => {
-          select: (c: string) => {
-            order: (
-              c: string,
-              o: { ascending: boolean },
-            ) => {
-              limit: (n: number) => Promise<{ data: Notification[] | null; error: Error | null }>;
-            };
-          };
-        }
-      )("notifications")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Notification>("/api/notifications", {
+        limit: 20,
+      });
+      return rows;
     },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
   });
 
   const unreadCount = useMemo(() => items.filter((i) => !i.is_read).length, [items]);
