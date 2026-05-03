@@ -124,10 +124,12 @@ function LogistPage() {
         .from("delivery_routes")
         .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle")
         .order("route_date", { ascending: false })
-        .limit(500);
+        .limit(100);
       if (error) throw error;
       return (data ?? []) as RouteRow[];
     },
+    staleTime: 2 * 60_000,
+    placeholderData: (prev) => prev,
   });
 
   const { data: points = [] } = useQuery({
@@ -136,7 +138,7 @@ function LogistPage() {
       const { data, error } = await supabase
         .from("route_points")
         .select("route_id, dp_status")
-        .limit(10000);
+        .limit(2000);
       if (error) throw error;
       return (data ?? []) as PointRow[];
     },
