@@ -408,7 +408,9 @@ function LogistPanel() {
 /* ------------------------- DIRECTOR ------------------------- */
 
 function DirectorPanel() {
-  const { data, isLoading } = useQuery({
+  const [enabled, setEnabled] = useState(false);
+  const { data, isLoading, isFetching } = useQuery({
+    enabled,
     queryKey: ["workspace", "director"],
     queryFn: async () => {
       const since = new Date();
@@ -441,6 +443,7 @@ function DirectorPanel() {
 
       return { due, recv, returns, problems };
     },
+    staleTime: 5 * 60_000,
   });
 
   const fmt = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 0 });
@@ -481,10 +484,20 @@ function DirectorPanel() {
           tone={(data?.problems ?? 0) > 0 ? "warning" : "default"}
         />
       </div>
-      <div className="mt-4">
+      <div className="mt-4 flex flex-wrap gap-2">
         <Link to="/director">
           <Button variant="outline" size="sm">Открыть отчёт руководителя</Button>
         </Link>
+        {!enabled && (
+          <Button size="sm" onClick={() => setEnabled(true)}>
+            Загрузить сводку за 30 дней
+          </Button>
+        )}
+        {enabled && (
+          <span className="text-xs text-muted-foreground self-center">
+            {isFetching ? "Обновление…" : isLoading ? "Загрузка…" : "Готово"}
+          </span>
+        )}
       </div>
     </Section>
   );

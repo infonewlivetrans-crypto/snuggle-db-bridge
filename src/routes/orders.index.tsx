@@ -149,9 +149,10 @@ function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [clientFilter, setClientFilter] = useState<string>("all");
   const [routeFilter, setRouteFilter] = useState<string>("all");
+  const [pageSize, setPageSize] = useState(20);
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["orders-overview"],
+    queryKey: ["orders-overview", pageSize],
     queryFn: async (): Promise<OrderRow[]> => {
       // Подтянем заказы вместе с маршрутом, на котором они стоят (через route_points)
       const { data: orders, error } = await supabase
@@ -164,7 +165,7 @@ function OrdersPage() {
           `,
         )
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(pageSize);
       if (error) throw error;
 
       const ids = (orders ?? []).map((o) => o.id);
@@ -519,6 +520,17 @@ function OrdersPage() {
                 </TableBody>
               </Table>
             </div>
+            {!isLoading && (data?.length ?? 0) >= pageSize && (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setPageSize((n) => n + 50)}
+                  className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                >
+                  Показать ещё
+                </button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>

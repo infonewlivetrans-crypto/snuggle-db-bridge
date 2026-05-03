@@ -116,15 +116,22 @@ function LogistPage() {
   const [dateTo, setDateTo] = useState("");
   const [driverFilter, setDriverFilter] = useState<string>("all");
   const [openProblem, setOpenProblem] = useState<ProblemRow | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
   const { data: routes = [], isLoading: routesLoading, refetch: refetchRoutes } = useQuery({
-    queryKey: ["logist-routes"],
+    queryKey: ["logist-routes", showHistory ? "all" : "active"],
     queryFn: async (): Promise<RouteRow[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("delivery_routes")
         .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle")
-        .order("route_date", { ascending: false })
-        .limit(100);
+        .order("route_date", { ascending: false });
+      if (!showHistory) {
+        // По умолчанию — только активные рейсы, без истории
+        q = q.in("status", ["draft", "formed", "issued", "in_progress"]).limit(20);
+      } else {
+        q = q.limit(100);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as RouteRow[];
     },
@@ -132,16 +139,21 @@ function LogistPage() {
     placeholderData: (prev) => prev,
   });
 
+  const routeIds = useMemo(() => routes.map((r) => r.id), [routes]);
+
   const { data: points = [] } = useQuery({
-    queryKey: ["logist-route-points-summary"],
+    enabled: routeIds.length > 0,
+    queryKey: ["logist-route-points-summary", routeIds.join(",")],
     queryFn: async (): Promise<PointRow[]> => {
       const { data, error } = await supabase
         .from("route_points")
         .select("route_id, dp_status")
+        .in("route_id", routeIds)
         .limit(2000);
       if (error) throw error;
       return (data ?? []) as PointRow[];
     },
+    staleTime: 2 * 60_000,
   });
 
   const { data: problems = [], isLoading: problemsLoading, refetch: refetchProblems } = useQuery({
@@ -152,11 +164,13 @@ function LogistPage() {
         .select(
           "id, order_id, route_id, reason, comment, photo_url, urgency, reported_by, resolution_status, logist_comment, resolved_by, resolved_at, created_at, order:order_id(order_number, contact_name), route:route_id(route_number)",
         )
+        .neq("resolution_status", "resolved")
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(50);
       if (error) throw error;
       return (data ?? []) as unknown as ProblemRow[];
     },
+    staleTime: 2 * 60_000,
   });
 
   const totalsByRoute = useMemo(() => {
@@ -208,6 +222,19 @@ function LogistPage() {
         <p className="mb-4 text-xs text-muted-foreground sm:text-sm">
           Контроль маршрутов и проблемных доставок.
         </p>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Button
+            variant={showHistory ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowHistory((v) => !v)}
+          >
+            {showHistory ? "Только активные" : "Показать историю"}
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => refetchRoutes()}>
+            Обновить
+          </Button>
+        </div>
 
         {/* Статусные фильтры */}
         <div className="mb-3 -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">

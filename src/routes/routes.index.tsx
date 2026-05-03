@@ -60,14 +60,22 @@ function RoutesPage() {
   const [statusFilter, setStatusFilter] = useState<RouteStatus | "all">("all");
   const [createOpen, setCreateOpen] = useState(false);
 
+  const [showAll, setShowAll] = useState(false);
+
   const { data: routes, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ["routes"],
+    queryKey: ["routes", showAll ? "all" : "active"],
     queryFn: async (): Promise<RouteWithCount[]> => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("routes")
         .select("*, route_points(eta_at, eta_risk)")
         .order("route_date", { ascending: false })
         .order("created_at", { ascending: false });
+      if (!showAll) {
+        q = q.in("status", ["planned", "in_progress"]).limit(20);
+      } else {
+        q = q.limit(200);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []).map(
         (r: DeliveryRoute & {
@@ -125,6 +133,13 @@ function RoutesPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={showAll ? "default" : "outline"}
+              onClick={() => setShowAll((v) => !v)}
+              className="gap-2"
+            >
+              {showAll ? "Только активные" : "Показать все"}
+            </Button>
             <Button
               variant="outline"
               onClick={() => refetch()}

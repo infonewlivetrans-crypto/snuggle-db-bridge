@@ -100,15 +100,16 @@ function NotificationsPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [showAll, setShowAll] = useState(false);
 
   const { data: items = [], isLoading, refetch } = useQuery<Row[]>({
-    queryKey: ["notifications", "all"],
+    queryKey: ["notifications", "all", showAll ? "full" : "initial"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("notifications")
         .select("id, kind, title, body, order_id, payload, is_read, created_at")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(showAll ? 200 : 20);
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
     },
@@ -268,6 +269,14 @@ function NotificationsPage() {
                 onToggleRead={() => toggleRead.mutate({ id: n.id, read: !n.is_read })}
               />
             ))}
+          </div>
+        )}
+
+        {!isLoading && !showAll && items.length >= 20 && (
+          <div className="mt-4 flex justify-center">
+            <Button variant="outline" size="sm" onClick={() => setShowAll(true)}>
+              Показать ещё
+            </Button>
           </div>
         )}
       </main>
