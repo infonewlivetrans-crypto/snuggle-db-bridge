@@ -36,9 +36,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const { data, isLoading } = useQuery({
     queryKey: SETTINGS_QUERY_KEY,
-    queryFn: fetchAllSettings,
+    queryFn: async () => {
+      try {
+        return await fetchSystemSettingsViaApi<SystemSetting>();
+      } catch {
+        // Если system_settings долго не отвечает — используем дефолты.
+        return DEFAULT_SETTINGS;
+      }
+    },
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    retry: 1,
   });
 
   // Префетч версии приложения с тем же кэшем — её слушает AppVersionGate.
