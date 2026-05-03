@@ -108,7 +108,7 @@ function NotificationsPage() {
         .from("notifications")
         .select("id, kind, title, body, order_id, payload, is_read, created_at")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(showAll ? 200 : 20);
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
     },
