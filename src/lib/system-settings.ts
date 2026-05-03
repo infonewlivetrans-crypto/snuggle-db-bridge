@@ -57,22 +57,25 @@ export async function updateSetting(id: string, value: SettingValue, description
 }
 
 export async function fetchAppVersion(platform: string = APP_CLIENT_PLATFORM): Promise<AppVersion | null> {
-  const { data, error } = await supabase
-    .from("app_versions")
-    .select("*")
-    .eq("platform", platform)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as AppVersion | null) ?? null;
+  const { apiGetAuth } = await import("@/lib/api-client");
+  try {
+    const { version } = await apiGetAuth<{ version: AppVersion | null }>(
+      `/api/app-versions?platform=${encodeURIComponent(platform)}`,
+    );
+    return version;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchAllAppVersions(): Promise<AppVersion[]> {
-  const { data, error } = await supabase
-    .from("app_versions")
-    .select("*")
-    .order("platform", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as AppVersion[];
+  const { apiGetAuth } = await import("@/lib/api-client");
+  try {
+    const { rows } = await apiGetAuth<{ rows: AppVersion[] }>("/api/app-versions");
+    return rows ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function updateAppVersion(id: string, patch: Partial<AppVersion>) {
