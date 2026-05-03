@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { CACHE_TIMES } from "@/lib/queryCache";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
@@ -86,6 +87,8 @@ function TransportRequestsPage() {
       if (error) throw error;
       return (data ?? []) as unknown as RequestRow[];
     },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
   });
 
   const filtered = useMemo(() => {

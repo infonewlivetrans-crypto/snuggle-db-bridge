@@ -5,6 +5,7 @@ import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { routeTree } from "./routeTree.gen";
 import { RouteSkeleton } from "./components/RouteSkeleton";
 import { APP_CLIENT_VERSION } from "./lib/system-settings";
+import { isPersistableQueryKey } from "./lib/queryCache";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
@@ -90,10 +91,7 @@ export const getRouter = () => {
         buster: APP_CLIENT_VERSION,
         dehydrateOptions: {
           shouldDehydrateQuery: (q) =>
-            q.state.status === "success" &&
-            !q.queryKey.some(
-              (k) => typeof k === "string" && (k.startsWith("realtime:") || k.startsWith("live:")),
-            ),
+            q.state.status === "success" && isPersistableQueryKey(q.queryKey),
         },
       });
     } catch {

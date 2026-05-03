@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { Badge } from "@/components/ui/badge";
@@ -111,6 +112,8 @@ function NotificationsPage() {
       if (error) throw error;
       return (data ?? []) as unknown as Row[];
     },
+    staleTime: CACHE_TIMES.NOTIFICATIONS,
+    placeholderData: (prev) => prev,
   });
 
   const markAll = useMutation({

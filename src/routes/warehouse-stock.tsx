@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CACHE_TIMES } from "@/lib/queryCache";
 import { db } from "@/lib/db";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
@@ -137,6 +138,7 @@ function WarehouseStockPage() {
       if (error) throw error;
       return data ?? [];
     },
+    staleTime: CACHE_TIMES.REFERENCE,
   });
 
   const { data: products } = useQuery({
@@ -149,6 +151,7 @@ function WarehouseStockPage() {
       if (error) throw error;
       return (data ?? []) as ProductRow[];
     },
+    staleTime: CACHE_TIMES.REFERENCE,
   });
 
   const { data: balances, isLoading } = useQuery({
@@ -161,6 +164,8 @@ function WarehouseStockPage() {
       if (error) throw error;
       return (data ?? []) as StockBalance[];
     },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
   });
 
   const categoryByProduct = useMemo(() => {

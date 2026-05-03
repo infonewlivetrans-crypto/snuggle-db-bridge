@@ -53,6 +53,8 @@ function RouteReportsPage() {
       if (error) throw error;
       return (data ?? []) as unknown as Notif[];
     },
+    staleTime: 2 * 60_000,
+    placeholderData: (prev) => prev,
   });
 
   return (
