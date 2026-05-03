@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/routes")({
           .order("created_at", { ascending: false });
 
         if (activeOnly) q = q.in("status", ["planned", "in_progress"]);
-        else if (status && status !== "all") q = q.eq("status", status);
+        else if (status && status !== "all") q = q.eq("status", status as never);
         if (search) q = q.ilike("route_number", `%${search}%`);
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);

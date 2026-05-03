@@ -66,9 +66,16 @@ import { Route as DataImportHistoryRouteImport } from './routes/data-import.hist
 import { Route as DTokenRouteImport } from './routes/d.$token'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
+import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
+import { Route as ApiVehiclesRouteImport } from './routes/api/vehicles'
 import { Route as ApiUserRoleRouteImport } from './routes/api/user-role'
+import { Route as ApiTransportRequestsRouteImport } from './routes/api/transport-requests'
 import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-settings'
+import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
+import { Route as ApiOrdersRouteImport } from './routes/api/orders'
+import { Route as ApiDriversRouteImport } from './routes/api/drivers'
+import { Route as ApiClientsRouteImport } from './routes/api/clients'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 
@@ -359,9 +366,24 @@ const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
   path: '/carriers/$carrierId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWarehousesRoute = ApiWarehousesRouteImport.update({
+  id: '/api/warehouses',
+  path: '/api/warehouses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVehiclesRoute = ApiVehiclesRouteImport.update({
+  id: '/api/vehicles',
+  path: '/api/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUserRoleRoute = ApiUserRoleRouteImport.update({
   id: '/api/user-role',
   path: '/api/user-role',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTransportRequestsRoute = ApiTransportRequestsRouteImport.update({
+  id: '/api/transport-requests',
+  path: '/api/transport-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSystemSettingsRoute = ApiSystemSettingsRouteImport.update({
@@ -369,9 +391,29 @@ const ApiSystemSettingsRoute = ApiSystemSettingsRouteImport.update({
   path: '/api/system-settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutesRoute = ApiRoutesRouteImport.update({
+  id: '/api/routes',
+  path: '/api/routes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiProfileRoute = ApiProfileRouteImport.update({
   id: '/api/profile',
   path: '/api/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrdersRoute = ApiOrdersRouteImport.update({
+  id: '/api/orders',
+  path: '/api/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDriversRoute = ApiDriversRouteImport.update({
+  id: '/api/drivers',
+  path: '/api/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiClientsRoute = ApiClientsRouteImport.update({
+  id: '/api/clients',
+  path: '/api/clients',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminTariffsRoute = AdminTariffsRouteImport.update({
@@ -421,9 +463,16 @@ export interface FileRoutesByFullPath {
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
+  '/api/clients': typeof ApiClientsRoute
+  '/api/drivers': typeof ApiDriversRoute
+  '/api/orders': typeof ApiOrdersRoute
   '/api/profile': typeof ApiProfileRoute
+  '/api/routes': typeof ApiRoutesRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
+  '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
+  '/api/vehicles': typeof ApiVehiclesRoute
+  '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
@@ -485,9 +534,16 @@ export interface FileRoutesByTo {
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
+  '/api/clients': typeof ApiClientsRoute
+  '/api/drivers': typeof ApiDriversRoute
+  '/api/orders': typeof ApiOrdersRoute
   '/api/profile': typeof ApiProfileRoute
+  '/api/routes': typeof ApiRoutesRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
+  '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
+  '/api/vehicles': typeof ApiVehiclesRoute
+  '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
@@ -550,9 +606,16 @@ export interface FileRoutesById {
   '/workspace': typeof WorkspaceRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
+  '/api/clients': typeof ApiClientsRoute
+  '/api/drivers': typeof ApiDriversRoute
+  '/api/orders': typeof ApiOrdersRoute
   '/api/profile': typeof ApiProfileRoute
+  '/api/routes': typeof ApiRoutesRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
+  '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
+  '/api/vehicles': typeof ApiVehiclesRoute
+  '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/d/$token': typeof DTokenRoute
@@ -616,9 +679,16 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
+    | '/api/clients'
+    | '/api/drivers'
+    | '/api/orders'
     | '/api/profile'
+    | '/api/routes'
     | '/api/system-settings'
+    | '/api/transport-requests'
     | '/api/user-role'
+    | '/api/vehicles'
+    | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
@@ -680,9 +750,16 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
+    | '/api/clients'
+    | '/api/drivers'
+    | '/api/orders'
     | '/api/profile'
+    | '/api/routes'
     | '/api/system-settings'
+    | '/api/transport-requests'
     | '/api/user-role'
+    | '/api/vehicles'
+    | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
@@ -744,9 +821,16 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/admin/settings'
     | '/admin/tariffs'
+    | '/api/clients'
+    | '/api/drivers'
+    | '/api/orders'
     | '/api/profile'
+    | '/api/routes'
     | '/api/system-settings'
+    | '/api/transport-requests'
     | '/api/user-role'
+    | '/api/vehicles'
+    | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/d/$token'
@@ -809,9 +893,16 @@ export interface RootRouteChildren {
   WorkspaceRoute: typeof WorkspaceRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
+  ApiClientsRoute: typeof ApiClientsRoute
+  ApiDriversRoute: typeof ApiDriversRoute
+  ApiOrdersRoute: typeof ApiOrdersRoute
   ApiProfileRoute: typeof ApiProfileRoute
+  ApiRoutesRoute: typeof ApiRoutesRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
+  ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
   ApiUserRoleRoute: typeof ApiUserRoleRoute
+  ApiVehiclesRoute: typeof ApiVehiclesRoute
+  ApiWarehousesRoute: typeof ApiWarehousesRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   DTokenRoute: typeof DTokenRoute
@@ -1238,11 +1329,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarriersCarrierIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/warehouses': {
+      id: '/api/warehouses'
+      path: '/api/warehouses'
+      fullPath: '/api/warehouses'
+      preLoaderRoute: typeof ApiWarehousesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/vehicles': {
+      id: '/api/vehicles'
+      path: '/api/vehicles'
+      fullPath: '/api/vehicles'
+      preLoaderRoute: typeof ApiVehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/user-role': {
       id: '/api/user-role'
       path: '/api/user-role'
       fullPath: '/api/user-role'
       preLoaderRoute: typeof ApiUserRoleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/transport-requests': {
+      id: '/api/transport-requests'
+      path: '/api/transport-requests'
+      fullPath: '/api/transport-requests'
+      preLoaderRoute: typeof ApiTransportRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/system-settings': {
@@ -1252,11 +1364,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSystemSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/routes': {
+      id: '/api/routes'
+      path: '/api/routes'
+      fullPath: '/api/routes'
+      preLoaderRoute: typeof ApiRoutesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/profile': {
       id: '/api/profile'
       path: '/api/profile'
       fullPath: '/api/profile'
       preLoaderRoute: typeof ApiProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/orders': {
+      id: '/api/orders'
+      path: '/api/orders'
+      fullPath: '/api/orders'
+      preLoaderRoute: typeof ApiOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/drivers': {
+      id: '/api/drivers'
+      path: '/api/drivers'
+      fullPath: '/api/drivers'
+      preLoaderRoute: typeof ApiDriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/clients': {
+      id: '/api/clients'
+      path: '/api/clients'
+      fullPath: '/api/clients'
+      preLoaderRoute: typeof ApiClientsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/tariffs': {
@@ -1324,9 +1464,16 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspaceRoute: WorkspaceRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
+  ApiClientsRoute: ApiClientsRoute,
+  ApiDriversRoute: ApiDriversRoute,
+  ApiOrdersRoute: ApiOrdersRoute,
   ApiProfileRoute: ApiProfileRoute,
+  ApiRoutesRoute: ApiRoutesRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
+  ApiTransportRequestsRoute: ApiTransportRequestsRoute,
   ApiUserRoleRoute: ApiUserRoleRoute,
+  ApiVehiclesRoute: ApiVehiclesRoute,
+  ApiWarehousesRoute: ApiWarehousesRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   DTokenRoute: DTokenRoute,

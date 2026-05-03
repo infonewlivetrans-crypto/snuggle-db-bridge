@@ -28,8 +28,8 @@ export const Route = createFileRoute("/api/transport-requests")({
           .select(SELECT, { count: "exact" })
           .order("route_date", { ascending: false });
 
-        if (status && status !== "all") q = q.eq("status", status);
-        if (type && type !== "all") q = q.eq("request_type", type);
+        if (status && status !== "all") q = q.eq("status", status as never);
+        if (type && type !== "all") q = q.eq("request_type", type as never);
         if (search) q = q.ilike("route_number", `%${search}%`);
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);

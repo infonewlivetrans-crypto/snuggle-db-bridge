@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/orders")({
           .from("orders")
           .select(SELECT, { count: "exact" })
           .order("created_at", { ascending: false });
-        if (status && status !== "all") q = q.eq("status", status);
+        if (status && status !== "all") q = q.eq("status", status as never);
         if (search) {
           q = q.or(
             `order_number.ilike.%${search}%,contact_name.ilike.%${search}%,delivery_address.ilike.%${search}%`,

@@ -26,7 +26,7 @@ export const Route = createFileRoute("/api/vehicles")({
           .select("*", { count: "exact" })
           .order("plate_number", { ascending: true });
         if (carrierId) q = q.eq("carrier_id", carrierId);
-        if (bodyType && bodyType !== "all") q = q.eq("body_type", bodyType);
+        if (bodyType && bodyType !== "all") q = q.eq("body_type", bodyType as never);
         if (activeOnly) q = q.eq("is_active", true);
         if (search) {
           q = q.or(
