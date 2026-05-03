@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { fetchProfileViaApi, fetchUserRolesViaApi } from "@/lib/api-client";
 import type { AppRole } from "./roles";
 
 type Profile = {
