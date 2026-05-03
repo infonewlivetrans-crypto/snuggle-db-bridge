@@ -2,21 +2,36 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Демо-режим = ключевые таблицы пусты или содержат только seed-демо.
- * Простая эвристика: если в orders < 3 и в routes < 3 — считаем демо.
- * Запрашиваем `head:true, count:'exact'` — это очень дёшево (только COUNT).
+ * Демо-режим управляется настройкой `demo_mode_enabled` в system_settings.
+ * Если выключен — бейдж/баннер не показываются и тестовые данные не подставляются.
  */
-async function fetchDemoState(): Promise<{ isDemo: boolean; ordersCount: number; routesCount: number }> {
-  const [{ count: ordersCount }, { count: routesCount }] = await Promise.all([
+async function fetchDemoState(): Promise<{
+  isDemo: boolean;
+  ordersCount: number;
+  routesCount: number;
+}> {
+  const [settingRes, ordersRes, routesRes] = await Promise.all([
+    supabase
+      .from("system_settings")
+      .select("setting_value")
+      .eq("setting_key", "demo_mode_enabled")
+      .maybeSingle(),
     supabase.from("orders").select("id", { count: "exact", head: true }),
     supabase.from("routes").select("id", { count: "exact", head: true }),
   ]);
-  const o = ordersCount ?? 0;
-  const r = routesCount ?? 0;
-  // База считается «полностью рабочей», когда видно ≥ 30 заказов и ≥ 15 рейсов.
-  // Иначе подсвечиваем демо-режим, чтобы пользователь понимал, что данные тестовые.
-  const isDemo = o < 30 || r < 15;
-  return { isDemo, ordersCount: o, routesCount: r };
+
+  // По умолчанию демо-режим выключен.
+  const raw = settingRes.data?.setting_value as unknown;
+  const enabled =
+    raw === true ||
+    raw === "true" ||
+    (typeof raw === "object" && raw !== null && (raw as { enabled?: boolean }).enabled === true);
+
+  return {
+    isDemo: Boolean(enabled),
+    ordersCount: ordersRes.count ?? 0,
+    routesCount: routesRes.count ?? 0,
+  };
 }
 
 export function useDemoMode() {
@@ -27,7 +42,7 @@ export function useDemoMode() {
     refetchOnWindowFocus: false,
   });
   return {
-    isDemo: data?.isDemo ?? true,
+    isDemo: data?.isDemo ?? false,
     ordersCount: data?.ordersCount ?? 0,
     routesCount: data?.routesCount ?? 0,
   };
