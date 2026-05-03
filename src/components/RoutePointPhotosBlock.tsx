@@ -11,6 +11,7 @@ import {
   ROUTE_POINT_PHOTOS_BUCKET,
   type RoutePointPhotoKind,
 } from "@/lib/routePointPhotos";
+import { useSetting } from "@/lib/settings-provider";
 
 type Photo = {
   id: string;
