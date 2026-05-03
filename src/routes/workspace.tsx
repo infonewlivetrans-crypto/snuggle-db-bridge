@@ -408,7 +408,9 @@ function LogistPanel() {
 /* ------------------------- DIRECTOR ------------------------- */
 
 function DirectorPanel() {
-  const { data, isLoading } = useQuery({
+  const [enabled, setEnabled] = useState(false);
+  const { data, isLoading, isFetching } = useQuery({
+    enabled,
     queryKey: ["workspace", "director"],
     queryFn: async () => {
       const since = new Date();
@@ -441,6 +443,7 @@ function DirectorPanel() {
 
       return { due, recv, returns, problems };
     },
+    staleTime: 5 * 60_000,
   });
 
   const fmt = (n: number) => n.toLocaleString("ru-RU", { maximumFractionDigits: 0 });
