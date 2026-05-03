@@ -164,7 +164,7 @@ function OrdersPage() {
           `,
         )
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(50);
       if (error) throw error;
 
       const ids = (orders ?? []).map((o) => o.id);
