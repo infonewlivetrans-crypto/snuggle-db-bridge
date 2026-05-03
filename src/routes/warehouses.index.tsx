@@ -79,17 +79,15 @@ function WarehousesPage() {
   const [form, setForm] = useState<WarehouseForm>(EMPTY_FORM);
   const [confirmDelete, setConfirmDelete] = useState<Warehouse | null>(null);
 
-  const { data: warehouses, isLoading } = useQuery({
+  const { data: warehouses, isLoading, refetch } = useQuery({
     queryKey: ["warehouses"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("*")
-        .order("is_active", { ascending: false })
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 100,
+      });
+      return rows;
     },
+    staleTime: 10 * 60_000,
   });
 
   function openCreate() {
