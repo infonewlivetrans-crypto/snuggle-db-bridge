@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 
 export type ModuleKey =
   | "warehouse"
@@ -42,16 +42,16 @@ export const MODULE_DESCRIPTIONS: Record<ModuleKey, string> = {
 export function useEnabledModules(): EnabledModules {
   const { data } = useQuery({
     queryKey: ["modules.enabled"],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<EnabledModules> => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("setting_value")
-        .eq("setting_key", "modules.enabled")
-        .maybeSingle();
-      if (error) return DEFAULTS;
-      const v = (data?.setting_value as Partial<EnabledModules> | null) ?? null;
-      return { ...DEFAULTS, ...(v ?? {}) };
+      try {
+        const { modules } = await apiGetAuth<{ modules: Partial<EnabledModules> | null }>(
+          "/api/modules",
+        );
+        return { ...DEFAULTS, ...(modules ?? {}) };
+      } catch {
+        return DEFAULTS;
+      }
     },
   });
   return data ?? DEFAULTS;
