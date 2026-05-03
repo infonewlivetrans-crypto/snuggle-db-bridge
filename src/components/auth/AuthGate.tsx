@@ -12,7 +12,7 @@ import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, u
 const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
 
 export function AuthGate({ children }: { children: ReactNode }) {
-  const { loading, user, profile, roles, refresh } = useAuth();
+  const { loading, user, profile, roles, loadError, refresh } = useAuth();
   const location = useLocation();
   const path = location.pathname;
   const enabledModules = useEnabledModules();
@@ -59,6 +59,23 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   if (!user) return <LoginPage />;
+
+  if (loadError && !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <h1 className="text-xl font-semibold text-foreground">Не удалось загрузить профиль</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{loadError}</p>
+          <button
+            onClick={() => { void refresh(); }}
+            className="mt-4 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Повторить
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (profile && profile.is_active === false) {
     return (
