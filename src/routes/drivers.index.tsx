@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { db } from "@/lib/db";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { DriverFormDialog } from "@/components/DriverFormDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
@@ -28,13 +29,13 @@ function DriversPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
-  const { data: drivers, isLoading } = useQuery({
+  const { data: drivers, isLoading, refetch } = useQuery({
     queryKey: ["drivers"],
     queryFn: async (): Promise<Driver[]> => {
-      const { data, error } = await db.from("drivers").select("*").order("full_name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Driver>("/api/drivers", { limit: 100 });
+      return rows;
     },
+    staleTime: 5 * 60_000,
   });
 
   const { data: carriers } = useQuery({
@@ -113,6 +114,9 @@ function DriversPage() {
                   <TableCell colSpan={5} className="py-12 text-center">
                     <User className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Водителей нет</div>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
+                      Обновить
+                    </Button>
                   </TableCell>
                 </TableRow>
               ) : (
