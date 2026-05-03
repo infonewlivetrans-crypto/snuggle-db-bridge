@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth/auth-context";
 import { LoginPage } from "@/components/auth/LoginPage";
+import { SplashScreen } from "@/components/SplashScreen";
 import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
@@ -42,11 +43,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
 
   if (loading || hasAdmin === null) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
-        Загрузка…
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   // Первый запуск — нет ни одного админа и пользователь не вошёл
