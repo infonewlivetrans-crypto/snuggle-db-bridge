@@ -45,6 +45,31 @@ export async function requireUser(
   return { userId: data.claims.sub as string, client };
 }
 
+/** Проверяет, что текущий пользователь — админ (RLS-клиент). */
+export async function isAdmin(client: SupabaseClient<Database>, userId: string): Promise<boolean> {
+  const { data, error } = await client
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error) return false;
+  return Boolean(data);
+}
+
+/** Возвращает auth-контекст и проверяет, что пользователь — админ. */
+export async function requireAdmin(
+  request: Request,
+): Promise<{ userId: string; client: SupabaseClient<Database> } | Response> {
+  const token = getBearerToken(request);
+  if (!token) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+  const auth = await requireUser(token);
+  if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAdmin(auth.client, auth.userId)))
+    return jsonResponse({ error: "forbidden" }, { status: 403 });
+  return auth;
+}
+
 /**
  * Парсит ?limit=&offset=&search= из URL запроса.
  * limit ограничен 1..100, по умолчанию 20.

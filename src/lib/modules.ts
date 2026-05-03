@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 
 export type ModuleKey =
   | "warehouse"
@@ -42,16 +42,16 @@ export const MODULE_DESCRIPTIONS: Record<ModuleKey, string> = {
 export function useEnabledModules(): EnabledModules {
   const { data } = useQuery({
     queryKey: ["modules.enabled"],
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<EnabledModules> => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("setting_value")
-        .eq("setting_key", "modules.enabled")
-        .maybeSingle();
-      if (error) return DEFAULTS;
-      const v = (data?.setting_value as Partial<EnabledModules> | null) ?? null;
-      return { ...DEFAULTS, ...(v ?? {}) };
+      try {
+        const { modules } = await apiGetAuth<{ modules: Partial<EnabledModules> | null }>(
+          "/api/modules",
+        );
+        return { ...DEFAULTS, ...(modules ?? {}) };
+      } catch {
+        return DEFAULTS;
+      }
     },
   });
   return data ?? DEFAULTS;
@@ -132,14 +132,17 @@ export function useLaunchMode(): LaunchMode {
     queryKey: ["launch.mode"],
     staleTime: 60_000,
     queryFn: async (): Promise<LaunchMode> => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("setting_value")
-        .eq("setting_key", "launch.mode")
-        .maybeSingle();
-      if (error) return "full";
-      const v = data?.setting_value;
-      return v === "minimal" ? "minimal" : "full";
+      try {
+        const { fetchSystemSettingsViaApi } = await import("@/lib/api-client");
+        const all = await fetchSystemSettingsViaApi<{
+          setting_key: string;
+          setting_value: unknown;
+        }>();
+        const row = all.find((s) => s.setting_key === "launch.mode");
+        return row?.setting_value === "minimal" ? "minimal" : "full";
+      } catch {
+        return "full";
+      }
     },
   });
   return data ?? "full";
