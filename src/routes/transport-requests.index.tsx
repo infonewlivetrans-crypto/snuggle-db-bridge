@@ -168,6 +168,13 @@ function TransportRequestsPage() {
                   <TableCell colSpan={12} className="py-12 text-center">
                     <ClipboardList className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Заявки не найдены</div>
+                    <button
+                      type="button"
+                      onClick={() => refetch()}
+                      className="mt-3 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      Обновить
+                    </button>
                   </TableCell>
                 </TableRow>
               ) : (
