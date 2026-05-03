@@ -249,7 +249,7 @@ function ManagerPanel() {
           .from("notifications")
           .select("id, kind", { count: "exact" })
           .eq("is_read", false)
-          .limit(1000),
+          .limit(200),
         supabase
           .from("orders")
           .select("id", { count: "exact", head: true })
@@ -258,7 +258,7 @@ function ManagerPanel() {
           .from("route_points")
           .select("id, dp_amount_received, order:orders(amount_due, payment_type)")
           .eq("dp_status", "delivered")
-          .limit(1000),
+          .limit(200),
         supabase
           .from("order_problem_reports")
           .select("id", { count: "exact", head: true })
@@ -285,6 +285,8 @@ function ManagerPanel() {
         problems: problems.count ?? 0,
       };
     },
+    staleTime: 60_000,
+    placeholderData: (prev) => prev,
   });
 
   return (
