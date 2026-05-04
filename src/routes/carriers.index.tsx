@@ -168,12 +168,28 @@ function CarriersPage() {
               Реестр перевозчиков и статус их проверки
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button asChild variant="outline" className="gap-2">
               <Link to="/carriers/verification">
                 <ShieldCheck className="h-4 w-4" />
                 Проверка
               </Link>
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => fileRef.current?.click()}
+              disabled={importBusy}
+            >
+              <Upload className="h-4 w-4" />
+              {importBusy ? "Чтение…" : "Импорт из Excel"}
             </Button>
             <Button onClick={() => setCreateOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
@@ -181,6 +197,12 @@ function CarriersPage() {
             </Button>
           </div>
         </div>
+
+        {importError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{importError}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label="Всего" value={stats.total} accent />
