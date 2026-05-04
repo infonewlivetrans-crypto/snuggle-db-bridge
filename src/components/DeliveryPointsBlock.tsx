@@ -13,6 +13,7 @@ import {
   Phone,
 } from "lucide-react";
 import { POINT_STATUS_LABELS, POINT_STATUS_STYLES, type PointStatus } from "@/lib/routes";
+import { formatRuPhone } from "@/lib/phone";
 
 type Point = {
   id: string;
@@ -181,7 +182,7 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                     {o?.contact_phone && (
                       <span className="inline-flex items-center gap-1">
                         <Phone className="h-3 w-3" />
-                        {o.contact_phone}
+                        {formatRuPhone(o.contact_phone)}
                       </span>
                     )}
                     {o?.latitude != null && o?.longitude != null && (

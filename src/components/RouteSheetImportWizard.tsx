@@ -30,6 +30,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatRuPhone } from "@/lib/phone";
 import {
   parseRouteSheetXlsx,
   type ParsedRouteSheet,
@@ -329,7 +330,7 @@ export function RouteSheetImportWizard({
                         {o.deliveryAddress ?? "—"}
                       </TableCell>
                       <TableCell className="text-xs">
-                        {o.contactPhone ?? "—"}
+                        {o.contactPhone ? formatRuPhone(o.contactPhone) : "—"}
                       </TableCell>
                       <TableCell>
                         <PaymentBadge kind={o.paymentKind} raw={o.paymentRaw} />
