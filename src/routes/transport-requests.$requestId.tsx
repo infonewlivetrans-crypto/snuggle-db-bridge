@@ -141,6 +141,7 @@ function TransportRequestDetailPage() {
   const [hasShortage, setHasShortage] = useState(false);
   const [whStatus, setWhStatus] = useState<RequestWarehouseStatus | null>(null);
   const [tab, setTab] = useState("orders");
+  const [importOpen, setImportOpen] = useState(false);
   const handleShortage = useCallback((v: boolean) => setHasShortage(v), []);
   const handleWhStatus = useCallback(
     (s: RequestWarehouseStatus | null) => setWhStatus(s),
@@ -232,6 +233,17 @@ function TransportRequestDetailPage() {
                   <span className="hidden sm:inline">Создать заявку в подразделение</span>
                   <span className="sm:hidden">В подразделение</span>
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => setImportOpen(true)}
+                >
+                  <Upload className="h-4 w-4" />
+                  <span className="hidden sm:inline">Загрузить маршрутный лист</span>
+                  <span className="sm:hidden">Маршрутный лист</span>
+                </Button>
+                <RouteSheetImportWizard open={importOpen} onOpenChange={setImportOpen} />
                 <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <Hash className="h-3.5 w-3.5" />
