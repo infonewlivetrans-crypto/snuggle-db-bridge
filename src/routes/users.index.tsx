@@ -202,6 +202,22 @@ function UsersPage() {
             <p className="mt-1 text-sm text-muted-foreground">Управление учётными записями и ролями</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <input
+              ref={driversFileRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => onPickDriversFile(e.target.files?.[0] ?? null)}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => driversFileRef.current?.click()}
+              disabled={driverImportBusy || importDriversMut.isPending}
+            >
+              <Upload className="h-4 w-4" />
+              {driverImportBusy || importDriversMut.isPending ? "Импорт…" : "Импорт водителей"}
+            </Button>
             <Link to="/users/managers">
               <Button variant="outline" className="gap-2">
                 <UserCog className="h-4 w-4" />
