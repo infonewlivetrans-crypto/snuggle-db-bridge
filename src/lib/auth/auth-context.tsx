@@ -6,7 +6,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchProfileViaApi, fetchUserRolesViaApi } from "@/lib/api-client";
+import {
+  fetchProfileViaApi,
+  fetchUserRolesViaApi,
+  setLocalSessionTokens,
+  clearLocalSessionTokens,
+} from "@/lib/api-client";
 import type { AppRole } from "./roles";
 
 type Profile = {
@@ -46,6 +51,7 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
   if (!res.ok) {
     const msg =
       (data as { error?: string } | null)?.error || `HTTP ${res.status}`;
+    console.error(`[auth] POST ${path} failed:`, res.status, data);
     throw new Error(msg);
   }
   return data;
