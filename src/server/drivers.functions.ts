@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { assertCallerIsAdmin } from "./users.server";
 import { importDrivers, type DriverImportItem } from "./drivers-import.server";
 import { adminCreateInvite, adminListInvites } from "./invites.server";
 
 export const importDriversFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { items: DriverImportItem[] }) => {
     if (!input || !Array.isArray(input.items)) throw new Error("Ожидался список водителей");
     if (input.items.length === 0) throw new Error("Список пуст");

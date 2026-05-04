@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const ROLES = ["driver", "logist", "manager", "warehouse", "director"] as const;
@@ -22,7 +22,7 @@ const SubmitInput = z.object({
 });
 
 export const submitFeedbackFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => SubmitInput.parse(d))
   .handler(async ({ data, context }) => {
     const { data: prof } = await supabaseAdmin
@@ -53,7 +53,7 @@ export const submitFeedbackFn = createServerFn({ method: "POST" })
   });
 
 export const listFeedbackFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) =>
     z
       .object({

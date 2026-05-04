@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { listErrors, recordError, updateErrorStatus } from "../../server/system-errors.server";
 
@@ -39,7 +39,7 @@ const ReportInput = z.object({
 });
 
 export const reportErrorFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => ReportInput.parse(d))
   .handler(async ({ data, context }) => {
     const req = getRequest();
@@ -91,7 +91,7 @@ const ListInput = z.object({
 });
 
 export const listSystemErrorsFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => ListInput.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await ensureAdminOrDirector(context.userId, false);
@@ -105,7 +105,7 @@ const UpdateInput = z.object({
 });
 
 export const updateSystemErrorFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => UpdateInput.parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdminOrDirector(context.userId, true);
@@ -121,7 +121,7 @@ const NotifyInput = z.object({
 });
 
 export const notifyAdminAboutErrorFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => NotifyInput.parse(d))
   .handler(async ({ data, context }) => {
     const info = await userInfo(context.userId);

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { listAudit, writeAudit } from "../../server/audit.server";
 
@@ -26,7 +26,7 @@ const LogInput = z.object({
 });
 
 export const logAuditFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => LogInput.parse(d))
   .handler(async ({ data, context }) => {
     const req = getRequest();
@@ -60,7 +60,7 @@ const ListInput = z.object({
 });
 
 export const listAuditFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => ListInput.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     // Доступ только для admin/director

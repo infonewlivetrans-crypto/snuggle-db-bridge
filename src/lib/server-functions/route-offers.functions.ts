@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 
 type AnyClient = { from: (t: string) => any };
 
@@ -15,7 +15,7 @@ const sendOfferSchema = z.object({
 });
 
 export const sendRouteOffer = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((data: unknown) => sendOfferSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supa = context.supabase as unknown as AnyClient;
@@ -67,7 +67,7 @@ const updateStatusSchema = z.object({
 });
 
 export const updateOfferStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((data: unknown) => updateStatusSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supa = context.supabase as unknown as AnyClient;
@@ -102,7 +102,7 @@ const respondSchema = z.object({
  * После ответа создаётся уведомление для логистов.
  */
 export const respondToOffer = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((data: unknown) => respondSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supa = context.supabase as unknown as AnyClient;
@@ -197,7 +197,7 @@ const decisionSchema = z.object({
  * - перевозчик получает уведомление "Вы назначены на рейс №___"
  */
 export const confirmCarrierForRoute = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((data: unknown) => decisionSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supa = context.supabase as unknown as AnyClient;
@@ -292,7 +292,7 @@ export const confirmCarrierForRoute = createServerFn({ method: "POST" })
  * - уведомляет перевозчика
  */
 export const rejectCarrierForRoute = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((data: unknown) => decisionSchema.parse(data))
   .handler(async ({ data, context }) => {
     const supa = context.supabase as unknown as AnyClient;

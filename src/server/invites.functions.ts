@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import {
   adminCreateInvite,
   adminDeleteInvite,
@@ -13,14 +13,14 @@ import { assertCallerIsAdmin } from "./users.server";
 const ROLES: InviteRole[] = ["driver", "manager"];
 
 export const listInvitesFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .handler(async ({ context }) => {
     await assertCallerIsAdmin(context.userId);
     return adminListInvites();
   });
 
 export const createInviteFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator(
     (input: {
       fullName: string;
@@ -43,7 +43,7 @@ export const createInviteFn = createServerFn({ method: "POST" })
   });
 
 export const setInviteActiveFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { id: string; isActive: boolean }) => {
     if (!input?.id) throw new Error("id обязателен");
     return input;
@@ -55,7 +55,7 @@ export const setInviteActiveFn = createServerFn({ method: "POST" })
   });
 
 export const rotateInviteTokenFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { id: string }) => {
     if (!input?.id) throw new Error("id обязателен");
     return input;
@@ -66,7 +66,7 @@ export const rotateInviteTokenFn = createServerFn({ method: "POST" })
   });
 
 export const deleteInviteFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { id: string }) => {
     if (!input?.id) throw new Error("id обязателен");
     return input;

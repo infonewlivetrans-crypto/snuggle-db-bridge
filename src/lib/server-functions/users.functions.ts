@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import {
   adminCreateUser,
   adminListUsers,
@@ -31,14 +31,14 @@ export const bootstrapFirstAdminFn = createServerFn({ method: "POST" })
   });
 
 export const listUsersFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .handler(async ({ context }) => {
     await assertCallerIsAdmin(context.userId);
     return adminListUsers();
   });
 
 export const createUserFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { email: string; password: string; fullName: string; role: AppRole }) => {
     if (!input?.email || !input?.password || !input?.fullName) throw new Error("Заполните все поля");
     if (input.password.length < 6) throw new Error("Пароль должен быть не короче 6 символов");
@@ -51,7 +51,7 @@ export const createUserFn = createServerFn({ method: "POST" })
   });
 
 export const setUserRoleFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { userId: string; role: AppRole }) => {
     if (!input?.userId) throw new Error("userId обязателен");
     if (!ROLE_SET.has(input.role)) throw new Error("Недопустимая роль");
@@ -64,7 +64,7 @@ export const setUserRoleFn = createServerFn({ method: "POST" })
   });
 
 export const setUserActiveFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { userId: string; isActive: boolean }) => {
     if (!input?.userId) throw new Error("userId обязателен");
     return input;
@@ -76,7 +76,7 @@ export const setUserActiveFn = createServerFn({ method: "POST" })
   });
 
 export const setUserRolesFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { userId: string; roles: AppRole[] }) => {
     if (!input?.userId) throw new Error("userId обязателен");
     if (!Array.isArray(input.roles) || input.roles.length === 0) {

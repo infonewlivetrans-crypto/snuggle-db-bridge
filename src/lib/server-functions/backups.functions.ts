@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { writeAudit } from "../../server/audit.server";
 import { getBackupDownloadUrl, listBackups, runBackup } from "../../server/backups.server";
@@ -20,7 +20,7 @@ async function getName(userId: string): Promise<string | null> {
 }
 
 export const listBackupsFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .handler(async ({ context }) => {
     const roles = await getRoles(context.userId);
     if (!roles.has("admin") && !roles.has("director")) {
@@ -32,7 +32,7 @@ export const listBackupsFn = createServerFn({ method: "POST" })
 const CreateInput = z.object({ comment: z.string().max(500).optional().nullable() });
 
 export const createBackupFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => CreateInput.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.userId);
@@ -67,7 +67,7 @@ export const createBackupFn = createServerFn({ method: "POST" })
 const DownloadInput = z.object({ id: z.string().uuid() });
 
 export const getBackupUrlFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => DownloadInput.parse(d))
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.userId);
@@ -91,7 +91,7 @@ const RestoreInput = z.object({
 });
 
 export const restoreBackupFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => RestoreInput.parse(d))
   .handler(async ({ data, context }) => {
     const roles = await getRoles(context.userId);
