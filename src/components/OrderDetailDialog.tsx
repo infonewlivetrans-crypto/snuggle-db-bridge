@@ -154,28 +154,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
     queryKey: ["delivery_reports", order?.id],
     enabled: !!order?.id && open,
     queryFn: async (): Promise<DeliveryReport[]> => {
-      const { data, error } = await (
-        supabase.from as unknown as (
-          name: string,
-        ) => {
-          select: (cols: string) => {
-            eq: (
-              c: string,
-              v: string,
-            ) => {
-              order: (
-                c: string,
-                opts: { ascending: boolean },
-              ) => Promise<{ data: DeliveryReport[] | null; error: Error | null }>;
-            };
-          };
-        }
-      )("delivery_reports")
-        .select("*")
-        .eq("order_id", order!.id)
-        .order("delivered_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<DeliveryReport[]>(
+        `/api/delivery-reports?order_id=${encodeURIComponent(order!.id)}`,
+      );
     },
   });
 
