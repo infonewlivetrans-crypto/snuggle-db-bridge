@@ -207,6 +207,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string) => {
+      if (getAuthMode() === "preview") {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) {
+          console.error("[auth] preview signInWithPassword failed", error);
+          throw new Error(error?.message || "Ошибка авторизации");
+        }
+        setUser({ id: data.user.id, email: data.user.email ?? null });
+        const previewData = await fetchPreviewProfileAndRoles(data.user.id);
+        setProfile(previewData.profile);
+        setRoles(previewData.roles);
+        setLoadError(null);
+        return;
+      }
       const result = (await postJson("/api/auth/login", {
         email,
         password,
@@ -248,6 +261,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ) => {
       try {
         setLoadError(null);
+        if (getAuthMode() === "preview") {
+          onStep("preview-auth: вызван Supabase signInWithPassword");
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          onStep(error ? "preview login status: error" : "preview login status: 200");
+          if (error || !data.user) {
+            console.error("[auth] preview signInWithPassword failed", error);
+            throw new Error(error?.message || "Ошибка авторизации");
+          }
+          onStep("preview-auth: загружаю профиль и роли");
+          const previewData = await fetchPreviewProfileAndRoles(data.user.id);
+          const signedUser = { id: data.user.id, email: data.user.email ?? null };
+          setUser(signedUser);
+          setProfile(previewData.profile);
+          setRoles(previewData.roles);
+          setLoadError(null);
+          onStep("preview-auth: профиль пользователя получен");
+          return { user: signedUser, roles: previewData.roles };
+        }
         onStep("отправлен POST /api/auth/login");
         const loginRes = await fetch("/api/auth/login", {
           method: "POST",
