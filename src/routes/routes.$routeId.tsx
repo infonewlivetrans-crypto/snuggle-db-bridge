@@ -245,33 +245,20 @@ function RouteDetailPage() {
 
   const saveOrder = useMutation({
     mutationFn: async (ids: string[]) => {
-      // Двухфазная запись, чтобы не упереться в потенциальный unique(route_id, point_number)
-      const TEMP = 100000;
-      for (let i = 0; i < ids.length; i++) {
-        const { error } = await supabase
-          .from("route_points")
-          .update({ point_number: TEMP + i })
-          .eq("id", ids[i]);
-        if (error) throw error;
+      let who = "Пользователь";
+      try {
+        const me = await apiGetAuth<{ email: string | null; full_name: string | null }>(
+          "/api/auth/me",
+        );
+        who = me.email ?? me.full_name ?? "Пользователь";
+      } catch {
+        // ignore — не критично для сохранения порядка
       }
-      for (let i = 0; i < ids.length; i++) {
-        const { error } = await supabase
-          .from("route_points")
-          .update({ point_number: i + 1 })
-          .eq("id", ids[i]);
-        if (error) throw error;
-      }
-      // Отметка кто/когда менял порядок
-      const who =
-        (await supabase.auth.getUser()).data.user?.email ?? "Пользователь";
-      const { error: rErr } = await supabase
-        .from("routes")
-        .update({
-          points_order_changed_at: new Date().toISOString(),
-          points_order_changed_by: who,
-        })
-        .eq("id", routeId);
-      if (rErr) throw rErr;
+      await apiPost("/api/route-points/reorder", {
+        route_id: routeId,
+        ordered_ids: ids,
+        changed_by: who,
+      });
     },
     onSuccess: () => {
       toast.success("Порядок точек сохранён");
