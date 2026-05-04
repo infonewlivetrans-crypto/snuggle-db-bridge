@@ -36,6 +36,7 @@ import {
 } from "@/lib/server-functions/invites.functions";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
+import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 import { Copy, Link2, Plus, RefreshCcw, ShieldCheck, ShieldOff, Trash2, Upload, Users } from "lucide-react";
 
 
@@ -44,10 +45,7 @@ export const Route = createFileRoute("/users/managers")({
   component: ManagersPage,
 });
 
-function inviteUrl(token: string): string {
-  if (typeof window === "undefined") return `/invite/${token}`;
-  return `${window.location.origin}/invite/${token}`;
-}
+
 
 async function copyToClipboard(text: string): Promise<boolean> {
   try {

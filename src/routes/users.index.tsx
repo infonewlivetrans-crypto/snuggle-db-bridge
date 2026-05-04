@@ -31,6 +31,7 @@ import {
 import { fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
@@ -52,10 +53,7 @@ type UserRow = {
   invite_active?: boolean | null;
 };
 
-function inviteUrl(token: string): string {
-  if (typeof window === "undefined") return `/invite/${token}`;
-  return `${window.location.origin}/invite/${token}`;
-}
+
 
 async function copyText(text: string): Promise<boolean> {
   try {
