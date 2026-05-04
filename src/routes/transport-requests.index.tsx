@@ -391,3 +391,14 @@ function TransportRequestsPage() {
     </div>
   );
 }
+
+function Cell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="truncate text-foreground">{value}</div>
+    </div>
+  );
+}
