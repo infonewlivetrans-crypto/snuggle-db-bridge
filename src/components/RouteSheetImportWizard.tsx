@@ -364,23 +364,93 @@ export function RouteSheetImportWizard({
         )}
 
         {step === "done" && result && (
-          <div className="space-y-3">
-            <Alert className="border-status-success/40">
-              <CheckCircle2 className="h-4 w-4 text-status-success" />
+          <div className="space-y-3 overflow-auto">
+            <Alert
+              className={
+                result.needsReview
+                  ? "border-amber-500/40"
+                  : "border-status-success/40"
+              }
+            >
+              {result.needsReview ? (
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 text-status-success" />
+              )}
               <AlertDescription>
-                <div className="font-medium">Заявка на транспорт создана</div>
+                <div className="font-medium">
+                  {result.needsReview
+                    ? "Заявка создана, но требует заполнения данных"
+                    : "Заявка на транспорт создана"}
+                </div>
                 <div className="text-sm text-muted-foreground">
                   № {result.routeNumber} · импортировано {result.inserted} из{" "}
                   {result.total} заказов
                 </div>
               </AlertDescription>
             </Alert>
+
+            {result.headerMissing.length > 0 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription>
+                  <div className="font-medium">
+                    Не заполнены данные шапки маршрутного листа
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {result.headerMissing.join(", ")}
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {result.rows.some((r) => r.missingFields.length > 0) && (
+              <div className="rounded-md border">
+                <div className="border-b bg-secondary/40 px-3 py-2 text-sm font-medium">
+                  Строки, требующие заполнения
+                </div>
+                <ul className="max-h-48 space-y-1 overflow-auto p-3 text-xs">
+                  {result.rows
+                    .filter((r) => r.missingFields.length > 0)
+                    .map((r) => (
+                      <li key={r.rowIndex}>
+                        <span className="font-mono">{r.orderNumber}</span>
+                        {r.customer ? ` · ${r.customer}` : ""} —{" "}
+                        <span className="text-amber-700 dark:text-amber-300">
+                          {r.missingFields.join(", ")}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
+            {result.clientsNeedingFill.length > 0 && (
+              <div className="rounded-md border">
+                <div className="border-b bg-secondary/40 px-3 py-2 text-sm font-medium">
+                  Контрагенты, по которым нужно дополнить данные
+                </div>
+                <ul className="max-h-40 space-y-1 overflow-auto p-3 text-xs">
+                  {result.clientsNeedingFill.map((c, i) => (
+                    <li key={i}>
+                      <b>{c.name}</b> — {c.missing.join(", ")}
+                    </li>
+                  ))}
+                </ul>
+                <div className="border-t px-3 py-2 text-xs text-muted-foreground">
+                  Менеджеру отправлено уведомление по каждому контрагенту.
+                  После заполнения карточки данные подтянутся автоматически
+                  при следующем импорте.
+                </div>
+              </div>
+            )}
+
             {result.failedRows.length > 0 && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
                   <div className="font-medium">
-                    Не импортировано строк: {result.failedRows.length}
+                    Не удалось создать строк: {result.failedRows.length}
                   </div>
                   <ul className="mt-1 max-h-40 list-disc space-y-1 overflow-auto pl-5 text-xs">
                     {result.failedRows.slice(0, 50).map((f, i) => (
