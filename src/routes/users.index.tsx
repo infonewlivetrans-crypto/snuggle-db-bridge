@@ -26,7 +26,6 @@ import {
   createUserFn,
   listUsersFn,
   setUserActiveFn,
-  setUserRoleFn,
   setUserRolesFn,
 } from "@/lib/server-functions/users.functions";
 import { Checkbox } from "@/components/ui/checkbox";
