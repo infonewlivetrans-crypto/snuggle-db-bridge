@@ -101,7 +101,7 @@ function UsersPage() {
   );
 
   const createMut = useMutation({
-    mutationFn: async () => createUserFn({ data: form, headers: await serverFnAuthHeaders() }),
+    mutationFn: async () => createUserFn({ data: form}),
     onSuccess: () => {
       toast.success("Пользователь создан");
       setOpen(false);
@@ -113,7 +113,7 @@ function UsersPage() {
 
   const activeMut = useMutation({
     mutationFn: async (v: { userId: string; isActive: boolean }) =>
-      setUserActiveFn({ data: v, headers: await serverFnAuthHeaders() }),
+      setUserActiveFn({ data: v}),
     onSuccess: () => {
       toast.success("Статус обновлён");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -124,7 +124,7 @@ function UsersPage() {
   const [rolesEdit, setRolesEdit] = useState<{ userId: string; fullName: string; roles: AppRole[] } | null>(null);
   const rolesMut = useMutation({
     mutationFn: async (v: { userId: string; roles: AppRole[] }) =>
-      setUserRolesFn({ data: v, headers: await serverFnAuthHeaders() }),
+      setUserRolesFn({ data: v}),
     onSuccess: () => {
       toast.success("Роли обновлены");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -145,7 +145,7 @@ function UsersPage() {
   const [driverImportBusy, setDriverImportBusy] = useState(false);
   const importDriversMut = useMutation({
     mutationFn: async (items: { fullName: string; phone?: string | null; comment?: string | null; licenseNumber?: string | null }[]) =>
-      importDriversFn({ data: { items }, headers: await serverFnAuthHeaders() }),
+      importDriversFn({ data: { items }}),
     onSuccess: (res) => {
       toast.success(
         `Водители: добавлено ${res.inserted}, обновлено ${res.updated}, пропущено ${res.skipped}. Создано ссылок: ${res.invitesCreated}`,

@@ -147,7 +147,7 @@ function ManagersPage() {
 
   const importMut = useMutation({
     mutationFn: async (items: ParsedRow[]) =>
-      importManagersFn({ data: { items }, headers: await authHeaders() }),
+      importManagersFn({ data: { items }}),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["managers"] });
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
@@ -165,7 +165,6 @@ function ManagersPage() {
           phone: form.phone.trim() || null,
           comment: form.comment.trim() || null,
         },
-        headers: await authHeaders(),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["managers"] });
@@ -178,13 +177,13 @@ function ManagersPage() {
 
   const toggleActiveMut = useMutation({
     mutationFn: async (v: { id: string; is_active: boolean }) =>
-      updateManagerFn({ data: { id: v.id, patch: { is_active: v.is_active } }, headers: await authHeaders() }),
+      updateManagerFn({ data: { id: v.id, patch: { is_active: v.is_active } }}),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["managers"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMut = useMutation({
-    mutationFn: async (id: string) => deleteManagerFn({ data: { id }, headers: await authHeaders() }),
+    mutationFn: async (id: string) => deleteManagerFn({ data: { id }}),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["managers"] });
       toast.success("Удалено");
@@ -201,7 +200,6 @@ function ManagersPage() {
           role: "manager",
           managerName: m.fullName,
         },
-        headers: await authHeaders(),
       }),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
@@ -214,7 +212,7 @@ function ManagersPage() {
 
   const rotateMut = useMutation({
     mutationFn: async (id: string) =>
-      rotateInviteTokenFn({ data: { id }, headers: await authHeaders() }),
+      rotateInviteTokenFn({ data: { id }}),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       void copyToClipboard(inviteUrl(inv.token)).then((ok) =>
@@ -226,7 +224,7 @@ function ManagersPage() {
 
   const inviteActiveMut = useMutation({
     mutationFn: async (v: { id: string; isActive: boolean }) =>
-      setInviteActiveFn({ data: v, headers: await authHeaders() }),
+      setInviteActiveFn({ data: v}),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success("Готово");
