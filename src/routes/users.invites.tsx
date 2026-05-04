@@ -56,10 +56,7 @@ export const Route = createFileRoute("/users/invites")({
   component: InvitesPage,
 });
 
-function inviteUrl(token: string): string {
-  if (typeof window === "undefined") return `/invite/${token}`;
-  return `${window.location.origin}/invite/${token}`;
-}
+import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 
 async function copyToClipboard(text: string): Promise<boolean> {
   try {
