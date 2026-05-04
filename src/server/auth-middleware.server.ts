@@ -4,8 +4,7 @@ import { createMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { getSessionUser, ACCESS_COOKIE } from "./auth-cookies.server";
-import { getCookie } from "@tanstack/react-start/server";
+import { getSessionUser } from "./auth-cookies.server";
 
 const SUPABASE_URL =
   process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
@@ -21,47 +20,56 @@ function unauth(): never {
   });
 }
 
-function makeClientFor(token: string) {
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: {
-      storage: undefined,
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-}
-
 export const requireCookieAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
-    let token: string | null = null;
-
     // 1) cookie-сессия (с авто-refresh)
     const session = await getSessionUser();
     if (session) {
-      token = getCookie(ACCESS_COOKIE) ?? null;
-    } else {
-      // 2) Legacy Bearer
-      const req = getRequest();
-      const auth = req?.headers?.get("authorization");
-      if (auth?.startsWith("Bearer ")) {
-        const t = auth.slice(7).trim();
-        if (t) token = t;
+      // claims нужны как minimal заглушка для совместимости с requireSupabaseAuth
+      const claims = { sub: session.userId } as unknown as {
+        sub: string;
+        [k: string]: unknown;
+      };
+      return next({
+        context: {
+          supabase: session.client,
+          userId: session.userId,
+          claims,
+        },
+      });
+    }
+
+    // 2) Legacy Bearer
+    const req = getRequest();
+    const authHeader = req?.headers?.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const token = authHeader.slice(7).trim();
+      if (token) {
+        const client = createClient<Database>(
+          SUPABASE_URL,
+          SUPABASE_PUBLISHABLE_KEY,
+          {
+            global: { headers: { Authorization: `Bearer ${token}` } },
+            auth: {
+              storage: undefined,
+              persistSession: false,
+              autoRefreshToken: false,
+            },
+          },
+        );
+        const { data, error } = await client.auth.getClaims(token);
+        if (!error && data?.claims?.sub) {
+          return next({
+            context: {
+              supabase: client,
+              userId: data.claims.sub as string,
+              claims: data.claims,
+            },
+          });
+        }
       }
     }
 
-    if (!token) unauth();
-
-    const client = makeClientFor(token);
-    const { data, error } = await client.auth.getClaims(token);
-    if (error || !data?.claims?.sub) unauth();
-
-    return next({
-      context: {
-        supabase: client,
-        userId: data.claims.sub as string,
-        claims: data.claims,
-      },
-    });
+    unauth();
   },
 );
