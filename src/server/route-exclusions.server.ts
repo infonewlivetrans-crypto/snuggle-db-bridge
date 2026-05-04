@@ -73,8 +73,7 @@ export async function excludeOrderFromRoute(input: ExcludeOrderInput): Promise<v
   // 2) Обновляем статус заказа
   const { error: ordErr } = await supabaseAdmin
     .from("orders")
-    // @ts-expect-error — новое значение enum, ещё не в сгенерированных типах
-    .update({ status: "excluded_from_route" })
+    .update({ status: "excluded_from_route" as never })
     .eq("id", input.orderId);
   if (ordErr) throw new Error(ordErr.message);
 
