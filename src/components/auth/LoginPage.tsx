@@ -1,26 +1,34 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { landingPathForRoles } from "@/lib/auth/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 
 export function LoginPage() {
-  const { signIn } = useAuth();
+  const { diagnoseSignIn } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [steps, setSteps] = useState<string[]>([]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSteps([]);
     setBusy(true);
+    const addStep = (message: string) => setSteps((prev) => [...prev, message]);
     try {
-      await signIn(email.trim(), password);
-      // редирект сделает после входа компонент AuthRouter
+      const result = await diagnoseSignIn(email.trim(), password, addStep);
+      const target = landingPathForRoles(result.roles);
+      addStep(`redirect выполнен: ${target}`);
+      navigate({ to: target, search: target === "/" ? { orderId: undefined } : (undefined as never) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Ошибка входа";
       setError(
@@ -28,6 +36,7 @@ export function LoginPage() {
           ? "Неверный email или пароль"
           : msg,
       );
+      setSteps((prev) => [...prev, `ошибка: ${msg}`]);
     } finally {
       setBusy(false);
     }
@@ -90,8 +99,11 @@ export function LoginPage() {
             </div>
           ) : null}
           <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Вход…" : "Войти"}
+            {busy ? "Входим…" : "Войти"}
           </Button>
+          <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
+            {steps.length ? steps.map((step, index) => <div key={`${step}-${index}`}>{step}</div>) : "Диагностика входа появится здесь"}
+          </div>
         </form>
       </div>
     </div>
