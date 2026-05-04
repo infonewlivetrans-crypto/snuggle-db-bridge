@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { requireCookieAuth } from "@/server/auth-middleware.server";
+import { requireCookieAuth } from "@/server/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { listErrors, recordError, updateErrorStatus } from "./system-errors.server";
 
