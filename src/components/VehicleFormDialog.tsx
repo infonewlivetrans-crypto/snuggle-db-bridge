@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { db } from "@/lib/db";
+import { apiPost, apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import {
   BODY_TYPE_LABELS,
@@ -69,12 +69,8 @@ export function VehicleFormDialog({ open, onOpenChange, vehicle, defaultCarrierI
     queryKey: ["carriers", "select"],
     enabled: open,
     queryFn: async (): Promise<Carrier[]> => {
-      const { data, error } = await db
-        .from("carriers")
-        .select("id, company_name")
-        .order("company_name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Carrier>("/api/carriers", { limit: 100 });
+      return rows;
     },
   });
 
@@ -113,11 +109,9 @@ export function VehicleFormDialog({ open, onOpenChange, vehicle, defaultCarrierI
         photo_documents_url: photoDocs,
       };
       if (isEdit && vehicle) {
-        const { error } = await db.from("vehicles").update(payload).eq("id", vehicle.id);
-        if (error) throw error;
+        await apiPatch(`/api/vehicles/${vehicle.id}`, payload);
       } else {
-        const { error } = await db.from("vehicles").insert(payload);
-        if (error) throw error;
+        await apiPost(`/api/vehicles`, payload);
       }
     },
     onSuccess: () => {
