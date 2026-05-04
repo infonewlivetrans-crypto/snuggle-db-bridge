@@ -8,7 +8,7 @@ import {
 } from "@/server/api-helpers.server";
 
 const SELECT =
-  "id, route_number, request_type, status, route_date, departure_time, request_priority, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, warehouses:warehouse_id(name), destination:destination_warehouse_id(name)";
+  "id, route_number, request_type, status, request_status, route_date, departure_time, request_priority, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, delivery_cost, carrier_cost, carrier_payment_status, warehouses:warehouse_id(name, address), destination:destination_warehouse_id(name, address), carrier:carrier_id(company_name), driver:driver_id(full_name, phone), vehicle:vehicle_id(plate_number, brand, model)";
 
 export const Route = createFileRoute("/api/transport-requests")({
   server: {

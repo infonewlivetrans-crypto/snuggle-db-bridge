@@ -59,6 +59,7 @@ type RequestRow = {
   route_number: string;
   request_type: string;
   status: string;
+  request_status?: string | null;
   route_date: string;
   departure_time: string | null;
   request_priority: RequestPriority;
@@ -67,8 +68,14 @@ type RequestRow = {
   points_count: number;
   total_weight_kg: number;
   total_volume_m3: number;
-  warehouses?: { name: string } | null;
-  destination?: { name: string } | null;
+  delivery_cost?: number | null;
+  carrier_cost?: number | null;
+  carrier_payment_status?: string | null;
+  warehouses?: { name: string; address?: string | null } | null;
+  destination?: { name: string; address?: string | null } | null;
+  carrier?: { company_name: string | null } | null;
+  driver?: { full_name: string | null; phone: string | null } | null;
+  vehicle?: { plate_number: string | null } | null;
 };
 
 function TransportRequestsPage() {
@@ -138,7 +145,107 @@ function TransportRequestsPage() {
           </Select>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        {/* Mobile cards */}
+        <div className="space-y-3 md:hidden">
+          {isLoading ? (
+            <LoadingFallback onRefresh={() => refetch()} />
+          ) : filtered.length === 0 ? (
+            <div className="rounded-lg border border-border bg-card p-8 text-center">
+              <ClipboardList className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+              <div className="text-sm text-muted-foreground">Заявки не найдены</div>
+              <button
+                type="button"
+                onClick={() => refetch()}
+                className="mt-3 inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                Обновить
+              </button>
+            </div>
+          ) : (
+            filtered.map((r) => (
+              <Link
+                key={r.id}
+                to="/transport-requests/$requestId"
+                params={{ requestId: r.id }}
+                className="block rounded-lg border border-border bg-card p-3 active:bg-accent/50"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-mono text-base font-semibold text-primary">
+                      {r.route_number}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {REQUEST_TYPE_LABELS[r.request_type] ?? r.request_type}
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="shrink-0">
+                    {REQUEST_STATUS_LABELS[r.status] ?? r.status}
+                  </Badge>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                  <Cell label="Перевозчик" value={r.carrier?.company_name ?? "—"} />
+                  <Cell label="Водитель" value={r.driver?.full_name ?? "—"} />
+                  <Cell
+                    label="Загрузка"
+                    value={r.warehouses?.address || r.warehouses?.name || "—"}
+                  />
+                  <Cell
+                    label="Доставка"
+                    value={r.destination?.address || r.destination?.name || "—"}
+                  />
+                  <Cell
+                    label="Дата/время"
+                    value={
+                      <>
+                        {r.route_date
+                          ? new Date(r.route_date).toLocaleDateString("ru-RU")
+                          : "—"}
+                        {r.departure_time ? (
+                          <span className="ml-1 font-mono">
+                            {r.departure_time.slice(0, 5)}
+                          </span>
+                        ) : null}
+                      </>
+                    }
+                  />
+                  <Cell
+                    label="Сумма"
+                    value={
+                      r.delivery_cost
+                        ? `${Number(r.delivery_cost).toLocaleString("ru-RU")} ₽`
+                        : "—"
+                    }
+                  />
+                  <Cell
+                    label="Оплата"
+                    value={
+                      r.carrier_payment_status === "approved" ||
+                      r.carrier_payment_status === "to_pay"
+                        ? "К оплате"
+                        : r.carrier_payment_status === "calculated"
+                          ? "Рассчитано"
+                          : "—"
+                    }
+                  />
+                  <Cell label="QR" value="нет" />
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium ${PRIORITY_BADGE_CLASS[r.request_priority]}`}
+                  >
+                    {PRIORITY_LABELS[r.request_priority]}
+                  </span>
+                  <RequestWarehouseStatusBadge
+                    requestId={r.id}
+                    warehouseId={r.warehouse_id}
+                  />
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block">
           <Table>
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
@@ -281,6 +388,17 @@ function TransportRequestsPage() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+function Cell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="truncate text-foreground">{value}</div>
     </div>
   );
 }
