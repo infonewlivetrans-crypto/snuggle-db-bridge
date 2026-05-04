@@ -34,8 +34,6 @@ import { toast } from "sonner";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
   component: UsersPage,

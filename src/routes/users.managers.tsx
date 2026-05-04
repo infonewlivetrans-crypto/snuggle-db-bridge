@@ -36,7 +36,6 @@ import {
 } from "@/lib/server-functions/invites.functions";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Copy, Link2, Plus, RefreshCcw, ShieldCheck, ShieldOff, Trash2, Upload, Users } from "lucide-react";
 
 async function authHeaders(): Promise<Record<string, string>> {
@@ -98,7 +97,7 @@ function ManagersPage() {
     queryKey: ["managers"],
     queryFn: async () => {
       try {
-        const res = await listManagersFn({ headers: await authHeaders() });
+        const res = await listManagersFn();
         return Array.isArray(res) ? res : [];
       } catch (e) {
         console.error("[managers] list failed", e);
@@ -110,7 +109,7 @@ function ManagersPage() {
     queryKey: ["invites-admin"],
     queryFn: async () => {
       try {
-        const res = await listInvitesFn({ headers: await authHeaders() });
+        const res = await listInvitesFn();
         return Array.isArray(res) ? res : [];
       } catch (e) {
         console.error("[invites] list failed", e);
