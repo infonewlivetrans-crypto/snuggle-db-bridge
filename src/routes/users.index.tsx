@@ -39,6 +39,14 @@ export const Route = createFileRoute("/users/")({
   component: UsersPage,
 });
 
+type UserRow = {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  is_active: boolean;
+  roles?: AppRole[];
+};
+
 function UsersPage() {
   const qc = useQueryClient();
   const { loading: authLoading, session } = useAuth();
