@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
