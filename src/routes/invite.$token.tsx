@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth/auth-context";
 import { SplashScreen } from "@/components/SplashScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ type InviteInfo = { full_name: string; role: AppRole; already_activated: boolean
 function InviteLoginPage() {
   const { token } = Route.useParams();
   const navigate = useNavigate();
+  const { refresh } = useAuth();
   const [info, setInfo] = useState<InviteInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -51,16 +52,12 @@ function InviteLoginPage() {
         body: JSON.stringify({ token, email: email.trim(), password }),
       });
       const body = (await res.json().catch(() => null)) as
-        | { access_token?: string; refresh_token?: string; role?: AppRole; error?: string }
+        | { ok?: boolean; role?: AppRole; error?: string }
         | null;
-      if (!res.ok || !body?.access_token || !body?.refresh_token) {
+      if (!res.ok || !body?.ok) {
         throw new Error(body?.error || "Не удалось активировать ссылку");
       }
-      const { error: setErr } = await supabase.auth.setSession({
-        access_token: body.access_token,
-        refresh_token: body.refresh_token,
-      });
-      if (setErr) throw setErr;
+      await refresh();
       const role = (body.role ?? info?.role ?? "driver") as AppRole;
       const dest = landingPathForRoles([role]);
       navigate({ to: dest, replace: true });

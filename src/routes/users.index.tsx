@@ -76,23 +76,23 @@ async function serverFnAuthHeaders(): Promise<Record<string, string>> {
 
 function UsersPage() {
   const qc = useQueryClient();
-  const { loading: authLoading, session } = useAuth();
+  const { loading: authLoading, user } = useAuth();
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["users-admin", session?.user?.id ?? null],
+    queryKey: ["users-admin", user?.id ?? null],
     queryFn: async () => {
       const response = await fetchListViaApi<UserRow>("/api/users", { limit: 100 });
       return Array.isArray(response.rows) ? response.rows : [];
     },
-    enabled: !authLoading && !!session?.access_token,
+    enabled: !authLoading && !!user,
   });
 
   // После входа/смены сессии — принудительно перезапросить список,
   // чтобы экран не оставался пустым из-за гонки токена.
   useEffect(() => {
-    if (!authLoading && session?.access_token) {
+    if (!authLoading && user) {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
     }
-  }, [authLoading, session?.access_token, qc]);
+  }, [authLoading, user, qc]);
   const safeRows = Array.isArray(rawData) ? rawData : [];
 
   const [open, setOpen] = useState(false);
