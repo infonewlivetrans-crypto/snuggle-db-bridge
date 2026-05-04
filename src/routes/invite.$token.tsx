@@ -137,6 +137,18 @@ function InviteLoginPage() {
           />
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="phone">Телефон</Label>
+          <Input
+            id="phone"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+7 (999) 123-45-67"
+          />
+        </div>
+        <div className="space-y-1.5">
           <Label htmlFor="password">Пароль (минимум 6 символов)</Label>
           <Input
             id="password"
@@ -146,6 +158,18 @@ function InviteLoginPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="passwordConfirm">Повторите пароль</Label>
+          <Input
+            id="passwordConfirm"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={6}
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
           />
         </div>
 
