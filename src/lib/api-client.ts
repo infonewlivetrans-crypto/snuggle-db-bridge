@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+// Все запросы идут через cookie-сессию (httpOnly), без supabase.auth на клиенте.
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
@@ -18,18 +18,11 @@ async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   });
 }
 
-async function authHeader(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 async function apiFetch(
   path: string,
   opts: { auth?: boolean; timeoutMs?: number } = {},
 ): Promise<Response> {
   const headers: Record<string, string> = { accept: "application/json" };
-  if (opts.auth !== false) Object.assign(headers, await authHeader());
   const res = await withTimeout(
     fetch(path, { headers, credentials: "same-origin" }),
     opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
