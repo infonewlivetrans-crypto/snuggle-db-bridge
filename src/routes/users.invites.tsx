@@ -212,8 +212,10 @@ function InvitesPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="driver">{ROLE_LABELS.driver}</SelectItem>
+                          <SelectItem value="admin">{ROLE_LABELS.admin}</SelectItem>
+                          <SelectItem value="logist">{ROLE_LABELS.logist}</SelectItem>
                           <SelectItem value="manager">{ROLE_LABELS.manager}</SelectItem>
+                          <SelectItem value="driver">{ROLE_LABELS.driver}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
