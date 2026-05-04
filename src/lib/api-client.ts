@@ -42,7 +42,7 @@ function getLocalAccessToken(): string | null {
   }
 }
 
-function authHeaders(): Record<string, string> {
+export function authHeaders(): Record<string, string> {
   const token = getLocalAccessToken();
   return token ? { authorization: `Bearer ${token}` } : {};
 }
