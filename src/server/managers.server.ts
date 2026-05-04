@@ -205,7 +205,7 @@ export async function updateManager(args: {
   if (typeof patch.phone === "string") {
     patch.phone = normalizeRuPhone(patch.phone as string);
   }
-  const { error } = await supabaseAdmin.from("managers").update(patch).eq("id", args.id);
+  const { error } = await supabaseAdmin.from("managers").update(patch as never).eq("id", args.id);
   if (error) throw new Error(error.message);
 }
 
