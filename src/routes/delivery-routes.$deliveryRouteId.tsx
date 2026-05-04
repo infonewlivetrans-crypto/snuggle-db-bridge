@@ -119,15 +119,15 @@ function DeliveryRoutePage() {
   const { data, isLoading } = useQuery({
     queryKey: ["delivery-route", deliveryRouteId],
     queryFn: async (): Promise<Detail | null> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select(
-          "id, route_number, route_date, status, comment, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
-        )
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as unknown as Detail | null;
+      try {
+        return await apiGetAuth<Detail>(
+          `/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}/detail`,
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        if (msg.includes("404") || /not_found/i.test(msg)) return null;
+        throw e;
+      }
     },
   });
 
@@ -151,15 +151,9 @@ function DeliveryRoutePage() {
     enabled: !!data?.source_request_id,
     queryKey: ["delivery-route-points", data?.source_request_id],
     queryFn: async (): Promise<PointRow[]> => {
-      const { data: pts, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, latitude, longitude, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
-        )
-        .eq("route_id", data!.source_request_id)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (pts ?? []) as unknown as PointRow[];
+      return await apiGetAuth<PointRow[]>(
+        `/api/route-points?route_id=${encodeURIComponent(data!.source_request_id)}&embed=delivery`,
+      );
     },
   });
 
@@ -168,13 +162,11 @@ function DeliveryRoutePage() {
     enabled: pointIds.length > 0,
     queryKey: ["route-point-photos-kinds", pointIds.join(",")],
     queryFn: async (): Promise<Record<string, Set<string>>> => {
-      const { data: rows, error } = await supabase
-        .from("route_point_photos")
-        .select("route_point_id, kind")
-        .in("route_point_id", pointIds);
-      if (error) throw error;
+      const rows = await apiGetAuth<Array<{ route_point_id: string; kind: string }>>(
+        `/api/route-point-photos?point_ids=${encodeURIComponent(pointIds.join(","))}`,
+      );
       const map: Record<string, Set<string>> = {};
-      for (const r of (rows ?? []) as Array<{ route_point_id: string; kind: string }>) {
+      for (const r of rows) {
         if (!map[r.route_point_id]) map[r.route_point_id] = new Set();
         map[r.route_point_id].add(r.kind);
       }
@@ -186,17 +178,11 @@ function DeliveryRoutePage() {
     queryKey: ["driver-geo-map", deliveryRouteId],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("last_driver_lat, last_driver_lng, last_driver_location_at")
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as {
+      return await apiGetAuth<{
         last_driver_lat: number | null;
         last_driver_lng: number | null;
         last_driver_location_at: string | null;
-      } | null;
+      } | null>(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}/driver-geo`);
     },
   });
 
