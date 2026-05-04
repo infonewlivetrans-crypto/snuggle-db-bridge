@@ -6,7 +6,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { fetchProfileViaApi, fetchUserRolesViaApi } from "@/lib/api-client";
+import {
+  fetchProfileViaApi,
+  fetchUserRolesViaApi,
+  setLocalSessionTokens,
+  clearLocalSessionTokens,
+} from "@/lib/api-client";
 import type { AppRole } from "./roles";
 
 type Profile = {
@@ -46,6 +51,7 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
   if (!res.ok) {
     const msg =
       (data as { error?: string } | null)?.error || `HTTP ${res.status}`;
+    console.error(`[auth] POST ${path} failed:`, res.status, data);
     throw new Error(msg);
   }
   return data;
@@ -114,7 +120,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      await postJson("/api/auth/login", { email, password });
+      const result = (await postJson("/api/auth/login", {
+        email,
+        password,
+      })) as {
+        ok?: boolean;
+        access_token?: string;
+        refresh_token?: string;
+      } | null;
+      // Сохраняем токены в localStorage как fallback для окружений,
+      // где httpOnly cookie блокируется (например, Lovable preview iframe).
+      if (result?.access_token && result.refresh_token) {
+        setLocalSessionTokens({
+          access_token: result.access_token,
+          refresh_token: result.refresh_token,
+        });
+      }
       await refreshSession();
     },
     [refreshSession],
@@ -123,9 +144,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     try {
       await postJson("/api/auth/logout", {});
-    } catch {
-      /* ignore */
+    } catch (e) {
+      console.error("[auth] logout failed", e);
     }
+    clearLocalSessionTokens();
     setUser(null);
     setProfile(null);
     setRoles([]);

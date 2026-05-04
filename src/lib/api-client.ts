@@ -1,6 +1,51 @@
-// Все запросы идут через cookie-сессию (httpOnly), без supabase.auth на клиенте.
+// Все запросы идут через cookie-сессию (httpOnly). Если окружение блокирует
+// сторонние cookie (например, Lovable preview в iframe), используется
+// Bearer-fallback: токен хранится в localStorage и подставляется в заголовок.
+//
+// Все URL — относительные (`/api/...`), без хардкода домена. На production
+// (radius-track.ru) запрос уйдёт на тот же origin; в preview — тоже.
 
 const DEFAULT_TIMEOUT_MS = 5000;
+
+const ACCESS_STORAGE_KEY = "rt-access-token";
+const REFRESH_STORAGE_KEY = "rt-refresh-token";
+
+export function setLocalSessionTokens(tokens: {
+  access_token: string;
+  refresh_token: string;
+}) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(ACCESS_STORAGE_KEY, tokens.access_token);
+    window.localStorage.setItem(REFRESH_STORAGE_KEY, tokens.refresh_token);
+  } catch {
+    /* приватный режим — ignore */
+  }
+}
+
+export function clearLocalSessionTokens() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(ACCESS_STORAGE_KEY);
+    window.localStorage.removeItem(REFRESH_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function getLocalAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(ACCESS_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function authHeaders(): Record<string, string> {
+  const token = getLocalAccessToken();
+  return token ? { authorization: `Bearer ${token}` } : {};
+}
 
 async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return await new Promise<T>((resolve, reject) => {
@@ -22,7 +67,10 @@ async function apiFetch(
   path: string,
   opts: { auth?: boolean; timeoutMs?: number } = {},
 ): Promise<Response> {
-  const headers: Record<string, string> = { accept: "application/json" };
+  const headers: Record<string, string> = {
+    accept: "application/json",
+    ...authHeaders(),
+  };
   const res = await withTimeout(
     fetch(path, { headers, credentials: "same-origin" }),
     opts.timeoutMs ?? DEFAULT_TIMEOUT_MS,
@@ -113,18 +161,15 @@ export async function fetchListViaApi<T>(
     timeoutMs,
   });
   const body = await res.json().catch(() => null);
-  // Новый контракт: тело — массив, total приходит в X-Total-Count.
   if (Array.isArray(body)) {
     const totalHeader = res.headers.get("X-Total-Count");
     const total = totalHeader != null ? Number(totalHeader) : body.length;
     return { rows: body as T[], total: Number.isFinite(total) ? total : body.length };
   }
-  // Обратная совместимость: { rows, total } от ещё не обновлённых эндпоинтов.
   if (body && typeof body === "object" && Array.isArray((body as { rows?: unknown }).rows)) {
     const b = body as { rows: T[]; total?: number };
     return { rows: b.rows, total: b.total ?? b.rows.length };
   }
-  // Совместимость с ответами вида { data: [] }.
   if (body && typeof body === "object" && Array.isArray((body as { data?: unknown }).data)) {
     const b = body as { data: T[]; total?: number };
     return { rows: b.data, total: b.total ?? b.data.length };
@@ -150,7 +195,7 @@ async function apiSend<T>(
   const init: RequestInit = {
     method,
     credentials: "same-origin",
-    headers: { accept: "application/json" },
+    headers: { accept: "application/json", ...authHeaders() },
   };
   if (body instanceof FormData) {
     init.body = body;

@@ -53,7 +53,15 @@ export const Route = createFileRoute("/api/auth/login")({
           accessToken: data.session.access_token,
           refreshToken: data.session.refresh_token,
         });
-        return jsonResponse({ ok: true, user_id: data.user?.id ?? null });
+        // Возвращаем токены и в body — для Bearer-fallback в окружениях,
+        // где httpOnly cookie не сохраняется (Lovable preview iframe и т.п.).
+        return jsonResponse({
+          ok: true,
+          user_id: data.user?.id ?? null,
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_in: data.session.expires_in ?? 3600,
+        });
       },
     },
   },

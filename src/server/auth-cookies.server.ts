@@ -1,11 +1,14 @@
 // Серверные утилиты для работы с auth-сессией через httpOnly cookies.
-// Клиент НЕ знает access/refresh токенов — они хранятся только в cookie.
+// Клиент НЕ знает access/refresh токенов — они хранятся только в cookie
+// (в production). В preview/dev cookie может не работать (iframe / cross-site),
+// поэтому на клиенте предусмотрен Bearer-fallback из localStorage.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import {
   getCookie,
   setCookie,
   deleteCookie,
+  getRequestHost,
 } from "@tanstack/react-start/server";
 
 const SUPABASE_URL =
@@ -21,18 +24,38 @@ export const REFRESH_COOKIE = "rt-refresh";
 const ACCESS_MAX_AGE = 60 * 60; // 1 час
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
 
+/**
+ * Возвращает параметры cookie в зависимости от окружения:
+ *  - production-домен (radius-track.ru) → secure=true, sameSite=lax
+ *  - preview/dev (lovableproject.com / localhost) → secure=true, sameSite=none
+ *    (iframe требует SameSite=None; secure обязателен при None)
+ *  - http-localhost → secure=false, sameSite=lax
+ */
+function cookieBaseOptions() {
+  let host = "";
+  try {
+    host = getRequestHost() ?? "";
+  } catch {
+    host = "";
+  }
+  const isLocalhost = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  const isProductionDomain = /(^|\.)radius-track\.ru$/i.test(host.split(":")[0]);
+
+  if (isLocalhost) {
+    return { httpOnly: true, secure: false, sameSite: "lax" as const, path: "/" };
+  }
+  if (isProductionDomain) {
+    return { httpOnly: true, secure: true, sameSite: "lax" as const, path: "/" };
+  }
+  // Lovable preview / любой другой HTTPS-iframe
+  return { httpOnly: true, secure: true, sameSite: "none" as const, path: "/" };
+}
+
 export function setSessionCookies(args: {
   accessToken: string;
   refreshToken: string;
 }) {
-  // sameSite: "none" нужен, чтобы cookie сохранялись в iframe-превью (cross-site).
-  // Secure обязателен при SameSite=None.
-  const base = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none" as const,
-    path: "/",
-  };
+  const base = cookieBaseOptions();
   setCookie(ACCESS_COOKIE, args.accessToken, { ...base, maxAge: ACCESS_MAX_AGE });
   setCookie(REFRESH_COOKIE, args.refreshToken, {
     ...base,
