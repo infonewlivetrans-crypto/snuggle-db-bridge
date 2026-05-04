@@ -22,7 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, ClipboardList, AlertTriangle } from "lucide-react";
+import { Search, ClipboardList, AlertTriangle, Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { RouteSheetImportWizard } from "@/components/RouteSheetImportWizard";
 import {
   PRIORITY_LABELS,
   PRIORITY_BADGE_CLASS,
@@ -81,6 +83,7 @@ type RequestRow = {
 function TransportRequestsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [importOpen, setImportOpen] = useState(false);
 
   const [pageSize, setPageSize] = useState(20);
 
@@ -111,14 +114,21 @@ function TransportRequestsPage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Заявки на транспорт
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Все заявки: доставка клиентам, перемещения между складами, поставки с завода
-          </p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Заявки на транспорт
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Все заявки: доставка клиентам, перемещения между складами, поставки с завода
+            </p>
+          </div>
+          <Button onClick={() => setImportOpen(true)} className="gap-2">
+            <Upload className="h-4 w-4" />
+            Загрузить маршрутный лист
+          </Button>
         </div>
+        <RouteSheetImportWizard open={importOpen} onOpenChange={setImportOpen} />
 
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
