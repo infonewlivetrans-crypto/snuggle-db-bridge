@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireCookieAuth } from "@/server/auth-middleware.server";
+import { requireCookieAuth } from "@/server/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const PRIORITIES = ["critical", "important", "later"] as const;

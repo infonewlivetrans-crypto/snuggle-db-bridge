@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireCookieAuth } from "@/server/auth-middleware.server";
+import { requireCookieAuth } from "@/server/auth-middleware";
 import { assertCallerIsAdmin } from "./users.server";
 import { importDrivers, type DriverImportItem } from "./drivers-import.server";
 import { adminCreateInvite, adminListInvites } from "./invites.server";
