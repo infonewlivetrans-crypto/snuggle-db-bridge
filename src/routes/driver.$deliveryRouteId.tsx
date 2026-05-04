@@ -386,29 +386,50 @@ function DriverRoutePage() {
               active={data.status !== "completed"}
             />
 
-            {/* Точки */}
-            {list.length === 0 ? (
-              <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
-                В маршруте нет точек
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {list.map((p, idx) => (
-                  <DriverPointCard
-                    key={p.id}
-                    p={p}
-                    index={idx}
-                    total={list.length}
-                    routeId={data.source_request_id}
-                    driverName={data.assigned_driver}
-                    photoKinds={photoKindsByPoint?.[p.id]}
-                    onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
-                    reordering={reorderPoints.isPending}
-                    locked={isCompleted}
-                  />
-                ))}
-              </div>
-            )}
+            {/* Этапы рейса — пошаговая работа водителя */}
+            <TripStageBlock
+              deliveryRouteId={deliveryRouteId}
+              currentStage={data.current_stage}
+              driverName={data.assigned_driver}
+              orders={list
+                .map((p) => p.order)
+                .filter((o): o is NonNullable<typeof o> => !!o)
+                .map((o) => ({
+                  id: o.id,
+                  order_number: o.order_number,
+                  contact_name: o.contact_name,
+                }))}
+              blockFinishReason={
+                validationErrors.length > 0 ? validationErrors[0] : null
+              }
+            />
+
+            {/* Точки — показываем после выезда на линию */}
+            {(data.current_stage === "in_progress" ||
+              data.current_stage === "finished" ||
+              data.current_stage === "cash_returned") &&
+              (list.length === 0 ? (
+                <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
+                  В маршруте нет точек
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {list.map((p, idx) => (
+                    <DriverPointCard
+                      key={p.id}
+                      p={p}
+                      index={idx}
+                      total={list.length}
+                      routeId={data.source_request_id}
+                      driverName={data.assigned_driver}
+                      photoKinds={photoKindsByPoint?.[p.id]}
+                      onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
+                      reordering={reorderPoints.isPending}
+                      locked={isCompleted}
+                    />
+                  ))}
+                </div>
+              ))}
 
             {/* Завершение */}
             <div className="rounded-lg border border-border bg-card p-4">
