@@ -92,7 +92,8 @@ function ManagersPage() {
 
   const invitesByManagerName = useMemo(() => {
     const map = new Map<string, ReturnType<typeof Object> & { id: string; token: string; is_active: boolean }>();
-    for (const inv of (invitesQuery.data ?? []) as Array<{
+    const list = Array.isArray(invitesQuery.data) ? invitesQuery.data : [];
+    for (const inv of list as Array<{
       id: string;
       token: string;
       is_active: boolean;
@@ -219,7 +220,7 @@ function ManagersPage() {
     }
   }
 
-  const managers = managersQuery.data ?? [];
+  const managers = Array.isArray(managersQuery.data) ? managersQuery.data : [];
 
   return (
     <div className="min-h-screen bg-background">

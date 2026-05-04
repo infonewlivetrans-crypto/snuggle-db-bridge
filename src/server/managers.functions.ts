@@ -30,7 +30,36 @@ export const importManagersFn = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     await assertCallerIsAdmin(context.userId);
-    return importManagers(data.items, context.userId);
+    const result = await importManagers(data.items, context.userId);
+
+    // После импорта — автоматически создаём инвайт-ссылки для всех новых менеджеров,
+    // у которых ещё нет активного инвайта. Чтобы запись сразу появилась в /users.
+    const { adminCreateInvite, adminListInvites } = await import("./invites.server");
+    const allInvites = await adminListInvites();
+    const haveInviteByName = new Set(
+      allInvites
+        .filter((i) => i.role === "manager" && i.is_active)
+        .map((i) => (i.manager_name ?? i.full_name).toLowerCase().trim()),
+    );
+    let invitesCreated = 0;
+    for (const it of result.items) {
+      if (it.action !== "inserted") continue;
+      const key = it.fullName.toLowerCase().trim();
+      if (haveInviteByName.has(key)) continue;
+      try {
+        await adminCreateInvite({
+          fullName: it.fullName,
+          phone: it.phone,
+          role: "manager",
+          managerName: it.fullName,
+          createdBy: context.userId,
+        });
+        invitesCreated += 1;
+      } catch (e) {
+        console.error("[importManagersFn] invite create failed", it.fullName, e);
+      }
+    }
+    return { ...result, invitesCreated };
   });
 
 export const createManagerFn = createServerFn({ method: "POST" })

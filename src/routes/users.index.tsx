@@ -30,7 +30,7 @@ import {
 import { fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,7 +46,26 @@ type UserRow = {
   email: string | null;
   is_active: boolean;
   roles?: AppRole[];
+  phone?: string | null;
+  comment?: string | null;
+  status?: "invited" | "active" | "blocked";
+  invite_token?: string | null;
+  invite_active?: boolean | null;
 };
+
+function inviteUrl(token: string): string {
+  if (typeof window === "undefined") return `/invite/${token}`;
+  return `${window.location.origin}/invite/${token}`;
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 async function serverFnAuthHeaders(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();
@@ -232,7 +251,9 @@ function UsersPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {u.is_active ? (
+                        {u.status === "invited" ? (
+                          <span className="badge-status badge-status-new">Приглашён</span>
+                        ) : u.is_active ? (
                           <span className="badge-status badge-status-completed">Активен</span>
                         ) : (
                           <span className="badge-status badge-status-cancelled">Заблокирован</span>
@@ -240,6 +261,21 @@ function UsersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {u.invite_token && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              title="Скопировать ссылку приглашения"
+                              onClick={async () => {
+                                const ok = await copyText(inviteUrl(u.invite_token!));
+                                toast.success(ok ? "Ссылка скопирована" : "Не удалось скопировать");
+                              }}
+                            >
+                              <Copy className="h-4 w-4" />
+                              Ссылка
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"

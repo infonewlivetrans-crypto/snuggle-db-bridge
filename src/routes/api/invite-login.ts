@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { exchangeInviteToken } from "@/server/invites.server";
+import { activateInvite, getInviteInfo } from "@/server/invites.server";
 
 function json(body: unknown, init?: ResponseInit) {
   return new Response(JSON.stringify(body), {
@@ -11,18 +11,38 @@ function json(body: unknown, init?: ResponseInit) {
 export const Route = createFileRoute("/api/invite-login")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        let token: string | null = null;
+      // GET /api/invite-login?token=... — данные приглашения для формы активации
+      GET: async ({ request }) => {
+        const url = new URL(request.url);
+        const token = (url.searchParams.get("token") ?? "").trim();
+        if (!token) return json({ error: "Не передан токен" }, { status: 400 });
         try {
-          const body = (await request.json()) as { token?: string };
-          token = body?.token?.trim() ?? null;
+          const info = await getInviteInfo(token);
+          if (!info) return json({ error: "Ссылка недействительна" }, { status: 404 });
+          return json({
+            full_name: info.fullName,
+            role: info.role,
+            already_activated: info.alreadyActivated,
+          });
+        } catch (e) {
+          const message = e instanceof Error ? e.message : "Ссылка недействительна";
+          return json({ error: message }, { status: 401 });
+        }
+      },
+      // POST /api/invite-login { token, email, password } — активация
+      POST: async ({ request }) => {
+        let body: { token?: string; email?: string; password?: string };
+        try {
+          body = (await request.json()) as typeof body;
         } catch {
           return json({ error: "Некорректный запрос" }, { status: 400 });
         }
-        if (!token) return json({ error: "Не передан токен" }, { status: 400 });
-
         try {
-          const session = await exchangeInviteToken(token);
+          const session = await activateInvite({
+            token: body?.token ?? "",
+            email: body?.email ?? "",
+            password: body?.password ?? "",
+          });
           return json({
             access_token: session.accessToken,
             refresh_token: session.refreshToken,
@@ -30,7 +50,7 @@ export const Route = createFileRoute("/api/invite-login")({
             role: session.role,
           });
         } catch (e) {
-          const message = e instanceof Error ? e.message : "Ссылка недействительна";
+          const message = e instanceof Error ? e.message : "Не удалось активировать ссылку";
           console.error("[invite-login] failed", e);
           return json({ error: message }, { status: 401 });
         }

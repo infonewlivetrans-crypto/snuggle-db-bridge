@@ -192,17 +192,49 @@ export async function adminDeleteInvite(args: { id: string }) {
   await supabaseAdmin.from("invite_tokens").delete().eq("id", args.id);
 }
 
+/** Информация по токену для страницы активации (без авторизации). */
+export async function getInviteInfo(token: string): Promise<{
+  fullName: string;
+  role: InviteRole;
+  alreadyActivated: boolean;
+} | null> {
+  if (!token || token.length < 8) return null;
+  const { data, error } = await supabaseAdmin
+    .from("invite_tokens")
+    .select("full_name, role, is_active, last_used_at")
+    .eq("token", token)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  if (!data.is_active) throw new Error("Ссылка отключена администратором");
+  return {
+    fullName: (data as { full_name: string }).full_name,
+    role: (data as { role: InviteRole }).role,
+    alreadyActivated: !!(data as { last_used_at: string | null }).last_used_at,
+  };
+}
+
 /**
- * Обмен токена на сессию: возвращает access/refresh токены.
- * Использует signInWithPassword для скрытого псевдо-email.
+ * Активация инвайта реальным email + паролем.
+ * Меняет email/password скрытого пользователя на введённые,
+ * помечает invite как использованный и возвращает сессию.
  */
-export async function exchangeInviteToken(token: string): Promise<{
+export async function activateInvite(args: {
+  token: string;
+  email: string;
+  password: string;
+}): Promise<{
   accessToken: string;
   refreshToken: string;
   userId: string;
   role: InviteRole;
 }> {
+  const token = args.token?.trim();
+  const email = args.email?.trim().toLowerCase();
+  const password = args.password ?? "";
   if (!token || token.length < 8) throw new Error("Некорректная ссылка");
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Введите корректный email");
+  if (password.length < 6) throw new Error("Пароль должен содержать минимум 6 символов");
 
   const { data: inv, error } = await supabaseAdmin
     .from("invite_tokens")
@@ -214,19 +246,27 @@ export async function exchangeInviteToken(token: string): Promise<{
   const invite = inv as InviteRow;
   if (!invite.is_active) throw new Error("Ссылка отключена администратором");
 
-  // Чтобы войти как этот скрытый пользователь, выпускаем новый одноразовый пароль
-  // и тут же используем его. Сам пароль не показываем — храним только в auth.users.
-  const tempPassword = randomPassword();
-  const email = inviteEmail(invite.token);
+  // Проверка занятости email
+  const { data: existingProfile } = await supabaseAdmin
+    .from("profiles")
+    .select("user_id")
+    .eq("email", email)
+    .neq("user_id", invite.user_id)
+    .maybeSingle();
+  if (existingProfile) throw new Error("Этот email уже используется другим пользователем");
 
   const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(invite.user_id, {
-    password: tempPassword,
+    email,
+    password,
     email_confirm: true,
   });
   if (updErr) throw new Error(updErr.message);
 
-  // Логин выполняется через обычный публичный клиент (с anon key) — он вернёт
-  // полноценный access/refresh, который потом подставится в браузер.
+  await supabaseAdmin
+    .from("profiles")
+    .update({ email, is_active: true })
+    .eq("user_id", invite.user_id);
+
   const { createClient } = await import("@supabase/supabase-js");
   const url = process.env.SUPABASE_URL!;
   const anon = process.env.SUPABASE_PUBLISHABLE_KEY!;
@@ -235,10 +275,10 @@ export async function exchangeInviteToken(token: string): Promise<{
   });
   const { data: signIn, error: signErr } = await publicClient.auth.signInWithPassword({
     email,
-    password: tempPassword,
+    password,
   });
   if (signErr || !signIn.session) {
-    throw new Error(signErr?.message ?? "Не удалось войти по ссылке");
+    throw new Error(signErr?.message ?? "Не удалось войти после активации");
   }
 
   await supabaseAdmin
