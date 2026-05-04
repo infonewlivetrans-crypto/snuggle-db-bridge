@@ -24,27 +24,45 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import {
   createUserFn,
-  listUsersFn,
   setUserActiveFn,
   setUserRolesFn,
 } from "@/lib/server-functions/users.functions";
+import { fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
   component: UsersPage,
 });
 
+type UserRow = {
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  is_active: boolean;
+  roles?: AppRole[];
+};
+
+async function serverFnAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 function UsersPage() {
   const qc = useQueryClient();
   const { loading: authLoading, session } = useAuth();
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin", session?.user?.id ?? null],
-    queryFn: () => listUsersFn(),
+    queryFn: async () => {
+      const response = await fetchListViaApi<UserRow>("/api/users", { limit: 100 });
+      return Array.isArray(response.rows) ? response.rows : [];
+    },
     enabled: !authLoading && !!session?.access_token,
   });
 
@@ -55,12 +73,7 @@ function UsersPage() {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
     }
   }, [authLoading, session?.access_token, qc]);
-  const data = Array.isArray(rawData)
-    ? rawData
-    : (() => {
-        if (rawData != null) console.error("listUsersFn: ожидался массив, получено:", rawData);
-        return [];
-      })();
+  const safeRows = Array.isArray(rawData) ? rawData : [];
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<{ email: string; password: string; fullName: string; role: AppRole }>(
@@ -68,7 +81,7 @@ function UsersPage() {
   );
 
   const createMut = useMutation({
-    mutationFn: () => createUserFn({ data: form }),
+    mutationFn: async () => createUserFn({ data: form, headers: await serverFnAuthHeaders() }),
     onSuccess: () => {
       toast.success("Пользователь создан");
       setOpen(false);
@@ -79,7 +92,8 @@ function UsersPage() {
   });
 
   const activeMut = useMutation({
-    mutationFn: (v: { userId: string; isActive: boolean }) => setUserActiveFn({ data: v }),
+    mutationFn: async (v: { userId: string; isActive: boolean }) =>
+      setUserActiveFn({ data: v, headers: await serverFnAuthHeaders() }),
     onSuccess: () => {
       toast.success("Статус обновлён");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -89,7 +103,8 @@ function UsersPage() {
 
   const [rolesEdit, setRolesEdit] = useState<{ userId: string; fullName: string; roles: AppRole[] } | null>(null);
   const rolesMut = useMutation({
-    mutationFn: (v: { userId: string; roles: AppRole[] }) => setUserRolesFn({ data: v }),
+    mutationFn: async (v: { userId: string; roles: AppRole[] }) =>
+      setUserRolesFn({ data: v, headers: await serverFnAuthHeaders() }),
     onSuccess: () => {
       toast.success("Роли обновлены");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -191,10 +206,10 @@ function UsersPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Загрузка…</TableCell></TableRow>
-              ) : (data ?? []).length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователей нет</TableCell></TableRow>
+              ) : safeRows.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>
               ) : (
-                (data ?? []).map((u) => {
+                safeRows.map((u) => {
                   const userRoles = Array.isArray(u.roles) ? u.roles : [];
                   return (
                     <TableRow key={u.user_id}>

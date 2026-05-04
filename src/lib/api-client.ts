@@ -131,6 +131,11 @@ export async function fetchListViaApi<T>(
     const b = body as { rows: T[]; total?: number };
     return { rows: b.rows, total: b.total ?? b.rows.length };
   }
+  // Совместимость с ответами вида { data: [] }.
+  if (body && typeof body === "object" && Array.isArray((body as { data?: unknown }).data)) {
+    const b = body as { data: T[]; total?: number };
+    return { rows: b.data, total: b.total ?? b.data.length };
+  }
   console.error(`fetchListViaApi(${path}): неожиданный формат ответа`, body);
   return { rows: [], total: 0 };
 }

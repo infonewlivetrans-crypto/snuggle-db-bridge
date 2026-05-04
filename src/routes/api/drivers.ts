@@ -12,9 +12,9 @@ export const Route = createFileRoute("/api/drivers")({
     handlers: {
       GET: async ({ request }) => {
         const token = getBearerToken(request);
-        if (!token) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+        if (!token) return jsonResponse([], { status: 401, headers: { "X-Error": "unauthorized" } });
         const auth = await requireUser(token);
-        if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+        if (!auth) return jsonResponse([], { status: 401, headers: { "X-Error": "unauthorized" } });
 
         const { limit, offset, search, url } = parseListParams(request);
         const carrierId = url.searchParams.get("carrierId");
@@ -31,11 +31,11 @@ export const Route = createFileRoute("/api/drivers")({
         }
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse(
-          { rows: data ?? [], total: count ?? 0 },
-          { headers: cacheHeaders(300) },
-        );
+        if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
+        const rows = Array.isArray(data) ? data : [];
+        return jsonResponse(rows, {
+          headers: { ...cacheHeaders(300), "X-Total-Count": String(count ?? rows.length) },
+        });
       },
     },
   },
