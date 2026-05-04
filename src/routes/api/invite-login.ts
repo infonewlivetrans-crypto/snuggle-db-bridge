@@ -44,9 +44,12 @@ export const Route = createFileRoute("/api/invite-login")({
             email: body?.email ?? "",
             password: body?.password ?? "",
           });
+          setSessionCookies({
+            accessToken: session.accessToken,
+            refreshToken: session.refreshToken,
+          });
           return json({
-            access_token: session.accessToken,
-            refresh_token: session.refreshToken,
+            ok: true,
             user_id: session.userId,
             role: session.role,
           });
