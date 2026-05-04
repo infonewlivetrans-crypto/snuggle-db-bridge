@@ -70,9 +70,56 @@ export const Route = createFileRoute("/carriers/")({
 });
 
 function CarriersPage() {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<CarrierVerificationStatus | "all">("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [importPreview, setImportPreview] = useState<ParsedCarrierRow[] | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
+
+  const importMut = useMutation({
+    mutationFn: (items: ParsedCarrierRow[]) => importCarriersFn({ data: { items } }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["carriers"] });
+      toast.success(
+        `Импорт: добавлено ${res.inserted}, пропущено ${res.skipped} (уникальных ${res.uniqueCount})`,
+      );
+      setImportPreview(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  async function onPickFile(file: File | null) {
+    if (!file) return;
+    setImportError(null);
+    setImportBusy(true);
+    try {
+      const rows = await parseCarriersExcel(file);
+      if (rows.length === 0) {
+        setImportError("В файле не найдено строк с ФИО / названием перевозчика.");
+        setImportPreview(null);
+      } else {
+        setImportPreview(rows);
+      }
+    } catch (e) {
+      console.error(e);
+      setImportError(e instanceof Error ? e.message : "Не удалось прочитать файл");
+    } finally {
+      setImportBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  const uniquePreviewCount = useMemo(() => {
+    if (!importPreview) return 0;
+    const set = new Set<string>();
+    for (const r of importPreview) {
+      set.add(r.fullName.toLowerCase().replace(/\s+/g, " ").trim());
+    }
+    return set.size;
+  }, [importPreview]);
 
   const { data: carriers, isLoading } = useQuery({
     queryKey: ["carriers"],
