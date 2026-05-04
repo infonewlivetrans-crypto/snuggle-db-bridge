@@ -22,7 +22,9 @@ function InviteLoginPage() {
   const [info, setInfo] = useState<InviteInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -44,12 +46,24 @@ function InviteLoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitError(null);
+
+    const emailTrim = email.trim();
+    const phoneTrim = phone.trim();
+    if (!emailTrim) return setSubmitError("Введите email");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTrim))
+      return setSubmitError("Введите корректный email");
+    if (!phoneTrim) return setSubmitError("Введите номер телефона");
+    if (password.length < 6)
+      return setSubmitError("Пароль должен содержать минимум 6 символов");
+    if (password !== passwordConfirm)
+      return setSubmitError("Пароли не совпадают");
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/invite-login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, email: email.trim(), password }),
+        body: JSON.stringify({ token, email: emailTrim, password, phone: phoneTrim }),
       });
       const body = (await res.json().catch(() => null)) as
         | { ok?: boolean; role?: AppRole; error?: string }
@@ -62,6 +76,7 @@ function InviteLoginPage() {
       const dest = landingPathForRoles([role]);
       navigate({ to: dest, replace: true });
     } catch (e) {
+      console.error("[invite-activate] failed", e);
       setSubmitError(e instanceof Error ? e.message : "Не удалось активировать ссылку");
     } finally {
       setSubmitting(false);
@@ -122,6 +137,18 @@ function InviteLoginPage() {
           />
         </div>
         <div className="space-y-1.5">
+          <Label htmlFor="phone">Телефон</Label>
+          <Input
+            id="phone"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+7 (999) 123-45-67"
+          />
+        </div>
+        <div className="space-y-1.5">
           <Label htmlFor="password">Пароль (минимум 6 символов)</Label>
           <Input
             id="password"
@@ -131,6 +158,18 @@ function InviteLoginPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="passwordConfirm">Повторите пароль</Label>
+          <Input
+            id="passwordConfirm"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={6}
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
           />
         </div>
 

@@ -250,12 +250,15 @@ function InvitesPage() {
                       )}
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Телефон</Label>
+                      <Label>Телефон (необязательно)</Label>
                       <Input
                         value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
                         placeholder="+7 (999) 123-45-67"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Пользователь сможет указать телефон сам при активации ссылки.
+                      </p>
                     </div>
                     <div className="space-y-1.5">
                       <Label>Комментарий (необязательно)</Label>
