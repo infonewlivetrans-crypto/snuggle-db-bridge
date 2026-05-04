@@ -1,7 +1,8 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeRuPhone } from "@/lib/phone";
 
-export type InviteRole = "driver" | "manager";
+export type InviteRole = "admin" | "logist" | "manager" | "driver";
+const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
 
 const INVITE_EMAIL_DOMAIN = "invite.radius-track.local";
 
