@@ -534,21 +534,27 @@ export type Database = {
       }
       delivery_routes: {
         Row: {
+          arrived_loading_at: string | null
           assigned_driver: string | null
           assigned_vehicle: string | null
           carrier_id: string | null
+          cash_returned_at: string | null
           comment: string | null
           company_id: string | null
           created_at: string
           created_by: string | null
+          current_stage: Database["public"]["Enums"]["trip_stage"]
+          departed_at: string | null
           driver_access_created_at: string | null
           driver_access_created_by: string | null
           driver_access_enabled: boolean
           driver_access_token: string | null
+          finished_at: string | null
           id: string
           last_driver_lat: number | null
           last_driver_lng: number | null
           last_driver_location_at: string | null
+          loaded_at: string | null
           route_date: string
           route_number: string
           source_request_id: string
@@ -557,21 +563,27 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arrived_loading_at?: string | null
           assigned_driver?: string | null
           assigned_vehicle?: string | null
           carrier_id?: string | null
+          cash_returned_at?: string | null
           comment?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          current_stage?: Database["public"]["Enums"]["trip_stage"]
+          departed_at?: string | null
           driver_access_created_at?: string | null
           driver_access_created_by?: string | null
           driver_access_enabled?: boolean
           driver_access_token?: string | null
+          finished_at?: string | null
           id?: string
           last_driver_lat?: number | null
           last_driver_lng?: number | null
           last_driver_location_at?: string | null
+          loaded_at?: string | null
           route_date?: string
           route_number: string
           source_request_id: string
@@ -580,21 +592,27 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arrived_loading_at?: string | null
           assigned_driver?: string | null
           assigned_vehicle?: string | null
           carrier_id?: string | null
+          cash_returned_at?: string | null
           comment?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
+          current_stage?: Database["public"]["Enums"]["trip_stage"]
+          departed_at?: string | null
           driver_access_created_at?: string | null
           driver_access_created_by?: string | null
           driver_access_enabled?: boolean
           driver_access_token?: string | null
+          finished_at?: string | null
           id?: string
           last_driver_lat?: number | null
           last_driver_lng?: number | null
           last_driver_location_at?: string | null
+          loaded_at?: string | null
           route_date?: string
           route_number?: string
           source_request_id?: string
@@ -2592,6 +2610,104 @@ export type Database = {
           },
         ]
       }
+      route_returns: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          comment: string | null
+          created_at: string
+          delivery_route_id: string
+          id: string
+          occurred_at: string
+          order_id: string | null
+          reason: string
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_route_id: string
+          id?: string
+          occurred_at?: string
+          order_id?: string | null
+          reason: string
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_route_id?: string
+          id?: string
+          occurred_at?: string
+          order_id?: string | null
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_returns_delivery_route_id_fkey"
+            columns: ["delivery_route_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_returns_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_stage_events: {
+        Row: {
+          actor_name: string | null
+          actor_user_id: string | null
+          comment: string | null
+          created_at: string
+          delivery_route_id: string
+          gps_lat: number | null
+          gps_lng: number | null
+          id: string
+          occurred_at: string
+          stage: Database["public"]["Enums"]["trip_stage"]
+        }
+        Insert: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_route_id: string
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          occurred_at?: string
+          stage: Database["public"]["Enums"]["trip_stage"]
+        }
+        Update: {
+          actor_name?: string | null
+          actor_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          delivery_route_id?: string
+          gps_lat?: number | null
+          gps_lng?: number | null
+          id?: string
+          occurred_at?: string
+          stage?: Database["public"]["Enums"]["trip_stage"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_stage_events_delivery_route_id_fkey"
+            columns: ["delivery_route_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routes: {
         Row: {
           applied_tariff_id: string | null
@@ -4168,6 +4284,14 @@ export type Database = {
         | "client_delivery"
         | "warehouse_transfer"
         | "factory_to_warehouse"
+      trip_stage:
+        | "not_started"
+        | "arrived_loading"
+        | "loaded"
+        | "departed"
+        | "in_progress"
+        | "finished"
+        | "cash_returned"
       warehouse_staff_role: "manager" | "storekeeper"
     }
     CompositeTypes: {
@@ -4471,6 +4595,15 @@ export const Constants = {
         "client_delivery",
         "warehouse_transfer",
         "factory_to_warehouse",
+      ],
+      trip_stage: [
+        "not_started",
+        "arrived_loading",
+        "loaded",
+        "departed",
+        "in_progress",
+        "finished",
+        "cash_returned",
       ],
       warehouse_staff_role: ["manager", "storekeeper"],
     },
