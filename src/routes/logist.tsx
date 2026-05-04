@@ -3,6 +3,8 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppHeader } from "@/components/AppHeader";
+import { RouteSheetImportWizard } from "@/components/RouteSheetImportWizard";
+import { Upload } from "lucide-react";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -117,6 +119,7 @@ function LogistPage() {
   const [driverFilter, setDriverFilter] = useState<string>("all");
   const [openProblem, setOpenProblem] = useState<ProblemRow | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const { data: routes = [], isLoading: routesLoading, refetch: refetchRoutes } = useQuery({
     queryKey: ["logist-routes", showHistory ? "all" : "active"],
@@ -234,7 +237,12 @@ function LogistPage() {
           <Button variant="outline" size="sm" onClick={() => refetchRoutes()}>
             Обновить
           </Button>
+          <Button size="sm" className="gap-2" onClick={() => setImportOpen(true)}>
+            <Upload className="h-4 w-4" />
+            Загрузить маршрутный лист
+          </Button>
         </div>
+        <RouteSheetImportWizard open={importOpen} onOpenChange={setImportOpen} />
 
         {/* Статусные фильтры */}
         <div className="mb-3 -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">

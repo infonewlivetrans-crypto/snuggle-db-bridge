@@ -82,6 +82,7 @@ import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
+import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
 import { Route as ApiDemoModeRouteImport } from './routes/api/demo-mode'
 import { Route as ApiDeliveryPhotosRouteImport } from './routes/api/delivery-photos'
@@ -461,6 +462,11 @@ const ApiModulesRoute = ApiModulesRouteImport.update({
   path: '/api/modules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiImportRouteSheetRoute = ApiImportRouteSheetRouteImport.update({
+  id: '/api/import-route-sheet',
+  path: '/api/import-route-sheet',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDriversRoute = ApiDriversRouteImport.update({
   id: '/api/drivers',
   path: '/api/drivers',
@@ -562,6 +568,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
+  '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -648,6 +655,7 @@ export interface FileRoutesByTo {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
+  '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -735,6 +743,7 @@ export interface FileRoutesById {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
+  '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -823,6 +832,7 @@ export interface FileRouteTypes {
     | '/api/delivery-photos'
     | '/api/demo-mode'
     | '/api/drivers'
+    | '/api/import-route-sheet'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -909,6 +919,7 @@ export interface FileRouteTypes {
     | '/api/delivery-photos'
     | '/api/demo-mode'
     | '/api/drivers'
+    | '/api/import-route-sheet'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -995,6 +1006,7 @@ export interface FileRouteTypes {
     | '/api/delivery-photos'
     | '/api/demo-mode'
     | '/api/drivers'
+    | '/api/import-route-sheet'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -1082,6 +1094,7 @@ export interface RootRouteChildren {
   ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDriversRoute: typeof ApiDriversRoute
+  ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
@@ -1636,6 +1649,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiModulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/import-route-sheet': {
+      id: '/api/import-route-sheet'
+      path: '/api/import-route-sheet'
+      fullPath: '/api/import-route-sheet'
+      preLoaderRoute: typeof ApiImportRouteSheetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/drivers': {
       id: '/api/drivers'
       path: '/api/drivers'
@@ -1773,6 +1793,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDriversRoute: ApiDriversRoute,
+  ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
