@@ -55,6 +55,8 @@ type Props = {
   currentStage: TripStage;
   driverName: string | null;
   orders?: Order[];
+  /** Если задан — блокирует кнопку «Завершил рейс» с пояснением. */
+  blockFinishReason?: string | null;
 };
 
 function fmtTime(iso: string): string {
