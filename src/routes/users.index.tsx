@@ -60,15 +60,6 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const roleMut = useMutation({
-    mutationFn: (v: { userId: string; role: AppRole }) => setUserRoleFn({ data: v }),
-    onSuccess: () => {
-      toast.success("Роль обновлена");
-      qc.invalidateQueries({ queryKey: ["users-admin"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   const activeMut = useMutation({
     mutationFn: (v: { userId: string; isActive: boolean }) => setUserActiveFn({ data: v }),
     onSuccess: () => {
