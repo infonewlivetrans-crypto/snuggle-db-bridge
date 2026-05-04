@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { db } from "@/lib/db";
+import { apiPost, apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { PhotoUpload } from "@/components/PhotoUpload";
 import type { Carrier, Driver } from "@/lib/carriers";
 import {
@@ -54,12 +54,8 @@ export function DriverFormDialog({ open, onOpenChange, driver, defaultCarrierId 
     queryKey: ["carriers", "select"],
     enabled: open,
     queryFn: async (): Promise<Carrier[]> => {
-      const { data, error } = await db
-        .from("carriers")
-        .select("id, company_name, carrier_type, verification_status")
-        .order("company_name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Carrier>("/api/carriers", { limit: 100 });
+      return rows;
     },
   });
 
@@ -84,11 +80,9 @@ export function DriverFormDialog({ open, onOpenChange, driver, defaultCarrierId 
         comment: comment.trim() || null,
       };
       if (isEdit && driver) {
-        const { error } = await db.from("drivers").update(payload).eq("id", driver.id);
-        if (error) throw error;
+        await apiPatch(`/api/drivers/${driver.id}`, payload);
       } else {
-        const { error } = await db.from("drivers").insert(payload);
-        if (error) throw error;
+        await apiPost(`/api/drivers`, payload);
       }
     },
     onSuccess: () => {

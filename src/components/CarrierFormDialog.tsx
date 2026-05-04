@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { db } from "@/lib/db";
+import { apiPost, apiPatch } from "@/lib/api-client";
 import {
   CARRIER_TYPE_LABELS,
   CARRIER_TYPE_ORDER,
@@ -67,11 +67,9 @@ export function CarrierFormDialog({ open, onOpenChange, carrier }: Props) {
         bank_corr_account: bankCorr.trim() || null,
       };
       if (isEdit && carrier) {
-        const { error } = await db.from("carriers").update(payload).eq("id", carrier.id);
-        if (error) throw error;
+        await apiPatch(`/api/carriers/${carrier.id}`, payload);
       } else {
-        const { error } = await db.from("carriers").insert({ ...payload, verification_status: "new" });
-        if (error) throw error;
+        await apiPost(`/api/carriers`, payload);
       }
     },
     onSuccess: () => {

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { db } from "@/lib/db";
+import { apiGetAuth } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { VehicleFormDialog } from "@/components/VehicleFormDialog";
 import { Badge } from "@/components/ui/badge";
@@ -20,21 +20,14 @@ function VehicleDetailPage() {
 
   const { data: vehicle, isLoading } = useQuery({
     queryKey: ["vehicle", vehicleId],
-    queryFn: async (): Promise<Vehicle | null> => {
-      const { data, error } = await db.from("vehicles").select("*").eq("id", vehicleId).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: (): Promise<Vehicle | null> => apiGetAuth<Vehicle | null>(`/api/vehicles/${vehicleId}`),
   });
 
   const { data: carrier } = useQuery({
     queryKey: ["carrier", vehicle?.carrier_id],
     enabled: !!vehicle?.carrier_id,
-    queryFn: async (): Promise<Carrier | null> => {
-      const { data, error } = await db.from("carriers").select("*").eq("id", vehicle!.carrier_id).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: (): Promise<Carrier | null> =>
+      apiGetAuth<Carrier | null>(`/api/carriers/${vehicle!.carrier_id}`),
   });
 
   if (isLoading) {
