@@ -18,6 +18,7 @@ type InviteInfo = { full_name: string; role: AppRole; already_activated: boolean
 function InviteLoginPage() {
   const { token } = Route.useParams();
   const navigate = useNavigate();
+  const { refresh } = useAuth();
   const [info, setInfo] = useState<InviteInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
