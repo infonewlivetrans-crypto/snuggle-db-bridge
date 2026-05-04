@@ -166,7 +166,7 @@ async function apiSend<T>(
     const msg =
       (parsed && typeof parsed === "object" && (parsed as { error?: string }).error) ||
       `HTTP ${res.status}`;
-    throw new Error(msg);
+    throw new Error(typeof msg === "string" ? msg : `HTTP ${res.status}`);
   }
   return parsed as T;
 }
