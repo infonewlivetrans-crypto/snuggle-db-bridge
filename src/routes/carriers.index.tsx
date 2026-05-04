@@ -40,7 +40,27 @@ import {
   type Carrier,
   type CarrierVerificationStatus,
 } from "@/lib/carriers";
-import { Search, Plus, Building2, ShieldCheck } from "lucide-react";
+import { Search, Plus, Building2, ShieldCheck, Upload } from "lucide-react";
+
+type ParsedCarrierRow = { fullName: string };
+
+async function parseCarriersExcel(file: File): Promise<ParsedCarrierRow[]> {
+  const XLSX = await import("xlsx");
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(buf, { type: "array" });
+  const ws = wb.Sheets[wb.SheetNames[0]!];
+  if (!ws) return [];
+  const grid = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "" });
+  const rows: ParsedCarrierRow[] = [];
+  for (const r of grid) {
+    if (!Array.isArray(r)) continue;
+    const fullName = String(r[0] ?? "").trim();
+    if (!fullName) continue;
+    if (/^(фио|перевозчик|водитель|name|full[_ ]?name|компания|организация)$/i.test(fullName)) continue;
+    rows.push({ fullName });
+  }
+  return rows;
+}
 
 export const Route = createFileRoute("/carriers/")({
   head: () => ({
