@@ -19,8 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { fetchListViaApi, apiGetAuth, apiPost } from "@/lib/api-client";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
