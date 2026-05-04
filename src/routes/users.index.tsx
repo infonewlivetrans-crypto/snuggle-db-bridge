@@ -52,10 +52,7 @@ type UserRow = {
   invite_active?: boolean | null;
 };
 
-function inviteUrl(token: string): string {
-  if (typeof window === "undefined") return `/invite/${token}`;
-  return `${window.location.origin}/invite/${token}`;
-}
+import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 
 async function copyText(text: string): Promise<boolean> {
   try {
