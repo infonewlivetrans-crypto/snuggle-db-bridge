@@ -162,8 +162,7 @@ function RouteDetailPage() {
 
   const updateRoute = useMutation({
     mutationFn: async (status: RouteStatus) => {
-      const { error } = await supabase.from("routes").update({ status }).eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${encodeURIComponent(routeId)}`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["route", routeId] });
@@ -179,11 +178,7 @@ function RouteDetailPage() {
       // - статус заказа (delivered / not_delivered / awaiting_resend)
       // - запись в delivery_reports
       // - времена arrived_at / completed_at
-      const { error } = await supabase
-        .from("route_points")
-        .update({ status })
-        .eq("id", pointId);
-      if (error) throw error;
+      await apiPatch(`/api/route-points/${encodeURIComponent(pointId)}`, { status });
     },
     onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
