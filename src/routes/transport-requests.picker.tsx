@@ -118,6 +118,7 @@ function OrderPickerPage() {
   const [requestId, setRequestId] = useState<string | undefined>(initialRequestId);
 
   const [search, setSearch] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
   const [warehouseFilter, setWarehouseFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [zoneFilter, setZoneFilter] = useState<string>("all");
@@ -374,7 +375,11 @@ function OrderPickerPage() {
               Слева — доступные заказы, справа — текущая заявка
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button onClick={() => setImportOpen(true)} className="gap-2">
+              <Upload className="h-4 w-4" />
+              Загрузить маршрутный лист
+            </Button>
             <Button variant="outline" onClick={refresh}>
               <RefreshCw className="mr-2 h-4 w-4" />
               Обновить
@@ -387,6 +392,7 @@ function OrderPickerPage() {
             </Button>
           </div>
         </div>
+        <RouteSheetImportWizard open={importOpen} onOpenChange={setImportOpen} />
 
         <Card className="mb-4">
           <CardContent className="grid grid-cols-1 gap-3 py-4 md:grid-cols-3 lg:grid-cols-6">
