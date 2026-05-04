@@ -39,10 +39,16 @@ export const Route = createFileRoute("/users/")({
 
 function UsersPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin"],
     queryFn: () => listUsersFn(),
   });
+  const data = Array.isArray(rawData)
+    ? rawData
+    : (() => {
+        if (rawData != null) console.error("listUsersFn: ожидался массив, получено:", rawData);
+        return [];
+      })();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<{ email: string; password: string; fullName: string; role: AppRole }>(
