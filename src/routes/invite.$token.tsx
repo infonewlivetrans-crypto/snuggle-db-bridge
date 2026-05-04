@@ -52,16 +52,12 @@ function InviteLoginPage() {
         body: JSON.stringify({ token, email: email.trim(), password }),
       });
       const body = (await res.json().catch(() => null)) as
-        | { access_token?: string; refresh_token?: string; role?: AppRole; error?: string }
+        | { ok?: boolean; role?: AppRole; error?: string }
         | null;
-      if (!res.ok || !body?.access_token || !body?.refresh_token) {
+      if (!res.ok || !body?.ok) {
         throw new Error(body?.error || "Не удалось активировать ссылку");
       }
-      const { error: setErr } = await supabase.auth.setSession({
-        access_token: body.access_token,
-        refresh_token: body.refresh_token,
-      });
-      if (setErr) throw setErr;
+      await refresh();
       const role = (body.role ?? info?.role ?? "driver") as AppRole;
       const dest = landingPathForRoles([role]);
       navigate({ to: dest, replace: true });
