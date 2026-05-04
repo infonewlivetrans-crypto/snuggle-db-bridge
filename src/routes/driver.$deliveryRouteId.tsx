@@ -131,7 +131,7 @@ function DriverRoutePage() {
       const { data, error } = await supabase
         .from("delivery_routes")
         .select(
-          "id, route_number, route_date, status, source_request_id, assigned_driver, assigned_vehicle",
+          "id, route_number, route_date, status, source_request_id, assigned_driver, assigned_vehicle, current_stage",
         )
         .eq("id", deliveryRouteId)
         .maybeSingle();
