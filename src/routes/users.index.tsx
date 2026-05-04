@@ -89,10 +89,10 @@ function UsersPage() {
   // После входа/смены сессии — принудительно перезапросить список,
   // чтобы экран не оставался пустым из-за гонки токена.
   useEffect(() => {
-    if (!authLoading && session?.access_token) {
+    if (!authLoading && user) {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
     }
-  }, [authLoading, session?.access_token, qc]);
+  }, [authLoading, user, qc]);
   const safeRows = Array.isArray(rawData) ? rawData : [];
 
   const [open, setOpen] = useState(false);
