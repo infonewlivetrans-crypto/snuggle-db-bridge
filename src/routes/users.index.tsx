@@ -79,6 +79,25 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const [rolesEdit, setRolesEdit] = useState<{ userId: string; fullName: string; roles: AppRole[] } | null>(null);
+  const rolesMut = useMutation({
+    mutationFn: (v: { userId: string; roles: AppRole[] }) => setUserRolesFn({ data: v }),
+    onSuccess: () => {
+      toast.success("Роли обновлены");
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+      setRolesEdit(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function toggleEditRole(role: AppRole) {
+    setRolesEdit((prev) => {
+      if (!prev) return prev;
+      const has = prev.roles.includes(role);
+      return { ...prev, roles: has ? prev.roles.filter((r) => r !== role) : [...prev.roles, role] };
+    });
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
