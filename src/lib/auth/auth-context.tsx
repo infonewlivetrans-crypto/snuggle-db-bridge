@@ -13,7 +13,7 @@ import {
   setLocalSessionTokens,
   clearLocalSessionTokens,
 } from "@/lib/api-client";
-import type { AppRole } from "./roles";
+import { APP_ROLES, type AppRole } from "./roles";
 
 type Profile = {
   id: string;
@@ -39,7 +39,7 @@ type AuthContextValue = {
     email: string,
     password: string,
     onStep: (message: string) => void,
-  ) => Promise<void>;
+  ) => Promise<{ user: SessionUser; roles: AppRole[] }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -89,6 +89,12 @@ async function fetchAuthMe(): Promise<{ status: number; body: AuthMeResponse | n
   });
   const body = (await res.json().catch(() => null)) as AuthMeResponse | null;
   return { status: res.status, body };
+}
+
+function normalizeRole(role: AuthMeResponse["role"]): AppRole | null {
+  return typeof role === "string" && (APP_ROLES as readonly string[]).includes(role)
+    ? (role as AppRole)
+    : null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
