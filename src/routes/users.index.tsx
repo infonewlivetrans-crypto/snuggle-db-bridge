@@ -31,6 +31,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
@@ -39,10 +41,20 @@ export const Route = createFileRoute("/users/")({
 
 function UsersPage() {
   const qc = useQueryClient();
+  const { loading: authLoading, session } = useAuth();
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["users-admin"],
+    queryKey: ["users-admin", session?.user?.id ?? null],
     queryFn: () => listUsersFn(),
+    enabled: !authLoading && !!session?.access_token,
   });
+
+  // После входа/смены сессии — принудительно перезапросить список,
+  // чтобы экран не оставался пустым из-за гонки токена.
+  useEffect(() => {
+    if (!authLoading && session?.access_token) {
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+    }
+  }, [authLoading, session?.access_token, qc]);
   const data = Array.isArray(rawData)
     ? rawData
     : (() => {
