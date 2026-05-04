@@ -71,6 +71,7 @@ export function TripStageBlock({
   currentStage,
   driverName,
   orders = [],
+  blockFinishReason = null,
 }: Props) {
   const qc = useQueryClient();
   const [comment, setComment] = useState("");
