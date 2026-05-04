@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import {
+  authHeaders,
   fetchProfileViaApi,
   fetchUserRolesViaApi,
   setLocalSessionTokens,
@@ -34,11 +35,35 @@ type AuthContextValue = {
   roles: AppRole[];
   loadError: string | null;
   signIn: (email: string, password: string) => Promise<void>;
+  diagnoseSignIn: (
+    email: string,
+    password: string,
+    onStep: (message: string) => void,
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+type AuthMeResponse = {
+  id?: string | null;
+  email?: string | null;
+  name?: string | null;
+  role?: AppRole | string | null;
+};
+
+function toFriendlyAuthError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error || "");
+  const lower = msg.toLowerCase();
+  if (lower.includes("invalid") || lower.includes("неверн")) {
+    return "Неверный email или пароль";
+  }
+  if (lower.includes("failed to fetch") || lower.includes("network")) {
+    return "Ошибка авторизации: сервер недоступен";
+  }
+  return msg || "Ошибка авторизации";
+}
 
 async function postJson(path: string, body: unknown): Promise<unknown> {
   const res = await fetch(path, {
@@ -55,6 +80,15 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
     throw new Error(msg);
   }
   return data;
+}
+
+async function fetchAuthMe(): Promise<{ status: number; body: AuthMeResponse | null }> {
+  const res = await fetch("/api/auth/me", {
+    credentials: "same-origin",
+    headers: { accept: "application/json", ...authHeaders() },
+  });
+  const body = (await res.json().catch(() => null)) as AuthMeResponse | null;
+  return { status: res.status, body };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
