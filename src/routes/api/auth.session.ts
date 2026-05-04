@@ -1,14 +1,14 @@
-// GET /api/auth/session — возвращает { user_id } если cookie-сессия валидна,
-// иначе { user_id: null }. Используется фронтом при загрузке страницы.
+// GET /api/auth/session — возвращает { user_id } если cookie-сессия валидна
+// или передан валидный Bearer-токен (fallback для iframe-окружений, где
+// httpOnly cookie может не сохраняться). Иначе { user_id: null }.
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse } from "@/server/api-helpers.server";
-import { getSessionUser } from "@/server/auth-cookies.server";
+import { jsonResponse, resolveAuth } from "@/server/api-helpers.server";
 
 export const Route = createFileRoute("/api/auth/session")({
   server: {
     handlers: {
-      GET: async () => {
-        const auth = await getSessionUser();
+      GET: async ({ request }) => {
+        const auth = await resolveAuth(request);
         return jsonResponse(
           { user_id: auth?.userId ?? null },
           { headers: { "cache-control": "no-store" } },
