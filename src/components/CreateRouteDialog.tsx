@@ -60,13 +60,11 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryKey: ["drivers", "active"],
     enabled: open,
     queryFn: async (): Promise<Driver[]> => {
-      const { data, error } = await db
-        .from("drivers")
-        .select("id, full_name, is_active, carrier_id")
-        .eq("is_active", true)
-        .order("full_name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Driver>("/api/drivers", {
+        limit: 100,
+        extra: { activeOnly: 1 },
+      });
+      return rows;
     },
   });
 
@@ -74,13 +72,11 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryKey: ["vehicles", "active"],
     enabled: open,
     queryFn: async (): Promise<Vehicle[]> => {
-      const { data, error } = await db
-        .from("vehicles")
-        .select("id, plate_number, brand, model, body_type, is_active, carrier_id, capacity_kg, volume_m3")
-        .eq("is_active", true)
-        .order("plate_number", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Vehicle>("/api/vehicles", {
+        limit: 100,
+        extra: { activeOnly: 1 },
+      });
+      return rows;
     },
   });
 
@@ -88,29 +84,29 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryKey: ["warehouses", "active"],
     enabled: open,
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name, city, address, is_active")
-        .eq("is_active", true)
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 100,
+        extra: { activeOnly: 1 },
+      });
+      return rows;
     },
   });
 
-  // Доступные заказы
+  // Доступные заказы — все статусы из ["new", "in_progress", "awaiting_resend"]
   const { data: orders } = useQuery({
     queryKey: ["orders", "available-for-route"],
-    queryFn: async (): Promise<Order[]> => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .in("status", ["new", "in_progress", "awaiting_resend"])
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Order[];
-    },
     enabled: open,
+    queryFn: async (): Promise<Order[]> => {
+      const all: Order[] = [];
+      for (const st of ["new", "in_progress", "awaiting_resend"] as const) {
+        const { rows } = await fetchListViaApi<Order>("/api/orders", {
+          limit: 100,
+          extra: { status: st },
+        });
+        all.push(...rows);
+      }
+      return all;
+    },
   });
 
   const filtered = useMemo(() => {
