@@ -86,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } | null;
       const uid = body?.user_id ?? null;
       if (uid) {
-        setUser({ id: uid });
+        setUser({ id: uid, email: null });
         await loadProfileAndRoles();
       } else {
         setUser(null);
@@ -99,6 +99,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles([]);
     }
   }, [loadProfileAndRoles]);
+
+  // Подмешиваем email из профиля в user, чтобы не ломать компоненты, читающие user.email.
+  useEffect(() => {
+    if (!user) return;
+    if (profile?.email && profile.email !== user.email) {
+      setUser({ id: user.id, email: profile.email });
+    }
+  }, [profile, user]);
 
   useEffect(() => {
     refreshSession().finally(() => setLoading(false));
