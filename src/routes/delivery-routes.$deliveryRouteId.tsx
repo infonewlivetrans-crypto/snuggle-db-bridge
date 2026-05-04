@@ -199,14 +199,12 @@ function DeliveryRoutePage() {
       if (swapWith < 0 || swapWith >= list.length) return;
       const a = list[idx];
       const b = list[swapWith];
-      // Двухходовая замена через временное значение, чтобы обойти UNIQUE(route_id, point_number) при наличии
-      const tmp = -Math.abs(a.point_number) - 1;
-      const tx1 = await supabase.from("route_points").update({ point_number: tmp }).eq("id", a.id);
-      if (tx1.error) throw tx1.error;
-      const tx2 = await supabase.from("route_points").update({ point_number: a.point_number }).eq("id", b.id);
-      if (tx2.error) throw tx2.error;
-      const tx3 = await supabase.from("route_points").update({ point_number: b.point_number }).eq("id", a.id);
-      if (tx3.error) throw tx3.error;
+      await apiPost("/api/route-points/swap", {
+        a_id: a.id,
+        a_number: a.point_number,
+        b_id: b.id,
+        b_number: b.point_number,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
@@ -223,11 +221,10 @@ function DeliveryRoutePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status, comment: comment || null })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}`, {
+        status,
+        comment: comment || null,
+      });
     },
     onSuccess: () => {
       toast.success("Маршрут сохранён");
@@ -239,11 +236,9 @@ function DeliveryRoutePage() {
 
   const finalize = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status: "completed" as DeliveryRouteStatus })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}`, {
+        status: "completed" as DeliveryRouteStatus,
+      });
     },
     onSuccess: () => {
       toast.success("Маршрут завершён");
