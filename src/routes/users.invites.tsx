@@ -40,6 +40,7 @@ import {
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
+import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 import {
   Copy,
   Link2,
