@@ -30,7 +30,7 @@ import {
 import { fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -46,7 +46,26 @@ type UserRow = {
   email: string | null;
   is_active: boolean;
   roles?: AppRole[];
+  phone?: string | null;
+  comment?: string | null;
+  status?: "invited" | "active" | "blocked";
+  invite_token?: string | null;
+  invite_active?: boolean | null;
 };
+
+function inviteUrl(token: string): string {
+  if (typeof window === "undefined") return `/invite/${token}`;
+  return `${window.location.origin}/invite/${token}`;
+}
+
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 async function serverFnAuthHeaders(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();
