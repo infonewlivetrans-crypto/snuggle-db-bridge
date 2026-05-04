@@ -193,6 +193,15 @@ export function TripStageBlock({
         <span className="font-semibold">Этапы рейса</span>
       </div>
 
+      <OfflineQueueIndicator
+        invalidateKeys={[
+          ["trip-stage-events", deliveryRouteId],
+          ["route-returns", deliveryRouteId],
+          ["driver-route", deliveryRouteId],
+          ["delivery-route", deliveryRouteId],
+        ]}
+      />
+
       {/* Прогресс по шагам */}
       <ol className="space-y-2">
         {TRIP_STAGE_STEPS.map((step) => {
