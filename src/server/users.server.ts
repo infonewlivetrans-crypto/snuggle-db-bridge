@@ -71,6 +71,15 @@ export async function adminSetUserRole(args: { userId: string; role: AppRole }) 
   if (error) throw new Error(error.message);
 }
 
+export async function adminSetUserRoles(args: { userId: string; roles: AppRole[] }) {
+  const unique = Array.from(new Set(args.roles));
+  if (unique.length === 0) throw new Error("Должна быть хотя бы одна роль");
+  await supabaseAdmin.from("user_roles").delete().eq("user_id", args.userId);
+  const rows = unique.map((role) => ({ user_id: args.userId, role }));
+  const { error } = await supabaseAdmin.from("user_roles").insert(rows);
+  if (error) throw new Error(error.message);
+}
+
 export async function adminSetUserActive(args: { userId: string; isActive: boolean }) {
   const { error } = await supabaseAdmin
     .from("profiles")

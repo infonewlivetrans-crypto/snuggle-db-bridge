@@ -5,6 +5,7 @@ import {
   adminListUsers,
   adminSetUserActive,
   adminSetUserRole,
+  adminSetUserRoles,
   assertCallerIsAdmin,
   bootstrapFirstAdmin,
   hasAnyAdmin,
@@ -71,5 +72,23 @@ export const setUserActiveFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertCallerIsAdmin(context.userId);
     await adminSetUserActive(data);
+    return { ok: true };
+  });
+
+export const setUserRolesFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userId: string; roles: AppRole[] }) => {
+    if (!input?.userId) throw new Error("userId обязателен");
+    if (!Array.isArray(input.roles) || input.roles.length === 0) {
+      throw new Error("Выберите хотя бы одну роль");
+    }
+    for (const r of input.roles) {
+      if (!ROLE_SET.has(r)) throw new Error(`Недопустимая роль: ${r}`);
+    }
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertCallerIsAdmin(context.userId);
+    await adminSetUserRoles(data);
     return { ok: true };
   });
