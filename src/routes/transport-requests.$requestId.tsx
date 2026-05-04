@@ -441,13 +441,12 @@ function TransportRequestDetailPage() {
               </TabsContent>
 
               <TabsContent value="payment" className="space-y-4 pt-4">
-                <RouteCostBlock routeId={data.id} />
                 <CarrierPaymentBlock routeId={data.id} />
                 <CarrierPayoutBlock routeId={data.id} />
               </TabsContent>
 
               <TabsContent value="docs" className="space-y-4 pt-4">
-                <CarrierDocumentsBlock routeId={data.id} />
+                <CarrierDocumentsBlock routeId={data.id} mode="logist" />
               </TabsContent>
 
               <TabsContent value="warehouse" className="space-y-4 pt-4">
