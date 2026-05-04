@@ -73,6 +73,20 @@ export function RouteSheetImportWizard({
     inserted: number;
     total: number;
     failedRows: Array<{ rowIndex: number; reason: string }>;
+    headerMissing: string[];
+    rows: Array<{
+      rowIndex: number;
+      orderNumber: string;
+      customer: string | null;
+      missingFields: string[];
+      reason?: string;
+    }>;
+    clientsNeedingFill: Array<{
+      name: string;
+      clientId: string | null;
+      missing: string[];
+    }>;
+    needsReview: boolean;
   } | null>(null);
 
   const reset = () => {
@@ -139,6 +153,20 @@ export function RouteSheetImportWizard({
         inserted?: number;
         total?: number;
         failedRows?: Array<{ rowIndex: number; reason: string }>;
+        headerMissing?: string[];
+        rows?: Array<{
+          rowIndex: number;
+          orderNumber: string;
+          customer: string | null;
+          missingFields: string[];
+          reason?: string;
+        }>;
+        clientsNeedingFill?: Array<{
+          name: string;
+          clientId: string | null;
+          missing: string[];
+        }>;
+        needsReview?: boolean;
         error?: string;
       };
 
@@ -152,9 +180,17 @@ export function RouteSheetImportWizard({
         inserted: json.inserted ?? 0,
         total: json.total ?? parsed.orders.length,
         failedRows: json.failedRows ?? [],
+        headerMissing: json.headerMissing ?? [],
+        rows: json.rows ?? [],
+        clientsNeedingFill: json.clientsNeedingFill ?? [],
+        needsReview: Boolean(json.needsReview),
       });
       setStep("done");
-      toast.success("Заявка на транспорт создана");
+      if (json.needsReview) {
+        toast.warning("Заявка создана, но требует заполнения данных");
+      } else {
+        toast.success("Заявка на транспорт создана");
+      }
     } catch (e) {
       const msg = errorText(e);
       console.error("Route sheet import error:", e);
