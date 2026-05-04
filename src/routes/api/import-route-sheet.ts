@@ -98,7 +98,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               .from("carriers")
               .insert({
                 company_name: payload.carrier,
-                carrier_type: "company",
+                carrier_type: "ooo",
                 source: "route_sheet",
               } as never)
               .select("id")
