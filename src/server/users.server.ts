@@ -94,18 +94,45 @@ export async function adminSetUserActive(args: { userId: string; isActive: boole
 }
 
 export async function adminListUsers() {
-  const [{ data: profiles, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
+  const [
+    { data: profiles, error: pErr },
+    { data: roles, error: rErr },
+    { data: invites, error: iErr },
+  ] = await Promise.all([
     supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false }),
     supabaseAdmin.from("user_roles").select("user_id, role"),
+    supabaseAdmin
+      .from("invite_tokens")
+      .select("id, token, user_id, full_name, phone, role, comment, is_active, last_used_at, created_at")
+      .order("created_at", { ascending: false }),
   ]);
   if (pErr) throw new Error(pErr.message);
   if (rErr) throw new Error(rErr.message);
+  if (iErr) throw new Error(iErr.message);
 
   const rolesByUser = new Map<string, AppRole[]>();
   for (const r of (roles ?? []) as { user_id: string; role: AppRole }[]) {
     const list = rolesByUser.get(r.user_id) ?? [];
     list.push(r.role);
     rolesByUser.set(r.user_id, list);
+  }
+
+  // Карта инвайтов по user_id (для пометки статуса invited)
+  const inviteByUser = new Map<
+    string,
+    { token: string; is_active: boolean; last_used_at: string | null; phone: string | null; comment: string | null }
+  >();
+  for (const inv of (invites ?? []) as Array<{
+    user_id: string;
+    token: string;
+    is_active: boolean;
+    last_used_at: string | null;
+    phone: string | null;
+    comment: string | null;
+  }>) {
+    if (!inviteByUser.has(inv.user_id)) {
+      inviteByUser.set(inv.user_id, inv);
+    }
   }
 
   return ((profiles ?? []) as Array<{
@@ -115,8 +142,18 @@ export async function adminListUsers() {
     email: string | null;
     is_active: boolean;
     created_at: string;
-  }>).map((p) => ({
-    ...p,
-    roles: rolesByUser.get(p.user_id) ?? [],
-  }));
+  }>).map((p) => {
+    const inv = inviteByUser.get(p.user_id);
+    // Считаем «приглашённым», если у профиля есть активная invite-ссылка и она ещё не использовалась
+    const isInvited = !!inv && inv.is_active && !inv.last_used_at;
+    return {
+      ...p,
+      roles: rolesByUser.get(p.user_id) ?? [],
+      phone: inv?.phone ?? null,
+      comment: inv?.comment ?? null,
+      status: isInvited ? "invited" : p.is_active ? "active" : "blocked",
+      invite_token: inv?.token ?? null,
+      invite_active: inv?.is_active ?? null,
+    };
+  });
 }
