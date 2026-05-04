@@ -151,6 +151,11 @@ function InvitesPage() {
     <div className="min-h-screen bg-background">
       <AppHeader />
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+        {isPreviewHost() ? (
+          <div className="mb-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Ссылки будут вести на production-домен radius-track.ru.
+          </div>
+        ) : null}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
