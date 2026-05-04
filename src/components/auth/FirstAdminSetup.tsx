@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
-import { bootstrapFirstAdminFn } from "@/lib/server-functions/users.functions";
-import { supabase } from "@/integrations/supabase/client";
 
 export function FirstAdminSetup({ onCreated }: { onCreated: () => void }) {
   const [fullName, setFullName] = useState("");
@@ -27,15 +25,22 @@ export function FirstAdminSetup({ onCreated }: { onCreated: () => void }) {
     }
     setBusy(true);
     try {
-      await bootstrapFirstAdminFn({
-        data: { email: email.trim(), password, fullName: fullName.trim() },
+      const res = await fetch("/api/auth/bootstrap-admin", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          email: email.trim(),
+          password,
+          fullName: fullName.trim(),
+        }),
       });
-      // Сразу входим под только что созданным админом
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      if (signInError) throw signInError;
+      const body = (await res.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+      if (!res.ok) {
+        throw new Error(body?.error || "Не удалось создать администратора");
+      }
       onCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось создать администратора");
