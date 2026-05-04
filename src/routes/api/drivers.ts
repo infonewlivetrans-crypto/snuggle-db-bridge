@@ -18,12 +18,14 @@ export const Route = createFileRoute("/api/drivers")({
 
         const { limit, offset, search, url } = parseListParams(request);
         const carrierId = url.searchParams.get("carrierId");
+        const activeOnly = url.searchParams.get("activeOnly") === "1";
 
         let q = auth.client
           .from("drivers")
           .select("*", { count: "exact" })
           .order("full_name", { ascending: true });
         if (carrierId) q = q.eq("carrier_id", carrierId);
+        if (activeOnly) q = q.eq("is_active", true);
         if (search) {
           q = q.or(
             `full_name.ilike.%${search}%,phone.ilike.%${search}%,license_number.ilike.%${search}%`,
