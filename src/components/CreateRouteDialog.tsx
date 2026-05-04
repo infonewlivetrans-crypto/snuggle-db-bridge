@@ -214,14 +214,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
       const driver = drivers?.find((d) => d.id === driverId);
       const driverName = driver?.full_name ?? "";
 
-      const { data: numData, error: numErr } = await supabase.rpc("generate_route_number");
-      if (numErr) throw numErr;
-      const routeNumber = numData as string;
-
-      const { data: route, error: routeErr } = await db
-        .from("routes")
-        .insert({
-          route_number: routeNumber,
+      const route = await apiPost<{ id: string; route_number: string }>(
+        "/api/routes",
+        {
+          generate_number: true,
           driver_name: driverName,
           driver_id: driverId,
           vehicle_id: vehicleId || null,
@@ -235,13 +231,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           planned_departure_at: null,
           comment: comment.trim() || null,
           status: "planned",
-          // Для warehouse_transfer передадим вручную, иначе пересчитает триггер
           total_weight_kg: isTransfer ? totalWeight : 0,
           total_volume_m3: isTransfer ? totalVolume : 0,
-        })
-        .select()
-        .single();
-      if (routeErr) throw routeErr;
+        },
+      );
 
       if (selectedIds.length > 0) {
         const points = selectedIds.map((orderId, idx) => ({
@@ -250,8 +243,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           point_number: idx + 1,
           status: "pending" as const,
         }));
-        const { error: pointsErr } = await supabase.from("route_points").insert(points);
-        if (pointsErr) throw pointsErr;
+        await apiPost("/api/route-points", { points });
       }
 
       return route;
