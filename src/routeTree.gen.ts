@@ -85,6 +85,7 @@ import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
+import { Route as ApiManagersRouteImport } from './routes/api/managers'
 import { Route as ApiInviteLoginRouteImport } from './routes/api/invite-login'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
@@ -481,6 +482,11 @@ const ApiModulesRoute = ApiModulesRouteImport.update({
   path: '/api/modules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiManagersRoute = ApiManagersRouteImport.update({
+  id: '/api/managers',
+  path: '/api/managers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInviteLoginRoute = ApiInviteLoginRouteImport.update({
   id: '/api/invite-login',
   path: '/api/invite-login',
@@ -594,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
+  '/api/managers': typeof ApiManagersRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -685,6 +692,7 @@ export interface FileRoutesByTo {
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
+  '/api/managers': typeof ApiManagersRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -777,6 +785,7 @@ export interface FileRoutesById {
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
+  '/api/managers': typeof ApiManagersRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -870,6 +879,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/import-route-sheet'
     | '/api/invite-login'
+    | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -961,6 +971,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/import-route-sheet'
     | '/api/invite-login'
+    | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -1052,6 +1063,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/import-route-sheet'
     | '/api/invite-login'
+    | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -1144,6 +1156,7 @@ export interface RootRouteChildren {
   ApiDriversRoute: typeof ApiDriversRoute
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
+  ApiManagersRoute: typeof ApiManagersRoute
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
@@ -1722,6 +1735,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiModulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/managers': {
+      id: '/api/managers'
+      path: '/api/managers'
+      fullPath: '/api/managers'
+      preLoaderRoute: typeof ApiManagersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/invite-login': {
       id: '/api/invite-login'
       path: '/api/invite-login'
@@ -1875,6 +1895,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriversRoute: ApiDriversRoute,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
+  ApiManagersRoute: ApiManagersRoute,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
