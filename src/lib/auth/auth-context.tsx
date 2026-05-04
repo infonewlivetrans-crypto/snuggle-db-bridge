@@ -212,6 +212,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         const loginBody = (await loginRes.json().catch(() => null)) as {
           error?: string;
+          cookies_set?: boolean;
+          cookie_names?: string[];
           access_token?: string;
           refresh_token?: string;
         } | null;
@@ -227,6 +229,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
           onStep("fallback токены сохранены для preview");
         }
+        onStep(
+          loginBody?.cookies_set
+            ? `сервер установил cookie: ${(loginBody.cookie_names ?? []).join(", ")}`
+            : "сервер не подтвердил установку cookie",
+        );
 
         onStep("вызван GET /api/auth/me");
         const { status, body } = await fetchAuthMe();
