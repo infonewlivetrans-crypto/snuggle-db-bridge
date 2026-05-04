@@ -251,7 +251,9 @@ function UsersPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {u.is_active ? (
+                        {u.status === "invited" ? (
+                          <span className="badge-status badge-status-new">Приглашён</span>
+                        ) : u.is_active ? (
                           <span className="badge-status badge-status-completed">Активен</span>
                         ) : (
                           <span className="badge-status badge-status-cancelled">Заблокирован</span>
@@ -259,6 +261,21 @@ function UsersPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {u.invite_token && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1"
+                              title="Скопировать ссылку приглашения"
+                              onClick={async () => {
+                                const ok = await copyText(inviteUrl(u.invite_token!));
+                                toast.success(ok ? "Ссылка скопирована" : "Не удалось скопировать");
+                              }}
+                            >
+                              <Copy className="h-4 w-4" />
+                              Ссылка
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="outline"
