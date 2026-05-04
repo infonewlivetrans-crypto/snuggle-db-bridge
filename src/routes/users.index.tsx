@@ -138,7 +138,8 @@ function UsersPage() {
                 </Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
 
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
