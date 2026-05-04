@@ -176,9 +176,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           refresh_token: result.refresh_token,
         });
       }
-      await refreshSession();
+      const { status, body } = await fetchAuthMe();
+      if (status === 401) {
+        console.error("[auth] GET /api/auth/me returned 401 after login", body);
+        throw new Error("Не удалось получить профиль пользователя");
+      }
+      if (status >= 400 || !body?.id) {
+        console.error("[auth] GET /api/auth/me failed after login", status, body);
+        throw new Error("Не удалось получить профиль пользователя");
+      }
+      setUser({ id: body.id, email: body.email ?? null });
+      const role = normalizeRole(body.role);
+      if (role) setRoles([role]);
+      await loadProfileAndRoles();
     },
-    [refreshSession],
+    [loadProfileAndRoles],
+  );
+
+  const diagnoseSignIn = useCallback(
+    async (
+      email: string,
+      password: string,
+      onStep: (message: string) => void,
+    ) => {
+      try {
+        setLoadError(null);
+        onStep("отправлен POST /api/auth/login");
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({ email, password }),
+          credentials: "same-origin",
+        });
+        const loginBody = (await loginRes.json().catch(() => null)) as {
+          error?: string;
+          access_token?: string;
+          refresh_token?: string;
+        } | null;
+        onStep(`login status: ${loginRes.status}`);
+        if (!loginRes.ok) {
+          console.error("[auth] POST /api/auth/login failed", loginRes.status, loginBody);
+          throw new Error(loginBody?.error || "Ошибка авторизации");
+        }
+        if (loginBody?.access_token && loginBody.refresh_token) {
+          setLocalSessionTokens({
+            access_token: loginBody.access_token,
+            refresh_token: loginBody.refresh_token,
+          });
+          onStep("fallback токены сохранены для preview");
+        }
+
+        onStep("вызван GET /api/auth/me");
+        const { status, body } = await fetchAuthMe();
+        onStep(`auth/me status: ${status}`);
+        if (status === 401) {
+          console.error("[auth] GET /api/auth/me returned 401", body);
+          throw new Error("auth/me вернул 401: cookie не установилась или не читается");
+        }
+        if (status >= 400 || !body?.id) {
+          console.error("[auth] GET /api/auth/me failed", status, body);
+          throw new Error("Не удалось получить профиль пользователя");
+        }
+
+        const signedUser = { id: body.id, email: body.email ?? null };
+        const role = normalizeRole(body.role);
+        const nextRoles = role ? [role] : [];
+        setUser(signedUser);
+        setRoles(nextRoles);
+        await loadProfileAndRoles();
+        return { user: signedUser, roles: nextRoles };
+      } catch (error) {
+        console.error("[auth] login diagnostics failed", error);
+        throw new Error(toFriendlyAuthError(error));
+      }
+    },
+    [loadProfileAndRoles],
   );
 
   const signOut = useCallback(async () => {
@@ -207,6 +279,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         roles,
         loadError,
         signIn,
+        diagnoseSignIn,
         signOut,
         refresh,
       }}
