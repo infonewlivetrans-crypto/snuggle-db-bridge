@@ -141,55 +141,22 @@ function RouteDetailPage() {
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
     queryFn: async (): Promise<RouteWithRefs | null> => {
-      // Без FK в БД делаем 2 запроса вместо embed
-      const { data, error } = await supabase
-        .from("routes")
-        .select("*")
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) return null;
-      const r = data as DeliveryRoute;
-
-      const [wh, dwh, veh, drv] = await Promise.all([
-        r.warehouse_id
-          ? supabase.from("warehouses").select("id, name, city, address").eq("id", r.warehouse_id).maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        r.destination_warehouse_id
-          ? supabase.from("warehouses").select("id, name, city").eq("id", r.destination_warehouse_id).maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        r.vehicle_id
-          ? supabase
-              .from("vehicles")
-              .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3")
-              .eq("id", r.vehicle_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        r.driver_id
-          ? supabase.from("drivers").select("id, full_name, phone").eq("id", r.driver_id).maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
-
-      return {
-        ...r,
-        warehouse: (wh.data ?? null) as RouteWithRefs["warehouse"],
-        destination_warehouse: (dwh.data ?? null) as RouteWithRefs["destination_warehouse"],
-        vehicle: (veh.data ?? null) as RouteWithRefs["vehicle"],
-        driver: (drv.data ?? null) as RouteWithRefs["driver"],
-      };
+      try {
+        return await apiGetAuth<RouteWithRefs>(`/api/routes/${encodeURIComponent(routeId)}`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        if (msg.includes("404") || /not_found/i.test(msg)) return null;
+        throw e;
+      }
     },
   });
 
   const { data: points, isLoading: pointsLoading } = useQuery({
     queryKey: ["route-points", routeId],
     queryFn: async (): Promise<RoutePointWithOrder[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("*, orders(*)")
-        .eq("route_id", routeId)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as RoutePointWithOrder[];
+      return await apiGetAuth<RoutePointWithOrder[]>(
+        `/api/route-points?route_id=${encodeURIComponent(routeId)}&withOrders=1`,
+      );
     },
   });
 
