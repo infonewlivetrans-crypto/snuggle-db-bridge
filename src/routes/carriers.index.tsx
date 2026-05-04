@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { db } from "@/lib/db";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { CarrierFormDialog } from "@/components/CarrierFormDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -124,12 +124,8 @@ function CarriersPage() {
   const { data: carriers, isLoading } = useQuery({
     queryKey: ["carriers"],
     queryFn: async (): Promise<Carrier[]> => {
-      const { data, error } = await db
-        .from("carriers")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Carrier>("/api/carriers", { limit: 100 });
+      return rows;
     },
   });
 

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { db } from "@/lib/db";
 import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { VehicleFormDialog } from "@/components/VehicleFormDialog";
@@ -58,9 +57,8 @@ function VehiclesPage() {
   const { data: carriers } = useQuery({
     queryKey: ["carriers", "map"],
     queryFn: async (): Promise<Carrier[]> => {
-      const { data, error } = await db.from("carriers").select("id, company_name");
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Carrier>("/api/carriers", { limit: 100 });
+      return rows;
     },
   });
 

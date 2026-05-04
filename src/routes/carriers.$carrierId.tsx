@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { db } from "@/lib/db";
+import { apiGetAuth, apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,49 +59,37 @@ function CarrierDetailPage() {
 
   const { data: carrier, isLoading } = useQuery({
     queryKey: ["carrier", carrierId],
-    queryFn: async (): Promise<Carrier | null> => {
-      const { data, error } = await db.from("carriers").select("*").eq("id", carrierId).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
+    queryFn: (): Promise<Carrier | null> => apiGetAuth<Carrier | null>(`/api/carriers/${carrierId}`),
   });
 
   const { data: drivers } = useQuery({
     queryKey: ["drivers", carrierId],
     queryFn: async (): Promise<Driver[]> => {
-      const { data, error } = await db
-        .from("drivers")
-        .select("*")
-        .eq("carrier_id", carrierId)
-        .order("full_name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Driver>("/api/drivers", {
+        limit: 100,
+        extra: { carrierId },
+      });
+      return rows;
     },
   });
 
   const { data: vehicles } = useQuery({
     queryKey: ["vehicles", carrierId],
     queryFn: async (): Promise<Vehicle[]> => {
-      const { data, error } = await db
-        .from("vehicles")
-        .select("*")
-        .eq("carrier_id", carrierId)
-        .order("plate_number", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Vehicle>("/api/vehicles", {
+        limit: 100,
+        extra: { carrierId },
+      });
+      return rows;
     },
   });
 
   const updateStatus = useMutation({
     mutationFn: async (status: CarrierVerificationStatus) => {
-      const { error } = await db
-        .from("carriers")
-        .update({
-          verification_status: status,
-          verification_comment: verifComment.trim() || carrier?.verification_comment || null,
-        })
-        .eq("id", carrierId);
-      if (error) throw error;
+      await apiPatch(`/api/carriers/${carrierId}`, {
+        verification_status: status,
+        verification_comment: verifComment.trim() || carrier?.verification_comment || null,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["carrier", carrierId] });

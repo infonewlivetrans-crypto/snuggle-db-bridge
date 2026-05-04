@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,20 +25,17 @@ function VerificationPage() {
   const { data: carriers, isLoading } = useQuery({
     queryKey: ["carriers", "verification-queue"],
     queryFn: async (): Promise<Carrier[]> => {
-      const { data, error } = await db
-        .from("carriers")
-        .select("*")
-        .in("verification_status", ["new", "in_review"])
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Carrier>("/api/carriers", {
+        limit: 100,
+        extra: { statuses: "new,in_review" },
+      });
+      return rows;
     },
   });
 
   const update = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: CarrierVerificationStatus }) => {
-      const { error } = await db.from("carriers").update({ verification_status: status }).eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/carriers/${id}`, { verification_status: status });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["carriers", "verification-queue"] });
