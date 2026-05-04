@@ -76,14 +76,14 @@ async function serverFnAuthHeaders(): Promise<Record<string, string>> {
 
 function UsersPage() {
   const qc = useQueryClient();
-  const { loading: authLoading, session } = useAuth();
+  const { loading: authLoading, user } = useAuth();
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["users-admin", session?.user?.id ?? null],
+    queryKey: ["users-admin", user?.id ?? null],
     queryFn: async () => {
       const response = await fetchListViaApi<UserRow>("/api/users", { limit: 100 });
       return Array.isArray(response.rows) ? response.rows : [];
     },
-    enabled: !authLoading && !!session?.access_token,
+    enabled: !authLoading && !!user,
   });
 
   // После входа/смены сессии — принудительно перезапросить список,
