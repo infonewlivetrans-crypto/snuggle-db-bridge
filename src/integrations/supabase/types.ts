@@ -1292,6 +1292,7 @@ export type Database = {
           id: string
           is_active: boolean
           last_used_at: string | null
+          manager_id: string | null
           manager_name: string | null
           phone: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -1308,6 +1309,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_used_at?: string | null
+          manager_id?: string | null
           manager_name?: string | null
           phone?: string | null
           role: Database["public"]["Enums"]["app_role"]
@@ -1324,6 +1326,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           last_used_at?: string | null
+          manager_id?: string | null
           manager_name?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
@@ -1339,7 +1342,59 @@ export type Database = {
             referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "invite_tokens_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "managers"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      managers: {
+        Row: {
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          external_id: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          normalized_name: string
+          phone: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          external_id?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          normalized_name: string
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          external_id?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          normalized_name?: string
+          phone?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -1634,6 +1689,8 @@ export type Database = {
           landmarks: string | null
           latitude: number | null
           longitude: number | null
+          manager_id: string | null
+          manager_name: string | null
           manual_cost_reason: string | null
           manual_cost_set_at: string | null
           manual_cost_set_by: string | null
@@ -1685,6 +1742,8 @@ export type Database = {
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
+          manager_id?: string | null
+          manager_name?: string | null
           manual_cost_reason?: string | null
           manual_cost_set_at?: string | null
           manual_cost_set_by?: string | null
@@ -1736,6 +1795,8 @@ export type Database = {
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
+          manager_id?: string | null
+          manager_name?: string | null
           manual_cost_reason?: string | null
           manual_cost_set_at?: string | null
           manual_cost_set_by?: string | null
@@ -1764,6 +1825,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "managers"
             referencedColumns: ["id"]
           },
         ]
