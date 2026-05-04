@@ -172,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     try {
       if (getAuthMode() === "preview") {
+        const supabase = await getBrowserSupabase();
         const { data, error } = await withAuthTimeout(supabase.auth.getSession());
         if (error || !data.session?.user) {
           setUser(null);
@@ -230,6 +231,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(
     async (email: string, password: string) => {
       if (getAuthMode() === "preview") {
+        const supabase = await getBrowserSupabase();
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error || !data.user) {
           console.error("[auth] preview signInWithPassword failed", error);
@@ -291,6 +293,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoadError(null);
         if (getAuthMode() === "preview") {
           onStep("preview-auth: вызван Supabase signInWithPassword");
+          const supabase = await getBrowserSupabase();
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
           onStep(error ? "preview login status: error" : "preview login status: 200");
           if (error || !data.user) {
@@ -374,6 +377,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     if (getAuthMode() === "preview") {
+      const supabase = await getBrowserSupabase();
       const { error } = await supabase.auth.signOut();
       if (error) console.error("[auth] preview logout failed", error);
     } else {
