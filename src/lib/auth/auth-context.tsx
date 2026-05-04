@@ -126,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/auth/session", {
         credentials: "same-origin",
+        headers: { accept: "application/json", ...authHeaders() },
       });
       const body = (await res.json().catch(() => null)) as {
         user_id?: string | null;
@@ -139,7 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setRoles([]);
       }
-    } catch {
+    } catch (error) {
+      console.error("[auth] GET /api/auth/session failed", error);
       setUser(null);
       setProfile(null);
       setRoles([]);
