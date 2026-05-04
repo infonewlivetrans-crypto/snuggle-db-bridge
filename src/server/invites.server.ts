@@ -265,12 +265,23 @@ export async function activateInvite(args: {
     password,
     email_confirm: true,
   });
-  if (updErr) throw new Error(updErr.message);
+  if (updErr) {
+    const msg = updErr.message || "";
+    if (/already|exists|registered|duplicate/i.test(msg)) {
+      throw new Error("Этот email уже занят");
+    }
+    throw new Error(msg);
+  }
 
   await supabaseAdmin
     .from("profiles")
-    .update({ email, is_active: true })
+    .update({ email, phone: phoneNorm, is_active: true })
     .eq("user_id", invite.user_id);
+
+  await supabaseAdmin
+    .from("invite_tokens")
+    .update({ phone: phoneNorm })
+    .eq("id", invite.id);
 
   const { createClient } = await import("@supabase/supabase-js");
   const url = process.env.SUPABASE_URL!;
