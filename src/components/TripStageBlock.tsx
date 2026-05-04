@@ -30,7 +30,8 @@ import {
   listStageEventsFn,
   recordRouteReturnFn,
 } from "@/lib/server-functions/trip-stage.functions";
-import { getCurrentCoords } from "@/lib/gps";
+import { enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
+import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
 import {
   TRIP_STAGE_LABELS,
   TRIP_STAGE_STEPS,
