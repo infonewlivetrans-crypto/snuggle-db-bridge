@@ -36,6 +36,7 @@ import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import { TripStageBlock } from "@/components/TripStageBlock";
+import { LoadingExclusionsBlock } from "@/components/LoadingExclusionsBlock";
 import { formatRuPhone } from "@/lib/phone";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
@@ -403,6 +404,25 @@ function DriverRoutePage() {
                 validationErrors.length > 0 ? validationErrors[0] : null
               }
             />
+
+            {/* Изменение состава во время погрузки */}
+            {(data.current_stage === "arrived_loading" ||
+              data.current_stage === "loaded") && (
+              <LoadingExclusionsBlock
+                deliveryRouteId={deliveryRouteId}
+                currentStage={data.current_stage}
+                driverName={data.assigned_driver}
+                orders={list
+                  .map((p) => p.order)
+                  .filter((o): o is NonNullable<typeof o> => !!o)
+                  .map((o) => ({
+                    id: o.id,
+                    order_number: o.order_number,
+                    contact_name: o.contact_name,
+                    delivery_address: o.delivery_address ?? null,
+                  }))}
+              />
+            )}
 
             {/* Точки — показываем после выезда на линию */}
             {(data.current_stage === "in_progress" ||

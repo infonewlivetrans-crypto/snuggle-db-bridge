@@ -2341,6 +2341,64 @@ export type Database = {
           },
         ]
       }
+      route_order_exclusions: {
+        Row: {
+          comment: string | null
+          delivery_route_id: string
+          excluded_at: string
+          excluded_by: string | null
+          excluded_by_name: string | null
+          id: string
+          order_id: string
+          reason: string
+          route_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          delivery_route_id: string
+          excluded_at?: string
+          excluded_by?: string | null
+          excluded_by_name?: string | null
+          id?: string
+          order_id: string
+          reason: string
+          route_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          delivery_route_id?: string
+          excluded_at?: string
+          excluded_by?: string | null
+          excluded_by_name?: string | null
+          id?: string
+          order_id?: string
+          reason?: string
+          route_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_order_exclusions_delivery_route_id_fkey"
+            columns: ["delivery_route_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_order_exclusions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_order_exclusions_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       route_point_actions: {
         Row: {
           action: string
@@ -4228,6 +4286,7 @@ export type Database = {
         | "ready_for_delivery"
         | "awaiting_return"
         | "return_accepted"
+        | "excluded_from_route"
       payment_status: "not_paid" | "partial" | "paid" | "refunded"
       payment_type: "cash" | "card" | "online" | "qr"
       point_status:
@@ -4533,6 +4592,7 @@ export const Constants = {
         "ready_for_delivery",
         "awaiting_return",
         "return_accepted",
+        "excluded_from_route",
       ],
       payment_status: ["not_paid", "partial", "paid", "refunded"],
       payment_type: ["cash", "card", "online", "qr"],
