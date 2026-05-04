@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   authHeaders,
   fetchProfileViaApi,
@@ -124,7 +123,13 @@ function normalizeRole(role: AuthMeResponse["role"]): AppRole | null {
     : null;
 }
 
+async function getBrowserSupabase() {
+  const mod = await import("@/integrations/supabase/client");
+  return mod.supabase;
+}
+
 async function fetchPreviewProfileAndRoles(userId: string) {
+  const supabase = await getBrowserSupabase();
   const [{ data: prof, error: profileError }, { data: rolesData, error: rolesError }] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
     supabase.from("user_roles").select("role").eq("user_id", userId),
