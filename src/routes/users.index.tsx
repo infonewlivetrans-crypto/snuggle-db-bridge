@@ -29,7 +29,7 @@ import {
   setUserRoleFn,
 } from "@/lib/server-functions/users.functions";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck, Link2 } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog } from "lucide-react";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
@@ -87,6 +87,12 @@ function UsersPage() {
             <p className="mt-1 text-sm text-muted-foreground">Управление учётными записями и ролями</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link to="/users/managers">
+              <Button variant="outline" className="gap-2">
+                <UserCog className="h-4 w-4" />
+                Менеджеры
+              </Button>
+            </Link>
             <Link to="/users/invites">
               <Button variant="outline" className="gap-2">
                 <Link2 className="h-4 w-4" />

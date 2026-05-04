@@ -40,6 +40,8 @@ import {
   ShieldCheck,
   ChevronDown,
   Bell,
+  UserCog,
+  Link2,
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandLogo";
 import {
@@ -215,6 +217,8 @@ const GROUPS: readonly NavGroup[] = [
       p.startsWith("/first-run"),
     items: [
       { to: "/users", label: "Пользователи и роли", icon: UsersIcon },
+      { to: "/users/managers", label: "Менеджеры", icon: UserCog },
+      { to: "/users/invites", label: "Инвайт-ссылки", icon: Link2 },
       { to: "/admin/settings", label: "Настройки модулей", icon: Settings },
       { to: "/audit-log", label: "Журнал действий", icon: History },
       { to: "/backups", label: "Резервные копии", icon: Database },
