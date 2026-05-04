@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AppHeader } from "@/components/AppHeader";
@@ -29,7 +29,7 @@ import {
   setUserRoleFn,
 } from "@/lib/server-functions/users.functions";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2 } from "lucide-react";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
@@ -86,13 +86,20 @@ function UsersPage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Пользователи</h1>
             <p className="mt-1 text-sm text-muted-foreground">Управление учётными записями и ролями</p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                Добавить пользователя
+          <div className="flex flex-wrap gap-2">
+            <Link to="/users/invites">
+              <Button variant="outline" className="gap-2">
+                <Link2 className="h-4 w-4" />
+                Инвайт-ссылки
               </Button>
-            </DialogTrigger>
+            </Link>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Добавить пользователя
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Новый пользователь</DialogTitle>

@@ -55,6 +55,7 @@ import { Route as DeliveryRoutesIndexRouteImport } from './routes/delivery-route
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
 import { Route as WarehousesWarehouseIdRouteImport } from './routes/warehouses.$warehouseId'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
+import { Route as UsersInvitesRouteImport } from './routes/users.invites'
 import { Route as TransportRequestsPickerRouteImport } from './routes/transport-requests.picker'
 import { Route as TransportRequestsRequestIdRouteImport } from './routes/transport-requests.$requestId'
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
@@ -325,6 +326,11 @@ const WarehousesWarehouseIdRoute = WarehousesWarehouseIdRouteImport.update({
 const VehiclesVehicleIdRoute = VehiclesVehicleIdRouteImport.update({
   id: '/vehicles/$vehicleId',
   path: '/vehicles/$vehicleId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersInvitesRoute = UsersInvitesRouteImport.update({
+  id: '/users/invites',
+  path: '/users/invites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransportRequestsPickerRoute = TransportRequestsPickerRouteImport.update({
@@ -610,6 +616,7 @@ export interface FileRoutesByFullPath {
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/transport-requests/picker': typeof TransportRequestsPickerRoute
+  '/users/invites': typeof UsersInvitesRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
@@ -699,6 +706,7 @@ export interface FileRoutesByTo {
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/transport-requests/picker': typeof TransportRequestsPickerRoute
+  '/users/invites': typeof UsersInvitesRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers': typeof CarriersIndexRoute
@@ -789,6 +797,7 @@ export interface FileRoutesById {
   '/supply/requests': typeof SupplyRequestsRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/transport-requests/picker': typeof TransportRequestsPickerRoute
+  '/users/invites': typeof UsersInvitesRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
   '/carriers/': typeof CarriersIndexRoute
@@ -880,6 +889,7 @@ export interface FileRouteTypes {
     | '/supply/requests'
     | '/transport-requests/$requestId'
     | '/transport-requests/picker'
+    | '/users/invites'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
@@ -969,6 +979,7 @@ export interface FileRouteTypes {
     | '/supply/requests'
     | '/transport-requests/$requestId'
     | '/transport-requests/picker'
+    | '/users/invites'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers'
@@ -1058,6 +1069,7 @@ export interface FileRouteTypes {
     | '/supply/requests'
     | '/transport-requests/$requestId'
     | '/transport-requests/picker'
+    | '/users/invites'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
     | '/carriers/'
@@ -1147,6 +1159,7 @@ export interface RootRouteChildren {
   SupplyRequestsRoute: typeof SupplyRequestsRoute
   TransportRequestsRequestIdRoute: typeof TransportRequestsRequestIdRoute
   TransportRequestsPickerRoute: typeof TransportRequestsPickerRoute
+  UsersInvitesRoute: typeof UsersInvitesRoute
   VehiclesVehicleIdRoute: typeof VehiclesVehicleIdRoute
   WarehousesWarehouseIdRoute: typeof WarehousesWarehouseIdRoute
   CarriersIndexRoute: typeof CarriersIndexRoute
@@ -1484,6 +1497,13 @@ declare module '@tanstack/react-router' {
       path: '/vehicles/$vehicleId'
       fullPath: '/vehicles/$vehicleId'
       preLoaderRoute: typeof VehiclesVehicleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/invites': {
+      id: '/users/invites'
+      path: '/users/invites'
+      fullPath: '/users/invites'
+      preLoaderRoute: typeof UsersInvitesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transport-requests/picker': {
@@ -1862,6 +1882,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupplyRequestsRoute: SupplyRequestsRoute,
   TransportRequestsRequestIdRoute: TransportRequestsRequestIdRoute,
   TransportRequestsPickerRoute: TransportRequestsPickerRoute,
+  UsersInvitesRoute: UsersInvitesRoute,
   VehiclesVehicleIdRoute: VehiclesVehicleIdRoute,
   WarehousesWarehouseIdRoute: WarehousesWarehouseIdRoute,
   CarriersIndexRoute: CarriersIndexRoute,
