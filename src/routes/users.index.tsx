@@ -193,19 +193,20 @@ function UsersPage() {
                       <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
                       <TableCell className="text-sm">{u.email ?? "—"}</TableCell>
                       <TableCell>
-                        <Select
-                          value={currentRole}
-                          onValueChange={(v) => roleMut.mutate({ userId: u.user_id, role: v as AppRole })}
-                        >
-                          <SelectTrigger className="h-8 w-44">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {APP_ROLES.map((r) => (
-                              <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {u.roles.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">— нет ролей —</span>
+                          ) : (
+                            u.roles.map((r) => (
+                              <span
+                                key={r}
+                                className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+                              >
+                                {ROLE_LABELS[r as AppRole] ?? r}
+                              </span>
+                            ))
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {u.is_active ? (
@@ -215,14 +216,31 @@ function UsersPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1"
-                          onClick={() => activeMut.mutate({ userId: u.user_id, isActive: !u.is_active })}
-                        >
-                          {u.is_active ? (<><ShieldOff className="h-4 w-4" />Заблокировать</>) : (<><ShieldCheck className="h-4 w-4" />Разблокировать</>)}
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() =>
+                              setRolesEdit({
+                                userId: u.user_id,
+                                fullName: u.full_name ?? u.email ?? "",
+                                roles: [...u.roles] as AppRole[],
+                              })
+                            }
+                          >
+                            <Settings2 className="h-4 w-4" />
+                            Роли
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => activeMut.mutate({ userId: u.user_id, isActive: !u.is_active })}
+                          >
+                            {u.is_active ? (<><ShieldOff className="h-4 w-4" />Заблокировать</>) : (<><ShieldCheck className="h-4 w-4" />Разблокировать</>)}
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
