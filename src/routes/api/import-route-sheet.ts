@@ -269,7 +269,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               : null;
 
             // === Клиент: ищем по имени или телефону ===
-            let clientRow: {
+            type ClientRow = {
               id: string;
               name: string;
               phone: string | null;
@@ -281,27 +281,26 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               preferred_delivery_time: string | null;
               driver_instructions: string | null;
               extra_attrs: Record<string, unknown> | null;
-            } | null = null;
+            };
+            const CLIENT_COLS =
+              "id, name, phone, address, client_type, works_weekends, access_notes, unloading_notes, preferred_delivery_time, driver_instructions, extra_attrs";
+            let clientRow: ClientRow | null = null;
 
             if (o.customer) {
               const { data: byName } = await sb
                 .from("clients")
-                .select(
-                  "id, name, phone, address, client_type, works_weekends, access_notes, unloading_notes, preferred_delivery_time, driver_instructions, extra_attrs",
-                )
+                .select(CLIENT_COLS)
                 .ilike("name", o.customer)
                 .maybeSingle();
-              if (byName) clientRow = byName as never;
+              if (byName) clientRow = byName as unknown as ClientRow;
             }
             if (!clientRow && phoneNorm) {
               const { data: byPhone } = await sb
                 .from("clients")
-                .select(
-                  "id, name, phone, address, client_type, works_weekends, access_notes, unloading_notes, preferred_delivery_time, driver_instructions, extra_attrs",
-                )
+                .select(CLIENT_COLS)
                 .eq("phone", phoneNorm)
                 .maybeSingle();
-              if (byPhone) clientRow = byPhone as never;
+              if (byPhone) clientRow = byPhone as unknown as ClientRow;
             }
 
             // Создать клиента если не найден
@@ -314,11 +313,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
                   address: o.deliveryAddress,
                   source: "route_sheet",
                 } as never)
-                .select(
-                  "id, name, phone, address, client_type, works_weekends, access_notes, unloading_notes, preferred_delivery_time, driver_instructions, extra_attrs",
-                )
+                .select(CLIENT_COLS)
                 .single();
-              if (!clErr && createdCl) clientRow = createdCl as never;
+              if (!clErr && createdCl)
+                clientRow = createdCl as unknown as ClientRow;
             }
 
             // Автоподстановка из справочника
