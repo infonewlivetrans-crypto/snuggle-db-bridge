@@ -56,7 +56,7 @@ type AuthMeResponse = {
 
 type AuthMode = "preview" | "production";
 
-function getAuthMode(): AuthMode {
+export function getAuthMode(): AuthMode {
   if (typeof window === "undefined") return "production";
   const host = window.location.hostname.toLowerCase();
   const env = import.meta.env.VITE_APP_ENV as string | undefined;
@@ -65,6 +65,19 @@ function getAuthMode(): AuthMode {
   }
   if (host === "radius-track.ru" || host === "www.radius-track.ru") return "production";
   return env === "production" ? "production" : "preview";
+}
+
+async function withAuthTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  return await new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error("Auth timeout")), ms);
+    promise.then((value) => {
+      window.clearTimeout(timer);
+      resolve(value);
+    }).catch((error) => {
+      window.clearTimeout(timer);
+      reject(error);
+    });
+  });
 }
 
 function toFriendlyAuthError(error: unknown): string {
@@ -154,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     try {
       if (getAuthMode() === "preview") {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await withAuthTimeout(supabase.auth.getSession());
         if (error || !data.session?.user) {
           setUser(null);
           setProfile(null);
