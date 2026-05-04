@@ -81,21 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
-    try {
-      const { logAuditFn } = await import("@/lib/server-functions/audit.functions");
-      await logAuditFn({ data: { section: "auth", action: "login", objectType: "user", objectLabel: email } });
-    } catch {
-      // не блокируем вход, если аудит недоступен
-    }
+    // Аудит входа фиксируется автоматически на стороне Supabase auth.
   };
 
   const signOut = async () => {
-    try {
-      const { logAuditFn } = await import("@/lib/server-functions/audit.functions");
-      await logAuditFn({ data: { section: "auth", action: "logout", objectType: "user" } });
-    } catch {
-      // ignore
-    }
     await supabase.auth.signOut();
   };
 
