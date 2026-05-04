@@ -60,7 +60,7 @@ function getAuthMode(): AuthMode {
   if (typeof window === "undefined") return "production";
   const host = window.location.hostname.toLowerCase();
   const env = import.meta.env.VITE_APP_ENV as string | undefined;
-  if (host.includes("lovable.app") || host.includes("lovable.dev") || host === "localhost" || host === "127.0.0.1") {
+  if (host.includes("lovable.app") || host.includes("lovable.dev") || host.includes("lovableproject.com") || host === "localhost" || host === "127.0.0.1") {
     return "preview";
   }
   if (host === "radius-track.ru" || host === "www.radius-track.ru") return "production";
@@ -162,6 +162,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         const sessionUser = data.session.user;
+        setLocalSessionTokens({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
         setUser({ id: sessionUser.id, email: sessionUser.email ?? null });
         const previewData = await fetchPreviewProfileAndRoles(sessionUser.id);
         setProfile(previewData.profile);
@@ -212,6 +216,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error || !data.user) {
           console.error("[auth] preview signInWithPassword failed", error);
           throw new Error(error?.message || "Ошибка авторизации");
+        }
+        if (data.session) {
+          setLocalSessionTokens({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
         }
         setUser({ id: data.user.id, email: data.user.email ?? null });
         const previewData = await fetchPreviewProfileAndRoles(data.user.id);
@@ -268,6 +278,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (error || !data.user) {
             console.error("[auth] preview signInWithPassword failed", error);
             throw new Error(error?.message || "Ошибка авторизации");
+          }
+          if (data.session) {
+            setLocalSessionTokens({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            });
           }
           onStep("preview-auth: загружаю профиль и роли");
           const previewData = await fetchPreviewProfileAndRoles(data.user.id);
