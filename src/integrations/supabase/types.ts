@@ -1282,6 +1282,65 @@ export type Database = {
           },
         ]
       }
+      invite_tokens: {
+        Row: {
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          driver_id: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          manager_name: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          driver_id?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          manager_name?: string | null
+          phone?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          driver_id?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          manager_name?: string | null
+          phone?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invite_tokens_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
