@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,36 +88,34 @@ export function AddManualPointDialog({
       const amt = amountDue.trim() ? Number(amountDue) : null;
       if (amt != null && Number.isNaN(amt)) throw new Error("Некорректная сумма");
 
-      const { data: order, error: orderErr } = await supabase
-        .from("orders")
-        .insert({
-          order_number: orderNumber.trim(),
-          contact_name: contactName.trim() || null,
-          contact_phone: contactPhone.trim() || null,
-          delivery_address: address.trim() || null,
-          map_link: mapLink.trim() || null,
-          latitude: lat,
-          longitude: lng,
-          amount_due: amt,
-          payment_type: paymentType,
-          payment_status: prepaid ? "paid" : "not_paid",
-          requires_qr: requiresQr,
-          comment: comment.trim() || null,
-          status: "in_progress",
-          source: "manual",
-        })
-        .select("id")
-        .single();
-      if (orderErr) throw orderErr;
+      const order = await apiPost<{ id: string }>("/api/orders", {
+        order_number: orderNumber.trim(),
+        contact_name: contactName.trim() || null,
+        contact_phone: contactPhone.trim() || null,
+        delivery_address: address.trim() || null,
+        map_link: mapLink.trim() || null,
+        latitude: lat,
+        longitude: lng,
+        amount_due: amt,
+        payment_type: paymentType,
+        payment_status: prepaid ? "paid" : "not_paid",
+        requires_qr: requiresQr,
+        comment: comment.trim() || null,
+        status: "in_progress",
+        source: "manual",
+      });
 
       // 2) Создаём точку маршрута
-      const { error: pErr } = await supabase.from("route_points").insert({
-        route_id: sourceRequestId,
-        order_id: order.id,
-        point_number: currentPointsCount + 1,
-        status: "pending",
+      await apiPost("/api/route-points", {
+        points: [
+          {
+            route_id: sourceRequestId,
+            order_id: order.id,
+            point_number: currentPointsCount + 1,
+            status: "pending",
+          },
+        ],
       });
-      if (pErr) throw pErr;
     },
     onSuccess: () => {
       toast.success("Точка добавлена");

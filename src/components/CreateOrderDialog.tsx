@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { toast } from "sonner";
 import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
 import { parseCoords } from "@/lib/geo";
@@ -128,14 +128,11 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
     if (!file) return;
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("delivery-photos")
-        .upload(path, file, { upsert: false, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("delivery-photos").getPublicUrl(path);
-      setPhotoUrl(data.publicUrl);
+      const fd = new FormData();
+      fd.append("bucket", "delivery-photos");
+      fd.append("file", file);
+      const res = await apiPost<{ public_url: string }>("/api/storage/upload", fd, 30000);
+      setPhotoUrl(res.public_url);
       toast.success("Фото загружено");
     } catch (e) {
       toast.error((e as Error).message);
@@ -157,7 +154,7 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         throw new Error("Укажите адрес или координаты точки доставки");
       }
 
-      const { error } = await supabase.from("orders").insert({
+      await apiPost("/api/orders", {
         order_number: orderNumber.trim(),
         delivery_address: hasAddress ? deliveryAddress.trim() : null,
         latitude: hasCoords ? lat : null,
@@ -176,7 +173,6 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         items_count: itemsCount ? Number(itemsCount) : null,
         status: "new",
       });
-      if (error) throw error;
 
       // Тихий upsert клиента, чтобы при следующем заказе данные подставились
       if (contactName.trim()) {
