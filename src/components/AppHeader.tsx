@@ -40,6 +40,8 @@ import {
   ShieldCheck,
   ChevronDown,
   Bell,
+  UserCog,
+  Link2,
 } from "lucide-react";
 import { BrandMark } from "@/components/BrandLogo";
 import {
