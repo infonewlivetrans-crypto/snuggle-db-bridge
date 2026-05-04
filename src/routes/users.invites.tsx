@@ -140,14 +140,13 @@ function InvitesPage() {
 
   const rows = useMemo(() => {
     if (Array.isArray(data)) return data;
-    // Защита: API мог вернуть { data: [...] } или { rows: [...] } или объект/null
     const d = data as unknown;
     if (d && typeof d === "object") {
       const maybe = (d as { data?: unknown; rows?: unknown }).data ?? (d as { rows?: unknown }).rows;
-      if (Array.isArray(maybe)) return maybe as typeof data;
+      if (Array.isArray(maybe)) return maybe as NonNullable<typeof data>;
       console.error("[invites] Ожидался массив, получено:", d);
     }
-    return [];
+    return [] as NonNullable<typeof data>;
   }, [data]);
 
   return (
