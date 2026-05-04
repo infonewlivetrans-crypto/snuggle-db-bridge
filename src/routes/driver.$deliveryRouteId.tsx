@@ -67,6 +67,7 @@ type Detail = {
   source_request_id: string;
   assigned_driver: string | null;
   assigned_vehicle: string | null;
+  current_stage: TripStage;
 };
 
 type PointRow = {
