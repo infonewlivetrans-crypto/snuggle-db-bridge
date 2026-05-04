@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { jsonResponse } from "@/server/api-helpers.server";
-import { setSessionCookies } from "@/server/auth-cookies.server";
+import { ACCESS_COOKIE, REFRESH_COOKIE, setSessionCookies } from "@/server/auth-cookies.server";
 
 export const Route = createFileRoute("/api/auth/login")({
   server: {
@@ -58,6 +58,8 @@ export const Route = createFileRoute("/api/auth/login")({
         return jsonResponse({
           ok: true,
           user_id: data.user?.id ?? null,
+          cookies_set: true,
+          cookie_names: [ACCESS_COOKIE, REFRESH_COOKIE],
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
           expires_in: data.session.expires_in ?? 3600,

@@ -7,12 +7,13 @@ import {
   type ReactNode,
 } from "react";
 import {
+  authHeaders,
   fetchProfileViaApi,
   fetchUserRolesViaApi,
   setLocalSessionTokens,
   clearLocalSessionTokens,
 } from "@/lib/api-client";
-import type { AppRole } from "./roles";
+import { APP_ROLES, type AppRole } from "./roles";
 
 type Profile = {
   id: string;
@@ -34,11 +35,35 @@ type AuthContextValue = {
   roles: AppRole[];
   loadError: string | null;
   signIn: (email: string, password: string) => Promise<void>;
+  diagnoseSignIn: (
+    email: string,
+    password: string,
+    onStep: (message: string) => void,
+  ) => Promise<{ user: SessionUser; roles: AppRole[] }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+type AuthMeResponse = {
+  id?: string | null;
+  email?: string | null;
+  name?: string | null;
+  role?: AppRole | string | null;
+};
+
+function toFriendlyAuthError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error || "");
+  const lower = msg.toLowerCase();
+  if (lower.includes("invalid") || lower.includes("неверн")) {
+    return "Неверный email или пароль";
+  }
+  if (lower.includes("failed to fetch") || lower.includes("network")) {
+    return "Ошибка авторизации: сервер недоступен";
+  }
+  return msg || "Ошибка авторизации";
+}
 
 async function postJson(path: string, body: unknown): Promise<unknown> {
   const res = await fetch(path, {
@@ -55,6 +80,21 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
     throw new Error(msg);
   }
   return data;
+}
+
+async function fetchAuthMe(): Promise<{ status: number; body: AuthMeResponse | null }> {
+  const res = await fetch("/api/auth/me", {
+    credentials: "same-origin",
+    headers: { accept: "application/json", ...authHeaders() },
+  });
+  const body = (await res.json().catch(() => null)) as AuthMeResponse | null;
+  return { status: res.status, body };
+}
+
+function normalizeRole(role: AuthMeResponse["role"]): AppRole | null {
+  return typeof role === "string" && (APP_ROLES as readonly string[]).includes(role)
+    ? (role as AppRole)
+    : null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -86,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/auth/session", {
         credentials: "same-origin",
+        headers: { accept: "application/json", ...authHeaders() },
       });
       const body = (await res.json().catch(() => null)) as {
         user_id?: string | null;
@@ -99,7 +140,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         setRoles([]);
       }
-    } catch {
+    } catch (error) {
+      console.error("[auth] GET /api/auth/session failed", error);
       setUser(null);
       setProfile(null);
       setRoles([]);
@@ -136,9 +178,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           refresh_token: result.refresh_token,
         });
       }
-      await refreshSession();
+      const { status, body } = await fetchAuthMe();
+      if (status === 401) {
+        console.error("[auth] GET /api/auth/me returned 401 after login", body);
+        throw new Error("Не удалось получить профиль пользователя");
+      }
+      if (status >= 400 || !body?.id) {
+        console.error("[auth] GET /api/auth/me failed after login", status, body);
+        throw new Error("Не удалось получить профиль пользователя");
+      }
+      setUser({ id: body.id, email: body.email ?? null });
+      const role = normalizeRole(body.role);
+      if (role) setRoles([role]);
+      await loadProfileAndRoles();
     },
-    [refreshSession],
+    [loadProfileAndRoles],
+  );
+
+  const diagnoseSignIn = useCallback(
+    async (
+      email: string,
+      password: string,
+      onStep: (message: string) => void,
+    ) => {
+      try {
+        setLoadError(null);
+        onStep("отправлен POST /api/auth/login");
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({ email, password }),
+          credentials: "same-origin",
+        });
+        const loginBody = (await loginRes.json().catch(() => null)) as {
+          error?: string;
+          cookies_set?: boolean;
+          cookie_names?: string[];
+          access_token?: string;
+          refresh_token?: string;
+        } | null;
+        onStep(`login status: ${loginRes.status}`);
+        if (!loginRes.ok) {
+          console.error("[auth] POST /api/auth/login failed", loginRes.status, loginBody);
+          throw new Error(loginBody?.error || "Ошибка авторизации");
+        }
+        if (loginBody?.access_token && loginBody.refresh_token) {
+          setLocalSessionTokens({
+            access_token: loginBody.access_token,
+            refresh_token: loginBody.refresh_token,
+          });
+          onStep("fallback токены сохранены для preview");
+        }
+        onStep(
+          loginBody?.cookies_set
+            ? `сервер установил cookie: ${(loginBody.cookie_names ?? []).join(", ")}`
+            : "сервер не подтвердил установку cookie",
+        );
+
+        onStep("вызван GET /api/auth/me");
+        const { status, body } = await fetchAuthMe();
+        onStep(`auth/me status: ${status}`);
+        if (status === 401) {
+          console.error("[auth] GET /api/auth/me returned 401", body);
+          throw new Error("auth/me вернул 401: cookie не установилась или не читается");
+        }
+        if (status >= 400 || !body?.id) {
+          console.error("[auth] GET /api/auth/me failed", status, body);
+          throw new Error("Не удалось получить профиль пользователя");
+        }
+
+        const signedUser = { id: body.id, email: body.email ?? null };
+        const role = normalizeRole(body.role);
+        const nextRoles = role ? [role] : [];
+        setUser(signedUser);
+        setRoles(nextRoles);
+        await loadProfileAndRoles();
+        return { user: signedUser, roles: nextRoles };
+      } catch (error) {
+        console.error("[auth] login diagnostics failed", error);
+        throw new Error(toFriendlyAuthError(error));
+      }
+    },
+    [loadProfileAndRoles],
   );
 
   const signOut = useCallback(async () => {
@@ -167,6 +288,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         roles,
         loadError,
         signIn,
+        diagnoseSignIn,
         signOut,
         refresh,
       }}
