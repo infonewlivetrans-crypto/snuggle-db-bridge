@@ -35,12 +35,14 @@ import { PaymentSummaryBlock } from "@/components/PaymentSummaryBlock";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
+import { TripStageBlock } from "@/components/TripStageBlock";
 import { formatRuPhone } from "@/lib/phone";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
   type DeliveryRouteStatus,
 } from "@/lib/deliveryRoutes";
+import type { TripStage } from "@/lib/tripStage";
 import type {
   DeliveryPointStatus,
   DeliveryPointUndeliveredReason,
