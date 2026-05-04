@@ -6,4 +6,4 @@ export {
   EXCLUSION_REASONS,
   type ExclusionReason,
   type RouteExclusionRow,
-} from "@/server/route-exclusions.server";
+} from "@/lib/route-exclusions";
