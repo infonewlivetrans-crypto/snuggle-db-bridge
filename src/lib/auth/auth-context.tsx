@@ -1,6 +1,11 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { fetchProfileViaApi, fetchUserRolesViaApi } from "@/lib/api-client";
 import type { AppRole } from "./roles";
 
@@ -13,10 +18,11 @@ type Profile = {
   carrier_id?: string | null;
 };
 
+type SessionUser = { id: string };
+
 type AuthContextValue = {
   loading: boolean;
-  session: Session | null;
-  user: User | null;
+  user: SessionUser | null;
   profile: Profile | null;
   roles: AppRole[];
   loadError: string | null;
@@ -27,15 +33,30 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+async function postJson(path: string, body: unknown): Promise<unknown> {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+    credentials: "same-origin",
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg =
+      (data as { error?: string } | null)?.error || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadProfileAndRoles = async (_uid: string) => {
+  const loadProfileAndRoles = useCallback(async () => {
     try {
       setLoadError(null);
       const [prof, rolesData] = await Promise.all([
@@ -51,49 +72,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           : "Не удалось загрузить профиль. Проверьте соединение.",
       );
     }
-  };
-
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        setTimeout(() => loadProfileAndRoles(s.user.id), 0);
-      } else {
-        setProfile(null);
-        setRoles([]);
-        setLoadError(null);
-      }
-    });
-
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) loadProfileAndRoles(s.user.id).finally(() => setLoading(false));
-      else setLoading(false);
-    });
-
-    return () => {
-      sub.subscription.unsubscribe();
-    };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    // Аудит входа фиксируется автоматически на стороне Supabase auth.
-  };
+  const refreshSession = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/session", {
+        credentials: "same-origin",
+      });
+      const body = (await res.json().catch(() => null)) as {
+        user_id?: string | null;
+      } | null;
+      const uid = body?.user_id ?? null;
+      if (uid) {
+        setUser({ id: uid });
+        await loadProfileAndRoles();
+      } else {
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+      }
+    } catch {
+      setUser(null);
+      setProfile(null);
+      setRoles([]);
+    }
+  }, [loadProfileAndRoles]);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  useEffect(() => {
+    refreshSession().finally(() => setLoading(false));
+  }, [refreshSession]);
 
-  const refresh = async () => {
-    if (user) await loadProfileAndRoles(user.id);
-  };
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      await postJson("/api/auth/login", { email, password });
+      await refreshSession();
+    },
+    [refreshSession],
+  );
+
+  const signOut = useCallback(async () => {
+    try {
+      await postJson("/api/auth/logout", {});
+    } catch {
+      /* ignore */
+    }
+    setUser(null);
+    setProfile(null);
+    setRoles([]);
+  }, []);
+
+  const refresh = useCallback(async () => {
+    await refreshSession();
+  }, [refreshSession]);
 
   return (
-    <AuthContext.Provider value={{ loading, session, user, profile, roles, loadError, signIn, signOut, refresh }}>
+    <AuthContext.Provider
+      value={{ loading, user, profile, roles, loadError, signIn, signOut, refresh }}
+    >
       {children}
     </AuthContext.Provider>
   );
