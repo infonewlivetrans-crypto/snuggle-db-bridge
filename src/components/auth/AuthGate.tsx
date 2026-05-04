@@ -6,7 +6,6 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
 import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
-import { supabase } from "@/integrations/supabase/client";
 import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 const PUBLIC_PREFIXES = ["/d/", "/invite/"]; // публичные ссылки: /d/ — токен водителя, /invite/ — обмен инвайт-токена на сессию
@@ -21,13 +20,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const [hasAdmin, setHasAdmin] = useState<boolean | null>(null);
 
   const checkAdmin = async () => {
-    const { data, error } = await supabase.rpc("has_any_admin");
-    if (error) {
-      // На ошибку считаем, что админ есть, чтобы не блокировать систему
+    try {
+      const res = await fetch("/api/auth/has-admin", { credentials: "same-origin" });
+      const body = (await res.json().catch(() => null)) as { has_admin?: boolean } | null;
+      setHasAdmin(Boolean(body?.has_admin ?? true));
+    } catch {
       setHasAdmin(true);
-      return;
     }
-    setHasAdmin(Boolean(data));
   };
 
   useEffect(() => {
