@@ -127,11 +127,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const mutation = useMutation({
     mutationFn: async (updates: Partial<Order>) => {
       if (!order) throw new Error("Нет заказа");
-      const { error } = await supabase
-        .from("orders")
-        .update(updates)
-        .eq("id", order.id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${order.id}`, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -143,11 +139,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const resetToAuto = useMutation({
     mutationFn: async () => {
       if (!order) throw new Error("Нет заказа");
-      const { error } = await supabase
-        .from("orders")
-        .update({ delivery_cost_source: "auto" })
-        .eq("id", order.id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${order.id}`, { delivery_cost_source: "auto" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
