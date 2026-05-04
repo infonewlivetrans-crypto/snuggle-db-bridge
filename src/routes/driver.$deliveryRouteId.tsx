@@ -36,6 +36,7 @@ import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import { TripStageBlock } from "@/components/TripStageBlock";
+import { LoadingExclusionsBlock } from "@/components/LoadingExclusionsBlock";
 import { formatRuPhone } from "@/lib/phone";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
