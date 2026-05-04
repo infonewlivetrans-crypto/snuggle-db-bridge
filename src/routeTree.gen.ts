@@ -60,6 +60,7 @@ import { Route as TransportRequestsRequestIdRouteImport } from './routes/transpo
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
 import { Route as DataImportHistoryRouteImport } from './routes/data-import.history'
@@ -82,6 +83,7 @@ import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
+import { Route as ApiInviteLoginRouteImport } from './routes/api/invite-login'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
 import { Route as ApiDemoModeRouteImport } from './routes/api/demo-mode'
@@ -351,6 +353,11 @@ const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   path: '/routes/$routeId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DriverDeliveryRouteIdRoute = DriverDeliveryRouteIdRouteImport.update({
   id: '/driver/$deliveryRouteId',
   path: '/driver/$deliveryRouteId',
@@ -462,6 +469,11 @@ const ApiModulesRoute = ApiModulesRouteImport.update({
   path: '/api/modules',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInviteLoginRoute = ApiInviteLoginRouteImport.update({
+  id: '/api/invite-login',
+  path: '/api/invite-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiImportRouteSheetRoute = ApiImportRouteSheetRouteImport.update({
   id: '/api/import-route-sheet',
   path: '/api/import-route-sheet',
@@ -569,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -591,6 +604,7 @@ export interface FileRoutesByFullPath {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/requests': typeof SupplyRequestsRoute
@@ -656,6 +670,7 @@ export interface FileRoutesByTo {
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -678,6 +693,7 @@ export interface FileRoutesByTo {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/requests': typeof SupplyRequestsRoute
@@ -744,6 +760,7 @@ export interface FileRoutesById {
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -766,6 +783,7 @@ export interface FileRoutesById {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
+  '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/requests': typeof SupplyRequestsRoute
@@ -833,6 +851,7 @@ export interface FileRouteTypes {
     | '/api/demo-mode'
     | '/api/drivers'
     | '/api/import-route-sheet'
+    | '/api/invite-login'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -855,6 +874,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
+    | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/requests'
@@ -920,6 +940,7 @@ export interface FileRouteTypes {
     | '/api/demo-mode'
     | '/api/drivers'
     | '/api/import-route-sheet'
+    | '/api/invite-login'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -942,6 +963,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
+    | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/requests'
@@ -1007,6 +1029,7 @@ export interface FileRouteTypes {
     | '/api/demo-mode'
     | '/api/drivers'
     | '/api/import-route-sheet'
+    | '/api/invite-login'
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-statuses'
@@ -1029,6 +1052,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
+    | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/requests'
@@ -1095,6 +1119,7 @@ export interface RootRouteChildren {
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDriversRoute: typeof ApiDriversRoute
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
+  ApiInviteLoginRoute: typeof ApiInviteLoginRoute
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
@@ -1116,6 +1141,7 @@ export interface RootRouteChildren {
   DTokenRoute: typeof DTokenRoute
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
   DriverDeliveryRouteIdRoute: typeof DriverDeliveryRouteIdRoute
+  InviteTokenRoute: typeof InviteTokenRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyCabinetRoute: typeof SupplyCabinetRoute
   SupplyRequestsRoute: typeof SupplyRequestsRoute
@@ -1495,6 +1521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RoutesRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/driver/$deliveryRouteId': {
       id: '/driver/$deliveryRouteId'
       path: '/driver/$deliveryRouteId'
@@ -1649,6 +1682,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiModulesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/invite-login': {
+      id: '/api/invite-login'
+      path: '/api/invite-login'
+      fullPath: '/api/invite-login'
+      preLoaderRoute: typeof ApiInviteLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/import-route-sheet': {
       id: '/api/import-route-sheet'
       path: '/api/import-route-sheet'
@@ -1794,6 +1834,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDriversRoute: ApiDriversRoute,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
+  ApiInviteLoginRoute: ApiInviteLoginRoute,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
@@ -1815,6 +1856,7 @@ const rootRouteChildren: RootRouteChildren = {
   DTokenRoute: DTokenRoute,
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
   DriverDeliveryRouteIdRoute: DriverDeliveryRouteIdRoute,
+  InviteTokenRoute: InviteTokenRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyCabinetRoute: SupplyCabinetRoute,
   SupplyRequestsRoute: SupplyRequestsRoute,
