@@ -41,7 +41,7 @@ import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock"
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { CarrierPayoutBlock } from "@/components/CarrierPayoutBlock";
-import { RouteCostBlock } from "@/components/RouteCostBlock";
+
 import {
   TransportRequestStatusBlock,
   type RequestStatus,
