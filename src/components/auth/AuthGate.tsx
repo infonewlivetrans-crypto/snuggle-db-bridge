@@ -9,7 +9,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
-const PUBLIC_PREFIXES = ["/d/"]; // публичные ссылки водителя по токену
+const PUBLIC_PREFIXES = ["/d/", "/invite/"]; // публичные ссылки: /d/ — токен водителя, /invite/ — обмен инвайт-токена на сессию
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, loadError, refresh } = useAuth();
