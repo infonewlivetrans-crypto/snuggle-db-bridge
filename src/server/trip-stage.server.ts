@@ -43,6 +43,25 @@ export async function recordStageEvent(input: StageEventInput): Promise<void> {
   const now = new Date().toISOString();
   const newStage = applyStage(input.stage);
 
+  // 0) СТРОГАЯ ПРОВЕРКА ПЕРЕХОДА: следующий этап должен соответствовать current_stage
+  const { data: routeRow, error: rErr } = await supabaseAdmin
+    .from("delivery_routes")
+    .select("current_stage")
+    .eq("id", input.deliveryRouteId)
+    .maybeSingle();
+  if (rErr) throw new Error(rErr.message);
+  if (!routeRow) throw new Error("Маршрут не найден");
+  const current = ((routeRow as { current_stage: TripStage | null }).current_stage ??
+    "not_started") as TripStage;
+  const expected = nextStage(current);
+  if (expected !== input.stage) {
+    throw new Error(
+      `Недопустимый переход: текущий этап «${TRIP_STAGE_LABELS[current]}», ожидается «${
+        expected ? TRIP_STAGE_LABELS[expected] : "—"
+      }», получено «${TRIP_STAGE_LABELS[input.stage]}»`,
+    );
+  }
+
   // 1) пишем событие
   const { error: evErr } = await supabaseAdmin.from("route_stage_events").insert({
     delivery_route_id: input.deliveryRouteId,
