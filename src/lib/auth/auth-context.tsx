@@ -18,11 +18,13 @@ type Profile = {
   carrier_id?: string | null;
 };
 
-type SessionUser = { id: string };
+type SessionUser = { id: string; email: string | null };
 
 type AuthContextValue = {
   loading: boolean;
   user: SessionUser | null;
+  /** @deprecated cookie-сессия, поле оставлено для обратной совместимости компонентов */
+  session: { access_token?: string } | null;
   profile: Profile | null;
   roles: AppRole[];
   loadError: string | null;
