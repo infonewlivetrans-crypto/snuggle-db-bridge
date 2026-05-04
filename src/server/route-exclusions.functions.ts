@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import {
   EXCLUSION_REASONS,
   excludeOrderFromRoute,
@@ -11,7 +11,7 @@ import {
 const REASON_SET = new Set<string>(EXCLUSION_REASONS);
 
 export const excludeOrderFromRouteFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator(
     (input: {
       deliveryRouteId: string;
@@ -42,7 +42,7 @@ export const excludeOrderFromRouteFn = createServerFn({ method: "POST" })
   });
 
 export const listRouteExclusionsFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { deliveryRouteId: string }) => {
     if (!input?.deliveryRouteId) throw new Error("deliveryRouteId обязателен");
     return input;

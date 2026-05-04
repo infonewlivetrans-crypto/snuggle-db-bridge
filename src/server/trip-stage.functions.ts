@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import {
   listRouteReturns,
   listStageEvents,
@@ -19,7 +19,7 @@ const ALLOWED_STAGES: TripStage[] = [
 ];
 
 export const advanceTripStageFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator(
     (input: {
       deliveryRouteId: string;
@@ -48,7 +48,7 @@ export const advanceTripStageFn = createServerFn({ method: "POST" })
   });
 
 export const listStageEventsFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { deliveryRouteId: string }) => {
     if (!input?.deliveryRouteId) throw new Error("deliveryRouteId обязателен");
     return input;
@@ -58,7 +58,7 @@ export const listStageEventsFn = createServerFn({ method: "GET" })
   });
 
 export const recordRouteReturnFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator(
     (input: {
       deliveryRouteId: string;
@@ -85,7 +85,7 @@ export const recordRouteReturnFn = createServerFn({ method: "POST" })
   });
 
 export const listRouteReturnsFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { deliveryRouteId: string }) => {
     if (!input?.deliveryRouteId) throw new Error("deliveryRouteId обязателен");
     return input;

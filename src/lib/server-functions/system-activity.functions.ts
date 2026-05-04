@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function ensureAdminOrDirector(userId: string) {
@@ -35,7 +35,7 @@ async function countWith(builder: Promise<{ count: number | null; error: unknown
 }
 
 export const systemActivityFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .handler(async ({ context }) => {
     await ensureAdminOrDirector(context.userId);
 

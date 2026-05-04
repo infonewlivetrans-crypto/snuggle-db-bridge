@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const PRIORITIES = ["critical", "important", "later"] as const;
@@ -18,7 +18,7 @@ async function ensureAdminOrDirector(userId: string) {
 }
 
 export const listPilotTasksFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -72,7 +72,7 @@ export const listPilotTasksFn = createServerFn({ method: "POST" })
   });
 
 export const createPilotTaskFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -114,7 +114,7 @@ export const createPilotTaskFn = createServerFn({ method: "POST" })
   });
 
 export const updatePilotTaskFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) =>
     z
       .object({
@@ -151,7 +151,7 @@ export const updatePilotTaskFn = createServerFn({ method: "POST" })
   });
 
 export const listTaskCommentsFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) => z.object({ taskId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await ensureAdminOrDirector(context.userId);
@@ -165,7 +165,7 @@ export const listTaskCommentsFn = createServerFn({ method: "POST" })
   });
 
 export const addTaskCommentFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((d) =>
     z.object({ taskId: z.string().uuid(), body: z.string().min(1).max(2000) }).parse(d),
   )

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireCookieAuth } from "@/server/auth-middleware.server";
 import { assertCallerIsAdmin } from "./users.server";
 import {
   createManager,
@@ -12,14 +12,14 @@ import {
 import { importCarriers, type CarrierImportItem } from "./carriers-import.server";
 
 export const listManagersFn = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .handler(async ({ context }) => {
     await assertCallerIsAdmin(context.userId);
     return listManagers();
   });
 
 export const importManagersFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { items: ManagerImportItem[] }) => {
     if (!input || !Array.isArray(input.items)) {
       throw new Error("Ожидался список менеджеров");
@@ -63,7 +63,7 @@ export const importManagersFn = createServerFn({ method: "POST" })
   });
 
 export const createManagerFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { fullName: string; phone?: string | null; comment?: string | null }) => {
     if (!input?.fullName?.trim()) throw new Error("Укажите ФИО");
     return input;
@@ -74,7 +74,7 @@ export const createManagerFn = createServerFn({ method: "POST" })
   });
 
 export const updateManagerFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator(
     (input: {
       id: string;
@@ -97,7 +97,7 @@ export const updateManagerFn = createServerFn({ method: "POST" })
   });
 
 export const deleteManagerFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { id: string }) => {
     if (!input?.id) throw new Error("id обязателен");
     return input;
@@ -109,7 +109,7 @@ export const deleteManagerFn = createServerFn({ method: "POST" })
   });
 
 export const importCarriersFn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireCookieAuth])
   .inputValidator((input: { items: CarrierImportItem[] }) => {
     if (!input || !Array.isArray(input.items)) throw new Error("Ожидался список");
     if (input.items.length === 0) throw new Error("Список пуст");
