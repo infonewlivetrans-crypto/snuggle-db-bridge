@@ -219,7 +219,7 @@ function ManagersPage() {
     }
   }
 
-  const managers = managersQuery.data ?? [];
+  const managers = Array.isArray(managersQuery.data) ? managersQuery.data : [];
 
   return (
     <div className="min-h-screen bg-background">
