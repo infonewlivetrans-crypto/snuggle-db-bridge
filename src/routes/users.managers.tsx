@@ -36,7 +36,14 @@ import {
 } from "@/lib/server-functions/invites.functions";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Copy, Link2, Plus, RefreshCcw, ShieldCheck, ShieldOff, Trash2, Upload, Users } from "lucide-react";
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export const Route = createFileRoute("/users/managers")({
   head: () => ({ meta: [{ title: "Менеджеры — Радиус Трек" }] }),
