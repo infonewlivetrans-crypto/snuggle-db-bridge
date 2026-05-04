@@ -19,8 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { fetchListViaApi, apiPost } from "@/lib/api-client";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
@@ -61,13 +60,11 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryKey: ["drivers", "active"],
     enabled: open,
     queryFn: async (): Promise<Driver[]> => {
-      const { data, error } = await db
-        .from("drivers")
-        .select("id, full_name, is_active, carrier_id")
-        .eq("is_active", true)
-        .order("full_name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Driver>("/api/drivers", {
+        limit: 100,
+        extra: { activeOnly: 1 },
+      });
+      return rows;
     },
   });
 
@@ -75,13 +72,11 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryKey: ["vehicles", "active"],
     enabled: open,
     queryFn: async (): Promise<Vehicle[]> => {
-      const { data, error } = await db
-        .from("vehicles")
-        .select("id, plate_number, brand, model, body_type, is_active, carrier_id, capacity_kg, volume_m3")
-        .eq("is_active", true)
-        .order("plate_number", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Vehicle>("/api/vehicles", {
+        limit: 100,
+        extra: { activeOnly: 1 },
+      });
+      return rows;
     },
   });
 
@@ -89,29 +84,29 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
     queryKey: ["warehouses", "active"],
     enabled: open,
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name, city, address, is_active")
-        .eq("is_active", true)
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 100,
+        extra: { activeOnly: 1 },
+      });
+      return rows;
     },
   });
 
-  // Доступные заказы
+  // Доступные заказы — все статусы из ["new", "in_progress", "awaiting_resend"]
   const { data: orders } = useQuery({
     queryKey: ["orders", "available-for-route"],
-    queryFn: async (): Promise<Order[]> => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .in("status", ["new", "in_progress", "awaiting_resend"])
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Order[];
-    },
     enabled: open,
+    queryFn: async (): Promise<Order[]> => {
+      const all: Order[] = [];
+      for (const st of ["new", "in_progress", "awaiting_resend"] as const) {
+        const { rows } = await fetchListViaApi<Order>("/api/orders", {
+          limit: 100,
+          extra: { status: st },
+        });
+        all.push(...rows);
+      }
+      return all;
+    },
   });
 
   const filtered = useMemo(() => {
@@ -219,14 +214,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
       const driver = drivers?.find((d) => d.id === driverId);
       const driverName = driver?.full_name ?? "";
 
-      const { data: numData, error: numErr } = await supabase.rpc("generate_route_number");
-      if (numErr) throw numErr;
-      const routeNumber = numData as string;
-
-      const { data: route, error: routeErr } = await db
-        .from("routes")
-        .insert({
-          route_number: routeNumber,
+      const route = await apiPost<{ id: string; route_number: string }>(
+        "/api/routes",
+        {
+          generate_number: true,
           driver_name: driverName,
           driver_id: driverId,
           vehicle_id: vehicleId || null,
@@ -240,13 +231,10 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           planned_departure_at: null,
           comment: comment.trim() || null,
           status: "planned",
-          // Для warehouse_transfer передадим вручную, иначе пересчитает триггер
           total_weight_kg: isTransfer ? totalWeight : 0,
           total_volume_m3: isTransfer ? totalVolume : 0,
-        })
-        .select()
-        .single();
-      if (routeErr) throw routeErr;
+        },
+      );
 
       if (selectedIds.length > 0) {
         const points = selectedIds.map((orderId, idx) => ({
@@ -255,8 +243,7 @@ export function CreateRouteDialog({ open, onOpenChange }: CreateRouteDialogProps
           point_number: idx + 1,
           status: "pending" as const,
         }));
-        const { error: pointsErr } = await supabase.from("route_points").insert(points);
-        if (pointsErr) throw pointsErr;
+        await apiPost("/api/route-points", { points });
       }
 
       return route;

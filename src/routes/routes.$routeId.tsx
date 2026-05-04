@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -141,62 +141,28 @@ function RouteDetailPage() {
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
     queryFn: async (): Promise<RouteWithRefs | null> => {
-      // Без FK в БД делаем 2 запроса вместо embed
-      const { data, error } = await supabase
-        .from("routes")
-        .select("*")
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) return null;
-      const r = data as DeliveryRoute;
-
-      const [wh, dwh, veh, drv] = await Promise.all([
-        r.warehouse_id
-          ? supabase.from("warehouses").select("id, name, city, address").eq("id", r.warehouse_id).maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        r.destination_warehouse_id
-          ? supabase.from("warehouses").select("id, name, city").eq("id", r.destination_warehouse_id).maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        r.vehicle_id
-          ? supabase
-              .from("vehicles")
-              .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3")
-              .eq("id", r.vehicle_id)
-              .maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-        r.driver_id
-          ? supabase.from("drivers").select("id, full_name, phone").eq("id", r.driver_id).maybeSingle()
-          : Promise.resolve({ data: null, error: null }),
-      ]);
-
-      return {
-        ...r,
-        warehouse: (wh.data ?? null) as RouteWithRefs["warehouse"],
-        destination_warehouse: (dwh.data ?? null) as RouteWithRefs["destination_warehouse"],
-        vehicle: (veh.data ?? null) as RouteWithRefs["vehicle"],
-        driver: (drv.data ?? null) as RouteWithRefs["driver"],
-      };
+      try {
+        return await apiGetAuth<RouteWithRefs>(`/api/routes/${encodeURIComponent(routeId)}`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        if (msg.includes("404") || /not_found/i.test(msg)) return null;
+        throw e;
+      }
     },
   });
 
   const { data: points, isLoading: pointsLoading } = useQuery({
     queryKey: ["route-points", routeId],
     queryFn: async (): Promise<RoutePointWithOrder[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("*, orders(*)")
-        .eq("route_id", routeId)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as RoutePointWithOrder[];
+      return await apiGetAuth<RoutePointWithOrder[]>(
+        `/api/route-points?route_id=${encodeURIComponent(routeId)}&withOrders=1`,
+      );
     },
   });
 
   const updateRoute = useMutation({
     mutationFn: async (status: RouteStatus) => {
-      const { error } = await supabase.from("routes").update({ status }).eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${encodeURIComponent(routeId)}`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["route", routeId] });
@@ -212,11 +178,7 @@ function RouteDetailPage() {
       // - статус заказа (delivered / not_delivered / awaiting_resend)
       // - запись в delivery_reports
       // - времена arrived_at / completed_at
-      const { error } = await supabase
-        .from("route_points")
-        .update({ status })
-        .eq("id", pointId);
-      if (error) throw error;
+      await apiPatch(`/api/route-points/${encodeURIComponent(pointId)}`, { status });
     },
     onSuccess: (_d, vars) => {
       queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
@@ -283,33 +245,20 @@ function RouteDetailPage() {
 
   const saveOrder = useMutation({
     mutationFn: async (ids: string[]) => {
-      // Двухфазная запись, чтобы не упереться в потенциальный unique(route_id, point_number)
-      const TEMP = 100000;
-      for (let i = 0; i < ids.length; i++) {
-        const { error } = await supabase
-          .from("route_points")
-          .update({ point_number: TEMP + i })
-          .eq("id", ids[i]);
-        if (error) throw error;
+      let who = "Пользователь";
+      try {
+        const me = await apiGetAuth<{ email: string | null; full_name: string | null }>(
+          "/api/auth/me",
+        );
+        who = me.email ?? me.full_name ?? "Пользователь";
+      } catch {
+        // ignore — не критично для сохранения порядка
       }
-      for (let i = 0; i < ids.length; i++) {
-        const { error } = await supabase
-          .from("route_points")
-          .update({ point_number: i + 1 })
-          .eq("id", ids[i]);
-        if (error) throw error;
-      }
-      // Отметка кто/когда менял порядок
-      const who =
-        (await supabase.auth.getUser()).data.user?.email ?? "Пользователь";
-      const { error: rErr } = await supabase
-        .from("routes")
-        .update({
-          points_order_changed_at: new Date().toISOString(),
-          points_order_changed_by: who,
-        })
-        .eq("id", routeId);
-      if (rErr) throw rErr;
+      await apiPost("/api/route-points/reorder", {
+        route_id: routeId,
+        ordered_ids: ids,
+        changed_by: who,
+      });
     },
     onSuccess: () => {
       toast.success("Порядок точек сохранён");

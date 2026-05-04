@@ -78,6 +78,7 @@ import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-setti
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
+import { Route as ApiRoutePointPhotosRouteImport } from './routes/api/route-point-photos'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
@@ -115,6 +116,9 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
 import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
+import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
+import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
+import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -463,6 +467,11 @@ const ApiRoutePointsRoute = ApiRoutePointsRouteImport.update({
   path: '/api/route-points',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutePointPhotosRoute = ApiRoutePointPhotosRouteImport.update({
+  id: '/api/route-point-photos',
+  path: '/api/route-point-photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRolesRoute = ApiRolesRouteImport.update({
   id: '/api/roles',
   path: '/api/roles',
@@ -648,6 +657,23 @@ const ApiAuthBootstrapAdminRoute = ApiAuthBootstrapAdminRouteImport.update({
   path: '/api/auth/bootstrap-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrdersIdRouteLinkRoute = ApiOrdersIdRouteLinkRouteImport.update({
+  id: '/route-link',
+  path: '/route-link',
+  getParentRoute: () => ApiOrdersIdRoute,
+} as any)
+const ApiDeliveryRoutesIdDriverGeoRoute =
+  ApiDeliveryRoutesIdDriverGeoRouteImport.update({
+    id: '/driver-geo',
+    path: '/driver-geo',
+    getParentRoute: () => ApiDeliveryRoutesIdRoute,
+  } as any)
+const ApiDeliveryRoutesIdDetailRoute =
+  ApiDeliveryRoutesIdDetailRouteImport.update({
+    id: '/detail',
+    path: '/detail',
+    getParentRoute: () => ApiDeliveryRoutesIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -707,6 +733,7 @@ export interface FileRoutesByFullPath {
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
@@ -749,13 +776,16 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
-  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
-  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
+  '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -815,6 +845,7 @@ export interface FileRoutesByTo {
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
@@ -857,13 +888,16 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
-  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
-  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
+  '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -924,6 +958,7 @@ export interface FileRoutesById {
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
@@ -966,13 +1001,16 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
-  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
-  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
+  '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1034,6 +1072,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
@@ -1083,6 +1122,9 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/delivery-routes/$id/detail'
+    | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/route-link'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1142,6 +1184,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
@@ -1191,6 +1234,9 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/delivery-routes/$id/detail'
+    | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/route-link'
   id:
     | '__root__'
     | '/'
@@ -1250,6 +1296,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
@@ -1299,6 +1346,9 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/delivery-routes/$id/detail'
+    | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/route-link'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1359,6 +1409,7 @@ export interface RootRouteChildren {
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReportsRoute: typeof ApiReportsRoute
   ApiRolesRoute: typeof ApiRolesRoute
+  ApiRoutePointPhotosRoute: typeof ApiRoutePointPhotosRoute
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
   ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
@@ -1888,6 +1939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRoutePointsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/route-point-photos': {
+      id: '/api/route-point-photos'
+      path: '/api/route-point-photos'
+      fullPath: '/api/route-point-photos'
+      preLoaderRoute: typeof ApiRoutePointPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/roles': {
       id: '/api/roles'
       path: '/api/roles'
@@ -2147,6 +2205,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthBootstrapAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/orders/$id/route-link': {
+      id: '/api/orders/$id/route-link'
+      path: '/route-link'
+      fullPath: '/api/orders/$id/route-link'
+      preLoaderRoute: typeof ApiOrdersIdRouteLinkRouteImport
+      parentRoute: typeof ApiOrdersIdRoute
+    }
+    '/api/delivery-routes/$id/driver-geo': {
+      id: '/api/delivery-routes/$id/driver-geo'
+      path: '/driver-geo'
+      fullPath: '/api/delivery-routes/$id/driver-geo'
+      preLoaderRoute: typeof ApiDeliveryRoutesIdDriverGeoRouteImport
+      parentRoute: typeof ApiDeliveryRoutesIdRoute
+    }
+    '/api/delivery-routes/$id/detail': {
+      id: '/api/delivery-routes/$id/detail'
+      path: '/detail'
+      fullPath: '/api/delivery-routes/$id/detail'
+      preLoaderRoute: typeof ApiDeliveryRoutesIdDetailRouteImport
+      parentRoute: typeof ApiDeliveryRoutesIdRoute
+    }
   }
 }
 
@@ -2162,23 +2241,48 @@ const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
   DataImportRouteChildren,
 )
 
+interface ApiDeliveryRoutesIdRouteChildren {
+  ApiDeliveryRoutesIdDetailRoute: typeof ApiDeliveryRoutesIdDetailRoute
+  ApiDeliveryRoutesIdDriverGeoRoute: typeof ApiDeliveryRoutesIdDriverGeoRoute
+}
+
+const ApiDeliveryRoutesIdRouteChildren: ApiDeliveryRoutesIdRouteChildren = {
+  ApiDeliveryRoutesIdDetailRoute: ApiDeliveryRoutesIdDetailRoute,
+  ApiDeliveryRoutesIdDriverGeoRoute: ApiDeliveryRoutesIdDriverGeoRoute,
+}
+
+const ApiDeliveryRoutesIdRouteWithChildren =
+  ApiDeliveryRoutesIdRoute._addFileChildren(ApiDeliveryRoutesIdRouteChildren)
+
 interface ApiDeliveryRoutesRouteChildren {
-  ApiDeliveryRoutesIdRoute: typeof ApiDeliveryRoutesIdRoute
+  ApiDeliveryRoutesIdRoute: typeof ApiDeliveryRoutesIdRouteWithChildren
 }
 
 const ApiDeliveryRoutesRouteChildren: ApiDeliveryRoutesRouteChildren = {
-  ApiDeliveryRoutesIdRoute: ApiDeliveryRoutesIdRoute,
+  ApiDeliveryRoutesIdRoute: ApiDeliveryRoutesIdRouteWithChildren,
 }
 
 const ApiDeliveryRoutesRouteWithChildren =
   ApiDeliveryRoutesRoute._addFileChildren(ApiDeliveryRoutesRouteChildren)
 
+interface ApiOrdersIdRouteChildren {
+  ApiOrdersIdRouteLinkRoute: typeof ApiOrdersIdRouteLinkRoute
+}
+
+const ApiOrdersIdRouteChildren: ApiOrdersIdRouteChildren = {
+  ApiOrdersIdRouteLinkRoute: ApiOrdersIdRouteLinkRoute,
+}
+
+const ApiOrdersIdRouteWithChildren = ApiOrdersIdRoute._addFileChildren(
+  ApiOrdersIdRouteChildren,
+)
+
 interface ApiOrdersRouteChildren {
-  ApiOrdersIdRoute: typeof ApiOrdersIdRoute
+  ApiOrdersIdRoute: typeof ApiOrdersIdRouteWithChildren
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
-  ApiOrdersIdRoute: ApiOrdersIdRoute,
+  ApiOrdersIdRoute: ApiOrdersIdRouteWithChildren,
 }
 
 const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
@@ -2271,6 +2375,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProfileRoute: ApiProfileRoute,
   ApiReportsRoute: ApiReportsRoute,
   ApiRolesRoute: ApiRolesRoute,
+  ApiRoutePointPhotosRoute: ApiRoutePointPhotosRoute,
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
   ApiRoutesRoute: ApiRoutesRouteWithChildren,

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
@@ -119,15 +119,15 @@ function DeliveryRoutePage() {
   const { data, isLoading } = useQuery({
     queryKey: ["delivery-route", deliveryRouteId],
     queryFn: async (): Promise<Detail | null> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select(
-          "id, route_number, route_date, status, comment, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
-        )
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as unknown as Detail | null;
+      try {
+        return await apiGetAuth<Detail>(
+          `/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}/detail`,
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "";
+        if (msg.includes("404") || /not_found/i.test(msg)) return null;
+        throw e;
+      }
     },
   });
 
@@ -151,15 +151,9 @@ function DeliveryRoutePage() {
     enabled: !!data?.source_request_id,
     queryKey: ["delivery-route-points", data?.source_request_id],
     queryFn: async (): Promise<PointRow[]> => {
-      const { data: pts, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, latitude, longitude, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)",
-        )
-        .eq("route_id", data!.source_request_id)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (pts ?? []) as unknown as PointRow[];
+      return await apiGetAuth<PointRow[]>(
+        `/api/route-points?route_id=${encodeURIComponent(data!.source_request_id)}&embed=delivery`,
+      );
     },
   });
 
@@ -168,13 +162,11 @@ function DeliveryRoutePage() {
     enabled: pointIds.length > 0,
     queryKey: ["route-point-photos-kinds", pointIds.join(",")],
     queryFn: async (): Promise<Record<string, Set<string>>> => {
-      const { data: rows, error } = await supabase
-        .from("route_point_photos")
-        .select("route_point_id, kind")
-        .in("route_point_id", pointIds);
-      if (error) throw error;
+      const rows = await apiGetAuth<Array<{ route_point_id: string; kind: string }>>(
+        `/api/route-point-photos?point_ids=${encodeURIComponent(pointIds.join(","))}`,
+      );
       const map: Record<string, Set<string>> = {};
-      for (const r of (rows ?? []) as Array<{ route_point_id: string; kind: string }>) {
+      for (const r of rows) {
         if (!map[r.route_point_id]) map[r.route_point_id] = new Set();
         map[r.route_point_id].add(r.kind);
       }
@@ -186,17 +178,11 @@ function DeliveryRoutePage() {
     queryKey: ["driver-geo-map", deliveryRouteId],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("last_driver_lat, last_driver_lng, last_driver_location_at")
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as {
+      return await apiGetAuth<{
         last_driver_lat: number | null;
         last_driver_lng: number | null;
         last_driver_location_at: string | null;
-      } | null;
+      } | null>(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}/driver-geo`);
     },
   });
 
@@ -213,14 +199,12 @@ function DeliveryRoutePage() {
       if (swapWith < 0 || swapWith >= list.length) return;
       const a = list[idx];
       const b = list[swapWith];
-      // Двухходовая замена через временное значение, чтобы обойти UNIQUE(route_id, point_number) при наличии
-      const tmp = -Math.abs(a.point_number) - 1;
-      const tx1 = await supabase.from("route_points").update({ point_number: tmp }).eq("id", a.id);
-      if (tx1.error) throw tx1.error;
-      const tx2 = await supabase.from("route_points").update({ point_number: a.point_number }).eq("id", b.id);
-      if (tx2.error) throw tx2.error;
-      const tx3 = await supabase.from("route_points").update({ point_number: b.point_number }).eq("id", a.id);
-      if (tx3.error) throw tx3.error;
+      await apiPost("/api/route-points/swap", {
+        a_id: a.id,
+        a_number: a.point_number,
+        b_id: b.id,
+        b_number: b.point_number,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
@@ -237,11 +221,10 @@ function DeliveryRoutePage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status, comment: comment || null })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}`, {
+        status,
+        comment: comment || null,
+      });
     },
     onSuccess: () => {
       toast.success("Маршрут сохранён");
@@ -253,11 +236,9 @@ function DeliveryRoutePage() {
 
   const finalize = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status: "completed" as DeliveryRouteStatus })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}`, {
+        status: "completed" as DeliveryRouteStatus,
+      });
     },
     onSuccess: () => {
       toast.success("Маршрут завершён");

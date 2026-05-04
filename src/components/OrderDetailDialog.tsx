@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
 import { toast } from "sonner";
 import {
   type Order,
@@ -127,11 +127,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const mutation = useMutation({
     mutationFn: async (updates: Partial<Order>) => {
       if (!order) throw new Error("Нет заказа");
-      const { error } = await supabase
-        .from("orders")
-        .update(updates)
-        .eq("id", order.id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${order.id}`, updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -143,11 +139,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const resetToAuto = useMutation({
     mutationFn: async () => {
       if (!order) throw new Error("Нет заказа");
-      const { error } = await supabase
-        .from("orders")
-        .update({ delivery_cost_source: "auto" })
-        .eq("id", order.id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${order.id}`, { delivery_cost_source: "auto" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -162,28 +154,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
     queryKey: ["delivery_reports", order?.id],
     enabled: !!order?.id && open,
     queryFn: async (): Promise<DeliveryReport[]> => {
-      const { data, error } = await (
-        supabase.from as unknown as (
-          name: string,
-        ) => {
-          select: (cols: string) => {
-            eq: (
-              c: string,
-              v: string,
-            ) => {
-              order: (
-                c: string,
-                opts: { ascending: boolean },
-              ) => Promise<{ data: DeliveryReport[] | null; error: Error | null }>;
-            };
-          };
-        }
-      )("delivery_reports")
-        .select("*")
-        .eq("order_id", order!.id)
-        .order("delivered_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<DeliveryReport[]>(
+        `/api/delivery-reports?order_id=${encodeURIComponent(order!.id)}`,
+      );
     },
   });
 
@@ -701,25 +674,9 @@ function OrderContactsBlock({
   const { data: routeInfo } = useQuery({
     queryKey: ["order-route-link", orderId],
     queryFn: async () => {
-      const { data: pt } = await supabase
-        .from("route_points")
-        .select("route_id")
-        .eq("order_id", orderId)
-        .limit(1)
-        .maybeSingle();
-      const routeId = (pt as { route_id: string } | null)?.route_id ?? null;
-      let deliveryRouteId: string | null = null;
-      if (routeId) {
-        const { data: dr } = await supabase
-          .from("delivery_routes")
-          .select("id")
-          .eq("source_request_id", routeId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        deliveryRouteId = (dr as { id: string } | null)?.id ?? null;
-      }
-      return { routeId, deliveryRouteId };
+      return await apiGetAuth<{ routeId: string | null; deliveryRouteId: string | null }>(
+        `/api/orders/${encodeURIComponent(orderId)}/route-link`,
+      );
     },
   });
 
