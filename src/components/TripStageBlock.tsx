@@ -194,6 +194,11 @@ export function TripStageBlock({
       {/* Активная кнопка — единственная */}
       {next ? (
         <div className="space-y-2">
+          {next === "finished" && blockFinishReason && (
+            <div className="rounded-md border border-orange-500/40 bg-orange-500/10 px-3 py-2 text-xs text-orange-800 dark:text-orange-200">
+              {blockFinishReason}
+            </div>
+          )}
           <Label htmlFor="stage-comment" className="text-xs text-muted-foreground">
             Комментарий (необязательно)
           </Label>
@@ -207,7 +212,10 @@ export function TripStageBlock({
           <Button
             size="lg"
             className="w-full gap-1.5"
-            disabled={advanceMut.isPending}
+            disabled={
+              advanceMut.isPending ||
+              (next === "finished" && !!blockFinishReason)
+            }
             onClick={() => advanceMut.mutate(next)}
           >
             {advanceMut.isPending ? (
