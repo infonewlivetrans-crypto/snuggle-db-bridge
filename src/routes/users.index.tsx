@@ -39,10 +39,16 @@ export const Route = createFileRoute("/users/")({
 
 function UsersPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin"],
     queryFn: () => listUsersFn(),
   });
+  const data = Array.isArray(rawData)
+    ? rawData
+    : (() => {
+        if (rawData != null) console.error("listUsersFn: ожидался массив, получено:", rawData);
+        return [];
+      })();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<{ email: string; password: string; fullName: string; role: AppRole }>(
@@ -177,16 +183,17 @@ function UsersPage() {
                 <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователей нет</TableCell></TableRow>
               ) : (
                 (data ?? []).map((u) => {
+                  const userRoles = Array.isArray(u.roles) ? u.roles : [];
                   return (
                     <TableRow key={u.user_id}>
                       <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
                       <TableCell className="text-sm">{u.email ?? "—"}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1.5">
-                          {u.roles.length === 0 ? (
+                          {userRoles.length === 0 ? (
                             <span className="text-xs text-muted-foreground">— нет ролей —</span>
                           ) : (
-                            u.roles.map((r) => (
+                            userRoles.map((r) => (
                               <span
                                 key={r}
                                 className="rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
@@ -214,7 +221,7 @@ function UsersPage() {
                               setRolesEdit({
                                 userId: u.user_id,
                                 fullName: u.full_name ?? u.email ?? "",
-                                roles: [...u.roles] as AppRole[],
+                                roles: [...userRoles] as AppRole[],
                               })
                             }
                           >
