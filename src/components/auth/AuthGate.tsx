@@ -45,6 +45,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
   // Публичные маршруты — без проверки
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
 
+  if (getAuthMode() === "preview" && !user) {
+    return <LoginPage />;
+  }
+
   if (loading || hasAdmin === null) {
     return <SplashScreen />;
   }
