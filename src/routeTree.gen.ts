@@ -99,6 +99,11 @@ import { Route as ApiAppVersionsRouteImport } from './routes/api/app-versions'
 import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
+import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
+import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -552,6 +557,31 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
+  id: '/api/auth/session',
+  path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthHasAdminRoute = ApiAuthHasAdminRouteImport.update({
+  id: '/api/auth/has-admin',
+  path: '/api/auth/has-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthBootstrapAdminRoute = ApiAuthBootstrapAdminRouteImport.update({
+  id: '/api/auth/bootstrap-admin',
+  path: '/api/auth/bootstrap-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -644,6 +674,11 @@ export interface FileRoutesByFullPath {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
+  '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
+  '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -736,6 +771,11 @@ export interface FileRoutesByTo {
   '/users': typeof UsersIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
+  '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
+  '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -829,6 +869,11 @@ export interface FileRoutesById {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
+  '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
+  '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -923,6 +968,11 @@ export interface FileRouteTypes {
     | '/users/'
     | '/vehicles/'
     | '/warehouses/'
+    | '/api/auth/bootstrap-admin'
+    | '/api/auth/has-admin'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/session'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1015,6 +1065,11 @@ export interface FileRouteTypes {
     | '/users'
     | '/vehicles'
     | '/warehouses'
+    | '/api/auth/bootstrap-admin'
+    | '/api/auth/has-admin'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/session'
   id:
     | '__root__'
     | '/'
@@ -1107,6 +1162,11 @@ export interface FileRouteTypes {
     | '/users/'
     | '/vehicles/'
     | '/warehouses/'
+    | '/api/auth/bootstrap-admin'
+    | '/api/auth/has-admin'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/session'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1199,6 +1259,11 @@ export interface RootRouteChildren {
   UsersIndexRoute: typeof UsersIndexRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
   WarehousesIndexRoute: typeof WarehousesIndexRoute
+  ApiAuthBootstrapAdminRoute: typeof ApiAuthBootstrapAdminRoute
+  ApiAuthHasAdminRoute: typeof ApiAuthHasAdminRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthSessionRoute: typeof ApiAuthSessionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1833,6 +1898,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/session': {
+      id: '/api/auth/session'
+      path: '/api/auth/session'
+      fullPath: '/api/auth/session'
+      preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/has-admin': {
+      id: '/api/auth/has-admin'
+      path: '/api/auth/has-admin'
+      fullPath: '/api/auth/has-admin'
+      preLoaderRoute: typeof ApiAuthHasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/bootstrap-admin': {
+      id: '/api/auth/bootstrap-admin'
+      path: '/api/auth/bootstrap-admin'
+      fullPath: '/api/auth/bootstrap-admin'
+      preLoaderRoute: typeof ApiAuthBootstrapAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1938,6 +2038,11 @@ const rootRouteChildren: RootRouteChildren = {
   UsersIndexRoute: UsersIndexRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
   WarehousesIndexRoute: WarehousesIndexRoute,
+  ApiAuthBootstrapAdminRoute: ApiAuthBootstrapAdminRoute,
+  ApiAuthHasAdminRoute: ApiAuthHasAdminRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthSessionRoute: ApiAuthSessionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

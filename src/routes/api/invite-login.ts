@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { activateInvite, getInviteInfo } from "@/server/invites.server";
+import { setSessionCookies } from "@/server/auth-cookies.server";
 
 function json(body: unknown, init?: ResponseInit) {
   return new Response(JSON.stringify(body), {
