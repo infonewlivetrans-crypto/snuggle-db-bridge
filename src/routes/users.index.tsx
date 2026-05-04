@@ -187,7 +187,6 @@ function UsersPage() {
                 <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователей нет</TableCell></TableRow>
               ) : (
                 (data ?? []).map((u) => {
-                  const currentRole = (u.roles[0] ?? "manager") as AppRole;
                   return (
                     <TableRow key={u.user_id}>
                       <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
