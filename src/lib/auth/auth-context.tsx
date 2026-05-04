@@ -153,6 +153,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     try {
+      if (getAuthMode() === "preview") {
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data.session?.user) {
+          setUser(null);
+          setProfile(null);
+          setRoles([]);
+          return;
+        }
+        const sessionUser = data.session.user;
+        setUser({ id: sessionUser.id, email: sessionUser.email ?? null });
+        const previewData = await fetchPreviewProfileAndRoles(sessionUser.id);
+        setProfile(previewData.profile);
+        setRoles(previewData.roles);
+        setLoadError(null);
+        return;
+      }
       const res = await fetch("/api/auth/session", {
         credentials: "same-origin",
         headers: { accept: "application/json", ...authHeaders() },
