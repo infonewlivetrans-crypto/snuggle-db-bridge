@@ -1,7 +1,8 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeRuPhone } from "@/lib/phone";
 
-export type InviteRole = "driver" | "manager";
+export type InviteRole = "admin" | "logist" | "manager" | "driver";
+const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
 
 const INVITE_EMAIL_DOMAIN = "invite.radius-track.local";
 
@@ -52,8 +53,8 @@ export type InviteRow = {
 /** Создание скрытого пользователя + invite-записи. */
 export async function adminCreateInvite(args: CreateInviteArgs): Promise<InviteRow> {
   if (!args.fullName?.trim()) throw new Error("Укажите ФИО");
-  if (args.role !== "driver" && args.role !== "manager") {
-    throw new Error("Инвайт-ссылки доступны только для водителя и менеджера");
+  if (!ALLOWED_INVITE_ROLES.includes(args.role)) {
+    throw new Error("Инвайт-ссылки доступны для ролей: администратор, логист, менеджер, водитель");
   }
 
   const token = generateToken();
