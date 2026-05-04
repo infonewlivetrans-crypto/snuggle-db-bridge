@@ -13,6 +13,7 @@ import {
   Phone,
 } from "lucide-react";
 import { POINT_STATUS_LABELS, POINT_STATUS_STYLES, type PointStatus } from "@/lib/routes";
+import { formatRuPhone } from "@/lib/phone";
 
 type Point = {
   id: string;
