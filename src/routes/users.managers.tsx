@@ -94,8 +94,30 @@ function ManagersPage() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const managersQuery = useQuery({ queryKey: ["managers"], queryFn: () => listManagersFn() });
-  const invitesQuery = useQuery({ queryKey: ["invites-admin"], queryFn: () => listInvitesFn() });
+  const managersQuery = useQuery({
+    queryKey: ["managers"],
+    queryFn: async () => {
+      try {
+        const res = await listManagersFn({ headers: await authHeaders() });
+        return Array.isArray(res) ? res : [];
+      } catch (e) {
+        console.error("[managers] list failed", e);
+        return [];
+      }
+    },
+  });
+  const invitesQuery = useQuery({
+    queryKey: ["invites-admin"],
+    queryFn: async () => {
+      try {
+        const res = await listInvitesFn({ headers: await authHeaders() });
+        return Array.isArray(res) ? res : [];
+      } catch (e) {
+        console.error("[invites] list failed", e);
+        return [];
+      }
+    },
+  });
 
   const invitesByManagerName = useMemo(() => {
     const map = new Map<string, ReturnType<typeof Object> & { id: string; token: string; is_active: boolean }>();
