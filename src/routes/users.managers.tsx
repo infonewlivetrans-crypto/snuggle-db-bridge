@@ -36,7 +36,14 @@ import {
 } from "@/lib/server-functions/invites.functions";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Copy, Link2, Plus, RefreshCcw, ShieldCheck, ShieldOff, Trash2, Upload, Users } from "lucide-react";
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 export const Route = createFileRoute("/users/managers")({
   head: () => ({ meta: [{ title: "Менеджеры — Радиус Трек" }] }),
@@ -87,8 +94,30 @@ function ManagersPage() {
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const managersQuery = useQuery({ queryKey: ["managers"], queryFn: () => listManagersFn() });
-  const invitesQuery = useQuery({ queryKey: ["invites-admin"], queryFn: () => listInvitesFn() });
+  const managersQuery = useQuery({
+    queryKey: ["managers"],
+    queryFn: async () => {
+      try {
+        const res = await listManagersFn({ headers: await authHeaders() });
+        return Array.isArray(res) ? res : [];
+      } catch (e) {
+        console.error("[managers] list failed", e);
+        return [];
+      }
+    },
+  });
+  const invitesQuery = useQuery({
+    queryKey: ["invites-admin"],
+    queryFn: async () => {
+      try {
+        const res = await listInvitesFn({ headers: await authHeaders() });
+        return Array.isArray(res) ? res : [];
+      } catch (e) {
+        console.error("[invites] list failed", e);
+        return [];
+      }
+    },
+  });
 
   const invitesByManagerName = useMemo(() => {
     const map = new Map<string, ReturnType<typeof Object> & { id: string; token: string; is_active: boolean }>();
@@ -117,9 +146,11 @@ function ManagersPage() {
   const [form, setForm] = useState({ fullName: "", phone: "", comment: "" });
 
   const importMut = useMutation({
-    mutationFn: (items: ParsedRow[]) => importManagersFn({ data: { items } }),
+    mutationFn: async (items: ParsedRow[]) =>
+      importManagersFn({ data: { items }, headers: await authHeaders() }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["managers"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success(`Импорт: добавлено ${res.inserted}, обновлено ${res.updated}, пропущено ${res.skipped}`);
       setImportPreview(null);
     },
@@ -127,13 +158,14 @@ function ManagersPage() {
   });
 
   const createMut = useMutation({
-    mutationFn: () =>
+    mutationFn: async () =>
       createManagerFn({
         data: {
           fullName: form.fullName.trim(),
           phone: form.phone.trim() || null,
           comment: form.comment.trim() || null,
         },
+        headers: await authHeaders(),
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["managers"] });
@@ -145,14 +177,14 @@ function ManagersPage() {
   });
 
   const toggleActiveMut = useMutation({
-    mutationFn: (v: { id: string; is_active: boolean }) =>
-      updateManagerFn({ data: { id: v.id, patch: { is_active: v.is_active } } }),
+    mutationFn: async (v: { id: string; is_active: boolean }) =>
+      updateManagerFn({ data: { id: v.id, patch: { is_active: v.is_active } }, headers: await authHeaders() }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["managers"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMut = useMutation({
-    mutationFn: (id: string) => deleteManagerFn({ data: { id } }),
+    mutationFn: async (id: string) => deleteManagerFn({ data: { id }, headers: await authHeaders() }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["managers"] });
       toast.success("Удалено");
@@ -161,7 +193,7 @@ function ManagersPage() {
   });
 
   const createInviteMut = useMutation({
-    mutationFn: (m: { fullName: string; phone: string | null }) =>
+    mutationFn: async (m: { fullName: string; phone: string | null }) =>
       createInviteFn({
         data: {
           fullName: m.fullName,
@@ -169,6 +201,7 @@ function ManagersPage() {
           role: "manager",
           managerName: m.fullName,
         },
+        headers: await authHeaders(),
       }),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
@@ -180,7 +213,8 @@ function ManagersPage() {
   });
 
   const rotateMut = useMutation({
-    mutationFn: (id: string) => rotateInviteTokenFn({ data: { id } }),
+    mutationFn: async (id: string) =>
+      rotateInviteTokenFn({ data: { id }, headers: await authHeaders() }),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       void copyToClipboard(inviteUrl(inv.token)).then((ok) =>
@@ -191,7 +225,8 @@ function ManagersPage() {
   });
 
   const inviteActiveMut = useMutation({
-    mutationFn: (v: { id: string; isActive: boolean }) => setInviteActiveFn({ data: v }),
+    mutationFn: async (v: { id: string; isActive: boolean }) =>
+      setInviteActiveFn({ data: v, headers: await authHeaders() }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success("Готово");
