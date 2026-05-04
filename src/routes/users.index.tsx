@@ -27,9 +27,11 @@ import {
   listUsersFn,
   setUserActiveFn,
   setUserRoleFn,
+  setUserRolesFn,
 } from "@/lib/server-functions/users.functions";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
