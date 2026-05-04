@@ -339,10 +339,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    try {
-      await postJson("/api/auth/logout", {});
-    } catch (e) {
-      console.error("[auth] logout failed", e);
+    if (getAuthMode() === "preview") {
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error("[auth] preview logout failed", error);
+    } else {
+      try {
+        await postJson("/api/auth/logout", {});
+      } catch (e) {
+        console.error("[auth] logout failed", e);
+      }
     }
     clearLocalSessionTokens();
     setUser(null);
