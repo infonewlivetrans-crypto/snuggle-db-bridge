@@ -29,7 +29,7 @@ import {
   setUserRoleFn,
 } from "@/lib/server-functions/users.functions";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck, Link2 } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog } from "lucide-react";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
