@@ -221,7 +221,7 @@ function UsersPage() {
                               setRolesEdit({
                                 userId: u.user_id,
                                 fullName: u.full_name ?? u.email ?? "",
-                                roles: [...u.roles] as AppRole[],
+                                roles: [...userRoles] as AppRole[],
                               })
                             }
                           >
