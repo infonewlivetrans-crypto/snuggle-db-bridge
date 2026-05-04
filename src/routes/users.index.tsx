@@ -24,10 +24,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import {
   createUserFn,
-  listUsersFn,
   setUserActiveFn,
   setUserRolesFn,
 } from "@/lib/server-functions/users.functions";
+import { fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
@@ -44,7 +44,10 @@ function UsersPage() {
   const { loading: authLoading, session } = useAuth();
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin", session?.user?.id ?? null],
-    queryFn: () => listUsersFn(),
+    queryFn: async () => {
+      const response = await fetchListViaApi<UserRow>("/api/users", { limit: 100 });
+      return Array.isArray(response.rows) ? response.rows : [];
+    },
     enabled: !authLoading && !!session?.access_token,
   });
 
@@ -55,12 +58,7 @@ function UsersPage() {
       qc.invalidateQueries({ queryKey: ["users-admin"] });
     }
   }, [authLoading, session?.access_token, qc]);
-  const data = Array.isArray(rawData)
-    ? rawData
-    : (() => {
-        if (rawData != null) console.error("listUsersFn: ожидался массив, получено:", rawData);
-        return [];
-      })();
+  const safeRows = Array.isArray(rawData) ? rawData : [];
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<{ email: string; password: string; fullName: string; role: AppRole }>(
@@ -191,10 +189,10 @@ function UsersPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Загрузка…</TableCell></TableRow>
-              ) : (data ?? []).length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователей нет</TableCell></TableRow>
+              ) : safeRows.length === 0 ? (
+                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>
               ) : (
-                (data ?? []).map((u) => {
+                safeRows.map((u) => {
                   const userRoles = Array.isArray(u.roles) ? u.roles : [];
                   return (
                     <TableRow key={u.user_id}>
