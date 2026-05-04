@@ -179,7 +179,7 @@ export async function importManagers(
   if (toInsert.length > 0) {
     for (let i = 0; i < toInsert.length; i += 500) {
       const chunk = toInsert.slice(i, i + 500);
-      const { error } = await supabaseAdmin.from("managers").insert(chunk);
+      const { error } = await supabaseAdmin.from("managers").insert(chunk as never);
       if (error) throw new Error(error.message);
     }
     result.inserted = toInsert.length;
