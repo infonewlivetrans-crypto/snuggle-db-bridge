@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   authHeaders,
   fetchProfileViaApi,
@@ -52,6 +53,19 @@ type AuthMeResponse = {
   name?: string | null;
   role?: AppRole | string | null;
 };
+
+type AuthMode = "preview" | "production";
+
+function getAuthMode(): AuthMode {
+  if (typeof window === "undefined") return "production";
+  const host = window.location.hostname.toLowerCase();
+  const env = import.meta.env.VITE_APP_ENV as string | undefined;
+  if (host.includes("lovable.app") || host.includes("lovable.dev") || host === "localhost" || host === "127.0.0.1") {
+    return "preview";
+  }
+  if (host === "radius-track.ru" || host === "www.radius-track.ru") return "production";
+  return env === "production" ? "production" : "preview";
+}
 
 function toFriendlyAuthError(error: unknown): string {
   const msg = error instanceof Error ? error.message : String(error || "");
