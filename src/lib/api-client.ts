@@ -24,10 +24,10 @@ async function authHeader(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function apiGet<T>(
+async function apiFetch(
   path: string,
   opts: { auth?: boolean; timeoutMs?: number } = {},
-): Promise<T> {
+): Promise<Response> {
   const headers: Record<string, string> = { accept: "application/json" };
   if (opts.auth !== false) Object.assign(headers, await authHeader());
   const res = await withTimeout(
@@ -38,6 +38,14 @@ async function apiGet<T>(
     const text = await res.text().catch(() => "");
     throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
   }
+  return res;
+}
+
+async function apiGet<T>(
+  path: string,
+  opts: { auth?: boolean; timeoutMs?: number } = {},
+): Promise<T> {
+  const res = await apiFetch(path, opts);
   return (await res.json()) as T;
 }
 
