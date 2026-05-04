@@ -329,7 +329,7 @@ export function RouteSheetImportWizard({
                         {o.deliveryAddress ?? "—"}
                       </TableCell>
                       <TableCell className="text-xs">
-                        {o.contactPhone ?? "—"}
+                        {o.contactPhone ? formatRuPhone(o.contactPhone) : "—"}
                       </TableCell>
                       <TableCell>
                         <PaymentBadge kind={o.paymentKind} raw={o.paymentRaw} />
