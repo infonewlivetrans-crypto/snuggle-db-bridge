@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
@@ -46,6 +47,12 @@ type UserRow = {
   is_active: boolean;
   roles?: AppRole[];
 };
+
+async function serverFnAuthHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 function UsersPage() {
   const qc = useQueryClient();
@@ -74,7 +81,7 @@ function UsersPage() {
   );
 
   const createMut = useMutation({
-    mutationFn: () => createUserFn({ data: form }),
+    mutationFn: async () => createUserFn({ data: form, headers: await serverFnAuthHeaders() }),
     onSuccess: () => {
       toast.success("Пользователь создан");
       setOpen(false);
@@ -85,7 +92,8 @@ function UsersPage() {
   });
 
   const activeMut = useMutation({
-    mutationFn: (v: { userId: string; isActive: boolean }) => setUserActiveFn({ data: v }),
+    mutationFn: async (v: { userId: string; isActive: boolean }) =>
+      setUserActiveFn({ data: v, headers: await serverFnAuthHeaders() }),
     onSuccess: () => {
       toast.success("Статус обновлён");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -95,7 +103,8 @@ function UsersPage() {
 
   const [rolesEdit, setRolesEdit] = useState<{ userId: string; fullName: string; roles: AppRole[] } | null>(null);
   const rolesMut = useMutation({
-    mutationFn: (v: { userId: string; roles: AppRole[] }) => setUserRolesFn({ data: v }),
+    mutationFn: async (v: { userId: string; roles: AppRole[] }) =>
+      setUserRolesFn({ data: v, headers: await serverFnAuthHeaders() }),
     onSuccess: () => {
       toast.success("Роли обновлены");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
