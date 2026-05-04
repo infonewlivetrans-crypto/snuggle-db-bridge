@@ -26,7 +26,11 @@ export const requireCookieAuth = createMiddleware({ type: "function" }).server(
     const session = await getSessionUser();
     if (session) {
       return next({
-        context: { supabase: session.client, userId: session.userId },
+        context: {
+          supabase: session.client,
+          userId: session.userId,
+          claims: undefined as unknown,
+        },
       });
     }
 
