@@ -62,6 +62,30 @@ export async function recordStageEvent(input: StageEventInput): Promise<void> {
     );
   }
 
+  // 0) СТРОГАЯ ПРОВЕРКА ПЕРЕХОДА: следующий этап должен соответствовать current_stage
+  const { data: routeRow, error: rErr } = await supabaseAdmin
+    .from("delivery_routes")
+    .select("current_stage, route_number, assigned_driver, source_request_id")
+    .eq("id", input.deliveryRouteId)
+    .maybeSingle();
+  if (rErr) throw new Error(rErr.message);
+  if (!routeRow) throw new Error("Маршрут не найден");
+  const routeMeta = routeRow as {
+    current_stage: TripStage | null;
+    route_number: string | null;
+    assigned_driver: string | null;
+    source_request_id: string | null;
+  };
+  const current = (routeMeta.current_stage ?? "not_started") as TripStage;
+  const expected = nextStage(current);
+  if (expected !== input.stage) {
+    throw new Error(
+      `Недопустимый переход: текущий этап «${TRIP_STAGE_LABELS[current]}», ожидается «${
+        expected ? TRIP_STAGE_LABELS[expected] : "—"
+      }», получено «${TRIP_STAGE_LABELS[input.stage]}»`,
+    );
+  }
+
   // 1) пишем событие
   const { error: evErr } = await supabaseAdmin.from("route_stage_events").insert({
     delivery_route_id: input.deliveryRouteId,
@@ -79,11 +103,9 @@ export async function recordStageEvent(input: StageEventInput): Promise<void> {
   const patch: Record<string, unknown> = { current_stage: newStage };
   const tsField = TRIP_STAGE_TIMESTAMP_FIELD[input.stage];
   if (tsField) patch[tsField] = now;
-  // Если активируем departed/in_progress — также фиксируем departed_at
   if (newStage === "in_progress" && input.stage === "departed") {
     patch.departed_at = now;
   }
-  // Если завершён рейс — обновляем delivery_routes.status='completed' (для совместимости с пайплайном)
   if (input.stage === "finished") {
     patch.status = "completed";
   }
@@ -93,6 +115,35 @@ export async function recordStageEvent(input: StageEventInput): Promise<void> {
     .update(patch as never)
     .eq("id", input.deliveryRouteId);
   if (upErr) throw new Error(upErr.message);
+
+  // 3) уведомление об изменении статуса рейса (видно в /notifications, реалтайм)
+  const routeLabel = routeMeta.route_number ?? input.deliveryRouteId.slice(0, 8);
+  const driver = input.actorName ?? routeMeta.assigned_driver ?? "Водитель";
+  const stageLabel = TRIP_STAGE_LABELS[input.stage];
+  const body =
+    `${driver} • Рейс ${routeLabel}: ${stageLabel}` +
+    (input.comment ? ` — ${input.comment}` : "");
+  const { error: nErr } = await supabaseAdmin.from("notifications").insert({
+    kind: "trip_stage_changed",
+    title: `Рейс ${routeLabel}: ${stageLabel}`,
+    body,
+    route_id: routeMeta.source_request_id,
+    payload: {
+      delivery_route_id: input.deliveryRouteId,
+      stage: input.stage,
+      new_stage: newStage,
+      previous_stage: current,
+      occurred_at: now,
+      actor_name: driver,
+      actor_user_id: input.actorUserId ?? null,
+      comment: input.comment ?? null,
+      gps: input.gps ?? null,
+    },
+  } as never);
+  if (nErr) {
+    // Не валим основную операцию из-за уведомления — логируем
+    console.error("notifications insert failed:", nErr.message);
+  }
 }
 
 export async function listStageEvents(
