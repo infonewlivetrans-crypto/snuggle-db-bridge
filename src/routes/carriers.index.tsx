@@ -292,6 +292,50 @@ function CarriersPage() {
       </main>
 
       <CarrierFormDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      <Dialog open={!!importPreview} onOpenChange={(v) => !v && setImportPreview(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Предпросмотр импорта перевозчиков</DialogTitle>
+          </DialogHeader>
+          <div className="mb-2 text-sm text-muted-foreground">
+            Найдено строк: {importPreview?.length ?? 0}. Уникальных ФИО / названий: {uniquePreviewCount}.
+            Дубликаты и уже существующие записи будут пропущены.
+          </div>
+          <div className="max-h-[60vh] overflow-y-auto rounded-md border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                  <TableHead>ФИО / Название</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(importPreview ?? []).slice(0, 200).map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="text-sm">{r.fullName}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {(importPreview?.length ?? 0) > 200 && (
+              <div className="p-2 text-center text-xs text-muted-foreground">
+                Показаны первые 200 строк, остальные тоже будут импортированы.
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setImportPreview(null)}>
+              Отмена
+            </Button>
+            <Button
+              onClick={() => importPreview && importMut.mutate(importPreview)}
+              disabled={importMut.isPending || !importPreview?.length}
+            >
+              {importMut.isPending ? "Импорт…" : "Импортировать"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
