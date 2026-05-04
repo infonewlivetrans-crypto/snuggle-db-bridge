@@ -62,12 +62,32 @@ export async function isAdmin(client: SupabaseClient<Database>, userId: string):
 export async function requireAdmin(
   request: Request,
 ): Promise<{ userId: string; client: SupabaseClient<Database> } | Response> {
-  const token = getBearerToken(request);
-  if (!token) return jsonResponse({ error: "unauthorized" }, { status: 401 });
-  const auth = await requireUser(token);
+  const auth = await resolveAuth(request);
   if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
   if (!(await isAdmin(auth.client, auth.userId)))
     return jsonResponse({ error: "forbidden" }, { status: 403 });
+  return auth;
+}
+
+/**
+ * Универсальная аутентификация: сначала httpOnly cookie, затем Bearer-заголовок
+ * (legacy для существующих вызовов с access_token).
+ */
+export async function resolveAuth(
+  request: Request,
+): Promise<{ userId: string; client: SupabaseClient<Database> } | null> {
+  const cookieAuth = await getSessionUser();
+  if (cookieAuth) return cookieAuth;
+  const token = getBearerToken(request);
+  if (!token) return null;
+  return requireUser(token);
+}
+
+export async function requireAuth(
+  request: Request,
+): Promise<{ userId: string; client: SupabaseClient<Database> } | Response> {
+  const auth = await resolveAuth(request);
+  if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
   return auth;
 }
 
