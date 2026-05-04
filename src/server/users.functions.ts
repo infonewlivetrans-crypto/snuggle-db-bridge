@@ -5,6 +5,7 @@ import {
   adminListUsers,
   adminSetUserActive,
   adminSetUserRole,
+  adminSetUserRoles,
   assertCallerIsAdmin,
   bootstrapFirstAdmin,
   hasAnyAdmin,
