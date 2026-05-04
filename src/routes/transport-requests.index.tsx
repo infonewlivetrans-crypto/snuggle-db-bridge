@@ -59,6 +59,7 @@ type RequestRow = {
   route_number: string;
   request_type: string;
   status: string;
+  request_status?: string | null;
   route_date: string;
   departure_time: string | null;
   request_priority: RequestPriority;
@@ -67,8 +68,14 @@ type RequestRow = {
   points_count: number;
   total_weight_kg: number;
   total_volume_m3: number;
-  warehouses?: { name: string } | null;
-  destination?: { name: string } | null;
+  delivery_cost?: number | null;
+  carrier_cost?: number | null;
+  carrier_payment_status?: string | null;
+  warehouses?: { name: string; address?: string | null } | null;
+  destination?: { name: string; address?: string | null } | null;
+  carrier?: { company_name: string | null } | null;
+  driver?: { full_name: string | null; phone: string | null } | null;
+  vehicle?: { plate_number: string | null } | null;
 };
 
 function TransportRequestsPage() {
