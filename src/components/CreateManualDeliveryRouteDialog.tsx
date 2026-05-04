@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,56 +43,35 @@ export function CreateManualDeliveryRouteDialog({ open, onOpenChange }: Props) {
 
   const create = useMutation({
     mutationFn: async () => {
-      // Авто-номер при необходимости
-      let number = routeNumber.trim();
-      if (!number) {
-        const { data: numData, error: numErr } = await supabase.rpc(
-          "generate_route_number",
-        );
-        if (numErr) throw numErr;
-        number = numData as string;
-      }
+      const number = routeNumber.trim();
+      const combinedComment =
+        [
+          manager.trim() ? `Менеджер: ${manager.trim()}` : "",
+          comment.trim(),
+        ]
+          .filter(Boolean)
+          .join("\n") || null;
 
-      // 1) Создаём базовую запись в routes (нужна для связи с route_points)
-      const { data: srcRoute, error: srcErr } = await supabase
-        .from("routes")
-        .insert({
-          route_number: number,
-          route_date: routeDate,
-          driver_name: driver.trim() || null,
-          comment:
-            (manager.trim() ? `Менеджер: ${manager.trim()}` : "") +
-            (comment.trim() ? (manager.trim() ? "\n" : "") + comment.trim() : "") ||
-            null,
-          status: "planned",
-        })
-        .select("id")
-        .single();
-      if (srcErr) throw srcErr;
+      const srcRoute = await apiPost<{ id: string; route_number: string }>("/api/routes", {
+        route_number: number || undefined,
+        generate_number: !number,
+        route_date: routeDate,
+        driver_name: driver.trim() || null,
+        comment: combinedComment,
+        status: "planned",
+      });
 
-      // 2) Создаём delivery_routes со ссылкой на routes
-      const { data: dr, error: drErr } = await supabase
-        .from("delivery_routes")
-        .insert({
-          route_number: number,
-          route_date: routeDate,
-          assigned_driver: driver.trim() || null,
-          assigned_vehicle: vehicle.trim() || null,
-          source_request_id: srcRoute.id,
-          status: "formed",
-          comment:
-            [
-              manager.trim() ? `Менеджер: ${manager.trim()}` : "",
-              comment.trim(),
-            ]
-              .filter(Boolean)
-              .join("\n") || null,
-        })
-        .select("id")
-        .single();
-      if (drErr) throw drErr;
+      const dr = await apiPost<{ id: string }>("/api/delivery-routes", {
+        route_number: srcRoute.route_number,
+        route_date: routeDate,
+        assigned_driver: driver.trim() || null,
+        assigned_vehicle: vehicle.trim() || null,
+        source_request_id: srcRoute.id,
+        status: "formed",
+        comment: combinedComment,
+      });
 
-      return dr.id as string;
+      return dr.id;
     },
     onSuccess: (id) => {
       toast.success("Маршрут создан");

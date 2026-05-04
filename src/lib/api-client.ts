@@ -140,3 +140,40 @@ export async function apiGetAuth<T>(
 ): Promise<T> {
   return apiGet<T>(path, { auth: true, timeoutMs });
 }
+
+async function apiSend<T>(
+  path: string,
+  method: "POST" | "PATCH" | "DELETE" | "PUT",
+  body?: unknown,
+  opts: { timeoutMs?: number; raw?: boolean } = {},
+): Promise<T> {
+  const init: RequestInit = {
+    method,
+    credentials: "same-origin",
+    headers: { accept: "application/json" },
+  };
+  if (body instanceof FormData) {
+    init.body = body;
+  } else if (body !== undefined) {
+    (init.headers as Record<string, string>)["content-type"] = "application/json";
+    init.body = JSON.stringify(body);
+  }
+  const res = await withTimeout(fetch(path, init), opts.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const text = await res.text();
+  let parsed: unknown = null;
+  try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
+  if (!res.ok) {
+    const msg =
+      (parsed && typeof parsed === "object" && (parsed as { error?: string }).error) ||
+      `HTTP ${res.status}`;
+    throw new Error(typeof msg === "string" ? msg : `HTTP ${res.status}`);
+  }
+  return parsed as T;
+}
+
+export const apiPost = <T = unknown>(path: string, body?: unknown, timeoutMs?: number) =>
+  apiSend<T>(path, "POST", body, { timeoutMs });
+export const apiPatch = <T = unknown>(path: string, body?: unknown, timeoutMs?: number) =>
+  apiSend<T>(path, "PATCH", body, { timeoutMs });
+export const apiDelete = <T = unknown>(path: string, timeoutMs?: number) =>
+  apiSend<T>(path, "DELETE", undefined, { timeoutMs });

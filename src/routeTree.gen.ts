@@ -77,6 +77,7 @@ import { Route as ApiTransportRequestsRouteImport } from './routes/api/transport
 import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-settings'
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
+import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
@@ -90,6 +91,8 @@ import { Route as ApiInviteLoginRouteImport } from './routes/api/invite-login'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
 import { Route as ApiDemoModeRouteImport } from './routes/api/demo-mode'
+import { Route as ApiDeliveryRoutesRouteImport } from './routes/api/delivery-routes'
+import { Route as ApiDeliveryReportsRouteImport } from './routes/api/delivery-reports'
 import { Route as ApiDeliveryPhotosRouteImport } from './routes/api/delivery-photos'
 import { Route as ApiDeliveryDocumentsRouteImport } from './routes/api/delivery-documents'
 import { Route as ApiClientsRouteImport } from './routes/api/clients'
@@ -99,7 +102,15 @@ import { Route as ApiAppVersionsRouteImport } from './routes/api/app-versions'
 import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
+import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
+import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
+import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
+import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
+import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
+import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
+import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
 import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
@@ -447,6 +458,11 @@ const ApiRouteStatusesRoute = ApiRouteStatusesRouteImport.update({
   path: '/api/route-statuses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutePointsRoute = ApiRoutePointsRouteImport.update({
+  id: '/api/route-points',
+  path: '/api/route-points',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRolesRoute = ApiRolesRouteImport.update({
   id: '/api/roles',
   path: '/api/roles',
@@ -512,6 +528,16 @@ const ApiDemoModeRoute = ApiDemoModeRouteImport.update({
   path: '/api/demo-mode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeliveryRoutesRoute = ApiDeliveryRoutesRouteImport.update({
+  id: '/api/delivery-routes',
+  path: '/api/delivery-routes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDeliveryReportsRoute = ApiDeliveryReportsRouteImport.update({
+  id: '/api/delivery-reports',
+  path: '/api/delivery-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeliveryPhotosRoute = ApiDeliveryPhotosRouteImport.update({
   id: '/api/delivery-photos',
   path: '/api/delivery-photos',
@@ -557,9 +583,49 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStorageUploadRoute = ApiStorageUploadRouteImport.update({
+  id: '/api/storage/upload',
+  path: '/api/storage/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRoutesIdRoute = ApiRoutesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiRoutesRoute,
+} as any)
+const ApiRoutePointsSwapRoute = ApiRoutePointsSwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
+  getParentRoute: () => ApiRoutePointsRoute,
+} as any)
+const ApiRoutePointsReorderRoute = ApiRoutePointsReorderRouteImport.update({
+  id: '/reorder',
+  path: '/reorder',
+  getParentRoute: () => ApiRoutePointsRoute,
+} as any)
+const ApiRoutePointsIdRoute = ApiRoutePointsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiRoutePointsRoute,
+} as any)
+const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiOrdersRoute,
+} as any)
+const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDeliveryRoutesRoute,
+} as any)
 const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
   id: '/api/auth/session',
   path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
+  id: '/api/auth/me',
+  path: '/api/auth/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
@@ -626,6 +692,8 @@ export interface FileRoutesByFullPath {
   '/api/clients': typeof ApiClientsRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
+  '/api/delivery-reports': typeof ApiDeliveryReportsRoute
+  '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
@@ -634,13 +702,14 @@ export interface FileRoutesByFullPath {
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
-  '/api/orders': typeof ApiOrdersRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
-  '/api/routes': typeof ApiRoutesRoute
+  '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
@@ -678,7 +747,15 @@ export interface FileRoutesByFullPath {
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
+  '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
+  '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/storage/upload': typeof ApiStorageUploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -723,6 +800,8 @@ export interface FileRoutesByTo {
   '/api/clients': typeof ApiClientsRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
+  '/api/delivery-reports': typeof ApiDeliveryReportsRoute
+  '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
@@ -731,13 +810,14 @@ export interface FileRoutesByTo {
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
-  '/api/orders': typeof ApiOrdersRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
-  '/api/routes': typeof ApiRoutesRoute
+  '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
@@ -775,7 +855,15 @@ export interface FileRoutesByTo {
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
+  '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
+  '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/storage/upload': typeof ApiStorageUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -821,6 +909,8 @@ export interface FileRoutesById {
   '/api/clients': typeof ApiClientsRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
+  '/api/delivery-reports': typeof ApiDeliveryReportsRoute
+  '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRoute
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
@@ -829,13 +919,14 @@ export interface FileRoutesById {
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
-  '/api/orders': typeof ApiOrdersRoute
+  '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
-  '/api/routes': typeof ApiRoutesRoute
+  '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
@@ -873,7 +964,15 @@ export interface FileRoutesById {
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
+  '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
+  '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/storage/upload': typeof ApiStorageUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -920,6 +1019,8 @@ export interface FileRouteTypes {
     | '/api/clients'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
+    | '/api/delivery-reports'
+    | '/api/delivery-routes'
     | '/api/demo-mode'
     | '/api/drivers'
     | '/api/import-route-sheet'
@@ -933,6 +1034,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
     | '/api/system-settings'
@@ -972,7 +1074,15 @@ export interface FileRouteTypes {
     | '/api/auth/has-admin'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/me'
     | '/api/auth/session'
+    | '/api/delivery-routes/$id'
+    | '/api/orders/$id'
+    | '/api/route-points/$id'
+    | '/api/route-points/reorder'
+    | '/api/route-points/swap'
+    | '/api/routes/$id'
+    | '/api/storage/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1017,6 +1127,8 @@ export interface FileRouteTypes {
     | '/api/clients'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
+    | '/api/delivery-reports'
+    | '/api/delivery-routes'
     | '/api/demo-mode'
     | '/api/drivers'
     | '/api/import-route-sheet'
@@ -1030,6 +1142,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
     | '/api/system-settings'
@@ -1069,7 +1182,15 @@ export interface FileRouteTypes {
     | '/api/auth/has-admin'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/me'
     | '/api/auth/session'
+    | '/api/delivery-routes/$id'
+    | '/api/orders/$id'
+    | '/api/route-points/$id'
+    | '/api/route-points/reorder'
+    | '/api/route-points/swap'
+    | '/api/routes/$id'
+    | '/api/storage/upload'
   id:
     | '__root__'
     | '/'
@@ -1114,6 +1235,8 @@ export interface FileRouteTypes {
     | '/api/clients'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
+    | '/api/delivery-reports'
+    | '/api/delivery-routes'
     | '/api/demo-mode'
     | '/api/drivers'
     | '/api/import-route-sheet'
@@ -1127,6 +1250,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
     | '/api/system-settings'
@@ -1166,7 +1290,15 @@ export interface FileRouteTypes {
     | '/api/auth/has-admin'
     | '/api/auth/login'
     | '/api/auth/logout'
+    | '/api/auth/me'
     | '/api/auth/session'
+    | '/api/delivery-routes/$id'
+    | '/api/orders/$id'
+    | '/api/route-points/$id'
+    | '/api/route-points/reorder'
+    | '/api/route-points/swap'
+    | '/api/routes/$id'
+    | '/api/storage/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1212,6 +1344,8 @@ export interface RootRouteChildren {
   ApiClientsRoute: typeof ApiClientsRoute
   ApiDeliveryDocumentsRoute: typeof ApiDeliveryDocumentsRoute
   ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
+  ApiDeliveryReportsRoute: typeof ApiDeliveryReportsRoute
+  ApiDeliveryRoutesRoute: typeof ApiDeliveryRoutesRouteWithChildren
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDriversRoute: typeof ApiDriversRoute
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
@@ -1220,13 +1354,14 @@ export interface RootRouteChildren {
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
-  ApiOrdersRoute: typeof ApiOrdersRoute
+  ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPaymentsRoute: typeof ApiPaymentsRoute
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReportsRoute: typeof ApiReportsRoute
   ApiRolesRoute: typeof ApiRolesRoute
+  ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
-  ApiRoutesRoute: typeof ApiRoutesRoute
+  ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
   ApiUserRoleRoute: typeof ApiUserRoleRoute
@@ -1263,7 +1398,9 @@ export interface RootRouteChildren {
   ApiAuthHasAdminRoute: typeof ApiAuthHasAdminRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiStorageUploadRoute: typeof ApiStorageUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1744,6 +1881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRouteStatusesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/route-points': {
+      id: '/api/route-points'
+      path: '/api/route-points'
+      fullPath: '/api/route-points'
+      preLoaderRoute: typeof ApiRoutePointsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/roles': {
       id: '/api/roles'
       path: '/api/roles'
@@ -1835,6 +1979,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDemoModeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/delivery-routes': {
+      id: '/api/delivery-routes'
+      path: '/api/delivery-routes'
+      fullPath: '/api/delivery-routes'
+      preLoaderRoute: typeof ApiDeliveryRoutesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/delivery-reports': {
+      id: '/api/delivery-reports'
+      path: '/api/delivery-reports'
+      fullPath: '/api/delivery-reports'
+      preLoaderRoute: typeof ApiDeliveryReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-photos': {
       id: '/api/delivery-photos'
       path: '/api/delivery-photos'
@@ -1898,11 +2056,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/storage/upload': {
+      id: '/api/storage/upload'
+      path: '/api/storage/upload'
+      fullPath: '/api/storage/upload'
+      preLoaderRoute: typeof ApiStorageUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/routes/$id': {
+      id: '/api/routes/$id'
+      path: '/$id'
+      fullPath: '/api/routes/$id'
+      preLoaderRoute: typeof ApiRoutesIdRouteImport
+      parentRoute: typeof ApiRoutesRoute
+    }
+    '/api/route-points/swap': {
+      id: '/api/route-points/swap'
+      path: '/swap'
+      fullPath: '/api/route-points/swap'
+      preLoaderRoute: typeof ApiRoutePointsSwapRouteImport
+      parentRoute: typeof ApiRoutePointsRoute
+    }
+    '/api/route-points/reorder': {
+      id: '/api/route-points/reorder'
+      path: '/reorder'
+      fullPath: '/api/route-points/reorder'
+      preLoaderRoute: typeof ApiRoutePointsReorderRouteImport
+      parentRoute: typeof ApiRoutePointsRoute
+    }
+    '/api/route-points/$id': {
+      id: '/api/route-points/$id'
+      path: '/$id'
+      fullPath: '/api/route-points/$id'
+      preLoaderRoute: typeof ApiRoutePointsIdRouteImport
+      parentRoute: typeof ApiRoutePointsRoute
+    }
+    '/api/orders/$id': {
+      id: '/api/orders/$id'
+      path: '/$id'
+      fullPath: '/api/orders/$id'
+      preLoaderRoute: typeof ApiOrdersIdRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
+    '/api/delivery-routes/$id': {
+      id: '/api/delivery-routes/$id'
+      path: '/$id'
+      fullPath: '/api/delivery-routes/$id'
+      preLoaderRoute: typeof ApiDeliveryRoutesIdRouteImport
+      parentRoute: typeof ApiDeliveryRoutesRoute
+    }
     '/api/auth/session': {
       id: '/api/auth/session'
       path: '/api/auth/session'
       fullPath: '/api/auth/session'
       preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/me': {
+      id: '/api/auth/me'
+      path: '/api/auth/me'
+      fullPath: '/api/auth/me'
+      preLoaderRoute: typeof ApiAuthMeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/logout': {
@@ -1948,6 +2162,57 @@ const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
   DataImportRouteChildren,
 )
 
+interface ApiDeliveryRoutesRouteChildren {
+  ApiDeliveryRoutesIdRoute: typeof ApiDeliveryRoutesIdRoute
+}
+
+const ApiDeliveryRoutesRouteChildren: ApiDeliveryRoutesRouteChildren = {
+  ApiDeliveryRoutesIdRoute: ApiDeliveryRoutesIdRoute,
+}
+
+const ApiDeliveryRoutesRouteWithChildren =
+  ApiDeliveryRoutesRoute._addFileChildren(ApiDeliveryRoutesRouteChildren)
+
+interface ApiOrdersRouteChildren {
+  ApiOrdersIdRoute: typeof ApiOrdersIdRoute
+}
+
+const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
+  ApiOrdersIdRoute: ApiOrdersIdRoute,
+}
+
+const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
+  ApiOrdersRouteChildren,
+)
+
+interface ApiRoutePointsRouteChildren {
+  ApiRoutePointsIdRoute: typeof ApiRoutePointsIdRoute
+  ApiRoutePointsReorderRoute: typeof ApiRoutePointsReorderRoute
+  ApiRoutePointsSwapRoute: typeof ApiRoutePointsSwapRoute
+}
+
+const ApiRoutePointsRouteChildren: ApiRoutePointsRouteChildren = {
+  ApiRoutePointsIdRoute: ApiRoutePointsIdRoute,
+  ApiRoutePointsReorderRoute: ApiRoutePointsReorderRoute,
+  ApiRoutePointsSwapRoute: ApiRoutePointsSwapRoute,
+}
+
+const ApiRoutePointsRouteWithChildren = ApiRoutePointsRoute._addFileChildren(
+  ApiRoutePointsRouteChildren,
+)
+
+interface ApiRoutesRouteChildren {
+  ApiRoutesIdRoute: typeof ApiRoutesIdRoute
+}
+
+const ApiRoutesRouteChildren: ApiRoutesRouteChildren = {
+  ApiRoutesIdRoute: ApiRoutesIdRoute,
+}
+
+const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
+  ApiRoutesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
@@ -1991,6 +2256,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiClientsRoute: ApiClientsRoute,
   ApiDeliveryDocumentsRoute: ApiDeliveryDocumentsRoute,
   ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
+  ApiDeliveryReportsRoute: ApiDeliveryReportsRoute,
+  ApiDeliveryRoutesRoute: ApiDeliveryRoutesRouteWithChildren,
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDriversRoute: ApiDriversRoute,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
@@ -1999,13 +2266,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
-  ApiOrdersRoute: ApiOrdersRoute,
+  ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPaymentsRoute: ApiPaymentsRoute,
   ApiProfileRoute: ApiProfileRoute,
   ApiReportsRoute: ApiReportsRoute,
   ApiRolesRoute: ApiRolesRoute,
+  ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
-  ApiRoutesRoute: ApiRoutesRoute,
+  ApiRoutesRoute: ApiRoutesRouteWithChildren,
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,
   ApiUserRoleRoute: ApiUserRoleRoute,
@@ -2042,7 +2310,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthHasAdminRoute: ApiAuthHasAdminRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiStorageUploadRoute: ApiStorageUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
