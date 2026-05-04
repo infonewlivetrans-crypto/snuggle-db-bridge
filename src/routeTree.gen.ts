@@ -78,6 +78,7 @@ import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-setti
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
+import { Route as ApiRoutePointPhotosRouteImport } from './routes/api/route-point-photos'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
@@ -466,6 +467,11 @@ const ApiRoutePointsRoute = ApiRoutePointsRouteImport.update({
   path: '/api/route-points',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutePointPhotosRoute = ApiRoutePointPhotosRouteImport.update({
+  id: '/api/route-point-photos',
+  path: '/api/route-point-photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRolesRoute = ApiRolesRouteImport.update({
   id: '/api/roles',
   path: '/api/roles',
@@ -727,6 +733,7 @@ export interface FileRoutesByFullPath {
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
@@ -838,6 +845,7 @@ export interface FileRoutesByTo {
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
@@ -950,6 +958,7 @@ export interface FileRoutesById {
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
@@ -1063,6 +1072,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
@@ -1174,6 +1184,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
@@ -1285,6 +1296,7 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
+    | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
@@ -1397,6 +1409,7 @@ export interface RootRouteChildren {
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReportsRoute: typeof ApiReportsRoute
   ApiRolesRoute: typeof ApiRolesRoute
+  ApiRoutePointPhotosRoute: typeof ApiRoutePointPhotosRoute
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
   ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
@@ -1926,6 +1939,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRoutePointsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/route-point-photos': {
+      id: '/api/route-point-photos'
+      path: '/api/route-point-photos'
+      fullPath: '/api/route-point-photos'
+      preLoaderRoute: typeof ApiRoutePointPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/roles': {
       id: '/api/roles'
       path: '/api/roles'
@@ -2355,6 +2375,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProfileRoute: ApiProfileRoute,
   ApiReportsRoute: ApiReportsRoute,
   ApiRolesRoute: ApiRolesRoute,
+  ApiRoutePointPhotosRoute: ApiRoutePointPhotosRoute,
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
   ApiRoutesRoute: ApiRoutesRouteWithChildren,
