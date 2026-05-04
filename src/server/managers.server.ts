@@ -136,7 +136,7 @@ export async function importManagers(
       if (Object.keys(patch).length > 0) {
         const { error } = await supabaseAdmin
           .from("managers")
-          .update(patch)
+          .update(patch as never)
           .eq("id", existing.id);
         if (error) throw new Error(error.message);
         result.updated += 1;
