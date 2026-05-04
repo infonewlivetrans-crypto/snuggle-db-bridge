@@ -52,7 +52,7 @@ type UserRow = {
   invite_active?: boolean | null;
 };
 
-import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
+
 
 async function copyText(text: string): Promise<boolean> {
   try {
