@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { importDriversFn } from "@/lib/server-functions/drivers.functions";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,7 @@ import {
 import { fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -140,6 +141,57 @@ function UsersPage() {
     });
   }
 
+  const driversFileRef = useRef<HTMLInputElement>(null);
+  const [driverImportBusy, setDriverImportBusy] = useState(false);
+  const importDriversMut = useMutation({
+    mutationFn: async (items: { fullName: string; phone?: string | null; comment?: string | null; licenseNumber?: string | null }[]) =>
+      importDriversFn({ data: { items }, headers: await serverFnAuthHeaders() }),
+    onSuccess: (res) => {
+      toast.success(
+        `Водители: добавлено ${res.inserted}, обновлено ${res.updated}, пропущено ${res.skipped}. Создано ссылок: ${res.invitesCreated}`,
+      );
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  async function onPickDriversFile(file: File | null) {
+    if (!file) return;
+    setDriverImportBusy(true);
+    try {
+      const XLSX = await import("xlsx");
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]!];
+      if (!ws) throw new Error("Пустой файл");
+      const grid = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, defval: "" });
+      const items: { fullName: string; phone?: string | null; comment?: string | null; licenseNumber?: string | null }[] = [];
+      for (const r of grid) {
+        if (!Array.isArray(r)) continue;
+        const fullName = String(r[0] ?? "").trim();
+        if (!fullName) continue;
+        if (/^(фио|водитель|name|full[_ ]?name)$/i.test(fullName)) continue;
+        items.push({
+          fullName,
+          phone: r[1] != null && String(r[1]).trim() !== "" ? String(r[1]) : null,
+          comment: r[2] != null && String(r[2]).trim() !== "" ? String(r[2]) : null,
+          licenseNumber: r[3] != null && String(r[3]).trim() !== "" ? String(r[3]) : null,
+        });
+      }
+      if (items.length === 0) {
+        toast.error("В файле не найдено строк с ФИО");
+        return;
+      }
+      importDriversMut.mutate(items);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось прочитать файл");
+    } finally {
+      setDriverImportBusy(false);
+      if (driversFileRef.current) driversFileRef.current.value = "";
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -150,6 +202,22 @@ function UsersPage() {
             <p className="mt-1 text-sm text-muted-foreground">Управление учётными записями и ролями</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <input
+              ref={driversFileRef}
+              type="file"
+              accept=".xlsx,.xls"
+              className="hidden"
+              onChange={(e) => onPickDriversFile(e.target.files?.[0] ?? null)}
+            />
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => driversFileRef.current?.click()}
+              disabled={driverImportBusy || importDriversMut.isPending}
+            >
+              <Upload className="h-4 w-4" />
+              {driverImportBusy || importDriversMut.isPending ? "Импорт…" : "Импорт водителей"}
+            </Button>
             <Link to="/users/managers">
               <Button variant="outline" className="gap-2">
                 <UserCog className="h-4 w-4" />
