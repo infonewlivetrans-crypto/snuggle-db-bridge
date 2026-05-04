@@ -138,7 +138,17 @@ function InvitesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const rows = useMemo(() => data ?? [], [data]);
+  const rows = useMemo(() => {
+    if (Array.isArray(data)) return data;
+    // Защита: API мог вернуть { data: [...] } или { rows: [...] } или объект/null
+    const d = data as unknown;
+    if (d && typeof d === "object") {
+      const maybe = (d as { data?: unknown; rows?: unknown }).data ?? (d as { rows?: unknown }).rows;
+      if (Array.isArray(maybe)) return maybe as typeof data;
+      console.error("[invites] Ожидался массив, получено:", d);
+    }
+    return [];
+  }, [data]);
 
   return (
     <div className="min-h-screen bg-background">
