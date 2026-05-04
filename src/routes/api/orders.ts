@@ -18,9 +18,9 @@ export const Route = createFileRoute("/api/orders")({
     handlers: {
       GET: async ({ request }) => {
         const token = getBearerToken(request);
-        if (!token) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+        if (!token) return jsonResponse([], { status: 401, headers: { "X-Error": "unauthorized" } });
         const auth = await requireUser(token);
-        if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+        if (!auth) return jsonResponse([], { status: 401, headers: { "X-Error": "unauthorized" } });
 
         const { limit, offset, search, url } = parseListParams(request);
         const status = url.searchParams.get("status");
@@ -38,9 +38,9 @@ export const Route = createFileRoute("/api/orders")({
         }
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
 
-        let rows: unknown[] = data ?? [];
+        let rows: unknown[] = Array.isArray(data) ? data : [];
         if (includeRoutes && rows.length > 0) {
           const ids = (rows as { id: string }[]).map((r) => r.id);
           const { data: pts } = await auth.client
@@ -69,10 +69,9 @@ export const Route = createFileRoute("/api/orders")({
           }));
         }
 
-        return jsonResponse(
-          { rows, total: count ?? 0 },
-          { headers: cacheHeaders(60) },
-        );
+        return jsonResponse(rows, {
+          headers: { ...cacheHeaders(60), "X-Total-Count": String(count ?? rows.length) },
+        });
       },
     },
   },

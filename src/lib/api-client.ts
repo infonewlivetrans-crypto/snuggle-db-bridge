@@ -24,10 +24,10 @@ async function authHeader(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function apiGet<T>(
+async function apiFetch(
   path: string,
   opts: { auth?: boolean; timeoutMs?: number } = {},
-): Promise<T> {
+): Promise<Response> {
   const headers: Record<string, string> = { accept: "application/json" };
   if (opts.auth !== false) Object.assign(headers, await authHeader());
   const res = await withTimeout(
@@ -38,6 +38,14 @@ async function apiGet<T>(
     const text = await res.text().catch(() => "");
     throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
   }
+  return res;
+}
+
+async function apiGet<T>(
+  path: string,
+  opts: { auth?: boolean; timeoutMs?: number } = {},
+): Promise<T> {
+  const res = await apiFetch(path, opts);
   return (await res.json()) as T;
 }
 
@@ -107,10 +115,24 @@ export async function fetchListViaApi<T>(
   params: ListParams = {},
   timeoutMs = 5000,
 ): Promise<ListResult<T>> {
-  return apiGet<ListResult<T>>(`${path}?${buildQuery(params)}`, {
+  const res = await apiFetch(`${path}?${buildQuery(params)}`, {
     auth: true,
     timeoutMs,
   });
+  const body = await res.json().catch(() => null);
+  // Новый контракт: тело — массив, total приходит в X-Total-Count.
+  if (Array.isArray(body)) {
+    const totalHeader = res.headers.get("X-Total-Count");
+    const total = totalHeader != null ? Number(totalHeader) : body.length;
+    return { rows: body as T[], total: Number.isFinite(total) ? total : body.length };
+  }
+  // Обратная совместимость: { rows, total } от ещё не обновлённых эндпоинтов.
+  if (body && typeof body === "object" && Array.isArray((body as { rows?: unknown }).rows)) {
+    const b = body as { rows: T[]; total?: number };
+    return { rows: b.rows, total: b.total ?? b.rows.length };
+  }
+  console.error(`fetchListViaApi(${path}): неожиданный формат ответа`, body);
+  return { rows: [], total: 0 };
 }
 
 /** Произвольный авторизованный GET с таймаутом — для одиночных ресурсов. */
