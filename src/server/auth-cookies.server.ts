@@ -18,8 +18,10 @@ const SUPABASE_PUBLISHABLE_KEY =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
   "";
 
-export const ACCESS_COOKIE = "rt-access";
-export const REFRESH_COOKIE = "rt-refresh";
+export const ACCESS_COOKIE = "sb-access-token";
+export const REFRESH_COOKIE = "sb-refresh-token";
+const LEGACY_ACCESS_COOKIE = "rt-access";
+const LEGACY_REFRESH_COOKIE = "rt-refresh";
 
 const ACCESS_MAX_AGE = 60 * 60; // 1 час
 const REFRESH_MAX_AGE = 60 * 60 * 24 * 30; // 30 дней
@@ -66,6 +68,8 @@ export function setSessionCookies(args: {
 export function clearSessionCookies() {
   deleteCookie(ACCESS_COOKIE, { path: "/" });
   deleteCookie(REFRESH_COOKIE, { path: "/" });
+  deleteCookie(LEGACY_ACCESS_COOKIE, { path: "/" });
+  deleteCookie(LEGACY_REFRESH_COOKIE, { path: "/" });
 }
 
 function makeClient(token?: string): SupabaseClient<Database> {
@@ -88,8 +92,8 @@ function makeClient(token?: string): SupabaseClient<Database> {
 export async function getSessionUser(): Promise<
   { userId: string; client: SupabaseClient<Database> } | null
 > {
-  const access = getCookie(ACCESS_COOKIE);
-  const refresh = getCookie(REFRESH_COOKIE);
+  const access = getCookie(ACCESS_COOKIE) ?? getCookie(LEGACY_ACCESS_COOKIE);
+  const refresh = getCookie(REFRESH_COOKIE) ?? getCookie(LEGACY_REFRESH_COOKIE);
 
   if (access) {
     const client = makeClient(access);
