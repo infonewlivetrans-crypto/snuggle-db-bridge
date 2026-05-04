@@ -97,7 +97,7 @@ export function TripStageBlock({
           deliveryRouteId,
           stage,
           comment: comment.trim() || null,
-          gps: gps ? { lat: gps.lat, lng: gps.lng } : null,
+          gps: gps ? { lat: gps.latitude, lng: gps.longitude } : null,
           actorName: driverName,
         },
       });
