@@ -115,6 +115,7 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
 import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
+import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -648,6 +649,11 @@ const ApiAuthBootstrapAdminRoute = ApiAuthBootstrapAdminRouteImport.update({
   path: '/api/auth/bootstrap-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrdersIdRouteLinkRoute = ApiOrdersIdRouteLinkRouteImport.update({
+  id: '/route-link',
+  path: '/route-link',
+  getParentRoute: () => ApiOrdersIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -750,12 +756,13 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
-  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -858,12 +865,13 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
-  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -967,12 +975,13 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRoute
-  '/api/orders/$id': typeof ApiOrdersIdRoute
+  '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1083,6 +1092,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/orders/$id/route-link'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1191,6 +1201,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/orders/$id/route-link'
   id:
     | '__root__'
     | '/'
@@ -1299,6 +1310,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/orders/$id/route-link'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2147,6 +2159,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthBootstrapAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/orders/$id/route-link': {
+      id: '/api/orders/$id/route-link'
+      path: '/route-link'
+      fullPath: '/api/orders/$id/route-link'
+      preLoaderRoute: typeof ApiOrdersIdRouteLinkRouteImport
+      parentRoute: typeof ApiOrdersIdRoute
+    }
   }
 }
 
@@ -2173,12 +2192,24 @@ const ApiDeliveryRoutesRouteChildren: ApiDeliveryRoutesRouteChildren = {
 const ApiDeliveryRoutesRouteWithChildren =
   ApiDeliveryRoutesRoute._addFileChildren(ApiDeliveryRoutesRouteChildren)
 
+interface ApiOrdersIdRouteChildren {
+  ApiOrdersIdRouteLinkRoute: typeof ApiOrdersIdRouteLinkRoute
+}
+
+const ApiOrdersIdRouteChildren: ApiOrdersIdRouteChildren = {
+  ApiOrdersIdRouteLinkRoute: ApiOrdersIdRouteLinkRoute,
+}
+
+const ApiOrdersIdRouteWithChildren = ApiOrdersIdRoute._addFileChildren(
+  ApiOrdersIdRouteChildren,
+)
+
 interface ApiOrdersRouteChildren {
-  ApiOrdersIdRoute: typeof ApiOrdersIdRoute
+  ApiOrdersIdRoute: typeof ApiOrdersIdRouteWithChildren
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
-  ApiOrdersIdRoute: ApiOrdersIdRoute,
+  ApiOrdersIdRoute: ApiOrdersIdRouteWithChildren,
 }
 
 const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
