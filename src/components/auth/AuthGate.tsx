@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
-import { useAuth } from "@/lib/auth/auth-context";
+import { getAuthMode, useAuth } from "@/lib/auth/auth-context";
 import { LoginPage } from "@/components/auth/LoginPage";
 import { SplashScreen } from "@/components/SplashScreen";
 import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
@@ -31,6 +31,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return;
+    if (getAuthMode() === "preview") {
+      setHasAdmin(true);
+      return;
+    }
     if (user) {
       setHasAdmin(true);
       return;
@@ -40,6 +44,10 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   // Публичные маршруты — без проверки
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
+
+  if (getAuthMode() === "preview" && !user) {
+    return <LoginPage />;
+  }
 
   if (loading || hasAdmin === null) {
     return <SplashScreen />;

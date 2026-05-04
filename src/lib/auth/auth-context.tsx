@@ -53,6 +53,32 @@ type AuthMeResponse = {
   role?: AppRole | string | null;
 };
 
+type AuthMode = "preview" | "production";
+
+export function getAuthMode(): AuthMode {
+  if (typeof window === "undefined") return "production";
+  const host = window.location.hostname.toLowerCase();
+  const env = import.meta.env.VITE_APP_ENV as string | undefined;
+  if (host.includes("lovable.app") || host.includes("lovable.dev") || host.includes("lovableproject.com") || host === "localhost" || host === "127.0.0.1") {
+    return "preview";
+  }
+  if (host === "radius-track.ru" || host === "www.radius-track.ru") return "production";
+  return env === "production" ? "production" : "preview";
+}
+
+async function withAuthTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  return await new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error("Auth timeout")), ms);
+    promise.then((value) => {
+      window.clearTimeout(timer);
+      resolve(value);
+    }).catch((error) => {
+      window.clearTimeout(timer);
+      reject(error);
+    });
+  });
+}
+
 function toFriendlyAuthError(error: unknown): string {
   const msg = error instanceof Error ? error.message : String(error || "");
   const lower = msg.toLowerCase();
@@ -97,6 +123,27 @@ function normalizeRole(role: AuthMeResponse["role"]): AppRole | null {
     : null;
 }
 
+async function getBrowserSupabase() {
+  const mod = await import("@/integrations/supabase/client");
+  return mod.supabase;
+}
+
+async function fetchPreviewProfileAndRoles(userId: string) {
+  const supabase = await getBrowserSupabase();
+  const [{ data: prof, error: profileError }, { data: rolesData, error: rolesError }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", userId),
+  ]);
+  if (profileError) throw profileError;
+  if (rolesError) throw rolesError;
+  return {
+    profile: (prof as Profile | null) ?? null,
+    roles: ((rolesData ?? []).map((r: { role: string }) => r.role).filter((role) =>
+      (APP_ROLES as readonly string[]).includes(role),
+    ) as AppRole[]) ?? [],
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SessionUser | null>(null);
@@ -124,6 +171,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshSession = useCallback(async () => {
     try {
+      if (getAuthMode() === "preview") {
+        const supabase = await getBrowserSupabase();
+        const { data, error } = await withAuthTimeout(supabase.auth.getSession());
+        if (error || !data.session?.user) {
+          setUser(null);
+          setProfile(null);
+          setRoles([]);
+          return;
+        }
+        const sessionUser = data.session.user;
+        setLocalSessionTokens({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        setUser({ id: sessionUser.id, email: sessionUser.email ?? null });
+        const previewData = await fetchPreviewProfileAndRoles(sessionUser.id);
+        setProfile(previewData.profile);
+        setRoles(previewData.roles);
+        setLoadError(null);
+        return;
+      }
       const res = await fetch("/api/auth/session", {
         credentials: "same-origin",
         headers: { accept: "application/json", ...authHeaders() },
@@ -162,6 +230,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(
     async (email: string, password: string) => {
+      if (getAuthMode() === "preview") {
+        const supabase = await getBrowserSupabase();
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) {
+          console.error("[auth] preview signInWithPassword failed", error);
+          throw new Error(error?.message || "Ошибка авторизации");
+        }
+        if (data.session) {
+          setLocalSessionTokens({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+        }
+        setUser({ id: data.user.id, email: data.user.email ?? null });
+        const previewData = await fetchPreviewProfileAndRoles(data.user.id);
+        setProfile(previewData.profile);
+        setRoles(previewData.roles);
+        setLoadError(null);
+        return;
+      }
       const result = (await postJson("/api/auth/login", {
         email,
         password,
@@ -203,6 +291,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ) => {
       try {
         setLoadError(null);
+        if (getAuthMode() === "preview") {
+          onStep("preview-auth: вызван Supabase signInWithPassword");
+          const supabase = await getBrowserSupabase();
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          onStep(error ? "preview login status: error" : "preview login status: 200");
+          if (error || !data.user) {
+            console.error("[auth] preview signInWithPassword failed", error);
+            throw new Error(error?.message || "Ошибка авторизации");
+          }
+          if (data.session) {
+            setLocalSessionTokens({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            });
+          }
+          onStep("preview-auth: загружаю профиль и роли");
+          const previewData = await fetchPreviewProfileAndRoles(data.user.id);
+          const signedUser = { id: data.user.id, email: data.user.email ?? null };
+          setUser(signedUser);
+          setProfile(previewData.profile);
+          setRoles(previewData.roles);
+          setLoadError(null);
+          onStep("preview-auth: профиль пользователя получен");
+          return { user: signedUser, roles: previewData.roles };
+        }
         onStep("отправлен POST /api/auth/login");
         const loginRes = await fetch("/api/auth/login", {
           method: "POST",
@@ -263,10 +376,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    try {
-      await postJson("/api/auth/logout", {});
-    } catch (e) {
-      console.error("[auth] logout failed", e);
+    if (getAuthMode() === "preview") {
+      const supabase = await getBrowserSupabase();
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error("[auth] preview logout failed", error);
+    } else {
+      try {
+        await postJson("/api/auth/logout", {});
+      } catch (e) {
+        console.error("[auth] logout failed", e);
+      }
     }
     clearLocalSessionTokens();
     setUser(null);
