@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import {
   cacheHeaders,
-  getBearerToken,
   jsonResponse,
   parseListParams,
-  requireUser,
+  requireAuth,
 } from "@/server/api-helpers.server";
 
 const SELECT = `
@@ -13,14 +13,35 @@ const SELECT = `
   contact_name, contact_phone, created_at, updated_at
 `;
 
+const CreateOrderSchema = z.object({
+  order_number: z.string().min(1).max(255),
+  delivery_address: z.string().max(2000).nullable().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
+  map_link: z.string().max(2000).nullable().optional(),
+  landmarks: z.string().max(2000).nullable().optional(),
+  access_instructions: z.string().max(2000).nullable().optional(),
+  contact_name: z.string().max(255).nullable().optional(),
+  contact_phone: z.string().max(64).nullable().optional(),
+  comment: z.string().max(2000).nullable().optional(),
+  payment_type: z.string().max(32).optional(),
+  payment_status: z.string().max(32).optional(),
+  requires_qr: z.boolean().optional(),
+  delivery_photo_url: z.string().nullable().optional(),
+  total_weight_kg: z.number().nullable().optional(),
+  total_volume_m3: z.number().nullable().optional(),
+  items_count: z.number().nullable().optional(),
+  amount_due: z.number().nullable().optional(),
+  status: z.string().max(32).optional(),
+  source: z.string().max(32).optional(),
+});
+
 export const Route = createFileRoute("/api/orders")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const token = getBearerToken(request);
-        if (!token) return jsonResponse([], { status: 401, headers: { "X-Error": "unauthorized" } });
-        const auth = await requireUser(token);
-        if (!auth) return jsonResponse([], { status: 401, headers: { "X-Error": "unauthorized" } });
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
 
         const { limit, offset, search, url } = parseListParams(request);
         const status = url.searchParams.get("status");
@@ -72,6 +93,22 @@ export const Route = createFileRoute("/api/orders")({
         return jsonResponse(rows, {
           headers: { ...cacheHeaders(60), "X-Total-Count": String(count ?? rows.length) },
         });
+      },
+
+      POST: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        let body: unknown;
+        try { body = await request.json(); } catch { return jsonResponse({ error: "Некорректный JSON" }, { status: 400 }); }
+        const parsed = CreateOrderSchema.safeParse(body);
+        if (!parsed.success) return jsonResponse({ error: parsed.error.message }, { status: 400 });
+        const { data, error } = await auth.client
+          .from("orders")
+          .insert(parsed.data as never)
+          .select("id")
+          .single();
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ id: (data as { id: string }).id });
       },
     },
   },
