@@ -13,7 +13,10 @@ import { importCarriers, type CarrierImportItem } from "./carriers-import.server
 
 export const listManagersFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => listManagers());
+  .handler(async ({ context }) => {
+    await assertCallerIsAdmin(context.userId);
+    return listManagers();
+  });
 
 export const importManagersFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
