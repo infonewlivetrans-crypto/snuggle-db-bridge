@@ -674,25 +674,9 @@ function OrderContactsBlock({
   const { data: routeInfo } = useQuery({
     queryKey: ["order-route-link", orderId],
     queryFn: async () => {
-      const { data: pt } = await supabase
-        .from("route_points")
-        .select("route_id")
-        .eq("order_id", orderId)
-        .limit(1)
-        .maybeSingle();
-      const routeId = (pt as { route_id: string } | null)?.route_id ?? null;
-      let deliveryRouteId: string | null = null;
-      if (routeId) {
-        const { data: dr } = await supabase
-          .from("delivery_routes")
-          .select("id")
-          .eq("source_request_id", routeId)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        deliveryRouteId = (dr as { id: string } | null)?.id ?? null;
-      }
-      return { routeId, deliveryRouteId };
+      return await apiGetAuth<{ routeId: string | null; deliveryRouteId: string | null }>(
+        `/api/orders/${encodeURIComponent(orderId)}/route-link`,
+      );
     },
   });
 
