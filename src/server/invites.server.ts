@@ -223,6 +223,7 @@ export async function activateInvite(args: {
   token: string;
   email: string;
   password: string;
+  phone?: string;
 }): Promise<{
   accessToken: string;
   refreshToken: string;
@@ -232,9 +233,13 @@ export async function activateInvite(args: {
   const token = args.token?.trim();
   const email = args.email?.trim().toLowerCase();
   const password = args.password ?? "";
+  const phoneRaw = (args.phone ?? "").trim();
   if (!token || token.length < 8) throw new Error("Некорректная ссылка");
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Введите корректный email");
   if (password.length < 6) throw new Error("Пароль должен содержать минимум 6 символов");
+  if (!phoneRaw) throw new Error("Введите номер телефона");
+  const phoneNorm = normalizeRuPhone(phoneRaw);
+  if (!phoneNorm) throw new Error("Введите корректный номер телефона");
 
   const { data: inv, error } = await supabaseAdmin
     .from("invite_tokens")
