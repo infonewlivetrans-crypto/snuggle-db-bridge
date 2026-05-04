@@ -25,10 +25,12 @@ export function setSessionCookies(args: {
   accessToken: string;
   refreshToken: string;
 }) {
+  // sameSite: "none" нужен, чтобы cookie сохранялись в iframe-превью (cross-site).
+  // Secure обязателен при SameSite=None.
   const base = {
     httpOnly: true,
     secure: true,
-    sameSite: "lax" as const,
+    sameSite: "none" as const,
     path: "/",
   };
   setCookie(ACCESS_COOKIE, args.accessToken, { ...base, maxAge: ACCESS_MAX_AGE });
