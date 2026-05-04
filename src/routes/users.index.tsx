@@ -239,6 +239,47 @@ function UsersPage() {
           </Table>
         </div>
       </main>
+
+      <Dialog open={rolesEdit !== null} onOpenChange={(o) => !o && setRolesEdit(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Роли пользователя</DialogTitle>
+          </DialogHeader>
+          {rolesEdit && (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{rolesEdit.fullName}</p>
+              <div className="grid grid-cols-2 gap-2">
+                {APP_ROLES.map((r) => {
+                  const checked = rolesEdit.roles.includes(r);
+                  return (
+                    <label
+                      key={r}
+                      className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm cursor-pointer hover:bg-secondary/50"
+                    >
+                      <Checkbox checked={checked} onCheckedChange={() => toggleEditRole(r)} />
+                      <span>{ROLE_LABELS[r]}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Роль «Администратор» даёт доступ к разделу «Пользователи → Менеджеры» и всем настройкам.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRolesEdit(null)}>Отмена</Button>
+            <Button
+              onClick={() =>
+                rolesEdit && rolesMut.mutate({ userId: rolesEdit.userId, roles: rolesEdit.roles })
+              }
+              disabled={rolesMut.isPending || !rolesEdit || rolesEdit.roles.length === 0}
+            >
+              {rolesMut.isPending ? "Сохранение…" : "Сохранить"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
