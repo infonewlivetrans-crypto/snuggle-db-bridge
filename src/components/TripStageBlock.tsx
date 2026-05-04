@@ -30,7 +30,8 @@ import {
   listStageEventsFn,
   recordRouteReturnFn,
 } from "@/lib/server-functions/trip-stage.functions";
-import { getCurrentCoords } from "@/lib/gps";
+import { enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
+import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
 import {
   TRIP_STAGE_LABELS,
   TRIP_STAGE_STEPS,
@@ -92,45 +93,82 @@ export function TripStageBlock({
     queryFn: () => listRouteReturnsFn({ data: { deliveryRouteId } }),
   });
 
+  function invalidateAll() {
+    qc.invalidateQueries({ queryKey: ["trip-stage-events", deliveryRouteId] });
+    qc.invalidateQueries({ queryKey: ["route-returns", deliveryRouteId] });
+    qc.invalidateQueries({ queryKey: ["driver-route", deliveryRouteId] });
+    qc.invalidateQueries({ queryKey: ["delivery-route", deliveryRouteId] });
+  }
+
   const advanceMut = useMutation({
     mutationFn: async (stage: TripStage) => {
-      const gps = await getCurrentCoords().catch(() => null);
-      return advanceTripStageFn({
-        data: {
-          deliveryRouteId,
-          stage,
-          comment: comment.trim() || null,
-          gps: gps ? { lat: gps.latitude, lng: gps.longitude } : null,
-          actorName: driverName,
-        },
-      });
+      const payload = {
+        deliveryRouteId,
+        stage,
+        comment: comment.trim() || null,
+        gps: null, // GPS не используем — действие должно работать офлайн
+        actorName: driverName,
+      };
+      if (!isOnline()) {
+        enqueueAction("advance_stage", payload);
+        return { queued: true as const, stage };
+      }
+      try {
+        await advanceTripStageFn({ data: payload });
+        return { queued: false as const, stage };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (/network|fetch|failed to fetch|load failed/i.test(msg)) {
+          enqueueAction("advance_stage", payload);
+          return { queued: true as const, stage };
+        }
+        throw e;
+      }
     },
-    onSuccess: (_res, stage) => {
-      toast.success(`Этап: ${TRIP_STAGE_LABELS[stage]}`);
+    onSuccess: (res, stage) => {
+      if (res.queued) {
+        toast.message(`Сохранено в офлайн-очередь: ${TRIP_STAGE_LABELS[stage]}`);
+      } else {
+        toast.success(`Этап: ${TRIP_STAGE_LABELS[stage]}`);
+      }
       setComment("");
-      qc.invalidateQueries({ queryKey: ["trip-stage-events", deliveryRouteId] });
-      qc.invalidateQueries({ queryKey: ["driver-route", deliveryRouteId] });
-      qc.invalidateQueries({ queryKey: ["delivery-route", deliveryRouteId] });
+      invalidateAll();
+      void flushQueue().then(() => invalidateAll());
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const returnMut = useMutation({
-    mutationFn: () =>
-      recordRouteReturnFn({
-        data: {
-          deliveryRouteId,
-          orderId: returnForm.orderId || null,
-          reason: returnForm.reason,
-          comment: returnForm.comment || null,
-          actorName: driverName,
-        },
-      }),
-    onSuccess: () => {
-      toast.success("Возврат зафиксирован");
+    mutationFn: async () => {
+      const payload = {
+        deliveryRouteId,
+        orderId: returnForm.orderId || null,
+        reason: returnForm.reason,
+        comment: returnForm.comment || null,
+        actorName: driverName,
+      };
+      if (!isOnline()) {
+        enqueueAction("record_return", payload);
+        return { queued: true as const };
+      }
+      try {
+        await recordRouteReturnFn({ data: payload });
+        return { queued: false as const };
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (/network|fetch|failed to fetch|load failed/i.test(msg)) {
+          enqueueAction("record_return", payload);
+          return { queued: true as const };
+        }
+        throw e;
+      }
+    },
+    onSuccess: (res) => {
+      toast.success(res.queued ? "Возврат сохранён в очередь" : "Возврат зафиксирован");
       setReturnOpen(false);
       setReturnForm({ orderId: "", reason: "", comment: "" });
-      qc.invalidateQueries({ queryKey: ["route-returns", deliveryRouteId] });
+      invalidateAll();
+      void flushQueue().then(() => invalidateAll());
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -154,6 +192,15 @@ export function TripStageBlock({
         <Truck className="h-4 w-4 text-primary" />
         <span className="font-semibold">Этапы рейса</span>
       </div>
+
+      <OfflineQueueIndicator
+        invalidateKeys={[
+          ["trip-stage-events", deliveryRouteId],
+          ["route-returns", deliveryRouteId],
+          ["driver-route", deliveryRouteId],
+          ["delivery-route", deliveryRouteId],
+        ]}
+      />
 
       {/* Прогресс по шагам */}
       <ol className="space-y-2">
