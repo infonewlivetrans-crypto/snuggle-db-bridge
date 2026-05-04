@@ -76,7 +76,7 @@ export function parsePhone(input: string | null | undefined): ParsedPhone {
   // Если основной не нашли, но есть «короткий» номер и есть extension — телефон скорее всего
   // целиком закодирован в одной строке без 10 цифр. Берём первого кандидата.
   if (!phonePart && phoneCandidates.length > 0) {
-    phonePart = phoneCandidates[0].trim();
+    phonePart = (phoneCandidates[0] ?? "").trim();
   }
 
   const e164 = normalizeRuPhone(phonePart);
