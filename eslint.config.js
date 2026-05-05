@@ -9,8 +9,21 @@ const NO_SERVER_IMPORTS = {
   patterns: [
     {
       group: [
+        "@/server",
         "@/server/*",
+        "@/server/**",
+        "@/lib/server-functions",
         "@/lib/server-functions/*",
+        "@/lib/server-functions/**",
+        "**/server/*",
+        "**/server/**",
+        "**/lib/server-functions/*",
+        "**/lib/server-functions/**",
+        "**/auth-middleware",
+        "**/auth-middleware.*",
+        "@/integrations/supabase/client.server",
+        "**/integrations/supabase/client.server",
+        "**/integrations/supabase/client.server.*",
         "**/server/*.server",
         "**/server/*.functions",
       ],
