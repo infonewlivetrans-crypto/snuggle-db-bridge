@@ -45,24 +45,52 @@ export const Route = createFileRoute("/api/users")({
             email?: string;
             password?: string;
             fullName?: string;
+            name?: string;
+            phone?: string | null;
+            company_id?: string | null;
+            comment?: string | null;
             role?: AppRole;
           };
-          if (!body?.email || !body?.password || !body?.fullName) {
-            return jsonResponse({ error: "Заполните все поля" }, { status: 400 });
-          }
-          if (body.password.length < 6) {
-            return jsonResponse({ error: "Пароль должен быть не короче 6 символов" }, { status: 400 });
+          const fullName = (body.fullName ?? body.name ?? "").trim();
+          if (!fullName) {
+            return jsonResponse({ error: "Укажите ФИО" }, { status: 400 });
           }
           if (!body.role || !ROLE_SET.has(body.role)) {
             return jsonResponse({ error: "Недопустимая роль" }, { status: 400 });
           }
-          const result = await adminCreateUser({
-            email: body.email,
-            password: body.password,
-            fullName: body.fullName,
-            role: body.role,
+
+          // Если переданы email и password — создаём активного пользователя сразу.
+          if (body.email && body.password) {
+            if (body.password.length < 6) {
+              return jsonResponse({ error: "Пароль должен быть не короче 6 символов" }, { status: 400 });
+            }
+            const result = await adminCreateUser({
+              email: body.email,
+              password: body.password,
+              fullName,
+              role: body.role,
+            });
+            return jsonResponse(result);
+          }
+
+          // Иначе — создаём приглашение (статус "invited").
+          if (!INVITE_ROLES.has(body.role as InviteRole)) {
+            return jsonResponse({ error: "Недопустимая роль для приглашения" }, { status: 400 });
+          }
+          const invite = await adminCreateInvite({
+            fullName,
+            phone: body.phone ?? null,
+            role: body.role as InviteRole,
+            comment: body.comment ?? null,
+            createdBy: auth.userId,
           });
-          return jsonResponse(result);
+          return jsonResponse({
+            userId: invite.user_id,
+            inviteId: invite.id,
+            token: invite.token,
+            inviteUrl: inviteUrl(invite.token),
+            status: "invited",
+          });
         } catch (e) {
           return jsonResponse({ error: (e as Error).message }, { status: 500 });
         }
