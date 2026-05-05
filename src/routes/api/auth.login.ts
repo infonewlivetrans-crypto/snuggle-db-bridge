@@ -39,11 +39,21 @@ export const Route = createFileRoute("/api/auth/login")({
             storage: undefined,
           },
         });
-        const { data, error } = await sb.auth.signInWithPassword({
-          email,
-          password,
-        });
+        let data: Awaited<ReturnType<typeof sb.auth.signInWithPassword>>["data"];
+        let error: Awaited<ReturnType<typeof sb.auth.signInWithPassword>>["error"];
+        try {
+          const res = await sb.auth.signInWithPassword({ email, password });
+          data = res.data;
+          error = res.error;
+        } catch (e) {
+          console.error("[auth.login] signInWithPassword threw:", e);
+          return jsonResponse(
+            { error: "Сервис авторизации недоступен. Повторите позже." },
+            { status: 503 },
+          );
+        }
         if (error || !data.session) {
+          if (error) console.warn("[auth.login] sign-in failed:", error.status, error.message);
           return jsonResponse(
             { error: "Неверный email или пароль" },
             { status: 401 },
