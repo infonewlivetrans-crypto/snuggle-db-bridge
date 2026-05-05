@@ -25,7 +25,7 @@ import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
+import { inviteUrl } from "@/lib/invite-url";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRuPhone } from "@/lib/phone";
