@@ -553,7 +553,16 @@ export async function parseFile(
     rows.push({ rowNumber: i + 2, data, errors, duplicate: null });
   }
 
-  await detectDuplicates(entity, rows);
+  try {
+    const res = await apiPost<{ rows: ParsedRow[] }>("/api/data-import", {
+      op: "duplicates",
+      entity,
+      parsed: { rows, missingColumns: [], totalRows: rows.length, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 },
+    });
+    if (res?.rows) {
+      for (let i = 0; i < rows.length; i++) rows[i].duplicate = res.rows[i]?.duplicate ?? null;
+    }
+  } catch { /* ignore — продолжим без проверки дубликатов */ }
 
   const validRows = rows.filter((r) => r.errors.length === 0).length;
   const duplicateRows = rows.filter((r) => r.duplicate).length;
