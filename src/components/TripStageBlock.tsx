@@ -27,12 +27,7 @@ import {
 import { enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
 import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
 import { apiGetAuth, apiPost } from "@/lib/api-client";
-import {
-  TRIP_STAGE_LABELS,
-  TRIP_STAGE_STEPS,
-  nextStage,
-  type TripStage,
-} from "@/lib/tripStage";
+import { TRIP_STAGE_LABELS, TRIP_STAGE_STEPS, nextStage, type TripStage } from "@/lib/tripStage";
 
 const STAGE_ICONS: Record<TripStage, typeof Truck> = {
   not_started: Truck,
@@ -47,7 +42,13 @@ const STAGE_ICONS: Record<TripStage, typeof Truck> = {
 type Order = { id: string; order_number: string; contact_name: string | null };
 
 type StageEventRow = { id: string; stage: TripStage; occurred_at: string };
-type RouteReturnRow = { id: string; order_id: string | null; reason: string; comment: string | null; occurred_at: string };
+type RouteReturnRow = {
+  id: string;
+  order_id: string | null;
+  reason: string;
+  comment: string | null;
+  occurred_at: string;
+};
 
 type Props = {
   deliveryRouteId: string;
@@ -83,12 +84,20 @@ export function TripStageBlock({
 
   const eventsQuery = useQuery({
     queryKey: ["trip-stage-events", deliveryRouteId],
-    queryFn: () => apiGetAuth<StageEventRow[]>(`/api/trip-stage?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}&kind=events`, 10000),
+    queryFn: () =>
+      apiGetAuth<StageEventRow[]>(
+        `/api/trip-stage?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}&kind=events`,
+        10000,
+      ),
   });
 
   const returnsQuery = useQuery({
     queryKey: ["route-returns", deliveryRouteId],
-    queryFn: () => apiGetAuth<RouteReturnRow[]>(`/api/trip-stage?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}&kind=returns`, 10000),
+    queryFn: () =>
+      apiGetAuth<RouteReturnRow[]>(
+        `/api/trip-stage?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}&kind=returns`,
+        10000,
+      ),
   });
 
   function invalidateAll() {
@@ -224,9 +233,7 @@ export function TripStageBlock({
                 ) : (
                   <Icon className="h-4 w-4" />
                 )}
-                <span className={done ? "font-medium" : ""}>
-                  {TRIP_STAGE_LABELS[step]}
-                </span>
+                <span className={done ? "font-medium" : ""}>{TRIP_STAGE_LABELS[step]}</span>
               </div>
               <div className="text-xs tabular-nums">
                 {ts ? fmtTime(ts) : isNext ? "следующий шаг" : "—"}
@@ -257,10 +264,7 @@ export function TripStageBlock({
           <Button
             size="lg"
             className="w-full gap-1.5"
-            disabled={
-              advanceMut.isPending ||
-              (next === "finished" && !!blockFinishReason)
-            }
+            disabled={advanceMut.isPending || (next === "finished" && !!blockFinishReason)}
             onClick={() => advanceMut.mutate(next)}
           >
             {advanceMut.isPending ? (
@@ -284,11 +288,7 @@ export function TripStageBlock({
             <PackageX className="h-4 w-4 text-orange-600" />
             Возвраты ({returns.length})
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setReturnOpen(true)}
-          >
+          <Button size="sm" variant="outline" onClick={() => setReturnOpen(true)}>
             Оформить возврат
           </Button>
         </div>
@@ -311,9 +311,7 @@ export function TripStageBlock({
                       {fmtTime(r.occurred_at)}
                     </span>
                   </div>
-                  {r.comment && (
-                    <div className="mt-0.5 text-muted-foreground">{r.comment}</div>
-                  )}
+                  {r.comment && <div className="mt-0.5 text-muted-foreground">{r.comment}</div>}
                 </li>
               );
             })}

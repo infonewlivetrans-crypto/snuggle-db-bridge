@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
-import {
-  recordRouteReturn,
-  recordStageEvent,
-} from "@/server/trip-stage.server";
+import { recordRouteReturn, recordStageEvent } from "@/server/trip-stage.server";
 import type { TripStage } from "@/lib/tripStage";
 
 const ALLOWED_STAGES: TripStage[] = [
-  "arrived_loading", "loaded", "departed", "finished", "cash_returned",
+  "arrived_loading",
+  "loaded",
+  "departed",
+  "finished",
+  "cash_returned",
 ];
 
 export const Route = createFileRoute("/api/trip-stage/update")({
@@ -27,9 +28,11 @@ export const Route = createFileRoute("/api/trip-stage/update")({
             orderId?: string | null;
             reason?: string;
           };
-          if (!body?.deliveryRouteId) return jsonResponse({ error: "deliveryRouteId обязателен" }, { status: 400 });
+          if (!body?.deliveryRouteId)
+            return jsonResponse({ error: "deliveryRouteId обязателен" }, { status: 400 });
           if (body.kind === "return") {
-            if (!body.reason?.trim()) return jsonResponse({ error: "Укажите причину возврата" }, { status: 400 });
+            if (!body.reason?.trim())
+              return jsonResponse({ error: "Укажите причину возврата" }, { status: 400 });
             await recordRouteReturn({
               deliveryRouteId: body.deliveryRouteId,
               orderId: body.orderId ?? null,
