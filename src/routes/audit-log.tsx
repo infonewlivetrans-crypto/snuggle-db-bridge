@@ -31,6 +31,22 @@ const ACTIONS = ["login", "logout", "create", "update", "delete", "status_change
 
 const ANY = "__any__";
 
+type AuditRow = {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  user_name: string | null;
+  user_role: string | null;
+  section: string | null;
+  action: string;
+  object_type: string | null;
+  object_label: string | null;
+  old_value: unknown;
+  new_value: unknown;
+  ip_address: string | null;
+  user_agent: string | null;
+};
+
 function AuditLogPage() {
   const { page, pageSize, q, setPage, setPageSize, setQuery } = useListSearch();
   const [from, setFrom] = useState("");
@@ -68,7 +84,7 @@ function AuditLogPage() {
       for (const [key, value] of Object.entries(filters)) {
         if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
       }
-      return apiGetAuth<{ rows: Array<Record<string, unknown>>; total: number }>(`/api/audit-log?${params.toString()}`, 10000);
+      return apiGetAuth<{ rows: AuditRow[]; total: number }>(`/api/audit-log?${params.toString()}`, 10000);
     },
     placeholderData: keepPreviousData,
   });
