@@ -26,7 +26,7 @@ import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl } from "@/lib/invite-url";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRuPhone } from "@/lib/phone";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -155,6 +155,20 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const cleanupMut = useMutation({
+    mutationFn: async () =>
+      apiPost<{ ok: boolean; deletedCount: number; errors: string[] }>(
+        "/api/admin/users/cleanup",
+      ),
+    onSuccess: (res) => {
+      toast.success(`Удалено пользователей: ${res.deletedCount}`);
+      if (res.errors?.length) toast.error(`Ошибки: ${res.errors.length}`);
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function onPickDriversFile(file: File | null) {
     if (!file) return;
     setDriverImportBusy(true);
@@ -229,6 +243,19 @@ function UsersPage() {
                 Инвайт-ссылки
               </Button>
             </Link>
+            <Button
+              variant="destructive"
+              className="gap-2"
+              onClick={() => {
+                if (confirm("Удалить ВСЕХ пользователей кроме вас? Действие необратимо.")) {
+                  cleanupMut.mutate();
+                }
+              }}
+              disabled={cleanupMut.isPending}
+            >
+              <Trash2 className="h-4 w-4" />
+              {cleanupMut.isPending ? "Очистка…" : "Очистить пользователей"}
+            </Button>
             <Dialog
               open={open}
               onOpenChange={(v) => {

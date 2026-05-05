@@ -146,6 +146,7 @@ import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/d
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
+import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -837,6 +838,11 @@ const ApiBackupsIdRestoreRoute = ApiBackupsIdRestoreRouteImport.update({
   path: '/$id/restore',
   getParentRoute: () => ApiBackupsRoute,
 } as any)
+const ApiAdminUsersCleanupRoute = ApiAdminUsersCleanupRouteImport.update({
+  id: '/api/admin/users/cleanup',
+  path: '/api/admin/users/cleanup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -970,6 +976,7 @@ export interface FileRoutesByFullPath {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -1109,6 +1116,7 @@ export interface FileRoutesByTo {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -1249,6 +1257,7 @@ export interface FileRoutesById {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -1390,6 +1399,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/delivery-routes/$id/detail'
@@ -1529,6 +1539,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/delivery-routes/$id/detail'
@@ -1668,6 +1679,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/delivery-routes/$id/detail'
@@ -1789,6 +1801,7 @@ export interface RootRouteChildren {
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
+  ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2752,6 +2765,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBackupsIdRestoreRouteImport
       parentRoute: typeof ApiBackupsRoute
     }
+    '/api/admin/users/cleanup': {
+      id: '/api/admin/users/cleanup'
+      path: '/api/admin/users/cleanup'
+      fullPath: '/api/admin/users/cleanup'
+      preLoaderRoute: typeof ApiAdminUsersCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -3086,6 +3106,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
+  ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
