@@ -27,13 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import {
-  addTaskCommentFn,
-  createPilotTaskFn,
-  listPilotTasksFn,
-  listTaskCommentsFn,
-  updatePilotTaskFn,
-} from "@/lib/server-functions/pilot-tasks.functions";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 
 export const Route = createFileRoute("/pilot-tasks")({
   head: () => ({ meta: [{ title: "Задачи и доработки — Радиус Трек" }] }),
@@ -98,8 +92,7 @@ function CreateTaskDialog() {
 
   const m = useMutation({
     mutationFn: () =>
-      createPilotTaskFn({
-        data: {
+      apiPost("/api/pilot-tasks", {
           title: form.title.trim(),
           description: form.description.trim() || null,
           whatBroke: form.whatBroke.trim() || null,
@@ -107,8 +100,7 @@ function CreateTaskDialog() {
           howToReproduce: form.howToReproduce.trim() || null,
           priority: form.priority,
           assignee: form.assignee,
-        },
-      }),
+      }, 10000),
     onSuccess: () => {
       toast.success("Задача создана");
       setOpen(false);
@@ -230,10 +222,10 @@ function TaskComments({ taskId }: { taskId: string }) {
   const [text, setText] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["pilot-task-comments", taskId],
-    queryFn: () => listTaskCommentsFn({ data: { taskId } }),
+    queryFn: () => apiGetAuth<Array<{ id: string; created_at: string; author_name: string | null; body: string }>>(`/api/pilot-tasks/${taskId}/comments`, 10000),
   });
   const add = useMutation({
-    mutationFn: () => addTaskCommentFn({ data: { taskId, body: text.trim() } }),
+    mutationFn: () => apiPost(`/api/pilot-tasks/${taskId}/comments`, { body: text.trim() }, 10000),
     onSuccess: () => {
       setText("");
       qc.invalidateQueries({ queryKey: ["pilot-task-comments", taskId] });
@@ -286,14 +278,12 @@ function TaskCard({ task }: { task: Task }) {
   const [open, setOpen] = useState(false);
   const upd = useMutation({
     mutationFn: (patch: { status?: string; priority?: string; assignee?: string }) =>
-      updatePilotTaskFn({
-        data: {
+      apiPatch("/api/pilot-tasks", {
           id: task.id,
           status: patch.status as "new" | "in_progress" | "review" | "done" | undefined,
           priority: patch.priority as "critical" | "important" | "later" | undefined,
           assignee: patch.assignee,
-        },
-      }),
+      }, 10000),
     onSuccess: () => {
       toast.success("Сохранено");
       qc.invalidateQueries({ queryKey: ["pilot-tasks"] });
