@@ -155,6 +155,20 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const cleanupMut = useMutation({
+    mutationFn: async () =>
+      apiPost<{ ok: boolean; deletedCount: number; errors: string[] }>(
+        "/api/admin/users/cleanup",
+      ),
+    onSuccess: (res) => {
+      toast.success(`Удалено пользователей: ${res.deletedCount}`);
+      if (res.errors?.length) toast.error(`Ошибки: ${res.errors.length}`);
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function onPickDriversFile(file: File | null) {
     if (!file) return;
     setDriverImportBusy(true);
