@@ -8,6 +8,7 @@ export const Route = createFileRoute("/api/auth/login")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        try {
         let body: { email?: string; password?: string };
         try {
           body = (await request.json()) as typeof body;
