@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { importDriversFn } from "@/lib/server-functions/drivers.functions";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,12 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import {
-  createUserFn,
-  setUserActiveFn,
-  setUserRolesFn,
-} from "@/lib/server-functions/users.functions";
-import { fetchListViaApi } from "@/lib/api-client";
+import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
