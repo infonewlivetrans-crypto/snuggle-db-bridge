@@ -31,12 +31,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import {
-  listSystemErrorsFn,
-  updateSystemErrorFn,
-} from "@/lib/server-functions/system-errors.functions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ErrorState } from "@/components/ErrorState";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
 
 export const Route = createFileRoute("/system-errors")({
   head: () => ({ meta: [{ title: "Ошибки системы — Радиус Трек" }] }),
@@ -110,7 +107,13 @@ function SystemErrorsPage() {
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["system-errors", filters],
-    queryFn: async () => (await listSystemErrorsFn({ data: filters })) as Row[],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(filters)) {
+        if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
+      }
+      return apiGetAuth<Row[]>(`/api/system-errors?${params.toString()}`, 10000);
+    },
   });
 
   const view = useMemo(() => {
@@ -124,9 +127,7 @@ function SystemErrorsPage() {
   const updateMut = useMutation({
     mutationFn: async () => {
       if (!editing) return;
-      await updateSystemErrorFn({
-        data: { id: editing.id, status: editStatus, note: editNote || null },
-      });
+      await apiPatch("/api/system-errors", { id: editing.id, status: editStatus, note: editNote || null }, 10000);
     },
     onSuccess: () => {
       toast.success("Статус обновлён");
