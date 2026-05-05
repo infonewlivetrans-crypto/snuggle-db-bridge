@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   Truck,
@@ -33,8 +32,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth/auth-context";
-import { respondToOffer } from "@/lib/server-functions/route-offers.functions";
 import { BODY_TYPE_LABELS, type BodyType } from "@/lib/carriers";
+import { apiPost } from "@/lib/api-client";
 
 export const Route = createFileRoute("/carrier-offers")({
   component: CarrierOffersPage,
@@ -126,7 +125,6 @@ function CarrierOffersPage() {
   const [declineFor, setDeclineFor] = useState<OfferRow | null>(null);
   const [declineReason, setDeclineReason] = useState<DeclineReason>("time");
   const [declineComment, setDeclineComment] = useState("");
-  const respondFn = useServerFn(respondToOffer);
 
   const isStaff = roles.includes("admin") || roles.includes("logist");
   const carrierId = profile?.carrier_id ?? null;
@@ -173,14 +171,13 @@ function CarrierOffersPage() {
       declineReason?: DeclineReason;
       declineComment?: string;
     }) =>
-      respondFn({
-        data: {
+      apiPost("/api/route-offers", {
+          action: "respond",
           offerId: args.offerId,
-          action: args.action,
+          respondAction: args.action,
           declineReason: args.declineReason ?? null,
           declineComment: args.declineComment ?? null,
-        },
-      }),
+      }, 10000),
     onSuccess: (_d, vars) => {
       toast.success(vars.action === "accept" ? "Предложение принято" : "Предложение отклонено");
       setDeclineFor(null);

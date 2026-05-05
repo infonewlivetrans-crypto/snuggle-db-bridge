@@ -7,8 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Send, Truck, Clock, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
 import { db } from "@/lib/db";
-import { useServerFn } from "@tanstack/react-start";
-import { sendRouteOffer, updateOfferStatus } from "@/lib/server-functions/route-offers.functions";
+import { apiPost } from "@/lib/api-client";
 import {
   BODY_TYPE_LABELS,
   type BodyType,
@@ -91,8 +90,6 @@ function num(v: number | null | undefined): number | null {
 export function CarrierOffersBlock({ routeId, transportRequestId, requirements }: Props) {
   const qc = useQueryClient();
   const [selected, setSelected] = useState<Set<string>>(new Set()); // vehicle ids
-  const sendOffer = useServerFn(sendRouteOffer);
-  const updateOffer = useServerFn(updateOfferStatus);
 
   // 1. Загружаем все активные машины с перевозчиком
   const { data: vehicles } = useQuery({
@@ -256,8 +253,8 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
       for (const vid of ids) {
         const s = byVehicle.get(vid);
         if (!s) continue;
-        await sendOffer({
-          data: {
+        await apiPost("/api/route-offers", {
+            action: "send",
             routeId: routeId ?? null,
             transportRequestId: transportRequestId ?? null,
             carrierId: s.vehicle.carrier_id,
@@ -265,8 +262,7 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
             driverId: s.driver?.id ?? null,
             expiresInHours: 24,
             comment: null,
-          },
-        });
+        }, 10000);
       }
       return ids.length;
     },
@@ -280,7 +276,7 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
 
   const updateMutation = useMutation({
     mutationFn: async (args: { offerId: string; status: OfferRow["status"] }) =>
-      updateOffer({ data: { offerId: args.offerId, status: args.status } }),
+      apiPost("/api/route-offers", { action: "update", offerId: args.offerId, status: args.status }, 10000),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: offersKey });
       toast.success("Статус обновлён");

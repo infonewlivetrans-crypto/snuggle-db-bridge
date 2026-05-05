@@ -13,12 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { listAuditFn } from "@/lib/server-functions/audit.functions";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { parseListSearch, useListSearch } from "@/hooks/use-list-search";
 import { Search } from "lucide-react";
+import { apiGetAuth } from "@/lib/api-client";
 
 export const Route = createFileRoute("/audit-log")({
   validateSearch: (s: Record<string, unknown>) => parseListSearch(s, { pageSize: 50 }),
@@ -30,6 +30,22 @@ const SECTIONS = ["auth", "orders", "routes", "warehouse", "supply", "import", "
 const ACTIONS = ["login", "logout", "create", "update", "delete", "status_change", "role_change"] as const;
 
 const ANY = "__any__";
+
+type AuditRow = {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  user_name: string | null;
+  user_role: string | null;
+  section: string | null;
+  action: string;
+  object_type: string | null;
+  object_label: string | null;
+  old_value: unknown;
+  new_value: unknown;
+  ip_address: string | null;
+  user_agent: string | null;
+};
 
 function AuditLogPage() {
   const { page, pageSize, q, setPage, setPageSize, setQuery } = useListSearch();
@@ -63,7 +79,13 @@ function AuditLogPage() {
 
   const { data, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ["audit-log", filters],
-    queryFn: () => listAuditFn({ data: filters }),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      for (const [key, value] of Object.entries(filters)) {
+        if (value !== null && value !== undefined && value !== "") params.set(key, String(value));
+      }
+      return apiGetAuth<{ rows: AuditRow[]; total: number }>(`/api/audit-log?${params.toString()}`, 10000);
+    },
     placeholderData: keepPreviousData,
   });
 

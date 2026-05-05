@@ -24,14 +24,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  advanceTripStageFn,
-  listRouteReturnsFn,
-  listStageEventsFn,
-  recordRouteReturnFn,
-} from "@/lib/server-functions/trip-stage.functions";
 import { enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
 import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import {
   TRIP_STAGE_LABELS,
   TRIP_STAGE_STEPS,
@@ -50,6 +45,9 @@ const STAGE_ICONS: Record<TripStage, typeof Truck> = {
 };
 
 type Order = { id: string; order_number: string; contact_name: string | null };
+
+type StageEventRow = { id: string; stage: TripStage; occurred_at: string };
+type RouteReturnRow = { id: string; order_id: string | null; reason: string; comment: string | null; occurred_at: string };
 
 type Props = {
   deliveryRouteId: string;
@@ -85,12 +83,12 @@ export function TripStageBlock({
 
   const eventsQuery = useQuery({
     queryKey: ["trip-stage-events", deliveryRouteId],
-    queryFn: () => listStageEventsFn({ data: { deliveryRouteId } }),
+    queryFn: () => apiGetAuth<StageEventRow[]>(`/api/trip-stage?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}&kind=events`, 10000),
   });
 
   const returnsQuery = useQuery({
     queryKey: ["route-returns", deliveryRouteId],
-    queryFn: () => listRouteReturnsFn({ data: { deliveryRouteId } }),
+    queryFn: () => apiGetAuth<RouteReturnRow[]>(`/api/trip-stage?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}&kind=returns`, 10000),
   });
 
   function invalidateAll() {
@@ -114,7 +112,7 @@ export function TripStageBlock({
         return { queued: true as const, stage };
       }
       try {
-        await advanceTripStageFn({ data: payload });
+        await apiPost("/api/trip-stage", { kind: "advance", ...payload }, 10000);
         return { queued: false as const, stage };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -152,7 +150,7 @@ export function TripStageBlock({
         return { queued: true as const };
       }
       try {
-        await recordRouteReturnFn({ data: payload });
+        await apiPost("/api/trip-stage", { kind: "return", ...payload }, 10000);
         return { queued: false as const };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);

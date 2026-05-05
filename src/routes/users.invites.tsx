@@ -29,18 +29,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  createInviteFn,
-  deleteInviteFn,
-  listInvitesFn,
-  rotateInviteTokenFn,
-  setInviteActiveFn,
-  type InviteRole,
-} from "@/lib/server-functions/invites.functions";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
 import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
+import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import {
   Copy,
   Link2,
@@ -51,6 +44,18 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
+
+type InviteRole = "admin" | "logist" | "manager" | "driver";
+type InviteRow = {
+  id: string;
+  token: string;
+  full_name: string;
+  phone: string | null;
+  role: InviteRole;
+  comment: string | null;
+  is_active: boolean;
+  last_used_at: string | null;
+};
 
 export const Route = createFileRoute("/users/invites")({
   head: () => ({ meta: [{ title: "Инвайт-ссылки — Радиус Трек" }] }),
@@ -74,7 +79,7 @@ function InvitesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["invites-admin"],
-    queryFn: () => listInvitesFn(),
+    queryFn: async () => (await fetchListViaApi<InviteRow>("/api/invites", { limit: 200 }, 10000)).rows,
   });
 
   const [open, setOpen] = useState(false);
@@ -89,15 +94,13 @@ function InvitesPage() {
 
   const createMut = useMutation({
     mutationFn: () =>
-      createInviteFn({
-        data: {
+      apiPost<InviteRow>("/api/invites", {
           fullName: form.fullName.trim(),
           phone: form.phone.trim() || null,
           role: form.role,
           comment: form.comment.trim() || null,
           managerName: form.role === "manager" ? form.fullName.trim() : null,
-        },
-      }),
+      }, 10000),
     onSuccess: (row) => {
       const link = inviteUrl(row.token);
       setCreatedLink(link);
@@ -109,7 +112,7 @@ function InvitesPage() {
   });
 
   const rotateMut = useMutation({
-    mutationFn: (id: string) => rotateInviteTokenFn({ data: { id } }),
+    mutationFn: (id: string) => apiPatch<InviteRow>(`/api/invites/${id}`, { rotate: true }, 10000),
     onSuccess: (row) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success("Ссылка перевыпущена");
@@ -119,7 +122,7 @@ function InvitesPage() {
   });
 
   const activeMut = useMutation({
-    mutationFn: (v: { id: string; isActive: boolean }) => setInviteActiveFn({ data: v }),
+    mutationFn: (v: { id: string; isActive: boolean }) => apiPatch(`/api/invites/${v.id}`, { isActive: v.isActive }, 10000),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success("Статус ссылки обновлён");
@@ -128,7 +131,7 @@ function InvitesPage() {
   });
 
   const deleteMut = useMutation({
-    mutationFn: (id: string) => deleteInviteFn({ data: { id } }),
+    mutationFn: (id: string) => apiDelete(`/api/invites/${id}`, 10000),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success("Инвайт удалён");

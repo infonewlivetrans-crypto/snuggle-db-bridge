@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import { listFeedbackFn, submitFeedbackFn } from "@/lib/server-functions/feedback.functions";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 
 export const Route = createFileRoute("/feedback")({
   head: () => ({ meta: [{ title: "Обратная связь — Радиус Трек" }] }),
@@ -95,8 +95,7 @@ function FeedbackForm({ role }: { role: AppRole }) {
 
   const submit = useMutation({
     mutationFn: () =>
-      submitFeedbackFn({
-        data: {
+      apiPost("/api/feedback", {
           role: role as "driver" | "logist" | "manager" | "warehouse" | "director",
           routeLabel: form.routeLabel.trim() || null,
           good: form.good.trim() || null,
@@ -109,8 +108,7 @@ function FeedbackForm({ role }: { role: AppRole }) {
           ratingSpeed: form.ratingSpeed,
           ratingStability: form.ratingStability,
           severity: form.severity,
-        },
-      }),
+      }, 10000),
     onSuccess: () => {
       toast.success("Спасибо! Ваш отзыв сохранён.");
       setForm(EMPTY);
@@ -258,16 +256,13 @@ function AdminSummary() {
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["feedback-list", roleFilter, severityFilter],
-    queryFn: () =>
-      listFeedbackFn({
-        data: {
-          role: roleFilter === "all" ? null : (roleFilter as AppRole as "driver"),
-          severity:
-            severityFilter === "all"
-              ? null
-              : (severityFilter as "normal" | "critical" | "suggestion"),
-        },
-      }),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (roleFilter !== "all") params.set("role", roleFilter);
+      if (severityFilter !== "all") params.set("severity", severityFilter);
+      const qs = params.toString();
+      return apiGetAuth<{ items: Array<Record<string, unknown>>; summary: { total: number; critical: number; suggestions: number; byRole: Record<string, number>; avgConvenience: number; avgSpeed: number; avgStability: number } }>(`/api/feedback${qs ? `?${qs}` : ""}`, 10000);
+    },
   });
 
   const summary = data?.summary;

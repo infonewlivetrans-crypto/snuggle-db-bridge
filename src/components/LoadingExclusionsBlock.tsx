@@ -23,12 +23,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  EXCLUSION_REASONS,
-  type ExclusionReason,
-  excludeOrderFromRouteFn,
-  listRouteExclusionsFn,
-} from "@/lib/server-functions/route-exclusions.functions";
+import { EXCLUSION_REASONS, type ExclusionReason, type RouteExclusionRow } from "@/lib/route-exclusions";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import type { TripStage } from "@/lib/tripStage";
 
 type OrderItem = {
@@ -56,7 +52,7 @@ export function LoadingExclusionsBlock({
 
   const exclusionsQuery = useQuery({
     queryKey: ["route-exclusions", deliveryRouteId],
-    queryFn: () => listRouteExclusionsFn({ data: { deliveryRouteId } }),
+    queryFn: () => apiGetAuth<RouteExclusionRow[]>(`/api/route-exclusions?deliveryRouteId=${encodeURIComponent(deliveryRouteId)}`, 10000),
   });
 
   const [target, setTarget] = useState<OrderItem | null>(null);
@@ -65,15 +61,13 @@ export function LoadingExclusionsBlock({
 
   const mut = useMutation({
     mutationFn: () =>
-      excludeOrderFromRouteFn({
-        data: {
+      apiPost("/api/route-exclusions", {
           deliveryRouteId,
           orderId: target!.id,
           reason,
           comment: comment.trim() || null,
           actorName: driverName,
-        },
-      }),
+      }, 10000),
     onSuccess: () => {
       toast.success(`Заказ №${target?.order_number} убран из рейса`);
       setTarget(null);

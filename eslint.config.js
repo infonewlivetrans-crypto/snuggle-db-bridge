@@ -9,8 +9,21 @@ const NO_SERVER_IMPORTS = {
   patterns: [
     {
       group: [
+        "@/server",
         "@/server/*",
+        "@/server/**",
+        "@/lib/server-functions",
         "@/lib/server-functions/*",
+        "@/lib/server-functions/**",
+        "**/server/*",
+        "**/server/**",
+        "**/lib/server-functions/*",
+        "**/lib/server-functions/**",
+        "**/auth-middleware",
+        "**/auth-middleware.*",
+        "@/integrations/supabase/client.server",
+        "**/integrations/supabase/client.server",
+        "**/integrations/supabase/client.server.*",
         "**/server/*.server",
         "**/server/*.functions",
       ],
@@ -49,6 +62,12 @@ export default tseslint.config(
     // Все клиентские routes, кроме серверных endpoint'ов в src/routes/api/**
     files: ["src/routes/**/*.{ts,tsx}"],
     ignores: ["src/routes/api/**"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
+  {
+    files: ["src/pages/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
     },

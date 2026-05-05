@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -27,10 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth/auth-context";
-import {
-  confirmCarrierForRoute,
-  rejectCarrierForRoute,
-} from "@/lib/server-functions/route-offers.functions";
+import { apiPost } from "@/lib/api-client";
 
 type Props = { routeId: string };
 
@@ -118,8 +114,6 @@ export function CarrierConfirmationBlock({ routeId }: Props) {
   const qc = useQueryClient();
   const [confirmDialog, setConfirmDialog] = useState<"confirm" | "reject" | null>(null);
   const [comment, setComment] = useState("");
-  const confirmFn = useServerFn(confirmCarrierForRoute);
-  const rejectFn = useServerFn(rejectCarrierForRoute);
 
   const routeQ = useQuery({
     queryKey: ["carrier-confirmation", "route", routeId],
@@ -172,7 +166,7 @@ export function CarrierConfirmationBlock({ routeId }: Props) {
 
   const confirmMutation = useMutation({
     mutationFn: async () =>
-      confirmFn({ data: { routeId, comment: comment.trim() || null } }),
+      apiPost("/api/route-offers", { action: "confirm", routeId, comment: comment.trim() || null }, 10000),
     onSuccess: () => {
       toast.success("Перевозчик подтверждён и назначен на рейс");
       setConfirmDialog(null);
@@ -187,7 +181,7 @@ export function CarrierConfirmationBlock({ routeId }: Props) {
 
   const rejectMutation = useMutation({
     mutationFn: async () =>
-      rejectFn({ data: { routeId, comment: comment.trim() || null } }),
+      apiPost("/api/route-offers", { action: "reject", routeId, comment: comment.trim() || null }, 10000),
     onSuccess: () => {
       toast.success("Перевозчик отклонён. Рейс снова доступен для предложений.");
       setConfirmDialog(null);
