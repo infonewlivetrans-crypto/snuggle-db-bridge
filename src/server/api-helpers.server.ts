@@ -68,7 +68,7 @@ export async function hasAnyRole(
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .in("role", roles);
+    .in("role", roles as never[]);
   return (data ?? []).length > 0;
 }
 
