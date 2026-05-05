@@ -25,7 +25,7 @@ import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
+import { inviteUrl } from "@/lib/invite-url";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRuPhone } from "@/lib/phone";
@@ -90,15 +90,15 @@ function UsersPage() {
 
   const createMut = useMutation({
     mutationFn: async () =>
-      apiPost<{ token: string }>("/api/invites", {
+      apiPost<{ token: string; inviteUrl?: string }>("/api/users", {
+        name: form.fullName.trim(),
         fullName: form.fullName.trim(),
-        phone: form.phone.trim() || null,
+        phone: form.phone.trim() || undefined,
         role: form.role,
-        comment: form.comment.trim() || null,
-        managerName: form.role === "manager" ? form.fullName.trim() : null,
+        comment: form.comment.trim() || undefined,
       }),
     onSuccess: (row) => {
-      const link = inviteUrl(row.token);
+      const link = row.inviteUrl ?? inviteUrl(row.token);
       setCreatedLink(link);
       toast.success("Пользователь создан. Скопируйте ссылку и отправьте ему.");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
