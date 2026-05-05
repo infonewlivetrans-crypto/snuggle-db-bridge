@@ -1,5 +1,6 @@
 // `xlsx` подключается лениво внутри функций.
-import { supabase } from "@/integrations/supabase/client";
+// Вся работа с БД — через серверный API (/api/data-import).
+import { apiPost } from "@/lib/api-client";
 
 export type ImportEntity = "orders" | "products" | "stock" | "routes" | "transport_requests";
 export type ImportSource = "manual" | "excel" | "1c";
@@ -552,7 +553,16 @@ export async function parseFile(
     rows.push({ rowNumber: i + 2, data, errors, duplicate: null });
   }
 
-  await detectDuplicates(entity, rows);
+  try {
+    const res = await apiPost<{ rows: ParsedRow[] }>("/api/data-import", {
+      op: "duplicates",
+      entity,
+      parsed: { rows, missingColumns: [], totalRows: rows.length, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 },
+    });
+    if (res?.rows) {
+      for (let i = 0; i < rows.length; i++) rows[i].duplicate = res.rows[i]?.duplicate ?? null;
+    }
+  } catch { /* ignore — продолжим без проверки дубликатов */ }
 
   const validRows = rows.filter((r) => r.errors.length === 0).length;
   const duplicateRows = rows.filter((r) => r.duplicate).length;
@@ -570,145 +580,9 @@ export async function parseFile(
 
 // ====== Duplicate detection ======
 
-interface DuplicateMatcher {
-  keys: string[]; // columns from data row used as match
-  fetch: (rows: ParsedRow[]) => Promise<Map<string, DuplicateInfo>>;
-  rowKey: (row: ParsedRow) => string | null;
-}
+// Дубликаты определяются на сервере (см. /api/data-import op:"duplicates").
+// Локальные матчеры удалены — клиент больше не ходит в Supabase.
 
-const norm = (v: unknown) => String(v ?? "").trim().toLowerCase();
-
-function buildKey(parts: Array<unknown>): string | null {
-  if (parts.some((p) => p == null || String(p).trim() === "")) return null;
-  return parts.map(norm).join("||");
-}
-
-async function detectDuplicates(entity: ImportEntity, rows: ParsedRow[]): Promise<void> {
-  const matcher = getMatcher(entity);
-  if (!matcher) return;
-  const validRows = rows.filter((r) => r.errors.length === 0);
-  if (validRows.length === 0) return;
-  const map = await matcher.fetch(validRows);
-  for (const r of rows) {
-    const k = matcher.rowKey(r);
-    if (k && map.has(k)) {
-      r.duplicate = map.get(k)!;
-    }
-  }
-}
-
-function getMatcher(entity: ImportEntity): DuplicateMatcher | null {
-  if (entity === "orders") {
-    return {
-      keys: ["order_number"],
-      rowKey: (r) => buildKey([r.data.order_number]),
-      fetch: async (rows) => {
-        const vals = Array.from(new Set(rows.map((r) => str(r.data.order_number)).filter(Boolean) as string[]));
-        const map = new Map<string, DuplicateInfo>();
-        if (vals.length === 0) return map;
-        const { data } = await supabase.from("orders").select("id, order_number").in("order_number", vals);
-        for (const d of data ?? []) {
-          const k = buildKey([d.order_number]);
-          if (k) map.set(k, { existingId: d.id, matchedBy: ["order_number"], description: `order_number=${d.order_number}` });
-        }
-        return map;
-      },
-    };
-  }
-  if (entity === "products") {
-    return {
-      keys: ["product_name"],
-      rowKey: (r) => buildKey([r.data.product_name]),
-      fetch: async (rows) => {
-        const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
-        const map = new Map<string, DuplicateInfo>();
-        if (names.length === 0) return map;
-        const { data } = await supabase.from("products").select("id, name").in("name", names);
-        for (const d of (data ?? []) as Array<{ id: string; name: string }>) {
-          const k = buildKey([d.name]);
-          if (k) map.set(k, { existingId: d.id, matchedBy: ["product_name"], description: d.name });
-        }
-        return map;
-      },
-    };
-  }
-  if (entity === "stock") {
-    return {
-      keys: ["warehouse", "product_name"],
-      rowKey: (r) => buildKey([r.data.warehouse, r.data.product_name]),
-      fetch: async (rows) => {
-        const names = Array.from(new Set(rows.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
-        const whs = Array.from(new Set(rows.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
-        const map = new Map<string, DuplicateInfo>();
-        if (names.length === 0 || whs.length === 0) return map;
-        // Existing inbound stock_movements with these product+warehouse already imply existing balance
-        const { data: prods } = await supabase.from("products").select("id, name").in("name", names);
-        const { data: whRows } = await supabase.from("warehouses").select("id, name").in("name", whs);
-        const prodMap = new Map((prods ?? []).map((p) => [p.id, p.name]));
-        const whMap = new Map((whRows ?? []).map((w) => [w.id, w.name]));
-        const prodIds = Array.from(prodMap.keys());
-        const whIds = Array.from(whMap.keys());
-        if (prodIds.length === 0 || whIds.length === 0) return map;
-        const { data: moves } = await supabase
-          .from("stock_movements")
-          .select("id, product_id, warehouse_id")
-          .in("product_id", prodIds)
-          .in("warehouse_id", whIds)
-          .limit(2000);
-        for (const m of (moves ?? []) as Array<{ id: string; product_id: string; warehouse_id: string }>) {
-          const pname = prodMap.get(m.product_id);
-          const wname = whMap.get(m.warehouse_id);
-          if (!pname || !wname) continue;
-          const k = buildKey([wname, pname]);
-          if (k && !map.has(k)) {
-            map.set(k, { existingId: m.id, matchedBy: ["warehouse", "product_name"], description: `${wname} / ${pname}` });
-          }
-        }
-        return map;
-      },
-    };
-  }
-  if (entity === "routes") {
-    return {
-      keys: ["route_number", "order_number"],
-      rowKey: (r) => buildKey([r.data.route_number, r.data.order_number ?? ""]),
-      fetch: async (rows) => {
-        const nums = Array.from(new Set(rows.map((r) => str(r.data.route_number)).filter(Boolean) as string[]));
-        const map = new Map<string, DuplicateInfo>();
-        if (nums.length === 0) return map;
-        const { data } = await supabase.from("routes").select("id, route_number").in("route_number", nums);
-        for (const d of (data ?? []) as Array<{ id: string; route_number: string }>) {
-          // Match all rows with same route_number regardless of order_number value
-          for (const r of rows) {
-            if (str(r.data.route_number) === d.route_number) {
-              const k = buildKey([d.route_number, r.data.order_number ?? ""]);
-              if (k) map.set(k, { existingId: d.id, matchedBy: ["route_number"], description: `route_number=${d.route_number}` });
-            }
-          }
-        }
-        return map;
-      },
-    };
-  }
-  if (entity === "transport_requests") {
-    return {
-      keys: ["request_number"],
-      rowKey: (r) => buildKey([r.data.request_number]),
-      fetch: async (rows) => {
-        const nums = Array.from(new Set(rows.map((r) => str(r.data.request_number)).filter(Boolean) as string[]));
-        const map = new Map<string, DuplicateInfo>();
-        if (nums.length === 0) return map;
-        const { data } = await supabase.from("routes").select("id, route_number").in("route_number", nums);
-        for (const d of (data ?? []) as Array<{ id: string; route_number: string }>) {
-          const k = buildKey([d.route_number]);
-          if (k) map.set(k, { existingId: d.id, matchedBy: ["request_number"], description: `request_number=${d.route_number}` });
-        }
-        return map;
-      },
-    };
-  }
-  return null;
-}
 
 // ====== Import ======
 
@@ -729,243 +603,14 @@ export async function importParsed(
   source: ImportSource,
   meta?: { fileName?: string | null; importedBy?: string | null; duplicateAction?: DuplicateAction; fileFormat?: FileFormat },
 ): Promise<ImportResult & { logId?: string }> {
-  const duplicateAction: DuplicateAction = meta?.duplicateAction ?? "skip";
-  const failed: { row: number; message: string; raw?: Record<string, unknown>; matchedId?: string | null }[] = [];
-  const insertedLog: { row: number; raw: Record<string, unknown>; matchedId?: string | null }[] = [];
-  const updatedLog: { row: number; raw: Record<string, unknown>; matchedId: string }[] = [];
-  const skippedLog: { row: number; raw: Record<string, unknown>; matchedId: string }[] = [];
-  let inserted = 0;
-  let updated = 0;
-  let skipped = 0;
-  const valid = parsed.rows.filter((r) => r.errors.length === 0);
-
-  for (const r of parsed.rows.filter((x) => x.errors.length > 0)) {
-    failed.push({ row: r.rowNumber, message: r.errors.join("; "), raw: r.data });
-  }
-
-  const recordOk = (r: ParsedRow) => { inserted++; insertedLog.push({ row: r.rowNumber, raw: r.data }); };
-  const recordUpdated = (r: ParsedRow, id: string) => { updated++; updatedLog.push({ row: r.rowNumber, raw: r.data, matchedId: id }); };
-  const recordSkipped = (r: ParsedRow, id: string) => { skipped++; skippedLog.push({ row: r.rowNumber, raw: r.data, matchedId: id }); };
-  const recordFail = (r: ParsedRow, msg: string, matchedId?: string | null) => {
-    failed.push({ row: r.rowNumber, message: msg, raw: r.data, matchedId: matchedId ?? null });
-  };
-
-  // Helpers per entity to build payload + perform DB op
-  const handleRow = async (
-    r: ParsedRow,
-    insertOp: () => Promise<{ error: { message: string } | null }>,
-    updateOp: ((id: string) => Promise<{ error: { message: string } | null }>) | null,
-  ) => {
-    const dup = r.duplicate;
-    if (dup) {
-      if (duplicateAction === "skip") { recordSkipped(r, dup.existingId); return; }
-      if (duplicateAction === "update") {
-        if (!updateOp) { recordFail(r, "Обновление не поддерживается для этого типа", dup.existingId); return; }
-        const { error } = await updateOp(dup.existingId);
-        if (error) recordFail(r, error.message, dup.existingId);
-        else recordUpdated(r, dup.existingId);
-        return;
-      }
-      // create — fall through to insertOp
-    }
-    const { error } = await insertOp();
-    if (error) recordFail(r, error.message);
-    else recordOk(r);
-  };
-
-  if (entity === "orders") {
-    for (const r of valid) {
-      const d = r.data;
-      // Парсим coordinates "lat,lon" → latitude/longitude (колонок coordinates в БД нет)
-      let lat: number | null = null;
-      let lon: number | null = null;
-      const coordRaw = str(d.coordinates);
-      if (coordRaw) {
-        const parts = coordRaw.split(/[,;\s]+/).map((p) => parseFloat(p.replace(",", ".")));
-        if (parts.length >= 2 && Number.isFinite(parts[0]) && Number.isFinite(parts[1])) {
-          lat = parts[0]; lon = parts[1];
-        }
-      }
-      // Поля, которых нет в таблице orders, агрегируем в comment, чтобы не терять данные.
-      const extras: string[] = [];
-      if (str(d.manager_name)) extras.push(`Менеджер: ${str(d.manager_name)}`);
-      if (str(d.delivery_date)) extras.push(`Дата: ${str(d.delivery_date)}`);
-      if (str(d.delivery_time_from) || str(d.delivery_time_to)) {
-        extras.push(`Окно: ${str(d.delivery_time_from) ?? "?"}–${str(d.delivery_time_to) ?? "?"}`);
-      }
-      if (num(d.prepaid)) extras.push(`Предоплата: ${num(d.prepaid)}`);
-      const baseComment = str(d.comment);
-      const fullComment = [baseComment, ...extras].filter(Boolean).join(" | ") || null;
-
-      const payload: Record<string, unknown> = {
-        order_number: str(d.order_number),
-        delivery_address: str(d.delivery_address),
-        contact_name: str(d.customer_name),
-        contact_phone: str(d.customer_phone),
-        latitude: lat,
-        longitude: lon,
-        amount_due: num(d.amount_to_collect),
-        payment_type: (str(d.payment_type) ?? "cash") as never,
-        requires_qr: ["yes", "true", "1", "да"].includes(String(d.requires_qr ?? "").toLowerCase()),
-        marketplace: str(d.marketplace),
-        comment: fullComment,
-        delivery_cost: 0,
-        delivery_cost_source: "auto" as never,
-        source,
-      };
-      await handleRow(
-        r,
-        async () => await supabase.from("orders").insert(payload as never),
-        async (id) => await supabase.from("orders").update(payload as never).eq("id", id),
-      );
-    }
-  } else if (entity === "products") {
-    for (const r of valid) {
-      const d = r.data;
-      // Поля characteristic/length/width/height/comment отсутствуют в products — складываем в SKU/category.
-      const payload = {
-        name: str(d.product_name)!,
-        category: str(d.category),
-        weight_kg: num(d.weight),
-        volume_m3: num(d.volume),
-        source,
-      };
-      await handleRow(
-        r,
-        async () => await supabase.from("products").insert(payload as never),
-        async (id) => await supabase.from("products").update(payload as never).eq("id", id),
-      );
-    }
-  } else if (entity === "stock") {
-    const names = Array.from(new Set(valid.map((r) => str(r.data.product_name)).filter(Boolean) as string[]));
-    const whNames = Array.from(new Set(valid.map((r) => str(r.data.warehouse)).filter(Boolean) as string[]));
-    const { data: products } = names.length ? await supabase.from("products").select("id, name").in("name", names) : { data: [] as Array<{id:string;name:string}> };
-    const { data: whs } = whNames.length ? await supabase.from("warehouses").select("id, name").in("name", whNames) : { data: [] as Array<{id:string;name:string}> };
-    const prodMap = new Map((products ?? []).map((p) => [p.name, p.id]));
-    const whMap = new Map((whs ?? []).map((w) => [w.name, w.id]));
-    for (const r of valid) {
-      const name = str(r.data.product_name)!;
-      const whName = str(r.data.warehouse)!;
-      const qty = num(r.data.available_quantity);
-      const productId = prodMap.get(name);
-      const warehouseId = whMap.get(whName);
-      if (!productId) { recordFail(r, `Товар "${name}" не найден`); continue; }
-      if (!warehouseId) { recordFail(r, `Склад "${whName}" не найден`); continue; }
-      if (qty == null || qty <= 0) { recordFail(r, `Некорректное количество`); continue; }
-      if (r.duplicate && duplicateAction === "skip") { recordSkipped(r, r.duplicate.existingId); continue; }
-      const { error } = await supabase.from("stock_movements").insert({
-        product_id: productId,
-        warehouse_id: warehouseId,
-        movement_type: "inbound",
-        qty,
-        reason: r.duplicate && duplicateAction === "update" ? "excel_correction" : "excel_import",
-        source,
-      } as never);
-      if (error) recordFail(r, error.message);
-      else if (r.duplicate && duplicateAction === "update") recordUpdated(r, r.duplicate.existingId);
-      else recordOk(r);
-    }
-  } else if (entity === "routes") {
-    for (const r of valid) {
-      const d = r.data;
-      const extras: string[] = [];
-      if (str(d.driver_name)) extras.push(`Водитель: ${str(d.driver_name)}`);
-      if (str(d.vehicle_number)) extras.push(`ТС: ${str(d.vehicle_number)}`);
-      const payload = {
-        route_number: str(d.route_number)!,
-        driver_name: str(d.driver_name),
-        comment: [str(d.comment), ...extras].filter(Boolean).join(" | ") || null,
-        source,
-      };
-      await handleRow(
-        r,
-        async () => await supabase.from("routes").insert(payload as never),
-        async (id) => await supabase.from("routes").update(payload as never).eq("id", id),
-      );
-    }
-  } else if (entity === "transport_requests") {
-    for (const r of valid) {
-      const d = r.data;
-      const payload = {
-        route_number: str(d.request_number)!,
-        route_date: str(d.planned_date) ?? new Date().toISOString().slice(0, 10),
-        request_type: (str(d.request_type) ?? "client_delivery") as never,
-        transport_comment: `${str(d.warehouse_from) ?? ""} → ${str(d.warehouse_to) ?? ""} ${str(d.planned_time) ?? ""}`.trim(),
-        source,
-      };
-      await handleRow(
-        r,
-        async () => await supabase.from("routes").insert(payload as never),
-        async (id) => await supabase.from("routes").update(payload as never).eq("id", id),
-      );
-    }
-  }
-
-  // Write import log
-  let logId: string | undefined;
-  try {
-    const totalRows = parsed.totalRows;
-    const failedCount = failed.length;
-    const duplicatesFound = parsed.duplicateRows ?? 0;
-    let status: "loaded" | "partial" | "error" = "loaded";
-    if (inserted + updated + skipped === 0 && failedCount > 0) status = "error";
-    else if (failedCount > 0) status = "partial";
-
-    const { data: logRow, error: logErr } = await supabase
-      .from("import_logs")
-      .insert({
-        entity,
-        file_name: meta?.fileName ?? null,
-        file_format: meta?.fileFormat ?? "xlsx",
-        source,
-        imported_by: meta?.importedBy ?? null,
-        total_rows: totalRows,
-        inserted_rows: inserted,
-        failed_rows: failedCount,
-        updated_rows: updated,
-        skipped_rows: skipped,
-        duplicate_rows: duplicatesFound,
-        duplicate_action: duplicateAction,
-        status,
-      } as never)
-      .select("id")
-      .single();
-    if (!logErr && logRow) {
-      logId = (logRow as { id: string }).id;
-      const rowsPayload = [
-        ...insertedLog.map((s) => ({
-          import_log_id: logId, row_number: s.row, status: "inserted",
-          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId ?? null,
-        })),
-        ...updatedLog.map((s) => ({
-          import_log_id: logId, row_number: s.row, status: "updated",
-          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId,
-        })),
-        ...skippedLog.map((s) => ({
-          import_log_id: logId, row_number: s.row, status: "skipped",
-          error_message: null, raw_data: s.raw, matched_existing_id: s.matchedId,
-        })),
-        ...failed.map((f) => ({
-          import_log_id: logId, row_number: f.row, status: "failed",
-          error_message: f.message, raw_data: f.raw ?? {}, matched_existing_id: f.matchedId ?? null,
-        })),
-      ];
-      if (rowsPayload.length > 0) {
-        await supabase.from("import_log_rows").insert(rowsPayload as never);
-      }
-    }
-  } catch {
-    // logging failures should not break the import
-  }
-
-  return {
-    inserted,
-    updated,
-    skipped,
-    failed: failed.length,
-    duplicates: parsed.duplicateRows ?? 0,
-    duplicateAction,
-    failedRows: failed.map((f) => ({ row: f.row, message: f.message })),
-    logId,
-  };
+  const result = await apiPost<ImportResult & { logId?: string }>("/api/data-import", {
+    op: "import",
+    entity,
+    parsed,
+    source,
+    fileName: meta?.fileName ?? null,
+    fileFormat: meta?.fileFormat ?? "xlsx",
+    duplicateAction: meta?.duplicateAction ?? "skip",
+  });
+  return result;
 }
