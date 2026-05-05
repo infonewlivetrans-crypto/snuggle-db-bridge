@@ -104,6 +104,7 @@ import { Route as ApiDeliveryRoutesRouteImport } from './routes/api/delivery-rou
 import { Route as ApiDeliveryReportsRouteImport } from './routes/api/delivery-reports'
 import { Route as ApiDeliveryPhotosRouteImport } from './routes/api/delivery-photos'
 import { Route as ApiDeliveryDocumentsRouteImport } from './routes/api/delivery-documents'
+import { Route as ApiDataImportRouteImport } from './routes/api/data-import'
 import { Route as ApiClientsRouteImport } from './routes/api/clients'
 import { Route as ApiCarriersRouteImport } from './routes/api/carriers'
 import { Route as ApiBackupsRouteImport } from './routes/api/backups'
@@ -620,6 +621,11 @@ const ApiDeliveryDocumentsRoute = ApiDeliveryDocumentsRouteImport.update({
   path: '/api/delivery-documents',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDataImportRoute = ApiDataImportRouteImport.update({
+  id: '/api/data-import',
+  path: '/api/data-import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiClientsRoute = ApiClientsRouteImport.update({
   id: '/api/clients',
   path: '/api/clients',
@@ -856,6 +862,7 @@ export interface FileRoutesByFullPath {
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
   '/api/clients': typeof ApiClientsRoute
+  '/api/data-import': typeof ApiDataImportRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
@@ -991,6 +998,7 @@ export interface FileRoutesByTo {
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
   '/api/clients': typeof ApiClientsRoute
+  '/api/data-import': typeof ApiDataImportRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
@@ -1127,6 +1135,7 @@ export interface FileRoutesById {
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
   '/api/clients': typeof ApiClientsRoute
+  '/api/data-import': typeof ApiDataImportRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
@@ -1264,6 +1273,7 @@ export interface FileRouteTypes {
     | '/api/backups'
     | '/api/carriers'
     | '/api/clients'
+    | '/api/data-import'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
     | '/api/delivery-reports'
@@ -1399,6 +1409,7 @@ export interface FileRouteTypes {
     | '/api/backups'
     | '/api/carriers'
     | '/api/clients'
+    | '/api/data-import'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
     | '/api/delivery-reports'
@@ -1534,6 +1545,7 @@ export interface FileRouteTypes {
     | '/api/backups'
     | '/api/carriers'
     | '/api/clients'
+    | '/api/data-import'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
     | '/api/delivery-reports'
@@ -1670,6 +1682,7 @@ export interface RootRouteChildren {
   ApiBackupsRoute: typeof ApiBackupsRouteWithChildren
   ApiCarriersRoute: typeof ApiCarriersRouteWithChildren
   ApiClientsRoute: typeof ApiClientsRoute
+  ApiDataImportRoute: typeof ApiDataImportRoute
   ApiDeliveryDocumentsRoute: typeof ApiDeliveryDocumentsRoute
   ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
   ApiDeliveryReportsRoute: typeof ApiDeliveryReportsRoute
@@ -2407,6 +2420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeliveryDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/data-import': {
+      id: '/api/data-import'
+      path: '/api/data-import'
+      fullPath: '/api/data-import'
+      preLoaderRoute: typeof ApiDataImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/clients': {
       id: '/api/clients'
       path: '/api/clients'
@@ -2924,6 +2944,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBackupsRoute: ApiBackupsRouteWithChildren,
   ApiCarriersRoute: ApiCarriersRouteWithChildren,
   ApiClientsRoute: ApiClientsRoute,
+  ApiDataImportRoute: ApiDataImportRoute,
   ApiDeliveryDocumentsRoute: ApiDeliveryDocumentsRoute,
   ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
   ApiDeliveryReportsRoute: ApiDeliveryReportsRoute,
