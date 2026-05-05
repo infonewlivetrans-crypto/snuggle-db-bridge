@@ -28,7 +28,7 @@ const NO_SERVER_IMPORTS = {
         "**/server/*.functions",
       ],
       message:
-        "Серверный код запрещён в клиентских файлах (src/routes/**, src/components/**). Используйте fetch('/api/...') вместо импорта из src/server/* или src/lib/server-functions/*.",
+        "Серверный код запрещён в клиентских файлах. Используйте fetch('/api/...') вместо импорта из src/server/* или src/lib/server-functions/*.",
     },
   ],
 };
@@ -68,6 +68,14 @@ export default tseslint.config(
   },
   {
     files: ["src/pages/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
+  {
+    // Клиентские/shared lib и hooks тоже не должны становиться мостом к server-only коду.
+    files: ["src/lib/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+    ignores: ["src/lib/server-functions/**"],
     rules: {
       "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
     },

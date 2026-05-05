@@ -114,6 +114,7 @@ import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
+import { Route as ApiTripStageUpdateRouteImport } from './routes/api/trip-stage.update'
 import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
@@ -669,6 +670,11 @@ const ApiUsersIdRoute = ApiUsersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiUsersRoute,
 } as any)
+const ApiTripStageUpdateRoute = ApiTripStageUpdateRouteImport.update({
+  id: '/update',
+  path: '/update',
+  getParentRoute: () => ApiTripStageRoute,
+} as any)
 const ApiStorageUploadRoute = ApiStorageUploadRouteImport.update({
   id: '/api/storage/upload',
   path: '/api/storage/upload',
@@ -880,7 +886,7 @@ export interface FileRoutesByFullPath {
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
-  '/api/trip-stage': typeof ApiTripStageRoute
+  '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
@@ -933,6 +939,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1014,7 +1021,7 @@ export interface FileRoutesByTo {
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
-  '/api/trip-stage': typeof ApiTripStageRoute
+  '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
@@ -1067,6 +1074,7 @@ export interface FileRoutesByTo {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1149,7 +1157,7 @@ export interface FileRoutesById {
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
-  '/api/trip-stage': typeof ApiTripStageRoute
+  '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
@@ -1202,6 +1210,7 @@ export interface FileRoutesById {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1338,6 +1347,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/backups/$id/restore'
@@ -1472,6 +1482,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/backups/$id/restore'
@@ -1606,6 +1617,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/backups/$id/restore'
@@ -1688,7 +1700,7 @@ export interface RootRouteChildren {
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
-  ApiTripStageRoute: typeof ApiTripStageRoute
+  ApiTripStageRoute: typeof ApiTripStageRouteWithChildren
   ApiUserRoleRoute: typeof ApiUserRoleRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
@@ -2465,6 +2477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUsersIdRouteImport
       parentRoute: typeof ApiUsersRoute
     }
+    '/api/trip-stage/update': {
+      id: '/api/trip-stage/update'
+      path: '/update'
+      fullPath: '/api/trip-stage/update'
+      preLoaderRoute: typeof ApiTripStageUpdateRouteImport
+      parentRoute: typeof ApiTripStageRoute
+    }
     '/api/storage/upload': {
       id: '/api/storage/upload'
       path: '/api/storage/upload'
@@ -2827,6 +2846,18 @@ const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
   ApiRoutesRouteChildren,
 )
 
+interface ApiTripStageRouteChildren {
+  ApiTripStageUpdateRoute: typeof ApiTripStageUpdateRoute
+}
+
+const ApiTripStageRouteChildren: ApiTripStageRouteChildren = {
+  ApiTripStageUpdateRoute: ApiTripStageUpdateRoute,
+}
+
+const ApiTripStageRouteWithChildren = ApiTripStageRoute._addFileChildren(
+  ApiTripStageRouteChildren,
+)
+
 interface ApiUsersRouteChildren {
   ApiUsersIdRoute: typeof ApiUsersIdRoute
 }
@@ -2923,7 +2954,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,
-  ApiTripStageRoute: ApiTripStageRoute,
+  ApiTripStageRoute: ApiTripStageRouteWithChildren,
   ApiUserRoleRoute: ApiUserRoleRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,

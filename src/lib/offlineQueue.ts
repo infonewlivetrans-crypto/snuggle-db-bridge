@@ -2,7 +2,8 @@
 // Без GPS — координаты в payload опциональны и могут быть null.
 // Хранение: localStorage (per-browser). Отправка — при появлении сети.
 
-import { advanceTripStageFn, recordRouteReturnFn } from "@/lib/server-functions/trip-stage.functions";
+import { apiPost } from "@/lib/api-client";
+import type { TripStage } from "@/lib/tripStage";
 
 const STORAGE_KEY = "driver-offline-queue:v1";
 
@@ -11,14 +12,30 @@ export type QueuedAction =
       id: string;
       kind: "advance_stage";
       createdAt: number;
-      payload: Parameters<typeof advanceTripStageFn>[0]["data"];
+      payload: AdvanceStagePayload;
     }
   | {
       id: string;
       kind: "record_return";
       createdAt: number;
-      payload: Parameters<typeof recordRouteReturnFn>[0]["data"];
+      payload: RecordReturnPayload;
     };
+
+export type AdvanceStagePayload = {
+  deliveryRouteId: string;
+  stage: TripStage;
+  comment?: string | null;
+  gps?: { lat: number; lng: number } | null;
+  actorName?: string | null;
+};
+
+export type RecordReturnPayload = {
+  deliveryRouteId: string;
+  orderId?: string | null;
+  reason: string;
+  comment?: string | null;
+  actorName?: string | null;
+};
 
 function isBrowser(): boolean {
   return typeof window !== "undefined" && typeof localStorage !== "undefined";
@@ -85,9 +102,9 @@ export async function flushQueue(): Promise<{ sent: number; failed: number }> {
     for (const action of items) {
       try {
         if (action.kind === "advance_stage") {
-          await advanceTripStageFn({ data: action.payload });
+          await apiPost("/api/trip-stage/update", { kind: "advance", ...action.payload }, 10000);
         } else if (action.kind === "record_return") {
-          await recordRouteReturnFn({ data: action.payload });
+          await apiPost("/api/trip-stage/update", { kind: "return", ...action.payload }, 10000);
         }
         removeAction(action.id);
         sent++;
