@@ -58,6 +58,32 @@ export async function isAdmin(client: SupabaseClient<Database>, userId: string):
   return Boolean(data);
 }
 
+/** Проверяет, что у пользователя есть хотя бы одна из указанных ролей. */
+export async function hasAnyRole(
+  client: SupabaseClient<Database>,
+  userId: string,
+  roles: string[],
+): Promise<boolean> {
+  const { data } = await client
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", roles as never[]);
+  return (data ?? []).length > 0;
+}
+
+/** Возвращает auth-контекст и проверяет, что пользователь имеет одну из ролей. */
+export async function requireAnyRole(
+  request: Request,
+  roles: string[],
+): Promise<{ userId: string; client: SupabaseClient<Database> } | Response> {
+  const auth = await resolveAuth(request);
+  if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+  if (!(await hasAnyRole(auth.client, auth.userId, roles)))
+    return jsonResponse({ error: "forbidden" }, { status: 403 });
+  return auth;
+}
+
 /** Возвращает auth-контекст и проверяет, что пользователь — админ. */
 export async function requireAdmin(
   request: Request,
