@@ -112,7 +112,7 @@ export function TripStageBlock({
         return { queued: true as const, stage };
       }
       try {
-        await apiPost("/api/trip-stage", { kind: "advance", ...payload }, 10000);
+        await apiPost("/api/trip-stage/update", { kind: "advance", ...payload }, 10000);
         return { queued: false as const, stage };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -150,7 +150,7 @@ export function TripStageBlock({
         return { queued: true as const };
       }
       try {
-        await apiPost("/api/trip-stage", { kind: "return", ...payload }, 10000);
+        await apiPost("/api/trip-stage/update", { kind: "return", ...payload }, 10000);
         return { queued: false as const };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
