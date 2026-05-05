@@ -88,6 +88,7 @@ import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuse
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
 import { Route as ApiManagersRouteImport } from './routes/api/managers'
+import { Route as ApiInvitesRouteImport } from './routes/api/invites'
 import { Route as ApiInviteLoginRouteImport } from './routes/api/invite-login'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
@@ -112,9 +113,12 @@ import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-point
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
+import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
+import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
+import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -523,6 +527,11 @@ const ApiManagersRoute = ApiManagersRouteImport.update({
   path: '/api/managers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInvitesRoute = ApiInvitesRouteImport.update({
+  id: '/api/invites',
+  path: '/api/invites',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiInviteLoginRoute = ApiInviteLoginRouteImport.update({
   id: '/api/invite-login',
   path: '/api/invite-login',
@@ -643,6 +652,16 @@ const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiManagersImportRoute = ApiManagersImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => ApiManagersRoute,
+} as any)
+const ApiManagersIdRoute = ApiManagersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiManagersRoute,
+} as any)
 const ApiDriversImportRoute = ApiDriversImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -657,6 +676,11 @@ const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiDeliveryRoutesRoute,
+} as any)
+const ApiCarriersImportRoute = ApiCarriersImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => ApiCarriersRoute,
 } as any)
 const ApiCarriersIdRoute = ApiCarriersIdRouteImport.update({
   id: '/$id',
@@ -761,7 +785,8 @@ export interface FileRoutesByFullPath {
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
-  '/api/managers': typeof ApiManagersRoute
+  '/api/invites': typeof ApiInvitesRoute
+  '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -814,9 +839,12 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
+  '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/managers/$id': typeof ApiManagersIdRoute
+  '/api/managers/import': typeof ApiManagersImportRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -879,7 +907,8 @@ export interface FileRoutesByTo {
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
-  '/api/managers': typeof ApiManagersRoute
+  '/api/invites': typeof ApiInvitesRoute
+  '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -932,9 +961,12 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
+  '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/managers/$id': typeof ApiManagersIdRoute
+  '/api/managers/import': typeof ApiManagersImportRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -998,7 +1030,8 @@ export interface FileRoutesById {
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
-  '/api/managers': typeof ApiManagersRoute
+  '/api/invites': typeof ApiInvitesRoute
+  '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -1051,9 +1084,12 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
+  '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/managers/$id': typeof ApiManagersIdRoute
+  '/api/managers/import': typeof ApiManagersImportRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1118,6 +1154,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/import-route-sheet'
     | '/api/invite-login'
+    | '/api/invites'
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
@@ -1171,9 +1208,12 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/carriers/$id'
+    | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/managers/$id'
+    | '/api/managers/import'
     | '/api/orders/$id'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -1236,6 +1276,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/import-route-sheet'
     | '/api/invite-login'
+    | '/api/invites'
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
@@ -1289,9 +1330,12 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/carriers/$id'
+    | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/managers/$id'
+    | '/api/managers/import'
     | '/api/orders/$id'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -1354,6 +1398,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/import-route-sheet'
     | '/api/invite-login'
+    | '/api/invites'
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
@@ -1407,9 +1452,12 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/carriers/$id'
+    | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/managers/$id'
+    | '/api/managers/import'
     | '/api/orders/$id'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -1473,7 +1521,8 @@ export interface RootRouteChildren {
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
-  ApiManagersRoute: typeof ApiManagersRoute
+  ApiInvitesRoute: typeof ApiInvitesRoute
+  ApiManagersRoute: typeof ApiManagersRouteWithChildren
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
@@ -2082,6 +2131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiManagersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/invites': {
+      id: '/api/invites'
+      path: '/api/invites'
+      fullPath: '/api/invites'
+      preLoaderRoute: typeof ApiInvitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/invite-login': {
       id: '/api/invite-login'
       path: '/api/invite-login'
@@ -2250,6 +2306,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/managers/import': {
+      id: '/api/managers/import'
+      path: '/import'
+      fullPath: '/api/managers/import'
+      preLoaderRoute: typeof ApiManagersImportRouteImport
+      parentRoute: typeof ApiManagersRoute
+    }
+    '/api/managers/$id': {
+      id: '/api/managers/$id'
+      path: '/$id'
+      fullPath: '/api/managers/$id'
+      preLoaderRoute: typeof ApiManagersIdRouteImport
+      parentRoute: typeof ApiManagersRoute
+    }
     '/api/drivers/import': {
       id: '/api/drivers/import'
       path: '/import'
@@ -2270,6 +2340,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/delivery-routes/$id'
       preLoaderRoute: typeof ApiDeliveryRoutesIdRouteImport
       parentRoute: typeof ApiDeliveryRoutesRoute
+    }
+    '/api/carriers/import': {
+      id: '/api/carriers/import'
+      path: '/import'
+      fullPath: '/api/carriers/import'
+      preLoaderRoute: typeof ApiCarriersImportRouteImport
+      parentRoute: typeof ApiCarriersRoute
     }
     '/api/carriers/$id': {
       id: '/api/carriers/$id'
@@ -2358,10 +2435,12 @@ const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
 
 interface ApiCarriersRouteChildren {
   ApiCarriersIdRoute: typeof ApiCarriersIdRoute
+  ApiCarriersImportRoute: typeof ApiCarriersImportRoute
 }
 
 const ApiCarriersRouteChildren: ApiCarriersRouteChildren = {
   ApiCarriersIdRoute: ApiCarriersIdRoute,
+  ApiCarriersImportRoute: ApiCarriersImportRoute,
 }
 
 const ApiCarriersRouteWithChildren = ApiCarriersRoute._addFileChildren(
@@ -2404,6 +2483,20 @@ const ApiDriversRouteChildren: ApiDriversRouteChildren = {
 
 const ApiDriversRouteWithChildren = ApiDriversRoute._addFileChildren(
   ApiDriversRouteChildren,
+)
+
+interface ApiManagersRouteChildren {
+  ApiManagersIdRoute: typeof ApiManagersIdRoute
+  ApiManagersImportRoute: typeof ApiManagersImportRoute
+}
+
+const ApiManagersRouteChildren: ApiManagersRouteChildren = {
+  ApiManagersIdRoute: ApiManagersIdRoute,
+  ApiManagersImportRoute: ApiManagersImportRoute,
+}
+
+const ApiManagersRouteWithChildren = ApiManagersRoute._addFileChildren(
+  ApiManagersRouteChildren,
 )
 
 interface ApiOrdersIdRouteChildren {
@@ -2532,7 +2625,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriversRoute: ApiDriversRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
-  ApiManagersRoute: ApiManagersRoute,
+  ApiInvitesRoute: ApiInvitesRoute,
+  ApiManagersRoute: ApiManagersRouteWithChildren,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,

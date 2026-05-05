@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { fetchListViaApi } from "@/lib/api-client";
+import { apiPost, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { CarrierFormDialog } from "@/components/CarrierFormDialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,7 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { importCarriersFn } from "@/lib/server-functions/managers.functions";
 import {
   Table,
   TableBody,
@@ -80,7 +79,8 @@ function CarriersPage() {
   const [importBusy, setImportBusy] = useState(false);
 
   const importMut = useMutation({
-    mutationFn: (items: ParsedCarrierRow[]) => importCarriersFn({ data: { items } }),
+    mutationFn: (items: ParsedCarrierRow[]) =>
+      apiPost<{ inserted: number; skipped: number; uniqueCount: number }>("/api/carriers/import", { items }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["carriers"] });
       toast.success(
