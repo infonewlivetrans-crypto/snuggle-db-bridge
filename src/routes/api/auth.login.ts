@@ -8,6 +8,7 @@ export const Route = createFileRoute("/api/auth/login")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        try {
         let body: { email?: string; password?: string };
         try {
           body = (await request.json()) as typeof body;
@@ -74,6 +75,13 @@ export const Route = createFileRoute("/api/auth/login")({
           refresh_token: data.session.refresh_token,
           expires_in: data.session.expires_in ?? 3600,
         });
+        } catch (e) {
+          console.error("[auth.login] unexpected error:", e);
+          return jsonResponse(
+            { error: "Внутренняя ошибка сервера авторизации" },
+            { status: 500 },
+          );
+        }
       },
     },
   },
