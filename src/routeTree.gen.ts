@@ -105,6 +105,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
+import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
 import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
@@ -606,6 +607,11 @@ const ApiVehiclesIdRoute = ApiVehiclesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiVehiclesRoute,
 } as any)
+const ApiUsersIdRoute = ApiUsersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiUsersRoute,
+} as any)
 const ApiStorageUploadRoute = ApiStorageUploadRouteImport.update({
   id: '/api/storage/upload',
   path: '/api/storage/upload',
@@ -765,7 +771,7 @@ export interface FileRoutesByFullPath {
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
-  '/api/users': typeof ApiUsersRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
   '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -810,6 +816,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
@@ -881,7 +888,7 @@ export interface FileRoutesByTo {
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
-  '/api/users': typeof ApiUsersRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
   '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -926,6 +933,7 @@ export interface FileRoutesByTo {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
@@ -998,7 +1006,7 @@ export interface FileRoutesById {
   '/api/system-settings': typeof ApiSystemSettingsRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/user-role': typeof ApiUserRoleRoute
-  '/api/users': typeof ApiUsersRoute
+  '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
   '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -1043,6 +1051,7 @@ export interface FileRoutesById {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
+  '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
@@ -1161,6 +1170,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
@@ -1277,6 +1287,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
@@ -1393,6 +1404,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/storage/upload'
+    | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
@@ -1465,7 +1477,7 @@ export interface RootRouteChildren {
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
   ApiUserRoleRoute: typeof ApiUserRoleRoute
-  ApiUsersRoute: typeof ApiUsersRoute
+  ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
   ApiWarehousesRoute: typeof ApiWarehousesRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
@@ -2177,6 +2189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVehiclesIdRouteImport
       parentRoute: typeof ApiVehiclesRoute
     }
+    '/api/users/$id': {
+      id: '/api/users/$id'
+      path: '/$id'
+      fullPath: '/api/users/$id'
+      preLoaderRoute: typeof ApiUsersIdRouteImport
+      parentRoute: typeof ApiUsersRoute
+    }
     '/api/storage/upload': {
       id: '/api/storage/upload'
       path: '/api/storage/upload'
@@ -2418,6 +2437,18 @@ const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
   ApiRoutesRouteChildren,
 )
 
+interface ApiUsersRouteChildren {
+  ApiUsersIdRoute: typeof ApiUsersIdRoute
+}
+
+const ApiUsersRouteChildren: ApiUsersRouteChildren = {
+  ApiUsersIdRoute: ApiUsersIdRoute,
+}
+
+const ApiUsersRouteWithChildren = ApiUsersRoute._addFileChildren(
+  ApiUsersRouteChildren,
+)
+
 interface ApiVehiclesRouteChildren {
   ApiVehiclesIdRoute: typeof ApiVehiclesIdRoute
 }
@@ -2496,7 +2527,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,
   ApiUserRoleRoute: ApiUserRoleRoute,
-  ApiUsersRoute: ApiUsersRoute,
+  ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,
   ApiWarehousesRoute: ApiWarehousesRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
