@@ -57,11 +57,11 @@ function BackupsPage() {
 
   const { data, isLoading, error, isFetching, refetch } = useQuery({
     queryKey: ["backups"],
-    queryFn: () => listBackupsFn(),
+    queryFn: async () => (await fetchListViaApi<BackupRow>("/api/backups", { limit: 100 }, 10000)).rows,
   });
 
   const create = useMutation({
-    mutationFn: () => createBackupFn({ data: { comment: comment.trim() || null } }),
+    mutationFn: () => apiPost("/api/backups/create", { comment: comment.trim() || null }, 30000),
     onSuccess: () => {
       toast.success("Резервная копия создана");
       setComment("");
@@ -71,8 +71,8 @@ function BackupsPage() {
   });
 
   const download = useMutation({
-    mutationFn: (id: string) => getBackupUrlFn({ data: { id } }),
-    onSuccess: ({ url }) => {
+    mutationFn: (id: string) => apiGetAuth<{ url: string }>(`/api/backups/${id}/url`, 10000),
+    onSuccess: ({ url }: { url: string }) => {
       window.open(url, "_blank", "noopener");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -81,7 +81,7 @@ function BackupsPage() {
   const [restoreTarget, setRestoreTarget] = useState<null | { id: string; created_at: string }>(null);
   const [confirmText, setConfirmText] = useState("");
   const restore = useMutation({
-    mutationFn: (id: string) => restoreBackupFn({ data: { id, confirm: confirmText } }),
+    mutationFn: (id: string) => apiPost(`/api/backups/${id}/restore`, { confirm: confirmText }, 30000),
     onSuccess: () => {
       toast.success("Данные восстановлены из резервной копии");
       setRestoreTarget(null);
