@@ -115,6 +115,7 @@ import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
+import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -658,6 +659,11 @@ const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDeliveryRoutesRoute,
 } as any)
+const ApiCarriersImportRoute = ApiCarriersImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => ApiCarriersRoute,
+} as any)
 const ApiCarriersIdRoute = ApiCarriersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -814,6 +820,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
+  '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -932,6 +939,7 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
+  '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1051,6 +1059,7 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
+  '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1171,6 +1180,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/carriers/$id'
+    | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -1289,6 +1299,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/carriers/$id'
+    | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -1407,6 +1418,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/carriers/$id'
+    | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -2271,6 +2283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeliveryRoutesIdRouteImport
       parentRoute: typeof ApiDeliveryRoutesRoute
     }
+    '/api/carriers/import': {
+      id: '/api/carriers/import'
+      path: '/import'
+      fullPath: '/api/carriers/import'
+      preLoaderRoute: typeof ApiCarriersImportRouteImport
+      parentRoute: typeof ApiCarriersRoute
+    }
     '/api/carriers/$id': {
       id: '/api/carriers/$id'
       path: '/$id'
@@ -2358,10 +2377,12 @@ const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
 
 interface ApiCarriersRouteChildren {
   ApiCarriersIdRoute: typeof ApiCarriersIdRoute
+  ApiCarriersImportRoute: typeof ApiCarriersImportRoute
 }
 
 const ApiCarriersRouteChildren: ApiCarriersRouteChildren = {
   ApiCarriersIdRoute: ApiCarriersIdRoute,
+  ApiCarriersImportRoute: ApiCarriersImportRoute,
 }
 
 const ApiCarriersRouteWithChildren = ApiCarriersRoute._addFileChildren(
@@ -2588,3 +2609,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
