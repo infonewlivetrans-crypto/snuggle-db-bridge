@@ -83,17 +83,26 @@ function UsersPage() {
   const safeRows = Array.isArray(rawData) ? rawData : [];
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<{ email: string; password: string; fullName: string; role: AppRole }>(
-    { email: "", password: "", fullName: "", role: "manager" },
+  const [form, setForm] = useState<{ fullName: string; phone: string; comment: string; role: AppRole }>(
+    { fullName: "", phone: "", comment: "", role: "manager" },
   );
+  const [createdLink, setCreatedLink] = useState<string | null>(null);
 
   const createMut = useMutation({
-    mutationFn: async () => apiPost<{ userId: string }>("/api/users", form),
-    onSuccess: () => {
-      toast.success("Пользователь создан");
-      setOpen(false);
-      setForm({ email: "", password: "", fullName: "", role: "manager" });
+    mutationFn: async () =>
+      apiPost<{ token: string }>("/api/invites", {
+        fullName: form.fullName.trim(),
+        phone: form.phone.trim() || null,
+        role: form.role,
+        comment: form.comment.trim() || null,
+        managerName: form.role === "manager" ? form.fullName.trim() : null,
+      }),
+    onSuccess: (row) => {
+      const link = inviteUrl(row.token);
+      setCreatedLink(link);
+      toast.success("Пользователь создан. Скопируйте ссылку и отправьте ему.");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
