@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
+import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl } from "@/lib/invite-url";
@@ -163,6 +163,16 @@ function UsersPage() {
     onSuccess: (res) => {
       toast.success(`Удалено пользователей: ${res.deletedCount}`);
       if (res.errors?.length) toast.error(`Ошибки: ${res.errors.length}`);
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: async (userId: string) => apiDelete(`/api/users/${userId}`),
+    onSuccess: () => {
+      toast.success("Пользователь удалён");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
     },
@@ -447,6 +457,23 @@ function UsersPage() {
                             onClick={() => activeMut.mutate({ userId: u.user_id, isActive: !u.is_active })}
                           >
                             {u.is_active ? (<><ShieldOff className="h-4 w-4" />Заблокировать</>) : (<><ShieldCheck className="h-4 w-4" />Разблокировать</>)}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="gap-1"
+                            disabled={u.user_id === user?.id || deleteMut.isPending}
+                            title={u.user_id === user?.id ? "Нельзя удалить самого себя" : "Удалить пользователя"}
+                            onClick={() => {
+                              if (u.user_id === user?.id) return;
+                              const name = u.full_name ?? u.email ?? "пользователя";
+                              if (confirm(`Удалить ${name}? Действие необратимо.`)) {
+                                deleteMut.mutate(u.user_id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Удалить
                           </Button>
                         </div>
                       </TableCell>
