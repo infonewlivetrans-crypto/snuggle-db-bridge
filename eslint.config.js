@@ -72,5 +72,13 @@ export default tseslint.config(
       "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
     },
   },
+  {
+    // Клиентские/shared lib и hooks тоже не должны становиться мостом к server-only коду.
+    files: ["src/lib/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+    ignores: ["src/lib/server-functions/**"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
   eslintPluginPrettier,
 );
