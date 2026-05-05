@@ -140,6 +140,7 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
 import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
+import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
@@ -805,6 +806,11 @@ const ApiAuthBootstrapAdminRoute = ApiAuthBootstrapAdminRouteImport.update({
   path: '/api/auth/bootstrap-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
+  id: '/api/admin/reset-owner',
+  path: '/api/admin/reset-owner',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPilotTasksTaskIdCommentsRoute =
   ApiPilotTasksTaskIdCommentsRouteImport.update({
     id: '/$taskId/comments',
@@ -951,6 +957,7 @@ export interface FileRoutesByFullPath {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
+  '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1091,6 +1098,7 @@ export interface FileRoutesByTo {
   '/users': typeof UsersIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
+  '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1232,6 +1240,7 @@ export interface FileRoutesById {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
+  '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1374,6 +1383,7 @@ export interface FileRouteTypes {
     | '/users/'
     | '/vehicles/'
     | '/warehouses/'
+    | '/api/admin/reset-owner'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -1514,6 +1524,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/vehicles'
     | '/warehouses'
+    | '/api/admin/reset-owner'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -1654,6 +1665,7 @@ export interface FileRouteTypes {
     | '/users/'
     | '/vehicles/'
     | '/warehouses/'
+    | '/api/admin/reset-owner'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -1794,6 +1806,7 @@ export interface RootRouteChildren {
   UsersIndexRoute: typeof UsersIndexRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
   WarehousesIndexRoute: typeof WarehousesIndexRoute
+  ApiAdminResetOwnerRoute: typeof ApiAdminResetOwnerRoute
   ApiAuthBootstrapAdminRoute: typeof ApiAuthBootstrapAdminRoute
   ApiAuthHasAdminRoute: typeof ApiAuthHasAdminRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -2723,6 +2736,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthBootstrapAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/reset-owner': {
+      id: '/api/admin/reset-owner'
+      path: '/api/admin/reset-owner'
+      fullPath: '/api/admin/reset-owner'
+      preLoaderRoute: typeof ApiAdminResetOwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pilot-tasks/$taskId/comments': {
       id: '/api/pilot-tasks/$taskId/comments'
       path: '/$taskId/comments'
@@ -3099,6 +3119,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersIndexRoute: UsersIndexRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
   WarehousesIndexRoute: WarehousesIndexRoute,
+  ApiAdminResetOwnerRoute: ApiAdminResetOwnerRoute,
   ApiAuthBootstrapAdminRoute: ApiAuthBootstrapAdminRoute,
   ApiAuthHasAdminRoute: ApiAuthHasAdminRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
@@ -3111,13 +3132,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
