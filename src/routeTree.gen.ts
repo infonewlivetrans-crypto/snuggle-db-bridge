@@ -112,6 +112,7 @@ import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-point
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
+import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
@@ -645,6 +646,11 @@ const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiManagersImportRoute = ApiManagersImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => ApiManagersRoute,
+} as any)
 const ApiManagersIdRoute = ApiManagersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -831,6 +837,7 @@ export interface FileRoutesByFullPath {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
+  '/api/managers/import': typeof ApiManagersImportRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -951,6 +958,7 @@ export interface FileRoutesByTo {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
+  '/api/managers/import': typeof ApiManagersImportRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1072,6 +1080,7 @@ export interface FileRoutesById {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
+  '/api/managers/import': typeof ApiManagersImportRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1194,6 +1203,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/managers/$id'
+    | '/api/managers/import'
     | '/api/orders/$id'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -1314,6 +1324,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/managers/$id'
+    | '/api/managers/import'
     | '/api/orders/$id'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -1434,6 +1445,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/managers/$id'
+    | '/api/managers/import'
     | '/api/orders/$id'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2274,6 +2286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/managers/import': {
+      id: '/api/managers/import'
+      path: '/import'
+      fullPath: '/api/managers/import'
+      preLoaderRoute: typeof ApiManagersImportRouteImport
+      parentRoute: typeof ApiManagersRoute
+    }
     '/api/managers/$id': {
       id: '/api/managers/$id'
       path: '/$id'
@@ -2448,10 +2467,12 @@ const ApiDriversRouteWithChildren = ApiDriversRoute._addFileChildren(
 
 interface ApiManagersRouteChildren {
   ApiManagersIdRoute: typeof ApiManagersIdRoute
+  ApiManagersImportRoute: typeof ApiManagersImportRoute
 }
 
 const ApiManagersRouteChildren: ApiManagersRouteChildren = {
   ApiManagersIdRoute: ApiManagersIdRoute,
+  ApiManagersImportRoute: ApiManagersImportRoute,
 }
 
 const ApiManagersRouteWithChildren = ApiManagersRoute._addFileChildren(
