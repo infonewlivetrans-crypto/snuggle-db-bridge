@@ -243,6 +243,19 @@ function UsersPage() {
                 Инвайт-ссылки
               </Button>
             </Link>
+            <Button
+              variant="destructive"
+              className="gap-2"
+              onClick={() => {
+                if (confirm("Удалить ВСЕХ пользователей кроме вас? Действие необратимо.")) {
+                  cleanupMut.mutate();
+                }
+              }}
+              disabled={cleanupMut.isPending}
+            >
+              <Trash2 className="h-4 w-4" />
+              {cleanupMut.isPending ? "Очистка…" : "Очистить пользователей"}
+            </Button>
             <Dialog
               open={open}
               onOpenChange={(v) => {
