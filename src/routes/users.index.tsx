@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
+import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl } from "@/lib/invite-url";
