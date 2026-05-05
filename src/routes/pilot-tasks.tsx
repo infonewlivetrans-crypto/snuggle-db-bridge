@@ -385,16 +385,16 @@ function PilotTasksPage() {
 
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["pilot-tasks", priority, status, role, from, to],
-    queryFn: () =>
-      listPilotTasksFn({
-        data: {
-          priority: priority === "all" ? null : (priority as "critical"),
-          status: status === "all" ? null : (status as "new"),
-          role: role === "all" ? null : role,
-          from: from ? new Date(from).toISOString() : null,
-          to: to ? new Date(to + "T23:59:59").toISOString() : null,
-        },
-      }),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (priority !== "all") params.set("priority", priority);
+      if (status !== "all") params.set("status", status);
+      if (role !== "all") params.set("role", role);
+      if (from) params.set("from", new Date(from).toISOString());
+      if (to) params.set("to", new Date(to + "T23:59:59").toISOString());
+      const qs = params.toString();
+      return apiGetAuth<{ items: Task[]; summary: { total: number; critical: number; inProgress: number; done: number; new: number; review: number; byStatus: Record<string, number>; byPriority: Record<string, number> } }>(`/api/pilot-tasks${qs ? `?${qs}` : ""}`, 10000);
+    },
   });
 
   const items = (data?.items ?? []) as Task[];
