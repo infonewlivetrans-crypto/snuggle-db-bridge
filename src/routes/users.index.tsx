@@ -334,24 +334,26 @@ function UsersPage() {
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
                 <TableHead>ФИО</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Телефон</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Загрузка…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Загрузка…</TableCell></TableRow>
               ) : safeRows.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>
               ) : (
                 safeRows.map((u) => {
                   const userRoles = Array.isArray(u.roles) ? u.roles : [];
+                  const isInviteEmail = !!u.email && u.email.endsWith("@invite.radius-track.local");
+                  const realEmail = isInviteEmail ? null : u.email;
                   return (
                     <TableRow key={u.user_id}>
                       <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
-                      <TableCell className="text-sm">{u.email ?? "—"}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {userRoles.length === 0 ? (
