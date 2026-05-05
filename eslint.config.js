@@ -53,5 +53,11 @@ export default tseslint.config(
       "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
     },
   },
+  {
+    files: ["src/pages/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
   eslintPluginPrettier,
 );
