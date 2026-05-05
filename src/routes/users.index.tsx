@@ -169,6 +169,16 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMut = useMutation({
+    mutationFn: async (userId: string) => apiDelete(`/api/users/${userId}`),
+    onSuccess: () => {
+      toast.success("Пользователь удалён");
+      qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function onPickDriversFile(file: File | null) {
     if (!file) return;
     setDriverImportBusy(true);
