@@ -21,19 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  createManagerFn,
-  deleteManagerFn,
-  importManagersFn,
-  listManagersFn,
-  updateManagerFn,
-} from "@/lib/server-functions/managers.functions";
-import {
-  createInviteFn,
-  listInvitesFn,
-  rotateInviteTokenFn,
-  setInviteActiveFn,
-} from "@/lib/server-functions/invites.functions";
+import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
 import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
@@ -57,6 +45,25 @@ async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 type ParsedRow = { fullName: string; phone?: string | null; comment?: string | null };
+
+type ManagerRow = {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  comment: string | null;
+  is_active: boolean;
+};
+
+type InviteRow = {
+  id: string;
+  token: string;
+  is_active: boolean;
+  role: string;
+  manager_name: string | null;
+  full_name: string;
+};
+
+type ImportManagersResult = { inserted: number; updated: number; skipped: number };
 
 async function parseManagersExcel(file: File): Promise<ParsedRow[]> {
   const XLSX = await import("xlsx");
