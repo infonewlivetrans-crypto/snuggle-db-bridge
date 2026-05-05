@@ -1,5 +1,6 @@
 // `xlsx` подключается лениво внутри функций.
-import { supabase } from "@/integrations/supabase/client";
+// Вся работа с БД — через серверный API (/api/data-import).
+import { apiPost } from "@/lib/api-client";
 
 export type ImportEntity = "orders" | "products" | "stock" | "routes" | "transport_requests";
 export type ImportSource = "manual" | "excel" | "1c";

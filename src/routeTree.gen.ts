@@ -127,6 +127,7 @@ import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
+import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
@@ -738,6 +739,11 @@ const ApiInvitesIdRoute = ApiInvitesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiInvitesRoute,
 } as any)
+const ApiImportLogsIdRoute = ApiImportLogsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiImportLogsRoute,
+} as any)
 const ApiDriversImportRoute = ApiDriversImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -882,7 +888,7 @@ export interface FileRoutesByFullPath {
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
-  '/api/import-logs': typeof ApiImportLogsRoute
+  '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -951,6 +957,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -1020,7 +1027,7 @@ export interface FileRoutesByTo {
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
-  '/api/import-logs': typeof ApiImportLogsRoute
+  '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1089,6 +1096,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -1159,7 +1167,7 @@ export interface FileRoutesById {
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
-  '/api/import-logs': typeof ApiImportLogsRoute
+  '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1228,6 +1236,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -1368,6 +1377,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/import-logs/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -1506,6 +1516,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/import-logs/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -1644,6 +1655,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/import-logs/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -1714,7 +1726,7 @@ export interface RootRouteChildren {
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
   ApiFeedbackRoute: typeof ApiFeedbackRoute
-  ApiImportLogsRoute: typeof ApiImportLogsRoute
+  ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
   ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
@@ -2607,6 +2619,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInvitesIdRouteImport
       parentRoute: typeof ApiInvitesRoute
     }
+    '/api/import-logs/$id': {
+      id: '/api/import-logs/$id'
+      path: '/$id'
+      fullPath: '/api/import-logs/$id'
+      preLoaderRoute: typeof ApiImportLogsIdRouteImport
+      parentRoute: typeof ApiImportLogsRoute
+    }
     '/api/drivers/import': {
       id: '/api/drivers/import'
       path: '/import'
@@ -2816,6 +2835,18 @@ const ApiDriversRouteWithChildren = ApiDriversRoute._addFileChildren(
   ApiDriversRouteChildren,
 )
 
+interface ApiImportLogsRouteChildren {
+  ApiImportLogsIdRoute: typeof ApiImportLogsIdRoute
+}
+
+const ApiImportLogsRouteChildren: ApiImportLogsRouteChildren = {
+  ApiImportLogsIdRoute: ApiImportLogsIdRoute,
+}
+
+const ApiImportLogsRouteWithChildren = ApiImportLogsRoute._addFileChildren(
+  ApiImportLogsRouteChildren,
+)
+
 interface ApiInvitesRouteChildren {
   ApiInvitesIdRoute: typeof ApiInvitesIdRoute
 }
@@ -2992,7 +3023,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDriversRoute: ApiDriversRouteWithChildren,
   ApiFeedbackRoute: ApiFeedbackRoute,
-  ApiImportLogsRoute: ApiImportLogsRoute,
+  ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
   ApiInvitesRoute: ApiInvitesRouteWithChildren,
