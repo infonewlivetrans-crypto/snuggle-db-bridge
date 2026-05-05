@@ -458,6 +458,23 @@ function UsersPage() {
                           >
                             {u.is_active ? (<><ShieldOff className="h-4 w-4" />Заблокировать</>) : (<><ShieldCheck className="h-4 w-4" />Разблокировать</>)}
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="gap-1"
+                            disabled={u.user_id === user?.id || deleteMut.isPending}
+                            title={u.user_id === user?.id ? "Нельзя удалить самого себя" : "Удалить пользователя"}
+                            onClick={() => {
+                              if (u.user_id === user?.id) return;
+                              const name = u.full_name ?? u.email ?? "пользователя";
+                              if (confirm(`Удалить ${name}? Действие необратимо.`)) {
+                                deleteMut.mutate(u.user_id);
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Удалить
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
