@@ -17,7 +17,13 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth/auth-context";
-import { createBackupFn, getBackupUrlFn, listBackupsFn, restoreBackupFn } from "@/lib/server-functions/backups.functions";
+import { apiGetAuth, apiPost, fetchListViaApi } from "@/lib/api-client";
+
+type BackupRow = {
+  id: string; created_at: string; status: string; size_bytes: number | null;
+  triggered_by_name: string | null; trigger_kind: string; comment: string | null;
+  storage_path: string | null; error_message: string | null;
+};
 
 export const Route = createFileRoute("/backups")({
   head: () => ({ meta: [{ title: "Резервные копии — Радиус Трек" }] }),
