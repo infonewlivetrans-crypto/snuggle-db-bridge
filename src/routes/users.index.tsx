@@ -27,6 +27,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { formatRuPhone } from "@/lib/phone";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useEffect } from "react";
 export const Route = createFileRoute("/users/")({
@@ -81,17 +83,26 @@ function UsersPage() {
   const safeRows = Array.isArray(rawData) ? rawData : [];
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<{ email: string; password: string; fullName: string; role: AppRole }>(
-    { email: "", password: "", fullName: "", role: "manager" },
+  const [form, setForm] = useState<{ fullName: string; phone: string; comment: string; role: AppRole }>(
+    { fullName: "", phone: "", comment: "", role: "manager" },
   );
+  const [createdLink, setCreatedLink] = useState<string | null>(null);
 
   const createMut = useMutation({
-    mutationFn: async () => apiPost<{ userId: string }>("/api/users", form),
-    onSuccess: () => {
-      toast.success("Пользователь создан");
-      setOpen(false);
-      setForm({ email: "", password: "", fullName: "", role: "manager" });
+    mutationFn: async () =>
+      apiPost<{ token: string }>("/api/invites", {
+        fullName: form.fullName.trim(),
+        phone: form.phone.trim() || null,
+        role: form.role,
+        comment: form.comment.trim() || null,
+        managerName: form.role === "manager" ? form.fullName.trim() : null,
+      }),
+    onSuccess: (row) => {
+      const link = inviteUrl(row.token);
+      setCreatedLink(link);
+      toast.success("Пользователь создан. Скопируйте ссылку и отправьте ему.");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
+      qc.invalidateQueries({ queryKey: ["invites-admin"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -218,7 +229,16 @@ function UsersPage() {
                 Инвайт-ссылки
               </Button>
             </Link>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog
+              open={open}
+              onOpenChange={(v) => {
+                setOpen(v);
+                if (!v) {
+                  setCreatedLink(null);
+                  setForm({ fullName: "", phone: "", comment: "", role: "manager" });
+                }
+              }}
+            >
               <DialogTrigger asChild>
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
@@ -227,40 +247,82 @@ function UsersPage() {
               </DialogTrigger>
             <DialogContent className="max-w-md">
               <DialogHeader>
-                <DialogTitle>Новый пользователь</DialogTitle>
+                <DialogTitle>{createdLink ? "Ссылка приглашения" : "Новый пользователь"}</DialogTitle>
               </DialogHeader>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>ФИО</Label>
-                  <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+              {createdLink ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    Скопируйте ссылку и отправьте пользователю. Email и пароль он задаст сам при первом входе.
+                  </p>
+                  <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 p-2">
+                    <Link2 className="h-4 w-4 text-muted-foreground" />
+                    <code className="flex-1 break-all text-xs">{createdLink}</code>
+                  </div>
+                  <Button
+                    className="w-full gap-2"
+                    onClick={async () => {
+                      const ok = await copyText(createdLink);
+                      toast.success(ok ? "Ссылка скопирована" : "Не удалось скопировать");
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Скопировать ссылку
+                  </Button>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Email</Label>
-                  <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              ) : (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label>ФИО *</Label>
+                    <Input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Роль *</Label>
+                    <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as AppRole })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(["admin", "logist", "manager", "driver"] as AppRole[]).map((r) => (
+                          <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Телефон (необязательно)</Label>
+                    <Input
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      placeholder="+7 (999) 123-45-67"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Комментарий / компания (необязательно)</Label>
+                    <Textarea
+                      rows={2}
+                      value={form.comment}
+                      onChange={(e) => setForm({ ...form, comment: e.target.value })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Email и пароль пользователь укажет сам по ссылке-приглашению.
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Пароль (минимум 6 символов)</Label>
-                  <Input type="text" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Роль</Label>
-                  <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as AppRole })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {APP_ROLES.map((r) => (
-                        <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Отмена</Button>
-                <Button onClick={() => createMut.mutate()} disabled={createMut.isPending}>
-                  {createMut.isPending ? "Создание…" : "Создать"}
-                </Button>
+                {createdLink ? (
+                  <Button onClick={() => setOpen(false)}>Готово</Button>
+                ) : (
+                  <>
+                    <Button variant="outline" onClick={() => setOpen(false)}>Отмена</Button>
+                    <Button
+                      onClick={() => createMut.mutate()}
+                      disabled={createMut.isPending || !form.fullName.trim()}
+                    >
+                      {createMut.isPending ? "Создание…" : "Создать"}
+                    </Button>
+                  </>
+                )}
               </DialogFooter>
             </DialogContent>
             </Dialog>
@@ -272,24 +334,26 @@ function UsersPage() {
             <TableHeader>
               <TableRow className="bg-secondary/50 hover:bg-secondary/50">
                 <TableHead>ФИО</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
+                <TableHead>Телефон</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Загрузка…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Загрузка…</TableCell></TableRow>
               ) : safeRows.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Пользователи не найдены</TableCell></TableRow>
               ) : (
                 safeRows.map((u) => {
                   const userRoles = Array.isArray(u.roles) ? u.roles : [];
+                  const isInviteEmail = !!u.email && u.email.endsWith("@invite.radius-track.local");
+                  const realEmail = isInviteEmail ? null : u.email;
                   return (
                     <TableRow key={u.user_id}>
                       <TableCell className="font-medium">{u.full_name ?? "—"}</TableCell>
-                      <TableCell className="text-sm">{u.email ?? "—"}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1.5">
                           {userRoles.length === 0 ? (
@@ -315,6 +379,8 @@ function UsersPage() {
                           <span className="badge-status badge-status-cancelled">Заблокирован</span>
                         )}
                       </TableCell>
+                      <TableCell className="text-sm">{u.phone ?? "—"}</TableCell>
+                      <TableCell className="text-sm">{realEmail ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {u.invite_token && (
