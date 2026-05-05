@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 import {
-  listRouteReturns,
-  listStageEvents,
   recordRouteReturn,
   recordStageEvent,
 } from "@/server/trip-stage.server";
@@ -15,22 +13,6 @@ const ALLOWED_STAGES: TripStage[] = [
 export const Route = createFileRoute("/api/trip-stage/update")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const auth = await requireAuth(request);
-        if (auth instanceof Response) return auth;
-        try {
-          const url = new URL(request.url);
-          const drId = url.searchParams.get("deliveryRouteId");
-          const kind = url.searchParams.get("kind") ?? "events";
-          if (!drId) return jsonResponse({ error: "deliveryRouteId обязателен" }, { status: 400 });
-          if (kind === "returns") {
-            return jsonResponse(await listRouteReturns(drId));
-          }
-          return jsonResponse(await listStageEvents(drId));
-        } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
-        }
-      },
       POST: async ({ request }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
