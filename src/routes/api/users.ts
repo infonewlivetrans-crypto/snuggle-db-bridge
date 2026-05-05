@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { cacheHeaders, jsonResponse, requireAdmin } from "@/server/api-helpers.server";
 import { adminCreateUser, adminListUsers } from "@/server/users.server";
+import { adminCreateInvite, type InviteRole } from "@/server/invites.server";
 import { APP_ROLES, type AppRole } from "@/lib/auth/roles";
+import { inviteUrl } from "@/lib/invite-url";
+
+const INVITE_ROLES = new Set<InviteRole>(["admin", "logist", "manager", "driver"]);
 
 const ROLE_SET = new Set<AppRole>(APP_ROLES);
 
