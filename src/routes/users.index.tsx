@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { importDriversFn } from "@/lib/server-functions/drivers.functions";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,12 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import {
-  createUserFn,
-  setUserActiveFn,
-  setUserRolesFn,
-} from "@/lib/server-functions/users.functions";
-import { fetchListViaApi } from "@/lib/api-client";
+import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
@@ -92,7 +86,7 @@ function UsersPage() {
   );
 
   const createMut = useMutation({
-    mutationFn: async () => createUserFn({ data: form}),
+    mutationFn: async () => apiPost<{ userId: string }>("/api/users", form),
     onSuccess: () => {
       toast.success("Пользователь создан");
       setOpen(false);
@@ -104,7 +98,7 @@ function UsersPage() {
 
   const activeMut = useMutation({
     mutationFn: async (v: { userId: string; isActive: boolean }) =>
-      setUserActiveFn({ data: v}),
+      apiPatch(`/api/users/${v.userId}`, { isActive: v.isActive }),
     onSuccess: () => {
       toast.success("Статус обновлён");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -115,7 +109,7 @@ function UsersPage() {
   const [rolesEdit, setRolesEdit] = useState<{ userId: string; fullName: string; roles: AppRole[] } | null>(null);
   const rolesMut = useMutation({
     mutationFn: async (v: { userId: string; roles: AppRole[] }) =>
-      setUserRolesFn({ data: v}),
+      apiPatch(`/api/users/${v.userId}`, { roles: v.roles }),
     onSuccess: () => {
       toast.success("Роли обновлены");
       qc.invalidateQueries({ queryKey: ["users-admin"] });
@@ -136,7 +130,10 @@ function UsersPage() {
   const [driverImportBusy, setDriverImportBusy] = useState(false);
   const importDriversMut = useMutation({
     mutationFn: async (items: { fullName: string; phone?: string | null; comment?: string | null; licenseNumber?: string | null }[]) =>
-      importDriversFn({ data: { items }}),
+      apiPost<{ inserted: number; updated: number; skipped: number; invitesCreated: number }>(
+        "/api/drivers/import",
+        { items },
+      ),
     onSuccess: (res) => {
       toast.success(
         `Водители: добавлено ${res.inserted}, обновлено ${res.updated}, пропущено ${res.skipped}. Создано ссылок: ${res.invitesCreated}`,
