@@ -97,8 +97,8 @@ function ManagersPage() {
     queryKey: ["managers"],
     queryFn: async () => {
       try {
-        const res = await listManagersFn();
-        return Array.isArray(res) ? res : [];
+        const { rows } = await fetchListViaApi<ManagerRow>("/api/managers", { limit: 100 });
+        return rows;
       } catch (e) {
         console.error("[managers] list failed", e);
         return [];
@@ -109,8 +109,8 @@ function ManagersPage() {
     queryKey: ["invites-admin"],
     queryFn: async () => {
       try {
-        const res = await listInvitesFn();
-        return Array.isArray(res) ? res : [];
+        const { rows } = await fetchListViaApi<InviteRow>("/api/invites", { limit: 500 });
+        return rows;
       } catch (e) {
         console.error("[invites] list failed", e);
         return [];
@@ -146,7 +146,7 @@ function ManagersPage() {
 
   const importMut = useMutation({
     mutationFn: async (items: ParsedRow[]) =>
-      importManagersFn({ data: { items }}),
+      apiPost<ImportManagersResult>("/api/managers/import", { items }),
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["managers"] });
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
@@ -158,12 +158,10 @@ function ManagersPage() {
 
   const createMut = useMutation({
     mutationFn: async () =>
-      createManagerFn({
-        data: {
-          fullName: form.fullName.trim(),
-          phone: form.phone.trim() || null,
-          comment: form.comment.trim() || null,
-        },
+      apiPost<ManagerRow>("/api/managers", {
+        fullName: form.fullName.trim(),
+        phone: form.phone.trim() || null,
+        comment: form.comment.trim() || null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["managers"] });
@@ -176,13 +174,13 @@ function ManagersPage() {
 
   const toggleActiveMut = useMutation({
     mutationFn: async (v: { id: string; is_active: boolean }) =>
-      updateManagerFn({ data: { id: v.id, patch: { is_active: v.is_active } }}),
+      apiPatch(`/api/managers/${v.id}`, { patch: { is_active: v.is_active } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["managers"] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
   const deleteMut = useMutation({
-    mutationFn: async (id: string) => deleteManagerFn({ data: { id }}),
+    mutationFn: async (id: string) => apiDelete(`/api/managers/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["managers"] });
       toast.success("Удалено");
@@ -192,13 +190,11 @@ function ManagersPage() {
 
   const createInviteMut = useMutation({
     mutationFn: async (m: { fullName: string; phone: string | null }) =>
-      createInviteFn({
-        data: {
-          fullName: m.fullName,
-          phone: m.phone,
-          role: "manager",
-          managerName: m.fullName,
-        },
+      apiPost<InviteRow>("/api/invites", {
+        fullName: m.fullName,
+        phone: m.phone,
+        role: "manager",
+        managerName: m.fullName,
       }),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
@@ -211,7 +207,7 @@ function ManagersPage() {
 
   const rotateMut = useMutation({
     mutationFn: async (id: string) =>
-      rotateInviteTokenFn({ data: { id }}),
+      apiPost<InviteRow>(`/api/invites/${id}`, { action: "rotate" }),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       void copyToClipboard(inviteUrl(inv.token)).then((ok) =>
@@ -223,7 +219,7 @@ function ManagersPage() {
 
   const inviteActiveMut = useMutation({
     mutationFn: async (v: { id: string; isActive: boolean }) =>
-      setInviteActiveFn({ data: v}),
+      apiPatch(`/api/invites/${v.id}`, { isActive: v.isActive }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       toast.success("Готово");
