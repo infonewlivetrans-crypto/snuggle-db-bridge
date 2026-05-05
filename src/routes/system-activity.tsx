@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
-import { systemActivityFn } from "@/lib/server-functions/system-activity.functions";
+import { apiGetAuth } from "@/lib/api-client";
 
 export const Route = createFileRoute("/system-activity")({
   head: () => ({ meta: [{ title: "Активность системы — Радиус Трек" }] }),
@@ -53,7 +53,15 @@ function WeekChart({ data }: { data: Array<{ date: string; actions: number; user
 function SystemActivityPage() {
   const { data, isLoading, isFetching, refetch, error } = useQuery({
     queryKey: ["system-activity"],
-    queryFn: () => systemActivityFn({ data: undefined }),
+    queryFn: () => apiGetAuth<{
+      today: string;
+      kpi: Record<string, number>;
+      byRole: Record<string, number>;
+      inactiveToday: Array<{ userId: string; name: string | null; email: string | null; roles: string[] }>;
+      inactiveTotal: number;
+      warnings: Array<{ kind: string; text: string }>;
+      weekChart: Array<{ date: string; actions: number; users: number }>;
+    }>("/api/system-activity", 10000),
     refetchInterval: 60_000,
   });
 
