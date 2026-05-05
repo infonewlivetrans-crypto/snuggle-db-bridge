@@ -379,6 +379,8 @@ function UsersPage() {
                           <span className="badge-status badge-status-cancelled">Заблокирован</span>
                         )}
                       </TableCell>
+                      <TableCell className="text-sm">{u.phone ?? "—"}</TableCell>
+                      <TableCell className="text-sm">{realEmail ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {u.invite_token && (
