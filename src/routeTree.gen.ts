@@ -83,6 +83,7 @@ import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuse
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
 import { Route as ApiRoutePointPhotosRouteImport } from './routes/api/route-point-photos'
 import { Route as ApiRouteOffersRouteImport } from './routes/api/route-offers'
+import { Route as ApiRouteImportRouteImport } from './routes/api/route-import'
 import { Route as ApiRouteExclusionsRouteImport } from './routes/api/route-exclusions'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
@@ -516,6 +517,11 @@ const ApiRouteOffersRoute = ApiRouteOffersRouteImport.update({
   path: '/api/route-offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRouteImportRoute = ApiRouteImportRouteImport.update({
+  id: '/api/route-import',
+  path: '/api/route-import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRouteExclusionsRoute = ApiRouteExclusionsRouteImport.update({
   id: '/api/route-exclusions',
   path: '/api/route-exclusions',
@@ -884,6 +890,7 @@ export interface FileRoutesByFullPath {
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
+  '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
@@ -1020,6 +1027,7 @@ export interface FileRoutesByTo {
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
+  '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
@@ -1157,6 +1165,7 @@ export interface FileRoutesById {
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
+  '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRoute
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
@@ -1295,6 +1304,7 @@ export interface FileRouteTypes {
     | '/api/reports'
     | '/api/roles'
     | '/api/route-exclusions'
+    | '/api/route-import'
     | '/api/route-offers'
     | '/api/route-point-photos'
     | '/api/route-points'
@@ -1431,6 +1441,7 @@ export interface FileRouteTypes {
     | '/api/reports'
     | '/api/roles'
     | '/api/route-exclusions'
+    | '/api/route-import'
     | '/api/route-offers'
     | '/api/route-point-photos'
     | '/api/route-points'
@@ -1567,6 +1578,7 @@ export interface FileRouteTypes {
     | '/api/reports'
     | '/api/roles'
     | '/api/route-exclusions'
+    | '/api/route-import'
     | '/api/route-offers'
     | '/api/route-point-photos'
     | '/api/route-points'
@@ -1704,6 +1716,7 @@ export interface RootRouteChildren {
   ApiReportsRoute: typeof ApiReportsRoute
   ApiRolesRoute: typeof ApiRolesRoute
   ApiRouteExclusionsRoute: typeof ApiRouteExclusionsRoute
+  ApiRouteImportRoute: typeof ApiRouteImportRoute
   ApiRouteOffersRoute: typeof ApiRouteOffersRoute
   ApiRoutePointPhotosRoute: typeof ApiRoutePointPhotosRoute
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
@@ -2271,6 +2284,13 @@ declare module '@tanstack/react-router' {
       path: '/api/route-offers'
       fullPath: '/api/route-offers'
       preLoaderRoute: typeof ApiRouteOffersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/route-import': {
+      id: '/api/route-import'
+      path: '/api/route-import'
+      fullPath: '/api/route-import'
+      preLoaderRoute: typeof ApiRouteImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/route-exclusions': {
@@ -2966,6 +2986,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReportsRoute: ApiReportsRoute,
   ApiRolesRoute: ApiRolesRoute,
   ApiRouteExclusionsRoute: ApiRouteExclusionsRoute,
+  ApiRouteImportRoute: ApiRouteImportRoute,
   ApiRouteOffersRoute: ApiRouteOffersRoute,
   ApiRoutePointPhotosRoute: ApiRoutePointPhotosRoute,
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
