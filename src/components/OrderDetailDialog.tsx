@@ -96,6 +96,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [windowTo, setWindowTo] = useState<string>((order?.delivery_window_to ?? "").slice(0, 5));
   const [clientType, setClientType] = useState<ClientKind | "">((order?.client_type as ClientKind) ?? "");
   const [deliveryTimeComment, setDeliveryTimeComment] = useState<string>(order?.delivery_time_comment ?? "");
+  const [driverComment, setDriverComment] = useState<string>(order?.driver_comment ?? "");
+  const [driverCommentImportant, setDriverCommentImportant] = useState<boolean>(order?.driver_comment_is_important ?? false);
 
   // Reset local state when a new order opens
   const orderId = order?.id;
