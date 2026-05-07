@@ -382,6 +382,16 @@ function DriverRoutePage() {
           </div>
         ) : (
           <div className="space-y-4">
+            <OfflineQueueIndicator
+              invalidateKeys={[
+                ["driver-route", deliveryRouteId],
+                ["delivery-route-points", data.source_request_id],
+                ["route-point-photos-kinds"],
+                ["trip-stage-events", deliveryRouteId],
+                ["route-returns", deliveryRouteId],
+              ]}
+            />
+
             {/* Шапка маршрута */}
             <div className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
