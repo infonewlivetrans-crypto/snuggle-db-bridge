@@ -213,7 +213,7 @@ export function IncomingOfferWatcher() {
           if (!row?.id || seenIds.current.has(row.id)) return;
           seenIds.current.add(row.id);
           // Воспроизводим звук и показываем тост
-          playSignalSound();
+          triggerNewOfferSignal();
           toast.info("Новая подходящая заявка", {
             description: row.comment ?? "Открыто окно с деталями.",
             duration: 6000,
