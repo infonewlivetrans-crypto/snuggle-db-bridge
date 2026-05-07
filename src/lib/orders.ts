@@ -68,6 +68,8 @@ export type Order = {
   delivery_window_to?: string | null;
   client_type?: ClientKind | null;
   delivery_time_comment?: string | null;
+  driver_comment?: string | null;
+  driver_comment_is_important?: boolean | null;
   // Источник создания записи
   source?: string;
   external_id?: string | null;
