@@ -188,31 +188,37 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
               ? (notDeliveredComment.trim() || null)
               : initial.dp_payment_comment ?? null,
       };
-      const { error } = await (supabase.from("route_points") as unknown as {
-        update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
-      }).update(payload).eq("id", routePointId);
-      if (error) throw error;
-
       // Авто-перевод маршрута в статус «В работе» при первом действии водителя
       let parentRouteId: string | null = routeId ?? null;
-      try {
-        const { data: rp } = await supabase
-          .from("route_points")
-          .select("route_id")
-          .eq("id", routePointId)
-          .maybeSingle();
-        const rid = (rp as { route_id?: string } | null)?.route_id ?? null;
-        if (rid) {
-          parentRouteId = rid;
-          await supabase
-            .from("delivery_routes")
-            .update({ status: "in_progress" })
-            .eq("id", rid)
-            .eq("status", "issued");
-        }
-      } catch {
-        // не критично для сохранения статуса точки
+      if (isOnline()) {
+        try {
+          const { data: rp } = await supabase
+            .from("route_points")
+            .select("route_id")
+            .eq("id", routePointId)
+            .maybeSingle();
+          const rid = (rp as { route_id?: string } | null)?.route_id ?? null;
+          if (rid) parentRouteId = rid;
+        } catch { /* not critical */ }
       }
+
+      const res = await runWithOfflineFallback(
+        "point_status_update",
+        { routePointId, patch: payload, parentRouteId },
+        async () => {
+          const { error } = await (supabase.from("route_points") as unknown as {
+            update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
+          }).update(payload).eq("id", routePointId);
+          if (error) throw error;
+          if (parentRouteId) {
+            await supabase
+              .from("delivery_routes")
+              .update({ status: "in_progress" })
+              .eq("id", parentRouteId)
+              .eq("status", "issued");
+          }
+        },
+      );
 
       // Лог действия водителя с GPS
       const actionMap: Partial<Record<DeliveryPointStatus, PointActionKind>> = {
@@ -222,36 +228,48 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
         returned_to_warehouse: "status_returned",
       };
       const actionKind = actionMap[status] ?? ("status_changed" as PointActionKind);
-      const details: Record<string, unknown> = {
-        new_status: status,
-      };
+      const details: Record<string, unknown> = { new_status: status };
       if (gps) details.gps = gps;
       else details.gps_unavailable = true;
       if (distanceToPointM != null) details.distance_to_point_m = distanceToPointM;
       if (farWarning) details.far_from_point = true;
-      if (status === "not_delivered" && reason) details.reason = reason;
-      if (status === "returned_to_warehouse" && reason) details.reason = reason;
-      await logPointAction({
-        routePointId,
-        orderId: orderId ?? null,
-        routeId: parentRouteId,
-        action: actionKind,
-        actor: driverName ?? "Водитель",
-        details,
-        comment:
-          status === "delivered"
-            ? deliveredComment.trim() || null
-            : status === "not_delivered"
-              ? notDeliveredComment.trim() || null
-              : status === "returned_to_warehouse"
-                ? returnComment.trim() || null
-                : null,
-      });
+      if ((status === "not_delivered" || status === "returned_to_warehouse") && reason) details.reason = reason;
+      const logComment =
+        status === "delivered" ? deliveredComment.trim() || null
+        : status === "not_delivered" ? notDeliveredComment.trim() || null
+        : status === "returned_to_warehouse" ? returnComment.trim() || null
+        : null;
+
+      if (res.queued || !isOnline()) {
+        enqueueAction("log_point_action", {
+          routePointId,
+          orderId: orderId ?? null,
+          routeId: parentRouteId,
+          action: actionKind,
+          actor: driverName ?? "Водитель",
+          details,
+          comment: logComment,
+        });
+      } else {
+        await logPointAction({
+          routePointId,
+          orderId: orderId ?? null,
+          routeId: parentRouteId,
+          action: actionKind,
+          actor: driverName ?? "Водитель",
+          details,
+          comment: logComment,
+        });
+      }
+      return res;
     },
-    onSuccess: () => {
-      toast.success("Статус точки сохранён");
+    onSuccess: (res) => {
+      toast.success(res?.queued ? "Сохранено на устройстве. Будет отправлено при связи." : "Статус точки сохранён");
       qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
       qc.invalidateQueries({ queryKey: ["point_actions"] });
+      void flushQueue().then(() => {
+        qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
+      });
       onSaved?.();
     },
     onError: (e: Error) => toast.error(e.message),
