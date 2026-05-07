@@ -300,6 +300,32 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     return acc;
   }, [offers]);
 
+  const displayedOffers = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const filtered = (offers ?? []).filter((o) => {
+      if (!q) return true;
+      const v = o.vehicle_id ? vehicleById.get(o.vehicle_id) : null;
+      const d = o.driver_id ? driverById.get(o.driver_id) : null;
+      const haystack = [
+        v?.plate_number,
+        v?.brand,
+        v?.model,
+        d?.full_name,
+        d?.phone,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+    const sorted = [...filtered].sort((a, b) => {
+      const ta = new Date(a.sent_at).getTime();
+      const tb = new Date(b.sent_at).getTime();
+      return sortDir === "desc" ? tb - ta : ta - tb;
+    });
+    return sorted;
+  }, [offers, search, sortDir, vehicleById, driverById]);
+
   const handleRefresh = () => {
     void qc.invalidateQueries({ queryKey: ["route-signals"] });
   };
