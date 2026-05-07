@@ -49,6 +49,8 @@ import type {
   DeliveryPointUndeliveredReason,
 } from "@/lib/deliveryPointStatus";
 import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
+import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
+import { runWithOfflineFallback, hasPendingForRoute, readQueue, subscribeQueue, flushQueue } from "@/lib/offlineQueue";
 
 export const Route = createFileRoute("/driver/$deliveryRouteId")({
   head: () => ({
