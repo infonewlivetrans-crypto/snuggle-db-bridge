@@ -14,6 +14,8 @@ const ALLOWED_FIELDS = new Set<string>([
   "client_type",
   "delivery_time_comment",
   "delivery_cost_source",
+  "driver_comment",
+  "driver_comment_is_important",
 ]);
 
 export const Route = createFileRoute("/api/orders/$id")({

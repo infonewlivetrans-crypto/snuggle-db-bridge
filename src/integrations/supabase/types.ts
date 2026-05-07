@@ -1700,6 +1700,8 @@ export type Database = {
           delivery_window_to: string | null
           delivery_zone: string | null
           destination_city: string | null
+          driver_comment: string | null
+          driver_comment_is_important: boolean
           external_id: string | null
           goods_amount: number | null
           id: string
@@ -1753,6 +1755,8 @@ export type Database = {
           delivery_window_to?: string | null
           delivery_zone?: string | null
           destination_city?: string | null
+          driver_comment?: string | null
+          driver_comment_is_important?: boolean
           external_id?: string | null
           goods_amount?: number | null
           id?: string
@@ -1806,6 +1810,8 @@ export type Database = {
           delivery_window_to?: string | null
           delivery_zone?: string | null
           destination_city?: string | null
+          driver_comment?: string | null
+          driver_comment_is_important?: boolean
           external_id?: string | null
           goods_amount?: number | null
           id?: string

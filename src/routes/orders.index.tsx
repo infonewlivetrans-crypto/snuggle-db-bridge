@@ -32,7 +32,7 @@ import {
   type OrderStatus,
   type PaymentStatus,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/orders/")({
@@ -65,6 +65,8 @@ type OrderRow = {
   contact_phone: string | null;
   created_at: string;
   updated_at: string;
+  driver_comment: string | null;
+  driver_comment_is_important: boolean | null;
   // joined
   route?: {
     id: string;
@@ -127,6 +129,8 @@ function demo(
     contact_phone: "+7 000 000-00-00",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    driver_comment: null,
+    driver_comment_is_important: false,
     route: {
       id: num,
       route_number: `M-DEMO-${num.slice(-3)}`,
@@ -369,19 +373,32 @@ function OrdersPage() {
                       const from = r.route?.warehouse?.city ?? "—";
                       const to = r.destination_city ?? "—";
                       return (
-                        <TableRow key={r.id}>
+                        <TableRow
+                          key={r.id}
+                          className={r.driver_comment_is_important && r.driver_comment ? "bg-destructive/5" : undefined}
+                        >
                           <TableCell className="font-mono text-xs">
-                            {isDemo ? (
-                              <span className="font-semibold">{r.order_number}</span>
-                            ) : (
-                              <Link
-                                to="/"
-                                search={{ orderId: r.id }}
-                                className="font-semibold text-primary hover:underline"
-                              >
-                                {r.order_number}
-                              </Link>
-                            )}
+                            <div className="flex items-center gap-1.5">
+                              {isDemo ? (
+                                <span className="font-semibold">{r.order_number}</span>
+                              ) : (
+                                <Link
+                                  to="/"
+                                  search={{ orderId: r.id }}
+                                  className="font-semibold text-primary hover:underline"
+                                >
+                                  {r.order_number}
+                                </Link>
+                              )}
+                              {r.driver_comment_is_important && r.driver_comment && (
+                                <span
+                                  title={`Важно для водителя: ${r.driver_comment}`}
+                                  className="inline-flex items-center"
+                                >
+                                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-foreground">{r.contact_name ?? "—"}</div>

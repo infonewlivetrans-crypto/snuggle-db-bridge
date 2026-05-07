@@ -35,6 +35,8 @@ type Point = {
     longitude: number | null;
     map_link: string | null;
     client_works_weekends: boolean;
+    driver_comment: string | null;
+    driver_comment_is_important: boolean | null;
   } | null;
 };
 
@@ -108,7 +110,7 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
       const { data, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends)",
+          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends, driver_comment, driver_comment_is_important)",
         )
         .eq("route_id", requestId)
         .order("point_number", { ascending: true });
@@ -279,6 +281,16 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                         Работает в выходные
                       </span>
                     )}
+                    {o?.driver_comment_is_important && o?.driver_comment && (
+                      <Badge
+                        variant="destructive"
+                        className="inline-flex items-center gap-1"
+                        title={o.driver_comment}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        Важно для водителя
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="text-sm text-muted-foreground">
@@ -287,6 +299,12 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                     )}
                   </div>
 
+                  {o?.driver_comment_is_important && o?.driver_comment && (
+                    <div className="flex items-start gap-2 rounded-md border-2 border-destructive bg-destructive/10 p-2 text-xs font-medium text-destructive">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <div className="whitespace-pre-line">Важно: {o.driver_comment}</div>
+                    </div>
+                  )}
                   {risky && r && (
                     <div className="rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1 text-xs text-destructive">
                       {r.reasons.join(" · ")}

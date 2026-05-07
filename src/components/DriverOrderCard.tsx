@@ -31,6 +31,8 @@ type Props = {
     | "delivery_window_to"
     | "delivery_time_comment"
     | "comment"
+    | "driver_comment"
+    | "driver_comment_is_important"
     | "total_weight_kg"
     | "total_volume_m3"
     | "items_count"
@@ -112,7 +114,17 @@ export function DriverOrderCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        {/* Куда ехать */}
+        {/* Важный комментарий — баннер перед началом разгрузки */}
+        {order.driver_comment_is_important && order.driver_comment && (
+          <div className="flex items-start gap-2 rounded-md border-2 border-destructive bg-destructive/10 p-3 text-sm font-semibold text-destructive animate-pulse">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="space-y-0.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider">Важно перед разгрузкой</div>
+              <div className="whitespace-pre-line">{order.driver_comment}</div>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border border-border bg-muted/30 p-3">
           <div className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-status-success" />
@@ -272,6 +284,14 @@ export function DriverOrderCard({
             {order.comment ? order.comment : NA}
           </div>
         </div>
+
+        {/* Комментарий для водителя (не помеченный важным — обычный блок) */}
+        {order.driver_comment && !order.driver_comment_is_important && (
+          <div className="text-xs">
+            <div className="font-medium text-foreground">Комментарий для водителя</div>
+            <div className="text-muted-foreground whitespace-pre-line">{order.driver_comment}</div>
+          </div>
+        )}
 
         {onReportProblem && (
           <button
