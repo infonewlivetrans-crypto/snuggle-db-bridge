@@ -191,6 +191,10 @@ function NotificationsPage() {
           </Button>
         </div>
 
+        <div className="mb-3">
+          <NotifSoundSettingsCard />
+        </div>
+
         {/* Фильтры — горизонтальный скролл на мобильном */}
         <div className="mb-3 -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
           {FILTERS.map((f) => {
