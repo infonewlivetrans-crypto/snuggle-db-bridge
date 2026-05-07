@@ -243,7 +243,7 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryFn: async (): Promise<VehicleLite[]> => {
       const { data, error } = await db
         .from("vehicles")
-        .select("id, plate_number, brand, model")
+        .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3, body_length_m, body_width_m, body_height_m, has_tent, has_manipulator, has_straps, comment")
         .in("id", vehicleIds);
       if (error) throw error;
       return (data ?? []) as VehicleLite[];
