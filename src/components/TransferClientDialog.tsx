@@ -112,6 +112,48 @@ export function TransferClientDialog({
     onError: (e: Error) => toast.error(e.message || "Не удалось передать клиента"),
   });
 
+  const undoMut = useMutation({
+    mutationFn: async () => {
+      if (history.length === 0) throw new Error("История пуста");
+      const last = history[history.length - 1];
+      const revertedTo = last.from_manager_id;
+      const revertedToName = last.from_manager_name;
+
+      const entry: TransferHistoryEntry = {
+        from_manager_id: last.to_manager_id,
+        from_manager_name: last.to_manager_name,
+        to_manager_id: revertedTo ?? "",
+        to_manager_name: revertedToName ?? "",
+        transferred_by_user_id: user?.id ?? null,
+        transferred_by_name: profile?.full_name ?? user?.email ?? null,
+        reason: `Отмена передачи от ${new Date(last.at).toLocaleString("ru-RU")}`,
+        at: new Date().toISOString(),
+      };
+
+      const nextExtra: Record<string, unknown> = {
+        ...extraAttrs,
+        assigned_manager_id: revertedTo,
+        transfer_history: [...history, entry],
+        last_edited_by_user_id: user?.id ?? null,
+        last_edited_at: entry.at,
+      };
+
+      const { error } = await supabase
+        .from("clients")
+        .update({ extra_attrs: nextExtra as never })
+        .eq("id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Последняя передача отменена");
+      qc.invalidateQueries({ queryKey: ["client", clientId] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось отменить передачу"),
+  });
+
+  const lastEntry = history[history.length - 1];
+  const canUndo = Boolean(lastEntry);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
