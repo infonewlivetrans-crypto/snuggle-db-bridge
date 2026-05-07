@@ -241,7 +241,11 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                 key={p.id}
                 className={
                   "flex flex-col gap-2 rounded-md border bg-background p-3 sm:flex-row sm:items-start " +
-                  (risky ? "border-destructive/60 bg-destructive/5" : "border-border")
+                  (risky
+                    ? "border-destructive/60 bg-destructive/5"
+                    : hasCargoFeatures
+                      ? "border-amber-400 bg-amber-50/30 dark:bg-amber-950/10"
+                      : "border-border")
                 }
               >
                 <div
