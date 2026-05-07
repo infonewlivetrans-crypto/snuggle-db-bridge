@@ -333,6 +333,15 @@ function DriverRoutePage() {
     return errs;
   })();
 
+  // Блокировка завершения, если есть несинхронизированные действия по этому маршруту
+  const pointIdSet = (points ?? []).map((p) => p.id);
+  const hasOfflinePending = hasPendingForRoute(deliveryRouteId, pointIdSet);
+  if (hasOfflinePending) {
+    validationErrors.unshift(
+      "Есть действия, не отправленные на сервер. Дождитесь окончания синхронизации.",
+    );
+  }
+
   const canFinalize = list.length > 0 && validationErrors.length === 0 && !isCompleted;
 
   return (
