@@ -98,6 +98,13 @@ export function playSignalSound(volumeOverride?: number) {
   }
 }
 
+/** Полный сигнал: звук + (опционально) вибрация согласно настройкам. */
+export function triggerNewOfferSignal() {
+  const settings = getNotifSoundSettings();
+  if (settings.enabled) playSignalSound();
+  if (settings.vibrate) triggerVibration([120, 60, 120, 60, 200]);
+}
+
 function fmtDateTime(s: string | null | undefined): string {
   if (!s) return "—";
   try {
