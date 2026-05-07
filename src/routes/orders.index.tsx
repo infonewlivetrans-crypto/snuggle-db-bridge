@@ -129,6 +129,8 @@ function demo(
     contact_phone: "+7 000 000-00-00",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+    driver_comment: null,
+    driver_comment_is_important: false,
     route: {
       id: num,
       route_number: `M-DEMO-${num.slice(-3)}`,
