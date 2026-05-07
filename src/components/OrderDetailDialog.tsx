@@ -181,6 +181,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       delivery_window_to: windowTo ? `${windowTo}:00` : null,
       client_type: clientType || null,
       delivery_time_comment: deliveryTimeComment.trim() || null,
+      driver_comment: driverComment.trim() || null,
+      driver_comment_is_important: driverComment.trim() ? driverCommentImportant : false,
     });
   };
 
