@@ -257,6 +257,24 @@ function DriverRoutePage() {
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
   const isCompleted = data?.status === "completed";
 
+  // Блокировка перехода к следующей точке: если у текущей открытой точки
+  // требуется QR-код, а он не загружен/не подтверждён — следующие точки
+  // показываем как заблокированные.
+  let blockedFromIndex = list.length;
+  let blockingPointNumber: number | null = null;
+  for (let i = 0; i < list.length; i++) {
+    const pt = list[i];
+    if (FINAL.includes(pt.dp_status)) continue;
+    if (pt.order?.requires_qr) {
+      const hasQrPhoto = !!photoKindsByPoint?.[pt.id]?.has("qr");
+      if (!pt.order.qr_received || !hasQrPhoto) {
+        blockedFromIndex = i + 1;
+        blockingPointNumber = pt.point_number;
+      }
+    }
+    break;
+  }
+
   // Подробная проверка перед завершением маршрута
   const validationErrors: string[] = (() => {
     const errs: string[] = [];
