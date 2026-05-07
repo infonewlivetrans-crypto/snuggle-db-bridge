@@ -64,7 +64,6 @@ async function copyText(text: string): Promise<boolean> {
 function UsersPage() {
   const qc = useQueryClient();
   const { loading: authLoading, user, startImpersonation, roles: myRoles } = useAuth();
-  const navigate = Route.useNavigate();
   const isAdmin = myRoles.includes("admin");
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin", user?.id ?? null],
