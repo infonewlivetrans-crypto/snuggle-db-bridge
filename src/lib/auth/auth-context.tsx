@@ -166,6 +166,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [impersonation, setImpersonation] = useState<ImpersonationState | null>(
+    () => loadImpersonation(),
+  );
+
+  // Устанавливаем глобальный fetch-guard один раз
+  useEffect(() => {
+    installImpersonationFetchGuard((url, method) => {
+      console.warn("[impersonation] blocked", method, url);
+      toast.error("Действие недоступно: режим только для просмотра");
+    });
+  }, []);
 
   const loadProfileAndRoles = useCallback(async () => {
     try {
