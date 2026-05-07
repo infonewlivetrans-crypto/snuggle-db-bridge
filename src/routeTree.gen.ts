@@ -115,6 +115,7 @@ import { Route as ApiAppVersionsRouteImport } from './routes/api/app-versions'
 import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
+import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
 import { Route as ApiTripStageUpdateRouteImport } from './routes/api/trip-stage.update'
@@ -682,6 +683,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
+  id: '/admin/impersonate',
+  path: '/admin/impersonate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiVehiclesIdRoute = ApiVehiclesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -891,6 +897,7 @@ export interface FileRoutesByFullPath {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
@@ -1033,6 +1040,7 @@ export interface FileRoutesByTo {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
@@ -1176,6 +1184,7 @@ export interface FileRoutesById {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
@@ -1320,6 +1329,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
     | '/api/analytics'
@@ -1462,6 +1472,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
     | '/api/analytics'
@@ -1604,6 +1615,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
     | '/api/analytics'
@@ -1747,6 +1759,7 @@ export interface RootRouteChildren {
   WorkControlRoute: typeof WorkControlRoute
   WorkDayRoute: typeof WorkDayRoute
   WorkspaceRoute: typeof WorkspaceRoute
+  AdminImpersonateRoute: typeof AdminImpersonateRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
   ApiAnalyticsRoute: typeof ApiAnalyticsRoute
@@ -2574,6 +2587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/impersonate': {
+      id: '/admin/impersonate'
+      path: '/admin/impersonate'
+      fullPath: '/admin/impersonate'
+      preLoaderRoute: typeof AdminImpersonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/vehicles/$id': {
       id: '/api/vehicles/$id'
       path: '/$id'
@@ -3078,6 +3098,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkControlRoute: WorkControlRoute,
   WorkDayRoute: WorkDayRoute,
   WorkspaceRoute: WorkspaceRoute,
+  AdminImpersonateRoute: AdminImpersonateRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
   ApiAnalyticsRoute: ApiAnalyticsRoute,
