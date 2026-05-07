@@ -466,6 +466,11 @@ function DriverRoutePage() {
                       onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
                       reordering={reorderPoints.isPending}
                       locked={isCompleted}
+                      blockedReason={
+                        idx >= blockedFromIndex && blockingPointNumber != null
+                          ? `Сначала загрузите/подтвердите QR по точке №${blockingPointNumber}, затем переходите к следующей разгрузке.`
+                          : null
+                      }
                     />
                   ))}
                 </div>
