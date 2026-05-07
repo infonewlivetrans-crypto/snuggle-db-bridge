@@ -68,6 +68,7 @@ import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/deli
 import { Route as DataImportHistoryRouteImport } from './routes/data-import.history'
 import { Route as DTokenRouteImport } from './routes/d.$token'
 import { Route as ClientsNewRouteImport } from './routes/clients.new'
+import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
@@ -447,6 +448,11 @@ const DTokenRoute = DTokenRouteImport.update({
 const ClientsNewRoute = ClientsNewRouteImport.update({
   id: '/clients/new',
   path: '/clients/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientsClientIdRoute = ClientsClientIdRouteImport.update({
+  id: '/clients/$clientId',
+  path: '/clients/$clientId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CarriersVerificationRoute = CarriersVerificationRouteImport.update({
@@ -952,6 +958,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
+  '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/new': typeof ClientsNewRoute
   '/d/$token': typeof DTokenRoute
   '/data-import/history': typeof DataImportHistoryRoute
@@ -1096,6 +1103,7 @@ export interface FileRoutesByTo {
   '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
+  '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/new': typeof ClientsNewRoute
   '/d/$token': typeof DTokenRoute
   '/data-import/history': typeof DataImportHistoryRoute
@@ -1241,6 +1249,7 @@ export interface FileRoutesById {
   '/api/warehouses': typeof ApiWarehousesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
+  '/clients/$clientId': typeof ClientsClientIdRoute
   '/clients/new': typeof ClientsNewRoute
   '/d/$token': typeof DTokenRoute
   '/data-import/history': typeof DataImportHistoryRoute
@@ -1387,6 +1396,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
+    | '/clients/$clientId'
     | '/clients/new'
     | '/d/$token'
     | '/data-import/history'
@@ -1531,6 +1541,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
+    | '/clients/$clientId'
     | '/clients/new'
     | '/d/$token'
     | '/data-import/history'
@@ -1675,6 +1686,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
+    | '/clients/$clientId'
     | '/clients/new'
     | '/d/$token'
     | '/data-import/history'
@@ -1820,6 +1832,7 @@ export interface RootRouteChildren {
   ApiWarehousesRoute: typeof ApiWarehousesRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
+  ClientsClientIdRoute: typeof ClientsClientIdRoute
   ClientsNewRoute: typeof ClientsNewRoute
   DTokenRoute: typeof DTokenRoute
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
@@ -2269,6 +2282,13 @@ declare module '@tanstack/react-router' {
       path: '/clients/new'
       fullPath: '/clients/new'
       preLoaderRoute: typeof ClientsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clients/$clientId': {
+      id: '/clients/$clientId'
+      path: '/clients/$clientId'
+      fullPath: '/clients/$clientId'
+      preLoaderRoute: typeof ClientsClientIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/carriers/verification': {
@@ -3167,6 +3187,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWarehousesRoute: ApiWarehousesRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
+  ClientsClientIdRoute: ClientsClientIdRoute,
   ClientsNewRoute: ClientsNewRoute,
   DTokenRoute: DTokenRoute,
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
