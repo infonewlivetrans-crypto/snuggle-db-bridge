@@ -1044,13 +1044,54 @@ function DeliveryRoutePage() {
                       <DeliveryReportBlock orderId={p.order_id} />
                       <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
           </div>
         )}
       </main>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Сохранить новый порядок разгрузки?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>Очередь будет обновлена и сразу станет видна водителю.</div>
+                {routeInProgress && (
+                  <div className="text-amber-600 dark:text-amber-400">
+                    Маршрут уже выполняется. Изменение порядка может повлиять на доставку.
+                  </div>
+                )}
+                {windowWarnings.length > 0 && (
+                  <div className="text-amber-600 dark:text-amber-400">
+                    Возможны нарушения окон приёма получателей.
+                  </div>
+                )}
+                {completedOrderBroken && (
+                  <div className="text-red-600 dark:text-red-400">
+                    Порядок завершённых точек нарушен — сохранение запрещено.
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={completedOrderBroken || saveOrder.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                saveOrder.mutate(draftIds);
+              }}
+            >
+              {saveOrder.isPending ? "Сохранение…" : "Сохранить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
