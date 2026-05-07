@@ -234,6 +234,8 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
             const wt = formatTime(p.client_window_to);
             const r = risks.get(p.id);
             const risky = r?.level === "risk";
+            const cargoFeatures = detectCargoFeatures(o?.comment, o?.driver_comment);
+            const hasCargoFeatures = cargoFeatures.length > 0;
             return (
               <li
                 key={p.id}
