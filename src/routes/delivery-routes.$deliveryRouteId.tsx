@@ -23,7 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown, GripVertical, Lock, RotateCcw } from "lucide-react";
+import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown, GripVertical, Lock, RotateCcw, Package } from "lucide-react";
+import { detectCargoFeatures, type CargoFeature } from "@/lib/cargo-features";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo } from "react";
 import {
