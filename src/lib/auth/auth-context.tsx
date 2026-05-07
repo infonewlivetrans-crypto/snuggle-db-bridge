@@ -14,6 +14,15 @@ import {
   clearLocalSessionTokens,
 } from "@/lib/api-client";
 import { APP_ROLES, type AppRole } from "./roles";
+import {
+  loadImpersonation,
+  saveImpersonation,
+  clearImpersonation,
+  installImpersonationFetchGuard,
+  type ImpersonationState,
+} from "./impersonation";
+import { startImpersonationFn, stopImpersonationFn } from "@/lib/impersonation.functions";
+import { toast } from "sonner";
 
 type Profile = {
   id: string;
@@ -42,6 +51,13 @@ type AuthContextValue = {
   ) => Promise<{ user: SessionUser; roles: AppRole[] }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  // === Imperonation (read-only "Войти как пользователь") ===
+  impersonation: ImpersonationState | null;
+  realUser: SessionUser | null;
+  realRoles: AppRole[];
+  realProfile: Profile | null;
+  startImpersonation: (targetUserId: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -150,6 +166,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [impersonation, setImpersonation] = useState<ImpersonationState | null>(
+    () => loadImpersonation(),
+  );
+
+  // Устанавливаем глобальный fetch-guard один раз
+  useEffect(() => {
+    installImpersonationFetchGuard((url, method) => {
+      console.warn("[impersonation] blocked", method, url);
+      toast.error("Действие недоступно: режим только для просмотра");
+    });
+  }, []);
 
   const loadProfileAndRoles = useCallback(async () => {
     try {
@@ -388,6 +415,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     clearLocalSessionTokens();
+    clearImpersonation();
+    setImpersonation(null);
     setUser(null);
     setProfile(null);
     setRoles([]);
@@ -397,19 +426,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await refreshSession();
   }, [refreshSession]);
 
+  const startImpersonation = useCallback(
+    async (targetUserId: string) => {
+      if (!user) throw new Error("Не авторизован");
+      if (!roles.includes("admin")) throw new Error("Доступно только администратору");
+      const result = await startImpersonationFn({ data: { targetUserId } });
+      const next: ImpersonationState = {
+        targetUserId: result.targetUserId,
+        profile: {
+          user_id: result.profile.user_id,
+          full_name: result.profile.full_name ?? null,
+          email: result.profile.email ?? null,
+          is_active: result.profile.is_active ?? true,
+        },
+        roles: (result.roles as string[]).filter((r) =>
+          (APP_ROLES as readonly string[]).includes(r),
+        ) as AppRole[],
+        startedAt: result.startedAt,
+        initiatedBy: user.id,
+      };
+      saveImpersonation(next);
+      setImpersonation(next);
+    },
+    [user, roles],
+  );
+
+  const stopImpersonation = useCallback(async () => {
+    const cur = impersonation;
+    clearImpersonation();
+    setImpersonation(null);
+    if (cur) {
+      try {
+        await stopImpersonationFn({
+          data: { targetUserId: cur.targetUserId, startedAt: cur.startedAt },
+        });
+      } catch (e) {
+        console.error("[impersonation] stop logging failed", e);
+      }
+    }
+  }, [impersonation]);
+
+  const effectiveUser: SessionUser | null = impersonation
+    ? { id: impersonation.profile.user_id, email: impersonation.profile.email }
+    : user;
+  const effectiveProfile: Profile | null = impersonation
+    ? {
+        id: impersonation.profile.id ?? impersonation.profile.user_id,
+        user_id: impersonation.profile.user_id,
+        full_name: impersonation.profile.full_name,
+        email: impersonation.profile.email,
+        is_active: impersonation.profile.is_active ?? true,
+        carrier_id: impersonation.profile.carrier_id ?? null,
+      }
+    : profile;
+  const effectiveRoles: AppRole[] = impersonation ? impersonation.roles : roles;
+
   return (
     <AuthContext.Provider
       value={{
         loading,
-        user,
+        user: effectiveUser,
         session: user ? {} : null,
-        profile,
-        roles,
+        profile: effectiveProfile,
+        roles: effectiveRoles,
         loadError,
         signIn,
         diagnoseSignIn,
         signOut,
         refresh,
+        impersonation,
+        realUser: user,
+        realRoles: roles,
+        realProfile: profile,
+        startImpersonation,
+        stopImpersonation,
       }}
     >
       {children}

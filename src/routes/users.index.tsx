@@ -26,7 +26,7 @@ import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client"
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl } from "@/lib/invite-url";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload, Trash2 } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload, Trash2, LogIn } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRuPhone } from "@/lib/phone";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -63,7 +63,8 @@ async function copyText(text: string): Promise<boolean> {
 
 function UsersPage() {
   const qc = useQueryClient();
-  const { loading: authLoading, user } = useAuth();
+  const { loading: authLoading, user, startImpersonation, roles: myRoles } = useAuth();
+  const isAdmin = myRoles.includes("admin");
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin", user?.id ?? null],
     queryFn: async () => {
@@ -177,6 +178,17 @@ function UsersPage() {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
     },
     onError: (e: Error) => toast.error(e.message),
+  });
+
+  const impersonateMut = useMutation({
+    mutationFn: async (targetUserId: string) => {
+      await startImpersonation(targetUserId);
+    },
+    onSuccess: () => {
+      toast.success("Включен режим просмотра");
+      setTimeout(() => window.location.assign("/"), 200);
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось войти как пользователь"),
   });
 
   async function onPickDriversFile(file: File | null) {
@@ -458,6 +470,19 @@ function UsersPage() {
                           >
                             {u.is_active ? (<><ShieldOff className="h-4 w-4" />Заблокировать</>) : (<><ShieldCheck className="h-4 w-4" />Разблокировать</>)}
                           </Button>
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="gap-1"
+                              disabled={u.user_id === user?.id || impersonateMut.isPending}
+                              title={u.user_id === user?.id ? "Нельзя имперсонировать себя" : "Открыть кабинет пользователя (только просмотр)"}
+                              onClick={() => impersonateMut.mutate(u.user_id)}
+                            >
+                              <LogIn className="h-4 w-4" />
+                              Открыть как
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="destructive"
