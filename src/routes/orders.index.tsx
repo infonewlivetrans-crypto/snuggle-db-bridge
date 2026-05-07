@@ -32,7 +32,8 @@ import {
   type OrderStatus,
   type PaymentStatus,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText, AlertTriangle } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle, Package } from "lucide-react";
+import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/orders/")({
