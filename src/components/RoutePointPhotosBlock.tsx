@@ -15,8 +15,10 @@ import { useSetting } from "@/lib/settings-provider";
 import {
   blobToObjectURL,
   deletePhoto as idbDeletePhoto,
+  enforceOfflinePhotoQuota,
   listPhotosByRoutePoint,
   newClientUploadId,
+  OFFLINE_PHOTO_MAX_FILE_BYTES,
   putPhoto,
   subscribePhotos,
   type OfflinePhotoRecord,
