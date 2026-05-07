@@ -415,6 +415,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     clearLocalSessionTokens();
+    clearImpersonation();
+    setImpersonation(null);
     setUser(null);
     setProfile(null);
     setRoles([]);

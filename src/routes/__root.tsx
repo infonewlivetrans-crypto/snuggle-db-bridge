@@ -6,6 +6,7 @@ import { SettingsProvider } from "@/lib/settings-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostLoginRedirect } from "@/components/auth/PostLoginRedirect";
+import { ImpersonationBanner } from "@/components/auth/ImpersonationBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorState } from "@/components/ErrorState";
 import { useEffect } from "react";
