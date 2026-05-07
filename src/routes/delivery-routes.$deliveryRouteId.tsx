@@ -816,22 +816,72 @@ function DeliveryRoutePage() {
 
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
-              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <h2 className="flex items-center gap-2 text-sm font-semibold">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  Точки маршрута
-                  <span className="text-muted-foreground">({points?.length ?? 0})</span>
+                  Очередь разгрузки
+                  <span className="text-muted-foreground">({orderedDraft.length})</span>
                 </h2>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5"
-                  onClick={() => setAddPointOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                  Добавить точку
-                </Button>
+                <div className="flex items-center gap-2">
+                  {orderChanged && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1.5"
+                      onClick={resetDraft}
+                      disabled={saveOrder.isPending}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Сбросить
+                    </Button>
+                  )}
+                  {orderChanged && (
+                    <Button
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setConfirmOpen(true)}
+                      disabled={saveOrder.isPending}
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      Сохранить порядок
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => setAddPointOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Добавить точку
+                  </Button>
+                </div>
               </div>
+
+              {orderChanged && routeInProgress && (
+                <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />
+                  Маршрут уже выполняется. Изменение порядка может повлиять на доставку.
+                </div>
+              )}
+              {orderChanged && completedOrderBroken && (
+                <div className="border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-xs text-red-700 dark:text-red-300">
+                  <Lock className="mr-1 inline h-3.5 w-3.5" />
+                  Завершённые точки нельзя переставлять — порядок отчётности нарушен.
+                </div>
+              )}
+              {orderChanged && windowWarnings.length > 0 && (
+                <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />
+                  Возможны проблемы с режимом работы получателя:
+                  <ul className="mt-1 ml-5 list-disc">
+                    {windowWarnings.map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <AddManualPointDialog
                 open={addPointOpen}
                 onOpenChange={setAddPointOpen}
@@ -840,12 +890,27 @@ function DeliveryRoutePage() {
                 currentPointsCount={points?.length ?? 0}
               />
               <div className="divide-y divide-border">
-                {(points ?? []).length === 0 ? (
+                {orderedDraft.length === 0 ? (
                   <div className="px-4 py-6 text-center text-muted-foreground">
                     В маршруте пока нет точек. Нажмите «Добавить точку».
                   </div>
                 ) : (
-                  (points ?? []).map((p, idx, arr) => (
+                  orderedDraft.map((p, idx, arr) => {
+                    const locked = isCompletedStatus(p.dp_status);
+                    const isDragging = dragId === p.id;
+                    const isOver = dragOverId === p.id && dragId !== p.id;
+                    return (
+                    <div
+                      key={p.id}
+                      className={`space-y-3 px-4 py-4 transition-colors ${
+                        isDragging ? "opacity-50" : ""
+                      } ${isOver ? "bg-primary/5" : ""} ${locked ? "bg-muted/40" : ""}`}
+                      draggable={!locked}
+                      onDragStart={() => handleDragStart(p.id)}
+                      onDragOver={(e) => handleDragOver(e, p.id)}
+                      onDrop={(e) => handleDrop(e, p.id)}
+                      onDragEnd={handleDragEnd}
+                    >
                     <div key={p.id} className="space-y-3 px-4 py-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
