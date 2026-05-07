@@ -280,7 +280,9 @@ function DriverRoutePage() {
     const errs: string[] = [];
     if (list.length === 0) return errs;
     if (pendingCount > 0) {
-      errs.push(`Нельзя завершить маршрут. Есть необработанные точки (${pendingCount}).`);
+      errs.push(
+        "Рейс нельзя завершить. Сначала завершите все задания по заказам: сдайте деньги, документы, QR-код и остальные обязательные действия.",
+      );
     }
     for (const p of list) {
       const num = p.order?.order_number ?? `точка №${p.point_number}`;
@@ -289,13 +291,13 @@ function DriverRoutePage() {
         if (p.order?.requires_qr) {
           const hasQrPhoto = !!kinds?.has("qr");
           if (!p.order.qr_received || !hasQrPhoto) {
-            errs.push(`По заказу №${num} не загружен QR-код.`);
+            errs.push(`По заказу №${num} не загружен QR-код / не подтверждён QR.`);
           }
         }
         const isPrepaid = p.order?.payment_status === "paid";
         if (p.order?.payment_type === "cash" && !isPrepaid) {
           if (p.dp_amount_received == null || Number(p.dp_amount_received) <= 0) {
-            errs.push(`По заказу №${num} не указана сумма оплаты.`);
+            errs.push(`По заказу №${num} не сдана сумма наличных.`);
           }
         }
       } else if (p.dp_status === "not_delivered") {
