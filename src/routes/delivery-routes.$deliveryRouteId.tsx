@@ -942,27 +942,37 @@ function DeliveryRoutePage() {
                             {p.order?.comment && <span>{p.order.comment}</span>}
                           </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            disabled={idx === 0 || reorder.isPending}
-                            onClick={() => reorder.mutate({ pointId: p.id, direction: "up" })}
-                            title="Переместить выше"
-                          >
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            disabled={idx === arr.length - 1 || reorder.isPending}
-                            onClick={() => reorder.mutate({ pointId: p.id, direction: "down" })}
-                            title="Переместить ниже"
-                          >
-                            <ArrowDown className="h-3.5 w-3.5" />
-                          </Button>
+                        <div className="flex items-center gap-1">
+                          {!locked && (
+                            <span
+                              className="cursor-grab text-muted-foreground"
+                              title="Перетащите для изменения порядка"
+                            >
+                              <GripVertical className="h-4 w-4" />
+                            </span>
+                          )}
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-7 w-7"
+                              disabled={idx === 0 || locked || saveOrder.isPending}
+                              onClick={() => moveDraft(idx, -1)}
+                              title="Переместить выше"
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-7 w-7"
+                              disabled={idx === arr.length - 1 || locked || saveOrder.isPending}
+                              onClick={() => moveDraft(idx, 1)}
+                              title="Переместить ниже"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                       {p.order && (
