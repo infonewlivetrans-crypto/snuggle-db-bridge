@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PhoneCallButton } from "@/components/PhoneCallButton";
 import { PAYMENT_LABELS, type Order } from "@/lib/orders";
+import { detectCargoFeatures } from "@/lib/cargo-features";
 import {
   MapPin,
   Package,
