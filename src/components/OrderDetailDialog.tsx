@@ -367,16 +367,63 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           <OrderItemsBlock orderId={order.id} />
 
           {/* Комментарий */}
-          <div className="rounded-lg border border-border p-4">
+          <div className={
+            order.driver_comment_is_important && order.driver_comment
+              ? "rounded-lg border-2 border-destructive bg-destructive/10 p-4"
+              : "rounded-lg border border-border p-4"
+          }>
             <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               <MessageSquare className="h-3.5 w-3.5" />
               Комментарий
+              {order.driver_comment_is_important && order.driver_comment && (
+                <Badge variant="destructive" className="ml-1 gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Важно для водителя
+                </Badge>
+              )}
             </div>
             <div className="text-sm text-foreground">
               {order.comment || (
                 <span className="italic text-muted-foreground">Без комментария</span>
               )}
             </div>
+          </div>
+
+          {/* Комментарий для водителя */}
+          <div className={
+            driverCommentImportant && driverComment.trim()
+              ? "space-y-2 rounded-lg border-2 border-destructive bg-destructive/5 p-4"
+              : "space-y-2 rounded-lg border border-border p-4"
+          }>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="driver-comment" className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Комментарий для водителя
+              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="driver-comment-important" className="text-xs text-muted-foreground">
+                  Важно
+                </Label>
+                <Switch
+                  id="driver-comment-important"
+                  checked={driverCommentImportant}
+                  onCheckedChange={setDriverCommentImportant}
+                  disabled={!driverComment.trim()}
+                />
+              </div>
+            </div>
+            <textarea
+              id="driver-comment"
+              value={driverComment}
+              onChange={(e) => setDriverComment(e.target.value)}
+              placeholder="Например: «Выгрузка только до 12:00», «Звонок за 30 минут», «Сложный подъезд»..."
+              rows={3}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            {driverCommentImportant && driverComment.trim() && (
+              <div className="text-xs font-medium text-destructive">
+                Будет показан водителю как «Важно: …» с подсветкой перед началом разгрузки.
+              </div>
+            )}
           </div>
 
           {/* Статус */}
