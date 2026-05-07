@@ -11,7 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import { apiPost } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getNotifSoundSettings } from "@/lib/notifications/sound-settings";
+import {
+  getNotifSoundSettings,
+  triggerVibration,
+} from "@/lib/notifications/sound-settings";
 import {
   Dialog,
   DialogContent,
@@ -93,6 +96,13 @@ export function playSignalSound(volumeOverride?: number) {
   } catch {
     /* без звука */
   }
+}
+
+/** Полный сигнал: звук + (опционально) вибрация согласно настройкам. */
+export function triggerNewOfferSignal() {
+  const settings = getNotifSoundSettings();
+  if (settings.enabled) playSignalSound();
+  if (settings.vibrate) triggerVibration([120, 60, 120, 60, 200]);
 }
 
 function fmtDateTime(s: string | null | undefined): string {
@@ -203,7 +213,7 @@ export function IncomingOfferWatcher() {
           if (!row?.id || seenIds.current.has(row.id)) return;
           seenIds.current.add(row.id);
           // Воспроизводим звук и показываем тост
-          playSignalSound();
+          triggerNewOfferSignal();
           toast.info("Новая подходящая заявка", {
             description: row.comment ?? "Открыто окно с деталями.",
             duration: 6000,
