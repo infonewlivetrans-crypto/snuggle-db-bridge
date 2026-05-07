@@ -141,7 +141,7 @@ const SKIP_ACTIONS = new Set([
   "declined_by_carrier",
 ]);
 
-export function RouteSignalsPanel({ routeId }: Props) {
+export function RouteSignalsPanel({ routeId, requirements }: Props) {
   const qc = useQueryClient();
 
   const { data: offers, isLoading: loadingOffers } = useQuery({
@@ -272,15 +272,24 @@ export function RouteSignalsPanel({ routeId }: Props) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
+      <CardHeader className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="flex items-center gap-2 text-base">
           <Send className="h-4 w-4" />
           Сигналы по рейсу
         </CardTitle>
-        <Button variant="ghost" size="sm" onClick={handleRefresh} className="gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" />
-          Обновить
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {requirements && (
+            <BroadcastSignalButton
+              routeId={routeId}
+              requirements={requirements}
+              expiresInHours={1}
+            />
+          )}
+          <Button variant="ghost" size="sm" onClick={handleRefresh} className="gap-1.5">
+            <RefreshCw className="h-3.5 w-3.5" />
+            Обновить
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Сводка */}
