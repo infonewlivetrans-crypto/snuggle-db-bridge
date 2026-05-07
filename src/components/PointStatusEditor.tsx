@@ -27,6 +27,7 @@ import {
 } from "@/lib/deliveryPointStatus";
 import { logPointAction, type PointActionKind } from "@/lib/pointActions";
 import { getCurrentCoords, distanceMeters, NEAR_POINT_THRESHOLD_METERS } from "@/lib/gps";
+import { runWithOfflineFallback, enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
 
 type Props = {
   routePointId: string;
