@@ -22,6 +22,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth/auth-context";
+import {
+  TransferClientDialog,
+  type TransferHistoryEntry,
+} from "@/components/TransferClientDialog";
 
 export const Route = createFileRoute("/clients/$clientId")({
   head: () => ({
