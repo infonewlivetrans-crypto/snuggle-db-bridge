@@ -176,7 +176,26 @@ function PhotoKindRow({
   const [uploading, setUploading] = useState(false);
 
   const upload = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async (rawFile: File) => {
+      // Сжимаем большие изображения, чтобы уложиться в лимит на 1 файл.
+      let file = rawFile;
+      if (rawFile.type.startsWith("image/") && rawFile.size > OFFLINE_PHOTO_MAX_FILE_BYTES * 0.9) {
+        try {
+          const compressed = await compressImageFile(rawFile, {
+            targetBytes: Math.floor(OFFLINE_PHOTO_MAX_FILE_BYTES * 0.9),
+          });
+          if (compressed.size < rawFile.size) {
+            file = compressed;
+            const before = Math.round(rawFile.size / 1024 / 102.4) / 10;
+            const after = Math.round(compressed.size / 1024 / 102.4) / 10;
+            toast.message("Фото сжато перед сохранением", {
+              description: `${before} МБ → ${after} МБ`,
+            });
+          }
+        } catch {
+          /* ignore */
+        }
+      }
       if (file.size > OFFLINE_PHOTO_MAX_FILE_BYTES) {
         toast.error(
           `Файл слишком большой (макс. ${Math.round(OFFLINE_PHOTO_MAX_FILE_BYTES / 1024 / 1024)} МБ)`,
@@ -224,7 +243,7 @@ function PhotoKindRow({
       }
       setUploading(true);
       try {
-        const ext = file.name.split(".").pop() || "jpg";
+        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
         const path = `${routePointId}/${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from(ROUTE_POINT_PHOTOS_BUCKET)
