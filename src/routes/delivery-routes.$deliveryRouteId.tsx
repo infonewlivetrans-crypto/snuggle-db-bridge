@@ -13,9 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown, GripVertical, Lock, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_ORDER,
@@ -190,26 +200,167 @@ function DeliveryRoutePage() {
   const [comment, setComment] = useState("");
   const [addPointOpen, setAddPointOpen] = useState(false);
 
-  const reorder = useMutation({
-    mutationFn: async ({ pointId, direction }: { pointId: string; direction: "up" | "down" }) => {
-      const list = points ?? [];
-      const idx = list.findIndex((p) => p.id === pointId);
-      if (idx === -1) return;
-      const swapWith = direction === "up" ? idx - 1 : idx + 1;
-      if (swapWith < 0 || swapWith >= list.length) return;
-      const a = list[idx];
-      const b = list[swapWith];
-      await apiPost("/api/route-points/swap", {
-        a_id: a.id,
-        a_number: a.point_number,
-        b_id: b.id,
-        b_number: b.point_number,
+  // ===== Черновик порядка точек (drag & drop, как у водителя) =====
+  const [draftIds, setDraftIds] = useState<string[]>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (points) setDraftIds(points.map((p) => p.id));
+  }, [points]);
+
+  const COMPLETED_STATUSES: DeliveryPointStatus[] = [
+    "delivered",
+    "not_delivered",
+    "returned_to_warehouse",
+  ];
+  const isCompletedStatus = (s: DeliveryPointStatus) => COMPLETED_STATUSES.includes(s);
+
+  const pointsById = useMemo(() => {
+    const m = new Map<string, PointRow>();
+    (points ?? []).forEach((p) => m.set(p.id, p));
+    return m;
+  }, [points]);
+
+  const orderedDraft = useMemo<PointRow[]>(() => {
+    return draftIds
+      .map((id, idx) => {
+        const p = pointsById.get(id);
+        if (!p) return null;
+        return { ...p, point_number: idx + 1 } as PointRow;
+      })
+      .filter((x): x is PointRow => x !== null);
+  }, [draftIds, pointsById]);
+
+  const originalIds = useMemo(() => (points ?? []).map((p) => p.id), [points]);
+  const orderChanged = useMemo(
+    () =>
+      draftIds.length === originalIds.length &&
+      draftIds.some((id, i) => id !== originalIds[i]),
+    [draftIds, originalIds],
+  );
+
+  // Запрещаем перетаскивать завершённые точки и менять их относительный порядок.
+  const completedOriginalOrder = useMemo(
+    () =>
+      (points ?? [])
+        .filter((p) => isCompletedStatus(p.dp_status))
+        .map((p) => p.id),
+    [points],
+  );
+  const completedOrderBroken = useMemo(() => {
+    const draftCompleted = draftIds.filter((id) => {
+      const p = pointsById.get(id);
+      return p && isCompletedStatus(p.dp_status);
+    });
+    if (draftCompleted.length !== completedOriginalOrder.length) return false;
+    return draftCompleted.some((id, i) => id !== completedOriginalOrder[i]);
+  }, [draftIds, pointsById, completedOriginalOrder]);
+
+  const routeInProgress = data?.status === "in_progress" || data?.status === "issued";
+
+  // Предупреждение по окнам приёма получателя при новом порядке
+  const windowWarnings = useMemo(() => {
+    const warns: string[] = [];
+    orderedDraft.forEach((p) => {
+      const from = p.client_window_from;
+      const to = p.client_window_to;
+      // эвристика: точка с узким окном перенесена далеко от исходной позиции
+      const orig = (points ?? []).find((x) => x.id === p.id);
+      if (!orig) return;
+      const moved = Math.abs(orig.point_number - p.point_number);
+      if ((from || to) && moved >= 2) {
+        warns.push(
+          `Точка №${p.point_number} (${p.order?.order_number ?? "—"}): окно ${from?.slice(0, 5) ?? "—"}–${to?.slice(0, 5) ?? "—"} — изменение позиции на ${moved}`,
+        );
+      }
+    });
+    return warns;
+  }, [orderedDraft, points]);
+
+  const moveDraft = (idx: number, dir: -1 | 1) => {
+    setDraftIds((prev) => {
+      const j = idx + dir;
+      if (j < 0 || j >= prev.length) return prev;
+      const a = prev[idx];
+      const b = prev[j];
+      const pa = pointsById.get(a);
+      const pb = pointsById.get(b);
+      if (pa && isCompletedStatus(pa.dp_status)) return prev;
+      if (pb && isCompletedStatus(pb.dp_status)) return prev;
+      const next = [...prev];
+      [next[idx], next[j]] = [next[j], next[idx]];
+      return next;
+    });
+  };
+  const resetDraft = () => setDraftIds(originalIds);
+
+  const handleDragStart = (id: string) => {
+    const p = pointsById.get(id);
+    if (p && isCompletedStatus(p.dp_status)) return;
+    setDragId(id);
+  };
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault();
+    if (id !== dragOverId) setDragOverId(id);
+  };
+  const handleDragEnd = () => {
+    setDragId(null);
+    setDragOverId(null);
+  };
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!dragId || dragId === targetId) {
+      handleDragEnd();
+      return;
+    }
+    const target = pointsById.get(targetId);
+    const src = pointsById.get(dragId);
+    if (target && isCompletedStatus(target.dp_status)) {
+      handleDragEnd();
+      return;
+    }
+    if (src && isCompletedStatus(src.dp_status)) {
+      handleDragEnd();
+      return;
+    }
+    setDraftIds((prev) => {
+      const from = prev.indexOf(dragId);
+      const to = prev.indexOf(targetId);
+      if (from < 0 || to < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    handleDragEnd();
+  };
+
+  const saveOrder = useMutation({
+    mutationFn: async (ids: string[]) => {
+      let who = "Логист";
+      try {
+        const me = await apiGetAuth<{ email: string | null; full_name: string | null }>(
+          "/api/auth/me",
+        );
+        who = me.full_name ?? me.email ?? "Логист";
+      } catch {
+        // не критично
+      }
+      await apiPost("/api/route-points/reorder", {
+        route_id: data!.source_request_id,
+        ordered_ids: ids,
+        changed_by: who,
       });
     },
     onSuccess: () => {
+      toast.success("Новый порядок разгрузки сохранён");
       qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
+      qc.invalidateQueries({ queryKey: ["delivery-route", deliveryRouteId] });
+      setConfirmOpen(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(e.message ?? "Не удалось сохранить порядок"),
   });
 
   useEffect(() => {
@@ -665,22 +816,72 @@ function DeliveryRoutePage() {
 
             {/* Точки маршрута */}
             <div className="rounded-lg border border-border">
-              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
                 <h2 className="flex items-center gap-2 text-sm font-semibold">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  Точки маршрута
-                  <span className="text-muted-foreground">({points?.length ?? 0})</span>
+                  Очередь разгрузки
+                  <span className="text-muted-foreground">({orderedDraft.length})</span>
                 </h2>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="gap-1.5"
-                  onClick={() => setAddPointOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
-                  Добавить точку
-                </Button>
+                <div className="flex items-center gap-2">
+                  {orderChanged && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="gap-1.5"
+                      onClick={resetDraft}
+                      disabled={saveOrder.isPending}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Сбросить
+                    </Button>
+                  )}
+                  {orderChanged && (
+                    <Button
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => setConfirmOpen(true)}
+                      disabled={saveOrder.isPending}
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      Сохранить порядок
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => setAddPointOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                    Добавить точку
+                  </Button>
+                </div>
               </div>
+
+              {orderChanged && routeInProgress && (
+                <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />
+                  Маршрут уже выполняется. Изменение порядка может повлиять на доставку.
+                </div>
+              )}
+              {orderChanged && completedOrderBroken && (
+                <div className="border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-xs text-red-700 dark:text-red-300">
+                  <Lock className="mr-1 inline h-3.5 w-3.5" />
+                  Завершённые точки нельзя переставлять — порядок отчётности нарушен.
+                </div>
+              )}
+              {orderChanged && windowWarnings.length > 0 && (
+                <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />
+                  Возможны проблемы с режимом работы получателя:
+                  <ul className="mt-1 ml-5 list-disc">
+                    {windowWarnings.map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <AddManualPointDialog
                 open={addPointOpen}
                 onOpenChange={setAddPointOpen}
@@ -689,19 +890,39 @@ function DeliveryRoutePage() {
                 currentPointsCount={points?.length ?? 0}
               />
               <div className="divide-y divide-border">
-                {(points ?? []).length === 0 ? (
+                {orderedDraft.length === 0 ? (
                   <div className="px-4 py-6 text-center text-muted-foreground">
                     В маршруте пока нет точек. Нажмите «Добавить точку».
                   </div>
                 ) : (
-                  (points ?? []).map((p, idx, arr) => (
-                    <div key={p.id} className="space-y-3 px-4 py-4">
+                  orderedDraft.map((p, idx, arr) => {
+                    const locked = isCompletedStatus(p.dp_status);
+                    const isDragging = dragId === p.id;
+                    const isOver = dragOverId === p.id && dragId !== p.id;
+                    return (
+                    <div
+                      key={p.id}
+                      className={`space-y-3 px-4 py-4 transition-colors ${
+                        isDragging ? "opacity-50" : ""
+                      } ${isOver ? "bg-primary/5" : ""} ${locked ? "bg-muted/40" : ""}`}
+                      draggable={!locked}
+                      onDragStart={() => handleDragStart(p.id)}
+                      onDragOver={(e) => handleDragOver(e, p.id)}
+                      onDrop={(e) => handleDrop(e, p.id)}
+                      onDragEnd={handleDragEnd}
+                    >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-muted px-1.5 text-xs font-semibold">
+                            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-primary/10 px-1.5 text-xs font-semibold text-primary">
                               {p.point_number}
                             </span>
+                            {locked && (
+                              <span className="inline-flex items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                                <Lock className="h-3 w-3" />
+                                заблокирована
+                              </span>
+                            )}
                             <span className="font-medium">{p.order?.order_number ?? "—"}</span>
                             <span className="text-sm text-muted-foreground">
                               · {p.order?.contact_name ?? "—"}
@@ -720,27 +941,37 @@ function DeliveryRoutePage() {
                             {p.order?.comment && <span>{p.order.comment}</span>}
                           </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            disabled={idx === 0 || reorder.isPending}
-                            onClick={() => reorder.mutate({ pointId: p.id, direction: "up" })}
-                            title="Переместить выше"
-                          >
-                            <ArrowUp className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            disabled={idx === arr.length - 1 || reorder.isPending}
-                            onClick={() => reorder.mutate({ pointId: p.id, direction: "down" })}
-                            title="Переместить ниже"
-                          >
-                            <ArrowDown className="h-3.5 w-3.5" />
-                          </Button>
+                        <div className="flex items-center gap-1">
+                          {!locked && (
+                            <span
+                              className="cursor-grab text-muted-foreground"
+                              title="Перетащите для изменения порядка"
+                            >
+                              <GripVertical className="h-4 w-4" />
+                            </span>
+                          )}
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-7 w-7"
+                              disabled={idx === 0 || locked || saveOrder.isPending}
+                              onClick={() => moveDraft(idx, -1)}
+                              title="Переместить выше"
+                            >
+                              <ArrowUp className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-7 w-7"
+                              disabled={idx === arr.length - 1 || locked || saveOrder.isPending}
+                              onClick={() => moveDraft(idx, 1)}
+                              title="Переместить ниже"
+                            >
+                              <ArrowDown className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                       {p.order && (
@@ -812,13 +1043,54 @@ function DeliveryRoutePage() {
                       <DeliveryReportBlock orderId={p.order_id} />
                       <OrderNotificationsBlock orderId={p.order_id} />
                     </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
           </div>
         )}
       </main>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Сохранить новый порядок разгрузки?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>Очередь будет обновлена и сразу станет видна водителю.</div>
+                {routeInProgress && (
+                  <div className="text-amber-600 dark:text-amber-400">
+                    Маршрут уже выполняется. Изменение порядка может повлиять на доставку.
+                  </div>
+                )}
+                {windowWarnings.length > 0 && (
+                  <div className="text-amber-600 dark:text-amber-400">
+                    Возможны нарушения окон приёма получателей.
+                  </div>
+                )}
+                {completedOrderBroken && (
+                  <div className="text-red-600 dark:text-red-400">
+                    Порядок завершённых точек нарушен — сохранение запрещено.
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={completedOrderBroken || saveOrder.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                saveOrder.mutate(draftIds);
+              }}
+            >
+              {saveOrder.isPending ? "Сохранение…" : "Сохранить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
