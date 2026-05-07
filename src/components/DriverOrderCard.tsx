@@ -82,6 +82,7 @@ export function DriverOrderCard({
     order.delivery_window_from || order.delivery_window_to
       ? `${fmtTime(order.delivery_window_from) ?? "…"} – ${fmtTime(order.delivery_window_to) ?? "…"}`
       : null;
+  const cargoFeatures = detectCargoFeatures(order.comment, order.driver_comment);
 
   return (
     <Card className="overflow-hidden">
