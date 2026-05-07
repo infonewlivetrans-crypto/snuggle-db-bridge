@@ -201,8 +201,22 @@ export function TransferClientDialog({
 
           {history.length > 0 && (
             <div className="rounded-md border bg-muted/30 p-3">
-              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
-                <History className="h-4 w-4" /> История передач ({history.length})
+              <div className="mb-2 flex items-center justify-between gap-2 text-sm font-medium">
+                <div className="flex items-center gap-2">
+                  <History className="h-4 w-4" /> История передач ({history.length})
+                </div>
+                {canUndo && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => undoMut.mutate()}
+                    disabled={undoMut.isPending}
+                  >
+                    <Undo2 className="mr-1 h-3.5 w-3.5" />
+                    {undoMut.isPending ? "Отмена…" : "Отменить последнюю"}
+                  </Button>
+                )}
               </div>
               <ul className="max-h-40 space-y-1.5 overflow-y-auto text-xs">
                 {[...history].reverse().map((h, i) => (
