@@ -51,14 +51,37 @@ type OfferRow = {
   comment: string | null;
 };
 
-type CarrierLite = { id: string; company_name: string | null };
+type CarrierLite = {
+  id: string;
+  company_name: string | null;
+  phone: string | null;
+  email: string | null;
+  city: string | null;
+  contact_person: string | null;
+};
 type VehicleLite = {
   id: string;
   plate_number: string | null;
   brand: string | null;
   model: string | null;
+  body_type: string | null;
+  capacity_kg: number | null;
+  volume_m3: number | null;
+  body_length_m: number | null;
+  body_width_m: number | null;
+  body_height_m: number | null;
+  has_tent: boolean | null;
+  has_manipulator: boolean | null;
+  has_straps: boolean | null;
+  comment: string | null;
 };
-type DriverLite = { id: string; full_name: string | null; phone: string | null };
+type DriverLite = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  license_number: string | null;
+  license_categories: string | null;
+};
 
 type HistoryRow = {
   id: string;
