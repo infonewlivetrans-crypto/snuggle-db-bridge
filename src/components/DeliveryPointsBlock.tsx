@@ -281,6 +281,16 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                         Работает в выходные
                       </span>
                     )}
+                    {o?.driver_comment_is_important && o?.driver_comment && (
+                      <Badge
+                        variant="destructive"
+                        className="inline-flex items-center gap-1"
+                        title={o.driver_comment}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        Важно для водителя
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="text-sm text-muted-foreground">
@@ -289,6 +299,12 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                     )}
                   </div>
 
+                  {o?.driver_comment_is_important && o?.driver_comment && (
+                    <div className="flex items-start gap-2 rounded-md border-2 border-destructive bg-destructive/10 p-2 text-xs font-medium text-destructive">
+                      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <div className="whitespace-pre-line">Важно: {o.driver_comment}</div>
+                    </div>
+                  )}
                   {risky && r && (
                     <div className="rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1 text-xs text-destructive">
                       {r.reasons.join(" · ")}
