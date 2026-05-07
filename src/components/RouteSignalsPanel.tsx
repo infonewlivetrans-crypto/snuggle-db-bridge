@@ -364,6 +364,35 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
           ))}
         </div>
 
+        {/* Поиск и сортировка */}
+        {(offers?.length ?? 0) > 0 && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Поиск: номер авто или ФИО водителя"
+                className="h-8 pl-8 text-sm"
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSortDir((s) => (s === "desc" ? "asc" : "desc"))}
+              className="gap-1.5"
+              title="Сортировка по времени отправки"
+            >
+              {sortDir === "desc" ? (
+                <ArrowDownWideNarrow className="h-3.5 w-3.5" />
+              ) : (
+                <ArrowUpWideNarrow className="h-3.5 w-3.5" />
+              )}
+              {sortDir === "desc" ? "Сначала новые" : "Сначала старые"}
+            </Button>
+          </div>
+        )}
+
         {/* Список сигналов */}
         {loadingOffers ? (
           <div className="text-sm text-muted-foreground">Загрузка…</div>
@@ -371,9 +400,13 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
           <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 text-sm text-muted-foreground">
             Сигналы по этому рейсу ещё не отправлялись.
           </div>
+        ) : displayedOffers.length === 0 ? (
+          <div className="rounded-md border border-dashed border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+            Ничего не найдено по запросу «{search}».
+          </div>
         ) : (
           <div className="space-y-2">
-            {(offers ?? []).map((o) => {
+            {displayedOffers.map((o) => {
               const st = effectiveStatus(o);
               const c = carrierById.get(o.carrier_id);
               const v = o.vehicle_id ? vehicleById.get(o.vehicle_id) : null;
