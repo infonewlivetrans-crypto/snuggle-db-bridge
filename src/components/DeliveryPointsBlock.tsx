@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { POINT_STATUS_LABELS, POINT_STATUS_STYLES, type PointStatus } from "@/lib/routes";
 import { formatRuPhone } from "@/lib/phone";
+import { detectCargoFeatures } from "@/lib/cargo-features";
 
 type Point = {
   id: string;
@@ -35,6 +36,7 @@ type Point = {
     longitude: number | null;
     map_link: string | null;
     client_works_weekends: boolean;
+    comment: string | null;
     driver_comment: string | null;
     driver_comment_is_important: boolean | null;
   } | null;
@@ -110,7 +112,7 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
       const { data, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends, driver_comment, driver_comment_is_important)",
+          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends, comment, driver_comment, driver_comment_is_important)",
         )
         .eq("route_id", requestId)
         .order("point_number", { ascending: true });
@@ -232,12 +234,18 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
             const wt = formatTime(p.client_window_to);
             const r = risks.get(p.id);
             const risky = r?.level === "risk";
+            const cargoFeatures = detectCargoFeatures(o?.comment, o?.driver_comment);
+            const hasCargoFeatures = cargoFeatures.length > 0;
             return (
               <li
                 key={p.id}
                 className={
                   "flex flex-col gap-2 rounded-md border bg-background p-3 sm:flex-row sm:items-start " +
-                  (risky ? "border-destructive/60 bg-destructive/5" : "border-border")
+                  (risky
+                    ? "border-destructive/60 bg-destructive/5"
+                    : hasCargoFeatures
+                      ? "border-amber-400 bg-amber-50/30 dark:bg-amber-950/10"
+                      : "border-border")
                 }
               >
                 <div
@@ -303,6 +311,29 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                     <div className="flex items-start gap-2 rounded-md border-2 border-destructive bg-destructive/10 p-2 text-xs font-medium text-destructive">
                       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                       <div className="whitespace-pre-line">Важно: {o.driver_comment}</div>
+                    </div>
+                  )}
+                  {hasCargoFeatures && (
+                    <div className="space-y-1 rounded-md border border-amber-400 bg-amber-50 p-2 text-xs dark:bg-amber-950/30 dark:border-amber-700">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span className="font-semibold text-amber-900 dark:text-amber-100">
+                          Особенность груза:
+                        </span>
+                        {cargoFeatures.map((f) => (
+                          <Badge
+                            key={f.key}
+                            variant="outline"
+                            className={
+                              f.critical
+                                ? "border-destructive bg-destructive/10 text-destructive"
+                                : "border-amber-400 bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
+                            }
+                            title={f.logistWarning}
+                          >
+                            {f.label}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
                   {risky && r && (

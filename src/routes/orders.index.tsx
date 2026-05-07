@@ -32,7 +32,8 @@ import {
   type OrderStatus,
   type PaymentStatus,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText, AlertTriangle } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle, Package } from "lucide-react";
+import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/orders/")({
@@ -372,11 +373,16 @@ function OrdersPage() {
                     filtered.map((r) => {
                       const from = r.route?.warehouse?.city ?? "—";
                       const to = r.destination_city ?? "—";
+                      const cargoFeatures = detectCargoFeatures(r.driver_comment);
+                      const hasCritical = cargoFeatures.some((f) => f.critical);
+                      const rowHighlight =
+                        r.driver_comment_is_important && r.driver_comment
+                          ? "bg-destructive/5"
+                          : hasCritical
+                            ? "bg-amber-50/50 dark:bg-amber-950/10"
+                            : undefined;
                       return (
-                        <TableRow
-                          key={r.id}
-                          className={r.driver_comment_is_important && r.driver_comment ? "bg-destructive/5" : undefined}
-                        >
+                        <TableRow key={r.id} className={rowHighlight}>
                           <TableCell className="font-mono text-xs">
                             <div className="flex items-center gap-1.5">
                               {isDemo ? (
@@ -398,7 +404,31 @@ function OrdersPage() {
                                   <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
                                 </span>
                               )}
+                              {cargoFeatures.length > 0 && (
+                                <span
+                                  title={
+                                    "Особенность груза: " +
+                                    cargoFeatures.map((f) => f.label).join(", ")
+                                  }
+                                  className={
+                                    "inline-flex items-center " +
+                                    (hasCritical ? "text-destructive" : "text-amber-600")
+                                  }
+                                >
+                                  <Package className="h-3.5 w-3.5" />
+                                </span>
+                              )}
                             </div>
+                            {cargoFeatures.length > 0 && (
+                              <div
+                                className={
+                                  "mt-0.5 text-[10px] font-medium " +
+                                  (hasCritical ? "text-destructive" : "text-amber-700 dark:text-amber-300")
+                                }
+                              >
+                                {cargoFeatures.map((f) => f.label).join(" · ")}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-foreground">{r.contact_name ?? "—"}</div>

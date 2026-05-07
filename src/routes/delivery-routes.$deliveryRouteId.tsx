@@ -23,7 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown, GripVertical, Lock, RotateCcw } from "lucide-react";
+import { ArrowLeft, Hash, Calendar, Warehouse, Save, MapPin, Clock, CheckCircle2, AlertTriangle, Flag, Truck, Plus, ArrowUp, ArrowDown, GripVertical, Lock, RotateCcw, Package } from "lucide-react";
+import { detectCargoFeatures, type CargoFeature } from "@/lib/cargo-features";
 import { toast } from "sonner";
 import { useState, useEffect, useMemo } from "react";
 import {
@@ -113,6 +114,8 @@ type PointRow = {
     latitude: number | null;
     longitude: number | null;
     comment: string | null;
+    driver_comment: string | null;
+    driver_comment_is_important: boolean | null;
     payment_type: string;
     amount_due: number | null;
     requires_qr: boolean;
@@ -277,6 +280,21 @@ function DeliveryRoutePage() {
       }
     });
     return warns;
+  }, [orderedDraft, points]);
+
+  // Предупреждения по особенностям груза при изменении порядка разгрузки
+  const cargoWarnings = useMemo(() => {
+    const out: Array<{ orderNumber: string; features: CargoFeature[] }> = [];
+    orderedDraft.forEach((p) => {
+      const orig = (points ?? []).find((x) => x.id === p.id);
+      if (!orig) return;
+      if (orig.point_number === p.point_number) return;
+      const feats = detectCargoFeatures(p.order?.comment, p.order?.driver_comment);
+      if (feats.length > 0) {
+        out.push({ orderNumber: p.order?.order_number ?? "—", features: feats });
+      }
+    });
+    return out;
   }, [orderedDraft, points]);
 
   const moveDraft = (idx: number, dir: -1 | 1) => {
@@ -1067,6 +1085,22 @@ function DeliveryRoutePage() {
                 {windowWarnings.length > 0 && (
                   <div className="text-amber-600 dark:text-amber-400">
                     Возможны нарушения окон приёма получателей.
+                  </div>
+                )}
+                {cargoWarnings.length > 0 && (
+                  <div className="space-y-1 rounded-md border-2 border-amber-400 bg-amber-50 p-2 dark:bg-amber-950/40 dark:border-amber-700">
+                    <div className="flex items-center gap-1.5 font-semibold text-amber-900 dark:text-amber-100">
+                      <Package className="h-4 w-4" />
+                      Особенности груза в перемещаемых заказах
+                    </div>
+                    <ul className="list-disc space-y-0.5 pl-5 text-xs text-amber-900 dark:text-amber-100">
+                      {cargoWarnings.map((w) => (
+                        <li key={w.orderNumber}>
+                          <span className="font-mono font-semibold">{w.orderNumber}</span>:{" "}
+                          {w.features.map((f) => f.logistWarning).join(" ")}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
                 {completedOrderBroken && (
