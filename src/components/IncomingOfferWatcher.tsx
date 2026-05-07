@@ -11,7 +11,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import { apiPost } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getNotifSoundSettings } from "@/lib/notifications/sound-settings";
+import {
+  getNotifSoundSettings,
+  triggerVibration,
+} from "@/lib/notifications/sound-settings";
 import {
   Dialog,
   DialogContent,
