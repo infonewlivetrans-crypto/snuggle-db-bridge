@@ -115,6 +115,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setWindowTo((order.delivery_window_to ?? "").slice(0, 5));
       setClientType((order.client_type as ClientKind) ?? "");
       setDeliveryTimeComment(order.delivery_time_comment ?? "");
+      setDriverComment(order.driver_comment ?? "");
+      setDriverCommentImportant(order.driver_comment_is_important ?? false);
     }
   });
 
