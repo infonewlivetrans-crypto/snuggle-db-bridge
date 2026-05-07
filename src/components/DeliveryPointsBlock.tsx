@@ -309,6 +309,29 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                       <div className="whitespace-pre-line">Важно: {o.driver_comment}</div>
                     </div>
                   )}
+                  {hasCargoFeatures && (
+                    <div className="space-y-1 rounded-md border border-amber-400 bg-amber-50 p-2 text-xs dark:bg-amber-950/30 dark:border-amber-700">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span className="font-semibold text-amber-900 dark:text-amber-100">
+                          Особенность груза:
+                        </span>
+                        {cargoFeatures.map((f) => (
+                          <Badge
+                            key={f.key}
+                            variant="outline"
+                            className={
+                              f.critical
+                                ? "border-destructive bg-destructive/10 text-destructive"
+                                : "border-amber-400 bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
+                            }
+                            title={f.logistWarning}
+                          >
+                            {f.label}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   {risky && r && (
                     <div className="rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1 text-xs text-destructive">
                       {r.reasons.join(" · ")}
