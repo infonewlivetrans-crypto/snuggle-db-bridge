@@ -175,6 +175,8 @@ const SKIP_ACTIONS = new Set([
 export function RouteSignalsPanel({ routeId, requirements }: Props) {
   const qc = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
 
   const { data: offers, isLoading: loadingOffers } = useQuery({
     queryKey: ["route-signals", "offers", routeId],
