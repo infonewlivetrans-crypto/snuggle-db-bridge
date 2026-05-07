@@ -223,13 +223,14 @@ export function subscribeQueue(listener: () => void): () => void {
 }
 
 /** Универсальный helper: попытаться выполнить онлайн, иначе — поставить в очередь. */
-export async function runWithOfflineFallback<K extends QueuedAction["kind"]>(
-  kind: K,
-  payload: Extract<QueuedAction, { kind: K }>["payload"],
+export async function runWithOfflineFallback(
+  kind: QueuedAction["kind"],
+  payload: QueuedAction["payload"],
   online: () => Promise<void>,
 ): Promise<{ queued: boolean }> {
   if (!isOnline()) {
-    enqueueAction(kind, payload);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    enqueueAction(kind as any, payload as any);
     return { queued: true };
   }
   try {
@@ -238,7 +239,8 @@ export async function runWithOfflineFallback<K extends QueuedAction["kind"]>(
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (/network|fetch|failed to fetch|load failed|timeout/i.test(msg)) {
-      enqueueAction(kind, payload);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      enqueueAction(kind as any, payload as any);
       return { queued: true };
     }
     throw e;
