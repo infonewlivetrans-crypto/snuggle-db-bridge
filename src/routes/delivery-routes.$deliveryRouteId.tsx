@@ -911,7 +911,6 @@ function DeliveryRoutePage() {
                       onDrop={(e) => handleDrop(e, p.id)}
                       onDragEnd={handleDragEnd}
                     >
-                    <div key={p.id} className="space-y-3 px-4 py-4">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2">
