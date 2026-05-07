@@ -285,6 +285,14 @@ export function DriverOrderCard({
           </div>
         </div>
 
+        {/* Комментарий для водителя (не помеченный важным — обычный блок) */}
+        {order.driver_comment && !order.driver_comment_is_important && (
+          <div className="text-xs">
+            <div className="font-medium text-foreground">Комментарий для водителя</div>
+            <div className="text-muted-foreground whitespace-pre-line">{order.driver_comment}</div>
+          </div>
+        )}
+
         {onReportProblem && (
           <button
             type="button"
