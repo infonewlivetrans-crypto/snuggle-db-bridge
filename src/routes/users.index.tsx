@@ -26,7 +26,7 @@ import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client"
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { inviteUrl } from "@/lib/invite-url";
-import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload, Trash2 } from "lucide-react";
+import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload, Trash2, LogIn } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { formatRuPhone } from "@/lib/phone";
 import { useAuth } from "@/lib/auth/auth-context";
