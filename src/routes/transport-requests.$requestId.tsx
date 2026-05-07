@@ -40,6 +40,7 @@ import { TransportRequirementsBlock } from "@/components/TransportRequirementsBl
 import { TransportCapacityCheck } from "@/components/TransportCapacityCheck";
 import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
+import { RouteSignalsPanel } from "@/components/RouteSignalsPanel";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { CarrierPayoutBlock } from "@/components/CarrierPayoutBlock";
@@ -432,6 +433,7 @@ function TransportRequestDetailPage() {
               </TabsContent>
 
               <TabsContent value="hired" className="space-y-4 pt-4">
+                <RouteSignalsPanel routeId={data.id} />
                 <CarrierConfirmationBlock routeId={data.id} />
                 <CarrierOffersBlockForRoute routeId={data.id} />
                 <Section title="Наёмный транспорт и водитель">

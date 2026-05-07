@@ -43,6 +43,7 @@ import { RouteTimingBlock } from "@/components/RouteTimingBlock";
 import { RouteCostBlock, type CostMethod } from "@/components/RouteCostBlock";
 import { CarrierOffersBlock } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
+import { RouteSignalsPanel } from "@/components/RouteSignalsPanel";
 import { CarrierPaymentBlock } from "@/components/CarrierPaymentBlock";
 import { CarrierDocumentsBlock } from "@/components/CarrierDocumentsBlock";
 import { CarrierPayoutBlock } from "@/components/CarrierPayoutBlock";
@@ -497,6 +498,9 @@ function RouteDetailPage() {
             (route as unknown as { delivery_percent_target?: number }).delivery_percent_target ?? 5,
           )}
         />
+
+        {/* Панель сигналов: кому отправлено, кто принял/отказался/не ответил */}
+        <RouteSignalsPanel routeId={route.id} />
 
         {/* Подтверждение перевозчика логистом */}
         <CarrierConfirmationBlock routeId={route.id} />
