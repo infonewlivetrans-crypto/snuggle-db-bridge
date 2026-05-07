@@ -551,7 +551,24 @@ function DriverRoutePage() {
                     size="lg"
                     variant="outline"
                     className="w-full gap-1.5"
-                    disabled
+                    onClick={() => {
+                      const items = validationErrors.slice(0, 6);
+                      const more = validationErrors.length - items.length;
+                      toast.error("Нельзя завершить рейс", {
+                        description: (
+                          <div className="space-y-1">
+                            <div className="font-medium">Не выполнены задания:</div>
+                            <ul className="list-disc pl-4 space-y-0.5">
+                              {items.map((e, i) => (
+                                <li key={i}>{e}</li>
+                              ))}
+                              {more > 0 && <li>…и ещё {more}</li>}
+                            </ul>
+                          </div>
+                        ),
+                        duration: 8000,
+                      });
+                    }}
                   >
                     <CheckCircle2 className="h-4 w-4" />
                     Завершить маршрут и отправить отчёт
