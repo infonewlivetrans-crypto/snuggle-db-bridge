@@ -31,6 +31,8 @@ type Props = {
     | "delivery_window_to"
     | "delivery_time_comment"
     | "comment"
+    | "driver_comment"
+    | "driver_comment_is_important"
     | "total_weight_kg"
     | "total_volume_m3"
     | "items_count"
