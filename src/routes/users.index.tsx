@@ -181,6 +181,17 @@ function UsersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const impersonateMut = useMutation({
+    mutationFn: async (targetUserId: string) => {
+      await startImpersonation(targetUserId);
+    },
+    onSuccess: () => {
+      toast.success("Включен режим просмотра");
+      setTimeout(() => window.location.assign("/"), 200);
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось войти как пользователь"),
+  });
+
   async function onPickDriversFile(file: File | null) {
     if (!file) return;
     setDriverImportBusy(true);
