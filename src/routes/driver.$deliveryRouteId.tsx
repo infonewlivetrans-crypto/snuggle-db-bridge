@@ -257,12 +257,32 @@ function DriverRoutePage() {
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
   const isCompleted = data?.status === "completed";
 
+  // Блокировка перехода к следующей точке: если у текущей открытой точки
+  // требуется QR-код, а он не загружен/не подтверждён — следующие точки
+  // показываем как заблокированные.
+  let blockedFromIndex = list.length;
+  let blockingPointNumber: number | null = null;
+  for (let i = 0; i < list.length; i++) {
+    const pt = list[i];
+    if (FINAL.includes(pt.dp_status)) continue;
+    if (pt.order?.requires_qr) {
+      const hasQrPhoto = !!photoKindsByPoint?.[pt.id]?.has("qr");
+      if (!pt.order.qr_received || !hasQrPhoto) {
+        blockedFromIndex = i + 1;
+        blockingPointNumber = pt.point_number;
+      }
+    }
+    break;
+  }
+
   // Подробная проверка перед завершением маршрута
   const validationErrors: string[] = (() => {
     const errs: string[] = [];
     if (list.length === 0) return errs;
     if (pendingCount > 0) {
-      errs.push(`Нельзя завершить маршрут. Есть необработанные точки (${pendingCount}).`);
+      errs.push(
+        "Рейс нельзя завершить. Сначала завершите все задания по заказам: сдайте деньги, документы, QR-код и остальные обязательные действия.",
+      );
     }
     for (const p of list) {
       const num = p.order?.order_number ?? `точка №${p.point_number}`;
@@ -271,13 +291,13 @@ function DriverRoutePage() {
         if (p.order?.requires_qr) {
           const hasQrPhoto = !!kinds?.has("qr");
           if (!p.order.qr_received || !hasQrPhoto) {
-            errs.push(`По заказу №${num} не загружен QR-код.`);
+            errs.push(`По заказу №${num} не загружен QR-код / не подтверждён QR.`);
           }
         }
         const isPrepaid = p.order?.payment_status === "paid";
         if (p.order?.payment_type === "cash" && !isPrepaid) {
           if (p.dp_amount_received == null || Number(p.dp_amount_received) <= 0) {
-            errs.push(`По заказу №${num} не указана сумма оплаты.`);
+            errs.push(`По заказу №${num} не сдана сумма наличных.`);
           }
         }
       } else if (p.dp_status === "not_delivered") {
@@ -446,6 +466,11 @@ function DriverRoutePage() {
                       onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
                       reordering={reorderPoints.isPending}
                       locked={isCompleted}
+                      blockedReason={
+                        idx >= blockedFromIndex && blockingPointNumber != null
+                          ? `Сначала загрузите/подтвердите QR по точке №${blockingPointNumber}, затем переходите к следующей разгрузке.`
+                          : null
+                      }
                     />
                   ))}
                 </div>
@@ -525,6 +550,7 @@ function DriverPointCard({
   onReorder,
   reordering,
   locked,
+  blockedReason,
 }: {
   p: PointRow;
   index: number;
@@ -535,6 +561,7 @@ function DriverPointCard({
   onReorder: (dir: -1 | 1) => void;
   reordering: boolean;
   locked: boolean;
+  blockedReason?: string | null;
 }) {
   const o = p.order;
 
@@ -553,6 +580,26 @@ function DriverPointCard({
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
+
+  if (blockedReason) {
+    return (
+      <div className="rounded-lg border border-orange-500/40 bg-orange-500/5 p-4 space-y-2 opacity-90">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-muted px-1.5 text-xs font-semibold">
+            {p.point_number}
+          </span>
+          <span className="font-semibold">{o?.order_number ?? "—"}</span>
+          <Badge variant="outline" className="ml-auto bg-orange-100 text-orange-900 border-orange-200 text-xs">
+            Заблокировано
+          </Badge>
+        </div>
+        <div className="flex items-start gap-1.5 text-sm text-orange-800 dark:text-orange-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{blockedReason}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
