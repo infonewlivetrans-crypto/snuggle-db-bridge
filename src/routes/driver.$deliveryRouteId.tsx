@@ -49,6 +49,8 @@ import type {
   DeliveryPointUndeliveredReason,
 } from "@/lib/deliveryPointStatus";
 import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
+import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
+import { runWithOfflineFallback, hasPendingForRoute, subscribeQueue, flushQueue } from "@/lib/offlineQueue";
 
 export const Route = createFileRoute("/driver/$deliveryRouteId")({
   head: () => ({
@@ -192,33 +194,48 @@ function DriverRoutePage() {
     },
   });
 
+  // Подписка на изменения очереди для актуальности валидаций
+  const [, setQueueTick] = useState(0);
+  useEffect(() => subscribeQueue(() => setQueueTick((n) => n + 1)), []);
+
   const finalize = useMutation({
     mutationFn: async (errors: string[]) => {
       if (errors.length > 0) {
         throw new Error(errors[0]);
       }
       const gps = await getCurrentCoords();
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status: "completed" as DeliveryRouteStatus })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
-      // Лог завершения маршрута с GPS — пишем по последней точке (или просто к маршруту)
-      const lastPoint = (points ?? [])[ (points ?? []).length - 1 ];
-      if (lastPoint) {
-        await logPointAction({
-          routePointId: lastPoint.id,
-          orderId: lastPoint.order_id,
-          routeId: data?.source_request_id ?? null,
-          action: "route_completed",
-          actor: data?.assigned_driver ?? "Водитель",
-          details: gps ? { gps } : { gps_unavailable: true },
-        });
-      }
+      const lastPoint = (points ?? [])[(points ?? []).length - 1];
+      const res = await runWithOfflineFallback(
+        "route_finish",
+        { deliveryRouteId },
+        async () => {
+          const { error } = await supabase
+            .from("delivery_routes")
+            .update({ status: "completed" as DeliveryRouteStatus })
+            .eq("id", deliveryRouteId);
+          if (error) throw error;
+          if (lastPoint) {
+            await logPointAction({
+              routePointId: lastPoint.id,
+              orderId: lastPoint.order_id,
+              routeId: data?.source_request_id ?? null,
+              action: "route_completed",
+              actor: data?.assigned_driver ?? "Водитель",
+              details: gps ? { gps } : { gps_unavailable: true },
+            });
+          }
+        },
+      );
+      return res;
     },
-    onSuccess: () => {
-      toast.success("Маршрут завершён. Отчёт отправлен менеджеру.");
+    onSuccess: (res) => {
+      toast.success(
+        res?.queued
+          ? "Сохранено на устройстве. Маршрут будет завершён при появлении связи."
+          : "Маршрут завершён. Отчёт отправлен менеджеру.",
+      );
       qc.invalidateQueries({ queryKey: ["driver-route", deliveryRouteId] });
+      void flushQueue().then(() => qc.invalidateQueries({ queryKey: ["driver-route", deliveryRouteId] }));
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -316,6 +333,15 @@ function DriverRoutePage() {
     return errs;
   })();
 
+  // Блокировка завершения, если есть несинхронизированные действия по этому маршруту
+  const pointIdSet = (points ?? []).map((p) => p.id);
+  const hasOfflinePending = hasPendingForRoute(deliveryRouteId, pointIdSet);
+  if (hasOfflinePending) {
+    validationErrors.unshift(
+      "Есть действия, не отправленные на сервер. Дождитесь окончания синхронизации.",
+    );
+  }
+
   const canFinalize = list.length > 0 && validationErrors.length === 0 && !isCompleted;
 
   return (
@@ -356,6 +382,16 @@ function DriverRoutePage() {
           </div>
         ) : (
           <div className="space-y-4">
+            <OfflineQueueIndicator
+              invalidateKeys={[
+                ["driver-route", deliveryRouteId],
+                ["delivery-route-points", data.source_request_id],
+                ["route-point-photos-kinds"],
+                ["trip-stage-events", deliveryRouteId],
+                ["route-returns", deliveryRouteId],
+              ]}
+            />
+
             {/* Шапка маршрута */}
             <div className="rounded-lg border border-border bg-card p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
