@@ -15,8 +15,10 @@ import { useSetting } from "@/lib/settings-provider";
 import {
   blobToObjectURL,
   deletePhoto as idbDeletePhoto,
+  enforceOfflinePhotoQuota,
   listPhotosByRoutePoint,
   newClientUploadId,
+  OFFLINE_PHOTO_MAX_FILE_BYTES,
   putPhoto,
   subscribePhotos,
   type OfflinePhotoRecord,
@@ -175,8 +177,21 @@ function PhotoKindRow({
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
+      if (file.size > OFFLINE_PHOTO_MAX_FILE_BYTES) {
+        toast.error(
+          `Файл слишком большой (макс. ${Math.round(OFFLINE_PHOTO_MAX_FILE_BYTES / 1024 / 1024)} МБ)`,
+        );
+        return;
+      }
       // Если оффлайн или попытка не удалась — сохраняем в IndexedDB.
       const saveOffline = async (reason?: string) => {
+        // Освобождаем место под новый файл, удаляя самые старые.
+        const removed = await enforceOfflinePhotoQuota(file.size, 1).catch(() => 0);
+        if (removed > 0) {
+          toast.message("Очищены старые офлайн-фото", {
+            description: `Удалено: ${removed}`,
+          });
+        }
         const rec: OfflinePhotoRecord = {
           client_upload_id: newClientUploadId(),
           route_point_id: routePointId,
