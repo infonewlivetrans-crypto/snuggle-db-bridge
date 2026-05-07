@@ -14,6 +14,15 @@ import {
   clearLocalSessionTokens,
 } from "@/lib/api-client";
 import { APP_ROLES, type AppRole } from "./roles";
+import {
+  loadImpersonation,
+  saveImpersonation,
+  clearImpersonation,
+  installImpersonationFetchGuard,
+  type ImpersonationState,
+} from "./impersonation";
+import { startImpersonationFn, stopImpersonationFn } from "@/lib/impersonation.functions";
+import { toast } from "sonner";
 
 type Profile = {
   id: string;
@@ -42,6 +51,13 @@ type AuthContextValue = {
   ) => Promise<{ user: SessionUser; roles: AppRole[] }>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  // === Imperonation (read-only "Войти как пользователь") ===
+  impersonation: ImpersonationState | null;
+  realUser: SessionUser | null;
+  realRoles: AppRole[];
+  realProfile: Profile | null;
+  startImpersonation: (targetUserId: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
