@@ -126,6 +126,9 @@ function PhotoKindRow({
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        throw new Error("Нет интернета. Фото можно загрузить только при подключении.");
+      }
       setUploading(true);
       try {
         const ext = file.name.split(".").pop() || "jpg";
