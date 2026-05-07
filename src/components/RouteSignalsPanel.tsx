@@ -1,7 +1,7 @@
 // Панель логиста: кому отправлен сигнал по рейсу,
 // кто принял, кто отказался, кто не ответил, и причины пропусков.
 // Только просмотр (read-only) — без правок данных.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,14 @@ import {
   RefreshCw,
   Truck,
   User,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  Mail,
+  Building2,
+  Ruler,
+  Weight,
+  Box,
 } from "lucide-react";
 import {
   BroadcastSignalButton,
