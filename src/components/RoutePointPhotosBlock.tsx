@@ -23,6 +23,7 @@ import {
   subscribePhotos,
   type OfflinePhotoRecord,
 } from "@/lib/offlinePhotoStore";
+import { compressImageFile } from "@/lib/imageCompress";
 import {
   flushPhotoQueue,
   installPhotoFlushAutoTriggers,
