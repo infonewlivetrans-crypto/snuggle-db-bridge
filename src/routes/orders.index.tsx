@@ -65,6 +65,8 @@ type OrderRow = {
   contact_phone: string | null;
   created_at: string;
   updated_at: string;
+  driver_comment: string | null;
+  driver_comment_is_important: boolean | null;
   // joined
   route?: {
     id: string;
