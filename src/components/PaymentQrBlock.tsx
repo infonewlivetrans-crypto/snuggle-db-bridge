@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, QrCode, Banknote, ShoppingBag, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { runWithOfflineFallback, flushQueue } from "@/lib/offlineQueue";
 
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
   cash: "Наличные",
