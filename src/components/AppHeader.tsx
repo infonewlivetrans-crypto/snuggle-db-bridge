@@ -173,6 +173,7 @@ const GROUPS: readonly NavGroup[] = [
       p.startsWith("/upload"),
     items: [
       { to: "/orders", label: "Заказы и клиенты", icon: ClipboardList },
+      { to: "/clients/new", label: "Новый получатель", icon: ClipboardList },
       { to: "/data-import", label: "Импорт заказов", icon: FileSpreadsheet },
       { to: "/data-import/history", label: "История импорта", icon: History },
       { to: "/upload", label: "Загрузка файлов", icon: Upload },
