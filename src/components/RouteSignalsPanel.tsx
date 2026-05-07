@@ -230,7 +230,7 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryFn: async (): Promise<CarrierLite[]> => {
       const { data, error } = await db
         .from("carriers")
-        .select("id, company_name")
+        .select("id, company_name, phone, email, city, contact_person")
         .in("id", carrierIds);
       if (error) throw error;
       return (data ?? []) as CarrierLite[];
