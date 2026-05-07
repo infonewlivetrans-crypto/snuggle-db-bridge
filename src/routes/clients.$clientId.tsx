@@ -319,6 +319,30 @@ function EditClientPage() {
           </Button>
         </div>
 
+        {(() => {
+          const extra = (clientQ.data?.extra_attrs as Record<string, unknown> | null) ?? {};
+          const history = Array.isArray(extra.transfer_history)
+            ? (extra.transfer_history as TransferHistoryEntry[])
+            : [];
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              <TransferClientDialog
+                clientId={clientId}
+                clientName={values.name || s(clientQ.data?.name)}
+                currentManagerId={values.assigned_manager_id || null}
+                managers={managersQuery.data ?? []}
+                history={history}
+                extraAttrs={extra}
+              />
+              {history.length > 0 && (
+                <span className="text-xs text-muted-foreground">
+                  Передач в истории: {history.length}
+                </span>
+              )}
+            </div>
+          );
+        })()}
+
         <section className="rounded-lg border bg-card p-4 space-y-4">
           <h2 className="font-medium">Основное</h2>
           <div className="grid gap-3">
