@@ -110,7 +110,7 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
       const { data, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends)",
+          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends, driver_comment, driver_comment_is_important)",
         )
         .eq("route_id", requestId)
         .order("point_number", { ascending: true });
