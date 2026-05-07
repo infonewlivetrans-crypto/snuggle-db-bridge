@@ -465,7 +465,7 @@ function NewClientPage() {
           </Field>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Checkbox checked readOnly aria-readonly />
+            <Checkbox checked disabled />
             Доп. контакт и внутренняя информация скрыты от водителей и сторонних пользователей.
           </div>
         </section>
