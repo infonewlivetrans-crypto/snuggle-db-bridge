@@ -1,7 +1,7 @@
 // Панель логиста: кому отправлен сигнал по рейсу,
 // кто принял, кто отказался, кто не ответил, и причины пропусков.
 // Только просмотр (read-only) — без правок данных.
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,14 @@ import {
   RefreshCw,
   Truck,
   User,
+  ChevronDown,
+  ChevronUp,
+  Phone,
+  Mail,
+  Building2,
+  Ruler,
+  Weight,
+  Box,
 } from "lucide-react";
 import {
   BroadcastSignalButton,
@@ -43,14 +51,37 @@ type OfferRow = {
   comment: string | null;
 };
 
-type CarrierLite = { id: string; company_name: string | null };
+type CarrierLite = {
+  id: string;
+  company_name: string | null;
+  phone: string | null;
+  email: string | null;
+  city: string | null;
+  contact_person: string | null;
+};
 type VehicleLite = {
   id: string;
   plate_number: string | null;
   brand: string | null;
   model: string | null;
+  body_type: string | null;
+  capacity_kg: number | null;
+  volume_m3: number | null;
+  body_length_m: number | null;
+  body_width_m: number | null;
+  body_height_m: number | null;
+  has_tent: boolean | null;
+  has_manipulator: boolean | null;
+  has_straps: boolean | null;
+  comment: string | null;
 };
-type DriverLite = { id: string; full_name: string | null; phone: string | null };
+type DriverLite = {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  license_number: string | null;
+  license_categories: string | null;
+};
 
 type HistoryRow = {
   id: string;
@@ -143,6 +174,7 @@ const SKIP_ACTIONS = new Set([
 
 export function RouteSignalsPanel({ routeId, requirements }: Props) {
   const qc = useQueryClient();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: offers, isLoading: loadingOffers } = useQuery({
     queryKey: ["route-signals", "offers", routeId],
@@ -199,7 +231,7 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryFn: async (): Promise<CarrierLite[]> => {
       const { data, error } = await db
         .from("carriers")
-        .select("id, company_name")
+        .select("id, company_name, phone, email, city, contact_person")
         .in("id", carrierIds);
       if (error) throw error;
       return (data ?? []) as CarrierLite[];
@@ -212,7 +244,7 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryFn: async (): Promise<VehicleLite[]> => {
       const { data, error } = await db
         .from("vehicles")
-        .select("id, plate_number, brand, model")
+        .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3, body_length_m, body_width_m, body_height_m, has_tent, has_manipulator, has_straps, comment")
         .in("id", vehicleIds);
       if (error) throw error;
       return (data ?? []) as VehicleLite[];
@@ -225,7 +257,7 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryFn: async (): Promise<DriverLite[]> => {
       const { data, error } = await db
         .from("drivers")
-        .select("id, full_name, phone")
+        .select("id, full_name, phone, license_number, license_categories")
         .in("id", driverIds);
       if (error) throw error;
       return (data ?? []) as DriverLite[];
@@ -374,6 +406,164 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
                   {o.comment && (
                     <div className="mt-2 text-xs text-muted-foreground">
                       Комментарий: {o.comment}
+                    </div>
+                  )}
+
+                  {/* Раскрытие — полные данные по авто/водителю/перевозчику */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expandedId === o.id ? null : o.id)}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    {expandedId === o.id ? (
+                      <>
+                        <ChevronUp className="h-3.5 w-3.5" />
+                        Свернуть детали
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-3.5 w-3.5" />
+                        Подробнее
+                      </>
+                    )}
+                  </button>
+
+                  {expandedId === o.id && (
+                    <div className="mt-2 grid gap-3 rounded-md border border-border bg-muted/20 p-3 text-xs sm:grid-cols-3">
+                      {/* Перевозчик */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 font-semibold text-foreground">
+                          <Building2 className="h-3.5 w-3.5" />
+                          Перевозчик
+                        </div>
+                        <div className="text-foreground">{c?.company_name ?? "—"}</div>
+                        {c?.contact_person && (
+                          <div className="text-muted-foreground">
+                            Контакт: {c.contact_person}
+                          </div>
+                        )}
+                        {c?.phone && (
+                          <a
+                            href={`tel:${c.phone}`}
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <Phone className="h-3 w-3" />
+                            {c.phone}
+                          </a>
+                        )}
+                        {c?.email && (
+                          <a
+                            href={`mailto:${c.email}`}
+                            className="flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <Mail className="h-3 w-3" />
+                            {c.email}
+                          </a>
+                        )}
+                        {c?.city && (
+                          <div className="text-muted-foreground">Город: {c.city}</div>
+                        )}
+                      </div>
+
+                      {/* Автомобиль */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 font-semibold text-foreground">
+                          <Truck className="h-3.5 w-3.5" />
+                          Автомобиль
+                        </div>
+                        {v ? (
+                          <>
+                            <div className="text-foreground">
+                              {[v.brand, v.model].filter(Boolean).join(" ") || "—"}
+                            </div>
+                            {v.plate_number && (
+                              <div className="font-mono text-foreground">
+                                № {v.plate_number}
+                              </div>
+                            )}
+                            {v.body_type && (
+                              <div className="text-muted-foreground">
+                                Кузов: {v.body_type}
+                              </div>
+                            )}
+                            {(v.capacity_kg || v.volume_m3) && (
+                              <div className="flex flex-wrap items-center gap-x-2 text-muted-foreground">
+                                {v.capacity_kg && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Weight className="h-3 w-3" />
+                                    {v.capacity_kg} кг
+                                  </span>
+                                )}
+                                {v.volume_m3 && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Box className="h-3 w-3" />
+                                    {v.volume_m3} м³
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {(v.body_length_m || v.body_width_m || v.body_height_m) && (
+                              <div className="inline-flex items-center gap-1 text-muted-foreground">
+                                <Ruler className="h-3 w-3" />
+                                {v.body_length_m ?? "—"}×{v.body_width_m ?? "—"}×
+                                {v.body_height_m ?? "—"} м
+                              </div>
+                            )}
+                            <div className="flex flex-wrap gap-1 pt-0.5">
+                              {v.has_tent && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  тент
+                                </Badge>
+                              )}
+                              {v.has_manipulator && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  манипулятор
+                                </Badge>
+                              )}
+                              {v.has_straps && (
+                                <Badge variant="outline" className="text-[10px]">
+                                  ремни
+                                </Badge>
+                              )}
+                            </div>
+                            {v.comment && (
+                              <div className="text-muted-foreground">{v.comment}</div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-muted-foreground">Не назначен</div>
+                        )}
+                      </div>
+
+                      {/* Водитель */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1 font-semibold text-foreground">
+                          <User className="h-3.5 w-3.5" />
+                          Водитель
+                        </div>
+                        {d ? (
+                          <>
+                            <div className="text-foreground">{d.full_name ?? "—"}</div>
+                            {d.phone && (
+                              <a
+                                href={`tel:${d.phone}`}
+                                className="inline-flex items-center gap-1 text-primary hover:underline"
+                              >
+                                <Phone className="h-3 w-3" />
+                                {d.phone}
+                              </a>
+                            )}
+                            {d.license_number && (
+                              <div className="text-muted-foreground">
+                                ВУ: {d.license_number}
+                                {d.license_categories ? ` (${d.license_categories})` : ""}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-muted-foreground">Не назначен</div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
