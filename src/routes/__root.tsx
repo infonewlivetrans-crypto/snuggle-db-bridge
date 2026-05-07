@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/auth/auth-context";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { PostLoginRedirect } from "@/components/auth/PostLoginRedirect";
 import { ImpersonationBanner } from "@/components/auth/ImpersonationBanner";
+import { IncomingOfferWatcher } from "@/components/IncomingOfferWatcher";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorState } from "@/components/ErrorState";
 import { useEffect } from "react";
@@ -122,6 +123,7 @@ function RootComponent() {
           <PostLoginRedirect />
           <AuthGate>
             <ImpersonationBanner />
+            <IncomingOfferWatcher />
             <ErrorBoundary section="app">
               <Outlet />
             </ErrorBoundary>
