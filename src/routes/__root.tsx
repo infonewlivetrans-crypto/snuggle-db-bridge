@@ -123,6 +123,7 @@ function RootComponent() {
           <PostLoginRedirect />
           <AuthGate>
             <ImpersonationBanner />
+            <IncomingOfferWatcher />
             <ErrorBoundary section="app">
               <Outlet />
             </ErrorBoundary>
