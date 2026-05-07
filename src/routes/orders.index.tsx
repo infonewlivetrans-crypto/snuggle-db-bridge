@@ -32,7 +32,7 @@ import {
   type OrderStatus,
   type PaymentStatus,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/orders/")({
