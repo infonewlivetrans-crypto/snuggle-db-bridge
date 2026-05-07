@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { db } from "@/lib/db";
 import { apiPost } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
+import { getNotifSoundSettings } from "@/lib/notifications/sound-settings";
 import {
   Dialog,
   DialogContent,
@@ -56,8 +57,15 @@ const DECLINE_REASONS = [
 ];
 
 /** Проигрывает короткую звуковую «трель» через WebAudio (без файлов). */
-function playSignalSound() {
+export function playSignalSound(volumeOverride?: number) {
   try {
+    const settings = getNotifSoundSettings();
+    if (!settings.enabled && volumeOverride == null) return;
+    const vol = Math.max(
+      0,
+      Math.min(1, volumeOverride != null ? volumeOverride : settings.volume),
+    );
+    if (vol <= 0) return;
     const Ctx =
       (window.AudioContext as typeof AudioContext | undefined) ??
       (window as unknown as { webkitAudioContext?: typeof AudioContext })
@@ -66,6 +74,7 @@ function playSignalSound() {
     const ctx = new Ctx();
     const now = ctx.currentTime;
     const notes = [880, 1175, 1568]; // A5, D6, G6 — «вызов»
+    const peak = 0.25 * vol;
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -74,7 +83,7 @@ function playSignalSound() {
       const start = now + i * 0.18;
       const end = start + 0.16;
       gain.gain.setValueAtTime(0.0001, start);
-      gain.gain.exponentialRampToValueAtTime(0.25, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), start + 0.02);
       gain.gain.exponentialRampToValueAtTime(0.0001, end);
       osc.connect(gain).connect(ctx.destination);
       osc.start(start);

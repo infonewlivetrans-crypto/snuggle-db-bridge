@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { NotifSoundSettingsCard } from "@/components/settings/NotifSoundSettingsCard";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
@@ -188,6 +189,10 @@ function NotificationsPage() {
             <span className="hidden xs:inline">Прочитать все</span>
             <span className="xs:hidden">Все</span>
           </Button>
+        </div>
+
+        <div className="mb-3">
+          <NotifSoundSettingsCard />
         </div>
 
         {/* Фильтры — горизонтальный скролл на мобильном */}
