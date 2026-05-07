@@ -433,7 +433,35 @@ function TransportRequestDetailPage() {
               </TabsContent>
 
               <TabsContent value="hired" className="space-y-4 pt-4">
-                <RouteSignalsPanel routeId={data.id} />
+                <RouteSignalsPanel
+                  routeId={data.id}
+                  requirements={{
+                    required_body_type: (data as unknown as { required_body_type?: BodyType | null })
+                      .required_body_type ?? null,
+                    required_capacity_kg:
+                      (data as unknown as { required_capacity_kg?: number | null })
+                        .required_capacity_kg ?? null,
+                    required_volume_m3:
+                      (data as unknown as { required_volume_m3?: number | null })
+                        .required_volume_m3 ?? null,
+                    required_body_length_m:
+                      (data as unknown as { required_body_length_m?: number | null })
+                        .required_body_length_m ?? null,
+                    requires_tent:
+                      (data as unknown as { requires_tent?: boolean | null }).requires_tent ?? null,
+                    requires_manipulator:
+                      (data as unknown as { requires_manipulator?: boolean | null })
+                        .requires_manipulator ?? null,
+                    requires_straps:
+                      (data as unknown as { requires_straps?: boolean | null }).requires_straps ?? null,
+                    warehouse_city:
+                      (data as unknown as { warehouses?: { city?: string | null } | null })
+                        .warehouses?.city ?? null,
+                    planned_departure_at:
+                      (data as unknown as { planned_departure_at?: string | null })
+                        .planned_departure_at ?? null,
+                  }}
+                />
                 <CarrierConfirmationBlock routeId={data.id} />
                 <CarrierOffersBlockForRoute routeId={data.id} />
                 <Section title="Наёмный транспорт и водитель">
