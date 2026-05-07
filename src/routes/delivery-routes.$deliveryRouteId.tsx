@@ -113,6 +113,8 @@ type PointRow = {
     latitude: number | null;
     longitude: number | null;
     comment: string | null;
+    driver_comment: string | null;
+    driver_comment_is_important: boolean | null;
     payment_type: string;
     amount_due: number | null;
     requires_qr: boolean;
