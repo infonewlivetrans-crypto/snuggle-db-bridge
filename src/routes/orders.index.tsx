@@ -373,19 +373,32 @@ function OrdersPage() {
                       const from = r.route?.warehouse?.city ?? "—";
                       const to = r.destination_city ?? "—";
                       return (
-                        <TableRow key={r.id}>
+                        <TableRow
+                          key={r.id}
+                          className={r.driver_comment_is_important && r.driver_comment ? "bg-destructive/5" : undefined}
+                        >
                           <TableCell className="font-mono text-xs">
-                            {isDemo ? (
-                              <span className="font-semibold">{r.order_number}</span>
-                            ) : (
-                              <Link
-                                to="/"
-                                search={{ orderId: r.id }}
-                                className="font-semibold text-primary hover:underline"
-                              >
-                                {r.order_number}
-                              </Link>
-                            )}
+                            <div className="flex items-center gap-1.5">
+                              {isDemo ? (
+                                <span className="font-semibold">{r.order_number}</span>
+                              ) : (
+                                <Link
+                                  to="/"
+                                  search={{ orderId: r.id }}
+                                  className="font-semibold text-primary hover:underline"
+                                >
+                                  {r.order_number}
+                                </Link>
+                              )}
+                              {r.driver_comment_is_important && r.driver_comment && (
+                                <span
+                                  title={`Важно для водителя: ${r.driver_comment}`}
+                                  className="inline-flex items-center"
+                                >
+                                  <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="font-medium text-foreground">{r.contact_name ?? "—"}</div>
