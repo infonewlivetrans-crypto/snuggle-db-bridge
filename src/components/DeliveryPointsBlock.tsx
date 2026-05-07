@@ -35,6 +35,8 @@ type Point = {
     longitude: number | null;
     map_link: string | null;
     client_works_weekends: boolean;
+    driver_comment: string | null;
+    driver_comment_is_important: boolean | null;
   } | null;
 };
 
