@@ -127,6 +127,38 @@ export function DriverOrderCard({
           </div>
         )}
 
+        {/* Особенности груза, распознанные из комментария */}
+        {cargoFeatures.length > 0 && (
+          <div className="space-y-1.5 rounded-md border-2 border-amber-400 bg-amber-50 p-3 dark:bg-amber-950/40 dark:border-amber-600">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+              <AlertTriangle className="h-4 w-4" />
+              Особенности груза
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {cargoFeatures.map((f) => (
+                <Badge
+                  key={f.key}
+                  variant="outline"
+                  className={
+                    f.critical
+                      ? "border-destructive bg-destructive/10 text-destructive"
+                      : "border-amber-400 bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
+                  }
+                >
+                  {f.label}
+                </Badge>
+              ))}
+            </div>
+            <ul className="list-disc space-y-0.5 pl-5 text-xs text-amber-900 dark:text-amber-100">
+              {cargoFeatures.map((f) => (
+                <li key={f.key} className={f.critical ? "font-semibold" : undefined}>
+                  {f.driverWarning}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="rounded-lg border border-border bg-muted/30 p-3">
           <div className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-status-success" />
