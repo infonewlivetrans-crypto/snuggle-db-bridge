@@ -349,9 +349,8 @@ export function IncomingOfferWatcher() {
             variant="outline"
             size="sm"
             onClick={() => {
-              const id = current.id;
               closeCurrent();
-              navigate({ to: "/carrier-offers", search: { offerId: id } });
+              navigate({ to: "/carrier-offers" });
             }}
             className="gap-1.5"
           >
