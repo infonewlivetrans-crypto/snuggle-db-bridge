@@ -256,7 +256,7 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryFn: async (): Promise<DriverLite[]> => {
       const { data, error } = await db
         .from("drivers")
-        .select("id, full_name, phone")
+        .select("id, full_name, phone, license_number, license_categories")
         .in("id", driverIds);
       if (error) throw error;
       return (data ?? []) as DriverLite[];
