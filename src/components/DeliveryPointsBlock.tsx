@@ -1,7 +1,9 @@
+import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import {
   MapPin,
@@ -11,6 +13,7 @@ import {
   Clock,
   CalendarDays,
   Phone,
+  AlertTriangle,
 } from "lucide-react";
 import { POINT_STATUS_LABELS, POINT_STATUS_STYLES, type PointStatus } from "@/lib/routes";
 import { formatRuPhone } from "@/lib/phone";
@@ -19,6 +22,7 @@ type Point = {
   id: string;
   point_number: number;
   status: PointStatus;
+  planned_time: string | null;
   client_window_from: string | null;
   client_window_to: string | null;
   order: {
@@ -51,8 +55,52 @@ function mapHref(p: Point["order"]) {
   return null;
 }
 
+// "HH:MM" → минуты в сутках
+function tToMin(t: string | null): number | null {
+  if (!t) return null;
+  const m = /^(\d{2}):(\d{2})/.exec(t);
+  if (!m) return null;
+  return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+}
+
+type Risk = { level: "none" | "risk"; reasons: string[] };
+
+function computeRisk(p: Point, routeIsWeekend: boolean): Risk {
+  const reasons: string[] = [];
+  const o = p.order;
+
+  if (routeIsWeekend && o && !o.client_works_weekends) {
+    reasons.push("Получатель не работает в выходные");
+  }
+
+  const at = tToMin(p.planned_time);
+  const from = tToMin(p.client_window_from);
+  const to = tToMin(p.client_window_to);
+  if (at != null && from != null && at < from) {
+    reasons.push(`Прибытие в ${formatTime(p.planned_time)} раньше начала приёма (${formatTime(p.client_window_from)})`);
+  }
+  if (at != null && to != null && at > to) {
+    reasons.push(`Прибытие в ${formatTime(p.planned_time)} после окончания приёма (${formatTime(p.client_window_to)})`);
+  }
+
+  return { level: reasons.length ? "risk" : "none", reasons };
+}
+
 export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
   const qc = useQueryClient();
+
+  const routeQ = useQuery({
+    queryKey: ["request-route-date", requestId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("routes")
+        .select("id, route_date")
+        .eq("id", requestId)
+        .maybeSingle();
+      if (error) throw error;
+      return data as { id: string; route_date: string | null } | null;
+    },
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["request-delivery-points", requestId],
@@ -60,7 +108,7 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
       const { data, error } = await supabase
         .from("route_points")
         .select(
-          "id, point_number, status, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends)",
+          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends)",
         )
         .eq("route_id", requestId)
         .order("point_number", { ascending: true });
@@ -69,9 +117,28 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
     },
   });
 
+  const routeIsWeekend = useMemo(() => {
+    const d = routeQ.data?.route_date;
+    if (!d) return false;
+    // route_date YYYY-MM-DD: считаем 6 (сб) и 0 (вс) выходными
+    const dt = new Date(`${d}T00:00:00`);
+    const day = dt.getDay();
+    return day === 0 || day === 6;
+  }, [routeQ.data?.route_date]);
+
+  const risks = useMemo(() => {
+    const out = new Map<string, Risk>();
+    for (const p of data ?? []) out.set(p.id, computeRisk(p, routeIsWeekend));
+    return out;
+  }, [data, routeIsWeekend]);
+
+  const riskyPoints = useMemo(
+    () => (data ?? []).filter((p) => risks.get(p.id)?.level === "risk"),
+    [data, risks],
+  );
+
   const reorder = useMutation({
     mutationFn: async (newOrder: Point[]) => {
-      // Two-phase update to avoid unique constraint clashes if any
       const tempBase = 100000;
       for (let i = 0; i < newOrder.length; i++) {
         const { error } = await supabase
@@ -114,8 +181,39 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
         </div>
         <span className="text-xs text-muted-foreground">
           Всего: {data?.length ?? 0}
+          {riskyPoints.length > 0 && (
+            <span className="ml-2 text-destructive">
+              · рискованных: {riskyPoints.length}
+            </span>
+          )}
         </span>
       </div>
+
+      {riskyPoints.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>
+            Получатель не работает в указанное время / выходные. Требуется корректировка маршрута.
+          </AlertTitle>
+          <AlertDescription>
+            <div className="mt-1 text-sm">
+              Подтверждение маршрута возможно, но рискованные точки выделены ниже:
+            </div>
+            <ul className="mt-1 list-disc pl-5 text-sm">
+              {riskyPoints.map((p) => {
+                const r = risks.get(p.id);
+                return (
+                  <li key={p.id}>
+                    <span className="font-mono">№{p.point_number}</span>
+                    {p.order?.contact_name ? ` · ${p.order.contact_name}` : ""}
+                    {r ? ` — ${r.reasons.join("; ")}` : ""}
+                  </li>
+                );
+              })}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Загрузка...</div>
@@ -130,12 +228,24 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
             const href = mapHref(o);
             const wf = formatTime(p.client_window_from);
             const wt = formatTime(p.client_window_to);
+            const r = risks.get(p.id);
+            const risky = r?.level === "risk";
             return (
               <li
                 key={p.id}
-                className="flex flex-col gap-2 rounded-md border border-border bg-background p-3 sm:flex-row sm:items-start"
+                className={
+                  "flex flex-col gap-2 rounded-md border bg-background p-3 sm:flex-row sm:items-start " +
+                  (risky ? "border-destructive/60 bg-destructive/5" : "border-border")
+                }
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                <div
+                  className={
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold " +
+                    (risky
+                      ? "bg-destructive/15 text-destructive"
+                      : "bg-primary/10 text-primary")
+                  }
+                >
                   {p.point_number}
                 </div>
 
@@ -153,6 +263,16 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                     >
                       {POINT_STATUS_LABELS[p.status] ?? p.status}
                     </Badge>
+                    {risky && (
+                      <Badge
+                        variant="destructive"
+                        className="inline-flex items-center gap-1"
+                        title={r?.reasons.join("; ")}
+                      >
+                        <AlertTriangle className="h-3 w-3" />
+                        Рискованная точка
+                      </Badge>
+                    )}
                     {o?.client_works_weekends && (
                       <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary/50 px-1.5 py-0.5 text-xs text-foreground">
                         <CalendarDays className="h-3 w-3" />
@@ -167,6 +287,12 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                     )}
                   </div>
 
+                  {risky && r && (
+                    <div className="rounded-md border border-destructive/40 bg-destructive/5 px-2 py-1 text-xs text-destructive">
+                      {r.reasons.join(" · ")}
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     {wf || wt ? (
                       <span className="inline-flex items-center gap-1">
@@ -177,6 +303,12 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
                       <span className="inline-flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         Окно не задано
+                      </span>
+                    )}
+                    {p.planned_time && (
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        План: {formatTime(p.planned_time)}
                       </span>
                     )}
                     {o?.contact_phone && (
