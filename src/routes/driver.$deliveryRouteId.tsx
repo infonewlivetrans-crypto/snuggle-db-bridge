@@ -550,6 +550,7 @@ function DriverPointCard({
   onReorder,
   reordering,
   locked,
+  blockedReason,
 }: {
   p: PointRow;
   index: number;
@@ -560,6 +561,7 @@ function DriverPointCard({
   onReorder: (dir: -1 | 1) => void;
   reordering: boolean;
   locked: boolean;
+  blockedReason?: string | null;
 }) {
   const o = p.order;
 
