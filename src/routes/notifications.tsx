@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { NotifSoundSettingsCard } from "@/components/settings/NotifSoundSettingsCard";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
