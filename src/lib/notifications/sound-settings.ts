@@ -1,6 +1,5 @@
-// Локальные настройки звука уведомлений «Новая подходящая заявка».
-// Храним в localStorage — без серверных миграций. Между вкладками
-// синхронизируем через storage event и кастомное событие.
+// Локальные настройки звука и вибрации для уведомления
+// «Новая подходящая заявка». Хранятся в localStorage.
 import { useEffect, useState, useCallback } from "react";
 
 const STORAGE_KEY = "notif-sound-settings:v1";
@@ -11,11 +10,14 @@ export type NotifSoundSettings = {
   enabled: boolean;
   /** Громкость 0..1 */
   volume: number;
+  /** Включена ли вибрация (на устройствах с поддержкой Vibration API) */
+  vibrate: boolean;
 };
 
 export const DEFAULT_NOTIF_SOUND_SETTINGS: NotifSoundSettings = {
   enabled: true,
   volume: 0.6,
+  vibrate: true,
 };
 
 function read(): NotifSoundSettings {
@@ -30,10 +32,13 @@ function read(): NotifSoundSettings {
           ? parsed.enabled
           : DEFAULT_NOTIF_SOUND_SETTINGS.enabled,
       volume:
-        typeof parsed.volume === "number" &&
-        Number.isFinite(parsed.volume)
+        typeof parsed.volume === "number" && Number.isFinite(parsed.volume)
           ? Math.max(0, Math.min(1, parsed.volume))
           : DEFAULT_NOTIF_SOUND_SETTINGS.volume,
+      vibrate:
+        typeof parsed.vibrate === "boolean"
+          ? parsed.vibrate
+          : DEFAULT_NOTIF_SOUND_SETTINGS.vibrate,
     };
   } catch {
     return DEFAULT_NOTIF_SOUND_SETTINGS;
@@ -55,11 +60,36 @@ export function getNotifSoundSettings(): NotifSoundSettings {
   return read();
 }
 
-/** Реактивный хук с настройками звука уведомлений. */
+/** Поддерживается ли Vibration API в текущем браузере. */
+export function isVibrationSupported(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return typeof (navigator as Navigator & { vibrate?: unknown }).vibrate ===
+    "function";
+}
+
+/**
+ * Включить вибрацию по паттерну. На iOS Safari Vibration API не реализован
+ * (тогда просто ничего не произойдёт). На Android и многих PWA — работает.
+ */
+export function triggerVibration(
+  pattern: number | number[] = [120, 60, 120, 60, 200],
+) {
+  try {
+    if (!isVibrationSupported()) return;
+    (navigator as Navigator & { vibrate: (p: number | number[]) => boolean })
+      .vibrate(pattern);
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Реактивный хук с настройками. */
 export function useNotifSoundSettings(): {
   settings: NotifSoundSettings;
+  vibrationSupported: boolean;
   setEnabled: (v: boolean) => void;
   setVolume: (v: number) => void;
+  setVibrate: (v: boolean) => void;
 } {
   const [settings, setSettings] = useState<NotifSoundSettings>(() => read());
 
@@ -85,5 +115,17 @@ export function useNotifSoundSettings(): {
     setSettings(next);
   }, []);
 
-  return { settings, setEnabled, setVolume };
+  const setVibrate = useCallback((v: boolean) => {
+    const next = { ...read(), vibrate: v };
+    write(next);
+    setSettings(next);
+  }, []);
+
+  return {
+    settings,
+    vibrationSupported: isVibrationSupported(),
+    setEnabled,
+    setVolume,
+    setVibrate,
+  };
 }
