@@ -121,6 +121,7 @@ function RootComponent() {
           <GlobalErrorListener />
           <PostLoginRedirect />
           <AuthGate>
+            <ImpersonationBanner />
             <ErrorBoundary section="app">
               <Outlet />
             </ErrorBoundary>
