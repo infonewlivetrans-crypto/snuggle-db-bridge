@@ -62,30 +62,37 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error: e1 } = await supabase
-        .from("orders")
-        .update({ cash_received: cashReceived, qr_received: qrReceived })
-        .eq("id", order.id);
-      if (e1) throw e1;
-
-      const payload: Record<string, unknown> = {
+      const orderUpdate = { cash_received: cashReceived, qr_received: qrReceived };
+      const pointUpdate = {
         dp_amount_received: amountNum,
         dp_payment_comment: paymentComment || null,
       };
-      const { error: e2 } = await (
-        supabase.from("route_points") as unknown as {
-          update: (p: Record<string, unknown>) => {
-            eq: (c: string, v: string) => Promise<{ error: Error | null }>;
-          };
-        }
-      )
-        .update(payload)
-        .eq("id", routePointId);
-      if (e2) throw e2;
+      return await runWithOfflineFallback(
+        "point_payment_update",
+        { routePointId, orderId: order.id, orderUpdate, pointUpdate },
+        async () => {
+          const { error: e1 } = await supabase
+            .from("orders")
+            .update(orderUpdate)
+            .eq("id", order.id);
+          if (e1) throw e1;
+          const { error: e2 } = await (
+            supabase.from("route_points") as unknown as {
+              update: (p: Record<string, unknown>) => {
+                eq: (c: string, v: string) => Promise<{ error: Error | null }>;
+              };
+            }
+          )
+            .update(pointUpdate)
+            .eq("id", routePointId);
+          if (e2) throw e2;
+        },
+      );
     },
-    onSuccess: () => {
-      toast.success("Оплата и QR сохранены");
+    onSuccess: (res) => {
+      toast.success(res?.queued ? "Сохранено на устройстве. Уйдёт при связи." : "Оплата и QR сохранены");
       qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
+      void flushQueue().then(() => qc.invalidateQueries({ queryKey: ["delivery-route-points"] }));
     },
     onError: (e: Error) => toast.error(e.message),
   });
