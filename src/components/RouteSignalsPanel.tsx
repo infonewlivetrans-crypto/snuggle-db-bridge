@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/db";
+import { Input } from "@/components/ui/input";
+import { Search, ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 import {
   Send,
   CheckCircle2,
