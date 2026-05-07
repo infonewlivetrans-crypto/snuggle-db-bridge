@@ -1,9 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { apiGetAuth } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { Camera, Upload, Trash2, AlertCircle } from "lucide-react";
+import { Camera, Upload, Trash2, AlertCircle, CloudOff, Loader2, CheckCircle2, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import {
   ROUTE_POINT_PHOTO_KIND_LABELS,
@@ -12,6 +12,19 @@ import {
   type RoutePointPhotoKind,
 } from "@/lib/routePointPhotos";
 import { useSetting } from "@/lib/settings-provider";
+import {
+  blobToObjectURL,
+  deletePhoto as idbDeletePhoto,
+  listPhotosByRoutePoint,
+  newClientUploadId,
+  putPhoto,
+  subscribePhotos,
+  type OfflinePhotoRecord,
+} from "@/lib/offlinePhotoStore";
+import {
+  flushPhotoQueue,
+  installPhotoFlushAutoTriggers,
+} from "@/lib/offlinePhotoFlush";
 
 type Photo = {
   id: string;
@@ -38,6 +51,10 @@ export function RoutePointPhotosBlock({
 }: Props) {
   const qc = useQueryClient();
 
+  useEffect(() => {
+    installPhotoFlushAutoTriggers();
+  }, []);
+
   const { data: photos } = useQuery({
     queryKey: ["route-point-photos", routePointId],
     queryFn: async (): Promise<Photo[]> => {
@@ -49,9 +66,36 @@ export function RoutePointPhotosBlock({
     staleTime: 3 * 60_000,
   });
 
+  // Локальные офлайн-фото из IndexedDB для этой точки.
+  const [offlinePhotos, setOfflinePhotos] = useState<OfflinePhotoRecord[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const list = await listPhotosByRoutePoint(routePointId).catch(() => []);
+      if (!cancelled) setOfflinePhotos(list);
+    };
+    load();
+    const unsub = subscribePhotos(load);
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [routePointId]);
+
+  // Когда что-то «uploaded» — обновим серверный список.
+  useEffect(() => {
+    if (offlinePhotos.some((p) => p.status === "uploaded")) {
+      qc.invalidateQueries({ queryKey: ["route-point-photos", routePointId] });
+    }
+  }, [offlinePhotos, qc, routePointId]);
+
   const list = photos ?? [];
-  const hasQr = list.some((p) => p.kind === "qr");
-  const hasProblem = list.some((p) => p.kind === "problem");
+  const hasQr =
+    list.some((p) => p.kind === "qr") ||
+    offlinePhotos.some((p) => p.kind === "qr" && p.status !== "uploaded");
+  const hasProblem =
+    list.some((p) => p.kind === "problem") ||
+    offlinePhotos.some((p) => p.kind === "problem" && p.status !== "uploaded");
 
   const docsRequired = useSetting<boolean>("driver_document_photos_enabled", false);
 
@@ -59,7 +103,6 @@ export function RoutePointPhotosBlock({
   const qrMissing = requiresQr && !hasQr;
   const problemMissing = isFailed && !hasProblem;
 
-  // Когда фото документов отключены настройкой — оставляем только QR и фото проблемы.
   const visibleKinds = docsRequired
     ? ROUTE_POINT_PHOTO_KIND_ORDER
     : ROUTE_POINT_PHOTO_KIND_ORDER.filter((k) => k === "qr" || k === "problem");
@@ -70,7 +113,10 @@ export function RoutePointPhotosBlock({
         <div className="flex items-center gap-2">
           <Camera className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium">Фото и документы</span>
-          <span className="text-xs text-muted-foreground">({list.length})</span>
+          <span className="text-xs text-muted-foreground">
+            ({list.length}
+            {offlinePhotos.length > 0 ? ` + ${offlinePhotos.length} локально` : ""})
+          </span>
         </div>
       </div>
 
@@ -94,6 +140,7 @@ export function RoutePointPhotosBlock({
               (kind === "problem" && isFailed)
             }
             photos={list.filter((p) => p.kind === kind)}
+            offlinePhotos={offlinePhotos.filter((p) => p.kind === kind)}
             routePointId={routePointId}
             orderId={orderId}
             onChange={() => {
@@ -110,6 +157,7 @@ function PhotoKindRow({
   kind,
   required,
   photos,
+  offlinePhotos,
   routePointId,
   orderId,
   onChange,
@@ -117,6 +165,7 @@ function PhotoKindRow({
   kind: RoutePointPhotoKind;
   required: boolean;
   photos: Photo[];
+  offlinePhotos: OfflinePhotoRecord[];
   routePointId: string;
   orderId: string | null;
   onChange: () => void;
@@ -126,8 +175,37 @@ function PhotoKindRow({
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
+      // Если оффлайн или попытка не удалась — сохраняем в IndexedDB.
+      const saveOffline = async (reason?: string) => {
+        const rec: OfflinePhotoRecord = {
+          client_upload_id: newClientUploadId(),
+          route_point_id: routePointId,
+          order_id: orderId,
+          kind,
+          actor: "Водитель",
+          file_name: file.name || `${kind}.jpg`,
+          mime_type: file.type || "image/jpeg",
+          size: file.size,
+          blob: file,
+          device_created_at: new Date().toISOString(),
+          status: "pending",
+          attempts: 0,
+        };
+        await putPhoto(rec);
+        if (reason) {
+          toast.message("Фото сохранено на устройстве", {
+            description: "Будет отправлено при появлении интернета.",
+          });
+        } else {
+          toast.success("Сохранено на устройстве (офлайн)");
+        }
+        // Попробуем сразу отправить (если сеть появилась).
+        void flushPhotoQueue();
+      };
+
       if (typeof navigator !== "undefined" && navigator.onLine === false) {
-        throw new Error("Нет интернета. Фото можно загрузить только при подключении.");
+        await saveOffline();
+        return;
       }
       setUploading(true);
       try {
@@ -136,7 +214,10 @@ function PhotoKindRow({
         const { error: upErr } = await supabase.storage
           .from(ROUTE_POINT_PHOTOS_BUCKET)
           .upload(path, file, { upsert: false, contentType: file.type });
-        if (upErr) throw upErr;
+        if (upErr) {
+          await saveOffline(upErr.message);
+          return;
+        }
         const { data: pub } = supabase.storage.from(ROUTE_POINT_PHOTOS_BUCKET).getPublicUrl(path);
         const { error: insErr } = await (
           supabase.from("route_point_photos") as unknown as {
@@ -149,15 +230,19 @@ function PhotoKindRow({
           file_url: pub.publicUrl,
           storage_path: path,
         });
-        if (insErr) throw insErr;
+        if (insErr) {
+          await saveOffline(insErr.message);
+          return;
+        }
+        toast.success("Фото загружено");
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await saveOffline(msg);
       } finally {
         setUploading(false);
       }
     },
-    onSuccess: () => {
-      toast.success("Фото загружено");
-      onChange();
-    },
+    onSuccess: () => onChange(),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -207,7 +292,7 @@ function PhotoKindRow({
         />
       </div>
 
-      {photos.length === 0 ? (
+      {photos.length === 0 && offlinePhotos.length === 0 ? (
         <div className="text-xs text-muted-foreground">Нет фото</div>
       ) : (
         <div className="flex flex-wrap gap-2">
@@ -230,7 +315,82 @@ function PhotoKindRow({
               </button>
             </div>
           ))}
+          {offlinePhotos.map((p) => (
+            <OfflinePhotoTile key={p.client_upload_id} rec={p} />
+          ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+function OfflinePhotoTile({ rec }: { rec: OfflinePhotoRecord }) {
+  const [url, setUrl] = useState<string>("");
+  useEffect(() => {
+    const u = blobToObjectURL(rec.blob);
+    setUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [rec.blob]);
+
+  const statusBadge = (() => {
+    switch (rec.status) {
+      case "uploading":
+        return (
+          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-blue-600/90 py-0.5 text-[10px] text-white">
+            <Loader2 className="h-2.5 w-2.5 animate-spin" /> Отправка
+          </span>
+        );
+      case "uploaded":
+        return (
+          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-emerald-600/90 py-0.5 text-[10px] text-white">
+            <CheckCircle2 className="h-2.5 w-2.5" /> Отправлено
+          </span>
+        );
+      case "error":
+        return (
+          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-red-600/90 py-0.5 text-[10px] text-white">
+            <RotateCw className="h-2.5 w-2.5" /> Повтор
+          </span>
+        );
+      case "pending":
+      default:
+        return (
+          <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-amber-500/90 py-0.5 text-[10px] text-white">
+            <CloudOff className="h-2.5 w-2.5" /> Офлайн
+          </span>
+        );
+    }
+  })();
+
+  return (
+    <div className="group relative">
+      {url ? (
+        <img
+          src={url}
+          alt=""
+          className="h-16 w-16 rounded border border-amber-400 object-cover"
+        />
+      ) : (
+        <div className="h-16 w-16 rounded border border-amber-400 bg-muted" />
+      )}
+      {statusBadge}
+      {rec.status !== "uploading" && (
+        <button
+          type="button"
+          aria-label="Удалить локальное фото"
+          onClick={() => {
+            void idbDeletePhoto(rec.client_upload_id);
+          }}
+          className="absolute -right-1.5 -top-1.5 rounded-full bg-red-600 p-0.5 text-white opacity-0 shadow group-hover:opacity-100"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
+      {rec.status === "error" && rec.error && (
+        <div
+          className="absolute left-0 top-0 h-16 w-16 cursor-help rounded"
+          title={rec.error}
+        />
       )}
     </div>
   );
