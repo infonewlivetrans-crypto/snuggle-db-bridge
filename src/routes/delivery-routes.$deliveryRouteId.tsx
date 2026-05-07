@@ -282,6 +282,22 @@ function DeliveryRoutePage() {
     return warns;
   }, [orderedDraft, points]);
 
+  // Предупреждения по особенностям груза при изменении порядка разгрузки
+  const cargoWarnings = useMemo(() => {
+    if (!isDirty) return [] as Array<{ orderNumber: string; features: CargoFeature[] }>;
+    const out: Array<{ orderNumber: string; features: CargoFeature[] }> = [];
+    orderedDraft.forEach((p) => {
+      const orig = (points ?? []).find((x) => x.id === p.id);
+      if (!orig) return;
+      if (orig.point_number === p.point_number) return; // позиция не менялась
+      const feats = detectCargoFeatures(p.order?.comment, p.order?.driver_comment);
+      if (feats.length > 0) {
+        out.push({ orderNumber: p.order?.order_number ?? "—", features: feats });
+      }
+    });
+    return out;
+  }, [orderedDraft, points, isDirty]);
+
   const moveDraft = (idx: number, dir: -1 | 1) => {
     setDraftIds((prev) => {
       const j = idx + dir;
