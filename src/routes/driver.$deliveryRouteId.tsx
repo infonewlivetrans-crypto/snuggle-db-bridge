@@ -581,6 +581,26 @@ function DriverPointCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.id]);
 
+  if (blockedReason) {
+    return (
+      <div className="rounded-lg border border-orange-500/40 bg-orange-500/5 p-4 space-y-2 opacity-90">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-muted px-1.5 text-xs font-semibold">
+            {p.point_number}
+          </span>
+          <span className="font-semibold">{o?.order_number ?? "—"}</span>
+          <Badge variant="outline" className="ml-auto bg-orange-100 text-orange-900 border-orange-200 text-xs">
+            Заблокировано
+          </Badge>
+        </div>
+        <div className="flex items-start gap-1.5 text-sm text-orange-800 dark:text-orange-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{blockedReason}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
