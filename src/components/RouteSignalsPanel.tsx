@@ -17,9 +17,15 @@ import {
   Truck,
   User,
 } from "lucide-react";
+import {
+  BroadcastSignalButton,
+  type SignalRequirements,
+} from "@/components/BroadcastSignalButton";
 
 type Props = {
   routeId: string;
+  /** Требования для подбора подходящих авто. Если не переданы — кнопка скрыта. */
+  requirements?: SignalRequirements;
 };
 
 type OfferRow = {
