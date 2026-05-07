@@ -460,6 +460,17 @@ function UsersPage() {
                           </Button>
                           <Button
                             size="sm"
+                            variant="secondary"
+                            className="gap-1"
+                            disabled={u.user_id === user?.id || impersonateMut.isPending}
+                            title={u.user_id === user?.id ? "Нельзя имперсонировать себя" : "Открыть кабинет пользователя (только просмотр)"}
+                            onClick={() => impersonateMut.mutate(u.user_id)}
+                          >
+                            <LogIn className="h-4 w-4" />
+                            Открыть как
+                          </Button>
+                          <Button
+                            size="sm"
                             variant="destructive"
                             className="gap-1"
                             disabled={u.user_id === user?.id || deleteMut.isPending}
