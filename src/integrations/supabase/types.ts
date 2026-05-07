@@ -2449,6 +2449,54 @@ export type Database = {
           },
         ]
       }
+      route_point_photo_uploads: {
+        Row: {
+          actor: string | null
+          client_upload_id: string
+          created_at: string
+          device_created_at: string | null
+          error: string | null
+          file_url: string | null
+          id: string
+          kind: string
+          order_id: string | null
+          route_point_id: string
+          status: string
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          actor?: string | null
+          client_upload_id: string
+          created_at?: string
+          device_created_at?: string | null
+          error?: string | null
+          file_url?: string | null
+          id?: string
+          kind: string
+          order_id?: string | null
+          route_point_id: string
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actor?: string | null
+          client_upload_id?: string
+          created_at?: string
+          device_created_at?: string | null
+          error?: string | null
+          file_url?: string | null
+          id?: string
+          kind?: string
+          order_id?: string | null
+          route_point_id?: string
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       route_point_photos: {
         Row: {
           comment: string | null
