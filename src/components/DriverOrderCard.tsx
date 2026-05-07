@@ -114,7 +114,17 @@ export function DriverOrderCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        {/* Куда ехать */}
+        {/* Важный комментарий — баннер перед началом разгрузки */}
+        {order.driver_comment_is_important && order.driver_comment && (
+          <div className="flex items-start gap-2 rounded-md border-2 border-destructive bg-destructive/10 p-3 text-sm font-semibold text-destructive animate-pulse">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="space-y-0.5">
+              <div className="text-[10px] font-bold uppercase tracking-wider">Важно перед разгрузкой</div>
+              <div className="whitespace-pre-line">{order.driver_comment}</div>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-lg border border-border bg-muted/30 p-3">
           <div className="flex items-start gap-2">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-status-success" />
