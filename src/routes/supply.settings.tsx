@@ -250,6 +250,7 @@ function SupplySettingsPage() {
                           </SelectContent>
                         </Select>
                       </TableCell>
+                      <TableCell>
                         <Switch
                           checked={Boolean(getValue(key, "is_critical", false))}
                           onCheckedChange={(v) => setDraftField(key, "is_critical", v)}
