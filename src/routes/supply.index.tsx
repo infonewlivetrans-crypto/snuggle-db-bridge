@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PackageSearch, Search, AlertTriangle, AlertCircle, CircleDashed, CircleCheck, Truck, ClipboardList } from "lucide-react";
+import { PackageSearch, Search, AlertTriangle, AlertCircle, CircleDashed, CircleCheck, Truck, ClipboardList, PackagePlus, ShieldAlert } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
@@ -50,29 +50,48 @@ type StockBalance = {
   is_critical: boolean;
   deficit_level: "ok" | "low" | "critical" | "out";
 };
-
 type Warehouse = { id: string; name: string };
 
-const LEVEL_LABELS: Record<StockBalance["deficit_level"], string> = {
+type ComputedLevel = "ok" | "low" | "critical" | "out" | "surplus" | "error";
+
+const LEVEL_LABELS: Record<ComputedLevel, string> = {
   ok: "Норма",
-  low: "Низкий",
-  critical: "Критический",
+  low: "Ниже минимума",
+  critical: "Дефицит",
   out: "Нет в наличии",
+  surplus: "Излишек",
+  error: "Ошибка остатков",
 };
 
-const LEVEL_STYLES: Record<StockBalance["deficit_level"], string> = {
+const LEVEL_STYLES: Record<ComputedLevel, string> = {
   ok: "border-green-300 bg-green-100 text-green-900",
   low: "border-amber-300 bg-amber-100 text-amber-900",
   critical: "border-orange-300 bg-orange-100 text-orange-900",
   out: "border-red-300 bg-red-100 text-red-900",
+  surplus: "border-blue-300 bg-blue-100 text-blue-900",
+  error: "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900",
 };
 
-const LEVEL_ICONS: Record<StockBalance["deficit_level"], typeof CircleCheck> = {
+const LEVEL_ICONS: Record<ComputedLevel, typeof CircleCheck> = {
   ok: CircleCheck,
   low: CircleDashed,
   critical: AlertTriangle,
   out: AlertCircle,
+  surplus: PackagePlus,
+  error: ShieldAlert,
 };
+
+function computeLevel(b: StockBalance): ComputedLevel {
+  const onHand = Number(b.on_hand ?? 0);
+  const available = Number(b.available ?? 0);
+  const reserved = Number(b.reserved ?? 0);
+  const min = Number(b.min_stock ?? 0);
+  // Ошибка остатков: отрицательные значения или резерв > on_hand
+  if (onHand < 0 || available < 0 || reserved < 0 || reserved > onHand) return "error";
+  // Излишек: остаток превышает min × 3 (и min > 0)
+  if (min > 0 && onHand > min * 3) return "surplus";
+  return b.deficit_level;
+}
 
 function SupplyPage() {
   const [query, setQuery] = useState("");
@@ -104,19 +123,26 @@ function SupplyPage() {
     },
   });
 
+  const enriched = useMemo(
+    () => (balances ?? []).map((b) => ({ ...b, level: computeLevel(b) })),
+    [balances],
+  );
+
   const counts = useMemo(() => {
-    const c = { ok: 0, low: 0, critical: 0, out: 0 };
-    (balances ?? []).forEach((b) => {
-      c[b.deficit_level] += 1;
+    const c: Record<ComputedLevel, number> = {
+      ok: 0, low: 0, critical: 0, out: 0, surplus: 0, error: 0,
+    };
+    enriched.forEach((b) => {
+      c[b.level] += 1;
     });
     return c;
-  }, [balances]);
+  }, [enriched]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (balances ?? []).filter((b) => {
+    return enriched.filter((b) => {
       if (warehouseId !== "all" && b.warehouse_id !== warehouseId) return false;
-      if (level !== "all" && b.deficit_level !== level) return false;
+      if (level !== "all" && b.level !== level) return false;
       if (!q) return true;
       return (
         b.product_name.toLowerCase().includes(q) ||
@@ -124,7 +150,7 @@ function SupplyPage() {
         (b.warehouse_name ?? "").toLowerCase().includes(q)
       );
     });
-  }, [balances, query, warehouseId, level]);
+  }, [enriched, query, warehouseId, level]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -141,9 +167,11 @@ function SupplyPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            <SummaryBadge level="error" count={counts.error} />
             <SummaryBadge level="out" count={counts.out} />
             <SummaryBadge level="critical" count={counts.critical} />
             <SummaryBadge level="low" count={counts.low} />
+            <SummaryBadge level="surplus" count={counts.surplus} />
             <SummaryBadge level="ok" count={counts.ok} />
             <Button asChild size="sm" variant="outline" className="ml-2">
               <Link to="/supply/cabinet">
@@ -190,9 +218,11 @@ function SupplyPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все уровни</SelectItem>
+              <SelectItem value="error">Ошибка остатков</SelectItem>
               <SelectItem value="out">Нет в наличии</SelectItem>
-              <SelectItem value="critical">Критический</SelectItem>
-              <SelectItem value="low">Низкий</SelectItem>
+              <SelectItem value="critical">Дефицит</SelectItem>
+              <SelectItem value="low">Ниже минимума</SelectItem>
+              <SelectItem value="surplus">Излишек</SelectItem>
               <SelectItem value="ok">Норма</SelectItem>
             </SelectContent>
           </Select>
@@ -206,29 +236,30 @@ function SupplyPage() {
                 <TableHead>Товар</TableHead>
                 <TableHead>Склад</TableHead>
                 <TableHead className="text-right">На складе</TableHead>
-                <TableHead className="text-right">Резерв</TableHead>
+                <TableHead className="text-right">Зарезервировано</TableHead>
                 <TableHead className="text-right">Доступно</TableHead>
                 <TableHead className="text-right">В пути</TableHead>
                 <TableHead className="text-right">Мин.</TableHead>
+                <TableHead className="text-right">Страховой запас</TableHead>
                 <TableHead>Статус</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
                     Загрузка…
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
                     По выбранным фильтрам ничего не найдено
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((b) => {
-                  const Icon = LEVEL_ICONS[b.deficit_level];
+                  const Icon = LEVEL_ICONS[b.level];
                   return (
                     <TableRow key={`${b.product_id}-${b.warehouse_id ?? "none"}`}>
                       <TableCell>
@@ -262,10 +293,13 @@ function SupplyPage() {
                       <TableCell className="text-right font-mono text-sm text-muted-foreground">
                         {fmt(b.min_stock)}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                        {fmt(b.safety_stock)}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={LEVEL_STYLES[b.deficit_level]}>
+                        <Badge variant="outline" className={LEVEL_STYLES[b.level]}>
                           <Icon className="mr-1 h-3 w-3" />
-                          {LEVEL_LABELS[b.deficit_level]}
+                          {LEVEL_LABELS[b.level]}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -280,7 +314,7 @@ function SupplyPage() {
   );
 }
 
-function SummaryBadge({ level, count }: { level: StockBalance["deficit_level"]; count: number }) {
+function SummaryBadge({ level, count }: { level: ComputedLevel; count: number }) {
   const Icon = LEVEL_ICONS[level];
   return (
     <span
