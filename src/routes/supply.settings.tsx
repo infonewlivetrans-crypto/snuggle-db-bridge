@@ -42,7 +42,15 @@ type Setting = {
   safety_stock: number;
   is_critical: boolean;
   on_demand_only: boolean;
+  priority: number;
 };
+
+const PRIORITY_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: "1 — Высокий" },
+  { value: 2, label: "2 — Средний" },
+  { value: 3, label: "3 — Обычный" },
+  { value: 4, label: "4 — Низкий" },
+];
 
 function SupplySettingsPage() {
   const qc = useQueryClient();
@@ -132,7 +140,7 @@ function SupplySettingsPage() {
     const key = `${productId}::${wId ?? ""}`;
     const cur = settingMap.get(key);
     const payload: Setting = {
-      ...(cur ?? { product_id: productId, warehouse_id: wId, min_stock: 0, safety_stock: 0, is_critical: false, on_demand_only: false }),
+      ...(cur ?? { product_id: productId, warehouse_id: wId, min_stock: 0, safety_stock: 0, is_critical: false, on_demand_only: false, priority: 3 }),
       ...(draft[key] ?? {}),
       product_id: productId,
       warehouse_id: wId,
@@ -188,6 +196,7 @@ function SupplySettingsPage() {
                 <TableHead>Товар</TableHead>
                 <TableHead className="w-[140px]">Мин. остаток</TableHead>
                 <TableHead className="w-[140px]">Страховой</TableHead>
+                <TableHead className="w-[160px]">Приоритет</TableHead>
                 <TableHead className="w-[120px]">Критичный</TableHead>
                 <TableHead className="w-[150px]">Только под заказ</TableHead>
                 <TableHead className="w-[120px]"></TableHead>
@@ -195,9 +204,9 @@ function SupplySettingsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Загрузка…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Загрузка…</TableCell></TableRow>
               ) : rows.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Товаров нет</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Товаров нет</TableCell></TableRow>
               ) : (
                 rows.map(({ p, wId }) => {
                   const key = `${p.id}::${wId ?? ""}`;
@@ -225,6 +234,21 @@ function SupplySettingsPage() {
                           onChange={(e) => setDraftField(key, "safety_stock", Number(e.target.value) || 0)}
                           className="h-9"
                         />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={String(getValue(key, "priority", 3))}
+                          onValueChange={(v) => setDraftField(key, "priority", Number(v) || 3)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRIORITY_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <Switch
@@ -258,7 +282,7 @@ function SupplySettingsPage() {
         </div>
 
         <p className="mt-4 text-xs text-muted-foreground">
-          Расширенные поля (макс. остаток, приоритет, источник пополнения, сроки поставки) пока не подключены — их можно добавить отдельной миграцией по согласованию.
+          Приоритет: 1 — высокий, 4 — низкий. Используется для сортировки заявок на пополнение.
         </p>
       </main>
     </div>

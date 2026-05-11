@@ -1979,6 +1979,7 @@ export type Database = {
           is_critical: boolean
           min_stock: number
           on_demand_only: boolean
+          priority: number
           product_id: string
           safety_stock: number
           updated_at: string
@@ -1990,6 +1991,7 @@ export type Database = {
           is_critical?: boolean
           min_stock?: number
           on_demand_only?: boolean
+          priority?: number
           product_id: string
           safety_stock?: number
           updated_at?: string
@@ -2001,6 +2003,7 @@ export type Database = {
           is_critical?: boolean
           min_stock?: number
           on_demand_only?: boolean
+          priority?: number
           product_id?: string
           safety_stock?: number
           updated_at?: string
