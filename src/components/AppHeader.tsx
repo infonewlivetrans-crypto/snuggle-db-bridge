@@ -160,7 +160,11 @@ const GROUPS: readonly NavGroup[] = [
       { to: "/warehouse-settings", label: "Настройки склада", icon: Settings },
       { to: "/supply", label: "Снабжение — обзор", icon: PackageSearch },
       { to: "/supply/requests", label: "Заявки на пополнение", icon: ClipboardList },
+      { to: "/supply/transfers", label: "Снабжение — перемещения", icon: ArrowLeftRight },
       { to: "/supply/cabinet", label: "Кабинет снабжения", icon: PackageSearch },
+      { to: "/supply/settings", label: "Настройки снабжения", icon: Settings },
+      { to: "/supply/notifications", label: "Уведомления снабжения", icon: PackageSearch },
+      { to: "/supply/history", label: "История снабжения", icon: History },
     ],
   },
   {

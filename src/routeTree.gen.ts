@@ -63,6 +63,7 @@ import { Route as SupplyTransfersRouteImport } from './routes/supply.transfers'
 import { Route as SupplySettingsRouteImport } from './routes/supply.settings'
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
 import { Route as SupplyNotificationsRouteImport } from './routes/supply.notifications'
+import { Route as SupplyHistoryRouteImport } from './routes/supply.history'
 import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -425,6 +426,11 @@ const SupplyRequestsRoute = SupplyRequestsRouteImport.update({
 const SupplyNotificationsRoute = SupplyNotificationsRouteImport.update({
   id: '/supply/notifications',
   path: '/supply/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplyHistoryRoute = SupplyHistoryRouteImport.update({
+  id: '/supply/history',
+  path: '/supply/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupplyCabinetRoute = SupplyCabinetRouteImport.update({
@@ -985,6 +991,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
+  '/supply/history': typeof SupplyHistoryRoute
   '/supply/notifications': typeof SupplyNotificationsRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/supply/settings': typeof SupplySettingsRoute
@@ -1133,6 +1140,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
+  '/supply/history': typeof SupplyHistoryRoute
   '/supply/notifications': typeof SupplyNotificationsRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/supply/settings': typeof SupplySettingsRoute
@@ -1282,6 +1290,7 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
+  '/supply/history': typeof SupplyHistoryRoute
   '/supply/notifications': typeof SupplyNotificationsRoute
   '/supply/requests': typeof SupplyRequestsRoute
   '/supply/settings': typeof SupplySettingsRoute
@@ -1432,6 +1441,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
+    | '/supply/history'
     | '/supply/notifications'
     | '/supply/requests'
     | '/supply/settings'
@@ -1580,6 +1590,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
+    | '/supply/history'
     | '/supply/notifications'
     | '/supply/requests'
     | '/supply/settings'
@@ -1728,6 +1739,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
+    | '/supply/history'
     | '/supply/notifications'
     | '/supply/requests'
     | '/supply/settings'
@@ -1876,6 +1888,7 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyCabinetRoute: typeof SupplyCabinetRoute
+  SupplyHistoryRoute: typeof SupplyHistoryRoute
   SupplyNotificationsRoute: typeof SupplyNotificationsRoute
   SupplyRequestsRoute: typeof SupplyRequestsRoute
   SupplySettingsRoute: typeof SupplySettingsRoute
@@ -2286,6 +2299,13 @@ declare module '@tanstack/react-router' {
       path: '/supply/notifications'
       fullPath: '/supply/notifications'
       preLoaderRoute: typeof SupplyNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supply/history': {
+      id: '/supply/history'
+      path: '/supply/history'
+      fullPath: '/supply/history'
+      preLoaderRoute: typeof SupplyHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/supply/cabinet': {
@@ -3255,6 +3275,7 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyCabinetRoute: SupplyCabinetRoute,
+  SupplyHistoryRoute: SupplyHistoryRoute,
   SupplyNotificationsRoute: SupplyNotificationsRoute,
   SupplyRequestsRoute: SupplyRequestsRoute,
   SupplySettingsRoute: SupplySettingsRoute,
