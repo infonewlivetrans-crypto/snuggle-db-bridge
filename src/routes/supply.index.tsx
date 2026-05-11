@@ -167,9 +167,11 @@ function SupplyPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            <SummaryBadge level="error" count={counts.error} />
             <SummaryBadge level="out" count={counts.out} />
             <SummaryBadge level="critical" count={counts.critical} />
             <SummaryBadge level="low" count={counts.low} />
+            <SummaryBadge level="surplus" count={counts.surplus} />
             <SummaryBadge level="ok" count={counts.ok} />
             <Button asChild size="sm" variant="outline" className="ml-2">
               <Link to="/supply/cabinet">
