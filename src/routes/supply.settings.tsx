@@ -42,7 +42,15 @@ type Setting = {
   safety_stock: number;
   is_critical: boolean;
   on_demand_only: boolean;
+  priority: number;
 };
+
+const PRIORITY_OPTIONS: { value: number; label: string }[] = [
+  { value: 1, label: "1 — Высокий" },
+  { value: 2, label: "2 — Средний" },
+  { value: 3, label: "3 — Обычный" },
+  { value: 4, label: "4 — Низкий" },
+];
 
 function SupplySettingsPage() {
   const qc = useQueryClient();
