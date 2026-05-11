@@ -59,7 +59,11 @@ import { Route as UsersManagersRouteImport } from './routes/users.managers'
 import { Route as UsersInvitesRouteImport } from './routes/users.invites'
 import { Route as TransportRequestsPickerRouteImport } from './routes/transport-requests.picker'
 import { Route as TransportRequestsRequestIdRouteImport } from './routes/transport-requests.$requestId'
+import { Route as SupplyTransfersRouteImport } from './routes/supply.transfers'
+import { Route as SupplySettingsRouteImport } from './routes/supply.settings'
 import { Route as SupplyRequestsRouteImport } from './routes/supply.requests'
+import { Route as SupplyNotificationsRouteImport } from './routes/supply.notifications'
+import { Route as SupplyHistoryRouteImport } from './routes/supply.history'
 import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -404,9 +408,29 @@ const TransportRequestsRequestIdRoute =
     path: '/transport-requests/$requestId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const SupplyTransfersRoute = SupplyTransfersRouteImport.update({
+  id: '/supply/transfers',
+  path: '/supply/transfers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplySettingsRoute = SupplySettingsRouteImport.update({
+  id: '/supply/settings',
+  path: '/supply/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SupplyRequestsRoute = SupplyRequestsRouteImport.update({
   id: '/supply/requests',
   path: '/supply/requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplyNotificationsRoute = SupplyNotificationsRouteImport.update({
+  id: '/supply/notifications',
+  path: '/supply/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupplyHistoryRoute = SupplyHistoryRouteImport.update({
+  id: '/supply/history',
+  path: '/supply/history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupplyCabinetRoute = SupplyCabinetRouteImport.update({
@@ -967,7 +991,11 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
+  '/supply/history': typeof SupplyHistoryRoute
+  '/supply/notifications': typeof SupplyNotificationsRoute
   '/supply/requests': typeof SupplyRequestsRoute
+  '/supply/settings': typeof SupplySettingsRoute
+  '/supply/transfers': typeof SupplyTransfersRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/transport-requests/picker': typeof TransportRequestsPickerRoute
   '/users/invites': typeof UsersInvitesRoute
@@ -1112,7 +1140,11 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
+  '/supply/history': typeof SupplyHistoryRoute
+  '/supply/notifications': typeof SupplyNotificationsRoute
   '/supply/requests': typeof SupplyRequestsRoute
+  '/supply/settings': typeof SupplySettingsRoute
+  '/supply/transfers': typeof SupplyTransfersRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/transport-requests/picker': typeof TransportRequestsPickerRoute
   '/users/invites': typeof UsersInvitesRoute
@@ -1258,7 +1290,11 @@ export interface FileRoutesById {
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
+  '/supply/history': typeof SupplyHistoryRoute
+  '/supply/notifications': typeof SupplyNotificationsRoute
   '/supply/requests': typeof SupplyRequestsRoute
+  '/supply/settings': typeof SupplySettingsRoute
+  '/supply/transfers': typeof SupplyTransfersRoute
   '/transport-requests/$requestId': typeof TransportRequestsRequestIdRoute
   '/transport-requests/picker': typeof TransportRequestsPickerRoute
   '/users/invites': typeof UsersInvitesRoute
@@ -1405,7 +1441,11 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
+    | '/supply/history'
+    | '/supply/notifications'
     | '/supply/requests'
+    | '/supply/settings'
+    | '/supply/transfers'
     | '/transport-requests/$requestId'
     | '/transport-requests/picker'
     | '/users/invites'
@@ -1550,7 +1590,11 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
+    | '/supply/history'
+    | '/supply/notifications'
     | '/supply/requests'
+    | '/supply/settings'
+    | '/supply/transfers'
     | '/transport-requests/$requestId'
     | '/transport-requests/picker'
     | '/users/invites'
@@ -1695,7 +1739,11 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
+    | '/supply/history'
+    | '/supply/notifications'
     | '/supply/requests'
+    | '/supply/settings'
+    | '/supply/transfers'
     | '/transport-requests/$requestId'
     | '/transport-requests/picker'
     | '/users/invites'
@@ -1840,7 +1888,11 @@ export interface RootRouteChildren {
   InviteTokenRoute: typeof InviteTokenRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyCabinetRoute: typeof SupplyCabinetRoute
+  SupplyHistoryRoute: typeof SupplyHistoryRoute
+  SupplyNotificationsRoute: typeof SupplyNotificationsRoute
   SupplyRequestsRoute: typeof SupplyRequestsRoute
+  SupplySettingsRoute: typeof SupplySettingsRoute
+  SupplyTransfersRoute: typeof SupplyTransfersRoute
   TransportRequestsRequestIdRoute: typeof TransportRequestsRequestIdRoute
   TransportRequestsPickerRoute: typeof TransportRequestsPickerRoute
   UsersInvitesRoute: typeof UsersInvitesRoute
@@ -2221,11 +2273,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransportRequestsRequestIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/supply/transfers': {
+      id: '/supply/transfers'
+      path: '/supply/transfers'
+      fullPath: '/supply/transfers'
+      preLoaderRoute: typeof SupplyTransfersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supply/settings': {
+      id: '/supply/settings'
+      path: '/supply/settings'
+      fullPath: '/supply/settings'
+      preLoaderRoute: typeof SupplySettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/supply/requests': {
       id: '/supply/requests'
       path: '/supply/requests'
       fullPath: '/supply/requests'
       preLoaderRoute: typeof SupplyRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supply/notifications': {
+      id: '/supply/notifications'
+      path: '/supply/notifications'
+      fullPath: '/supply/notifications'
+      preLoaderRoute: typeof SupplyNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supply/history': {
+      id: '/supply/history'
+      path: '/supply/history'
+      fullPath: '/supply/history'
+      preLoaderRoute: typeof SupplyHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/supply/cabinet': {
@@ -3195,7 +3275,11 @@ const rootRouteChildren: RootRouteChildren = {
   InviteTokenRoute: InviteTokenRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyCabinetRoute: SupplyCabinetRoute,
+  SupplyHistoryRoute: SupplyHistoryRoute,
+  SupplyNotificationsRoute: SupplyNotificationsRoute,
   SupplyRequestsRoute: SupplyRequestsRoute,
+  SupplySettingsRoute: SupplySettingsRoute,
+  SupplyTransfersRoute: SupplyTransfersRoute,
   TransportRequestsRequestIdRoute: TransportRequestsRequestIdRoute,
   TransportRequestsPickerRoute: TransportRequestsPickerRoute,
   UsersInvitesRoute: UsersInvitesRoute,
