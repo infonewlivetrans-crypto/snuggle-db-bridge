@@ -196,6 +196,7 @@ function SupplySettingsPage() {
                 <TableHead>Товар</TableHead>
                 <TableHead className="w-[140px]">Мин. остаток</TableHead>
                 <TableHead className="w-[140px]">Страховой</TableHead>
+                <TableHead className="w-[160px]">Приоритет</TableHead>
                 <TableHead className="w-[120px]">Критичный</TableHead>
                 <TableHead className="w-[150px]">Только под заказ</TableHead>
                 <TableHead className="w-[120px]"></TableHead>
@@ -203,9 +204,9 @@ function SupplySettingsPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? (
-                <TableRow><TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Загрузка…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Загрузка…</TableCell></TableRow>
               ) : rows.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">Товаров нет</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">Товаров нет</TableCell></TableRow>
               ) : (
                 rows.map(({ p, wId }) => {
                   const key = `${p.id}::${wId ?? ""}`;
