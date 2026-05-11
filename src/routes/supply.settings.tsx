@@ -236,6 +236,20 @@ function SupplySettingsPage() {
                         />
                       </TableCell>
                       <TableCell>
+                        <Select
+                          value={String(getValue(key, "priority", 3))}
+                          onValueChange={(v) => setDraftField(key, "priority", Number(v) || 3)}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRIORITY_OPTIONS.map((o) => (
+                              <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                         <Switch
                           checked={Boolean(getValue(key, "is_critical", false))}
                           onCheckedChange={(v) => setDraftField(key, "is_critical", v)}
