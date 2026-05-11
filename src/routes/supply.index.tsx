@@ -236,29 +236,30 @@ function SupplyPage() {
                 <TableHead>Товар</TableHead>
                 <TableHead>Склад</TableHead>
                 <TableHead className="text-right">На складе</TableHead>
-                <TableHead className="text-right">Резерв</TableHead>
+                <TableHead className="text-right">Зарезервировано</TableHead>
                 <TableHead className="text-right">Доступно</TableHead>
                 <TableHead className="text-right">В пути</TableHead>
                 <TableHead className="text-right">Мин.</TableHead>
+                <TableHead className="text-right">Страховой запас</TableHead>
                 <TableHead>Статус</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
                     Загрузка…
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
                     По выбранным фильтрам ничего не найдено
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((b) => {
-                  const Icon = LEVEL_ICONS[b.deficit_level];
+                  const Icon = LEVEL_ICONS[b.level];
                   return (
                     <TableRow key={`${b.product_id}-${b.warehouse_id ?? "none"}`}>
                       <TableCell>
@@ -292,10 +293,13 @@ function SupplyPage() {
                       <TableCell className="text-right font-mono text-sm text-muted-foreground">
                         {fmt(b.min_stock)}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-sm text-muted-foreground">
+                        {fmt(b.safety_stock)}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="outline" className={LEVEL_STYLES[b.deficit_level]}>
+                        <Badge variant="outline" className={LEVEL_STYLES[b.level]}>
                           <Icon className="mr-1 h-3 w-3" />
-                          {LEVEL_LABELS[b.deficit_level]}
+                          {LEVEL_LABELS[b.level]}
                         </Badge>
                       </TableCell>
                     </TableRow>
