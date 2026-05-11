@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { PackageSearch, Search, AlertTriangle, AlertCircle, CircleDashed, CircleCheck, Truck, ClipboardList } from "lucide-react";
+import { PackageSearch, Search, AlertTriangle, AlertCircle, CircleDashed, CircleCheck, Truck, ClipboardList, PackagePlus, ShieldAlert } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
