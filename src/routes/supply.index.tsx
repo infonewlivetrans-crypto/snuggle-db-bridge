@@ -218,9 +218,11 @@ function SupplyPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Все уровни</SelectItem>
+              <SelectItem value="error">Ошибка остатков</SelectItem>
               <SelectItem value="out">Нет в наличии</SelectItem>
-              <SelectItem value="critical">Критический</SelectItem>
-              <SelectItem value="low">Низкий</SelectItem>
+              <SelectItem value="critical">Дефицит</SelectItem>
+              <SelectItem value="low">Ниже минимума</SelectItem>
+              <SelectItem value="surplus">Излишек</SelectItem>
               <SelectItem value="ok">Норма</SelectItem>
             </SelectContent>
           </Select>
