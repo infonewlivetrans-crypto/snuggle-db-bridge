@@ -50,6 +50,7 @@ type StockBalance = {
   is_critical: boolean;
   deficit_level: "ok" | "low" | "critical" | "out";
 };
+type Warehouse = { id: string; name: string };
 
 type ComputedLevel = "ok" | "low" | "critical" | "out" | "surplus" | "error";
 
