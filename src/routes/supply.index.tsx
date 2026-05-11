@@ -308,7 +308,7 @@ function SupplyPage() {
   );
 }
 
-function SummaryBadge({ level, count }: { level: StockBalance["deficit_level"]; count: number }) {
+function SummaryBadge({ level, count }: { level: ComputedLevel; count: number }) {
   const Icon = LEVEL_ICONS[level];
   return (
     <span
