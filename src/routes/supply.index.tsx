@@ -123,19 +123,26 @@ function SupplyPage() {
     },
   });
 
+  const enriched = useMemo(
+    () => (balances ?? []).map((b) => ({ ...b, level: computeLevel(b) })),
+    [balances],
+  );
+
   const counts = useMemo(() => {
-    const c = { ok: 0, low: 0, critical: 0, out: 0 };
-    (balances ?? []).forEach((b) => {
-      c[b.deficit_level] += 1;
+    const c: Record<ComputedLevel, number> = {
+      ok: 0, low: 0, critical: 0, out: 0, surplus: 0, error: 0,
+    };
+    enriched.forEach((b) => {
+      c[b.level] += 1;
     });
     return c;
-  }, [balances]);
+  }, [enriched]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (balances ?? []).filter((b) => {
+    return enriched.filter((b) => {
       if (warehouseId !== "all" && b.warehouse_id !== warehouseId) return false;
-      if (level !== "all" && b.deficit_level !== level) return false;
+      if (level !== "all" && b.level !== level) return false;
       if (!q) return true;
       return (
         b.product_name.toLowerCase().includes(q) ||
@@ -143,7 +150,7 @@ function SupplyPage() {
         (b.warehouse_name ?? "").toLowerCase().includes(q)
       );
     });
-  }, [balances, query, warehouseId, level]);
+  }, [enriched, query, warehouseId, level]);
 
   return (
     <div className="min-h-screen bg-background">
