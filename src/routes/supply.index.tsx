@@ -51,28 +51,46 @@ type StockBalance = {
   deficit_level: "ok" | "low" | "critical" | "out";
 };
 
-type Warehouse = { id: string; name: string };
+type ComputedLevel = "ok" | "low" | "critical" | "out" | "surplus" | "error";
 
-const LEVEL_LABELS: Record<StockBalance["deficit_level"], string> = {
+const LEVEL_LABELS: Record<ComputedLevel, string> = {
   ok: "Норма",
-  low: "Низкий",
-  critical: "Критический",
+  low: "Ниже минимума",
+  critical: "Дефицит",
   out: "Нет в наличии",
+  surplus: "Излишек",
+  error: "Ошибка остатков",
 };
 
-const LEVEL_STYLES: Record<StockBalance["deficit_level"], string> = {
+const LEVEL_STYLES: Record<ComputedLevel, string> = {
   ok: "border-green-300 bg-green-100 text-green-900",
   low: "border-amber-300 bg-amber-100 text-amber-900",
   critical: "border-orange-300 bg-orange-100 text-orange-900",
   out: "border-red-300 bg-red-100 text-red-900",
+  surplus: "border-blue-300 bg-blue-100 text-blue-900",
+  error: "border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900",
 };
 
-const LEVEL_ICONS: Record<StockBalance["deficit_level"], typeof CircleCheck> = {
+const LEVEL_ICONS: Record<ComputedLevel, typeof CircleCheck> = {
   ok: CircleCheck,
   low: CircleDashed,
   critical: AlertTriangle,
   out: AlertCircle,
+  surplus: PackagePlus,
+  error: ShieldAlert,
 };
+
+function computeLevel(b: StockBalance): ComputedLevel {
+  const onHand = Number(b.on_hand ?? 0);
+  const available = Number(b.available ?? 0);
+  const reserved = Number(b.reserved ?? 0);
+  const min = Number(b.min_stock ?? 0);
+  // Ошибка остатков: отрицательные значения или резерв > on_hand
+  if (onHand < 0 || available < 0 || reserved < 0 || reserved > onHand) return "error";
+  // Излишек: остаток превышает min × 3 (и min > 0)
+  if (min > 0 && onHand > min * 3) return "surplus";
+  return b.deficit_level;
+}
 
 function SupplyPage() {
   const [query, setQuery] = useState("");
