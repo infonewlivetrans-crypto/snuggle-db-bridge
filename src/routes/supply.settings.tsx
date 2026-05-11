@@ -140,7 +140,7 @@ function SupplySettingsPage() {
     const key = `${productId}::${wId ?? ""}`;
     const cur = settingMap.get(key);
     const payload: Setting = {
-      ...(cur ?? { product_id: productId, warehouse_id: wId, min_stock: 0, safety_stock: 0, is_critical: false, on_demand_only: false }),
+      ...(cur ?? { product_id: productId, warehouse_id: wId, min_stock: 0, safety_stock: 0, is_critical: false, on_demand_only: false, priority: 3 }),
       ...(draft[key] ?? {}),
       product_id: productId,
       warehouse_id: wId,
