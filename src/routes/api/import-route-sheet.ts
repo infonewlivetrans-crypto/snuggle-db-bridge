@@ -240,9 +240,14 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           .single();
 
         if (rErr || !route) {
+          console.error("[import-route-sheet] routes.insert failed (full error):", rErr);
           return jsonResponse(
             {
               error: `Не удалось создать заявку: ${rErr?.message ?? "неизвестная ошибка"}`,
+              message: rErr?.message,
+              details: rErr?.details,
+              hint: rErr?.hint,
+              code: rErr?.code,
             },
             { status: 500 },
           );
