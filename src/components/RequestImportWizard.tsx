@@ -194,7 +194,14 @@ export function RequestImportWizard({
           point_number: pointNum,
         } as never);
         if (rpErr) {
-          errors.push(`Строка ${i + 2}: ${rpErr.message}`);
+          console.error("[RequestImport] route_points insert failed (full error):", {
+            row: i + 2,
+            requestId,
+            orderId: (ord as { id: string }).id,
+            error: rpErr,
+          });
+          const { formatSupabaseError } = await import("@/lib/supabaseError");
+          errors.push(`Строка ${i + 2}: ${formatSupabaseError(rpErr)}`);
           continue;
         }
         pointNum++;
