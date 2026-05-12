@@ -232,6 +232,37 @@ function createImportDiagnostics(args: {
   };
 }
 
+function getRouteInsertPayloadForDiagnostics(parsed: ParsedRouteSheet) {
+  const routeNumber = parsed.routeNumber?.trim() || "RL-<generated>";
+  const routeDate = parsed.routeDate || "<today>";
+  const headerMissing: string[] = [];
+  if (!parsed.routeNumber) headerMissing.push("Номер маршрутного листа");
+  if (!parsed.routeDate) headerMissing.push("Дата");
+  if (!parsed.carrier) headerMissing.push("Перевозчик");
+  if (!parsed.driverName) headerMissing.push("Водитель");
+  if (!parsed.driverPhone) headerMissing.push("Телефон водителя");
+  if (!parsed.vehiclePlate) headerMissing.push("Номер ТС");
+  if (!parsed.contract) headerMissing.push("Договор");
+  const headerNote = headerMissing.length ? `Требует заполнения: ${headerMissing.join(", ")}` : null;
+
+  return {
+    route_number: routeNumber,
+    route_date: routeDate,
+    request_type: "client_delivery",
+    status: "planned",
+    request_status: "draft",
+    source: "route_sheet",
+    organization: parsed.organization,
+    onec_request_number: parsed.routeNumber,
+    carrier_id: "<resolved on server>",
+    driver_id: "<resolved on server>",
+    vehicle_id: "<resolved on server>",
+    driver_name: parsed.driverName,
+    transport_comment: headerNote,
+    request_status_comment: headerNote,
+  };
+}
+
 function makeImportErrorDetails(args: {
   error: unknown;
   status?: number;
