@@ -64,7 +64,9 @@ export function ImportRouteDialog({
         toast.error("Не заполнены обязательные данные");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка импорта");
+      console.error("[ImportRouteDialog] import failed (full error):", e);
+      const { formatSupabaseError } = await import("@/lib/supabaseError");
+      toast.error(formatSupabaseError(e));
     } finally {
       setBusy(false);
     }
