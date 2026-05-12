@@ -299,10 +299,10 @@ export function RouteSheetImportWizard({
               </div>
             )}
             {errorMsg && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{errorMsg}</AlertDescription>
-              </Alert>
+              <ErrorDetailsPanel
+                title="Не удалось обработать файл"
+                details={errorDetails ?? { summary: errorMsg, message: errorMsg, details: null, hint: null, code: null, status: null, body: null, raw: errorMsg }}
+              />
             )}
           </div>
         )}
