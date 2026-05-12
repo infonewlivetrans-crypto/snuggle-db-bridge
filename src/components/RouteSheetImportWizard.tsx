@@ -131,14 +131,20 @@ export function RouteSheetImportWizard({
     setBusy(true);
     setStep("importing");
     setErrorMsg(null);
+    setErrorDetails(null);
     try {
       const { data: sess, error: sessErr } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
       if (!token) {
         const reason = sessErr ?? "no access_token in session";
         console.error("[RouteSheetImport] no session token", { sessErr, sess });
-        if (isJwtExpired(reason)) throw new Error("Сессия истекла. Войдите заново.");
-        throw new Error(formatSupabaseError(reason));
+        const det = extractErrorDetails(reason);
+        setErrorDetails(det);
+        setErrorMsg(det.summary);
+        toast.error(det.summary);
+        setStep("preview");
+        setBusy(false);
+        return;
       }
 
       const res = await fetch("/api/import-route-sheet", {
@@ -181,7 +187,7 @@ export function RouteSheetImportWizard({
       try {
         json = rawText ? JSON.parse(rawText) : {};
       } catch {
-        // оставим json пустым, тело попадёт в сообщение об ошибке
+        // оставим json пустым, тело попадёт в подробности
       }
 
       if (!res.ok || !json.ok || !json.routeId) {
@@ -191,7 +197,7 @@ export function RouteSheetImportWizard({
           body: rawText,
           json,
         });
-        const msg = formatSupabaseError(
+        const det = extractErrorDetails(
           {
             message: json.error ?? json.message,
             details: json.details,
@@ -199,9 +205,14 @@ export function RouteSheetImportWizard({
             code: json.code,
           },
           res.status,
-          rawText && !json.error && !json.message ? rawText : undefined,
+          rawText && !json.error && !json.message ? rawText : rawText || undefined,
         );
-        throw new Error(msg);
+        setErrorDetails(det);
+        setErrorMsg(det.summary);
+        toast.error(det.summary);
+        setStep("preview");
+        setBusy(false);
+        return;
       }
 
       setResult({
@@ -223,9 +234,10 @@ export function RouteSheetImportWizard({
       }
     } catch (e) {
       console.error("[RouteSheetImport] import failed (full error):", e);
-      const msg = errorText(e);
-      setErrorMsg(msg);
-      toast.error(msg);
+      const det = extractErrorDetails(e);
+      setErrorMsg(det.summary);
+      setErrorDetails(det);
+      toast.error(det.summary);
       setStep("preview");
     } finally {
       setBusy(false);
