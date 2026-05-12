@@ -77,6 +77,17 @@ function bodyToText(value: unknown): string | null {
   }
 }
 
+function bodyToRecord(value: unknown): ApiErrorShape {
+  if (typeof value === "string") {
+    try {
+      return asRecord(JSON.parse(value));
+    } catch {
+      return {};
+    }
+  }
+  return asRecord(value);
+}
+
 function firstText(...values: unknown[]): string | null {
   for (const value of values) {
     const text = asCleanString(value);
@@ -114,7 +125,7 @@ function makeImportErrorDetails(args: {
   const errorObj = asRecord(args.error);
   const responseObj = asRecord(errorObj.response);
   const nestedErrorObj = asRecord(errorObj.error);
-  const bodyObj = asRecord(args.responseBody ?? errorObj.body);
+  const bodyObj = bodyToRecord(args.responseBody ?? errorObj.body);
   const responseBodyText = bodyToText(args.responseBody ?? errorObj.body);
   const status =
     args.status ??
@@ -137,19 +148,21 @@ function makeImportErrorDetails(args: {
 
   const message = firstText(
     nestedErrorObj.message,
-    errorObj.message,
-    bodyObj.message,
-    responseObj.message,
-    errorObj.error,
     bodyObj.error,
+    bodyObj.message,
     responseObj.error,
+    responseObj.message,
+    errorObj.message,
+    errorObj.error,
     responseBodyText,
   );
   const details = firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details);
   const hint = firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint);
   const code = firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code);
 
-  const primary = message ? clarifySchemaError(message) : "Не удалось создать заявку";
+  const primary = message && !message.toLowerCase().includes("сессия истекла")
+    ? clarifySchemaError(message)
+    : "Не удалось создать заявку";
   const parts = [
     primary,
     details ? `details: ${details}` : null,
