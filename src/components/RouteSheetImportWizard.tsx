@@ -162,61 +162,116 @@ function clarifySchemaError(message: string): string {
   return message;
 }
 
+function inferDbProblem(message: string, table: string | null): string {
+  const columnMatch = message.match(
+    /Could not find the '([^']+)' column of '([^']+)' in the schema cache/i,
+  );
+  if (columnMatch) return `Не хватает колонки ${columnMatch[2]}.${columnMatch[1]}`;
+
+  const relationMatch = message.match(/relation "(?:public\.)?([^"]+)" does not exist/i);
+  if (relationMatch) return `Не хватает таблицы ${relationMatch[1]}`;
+
+  const tableMatch = message.match(/Could not find the table '([^']+)' in the schema cache/i);
+  if (tableMatch) return `Не хватает таблицы ${tableMatch[1]}`;
+
+  if (/permission denied|row-level security|violates row-level security|not authorized|forbidden/i.test(message)) {
+    return table ? `Нет доступа к таблице ${table}` : "Нет доступа к таблице";
+  }
+
+  return message;
+}
+
+function createImportDiagnostics(args: {
+  error: unknown;
+  status?: number;
+  statusText?: string;
+  responseBody?: unknown;
+  table?: string;
+  operation?: string;
+  payload?: unknown;
+}): ImportDiagnostics {
+  const errorObj = asRecord(args.error);
+  const responseObj = asRecord(errorObj.response);
+  const nestedErrorObj = asRecord(errorObj.error);
+  const bodyObj = bodyToRecord(args.responseBody ?? errorObj.body);
+  const status =
+    asStatus(args.status) ??
+    asStatus(errorObj.status) ??
+    asStatus(responseObj.status) ??
+    asStatus(bodyObj.status);
+  const statusCode =
+    asStatus(errorObj.statusCode) ??
+    asStatus(responseObj.statusCode) ??
+    asStatus(bodyObj.statusCode) ??
+    status;
+
+  return {
+    status,
+    statusCode,
+    table: firstText(bodyObj.table, responseObj.table, errorObj.table, args.table),
+    operation: firstText(bodyObj.operation, responseObj.operation, errorObj.operation, args.operation),
+    payload: bodyObj.payload ?? responseObj.payload ?? errorObj.payload ?? args.payload ?? null,
+    error: {
+      message: firstSchemaAwareText(
+        errorObj.message,
+        nestedErrorObj.message,
+        bodyObj.message,
+        responseObj.message,
+        bodyObj.error,
+        responseObj.error,
+      ),
+      details: firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details),
+      hint: firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint),
+      code: firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code),
+    },
+    responseBody: compactText(args.responseBody ?? errorObj.body),
+    rawError: args.error,
+  };
+}
+
 function makeImportErrorDetails(args: {
   error: unknown;
   status?: number;
   statusText?: string;
   responseBody?: unknown;
+  table?: string;
+  operation?: string;
+  payload?: unknown;
 }): ErrorDetails {
-  const errorObj = asRecord(args.error);
-  const responseObj = asRecord(errorObj.response);
-  const nestedErrorObj = asRecord(errorObj.error);
-  const bodyObj = bodyToRecord(args.responseBody ?? errorObj.body);
-  const responseBodyText = bodyToText(args.responseBody ?? errorObj.body);
-  const status =
-    args.status ??
-    (typeof errorObj.status === "number" ? errorObj.status : null) ??
-    (typeof responseObj.status === "number" ? responseObj.status : null);
-
-  const errorMessage = firstSchemaAwareText(errorObj.message, nestedErrorObj.message);
-  const details = firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details);
-  const hint = firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint);
-  const code = firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code);
-  const responseError = firstSchemaAwareText(responseObj.error, bodyObj.error, errorObj.error);
-  const responseMessage = firstSchemaAwareText(responseObj.message, bodyObj.message);
-  const statusMessage = status === 401 || status === 403
+  const diagnostics = createImportDiagnostics(args);
+  const authStatus = diagnostics.status === 401 || diagnostics.status === 403 || diagnostics.statusCode === 401 || diagnostics.statusCode === 403;
+  const message = authStatus
     ? "Сессия истекла. Войдите заново."
-    : null;
-
-  const message = firstSchemaAwareText(
-    errorMessage,
-    details,
-    responseError,
-    responseMessage,
-    statusMessage,
-    responseBodyText,
-  );
+    : firstSchemaAwareText(
+        diagnostics.error.message,
+        diagnostics.error.details,
+        diagnostics.responseBody,
+      );
 
   const primary = message
-    ? clarifySchemaError(message)
+    ? inferDbProblem(clarifySchemaError(message), diagnostics.table)
     : "Не удалось создать заявку";
   const parts = [
     primary,
-    details ? `details: ${details}` : null,
-    hint ? `hint: ${hint}` : null,
-    code ? `code: ${code}` : null,
-    status ? `status: ${status}` : null,
+    diagnostics.error.details ? `details: ${diagnostics.error.details}` : null,
+    diagnostics.error.hint ? `hint: ${diagnostics.error.hint}` : null,
+    diagnostics.error.code ? `code: ${diagnostics.error.code}` : null,
+    diagnostics.status ? `status: ${diagnostics.status}` : null,
+    diagnostics.statusCode && diagnostics.statusCode !== diagnostics.status ? `statusCode: ${diagnostics.statusCode}` : null,
+    diagnostics.table ? `table: ${diagnostics.table}` : null,
+    diagnostics.operation ? `operation: ${diagnostics.operation}` : null,
+    diagnostics.payload ? `payload: ${compactText(diagnostics.payload, 500)}` : null,
   ].filter(Boolean) as string[];
 
-  const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
+  const raw = bodyToText({ statusText: args.statusText, ...diagnostics }) ?? "";
   return {
     summary: parts.join(" · "),
     message: primary,
-    details,
-    hint,
-    code,
-    status,
-    body: responseBodyText,
+    details: diagnostics.error.details,
+    hint: diagnostics.error.hint,
+    code: diagnostics.error.code,
+    status: diagnostics.status,
+    body: diagnostics.responseBody,
     raw,
   };
 }
