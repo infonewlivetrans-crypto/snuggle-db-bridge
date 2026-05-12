@@ -291,7 +291,7 @@ function makeImportErrorDetails(args: {
     diagnostics.error.hint ? `hint: ${diagnostics.error.hint}` : null,
     diagnostics.error.code ? `code: ${diagnostics.error.code}` : null,
     diagnostics.status ? `status: ${diagnostics.status}` : null,
-    diagnostics.statusCode && diagnostics.statusCode !== diagnostics.status ? `statusCode: ${diagnostics.statusCode}` : null,
+    diagnostics.statusCode ? `statusCode: ${diagnostics.statusCode}` : null,
     diagnostics.table ? `table: ${diagnostics.table}` : null,
     diagnostics.operation ? `operation: ${diagnostics.operation}` : null,
     diagnostics.payload ? `payload: ${compactText(diagnostics.payload, 500)}` : null,
