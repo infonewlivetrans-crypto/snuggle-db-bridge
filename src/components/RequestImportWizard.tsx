@@ -216,7 +216,9 @@ export function RequestImportWizard({
       if (errors.length === 0) toast.success(`Импортировано: ${inserted}`);
       else toast.warning(`Импортировано ${inserted} из ${parsed.rows.length}, ошибок: ${errors.length}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка импорта");
+      console.error("[RequestImport] import failed (full error):", e);
+      const { formatSupabaseError } = await import("@/lib/supabaseError");
+      toast.error(formatSupabaseError(e));
     } finally {
       setBusy(false);
     }
