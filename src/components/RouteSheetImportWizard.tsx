@@ -189,16 +189,23 @@ export function RouteSheetImportWizard({
           body: rawText,
           json,
         });
-        const det = extractErrorDetails(
-          {
-            message: json.error ?? json.message,
-            details: json.details,
-            hint: json.hint,
-            code: json.code,
-          },
-          res.status,
-          rawText && !json.error && !json.message ? rawText : rawText || undefined,
-        );
+        const hasAny =
+          json.error || json.message || json.details || json.hint || json.code || rawText;
+        const det = hasAny
+          ? extractErrorDetails(
+              {
+                message: json.error ?? json.message,
+                details: json.details,
+                hint: json.hint,
+                code: json.code,
+              },
+              res.status,
+              rawText && !json.error && !json.message ? rawText : rawText || undefined,
+            )
+          : extractErrorDetails(
+              { message: `Не удалось создать заявку (HTTP ${res.status} ${res.statusText || ""})`.trim() },
+              res.status,
+            );
         setErrorDetails(det);
         setErrorMsg(det.summary);
         toast.error(det.summary);
