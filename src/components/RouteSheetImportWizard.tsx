@@ -50,8 +50,28 @@ type ApiErrorShape = {
   hint?: unknown;
   code?: unknown;
   status?: unknown;
+  statusCode?: unknown;
+  table?: unknown;
+  operation?: unknown;
+  payload?: unknown;
   response?: unknown;
   body?: unknown;
+};
+
+type ImportDiagnostics = {
+  status: number | null;
+  statusCode: number | null;
+  table: string | null;
+  operation: string | null;
+  payload: unknown;
+  error: {
+    message: string | null;
+    details: string | null;
+    hint: string | null;
+    code: string | null;
+  };
+  responseBody: string | null;
+  rawError: unknown;
 };
 
 function asCleanString(value: unknown): string | null {
@@ -65,6 +85,15 @@ function asCleanString(value: unknown): string | null {
 
 function asRecord(value: unknown): ApiErrorShape {
   return value && typeof value === "object" ? (value as ApiErrorShape) : {};
+}
+
+function asStatus(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function bodyToText(value: unknown): string | null {
@@ -94,6 +123,12 @@ function firstText(...values: unknown[]): string | null {
     if (text) return text;
   }
   return null;
+}
+
+function compactText(value: unknown, max = 1200): string | null {
+  const text = bodyToText(value);
+  if (!text) return null;
+  return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
 function isSchemaErrorText(value: string): boolean {
@@ -130,61 +165,147 @@ function clarifySchemaError(message: string): string {
   return message;
 }
 
+function inferDbProblem(message: string, table: string | null): string {
+  const columnMatch = message.match(
+    /Could not find the '([^']+)' column of '([^']+)' in the schema cache/i,
+  );
+  if (columnMatch) return `Не хватает колонки ${columnMatch[2]}.${columnMatch[1]}`;
+
+  const relationMatch = message.match(/relation "(?:public\.)?([^"]+)" does not exist/i);
+  if (relationMatch) return `Не хватает таблицы ${relationMatch[1]}`;
+
+  const tableMatch = message.match(/Could not find the table '([^']+)' in the schema cache/i);
+  if (tableMatch) return `Не хватает таблицы ${tableMatch[1]}`;
+
+  if (/permission denied|row-level security|violates row-level security|not authorized|forbidden/i.test(message)) {
+    return table ? `Нет доступа к таблице ${table}` : "Нет доступа к таблице";
+  }
+
+  return message;
+}
+
+function createImportDiagnostics(args: {
+  error: unknown;
+  status?: number;
+  statusText?: string;
+  responseBody?: unknown;
+  table?: string;
+  operation?: string;
+  payload?: unknown;
+}): ImportDiagnostics {
+  const errorObj = asRecord(args.error);
+  const responseObj = asRecord(errorObj.response);
+  const nestedErrorObj = asRecord(errorObj.error);
+  const bodyObj = bodyToRecord(args.responseBody ?? errorObj.body);
+  const status =
+    asStatus(args.status) ??
+    asStatus(errorObj.status) ??
+    asStatus(responseObj.status) ??
+    asStatus(bodyObj.status);
+  const statusCode =
+    asStatus(errorObj.statusCode) ??
+    asStatus(responseObj.statusCode) ??
+    asStatus(bodyObj.statusCode) ??
+    status;
+
+  return {
+    status,
+    statusCode,
+    table: firstText(bodyObj.table, responseObj.table, errorObj.table, args.table),
+    operation: firstText(bodyObj.operation, responseObj.operation, errorObj.operation, args.operation),
+    payload: bodyObj.payload ?? responseObj.payload ?? errorObj.payload ?? args.payload ?? null,
+    error: {
+      message: firstSchemaAwareText(
+        errorObj.message,
+        nestedErrorObj.message,
+        bodyObj.message,
+        responseObj.message,
+        bodyObj.error,
+        responseObj.error,
+      ),
+      details: firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details),
+      hint: firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint),
+      code: firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code),
+    },
+    responseBody: compactText(args.responseBody ?? errorObj.body),
+    rawError: args.error,
+  };
+}
+
+function getRouteInsertPayloadForDiagnostics(parsed: ParsedRouteSheet) {
+  const routeNumber = parsed.routeNumber?.trim() || "RL-<generated>";
+  const routeDate = parsed.routeDate || "<today>";
+  const headerMissing: string[] = [];
+  if (!parsed.routeNumber) headerMissing.push("Номер маршрутного листа");
+  if (!parsed.routeDate) headerMissing.push("Дата");
+  if (!parsed.carrier) headerMissing.push("Перевозчик");
+  if (!parsed.driverName) headerMissing.push("Водитель");
+  if (!parsed.driverPhone) headerMissing.push("Телефон водителя");
+  if (!parsed.vehiclePlate) headerMissing.push("Номер ТС");
+  if (!parsed.contract) headerMissing.push("Договор");
+  const headerNote = headerMissing.length ? `Требует заполнения: ${headerMissing.join(", ")}` : null;
+
+  return {
+    route_number: routeNumber,
+    route_date: routeDate,
+    request_type: "client_delivery",
+    status: "planned",
+    request_status: "draft",
+    source: "route_sheet",
+    organization: parsed.organization,
+    onec_request_number: parsed.routeNumber,
+    carrier_id: "<resolved on server>",
+    driver_id: "<resolved on server>",
+    vehicle_id: "<resolved on server>",
+    driver_name: parsed.driverName,
+    transport_comment: headerNote,
+    request_status_comment: headerNote,
+  };
+}
+
 function makeImportErrorDetails(args: {
   error: unknown;
   status?: number;
   statusText?: string;
   responseBody?: unknown;
+  table?: string;
+  operation?: string;
+  payload?: unknown;
 }): ErrorDetails {
-  const errorObj = asRecord(args.error);
-  const responseObj = asRecord(errorObj.response);
-  const nestedErrorObj = asRecord(errorObj.error);
-  const bodyObj = bodyToRecord(args.responseBody ?? errorObj.body);
-  const responseBodyText = bodyToText(args.responseBody ?? errorObj.body);
-  const status =
-    args.status ??
-    (typeof errorObj.status === "number" ? errorObj.status : null) ??
-    (typeof responseObj.status === "number" ? responseObj.status : null);
-
-  const errorMessage = firstSchemaAwareText(errorObj.message, nestedErrorObj.message);
-  const details = firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details);
-  const hint = firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint);
-  const code = firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code);
-  const responseError = firstSchemaAwareText(responseObj.error, bodyObj.error, errorObj.error);
-  const responseMessage = firstSchemaAwareText(responseObj.message, bodyObj.message);
-  const statusMessage = status === 401 || status === 403
+  const diagnostics = createImportDiagnostics(args);
+  const authStatus = diagnostics.status === 401 || diagnostics.status === 403 || diagnostics.statusCode === 401 || diagnostics.statusCode === 403;
+  const message = authStatus
     ? "Сессия истекла. Войдите заново."
-    : null;
-
-  const message = firstSchemaAwareText(
-    errorMessage,
-    details,
-    responseError,
-    responseMessage,
-    statusMessage,
-    responseBodyText,
-  );
+    : firstSchemaAwareText(
+        diagnostics.error.message,
+        diagnostics.error.details,
+        diagnostics.responseBody,
+      );
 
   const primary = message
-    ? clarifySchemaError(message)
+    ? inferDbProblem(clarifySchemaError(message), diagnostics.table)
     : "Не удалось создать заявку";
   const parts = [
     primary,
-    details ? `details: ${details}` : null,
-    hint ? `hint: ${hint}` : null,
-    code ? `code: ${code}` : null,
-    status ? `status: ${status}` : null,
+    diagnostics.error.details ? `details: ${diagnostics.error.details}` : null,
+    diagnostics.error.hint ? `hint: ${diagnostics.error.hint}` : null,
+    diagnostics.error.code ? `code: ${diagnostics.error.code}` : null,
+    diagnostics.status ? `status: ${diagnostics.status}` : null,
+    diagnostics.statusCode ? `statusCode: ${diagnostics.statusCode}` : null,
+    diagnostics.table ? `table: ${diagnostics.table}` : null,
+    diagnostics.operation ? `operation: ${diagnostics.operation}` : null,
+    diagnostics.payload ? `payload: ${compactText(diagnostics.payload, 500)}` : null,
   ].filter(Boolean) as string[];
 
-  const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
+  const raw = bodyToText({ statusText: args.statusText, ...diagnostics }) ?? "";
   return {
     summary: parts.join(" · "),
     message: primary,
-    details,
-    hint,
-    code,
-    status,
-    body: responseBodyText,
+    details: diagnostics.error.details,
+    hint: diagnostics.error.hint,
+    code: diagnostics.error.code,
+    status: diagnostics.status,
+    body: diagnostics.responseBody,
     raw,
   };
 }
@@ -323,17 +444,34 @@ export function RouteSheetImportWizard({
       }
 
       if (!res.ok || !json.ok || !json.routeId) {
-        console.error("[RouteSheetImport] server responded with error", {
+        const supabasePayload = getRouteInsertPayloadForDiagnostics(parsed);
+        const diagnostics = createImportDiagnostics({
+          error: json,
           status: res.status,
           statusText: res.statusText,
-          body: rawText,
-          json,
+          responseBody: rawText || json,
+          table: "routes",
+          operation: "insert",
+          payload: supabasePayload,
         });
         const det = makeImportErrorDetails({
           error: json,
           status: res.status,
           statusText: res.statusText,
           responseBody: rawText || json,
+          table: "routes",
+          operation: "insert",
+          payload: supabasePayload,
+        });
+        console.error("[RouteSheetImport] transport request creation failed", {
+          status: diagnostics.status,
+          statusCode: diagnostics.statusCode,
+          error: diagnostics.error,
+          table: diagnostics.table,
+          operation: diagnostics.operation,
+          payload: diagnostics.payload,
+          responseBody: diagnostics.responseBody,
+          rawError: diagnostics.rawError,
         });
         setErrorDetails(det);
         setErrorMsg(det.summary);
@@ -361,8 +499,29 @@ export function RouteSheetImportWizard({
         toast.success("Заявка на транспорт создана");
       }
     } catch (e) {
-      console.error("[RouteSheetImport] import failed (full error):", e);
-      const det = makeImportErrorDetails({ error: e });
+      const supabasePayload = getRouteInsertPayloadForDiagnostics(parsed);
+      const diagnostics = createImportDiagnostics({
+        error: e,
+        table: "routes",
+        operation: "insert",
+        payload: supabasePayload,
+      });
+      const det = makeImportErrorDetails({
+        error: e,
+        table: "routes",
+        operation: "insert",
+        payload: supabasePayload,
+      });
+      console.error("[RouteSheetImport] transport request creation failed", {
+        status: diagnostics.status,
+        statusCode: diagnostics.statusCode,
+        error: diagnostics.error,
+        table: diagnostics.table,
+        operation: diagnostics.operation,
+        payload: diagnostics.payload,
+        responseBody: diagnostics.responseBody,
+        rawError: diagnostics.rawError,
+      });
       setErrorMsg(det.summary);
       setErrorDetails(det);
       toast.error(det.summary);
