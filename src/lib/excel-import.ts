@@ -133,8 +133,22 @@ export async function importOrdersFromFile(file: File): Promise<ImportResult> {
       source: "excel",
     };
     const { error } = await supabase.from("orders").insert(payload as never);
-    if (error) errors.push({ row: i + 1, message: error.message });
-    else inserted++;
+    if (error) {
+      console.error("[excel-import] orders.insert failed (full error):", {
+        row: i + 1,
+        payload,
+        error,
+      });
+      const reason = [
+        error.message,
+        error.details ? `details: ${error.details}` : null,
+        error.hint ? `hint: ${error.hint}` : null,
+        error.code ? `code: ${error.code}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      errors.push({ row: i + 1, message: reason });
+    } else inserted++;
   }
   return { inserted, total, errors };
 }
