@@ -178,7 +178,13 @@ export function RequestImportWizard({
           .select("id")
           .single();
         if (ordErr || !ord) {
-          errors.push(`Строка ${i + 2}: ${ordErr?.message ?? "не удалось создать заказ"}`);
+          console.error("[RequestImport] order insert failed (full error):", {
+            row: i + 2,
+            payload,
+            error: ordErr,
+          });
+          const { formatSupabaseError } = await import("@/lib/supabaseError");
+          errors.push(`Строка ${i + 2}: ${formatSupabaseError(ordErr)}`);
           continue;
         }
 
