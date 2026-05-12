@@ -166,7 +166,7 @@ function makeImportErrorDetails(args: {
     responseBodyText,
   );
 
-  const primary = message && !message.toLowerCase().includes("сессия истекла")
+  const primary = message
     ? clarifySchemaError(message)
     : "Не удалось создать заявку";
   const parts = [
