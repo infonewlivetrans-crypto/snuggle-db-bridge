@@ -444,17 +444,34 @@ export function RouteSheetImportWizard({
       }
 
       if (!res.ok || !json.ok || !json.routeId) {
-        console.error("[RouteSheetImport] server responded with error", {
+        const supabasePayload = getRouteInsertPayloadForDiagnostics(parsed);
+        const diagnostics = createImportDiagnostics({
+          error: json,
           status: res.status,
           statusText: res.statusText,
-          body: rawText,
-          json,
+          responseBody: rawText || json,
+          table: "routes",
+          operation: "insert",
+          payload: supabasePayload,
         });
         const det = makeImportErrorDetails({
           error: json,
           status: res.status,
           statusText: res.statusText,
           responseBody: rawText || json,
+          table: "routes",
+          operation: "insert",
+          payload: supabasePayload,
+        });
+        console.error("[RouteSheetImport] transport request creation failed", {
+          status: diagnostics.status,
+          statusCode: diagnostics.statusCode,
+          error: diagnostics.error,
+          table: diagnostics.table,
+          operation: diagnostics.operation,
+          payload: diagnostics.payload,
+          responseBody: diagnostics.responseBody,
+          rawError: diagnostics.rawError,
         });
         setErrorDetails(det);
         setErrorMsg(det.summary);
@@ -482,8 +499,29 @@ export function RouteSheetImportWizard({
         toast.success("Заявка на транспорт создана");
       }
     } catch (e) {
-      console.error("[RouteSheetImport] import failed (full error):", e);
-      const det = makeImportErrorDetails({ error: e });
+      const supabasePayload = getRouteInsertPayloadForDiagnostics(parsed);
+      const diagnostics = createImportDiagnostics({
+        error: e,
+        table: "routes",
+        operation: "insert",
+        payload: supabasePayload,
+      });
+      const det = makeImportErrorDetails({
+        error: e,
+        table: "routes",
+        operation: "insert",
+        payload: supabasePayload,
+      });
+      console.error("[RouteSheetImport] transport request creation failed", {
+        status: diagnostics.status,
+        statusCode: diagnostics.statusCode,
+        error: diagnostics.error,
+        table: diagnostics.table,
+        operation: diagnostics.operation,
+        payload: diagnostics.payload,
+        responseBody: diagnostics.responseBody,
+        rawError: diagnostics.rawError,
+      });
       setErrorMsg(det.summary);
       setErrorDetails(det);
       toast.error(det.summary);
