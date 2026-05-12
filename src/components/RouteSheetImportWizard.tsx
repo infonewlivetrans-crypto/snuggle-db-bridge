@@ -122,9 +122,14 @@ export function RouteSheetImportWizard({
     setStep("importing");
     setErrorMsg(null);
     try {
-      const { data: sess } = await supabase.auth.getSession();
+      const { data: sess, error: sessErr } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      if (!token) throw new Error("Сессия истекла. Войдите заново.");
+      if (!token) {
+        const reason = sessErr ?? "no access_token in session";
+        console.error("[RouteSheetImport] no session token", { sessErr, sess });
+        if (isJwtExpired(reason)) throw new Error("Сессия истекла. Войдите заново.");
+        throw new Error(formatSupabaseError(reason));
+      }
 
       const res = await fetch("/api/import-route-sheet", {
         method: "POST",
@@ -135,7 +140,8 @@ export function RouteSheetImportWizard({
         body: JSON.stringify(parsed),
       });
 
-      const json = (await res.json().catch(() => ({}))) as {
+      const rawText = await res.text();
+      let json: {
         ok?: boolean;
         routeId?: string;
         routeNumber?: string;
@@ -157,10 +163,35 @@ export function RouteSheetImportWizard({
         }>;
         needsReview?: boolean;
         error?: string;
-      };
+        message?: string;
+        details?: string;
+        hint?: string;
+        code?: string;
+      } = {};
+      try {
+        json = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        // оставим json пустым, тело попадёт в сообщение об ошибке
+      }
 
       if (!res.ok || !json.ok || !json.routeId) {
-        throw new Error(json.error || `Ошибка сервера (${res.status})`);
+        console.error("[RouteSheetImport] server responded with error", {
+          status: res.status,
+          statusText: res.statusText,
+          body: rawText,
+          json,
+        });
+        const msg = formatSupabaseError(
+          {
+            message: json.error ?? json.message,
+            details: json.details,
+            hint: json.hint,
+            code: json.code,
+          },
+          res.status,
+          rawText && !json.error && !json.message ? rawText : undefined,
+        );
+        throw new Error(msg);
       }
 
       setResult({
@@ -181,8 +212,8 @@ export function RouteSheetImportWizard({
         toast.success("Заявка на транспорт создана");
       }
     } catch (e) {
+      console.error("[RouteSheetImport] import failed (full error):", e);
       const msg = errorText(e);
-      console.error("Route sheet import error:", e);
       setErrorMsg(msg);
       toast.error(msg);
       setStep("preview");
