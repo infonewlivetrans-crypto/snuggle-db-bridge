@@ -35,24 +35,12 @@ import {
   parseRouteSheetXlsx,
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
+import { formatSupabaseError, isJwtExpired } from "@/lib/supabaseError";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
 function errorText(e: unknown): string {
-  if (!e) return "Неизвестная ошибка";
-  if (e instanceof Error) return e.message;
-  if (typeof e === "string") return e;
-  if (typeof e === "object") {
-    const obj = e as { message?: unknown; error?: unknown };
-    if (typeof obj.message === "string") return obj.message;
-    if (typeof obj.error === "string") return obj.error;
-    try {
-      return JSON.stringify(e);
-    } catch {
-      return "Неизвестная ошибка";
-    }
-  }
-  return String(e);
+  return formatSupabaseError(e);
 }
 
 export function RouteSheetImportWizard({
