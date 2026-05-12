@@ -96,6 +96,20 @@ function firstText(...values: unknown[]): string | null {
   return null;
 }
 
+function isSchemaErrorText(value: string): boolean {
+  return (
+    /Could not find the '[^']+' column of '[^']+' in the schema cache/i.test(value) ||
+    /Could not find the table '[^']+' in the schema cache/i.test(value) ||
+    /relation "[^"]+" does not exist/i.test(value) ||
+    /missing table\s+[^\s.;,]+/i.test(value)
+  );
+}
+
+function firstSchemaAwareText(...values: unknown[]): string | null {
+  const texts = values.map(asCleanString).filter(Boolean) as string[];
+  return texts.find(isSchemaErrorText) ?? texts[0] ?? null;
+}
+
 function clarifySchemaError(message: string): string {
   const columnMatch = message.match(
     /Could not find the '([^']+)' column of '([^']+)' in the schema cache/i,
@@ -146,13 +160,13 @@ function makeImportErrorDetails(args: {
     };
   }
 
-  const message = firstText(
+  const message = firstSchemaAwareText(
     nestedErrorObj.message,
-    bodyObj.error,
     bodyObj.message,
-    responseObj.error,
     responseObj.message,
     errorObj.message,
+    bodyObj.error,
+    responseObj.error,
     errorObj.error,
     responseBodyText,
   );
