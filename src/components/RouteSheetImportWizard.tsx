@@ -35,7 +35,13 @@ import {
   parseRouteSheetXlsx,
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
-import { formatSupabaseError, isJwtExpired } from "@/lib/supabaseError";
+import {
+  formatSupabaseError,
+  isJwtExpired,
+  extractErrorDetails,
+  type ErrorDetails,
+} from "@/lib/supabaseError";
+import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
