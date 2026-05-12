@@ -36,8 +36,6 @@ import {
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
 import {
-  formatSupabaseError,
-  isJwtExpired,
   extractErrorDetails,
   type ErrorDetails,
 } from "@/lib/supabaseError";
@@ -45,8 +43,159 @@ import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
-function errorText(e: unknown): string {
-  return formatSupabaseError(e);
+type ApiErrorShape = {
+  error?: unknown;
+  message?: unknown;
+  details?: unknown;
+  hint?: unknown;
+  code?: unknown;
+  status?: unknown;
+  response?: unknown;
+  body?: unknown;
+};
+
+function asCleanString(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.trim() || null;
+  if (value instanceof Error) return value.message.trim() || null;
+  if (typeof value === "number") return String(value);
+  if (typeof value === "boolean") return String(value);
+  return null;
+}
+
+function asRecord(value: unknown): ApiErrorShape {
+  return value && typeof value === "object" ? (value as ApiErrorShape) : {};
+}
+
+function bodyToText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.trim() || null;
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function bodyToRecord(value: unknown): ApiErrorShape {
+  if (typeof value === "string") {
+    try {
+      return asRecord(JSON.parse(value));
+    } catch {
+      return {};
+    }
+  }
+  return asRecord(value);
+}
+
+function firstText(...values: unknown[]): string | null {
+  for (const value of values) {
+    const text = asCleanString(value);
+    if (text) return text;
+  }
+  return null;
+}
+
+function isSchemaErrorText(value: string): boolean {
+  return (
+    /Could not find the '[^']+' column of '[^']+' in the schema cache/i.test(value) ||
+    /Could not find the table '[^']+' in the schema cache/i.test(value) ||
+    /relation "[^"]+" does not exist/i.test(value) ||
+    /missing table\s+[^\s.;,]+/i.test(value)
+  );
+}
+
+function firstSchemaAwareText(...values: unknown[]): string | null {
+  const texts = values.map(asCleanString).filter(Boolean) as string[];
+  return texts.find(isSchemaErrorText) ?? texts[0] ?? null;
+}
+
+function clarifySchemaError(message: string): string {
+  const columnMatch = message.match(
+    /Could not find the '([^']+)' column of '([^']+)' in the schema cache/i,
+  );
+  if (columnMatch) {
+    const [, column, table] = columnMatch;
+    return `Не хватает колонки ${table}.${column} — ${message}`;
+  }
+
+  const tableMatch =
+    message.match(/Could not find the table '([^']+)' in the schema cache/i) ??
+    message.match(/relation "([^"]+)" does not exist/i) ??
+    message.match(/missing table\s+([^\s.;,]+)/i);
+  if (tableMatch) {
+    return `Не хватает таблицы ${tableMatch[1]} — ${message}`;
+  }
+
+  return message;
+}
+
+function makeImportErrorDetails(args: {
+  error: unknown;
+  status?: number;
+  statusText?: string;
+  responseBody?: unknown;
+}): ErrorDetails {
+  const errorObj = asRecord(args.error);
+  const responseObj = asRecord(errorObj.response);
+  const nestedErrorObj = asRecord(errorObj.error);
+  const bodyObj = bodyToRecord(args.responseBody ?? errorObj.body);
+  const responseBodyText = bodyToText(args.responseBody ?? errorObj.body);
+  const status =
+    args.status ??
+    (typeof errorObj.status === "number" ? errorObj.status : null) ??
+    (typeof responseObj.status === "number" ? responseObj.status : null);
+
+  if (status === 401 || status === 403) {
+    const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
+    return {
+      summary: "Сессия истекла. Войдите заново.",
+      message: "Сессия истекла. Войдите заново.",
+      details: null,
+      hint: null,
+      code: null,
+      status,
+      body: responseBodyText,
+      raw,
+    };
+  }
+
+  const message = firstSchemaAwareText(
+    nestedErrorObj.message,
+    bodyObj.message,
+    responseObj.message,
+    errorObj.message,
+    bodyObj.error,
+    responseObj.error,
+    errorObj.error,
+    responseBodyText,
+  );
+  const details = firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details);
+  const hint = firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint);
+  const code = firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code);
+
+  const primary = message && !message.toLowerCase().includes("сессия истекла")
+    ? clarifySchemaError(message)
+    : "Не удалось создать заявку";
+  const parts = [
+    primary,
+    details ? `details: ${details}` : null,
+    hint ? `hint: ${hint}` : null,
+    code ? `code: ${code}` : null,
+    status ? `status: ${status}` : null,
+  ].filter(Boolean) as string[];
+
+  const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
+  return {
+    summary: parts.join(" · "),
+    message: primary,
+    details,
+    hint,
+    code,
+    status,
+    body: responseBodyText,
+    raw,
+  };
 }
 
 export function RouteSheetImportWizard({
@@ -189,23 +338,12 @@ export function RouteSheetImportWizard({
           body: rawText,
           json,
         });
-        const hasAny =
-          json.error || json.message || json.details || json.hint || json.code || rawText;
-        const det = hasAny
-          ? extractErrorDetails(
-              {
-                message: json.error ?? json.message,
-                details: json.details,
-                hint: json.hint,
-                code: json.code,
-              },
-              res.status,
-              rawText && !json.error && !json.message ? rawText : rawText || undefined,
-            )
-          : extractErrorDetails(
-              { message: `Не удалось создать заявку (HTTP ${res.status} ${res.statusText || ""})`.trim() },
-              res.status,
-            );
+        const det = makeImportErrorDetails({
+          error: json,
+          status: res.status,
+          statusText: res.statusText,
+          responseBody: rawText || json,
+        });
         setErrorDetails(det);
         setErrorMsg(det.summary);
         toast.error(det.summary);
@@ -233,7 +371,7 @@ export function RouteSheetImportWizard({
       }
     } catch (e) {
       console.error("[RouteSheetImport] import failed (full error):", e);
-      const det = extractErrorDetails(e);
+      const det = makeImportErrorDetails({ error: e });
       setErrorMsg(det.summary);
       setErrorDetails(det);
       toast.error(det.summary);
