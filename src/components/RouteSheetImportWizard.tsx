@@ -99,6 +99,7 @@ export function RouteSheetImportWizard({
     if (!file) return;
     setBusy(true);
     setErrorMsg(null);
+    setErrorDetails(null);
     try {
       const name = file.name.toLowerCase();
       if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
