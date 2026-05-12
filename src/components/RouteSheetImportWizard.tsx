@@ -116,10 +116,11 @@ export function RouteSheetImportWizard({
       setParsed(data);
       setStep("preview");
     } catch (e) {
-      const msg = errorText(e);
-      console.error("Route sheet parse error:", e);
-      setErrorMsg(msg);
-      toast.error(msg);
+      const det = extractErrorDetails(e);
+      console.error("Route sheet parse error (full):", e);
+      setErrorMsg(det.summary);
+      setErrorDetails(det);
+      toast.error(det.summary);
     } finally {
       setBusy(false);
     }
