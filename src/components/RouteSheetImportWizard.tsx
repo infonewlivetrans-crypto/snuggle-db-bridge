@@ -91,6 +91,7 @@ export function RouteSheetImportWizard({
     setParsed(null);
     setBusy(false);
     setErrorMsg(null);
+    setErrorDetails(null);
     setResult(null);
   };
 
