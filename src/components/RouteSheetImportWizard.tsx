@@ -62,6 +62,7 @@ export function RouteSheetImportWizard({
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<ErrorDetails | null>(null);
   const [result, setResult] = useState<{
     routeId: string;
     routeNumber: string;
