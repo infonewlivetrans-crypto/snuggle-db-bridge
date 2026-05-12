@@ -178,7 +178,13 @@ export function RequestImportWizard({
           .select("id")
           .single();
         if (ordErr || !ord) {
-          errors.push(`Строка ${i + 2}: ${ordErr?.message ?? "не удалось создать заказ"}`);
+          console.error("[RequestImport] order insert failed (full error):", {
+            row: i + 2,
+            payload,
+            error: ordErr,
+          });
+          const { formatSupabaseError } = await import("@/lib/supabaseError");
+          errors.push(`Строка ${i + 2}: ${formatSupabaseError(ordErr)}`);
           continue;
         }
 
@@ -188,7 +194,14 @@ export function RequestImportWizard({
           point_number: pointNum,
         } as never);
         if (rpErr) {
-          errors.push(`Строка ${i + 2}: ${rpErr.message}`);
+          console.error("[RequestImport] route_points insert failed (full error):", {
+            row: i + 2,
+            requestId,
+            orderId: (ord as { id: string }).id,
+            error: rpErr,
+          });
+          const { formatSupabaseError } = await import("@/lib/supabaseError");
+          errors.push(`Строка ${i + 2}: ${formatSupabaseError(rpErr)}`);
           continue;
         }
         pointNum++;
@@ -203,7 +216,9 @@ export function RequestImportWizard({
       if (errors.length === 0) toast.success(`Импортировано: ${inserted}`);
       else toast.warning(`Импортировано ${inserted} из ${parsed.rows.length}, ошибок: ${errors.length}`);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка импорта");
+      console.error("[RequestImport] import failed (full error):", e);
+      const { formatSupabaseError } = await import("@/lib/supabaseError");
+      toast.error(formatSupabaseError(e));
     } finally {
       setBusy(false);
     }
