@@ -51,7 +51,9 @@ export function ImportOrdersDialog({
         toast.warning(`Импортировано ${r.inserted} из ${r.total}, ошибок: ${r.errors.length}`);
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Ошибка импорта");
+      console.error("[ImportOrdersDialog] import failed (full error):", e);
+      const { formatSupabaseError } = await import("@/lib/supabaseError");
+      toast.error(formatSupabaseError(e));
     } finally {
       setBusy(false);
     }
