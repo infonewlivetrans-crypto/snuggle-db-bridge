@@ -36,8 +36,6 @@ import {
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
 import {
-  formatSupabaseError,
-  isJwtExpired,
   extractErrorDetails,
   type ErrorDetails,
 } from "@/lib/supabaseError";
@@ -45,8 +43,132 @@ import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
-function errorText(e: unknown): string {
-  return formatSupabaseError(e);
+type ApiErrorShape = {
+  error?: unknown;
+  message?: unknown;
+  details?: unknown;
+  hint?: unknown;
+  code?: unknown;
+  status?: unknown;
+  response?: unknown;
+  body?: unknown;
+};
+
+function asCleanString(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.trim() || null;
+  if (value instanceof Error) return value.message.trim() || null;
+  if (typeof value === "number") return String(value);
+  if (typeof value === "boolean") return String(value);
+  return null;
+}
+
+function asRecord(value: unknown): ApiErrorShape {
+  return value && typeof value === "object" ? (value as ApiErrorShape) : {};
+}
+
+function bodyToText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value.trim() || null;
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function firstText(...values: unknown[]): string | null {
+  for (const value of values) {
+    const text = asCleanString(value);
+    if (text) return text;
+  }
+  return null;
+}
+
+function clarifySchemaError(message: string): string {
+  const columnMatch = message.match(
+    /Could not find the '([^']+)' column of '([^']+)' in the schema cache/i,
+  );
+  if (columnMatch) {
+    const [, column, table] = columnMatch;
+    return `Не хватает колонки ${table}.${column} — ${message}`;
+  }
+
+  const tableMatch =
+    message.match(/Could not find the table '([^']+)' in the schema cache/i) ??
+    message.match(/relation "([^"]+)" does not exist/i) ??
+    message.match(/missing table\s+([^\s.;,]+)/i);
+  if (tableMatch) {
+    return `Не хватает таблицы ${tableMatch[1]} — ${message}`;
+  }
+
+  return message;
+}
+
+function makeImportErrorDetails(args: {
+  error: unknown;
+  status?: number;
+  statusText?: string;
+  responseBody?: unknown;
+}): ErrorDetails {
+  const errorObj = asRecord(args.error);
+  const responseObj = asRecord(errorObj.response);
+  const nestedErrorObj = asRecord(errorObj.error);
+  const bodyObj = asRecord(args.responseBody ?? errorObj.body);
+  const responseBodyText = bodyToText(args.responseBody ?? errorObj.body);
+  const status =
+    args.status ??
+    (typeof errorObj.status === "number" ? errorObj.status : null) ??
+    (typeof responseObj.status === "number" ? responseObj.status : null);
+
+  if (status === 401 || status === 403) {
+    const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
+    return {
+      summary: "Сессия истекла. Войдите заново.",
+      message: "Сессия истекла. Войдите заново.",
+      details: null,
+      hint: null,
+      code: null,
+      status,
+      body: responseBodyText,
+      raw,
+    };
+  }
+
+  const message = firstText(
+    nestedErrorObj.message,
+    errorObj.message,
+    bodyObj.message,
+    responseObj.message,
+    errorObj.error,
+    bodyObj.error,
+    responseObj.error,
+    responseBodyText,
+  );
+  const details = firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details);
+  const hint = firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint);
+  const code = firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code);
+
+  const primary = message ? clarifySchemaError(message) : "Не удалось создать заявку";
+  const parts = [
+    primary,
+    details ? `details: ${details}` : null,
+    hint ? `hint: ${hint}` : null,
+    code ? `code: ${code}` : null,
+    status ? `status: ${status}` : null,
+  ].filter(Boolean) as string[];
+
+  const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
+  return {
+    summary: parts.join(" · "),
+    message: primary,
+    details,
+    hint,
+    code,
+    status,
+    body: responseBodyText,
+    raw,
+  };
 }
 
 export function RouteSheetImportWizard({
