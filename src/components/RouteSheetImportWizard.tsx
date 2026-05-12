@@ -51,6 +51,9 @@ type ApiErrorShape = {
   code?: unknown;
   status?: unknown;
   statusCode?: unknown;
+  table?: unknown;
+  operation?: unknown;
+  payload?: unknown;
   response?: unknown;
   body?: unknown;
 };
