@@ -135,24 +135,16 @@ export function RouteSheetImportWizard({
     try {
       const { data: sess, error: sessErr } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
-      if (!token) {
-        const reason = sessErr ?? "no access_token in session";
-        console.error("[RouteSheetImport] no session token", { sessErr, sess });
-        const det = extractErrorDetails(reason);
-        setErrorDetails(det);
-        setErrorMsg(det.summary);
-        toast.error(det.summary);
-        setStep("preview");
-        setBusy(false);
-        return;
+      if (sessErr) {
+        console.warn("[RouteSheetImport] supabase.auth.getSession warning:", sessErr);
       }
+
+      const headers: Record<string, string> = { "content-type": "application/json" };
+      if (token) headers.authorization = `Bearer ${token}`;
 
       const res = await fetch("/api/import-route-sheet", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify(parsed),
       });
 
