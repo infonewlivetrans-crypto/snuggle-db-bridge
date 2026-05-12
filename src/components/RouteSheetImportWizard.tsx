@@ -35,7 +35,13 @@ import {
   parseRouteSheetXlsx,
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
-import { formatSupabaseError, isJwtExpired } from "@/lib/supabaseError";
+import {
+  formatSupabaseError,
+  isJwtExpired,
+  extractErrorDetails,
+  type ErrorDetails,
+} from "@/lib/supabaseError";
+import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
@@ -56,6 +62,7 @@ export function RouteSheetImportWizard({
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<ErrorDetails | null>(null);
   const [result, setResult] = useState<{
     routeId: string;
     routeNumber: string;
@@ -84,6 +91,7 @@ export function RouteSheetImportWizard({
     setParsed(null);
     setBusy(false);
     setErrorMsg(null);
+    setErrorDetails(null);
     setResult(null);
   };
 
@@ -91,6 +99,7 @@ export function RouteSheetImportWizard({
     if (!file) return;
     setBusy(true);
     setErrorMsg(null);
+    setErrorDetails(null);
     try {
       const name = file.name.toLowerCase();
       if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
@@ -107,10 +116,11 @@ export function RouteSheetImportWizard({
       setParsed(data);
       setStep("preview");
     } catch (e) {
-      const msg = errorText(e);
-      console.error("Route sheet parse error:", e);
-      setErrorMsg(msg);
-      toast.error(msg);
+      const det = extractErrorDetails(e);
+      console.error("Route sheet parse error (full):", e);
+      setErrorMsg(det.summary);
+      setErrorDetails(det);
+      toast.error(det.summary);
     } finally {
       setBusy(false);
     }
@@ -121,14 +131,20 @@ export function RouteSheetImportWizard({
     setBusy(true);
     setStep("importing");
     setErrorMsg(null);
+    setErrorDetails(null);
     try {
       const { data: sess, error: sessErr } = await supabase.auth.getSession();
       const token = sess.session?.access_token;
       if (!token) {
         const reason = sessErr ?? "no access_token in session";
         console.error("[RouteSheetImport] no session token", { sessErr, sess });
-        if (isJwtExpired(reason)) throw new Error("Сессия истекла. Войдите заново.");
-        throw new Error(formatSupabaseError(reason));
+        const det = extractErrorDetails(reason);
+        setErrorDetails(det);
+        setErrorMsg(det.summary);
+        toast.error(det.summary);
+        setStep("preview");
+        setBusy(false);
+        return;
       }
 
       const res = await fetch("/api/import-route-sheet", {
@@ -171,7 +187,7 @@ export function RouteSheetImportWizard({
       try {
         json = rawText ? JSON.parse(rawText) : {};
       } catch {
-        // оставим json пустым, тело попадёт в сообщение об ошибке
+        // оставим json пустым, тело попадёт в подробности
       }
 
       if (!res.ok || !json.ok || !json.routeId) {
@@ -181,7 +197,7 @@ export function RouteSheetImportWizard({
           body: rawText,
           json,
         });
-        const msg = formatSupabaseError(
+        const det = extractErrorDetails(
           {
             message: json.error ?? json.message,
             details: json.details,
@@ -189,9 +205,14 @@ export function RouteSheetImportWizard({
             code: json.code,
           },
           res.status,
-          rawText && !json.error && !json.message ? rawText : undefined,
+          rawText && !json.error && !json.message ? rawText : rawText || undefined,
         );
-        throw new Error(msg);
+        setErrorDetails(det);
+        setErrorMsg(det.summary);
+        toast.error(det.summary);
+        setStep("preview");
+        setBusy(false);
+        return;
       }
 
       setResult({
@@ -213,9 +234,10 @@ export function RouteSheetImportWizard({
       }
     } catch (e) {
       console.error("[RouteSheetImport] import failed (full error):", e);
-      const msg = errorText(e);
-      setErrorMsg(msg);
-      toast.error(msg);
+      const det = extractErrorDetails(e);
+      setErrorMsg(det.summary);
+      setErrorDetails(det);
+      toast.error(det.summary);
       setStep("preview");
     } finally {
       setBusy(false);
@@ -277,10 +299,10 @@ export function RouteSheetImportWizard({
               </div>
             )}
             {errorMsg && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{errorMsg}</AlertDescription>
-              </Alert>
+              <ErrorDetailsPanel
+                title="Не удалось обработать файл"
+                details={errorDetails ?? { summary: errorMsg, message: errorMsg, details: null, hint: null, code: null, status: null, body: null, raw: errorMsg }}
+              />
             )}
           </div>
         )}
@@ -366,10 +388,10 @@ export function RouteSheetImportWizard({
             </div>
 
             {errorMsg && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{errorMsg}</AlertDescription>
-              </Alert>
+              <ErrorDetailsPanel
+                title="Ошибка импорта маршрутного листа"
+                details={errorDetails ?? { summary: errorMsg, message: errorMsg, details: null, hint: null, code: null, status: null, body: null, raw: errorMsg }}
+              />
             )}
           </div>
         )}

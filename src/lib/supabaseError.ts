@@ -83,3 +83,61 @@ export function formatSupabaseError(
   }
   return parts.join(" · ");
 }
+
+export interface ErrorDetails {
+  summary: string;
+  message: string | null;
+  details: string | null;
+  hint: string | null;
+  code: string | null;
+  status: number | null;
+  body: string | null;
+  raw: string;
+}
+
+export function extractErrorDetails(
+  err: unknown,
+  responseStatus?: number,
+  responseBody?: unknown,
+): ErrorDetails {
+  const e = (err ?? {}) as SupabaseLikeError;
+  const message =
+    asStr(e.message) ?? (err instanceof Error ? err.message : null) ?? asStr(e.error);
+  const details = asStr(e.details);
+  const hint = asStr(e.hint);
+  const code = asStr(e.code);
+  const status =
+    responseStatus ?? (typeof e.status === "number" ? (e.status as number) : null);
+  let body: string | null = null;
+  if (responseBody != null) {
+    body =
+      typeof responseBody === "string"
+        ? responseBody
+        : (() => {
+            try {
+              return JSON.stringify(responseBody, null, 2);
+            } catch {
+              return String(responseBody);
+            }
+          })();
+  }
+  let raw = "";
+  try {
+    raw =
+      err instanceof Error
+        ? `${err.name}: ${err.message}\n${err.stack ?? ""}`
+        : JSON.stringify(err, null, 2);
+  } catch {
+    raw = String(err);
+  }
+  return {
+    summary: formatSupabaseError(err, responseStatus, responseBody),
+    message,
+    details,
+    hint,
+    code,
+    status,
+    body,
+    raw,
+  };
+}
