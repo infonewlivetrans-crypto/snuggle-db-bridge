@@ -50,8 +50,25 @@ type ApiErrorShape = {
   hint?: unknown;
   code?: unknown;
   status?: unknown;
+  statusCode?: unknown;
   response?: unknown;
   body?: unknown;
+};
+
+type ImportDiagnostics = {
+  status: number | null;
+  statusCode: number | null;
+  table: string | null;
+  operation: string | null;
+  payload: unknown;
+  error: {
+    message: string | null;
+    details: string | null;
+    hint: string | null;
+    code: string | null;
+  };
+  responseBody: string | null;
+  rawError: unknown;
 };
 
 function asCleanString(value: unknown): string | null {
@@ -65,6 +82,15 @@ function asCleanString(value: unknown): string | null {
 
 function asRecord(value: unknown): ApiErrorShape {
   return value && typeof value === "object" ? (value as ApiErrorShape) : {};
+}
+
+function asStatus(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
 }
 
 function bodyToText(value: unknown): string | null {
@@ -94,6 +120,12 @@ function firstText(...values: unknown[]): string | null {
     if (text) return text;
   }
   return null;
+}
+
+function compactText(value: unknown, max = 1200): string | null {
+  const text = bodyToText(value);
+  if (!text) return null;
+  return text.length > max ? `${text.slice(0, max)}…` : text;
 }
 
 function isSchemaErrorText(value: string): boolean {
