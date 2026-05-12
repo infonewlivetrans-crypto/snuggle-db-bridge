@@ -396,17 +396,27 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               .single();
 
             if (oErr || !ord) {
-              failedRows.push({
+              console.error("[import-route-sheet] orders.insert failed (full error):", {
                 rowIndex: o.rowIndex,
-                reason: oErr?.message ?? "Не удалось создать заказ",
+                payload: orderPayload,
+                error: oErr,
               });
+              const reason = [
+                oErr?.message,
+                oErr?.details ? `details: ${oErr.details}` : null,
+                oErr?.hint ? `hint: ${oErr.hint}` : null,
+                oErr?.code ? `code: ${oErr.code}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "Не удалось создать заказ";
+              failedRows.push({ rowIndex: o.rowIndex, reason });
               importedRows.push({
                 rowIndex: o.rowIndex,
                 orderId: null,
                 orderNumber,
                 customer: o.customer,
                 missingFields: missing,
-                reason: oErr?.message ?? "Не удалось создать заказ",
+                reason,
               });
               continue;
             }
@@ -420,7 +430,21 @@ export const Route = createFileRoute("/api/import-route-sheet")({
             } as never);
 
             if (pErr) {
-              failedRows.push({ rowIndex: o.rowIndex, reason: pErr.message });
+              console.error("[import-route-sheet] route_points.insert failed (full error):", {
+                rowIndex: o.rowIndex,
+                routeId,
+                orderId,
+                error: pErr,
+              });
+              const reason = [
+                pErr.message,
+                pErr.details ? `details: ${pErr.details}` : null,
+                pErr.hint ? `hint: ${pErr.hint}` : null,
+                pErr.code ? `code: ${pErr.code}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
+              failedRows.push({ rowIndex: o.rowIndex, reason });
             } else {
               pointNumber++;
               inserted++;
