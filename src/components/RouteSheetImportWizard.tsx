@@ -146,35 +146,26 @@ function makeImportErrorDetails(args: {
     (typeof errorObj.status === "number" ? errorObj.status : null) ??
     (typeof responseObj.status === "number" ? responseObj.status : null);
 
-  if (status === 401 || status === 403) {
-    const raw = bodyToText({ status, statusText: args.statusText, error: args.error, body: args.responseBody }) ?? "";
-    return {
-      summary: "Сессия истекла. Войдите заново.",
-      message: "Сессия истекла. Войдите заново.",
-      details: null,
-      hint: null,
-      code: null,
-      status,
-      body: responseBodyText,
-      raw,
-    };
-  }
-
-  const message = firstSchemaAwareText(
-    nestedErrorObj.message,
-    bodyObj.message,
-    responseObj.message,
-    errorObj.message,
-    bodyObj.error,
-    responseObj.error,
-    errorObj.error,
-    responseBodyText,
-  );
+  const errorMessage = firstSchemaAwareText(errorObj.message, nestedErrorObj.message);
   const details = firstText(errorObj.details, nestedErrorObj.details, bodyObj.details, responseObj.details);
   const hint = firstText(errorObj.hint, nestedErrorObj.hint, bodyObj.hint, responseObj.hint);
   const code = firstText(errorObj.code, nestedErrorObj.code, bodyObj.code, responseObj.code);
+  const responseError = firstSchemaAwareText(responseObj.error, bodyObj.error, errorObj.error);
+  const responseMessage = firstSchemaAwareText(responseObj.message, bodyObj.message);
+  const statusMessage = status === 401 || status === 403
+    ? "Сессия истекла. Войдите заново."
+    : null;
 
-  const primary = message && !message.toLowerCase().includes("сессия истекла")
+  const message = firstSchemaAwareText(
+    errorMessage,
+    details,
+    responseError,
+    responseMessage,
+    statusMessage,
+    responseBodyText,
+  );
+
+  const primary = message
     ? clarifySchemaError(message)
     : "Не удалось создать заявку";
   const parts = [
