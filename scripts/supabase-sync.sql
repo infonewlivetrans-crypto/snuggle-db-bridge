@@ -1791,7 +1791,9 @@ AS $$
     SELECT 1
     FROM public.user_roles
     WHERE user_id = _user_id
-      AND role = _role
+      -- production may already have user_roles.role as text; compare via text
+      -- so both text and public.app_role columns are supported safely.
+      AND role::text = _role::text
   );
 $$;
 
