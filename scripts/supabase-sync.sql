@@ -2380,6 +2380,29 @@ DROP POLICY IF EXISTS "warehouses_update_role" ON public."warehouses";
 CREATE POLICY "warehouses_update_role" ON public."warehouses" AS PERMISSIVE FOR UPDATE TO authenticated USING ((has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'warehouse'::app_role) OR has_role(auth.uid(), 'logist'::app_role))) WITH CHECK ((has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'warehouse'::app_role) OR has_role(auth.uid(), 'logist'::app_role)));
 
 -- 5) system_settings seed (UPSERT по setting_key)
+-- Гарантируем уникальный индекс по setting_key, чтобы ON CONFLICT работал.
+DO $$
+BEGIN
+  DELETE FROM public.system_settings a
+  USING public.system_settings b
+  WHERE a.setting_key = b.setting_key
+    AND a.ctid < b.ctid;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'system_settings_setting_key_key'
+      AND conrelid = 'public.system_settings'::regclass
+  ) AND NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND tablename = 'system_settings'
+      AND indexname = 'system_settings_setting_key_key'
+  ) THEN
+    ALTER TABLE public.system_settings
+      ADD CONSTRAINT system_settings_setting_key_key UNIQUE (setting_key);
+  END IF;
+END $$;
+
 INSERT INTO public.system_settings (setting_key, setting_value, description, category, is_public) VALUES ('demo_mode_enabled', 'false'::jsonb, 'Показывать бейдж и баннер демо-режима, разрешать тестовые данные', 'general', true) ON CONFLICT (setting_key) DO NOTHING;
 INSERT INTO public.system_settings (setting_key, setting_value, description, category, is_public) VALUES ('driver_document_photos_enabled', 'false'::jsonb, 'Если включено — водитель обязан загружать фото документов (подписанные документы, оплата, место выгрузки). QR-код всегда обязателен.', 'driver', true) ON CONFLICT (setting_key) DO NOTHING;
 INSERT INTO public.system_settings (setting_key, setting_value, description, category, is_public) VALUES ('driver.checklist', '[{"id": "docs", "label": "Документы на груз"}, {"id": "fuel", "label": "Топливо"}, {"id": "phone", "label": "Телефон заряжен"}, {"id": "qr", "label": "QR-сканер работает"}]'::jsonb, 'Чек-лист водителя перед выездом', 'driver', true) ON CONFLICT (setting_key) DO NOTHING;
