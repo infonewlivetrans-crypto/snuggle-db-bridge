@@ -1772,6 +1772,59 @@ DO $$ BEGIN
 END $$;
 ALTER TABLE public."warehouses" ENABLE ROW LEVEL SECURITY;
 
+-- 3.5) Helper functions referenced by RLS policies (must exist BEFORE policies)
+-- Уникальность (user_id, role) нужна для корректной работы has_role.
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='user_roles_user_id_role_key') THEN
+    ALTER TABLE public."user_roles" ADD CONSTRAINT user_roles_user_id_role_key UNIQUE (user_id, role);
+  END IF;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role public.app_role)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.user_roles
+    WHERE user_id = _user_id
+      AND role = _role
+  );
+$$;
+
+-- has_company_access: безопасный fallback. Если таблицы company_members нет —
+-- возвращаем true, чтобы RESTRICTIVE-политики company_isolation не блокировали
+-- доступ на инсталляциях, где мульти-компания ещё не настроена.
+CREATE OR REPLACE FUNCTION public.has_company_access(_user_id uuid, _company_id uuid)
+RETURNS boolean
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  has_table boolean;
+  result boolean;
+BEGIN
+  IF _company_id IS NULL THEN
+    RETURN true;
+  END IF;
+  SELECT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema='public' AND table_name='company_members'
+  ) INTO has_table;
+  IF NOT has_table THEN
+    RETURN true;
+  END IF;
+  EXECUTE 'SELECT EXISTS (SELECT 1 FROM public.company_members WHERE user_id = $1 AND company_id = $2)'
+    INTO result USING _user_id, _company_id;
+  RETURN result;
+END;
+$$;
+
 -- 4) RLS policies
 DROP POLICY IF EXISTS "app_versions_delete_role" ON public."app_versions";
 CREATE POLICY "app_versions_delete_role" ON public."app_versions" AS PERMISSIVE FOR DELETE TO authenticated USING (has_role(auth.uid(), 'admin'::app_role));
