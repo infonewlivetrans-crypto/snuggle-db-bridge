@@ -7,12 +7,29 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Self-hosted VPS (Ubuntu + nginx + PM2). Cloudflare Worker build is disabled
+  // so the SSR bundle targets standard Node.js and emits dist/server/server.js,
+  // which is started by server.mjs (see package.json "start" script).
+  cloudflare: false,
   vite: {
     server: {
       allowedHosts: ["radius-track.ru", "www.radius-track.ru"],
     },
     preview: {
       allowedHosts: ["radius-track.ru", "www.radius-track.ru"],
+    },
+    // Force a stable, predictable SSR entry filename for the Node runner.
+    environments: {
+      server: {
+        build: {
+          rollupOptions: {
+            output: {
+              entryFileNames: "server.js",
+              chunkFileNames: "chunks/[name]-[hash].js",
+            },
+          },
+        },
+      },
     },
     // Префикс CDN для статики (JS/CSS/шрифты/картинки) только в production-сборке.
     // HTML, API и авторизация остаются на основном домене — маршрутизация не меняется.
