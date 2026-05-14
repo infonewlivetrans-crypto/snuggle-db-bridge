@@ -1,6 +1,15 @@
 // Server: создание маршрута + заказов + точек + delivery_route из строк маршрутного Excel.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { normalizeRuPhone } from "@/lib/phone";
+import { normalizeFullName } from "@/lib/normalize-name";
+import { ensureDefaultCarrierId } from "./carriers.server";
+import {
+  adminCreateInvite,
+  findReusableDriverInvite,
+  type InviteRow,
+} from "./invites.server";
 
 export type RouteImportRow = {
   route_number?: string;
@@ -22,11 +31,30 @@ export type RouteImportRow = {
   manager_comment?: string;
 };
 
+export type DriverLinkStatus =
+  | "linked_existing_active"
+  | "linked_existing_invite"
+  | "linked_new_invite"
+  | "no_phone"
+  | "invite_failed";
+
+export type DriverLink = {
+  deliveryRouteId: string;
+  driverId: string | null;
+  driverFullName: string;
+  driverPhone: string | null;
+  status: DriverLinkStatus;
+  inviteId?: string | null;
+  inviteToken?: string | null;
+  message?: string;
+};
+
 export type RouteImportResult = {
   totalRows: number;
   routesCreated: number;
   pointsCreated: number;
   deliveryRouteIds: string[];
+  driverLinks: DriverLink[];
   errors: Array<{ row: number; message: string }>;
 };
 
@@ -50,15 +78,95 @@ function parseCoords(s?: string): { lat: number | null; lon: number | null } {
   return { lat: Number(m[1].replace(",", ".")), lon: Number(m[2].replace(",", ".")) };
 }
 
+type ResolvedDriver = {
+  id: string;
+  fullName: string;
+  phone: string | null;
+  hasUser: boolean;
+};
+
+/**
+ * По нормализованному телефону ищет или создаёт водителя.
+ * Возвращает null, если телефон отсутствует/не валиден.
+ */
+async function resolveDriverByPhone(
+  driverFullName: string,
+  rawPhone: string | null | undefined,
+): Promise<{ driver: ResolvedDriver | null; phone: string | null }> {
+  const phone = normalizeRuPhone(rawPhone ?? null);
+  if (!phone) return { driver: null, phone: null };
+
+  // 1) Поиск по телефону
+  const { data: byPhone, error: phErr } = await supabaseAdmin
+    .from("drivers")
+    .select("id, full_name, phone, user_id")
+    .eq("phone", phone)
+    .limit(1)
+    .maybeSingle();
+  if (phErr) throw new Error(phErr.message);
+  if (byPhone) {
+    const row = byPhone as { id: string; full_name: string; phone: string | null; user_id: string | null };
+    return {
+      driver: { id: row.id, fullName: row.full_name, phone: row.phone, hasUser: !!row.user_id },
+      phone,
+    };
+  }
+
+  // 2) Поиск по нормализованному ФИО (если задано)
+  const norm = normalizeFullName(driverFullName);
+  if (norm) {
+    const { data: all, error: lstErr } = await supabaseAdmin
+      .from("drivers")
+      .select("id, full_name, phone, user_id");
+    if (lstErr) throw new Error(lstErr.message);
+    for (const d of (all ?? []) as Array<{
+      id: string; full_name: string; phone: string | null; user_id: string | null;
+    }>) {
+      if (normalizeFullName(d.full_name) === norm) {
+        // Если у найденного водителя нет телефона — допишем его
+        if (!d.phone) {
+          await supabaseAdmin.from("drivers").update({ phone } as never).eq("id", d.id);
+        }
+        return {
+          driver: { id: d.id, fullName: d.full_name, phone: d.phone ?? phone, hasUser: !!d.user_id },
+          phone,
+        };
+      }
+    }
+  }
+
+  // 3) Создание нового водителя
+  const carrierId = await ensureDefaultCarrierId();
+  const { data: ins, error: insErr } = await supabaseAdmin
+    .from("drivers")
+    .insert({
+      full_name: driverFullName.trim(),
+      carrier_id: carrierId,
+      phone,
+      is_active: true,
+      source: "import",
+    } as never)
+    .select("id, full_name, phone, user_id")
+    .single();
+  if (insErr) throw new Error(insErr.message);
+  const row = ins as { id: string; full_name: string; phone: string | null; user_id: string | null };
+  return {
+    driver: { id: row.id, fullName: row.full_name, phone: row.phone, hasUser: !!row.user_id },
+    phone,
+  };
+}
+
 export async function importRouteRowsServer(
   sb: SupabaseClient<Database>,
   rows: RouteImportRow[],
+  userId?: string | null,
 ): Promise<RouteImportResult> {
   const result: RouteImportResult = {
     totalRows: rows.length,
     routesCreated: 0,
     pointsCreated: 0,
     deliveryRouteIds: [],
+    driverLinks: [],
     errors: [],
   };
   if (rows.length === 0) throw new Error("Файл пуст или не распознан");
@@ -77,6 +185,20 @@ export async function importRouteRowsServer(
       if (!baseRow.route_number) missing.push("номер маршрута");
       if (!baseRow.driver) missing.push("водитель");
       if (missing.length) throw new Error("Не заполнены обязательные данные: " + missing.join(", "));
+
+      // Готовим водителя ДО создания маршрута, чтобы при ошибке не плодить routes/orders.
+      let resolvedDriver: ResolvedDriver | null = null;
+      let resolvedPhone: string | null = null;
+      try {
+        const r = await resolveDriverByPhone(baseRow.driver!, baseRow.driver_phone ?? null);
+        resolvedDriver = r.driver;
+        resolvedPhone = r.phone;
+      } catch (e) {
+        // Не валим весь маршрут, если поиск/создание водителя сорвалось — просто пометим как no_phone.
+        console.error("[route-import] resolveDriverByPhone failed:", e);
+        resolvedDriver = null;
+        resolvedPhone = null;
+      }
 
       const { data: routeNumData, error: rnErr } = await sb.rpc("generate_route_number");
       if (rnErr) throw rnErr;
@@ -167,6 +289,7 @@ export async function importRouteRowsServer(
         })) as never);
       if (pErr) throw pErr;
 
+      const assignedDriverName = resolvedDriver?.fullName ?? baseRow.driver!;
       const { data: dr, error: drErr } = await sb
         .from("delivery_routes")
         .insert({
@@ -174,17 +297,85 @@ export async function importRouteRowsServer(
           source_request_id: (routeRow as { id: string }).id,
           route_date: new Date().toISOString().slice(0, 10),
           status: "formed",
-          assigned_driver: baseRow.driver,
+          assigned_driver: assignedDriverName,
           assigned_vehicle: baseRow.vehicle ?? null,
           comment: baseRow.manager_comment ?? null,
+          driver_id: resolvedDriver?.id ?? null,
         } as never)
         .select("id")
         .single();
       if (drErr) throw drErr;
 
+      const deliveryRouteId = (dr as { id: string }).id;
       result.routesCreated++;
       result.pointsCreated += pointsToInsert.length;
-      result.deliveryRouteIds.push((dr as { id: string }).id);
+      result.deliveryRouteIds.push(deliveryRouteId);
+
+      // Driver-link: только после успешного создания delivery_route.
+      if (!resolvedDriver || !resolvedPhone) {
+        result.driverLinks.push({
+          deliveryRouteId,
+          driverId: resolvedDriver?.id ?? null,
+          driverFullName: assignedDriverName,
+          driverPhone: null,
+          status: "no_phone",
+          message: "Телефон водителя не указан или некорректен — invite-ссылка не создана.",
+        });
+      } else if (resolvedDriver.hasUser) {
+        result.driverLinks.push({
+          deliveryRouteId,
+          driverId: resolvedDriver.id,
+          driverFullName: resolvedDriver.fullName,
+          driverPhone: resolvedPhone,
+          status: "linked_existing_active",
+        });
+      } else {
+        try {
+          const reusable = await findReusableDriverInvite(resolvedDriver.id);
+          let invite: InviteRow;
+          let status: DriverLinkStatus;
+          if (reusable) {
+            invite = reusable;
+            status = "linked_existing_invite";
+          } else {
+            invite = await adminCreateInvite({
+              fullName: resolvedDriver.fullName,
+              phone: resolvedPhone,
+              role: "driver",
+              driverId: resolvedDriver.id,
+              createdBy: userId ?? null,
+            });
+            status = "linked_new_invite";
+          }
+          result.driverLinks.push({
+            deliveryRouteId,
+            driverId: resolvedDriver.id,
+            driverFullName: resolvedDriver.fullName,
+            driverPhone: resolvedPhone,
+            status,
+            inviteId: invite.id,
+            inviteToken: invite.token,
+          });
+        } catch (e) {
+          // Маршрут уже создан в БД — НЕ откатываем его. Фиксируем invite_failed
+          // и добавляем понятное сообщение в result.errors, чтобы UI не показал
+          // «успех», а пользователь увидел, что invite-ссылка не создана.
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[route-import] adminCreateInvite failed:", e);
+          result.driverLinks.push({
+            deliveryRouteId,
+            driverId: resolvedDriver.id,
+            driverFullName: resolvedDriver.fullName,
+            driverPhone: resolvedPhone,
+            status: "invite_failed",
+            message: msg,
+          });
+          result.errors.push({
+            row: group.firstIndex + 2,
+            message: `Маршрут "${routeKey}": водитель привязан, но не удалось создать invite-ссылку: ${msg}`,
+          });
+        }
+      }
     } catch (e) {
       result.errors.push({
         row: group.firstIndex + 2,

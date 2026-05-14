@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/route-import")({
         if (!body?.rows || !Array.isArray(body.rows))
           return jsonResponse({ error: "Нужен массив rows" }, { status: 400 });
         try {
-          const result = await importRouteRowsServer(auth.client, body.rows);
+          const result = await importRouteRowsServer(auth.client, body.rows, auth.userId);
           return jsonResponse(result);
         } catch (e) {
           return jsonResponse({ error: (e as Error).message }, { status: 500 });
