@@ -28,11 +28,13 @@ import {
   CheckCircle2,
   AlertTriangle,
   Info,
+  Copy,
 } from "lucide-react";
 import {
   downloadRouteTemplate,
   importRouteFromFile,
   type RouteImportResult,
+  type DriverLink,
 } from "@/lib/route-excel-import";
 import { toast } from "sonner";
 
@@ -275,10 +277,77 @@ function RouteImportTemplatePage() {
                   </Button>
                 </div>
               )}
+
+              {result.driverLinks && result.driverLinks.length > 0 && (
+                <div className="rounded-md border border-border">
+                  <div className="border-b border-border bg-muted/40 px-3 py-2 text-sm font-medium">
+                    Ссылки для водителей
+                  </div>
+                  <ul className="space-y-2 p-3 text-sm">
+                    {result.driverLinks.map((link, i) => (
+                      <DriverLinkRow key={`${link.deliveryRouteId}-${i}`} link={link} />
+                    ))}
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
       </main>
     </div>
+  );
+}
+
+function DriverLinkRow({ link }: { link: DriverLink }) {
+  const copy = async () => {
+    if (!link.inviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(link.inviteUrl);
+      toast.success("Ссылка скопирована");
+    } catch {
+      toast.error("Не удалось скопировать ссылку");
+    }
+  };
+
+  const text =
+    link.status === "linked_new_invite"
+      ? "Создана ссылка для нового водителя"
+      : link.status === "linked_existing_invite"
+        ? "Найдена ранее созданная ссылка для водителя"
+        : link.status === "linked_existing_active"
+          ? "Водитель уже активирован. Маршрут привязан к его кабинету."
+          : link.status === "no_phone"
+            ? "Телефон водителя не указан или некорректен. Ссылка не создана."
+            : "Маршрут создан и водитель привязан, но ссылку не удалось создать. Проверьте ошибки импорта.";
+
+  const showLink =
+    (link.status === "linked_new_invite" ||
+      link.status === "linked_existing_invite") &&
+    !!link.inviteUrl;
+
+  return (
+    <li className="space-y-1">
+      <div className="text-foreground">{text}</div>
+      {showLink && (
+        <div className="flex items-center gap-2">
+          <Input
+            readOnly
+            value={link.inviteUrl}
+            className="h-8 font-mono text-xs"
+            onFocus={(e) => e.currentTarget.select()}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="gap-1"
+            onClick={() => { void copy(); }}
+          >
+            <Copy className="h-3.5 w-3.5" />
+            Скопировать
+          </Button>
+        </div>
+      )}
+    </li>
   );
 }
