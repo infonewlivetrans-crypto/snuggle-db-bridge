@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  getBearerToken,
-  jsonResponse,
-  requireUser,
-} from "@/server/api-helpers.server";
+import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeRuPhone } from "@/lib/phone";
 
 type PaymentKind = "cash" | "qr" | "paid" | "bank" | "unknown";
