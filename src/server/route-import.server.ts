@@ -5,6 +5,7 @@ import type { Database } from "@/integrations/supabase/types";
 export type RouteImportRow = {
   route_number?: string;
   driver?: string;
+  driver_phone?: string;
   vehicle?: string;
   order_number?: string;
   client?: string;
