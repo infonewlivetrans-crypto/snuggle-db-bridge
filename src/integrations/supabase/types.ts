@@ -549,6 +549,7 @@ export type Database = {
           driver_access_created_by: string | null
           driver_access_enabled: boolean
           driver_access_token: string | null
+          driver_id: string | null
           finished_at: string | null
           id: string
           last_driver_lat: number | null
@@ -578,6 +579,7 @@ export type Database = {
           driver_access_created_by?: string | null
           driver_access_enabled?: boolean
           driver_access_token?: string | null
+          driver_id?: string | null
           finished_at?: string | null
           id?: string
           last_driver_lat?: number | null
@@ -607,6 +609,7 @@ export type Database = {
           driver_access_created_by?: string | null
           driver_access_enabled?: boolean
           driver_access_token?: string | null
+          driver_id?: string | null
           finished_at?: string | null
           id?: string
           last_driver_lat?: number | null
@@ -633,6 +636,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_routes_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
         ]
@@ -839,6 +849,7 @@ export type Database = {
           portal_token: string | null
           source: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           carrier_id: string
@@ -862,6 +873,7 @@ export type Database = {
           portal_token?: string | null
           source?: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           carrier_id?: string
@@ -885,6 +897,7 @@ export type Database = {
           portal_token?: string | null
           source?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
