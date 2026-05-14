@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeFullName } from "@/lib/normalize-name";
 import { normalizeRuPhone } from "@/lib/phone";
+import { ensureDefaultCarrierId } from "./carriers.server";
 
 export type DriverImportItem = {
   fullName: string;
@@ -23,29 +24,6 @@ export type DriverImportResult = {
     driverId?: string;
   }>;
 };
-
-const DEFAULT_CARRIER_NAME = "Без перевозчика";
-
-async function ensureDefaultCarrierId(): Promise<string> {
-  const { data: existing } = await supabaseAdmin
-    .from("carriers")
-    .select("id")
-    .eq("company_name", DEFAULT_CARRIER_NAME)
-    .maybeSingle();
-  if (existing?.id) return (existing as { id: string }).id;
-  const { data, error } = await supabaseAdmin
-    .from("carriers")
-    .insert({
-      company_name: DEFAULT_CARRIER_NAME,
-      carrier_type: "self_employed",
-      verification_status: "new",
-      source: "system",
-    } as never)
-    .select("id")
-    .single();
-  if (error || !data) throw new Error(error?.message ?? "Не удалось создать перевозчика по умолчанию");
-  return (data as { id: string }).id;
-}
 
 export async function importDrivers(items: DriverImportItem[]): Promise<{
   result: DriverImportResult;

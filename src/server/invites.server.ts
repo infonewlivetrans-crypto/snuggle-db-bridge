@@ -361,3 +361,27 @@ export async function activateInvite(args: {
     role: invite.role,
   };
 }
+
+/**
+ * Поиск активного неиспользованного driver-invite, привязанного к конкретному driverId.
+ * Возвращает самый свежий по created_at или null. Ничего не создаёт и не обновляет.
+ * Предназначен для будущего переиспользования invite при импорте маршрутных листов.
+ */
+export async function findReusableDriverInvite(
+  driverId: string,
+): Promise<InviteRow | null> {
+  if (!driverId) return null;
+  const { data, error } = await supabaseAdmin
+    .from("invite_tokens")
+    .select("*")
+    .eq("role", "driver")
+    .eq("driver_id", driverId)
+    .eq("is_active", true)
+    .is("last_used_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as InviteRow | null) ?? null;
+}
+
