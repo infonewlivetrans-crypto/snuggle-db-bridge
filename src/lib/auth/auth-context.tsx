@@ -1,0 +1,514 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  authHeaders,
+  fetchProfileViaApi,
+  fetchUserRolesViaApi,
+  setLocalSessionTokens,
+  clearLocalSessionTokens,
+} from "@/lib/api-client";
+import { APP_ROLES, type AppRole } from "./roles";
+import {
+  loadImpersonation,
+  saveImpersonation,
+  clearImpersonation,
+  installImpersonationFetchGuard,
+  type ImpersonationState,
+} from "./impersonation";
+import { startImpersonationFn, stopImpersonationFn } from "@/lib/impersonation.functions";
+import { toast } from "sonner";
+
+type Profile = {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  email: string | null;
+  is_active: boolean;
+  carrier_id?: string | null;
+};
+
+type SessionUser = { id: string; email: string | null };
+
+type AuthContextValue = {
+  loading: boolean;
+  user: SessionUser | null;
+  /** @deprecated cookie-сессия, поле оставлено для обратной совместимости компонентов */
+  session: { access_token?: string } | null;
+  profile: Profile | null;
+  roles: AppRole[];
+  loadError: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  diagnoseSignIn: (
+    email: string,
+    password: string,
+    onStep: (message: string) => void,
+  ) => Promise<{ user: SessionUser; roles: AppRole[] }>;
+  signOut: () => Promise<void>;
+  refresh: () => Promise<void>;
+  // === Imperonation (read-only "Войти как пользователь") ===
+  impersonation: ImpersonationState | null;
+  realUser: SessionUser | null;
+  realRoles: AppRole[];
+  realProfile: Profile | null;
+  startImpersonation: (targetUserId: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
+};
+
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+type AuthMeResponse = {
+  id?: string | null;
+  email?: string | null;
+  name?: string | null;
+  role?: AppRole | string | null;
+};
+
+type AuthMode = "preview" | "production";
+
+export function getAuthMode(): AuthMode {
+  if (typeof window === "undefined") return "production";
+  const host = window.location.hostname.toLowerCase();
+  const env = import.meta.env.VITE_APP_ENV as string | undefined;
+  if (host.includes("lovable.app") || host.includes("lovable.dev") || host.includes("lovableproject.com") || host === "localhost" || host === "127.0.0.1") {
+    return "preview";
+  }
+  if (host === "radius-track.ru" || host === "www.radius-track.ru") return "production";
+  return env === "production" ? "production" : "preview";
+}
+
+async function withAuthTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  return await new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error("Auth timeout")), ms);
+    promise.then((value) => {
+      window.clearTimeout(timer);
+      resolve(value);
+    }).catch((error) => {
+      window.clearTimeout(timer);
+      reject(error);
+    });
+  });
+}
+
+function toFriendlyAuthError(error: unknown): string {
+  const msg = error instanceof Error ? error.message : String(error || "");
+  const lower = msg.toLowerCase();
+  if (lower.includes("invalid") || lower.includes("неверн")) {
+    return "Неверный email или пароль";
+  }
+  if (lower.includes("failed to fetch") || lower.includes("network")) {
+    return "Ошибка авторизации: сервер недоступен";
+  }
+  return msg || "Ошибка авторизации";
+}
+
+async function postJson(path: string, body: unknown): Promise<unknown> {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+    credentials: "same-origin",
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const msg =
+      (data as { error?: string } | null)?.error || `HTTP ${res.status}`;
+    console.error(`[auth] POST ${path} failed:`, res.status, data);
+    throw new Error(msg);
+  }
+  return data;
+}
+
+async function fetchAuthMe(): Promise<{ status: number; body: AuthMeResponse | null }> {
+  const res = await fetch("/api/auth/me", {
+    credentials: "same-origin",
+    headers: { accept: "application/json", ...authHeaders() },
+  });
+  const body = (await res.json().catch(() => null)) as AuthMeResponse | null;
+  return { status: res.status, body };
+}
+
+function normalizeRole(role: AuthMeResponse["role"]): AppRole | null {
+  return typeof role === "string" && (APP_ROLES as readonly string[]).includes(role)
+    ? (role as AppRole)
+    : null;
+}
+
+async function getBrowserSupabase() {
+  const mod = await import("@/integrations/supabase/client");
+  return mod.supabase;
+}
+
+async function fetchPreviewProfileAndRoles(userId: string) {
+  const supabase = await getBrowserSupabase();
+  const [{ data: prof, error: profileError }, { data: rolesData, error: rolesError }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
+    supabase.from("user_roles").select("role").eq("user_id", userId),
+  ]);
+  if (profileError) throw profileError;
+  if (rolesError) throw rolesError;
+  return {
+    profile: (prof as Profile | null) ?? null,
+    roles: ((rolesData ?? []).map((r: { role: string }) => r.role).filter((role) =>
+      (APP_ROLES as readonly string[]).includes(role),
+    ) as AppRole[]) ?? [],
+  };
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [impersonation, setImpersonation] = useState<ImpersonationState | null>(
+    () => loadImpersonation(),
+  );
+
+  // Устанавливаем глобальный fetch-guard один раз
+  useEffect(() => {
+    installImpersonationFetchGuard((url, method) => {
+      console.warn("[impersonation] blocked", method, url);
+      toast.error("Действие недоступно: режим только для просмотра");
+    });
+  }, []);
+
+  const loadProfileAndRoles = useCallback(async () => {
+    try {
+      setLoadError(null);
+      const [prof, rolesData] = await Promise.all([
+        fetchProfileViaApi(),
+        fetchUserRolesViaApi(),
+      ]);
+      setProfile((prof as Profile | null) ?? null);
+      setRoles((rolesData as AppRole[]) ?? []);
+    } catch (e) {
+      setLoadError(
+        e instanceof Error
+          ? e.message
+          : "Не удалось загрузить профиль. Проверьте соединение.",
+      );
+    }
+  }, []);
+
+  const refreshSession = useCallback(async () => {
+    try {
+      if (getAuthMode() === "preview") {
+        const supabase = await getBrowserSupabase();
+        const { data, error } = await withAuthTimeout(supabase.auth.getSession());
+        if (error || !data.session?.user) {
+          setUser(null);
+          setProfile(null);
+          setRoles([]);
+          return;
+        }
+        const sessionUser = data.session.user;
+        setLocalSessionTokens({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        setUser({ id: sessionUser.id, email: sessionUser.email ?? null });
+        const previewData = await fetchPreviewProfileAndRoles(sessionUser.id);
+        setProfile(previewData.profile);
+        setRoles(previewData.roles);
+        setLoadError(null);
+        return;
+      }
+      const res = await fetch("/api/auth/session", {
+        credentials: "same-origin",
+        headers: { accept: "application/json", ...authHeaders() },
+      });
+      const body = (await res.json().catch(() => null)) as {
+        user_id?: string | null;
+      } | null;
+      const uid = body?.user_id ?? null;
+      if (uid) {
+        setUser({ id: uid, email: null });
+        await loadProfileAndRoles();
+      } else {
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+      }
+    } catch (error) {
+      console.error("[auth] GET /api/auth/session failed", error);
+      setUser(null);
+      setProfile(null);
+      setRoles([]);
+    }
+  }, [loadProfileAndRoles]);
+
+  // Подмешиваем email из профиля в user, чтобы не ломать компоненты, читающие user.email.
+  useEffect(() => {
+    if (!user) return;
+    if (profile?.email && profile.email !== user.email) {
+      setUser({ id: user.id, email: profile.email });
+    }
+  }, [profile, user]);
+
+  useEffect(() => {
+    refreshSession().finally(() => setLoading(false));
+  }, [refreshSession]);
+
+  const signIn = useCallback(
+    async (email: string, password: string) => {
+      if (getAuthMode() === "preview") {
+        const supabase = await getBrowserSupabase();
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error || !data.user) {
+          console.error("[auth] preview signInWithPassword failed", error);
+          throw new Error(error?.message || "Ошибка авторизации");
+        }
+        if (data.session) {
+          setLocalSessionTokens({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          });
+        }
+        setUser({ id: data.user.id, email: data.user.email ?? null });
+        const previewData = await fetchPreviewProfileAndRoles(data.user.id);
+        setProfile(previewData.profile);
+        setRoles(previewData.roles);
+        setLoadError(null);
+        return;
+      }
+      const result = (await postJson("/api/auth/login", {
+        email,
+        password,
+      })) as {
+        ok?: boolean;
+        access_token?: string;
+        refresh_token?: string;
+      } | null;
+      // Сохраняем токены в localStorage как fallback для окружений,
+      // где httpOnly cookie блокируется (например, Lovable preview iframe).
+      if (result?.access_token && result.refresh_token) {
+        setLocalSessionTokens({
+          access_token: result.access_token,
+          refresh_token: result.refresh_token,
+        });
+      }
+      const { status, body } = await fetchAuthMe();
+      if (status === 401) {
+        console.error("[auth] GET /api/auth/me returned 401 after login", body);
+        throw new Error("Не удалось получить профиль пользователя");
+      }
+      if (status >= 400 || !body?.id) {
+        console.error("[auth] GET /api/auth/me failed after login", status, body);
+        throw new Error("Не удалось получить профиль пользователя");
+      }
+      setUser({ id: body.id, email: body.email ?? null });
+      const role = normalizeRole(body.role);
+      if (role) setRoles([role]);
+      await loadProfileAndRoles();
+    },
+    [loadProfileAndRoles],
+  );
+
+  const diagnoseSignIn = useCallback(
+    async (
+      email: string,
+      password: string,
+      onStep: (message: string) => void,
+    ) => {
+      try {
+        setLoadError(null);
+        if (getAuthMode() === "preview") {
+          onStep("preview-auth: вызван Supabase signInWithPassword");
+          const supabase = await getBrowserSupabase();
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          onStep(error ? "preview login status: error" : "preview login status: 200");
+          if (error || !data.user) {
+            console.error("[auth] preview signInWithPassword failed", error);
+            throw new Error(error?.message || "Ошибка авторизации");
+          }
+          if (data.session) {
+            setLocalSessionTokens({
+              access_token: data.session.access_token,
+              refresh_token: data.session.refresh_token,
+            });
+          }
+          onStep("preview-auth: загружаю профиль и роли");
+          const previewData = await fetchPreviewProfileAndRoles(data.user.id);
+          const signedUser = { id: data.user.id, email: data.user.email ?? null };
+          setUser(signedUser);
+          setProfile(previewData.profile);
+          setRoles(previewData.roles);
+          setLoadError(null);
+          onStep("preview-auth: профиль пользователя получен");
+          return { user: signedUser, roles: previewData.roles };
+        }
+        onStep("отправлен POST /api/auth/login");
+        const loginRes = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "content-type": "application/json", accept: "application/json" },
+          body: JSON.stringify({ email, password }),
+          credentials: "same-origin",
+        });
+        const loginBody = (await loginRes.json().catch(() => null)) as {
+          error?: string;
+          cookies_set?: boolean;
+          cookie_names?: string[];
+          access_token?: string;
+          refresh_token?: string;
+        } | null;
+        onStep(`login status: ${loginRes.status}`);
+        if (!loginRes.ok) {
+          console.error("[auth] POST /api/auth/login failed", loginRes.status, loginBody);
+          throw new Error(loginBody?.error || "Ошибка авторизации");
+        }
+        if (loginBody?.access_token && loginBody.refresh_token) {
+          setLocalSessionTokens({
+            access_token: loginBody.access_token,
+            refresh_token: loginBody.refresh_token,
+          });
+          onStep("fallback токены сохранены для preview");
+        }
+        onStep(
+          loginBody?.cookies_set
+            ? `сервер установил cookie: ${(loginBody.cookie_names ?? []).join(", ")}`
+            : "сервер не подтвердил установку cookie",
+        );
+
+        onStep("вызван GET /api/auth/me");
+        const { status, body } = await fetchAuthMe();
+        onStep(`auth/me status: ${status}`);
+        if (status === 401) {
+          console.error("[auth] GET /api/auth/me returned 401", body);
+          throw new Error("auth/me вернул 401: cookie не установилась или не читается");
+        }
+        if (status >= 400 || !body?.id) {
+          console.error("[auth] GET /api/auth/me failed", status, body);
+          throw new Error("Не удалось получить профиль пользователя");
+        }
+
+        const signedUser = { id: body.id, email: body.email ?? null };
+        const role = normalizeRole(body.role);
+        const nextRoles = role ? [role] : [];
+        setUser(signedUser);
+        setRoles(nextRoles);
+        await loadProfileAndRoles();
+        return { user: signedUser, roles: nextRoles };
+      } catch (error) {
+        console.error("[auth] login diagnostics failed", error);
+        throw new Error(toFriendlyAuthError(error));
+      }
+    },
+    [loadProfileAndRoles],
+  );
+
+  const signOut = useCallback(async () => {
+    if (getAuthMode() === "preview") {
+      const supabase = await getBrowserSupabase();
+      const { error } = await supabase.auth.signOut();
+      if (error) console.error("[auth] preview logout failed", error);
+    } else {
+      try {
+        await postJson("/api/auth/logout", {});
+      } catch (e) {
+        console.error("[auth] logout failed", e);
+      }
+    }
+    clearLocalSessionTokens();
+    clearImpersonation();
+    setImpersonation(null);
+    setUser(null);
+    setProfile(null);
+    setRoles([]);
+  }, []);
+
+  const refresh = useCallback(async () => {
+    await refreshSession();
+  }, [refreshSession]);
+
+  const startImpersonation = useCallback(
+    async (targetUserId: string) => {
+      if (!user) throw new Error("Не авторизован");
+      if (!roles.includes("admin")) throw new Error("Доступно только администратору");
+      const result = await startImpersonationFn({ data: { targetUserId } });
+      const next: ImpersonationState = {
+        targetUserId: result.targetUserId,
+        profile: {
+          user_id: result.profile.user_id,
+          full_name: result.profile.full_name ?? null,
+          email: result.profile.email ?? null,
+          is_active: result.profile.is_active ?? true,
+        },
+        roles: (result.roles as string[]).filter((r) =>
+          (APP_ROLES as readonly string[]).includes(r),
+        ) as AppRole[],
+        startedAt: result.startedAt,
+        initiatedBy: user.id,
+      };
+      saveImpersonation(next);
+      setImpersonation(next);
+    },
+    [user, roles],
+  );
+
+  const stopImpersonation = useCallback(async () => {
+    const cur = impersonation;
+    clearImpersonation();
+    setImpersonation(null);
+    if (cur) {
+      try {
+        await stopImpersonationFn({
+          data: { targetUserId: cur.targetUserId, startedAt: cur.startedAt },
+        });
+      } catch (e) {
+        console.error("[impersonation] stop logging failed", e);
+      }
+    }
+  }, [impersonation]);
+
+  const effectiveUser: SessionUser | null = impersonation
+    ? { id: impersonation.profile.user_id, email: impersonation.profile.email }
+    : user;
+  const effectiveProfile: Profile | null = impersonation
+    ? {
+        id: impersonation.profile.id ?? impersonation.profile.user_id,
+        user_id: impersonation.profile.user_id,
+        full_name: impersonation.profile.full_name,
+        email: impersonation.profile.email,
+        is_active: impersonation.profile.is_active ?? true,
+        carrier_id: impersonation.profile.carrier_id ?? null,
+      }
+    : profile;
+  const effectiveRoles: AppRole[] = impersonation ? impersonation.roles : roles;
+
+  return (
+    <AuthContext.Provider
+      value={{
+        loading,
+        user: effectiveUser,
+        session: user ? {} : null,
+        profile: effectiveProfile,
+        roles: effectiveRoles,
+        loadError,
+        signIn,
+        diagnoseSignIn,
+        signOut,
+        refresh,
+        impersonation,
+        realUser: user,
+        realRoles: roles,
+        realProfile: profile,
+        startImpersonation,
+        stopImpersonation,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
+}

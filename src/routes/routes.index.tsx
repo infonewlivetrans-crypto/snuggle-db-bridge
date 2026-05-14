@@ -1,0 +1,320 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { CACHE_TIMES } from "@/lib/queryCache";
+import { useMemo, useState } from "react";
+import { fetchListViaApi } from "@/lib/api-client";
+import { AppHeader } from "@/components/AppHeader";
+import { CreateRouteDialog } from "@/components/CreateRouteDialog";
+import { ExportReportButton } from "@/components/ExportReportButton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  type DeliveryRoute,
+  type RouteStatus,
+  ROUTE_STATUS_LABELS,
+  ROUTE_STATUS_ORDER,
+  ROUTE_STATUS_STYLES,
+  REQUEST_TYPE_LABELS,
+  REQUEST_TYPE_STYLES,
+} from "@/lib/routes";
+import { Search, Plus, RefreshCw, Route as RouteIcon, Calendar, User, Scale, Box, Timer } from "lucide-react";
+import {
+  ETA_RISK_LABELS,
+  ETA_RISK_STYLES,
+  formatTime,
+  summarizeRouteEta,
+  type EtaRiskLevel,
+} from "@/lib/eta";
+
+type EtaSummary = ReturnType<typeof summarizeRouteEta>;
+type RouteWithCount = DeliveryRoute & { points_count: number; _eta: EtaSummary };
+
+export const Route = createFileRoute("/routes/")({
+  head: () => ({
+    meta: [
+      { title: "Маршруты — Радиус Трек" },
+      { name: "description", content: "Управление маршрутами доставки" },
+    ],
+  }),
+  component: RoutesPage,
+});
+
+function RoutesPage() {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<RouteStatus | "all">("all");
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const [showAll, setShowAll] = useState(false);
+
+  const { data: routes, isLoading, refetch, isFetching } = useQuery({
+    queryKey: ["routes", showAll ? "all" : "active"],
+    queryFn: async (): Promise<RouteWithCount[]> => {
+      const { rows } = await fetchListViaApi<
+        DeliveryRoute & {
+          route_points: Array<{ eta_at?: string | null; eta_risk?: string | null }>;
+        }
+      >("/api/routes", {
+        limit: showAll ? 200 : 20,
+        extra: showAll ? {} : { activeOnly: 1 },
+      });
+      return rows.map((r) => {
+        const pts = r.route_points ?? [];
+        const eta = summarizeRouteEta(
+          pts.map((x) => ({
+            eta_at: x.eta_at ?? null,
+            eta_risk: (x.eta_risk ?? "unknown") as EtaRiskLevel,
+          })),
+        );
+        return { ...r, points_count: pts.length, _eta: eta } as RouteWithCount;
+      });
+    },
+    staleTime: CACHE_TIMES.BUSINESS,
+    placeholderData: (prev) => prev,
+  });
+
+  const filtered = useMemo(() => {
+    if (!routes) return [];
+    return routes.filter((r) => {
+      const matchSearch =
+        !search ||
+        r.route_number.toLowerCase().includes(search.toLowerCase()) ||
+        (r.driver_name?.toLowerCase().includes(search.toLowerCase()) ?? false);
+      const matchStatus = statusFilter === "all" || r.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [routes, search, statusFilter]);
+
+  const stats = useMemo(() => {
+    if (!routes) return { total: 0, planned: 0, inProgress: 0, completed: 0 };
+    return {
+      total: routes.length,
+      planned: routes.filter((r) => r.status === "planned").length,
+      inProgress: routes.filter((r) => r.status === "in_progress").length,
+      completed: routes.filter((r) => r.status === "completed").length,
+    };
+  }, [routes]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Заявки на транспорт
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Маршруты, перемещения между складами и доставка с заводов
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={showAll ? "default" : "outline"}
+              onClick={() => setShowAll((v) => !v)}
+              className="gap-2"
+            >
+              {showAll ? "Только активные" : "Показать все"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              Обновить
+            </Button>
+            <ExportReportButton kind="transport" label="Экспорт заявок" />
+            <Button onClick={() => setCreateOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Создать маршрут
+            </Button>
+          </div>
+        </div>
+
+        {/* Статистика */}
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCard label="Всего" value={stats.total} accent />
+          <StatCard label="Запланировано" value={stats.planned} />
+          <StatCard label="В пути" value={stats.inProgress} />
+          <StatCard label="Выполнено" value={stats.completed} />
+        </div>
+
+        {/* Фильтры */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по номеру или водителю..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => setStatusFilter(v as RouteStatus | "all")}
+          >
+            <SelectTrigger className="sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              {ROUTE_STATUS_ORDER.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {ROUTE_STATUS_LABELS[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Таблица */}
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                <TableHead className="font-semibold text-foreground">Номер</TableHead>
+                <TableHead className="font-semibold text-foreground">Тип</TableHead>
+                <TableHead className="font-semibold text-foreground">Дата</TableHead>
+                <TableHead className="font-semibold text-foreground">Водитель</TableHead>
+                <TableHead className="font-semibold text-foreground">Точек</TableHead>
+                <TableHead className="font-semibold text-foreground">ETA / Риск</TableHead>
+                <TableHead className="font-semibold text-foreground">Груз</TableHead>
+                <TableHead className="font-semibold text-foreground">Статус</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-12 text-center text-muted-foreground">
+                    Загрузка маршрутов...
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="py-12 text-center">
+                    <RouteIcon className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                    <div className="text-sm text-muted-foreground">Маршруты не найдены</div>
+                    <Button
+                      onClick={() => setCreateOpen(true)}
+                      className="mt-3 gap-2"
+                      size="sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Создать первый маршрут
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((r) => (
+                  <TableRow key={r.id} className="cursor-pointer">
+                    <TableCell>
+                      <Link
+                        to="/routes/$routeId"
+                        params={{ routeId: r.id }}
+                        className="font-mono text-sm font-semibold text-foreground hover:underline"
+                      >
+                        {r.route_number}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={REQUEST_TYPE_STYLES[r.request_type]}>
+                        {REQUEST_TYPE_LABELS[r.request_type]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      <span className="inline-flex items-center gap-1.5 text-foreground">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span suppressHydrationWarning>{new Date(r.route_date).toLocaleDateString("ru-RU")}</span>
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      <span className="inline-flex items-center gap-1.5 text-foreground">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
+                        {r.driver_name ?? "—"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm font-medium text-foreground">
+                      {r.points_count}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="inline-flex items-center gap-1 text-foreground">
+                          <Timer className="h-3 w-3 text-muted-foreground" />
+                          {formatTime(r._eta.lastEta)}
+                        </span>
+                        <Badge variant="outline" className={`${ETA_RISK_STYLES[r._eta.risk]} px-1.5 py-0`}>
+                          {r._eta.risk === "late"
+                            ? `Опоздание · ${r._eta.lateCount}`
+                            : r._eta.risk === "tight"
+                              ? `Впритык · ${r._eta.tightCount}`
+                              : ETA_RISK_LABELS[r._eta.risk]}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="inline-flex items-center gap-1">
+                          <Scale className="h-3 w-3" />
+                          {Number(r.total_weight_kg ?? 0).toFixed(1)} кг
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Box className="h-3 w-3" />
+                          {Number(r.total_volume_m3 ?? 0).toFixed(2)} м³
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={ROUTE_STATUS_STYLES[r.status]}>
+                        {ROUTE_STATUS_LABELS[r.status]}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </main>
+
+      <CreateRouteDialog open={createOpen} onOpenChange={setCreateOpen} />
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div
+      className={`rounded-lg border p-4 ${
+        accent ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
+      }`}
+    >
+      <div
+        className={`text-xs font-medium uppercase tracking-wider ${
+          accent ? "text-primary-foreground/80" : "text-muted-foreground"
+        }`}
+      >
+        {label}
+      </div>
+      <div className="mt-1 text-2xl font-bold">{value}</div>
+    </div>
+  );
+}

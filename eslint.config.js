@@ -1,0 +1,84 @@
+import js from "@eslint/js";
+import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
+import globals from "globals";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+
+const NO_SERVER_IMPORTS = {
+  patterns: [
+    {
+      group: [
+        "@/server",
+        "@/server/*",
+        "@/server/**",
+        "@/lib/server-functions",
+        "@/lib/server-functions/*",
+        "@/lib/server-functions/**",
+        "**/server/*",
+        "**/server/**",
+        "**/lib/server-functions/*",
+        "**/lib/server-functions/**",
+        "**/auth-middleware",
+        "**/auth-middleware.*",
+        "@/integrations/supabase/client.server",
+        "**/integrations/supabase/client.server",
+        "**/integrations/supabase/client.server.*",
+        "**/server/*.server",
+        "**/server/*.functions",
+      ],
+      message:
+        "Серверный код запрещён в клиентских файлах. Используйте fetch('/api/...') вместо импорта из src/server/* или src/lib/server-functions/*.",
+    },
+  ],
+};
+
+export default tseslint.config(
+  { ignores: ["dist", ".output", ".vinxi", "src/routeTree.gen.ts"] },
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    files: ["src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
+  {
+    // Все клиентские routes, кроме серверных endpoint'ов в src/routes/api/**
+    files: ["src/routes/**/*.{ts,tsx}"],
+    ignores: ["src/routes/api/**"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
+  {
+    files: ["src/pages/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
+  {
+    // Клиентские/shared lib и hooks тоже не должны становиться мостом к server-only коду.
+    files: ["src/lib/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+    ignores: ["src/lib/server-functions/**"],
+    rules: {
+      "no-restricted-imports": ["error", NO_SERVER_IMPORTS],
+    },
+  },
+  eslintPluginPrettier,
+);

@@ -1,0 +1,141 @@
+import { supabase } from "@/integrations/supabase/client";
+import { fetchSystemSettingsViaApi } from "@/lib/api-client";
+
+export type SettingValue = unknown;
+
+export interface SystemSetting {
+  id: string;
+  setting_key: string;
+  setting_value: SettingValue;
+  description: string | null;
+  category: string;
+  is_public: boolean;
+  updated_at: string;
+}
+
+export interface AppVersion {
+  id: string;
+  platform: string;
+  current_version: string;
+  minimum_required_version: string;
+  force_update: boolean;
+  update_message: string | null;
+  app_store_url: string | null;
+  play_market_url: string | null;
+  release_notes: string | null;
+  released_at: string;
+  updated_at: string;
+}
+
+/** Текущая версия web-клиента (синхронизируйте с релизами). */
+export const APP_CLIENT_VERSION = "1.0.0";
+export const APP_CLIENT_PLATFORM = "web";
+
+export async function fetchAllSettings(): Promise<SystemSetting[]> {
+  // В TanStack Start loader может запускаться и на сервере, и в браузере.
+  // На сервере читаем напрямую из Supabase, чтобы не делать fetch по относительному URL.
+  if (typeof window === "undefined") {
+    const { data, error } = await supabase
+      .from("system_settings")
+      .select("*")
+      .order("category", { ascending: true })
+      .order("setting_key", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as SystemSetting[];
+  }
+
+  // В браузере идём через наш серверный API, чтобы не зависеть от прямого доступа к Supabase.
+  return await fetchSystemSettingsViaApi<SystemSetting>();
+}
+
+export async function fetchSetting(key: string): Promise<SystemSetting | null> {
+  const { data, error } = await supabase
+    .from("system_settings")
+    .select("*")
+    .eq("setting_key", key)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as SystemSetting | null) ?? null;
+}
+
+export async function updateSetting(id: string, value: SettingValue, description?: string) {
+  const res = await fetch("/api/system-settings", {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      id,
+      setting_value: value,
+      ...(description !== undefined ? { description } : {}),
+    }),
+  });
+
+  const body = await res.json().catch(() => null);
+
+  if (!res.ok) {
+    throw new Error(body?.error || "Не удалось сохранить настройку");
+  }
+}
+
+export async function fetchAppVersion(platform: string = APP_CLIENT_PLATFORM): Promise<AppVersion | null> {
+  const { apiGetAuth } = await import("@/lib/api-client");
+  try {
+    const { version } = await apiGetAuth<{ version: AppVersion | null }>(
+      `/api/app-versions?platform=${encodeURIComponent(platform)}`,
+    );
+    return version;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchAllAppVersions(): Promise<AppVersion[]> {
+  if (typeof window === "undefined") {
+    const { data, error } = await supabase
+      .from("app_versions")
+      .select("*")
+      .order("platform", { ascending: true });
+
+    if (error) throw error;
+    return (data ?? []) as AppVersion[];
+  }
+
+  const { apiGetAuth } = await import("@/lib/api-client");
+  const { rows } = await apiGetAuth<{ rows: AppVersion[] }>("/api/app-versions");
+  return rows ?? [];
+}
+
+export async function updateAppVersion(id: string, patch: Partial<AppVersion>) {
+  const { error } = await supabase.from("app_versions").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+/** Сравнение semver-подобных версий. */
+export function compareVersions(a: string, b: string): number {
+  const pa = a.split(".").map((x) => parseInt(x, 10) || 0);
+  const pb = b.split(".").map((x) => parseInt(x, 10) || 0);
+  const len = Math.max(pa.length, pb.length);
+  for (let i = 0; i < len; i++) {
+    const da = pa[i] ?? 0;
+    const db = pb[i] ?? 0;
+    if (da > db) return 1;
+    if (da < db) return -1;
+  }
+  return 0;
+}
+
+export type VersionCheckResult =
+  | { status: "ok" }
+  | { status: "update_available"; version: AppVersion }
+  | { status: "force_update"; version: AppVersion };
+
+export function checkVersion(version: AppVersion | null, client = APP_CLIENT_VERSION): VersionCheckResult {
+  if (!version) return { status: "ok" };
+  if (compareVersions(client, version.minimum_required_version) < 0 || version.force_update) {
+    return { status: "force_update", version };
+  }
+  if (compareVersions(client, version.current_version) < 0) {
+    return { status: "update_available", version };
+  }
+  return { status: "ok" };
+}

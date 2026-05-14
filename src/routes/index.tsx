@@ -1,0 +1,513 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { fetchListViaApi } from "@/lib/api-client";
+import { AppHeader } from "@/components/AppHeader";
+import { ExportReportButton } from "@/components/ExportReportButton";
+import { DemoModeBanner } from "@/components/DemoModeBanner";
+
+// Тяжёлые диалоги — подгружаются только когда пользователь их открывает,
+// чтобы уменьшить initial JS bundle главной страницы.
+const OrderDetailDialog = lazy(() =>
+  import("@/components/OrderDetailDialog").then((m) => ({ default: m.OrderDetailDialog })),
+);
+const CreateOrderDialog = lazy(() =>
+  import("@/components/CreateOrderDialog").then((m) => ({ default: m.CreateOrderDialog })),
+);
+const ImportOrdersDialog = lazy(() =>
+  import("@/components/ImportOrdersDialog").then((m) => ({ default: m.ImportOrdersDialog })),
+);
+const CreateRouteFromOrdersDialog = lazy(() =>
+  import("@/components/CreateRouteFromOrdersDialog").then((m) => ({ default: m.CreateRouteFromOrdersDialog })),
+);
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  type Order,
+  type OrderStatus,
+  STATUS_LABELS,
+  STATUS_ORDER,
+  STATUS_STYLES,
+  PAYMENT_LABELS,
+} from "@/lib/orders";
+import { Search, QrCode, RefreshCw, Package2, Plus, Route as RouteIcon, FileSpreadsheet } from "lucide-react";
+import { DataTablePagination } from "@/components/DataTablePagination";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { parseListSearch, useListSearch } from "@/hooks/use-list-search";
+import { usePaginatedTable } from "@/hooks/use-paginated-table";
+
+export const Route = createFileRoute("/")({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): {
+    orderId?: string;
+    page?: number;
+    pageSize?: 25 | 50 | 100;
+    q?: string;
+    status?: string;
+  } => {
+    const list = parseListSearch(search, { pageSize: 25 });
+    return {
+      orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+      status: typeof search.status === "string" ? search.status : undefined,
+      page: list.page,
+      pageSize: list.pageSize,
+      q: list.q || undefined,
+    };
+  },
+  head: () => ({
+    meta: [
+      { title: "Заказы — Радиус Трек" },
+      { name: "description", content: "Управление заказами логистической платформы" },
+    ],
+  }),
+  component: OrdersPage,
+});
+
+function OrdersPage() {
+  const { orderId: orderIdParam, status: statusParam } = Route.useSearch();
+  const navigate = useNavigate();
+  const { page, pageSize, q, setPage, setPageSize, setQuery } = useListSearch();
+  const [searchInput, setSearchInput] = useState(q);
+  const debounced = useDebouncedValue(searchInput, 300);
+  useEffect(() => {
+    if (debounced !== q) setQuery(debounced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced]);
+
+  const statusFilter = (statusParam ?? "all") as OrderStatus | "all";
+  const setStatusFilter = (v: OrderStatus | "all") => {
+    navigate({
+      to: "/",
+      search: (prev: Record<string, unknown>) => ({ ...prev, status: v === "all" ? undefined : v, page: 1 }),
+      replace: true,
+    });
+  };
+
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [routeDialogOpen, setRouteDialogOpen] = useState(false);
+
+  // Серверная пагинация и поиск через защищённый API
+  const paged = useQuery({
+    queryKey: ["orders", "paged", page, pageSize, q, statusFilter],
+    queryFn: async () => {
+      return await fetchListViaApi<Order>("/api/orders", {
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+        search: q || undefined,
+        extra: {
+          status: statusFilter === "all" ? undefined : statusFilter,
+        },
+      });
+    },
+  });
+
+  const orders = paged.data?.rows;
+  const total = paged.data?.total ?? 0;
+  const isLoading = paged.isLoading;
+  const isFetching = paged.isFetching;
+  const refetch = paged.refetch;
+  const filtered = orders ?? [];
+
+  // Статистика по статусам через защищённый API
+  const { data: statsData } = useQuery({
+    queryKey: ["orders", "stats"],
+    queryFn: async () => {
+      const counts = async (status?: OrderStatus) => {
+        const result = await fetchListViaApi<Order>("/api/orders", {
+          limit: 1,
+          offset: 0,
+          extra: { status },
+        });
+        return result.total;
+      };
+
+      const [total, newCount, inProgress, delivering, completed] = await Promise.all([
+        counts(),
+        counts("new"),
+        counts("in_progress"),
+        counts("delivering"),
+        counts("completed"),
+      ]);
+
+      return {
+        total,
+        new: newCount,
+        inProgress,
+        delivering,
+        completed,
+      };
+    },
+  });
+  const stats = statsData ?? { total: 0, new: 0, inProgress: 0, delivering: 0, completed: 0 };
+
+  const openOrder = (order: Order) => {
+    setSelectedOrder(order);
+    setDialogOpen(true);
+  };
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleAll = () => {
+    setSelectedIds((prev) => {
+      const allVisible = filtered.map((o) => o.id);
+      const everySelected = allVisible.every((id) => prev.has(id));
+      if (everySelected) return new Set();
+      return new Set(allVisible);
+    });
+  };
+  const selectedOrders = useMemo(
+    () => (orders ?? []).filter((o) => selectedIds.has(o.id)),
+    [orders, selectedIds],
+  );
+
+  // Открытие карточки заказа по ?orderId=... (например, из уведомлений)
+  useEffect(() => {
+    if (!orderIdParam || !orders) return;
+    const found = orders.find((o) => o.id === orderIdParam);
+    if (found) {
+      setSelectedOrder(found);
+      setDialogOpen(true);
+      navigate({ to: "/", search: { orderId: undefined }, replace: true });
+    }
+  }, [orderIdParam, orders, navigate]);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <AppHeader />
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <DemoModeBanner />
+        {/* Заголовок */}
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Заказы
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Управление заказами и статусами доставки
+            </p>
+          </div>
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">Обновить</span>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Импорт (Excel)</span>
+              <span className="sm:hidden">Импорт</span>
+            </Button>
+            <ExportReportButton kind="delivery" label="Доставка" size="sm" />
+            <ExportReportButton kind="payments" label="Оплаты" size="sm" />
+            <Button size="sm" onClick={() => setCreateOpen(true)} className="ml-auto gap-2 sm:ml-0">
+              <Plus className="h-4 w-4" />
+              Создать заказ
+            </Button>
+          </div>
+        </div>
+
+        {/* Статистика */}
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <StatCard label="Всего" value={stats.total} accent />
+          <StatCard label="Новые" value={stats.new} />
+          <StatCard label="В работе" value={stats.inProgress} />
+          <StatCard label="Доставка" value={stats.delivering} />
+          <StatCard label="Выполнено" value={stats.completed} />
+        </div>
+
+        {/* Фильтры */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по номеру, адресу, клиенту..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as OrderStatus | "all")}>
+            <SelectTrigger className="sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все статусы</SelectItem>
+              {STATUS_ORDER.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {STATUS_LABELS[s]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Панель действий с выбранными заказами */}
+        {selectedIds.size > 0 && (
+          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-primary/40 bg-primary/10 p-3">
+            <div className="text-sm font-medium text-foreground">
+              Выбрано заказов: {selectedIds.size}
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setRouteDialogOpen(true)}
+              className="ml-auto gap-2"
+            >
+              <RouteIcon className="h-4 w-4" />
+              Создать маршрут из выбранных заказов
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Сбросить
+            </Button>
+          </div>
+        )}
+
+        {/* Таблица */}
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-secondary/50 hover:bg-secondary/50">
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={
+                      filtered.length > 0 &&
+                      filtered.every((o) => selectedIds.has(o.id))
+                    }
+                    onCheckedChange={() => toggleAll()}
+                    aria-label="Выбрать все"
+                  />
+                </TableHead>
+                <TableHead className="font-semibold text-foreground">Номер</TableHead>
+                <TableHead className="font-semibold text-foreground">Источник</TableHead>
+                <TableHead className="font-semibold text-foreground">Статус</TableHead>
+                <TableHead className="font-semibold text-foreground">Адрес доставки</TableHead>
+                <TableHead className="font-semibold text-foreground col-secondary">Оплата</TableHead>
+                <TableHead className="font-semibold text-foreground col-secondary">QR</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center text-muted-foreground">
+                    Данные загружаются…
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-12 text-center">
+                    <Package2 className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                    <div className="text-sm text-muted-foreground">Заказы не найдены</div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((order) => {
+                  const sourceKind = (order.source ?? "").toLowerCase();
+                    const isExcel = sourceKind === "excel" || sourceKind === "route_sheet";
+                  const is1c = (order.source ?? "").toLowerCase() === "1c";
+                  return (
+                  <TableRow
+                    key={order.id}
+                    className="cursor-pointer"
+                    data-state={selectedIds.has(order.id) ? "selected" : undefined}
+                    onClick={() => openOrder(order)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedIds.has(order.id)}
+                        onCheckedChange={() => toggleOne(order.id)}
+                        aria-label={`Выбрать заказ ${order.order_number}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm font-semibold text-foreground">
+                      {order.order_number}
+                    </TableCell>
+                    <TableCell>
+                      {isExcel ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                          <FileSpreadsheet className="h-3 w-3 text-status-success" />
+                          Excel
+                        </span>
+                      ) : is1c ? (
+                        <span className="inline-flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
+                          1С
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Вручную</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={STATUS_STYLES[order.status]}>
+                        {STATUS_LABELS[order.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-md truncate text-sm text-foreground">
+                      {order.delivery_address ?? (
+                        order.latitude !== null && order.longitude !== null ? (
+                          <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
+                            <span className="badge-status badge-status-delivering">
+                              По координатам
+                            </span>
+                            {order.latitude.toFixed(5)}, {order.longitude.toFixed(5)}
+                          </span>
+                        ) : (
+                          <span className="italic text-muted-foreground">—</span>
+                        )
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-foreground col-secondary">
+                      {PAYMENT_LABELS[order.payment_type]}
+                    </TableCell>
+                    <TableCell className="col-secondary">
+                      {order.requires_qr ? (
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={`inline-flex cursor-help items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
+                                  order.qr_received
+                                    ? "bg-green-100 text-green-900"
+                                    : "bg-amber-100 text-amber-900"
+                                }`}
+                              >
+                                <QrCode className="h-3 w-3" />
+                                {order.qr_received ? "Получен" : "Не получен"}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {order.qr_photo_uploaded_at ? (
+                                <div className="space-y-1 text-xs">
+                                  <div>
+                                    Загружено:{" "}
+                                    <span suppressHydrationWarning>{new Date(order.qr_photo_uploaded_at).toLocaleString("ru-RU")}</span>
+                                  </div>
+                                  <div>Кем: {order.qr_photo_uploaded_by ?? "—"}</div>
+                                  {order.qr_photo_url && (
+                                    <a
+                                      href={order.qr_photo_url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="inline-block text-primary underline hover:no-underline"
+                                    >
+                                      Открыть фото в новой вкладке
+                                    </a>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs">QR-фото ещё не загружено</span>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+          </div>
+          <DataTablePagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            isLoading={isFetching}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          Нажмите на строку, чтобы открыть карточку заказа
+        </p>
+      </main>
+
+      <Suspense fallback={null}>
+        {(dialogOpen || selectedOrder) && (
+          <OrderDetailDialog
+            order={selectedOrder}
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+          />
+        )}
+        {createOpen && <CreateOrderDialog open={createOpen} onOpenChange={setCreateOpen} />}
+        {importOpen && <ImportOrdersDialog open={importOpen} onOpenChange={setImportOpen} />}
+        {routeDialogOpen && (
+          <CreateRouteFromOrdersDialog
+            open={routeDialogOpen}
+            onOpenChange={(o) => {
+              setRouteDialogOpen(o);
+              if (!o) setSelectedIds(new Set());
+            }}
+            orders={selectedOrders}
+          />
+        )}
+      </Suspense>
+    </div>
+  );
+}
+
+function StatCard({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div
+      className={`rounded-lg border p-4 ${
+        accent ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
+      }`}
+    >
+      <div
+        className={`text-xs font-medium uppercase tracking-wider ${
+          accent ? "text-primary-foreground/80" : "text-muted-foreground"
+        }`}
+      >
+        {label}
+      </div>
+      <div className="mt-1 text-2xl font-bold">{value}</div>
+    </div>
+  );
+}

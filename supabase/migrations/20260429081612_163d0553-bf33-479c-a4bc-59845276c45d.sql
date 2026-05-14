@@ -1,0 +1,1 @@
+ALTER TYPE delivery_route_status ADD VALUE IF NOT EXISTS 'issued' AFTER 'formed';

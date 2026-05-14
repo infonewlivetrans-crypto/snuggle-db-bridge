@@ -1,0 +1,760 @@
+import { useEffect, useRef, useState } from "react";
+import { OrderItemsBlock } from "@/components/OrderItemsBlock";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
+import { toast } from "sonner";
+import {
+  type Order,
+  type OrderStatus,
+  type PaymentStatus,
+  type ClientKind,
+  STATUS_LABELS,
+  STATUS_ORDER,
+  STATUS_STYLES,
+  PAYMENT_LABELS,
+  PAYMENT_STATUS_LABELS,
+  CLIENT_KIND_LABELS,
+  CLIENT_KIND_ORDER,
+} from "@/lib/orders";
+import { Input } from "@/components/ui/input";
+import { OrderHistory } from "@/components/OrderHistory";
+import { OrderAllFields } from "@/components/OrderAllFields";
+import { POINT_STATUS_LABELS, type PointStatus } from "@/lib/routes";
+import { DeliveryLocation } from "@/components/DeliveryLocation";
+import { AddOrderToRouteDialog } from "@/components/AddOrderToRouteDialog";
+import { QrCapture } from "@/components/QrCapture";
+import {
+  MessageSquare,
+  Banknote,
+  QrCode,
+  Hash,
+  CreditCard,
+  Database,
+  AlertTriangle,
+  CheckCircle2,
+  Route as RouteIcon,
+  Wallet,
+  Pencil,
+  RotateCcw,
+} from "lucide-react";
+import { ManualDeliveryCostDialog } from "@/components/ManualDeliveryCostDialog";
+import { OrderReturnBlock } from "@/components/OrderReturnBlock";
+import { OrderDeliveryResultBlock } from "@/components/OrderDeliveryResultBlock";
+import { MarketplaceQrBlock } from "@/components/MarketplaceQrBlock";
+import { PointActionsHistory } from "@/components/PointActionsHistory";
+import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock";
+import { OrderEtaBlock } from "@/components/OrderEtaBlock";
+import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
+import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
+
+type DeliveryReport = {
+  id: string;
+  outcome: string;
+  reason: string | null;
+  driver_name: string | null;
+  comment: string | null;
+  requires_resend: boolean;
+  delivered_at: string;
+};
+
+interface OrderDetailDialogProps {
+  order: Order | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDialogProps) {
+  const queryClient = useQueryClient();
+  const [status, setStatus] = useState<OrderStatus>(order?.status ?? "new");
+  const [cashReceived, setCashReceived] = useState(order?.cash_received ?? false);
+  const [qrReceived, setQrReceived] = useState(order?.qr_received ?? false);
+  const [addToRouteOpen, setAddToRouteOpen] = useState(false);
+  const [manualCostOpen, setManualCostOpen] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order?.payment_status ?? "not_paid");
+  const [amountDue, setAmountDue] = useState<string>(order?.amount_due != null ? String(order.amount_due) : "");
+  const [marketplace, setMarketplace] = useState<string>(order?.marketplace ?? "");
+  const [worksWeekends, setWorksWeekends] = useState<boolean>(order?.client_works_weekends ?? false);
+  const [windowFrom, setWindowFrom] = useState<string>((order?.delivery_window_from ?? "").slice(0, 5));
+  const [windowTo, setWindowTo] = useState<string>((order?.delivery_window_to ?? "").slice(0, 5));
+  const [clientType, setClientType] = useState<ClientKind | "">((order?.client_type as ClientKind) ?? "");
+  const [deliveryTimeComment, setDeliveryTimeComment] = useState<string>(order?.delivery_time_comment ?? "");
+  const [driverComment, setDriverComment] = useState<string>(order?.driver_comment ?? "");
+  const [driverCommentImportant, setDriverCommentImportant] = useState<boolean>(order?.driver_comment_is_important ?? false);
+
+  // Reset local state when a new order opens
+  const orderId = order?.id;
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useStateSync(orderId, () => {
+    if (order) {
+      setStatus(order.status);
+      setCashReceived(order.cash_received);
+      setQrReceived(order.qr_received);
+      setPaymentStatus(order.payment_status ?? "not_paid");
+      setAmountDue(order.amount_due != null ? String(order.amount_due) : "");
+      setMarketplace(order.marketplace ?? "");
+      setWorksWeekends(order.client_works_weekends ?? false);
+      setWindowFrom((order.delivery_window_from ?? "").slice(0, 5));
+      setWindowTo((order.delivery_window_to ?? "").slice(0, 5));
+      setClientType((order.client_type as ClientKind) ?? "");
+      setDeliveryTimeComment(order.delivery_time_comment ?? "");
+      setDriverComment(order.driver_comment ?? "");
+      setDriverCommentImportant(order.driver_comment_is_important ?? false);
+    }
+  });
+
+  // Sync QR / status when query data refreshes (e.g. after QR upload/delete)
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (!order) return;
+    setQrReceived(order.qr_received);
+    setStatus(order.status);
+  }, [order?.qr_received, order?.qr_photo_url, order?.status]);
+
+  const mutation = useMutation({
+    mutationFn: async (updates: Partial<Order>) => {
+      if (!order) throw new Error("Нет заказа");
+      await apiPatch(`/api/orders/${order.id}`, updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success("Заказ обновлён");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetToAuto = useMutation({
+    mutationFn: async () => {
+      if (!order) throw new Error("Нет заказа");
+      await apiPatch(`/api/orders/${order.id}`, { delivery_cost_source: "auto" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success("Возвращён автоматический расчёт по тарифам");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Отчёты о доставке для этого заказа
+  const { data: reports } = useQuery({
+    queryKey: ["delivery_reports", order?.id],
+    enabled: !!order?.id && open,
+    queryFn: async (): Promise<DeliveryReport[]> => {
+      return await apiGetAuth<DeliveryReport[]>(
+        `/api/delivery-reports?order_id=${encodeURIComponent(order!.id)}`,
+      );
+    },
+  });
+
+  if (!order) return null;
+
+  const latestReport = reports?.[0];
+
+  const handleSave = () => {
+    mutation.mutate({
+      status,
+      cash_received: cashReceived,
+      qr_received: qrReceived,
+      payment_status: paymentStatus,
+      amount_due: amountDue === "" ? null : Number(amountDue),
+      marketplace: marketplace.trim() || null,
+      client_works_weekends: worksWeekends,
+      delivery_window_from: windowFrom ? `${windowFrom}:00` : null,
+      delivery_window_to: windowTo ? `${windowTo}:00` : null,
+      client_type: clientType || null,
+      delivery_time_comment: deliveryTimeComment.trim() || null,
+      driver_comment: driverComment.trim() || null,
+      driver_comment_is_important: driverComment.trim() ? driverCommentImportant : false,
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-start justify-between gap-4 pr-6">
+            <div>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Hash className="h-5 w-5 text-muted-foreground" />
+                Заказ {order.order_number}
+              </DialogTitle>
+              <DialogDescription className="mt-1">
+                Карточка заказа · управление статусом и оплатой
+              </DialogDescription>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <Badge variant="outline" className={STATUS_STYLES[order.status]}>
+                {STATUS_LABELS[order.status]}
+              </Badge>
+              {order.requires_qr && (
+                <Badge
+                  variant="outline"
+                  className={
+                    order.qr_received
+                      ? "border-green-300 bg-green-100 text-green-900"
+                      : "border-amber-300 bg-amber-100 text-amber-900"
+                  }
+                >
+                  QR: {order.qr_received ? "получен" : "не получен"}
+                </Badge>
+              )}
+              <Badge
+                variant="outline"
+                className="border-border bg-secondary text-xs text-muted-foreground"
+              >
+                <Database className="mr-1 h-3 w-3" />
+                Источник: 1С
+              </Badge>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-5 pt-2">
+          {/* Возврат на склад */}
+          <OrderReturnBlock order={order} />
+
+          {/* Результат доставки от водителя (статус, оплата, фото, комментарий) */}
+          <OrderDeliveryResultBlock
+            orderId={order.id}
+            requiresQr={order.requires_qr}
+            amountDue={order.amount_due ?? null}
+          />
+          {/* Адрес и навигация */}
+          <DeliveryLocation order={order} />
+          {/* Ожидаемое время прибытия (ETA) */}
+          <OrderEtaBlock orderId={order.id} />
+          {/* Сообщение клиенту: автоген + копирование + позвонить */}
+          <OrderClientMessageBlock
+            orderId={order.id}
+            orderNumber={order.order_number}
+            clientPhone={order.contact_phone ?? null}
+          />
+          {/* Контакты по заказу: клиент, менеджер, логист, водитель, перевозчик */}
+          <OrderContactsBlock orderId={order.id} clientName={order.contact_name ?? null} clientPhone={order.contact_phone ?? null} />
+
+          {/* Отчёт о доставке (если есть) */}
+          {latestReport && (
+            <div
+              className={`rt-alert ${
+                latestReport.outcome === "delivered"
+                  ? "rt-alert-success"
+                  : latestReport.outcome === "defective"
+                    ? "rt-alert-warning"
+                    : "rt-alert-danger"
+              } flex-col`}
+            >
+              <div className="mb-2 flex w-full items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {latestReport.outcome === "delivered" ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    <AlertTriangle className="h-4 w-4" />
+                  )}
+                  <span className="text-sm font-semibold text-foreground">
+                    {latestReport.outcome === "delivered"
+                      ? "Доставлено"
+                      : latestReport.outcome === "defective"
+                        ? "Брак · требуется повторная отправка"
+                        : "Не доставлено"}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  <span suppressHydrationWarning>{new Date(latestReport.delivered_at).toLocaleString("ru-RU", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}</span>
+                </span>
+              </div>
+              <div className="space-y-1 text-sm text-foreground">
+                {latestReport.driver_name && (
+                  <div>
+                    <span className="text-muted-foreground">Водитель: </span>
+                    {latestReport.driver_name}
+                  </div>
+                )}
+                {latestReport.reason && latestReport.outcome !== "delivered" && (
+                  <div>
+                    <span className="text-muted-foreground">Причина: </span>
+                    {POINT_STATUS_LABELS[latestReport.reason as PointStatus] ?? latestReport.reason}
+                  </div>
+                )}
+                {latestReport.requires_resend && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className="badge-status badge-status-delivering">
+                      <AlertTriangle className="h-3 w-3" />
+                      Требуется повторная доставка
+                    </span>
+                    <Button size="sm" onClick={() => setAddToRouteOpen(true)} className="h-7 gap-1.5">
+                      <RouteIcon className="h-3.5 w-3.5" />
+                      Добавить в следующий маршрут
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Стоимость доставки */}
+          <DeliveryCostBlock
+            order={order}
+            onEdit={() => setManualCostOpen(true)}
+            onResetAuto={() => resetToAuto.mutate()}
+            resetting={resetToAuto.isPending}
+          />
+
+          {/* Тип оплаты */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-lg border border-border p-3">
+              <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <CreditCard className="h-3.5 w-3.5" />
+                Тип оплаты
+              </div>
+              <div className="text-sm font-semibold text-foreground">
+                {PAYMENT_LABELS[order.payment_type]}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <QrCode className="h-3.5 w-3.5" />
+                Требуется QR
+              </div>
+              <div className="text-sm font-semibold text-foreground">
+                {order.requires_qr ? "Да" : "Нет"}
+              </div>
+            </div>
+          </div>
+
+          {/* QR-код заказа */}
+          <QrCapture
+            orderId={order.id}
+            orderNumber={order.order_number}
+            requiresQr={order.requires_qr}
+            qrPhotoUrl={order.qr_photo_url}
+            qrUploadedAt={order.qr_photo_uploaded_at}
+          />
+
+          {/* QR-код маркетплейса */}
+          <MarketplaceQrBlock
+            orderId={order.id}
+            qrPhotoUrl={order.qr_photo_url}
+            qrUploadedAt={order.qr_photo_uploaded_at}
+            qrUploadedBy={order.qr_photo_uploaded_by ?? null}
+            qrReceived={order.qr_received}
+            requiresQr={order.requires_qr}
+          />
+
+          {/* Состав заказа (структура 1С) */}
+          <OrderItemsBlock orderId={order.id} />
+
+          {/* Комментарий */}
+          <div className={
+            order.driver_comment_is_important && order.driver_comment
+              ? "rounded-lg border-2 border-destructive bg-destructive/10 p-4"
+              : "rounded-lg border border-border p-4"
+          }>
+            <div className="mb-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              <MessageSquare className="h-3.5 w-3.5" />
+              Комментарий
+              {order.driver_comment_is_important && order.driver_comment && (
+                <Badge variant="destructive" className="ml-1 gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Важно для водителя
+                </Badge>
+              )}
+            </div>
+            <div className="text-sm text-foreground">
+              {order.comment || (
+                <span className="italic text-muted-foreground">Без комментария</span>
+              )}
+            </div>
+          </div>
+
+          {/* Комментарий для водителя */}
+          <div className={
+            driverCommentImportant && driverComment.trim()
+              ? "space-y-2 rounded-lg border-2 border-destructive bg-destructive/5 p-4"
+              : "space-y-2 rounded-lg border border-border p-4"
+          }>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="driver-comment" className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Комментарий для водителя
+              </Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="driver-comment-important" className="text-xs text-muted-foreground">
+                  Важно
+                </Label>
+                <Switch
+                  id="driver-comment-important"
+                  checked={driverCommentImportant}
+                  onCheckedChange={setDriverCommentImportant}
+                  disabled={!driverComment.trim()}
+                />
+              </div>
+            </div>
+            <textarea
+              id="driver-comment"
+              value={driverComment}
+              onChange={(e) => setDriverComment(e.target.value)}
+              placeholder="Например: «Выгрузка только до 12:00», «Звонок за 30 минут», «Сложный подъезд»..."
+              rows={3}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            {driverCommentImportant && driverComment.trim() && (
+              <div className="text-xs font-medium text-destructive">
+                Будет показан водителю как «Важно: …» с подсветкой перед началом разгрузки.
+              </div>
+            )}
+          </div>
+
+          {/* Статус */}
+          <div>
+            <Label htmlFor="status" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Статус заказа
+            </Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as OrderStatus)}>
+              <SelectTrigger id="status" className="mt-1.5">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_ORDER.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUS_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Оплата получена */}
+          <div className="space-y-3 rounded-lg border border-border bg-secondary/40 p-4">
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Подтверждение оплаты
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="cash" className="flex items-center gap-2 text-sm font-medium">
+                <Banknote className="h-4 w-4 text-muted-foreground" />
+                Наличные получены
+              </Label>
+              <Switch id="cash" checked={cashReceived} onCheckedChange={setCashReceived} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="qr" className="flex items-center gap-2 text-sm font-medium">
+                <QrCode className="h-4 w-4 text-muted-foreground" />
+                QR получен
+              </Label>
+              <Switch id="qr" checked={qrReceived} onCheckedChange={setQrReceived} />
+            </div>
+          </div>
+
+          {/* Финансы и атрибуты клиента */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="amount-due" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Сумма к получению, ₽
+              </Label>
+              <Input
+                id="amount-due"
+                type="number"
+                inputMode="decimal"
+                step="0.01"
+                value={amountDue}
+                onChange={(e) => setAmountDue(e.target.value)}
+                placeholder="0.00"
+                className="mt-1.5"
+              />
+            </div>
+            <div>
+              <Label htmlFor="payment-status" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Статус оплаты
+              </Label>
+              <Select value={paymentStatus} onValueChange={(v) => setPaymentStatus(v as PaymentStatus)}>
+                <SelectTrigger id="payment-status" className="mt-1.5">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(PAYMENT_STATUS_LABELS) as PaymentStatus[]).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {PAYMENT_STATUS_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="marketplace" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Маркетплейс
+              </Label>
+              <Input
+                id="marketplace"
+                value={marketplace}
+                onChange={(e) => setMarketplace(e.target.value)}
+                placeholder="Wildberries, Ozon, ..."
+                className="mt-1.5"
+              />
+            </div>
+            <div className="flex items-end justify-between rounded-lg border border-border p-3">
+              <Label htmlFor="weekends" className="text-sm font-medium">
+                Клиент работает в выходные
+              </Label>
+              <Switch id="weekends" checked={worksWeekends} onCheckedChange={setWorksWeekends} />
+            </div>
+          </div>
+
+          {/* Временное окно доставки и тип клиента */}
+          <div className="space-y-3 rounded-lg border border-border p-4">
+            <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              Временное окно доставки
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="window-from" className="text-xs text-muted-foreground">
+                  Время доставки с
+                </Label>
+                <Input
+                  id="window-from"
+                  type="time"
+                  value={windowFrom}
+                  onChange={(e) => setWindowFrom(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label htmlFor="window-to" className="text-xs text-muted-foreground">
+                  Время доставки до
+                </Label>
+                <Input
+                  id="window-to"
+                  type="time"
+                  value={windowTo}
+                  onChange={(e) => setWindowTo(e.target.value)}
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="client-type" className="text-xs text-muted-foreground">
+                Тип клиента
+              </Label>
+              <Select
+                value={clientType || "__none__"}
+                onValueChange={(v) => setClientType(v === "__none__" ? "" : (v as ClientKind))}
+              >
+                <SelectTrigger id="client-type" className="mt-1.5">
+                  <SelectValue placeholder="Не указан" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Не указан</SelectItem>
+                  {CLIENT_KIND_ORDER.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {CLIENT_KIND_LABELS[k]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="dt-comment" className="text-xs text-muted-foreground">
+                Комментарий по времени доставки
+              </Label>
+              <Input
+                id="dt-comment"
+                value={deliveryTimeComment}
+                onChange={(e) => setDeliveryTimeComment(e.target.value)}
+                placeholder="Например: только до обеда, после 14:00..."
+                className="mt-1.5"
+              />
+            </div>
+          </div>
+
+          {/* Все поля заказа */}
+          <OrderAllFields order={order} />
+
+          {/* Проблемы по заказу (от водителя) */}
+          <OrderProblemReportsBlock orderId={order.id} />
+
+          {/* История доставки (действия водителя) */}
+          <PointActionsHistory orderId={order.id} title="История доставки" />
+
+          {/* История изменений */}
+          <OrderHistory orderId={order.id} />
+
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+            <Button variant="outline" onClick={() => setAddToRouteOpen(true)} className="gap-1.5 mr-auto">
+              <RouteIcon className="h-4 w-4" />
+              В маршрут
+            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleSave} disabled={mutation.isPending}>
+              {mutation.isPending ? "Сохранение..." : "Сохранить"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+      <AddOrderToRouteDialog order={order} open={addToRouteOpen} onOpenChange={setAddToRouteOpen} />
+      <ManualDeliveryCostDialog order={order} open={manualCostOpen} onOpenChange={setManualCostOpen} />
+    </Dialog>
+  );
+}
+
+// Helper: re-runs effect when key changes
+function useStateSync(key: string | undefined, fn: () => void) {
+  const prev = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (prev.current !== key) {
+      prev.current = key;
+      fn();
+    }
+  }, [key, fn]);
+}
+
+function DeliveryCostBlock({
+  order,
+  onEdit,
+  onResetAuto,
+  resetting,
+}: {
+  order: Order;
+  onEdit: () => void;
+  onResetAuto: () => void;
+  resetting: boolean;
+}) {
+  const source = order.delivery_cost_source ?? "auto";
+  const cost = Number(order.delivery_cost ?? 0);
+  const isManual = source === "manual";
+  const sourceLabel =
+    source === "manual" ? "Вручную" : source === "tariff" ? "По тарифу" : "Авто";
+  const sourceClass = isManual
+    ? "border-amber-300 bg-amber-100 text-amber-900"
+    : source === "tariff"
+      ? "border-blue-300 bg-blue-100 text-blue-900"
+      : "border-border bg-secondary text-muted-foreground";
+
+  return (
+    <div className="rounded-lg border border-border p-4">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <Wallet className="h-3.5 w-3.5" />
+          Стоимость доставки
+        </div>
+        <Badge variant="outline" className={sourceClass}>
+          {sourceLabel}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="text-2xl font-bold text-foreground">
+            {cost.toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽
+          </div>
+          {isManual && order.manual_cost_set_at && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Изменено{" "}
+              <span suppressHydrationWarning>{new Date(order.manual_cost_set_at).toLocaleString("ru-RU", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}</span>
+              {order.manual_cost_set_by ? ` · ${order.manual_cost_set_by}` : ""}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {isManual && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onResetAuto}
+              disabled={resetting}
+              className="gap-1.5"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              {resetting ? "..." : "К авто"}
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5">
+            <Pencil className="h-3.5 w-3.5" />
+            Изменить вручную
+          </Button>
+        </div>
+      </div>
+      {isManual && order.manual_cost_reason && (
+        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900">
+          <span className="font-medium">Причина:</span> {order.manual_cost_reason}
+        </div>
+      )}
+      {isManual && (
+        <div className="mt-2 text-xs text-muted-foreground">
+          Автоматический пересчёт по тарифам отключён для этого заказа.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrderContactsBlock({
+  orderId,
+  clientName,
+  clientPhone,
+}: {
+  orderId: string;
+  clientName: string | null;
+  clientPhone: string | null;
+}) {
+  // Найдём маршрут (заявку) и фактический рейс по этому заказу
+  const { data: routeInfo } = useQuery({
+    queryKey: ["order-route-link", orderId],
+    queryFn: async () => {
+      return await apiGetAuth<{ routeId: string | null; deliveryRouteId: string | null }>(
+        `/api/orders/${encodeURIComponent(orderId)}/route-link`,
+      );
+    },
+  });
+
+  const { data: contacts, isLoading } = useRouteContacts({
+    routeId: routeInfo?.routeId ?? null,
+    deliveryRouteId: routeInfo?.deliveryRouteId ?? null,
+  });
+
+  // Если заказ ещё не в маршруте — покажем хотя бы клиента
+  if (!routeInfo?.routeId && !routeInfo?.deliveryRouteId) {
+    return (
+      <ContactsCard
+        title="Контакты по заказу"
+        contacts={[
+          { role: "client", label: "Клиент", name: clientName, phone: clientPhone },
+        ]}
+      />
+    );
+  }
+  if (isLoading) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-4 text-sm text-muted-foreground">
+        Загрузка контактов…
+      </div>
+    );
+  }
+  return <ContactsCard contacts={contacts ?? []} title="Контакты по заказу" />;
+}

@@ -1,0 +1,1 @@
+ALTER TABLE public.import_logs ADD COLUMN IF NOT EXISTS file_format text NOT NULL DEFAULT 'xlsx';

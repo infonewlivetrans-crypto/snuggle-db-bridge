@@ -1,0 +1,616 @@
+// `xlsx` подключается лениво внутри функций.
+// Вся работа с БД — через серверный API (/api/data-import).
+import { apiPost } from "@/lib/api-client";
+
+export type ImportEntity = "orders" | "products" | "stock" | "routes" | "transport_requests";
+export type ImportSource = "manual" | "excel" | "1c";
+export type FileFormat = "xlsx" | "xls" | "csv" | "txt" | "json";
+export type CsvDelimiter = "," | ";" | "\t";
+
+export interface ParseOptions {
+  delimiter?: CsvDelimiter;        // для CSV / TXT
+  jsonArrayPath?: string;          // dot-path до массива внутри JSON, "" = корень
+}
+
+export function detectFileFormat(file: File): FileFormat {
+  const name = (file.name || "").toLowerCase();
+  if (name.endsWith(".xlsx")) return "xlsx";
+  if (name.endsWith(".xls")) return "xls";
+  if (name.endsWith(".csv")) return "csv";
+  if (name.endsWith(".json")) return "json";
+  if (name.endsWith(".txt")) return "txt";
+  // По MIME
+  const mt = (file.type || "").toLowerCase();
+  if (mt.includes("json")) return "json";
+  if (mt.includes("csv")) return "csv";
+  if (mt.includes("sheet") || mt.includes("excel")) return "xlsx";
+  return "txt";
+}
+
+export const FILE_FORMAT_LABEL: Record<FileFormat, string> = {
+  xlsx: "Excel (.xlsx)",
+  xls: "Excel (.xls)",
+  csv: "CSV",
+  txt: "Текст (TXT)",
+  json: "JSON",
+};
+
+function autoDetectDelimiter(sample: string): CsvDelimiter {
+  // Берём первые 10 строк, считаем кандидатов
+  const lines = sample.split(/\r?\n/).filter((l) => l.trim().length > 0).slice(0, 10);
+  const candidates: CsvDelimiter[] = [",", ";", "\t"];
+  let best: CsvDelimiter = ",";
+  let bestScore = -1;
+  for (const d of candidates) {
+    const counts = lines.map((l) => l.split(d).length);
+    if (counts.length === 0) continue;
+    const avg = counts.reduce((a, b) => a + b, 0) / counts.length;
+    const consistent = counts.every((c) => c === counts[0]) ? 1 : 0;
+    const score = avg * 10 + consistent * 5;
+    if (avg > 1 && score > bestScore) {
+      bestScore = score;
+      best = d;
+    }
+  }
+  return best;
+}
+
+function parseCsvText(text: string, delimiter: CsvDelimiter): unknown[][] {
+  // Простой CSV-парсер с поддержкой кавычек
+  const out: unknown[][] = [];
+  let row: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        cur += ch;
+      }
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === delimiter) { row.push(cur); cur = ""; }
+      else if (ch === "\n") { row.push(cur); out.push(row); row = []; cur = ""; }
+      else if (ch === "\r") { /* skip */ }
+      else cur += ch;
+    }
+  }
+  if (cur.length > 0 || row.length > 0) { row.push(cur); out.push(row); }
+  return out.filter((r) => !(r.length === 1 && String(r[0]).trim() === ""));
+}
+
+function getByPath(obj: unknown, path: string): unknown {
+  if (!path) return obj;
+  const parts = path.split(".").filter(Boolean);
+  let cur: unknown = obj;
+  for (const p of parts) {
+    if (cur && typeof cur === "object") cur = (cur as Record<string, unknown>)[p];
+    else return undefined;
+  }
+  return cur;
+}
+
+/** Возвращает список dot-path до массивов внутри JSON (включая корень, если корень — массив). */
+export function listJsonArrayPaths(obj: unknown, prefix = "", out: string[] = [], depth = 0): string[] {
+  if (depth > 5) return out;
+  if (Array.isArray(obj)) {
+    out.push(prefix);
+    return out;
+  }
+  if (obj && typeof obj === "object") {
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      listJsonArrayPaths(v, prefix ? `${prefix}.${k}` : k, out, depth + 1);
+    }
+  }
+  return out;
+}
+
+interface RawSheet { headers: string[]; rows: unknown[][] }
+
+async function readRawSheet(file: File, format: FileFormat, options: ParseOptions): Promise<RawSheet> {
+  if (format === "xlsx" || format === "xls") {
+    const XLSX = await import("xlsx");
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    if (!ws) return { headers: [], rows: [] };
+    const aoa = XLSX.utils.sheet_to_json<unknown[]>(ws, { header: 1, blankrows: false, defval: "" });
+    if (aoa.length === 0) return { headers: [], rows: [] };
+    return {
+      headers: (aoa[0] as unknown[]).map((h) => String(h ?? "").trim()),
+      rows: aoa.slice(1) as unknown[][],
+    };
+  }
+  if (format === "csv" || format === "txt") {
+    const text = await file.text();
+    const delimiter = options.delimiter ?? autoDetectDelimiter(text);
+    const aoa = parseCsvText(text, delimiter);
+    if (aoa.length === 0) return { headers: [], rows: [] };
+    return {
+      headers: (aoa[0] as unknown[]).map((h) => String(h ?? "").trim()),
+      rows: aoa.slice(1) as unknown[][],
+    };
+  }
+  if (format === "json") {
+    const text = await file.text();
+    let parsed: unknown;
+    try { parsed = JSON.parse(text); }
+    catch (e) { throw new Error("Не удалось разобрать JSON: " + (e instanceof Error ? e.message : "")); }
+    const path = options.jsonArrayPath ?? "";
+    let arr = getByPath(parsed, path);
+    if (!Array.isArray(arr)) {
+      // Попытка автоопределения: если корень массив — берём корень
+      if (Array.isArray(parsed)) arr = parsed;
+      else {
+        const paths = listJsonArrayPaths(parsed);
+        if (paths.length > 0) arr = getByPath(parsed, paths[0]);
+      }
+    }
+    if (!Array.isArray(arr)) throw new Error("В JSON не найден массив объектов");
+    // Собираем заголовки как объединение ключей объектов
+    const keySet = new Set<string>();
+    for (const item of arr) {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        for (const k of Object.keys(item as Record<string, unknown>)) keySet.add(k);
+      }
+    }
+    const headers = Array.from(keySet);
+    const rows = arr.map((item) => {
+      if (item && typeof item === "object" && !Array.isArray(item)) {
+        const o = item as Record<string, unknown>;
+        return headers.map((h) => o[h] ?? "");
+      }
+      return headers.map(() => "");
+    });
+    return { headers, rows };
+  }
+  return { headers: [], rows: [] };
+}
+
+export interface ColumnDef {
+  key: string;
+  label: string;
+  required?: boolean;
+  example?: string | number;
+}
+
+export interface ImportSchema {
+  entity: ImportEntity;
+  title: string;
+  description: string;
+  columns: ColumnDef[];
+  sheetName: string;
+}
+
+export interface ParsedRow {
+  rowNumber: number; // 1-based, including header
+  data: Record<string, unknown>;
+  errors: string[];
+  duplicate?: DuplicateInfo | null;
+}
+
+export interface DuplicateInfo {
+  existingId: string;
+  matchedBy: string[]; // column keys used as the match
+  description: string; // short human description, e.g. order_number=ORD-1
+}
+
+export type DuplicateAction = "skip" | "update" | "create";
+
+export interface ParseResult {
+  rows: ParsedRow[];
+  missingColumns: string[];
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  duplicateRows: number;
+  newRows: number;
+}
+
+export interface ImportResult {
+  inserted: number;
+  updated: number;
+  skipped: number;
+  failed: number;
+  duplicates: number;
+  duplicateAction: DuplicateAction;
+  failedRows: { row: number; message: string }[];
+}
+
+// ====== Schemas ======
+
+export const SCHEMAS: Record<ImportEntity, ImportSchema> = {
+  orders: {
+    entity: "orders",
+    title: "Заказы",
+    description: "Импорт заказов клиентов",
+    sheetName: "Заказы",
+    columns: [
+      { key: "order_number", label: "order_number", required: true, example: "ORD-1001" },
+      { key: "customer_name", label: "customer_name", example: "Иван Иванов" },
+      { key: "customer_phone", label: "customer_phone", example: "+7 999 000 00 00" },
+      { key: "delivery_address", label: "delivery_address", example: "г. Москва, ул. Ленина, 1" },
+      { key: "coordinates", label: "coordinates", example: "55.7558,37.6173" },
+      { key: "manager_name", label: "manager_name", example: "Сидоров С. С." },
+      { key: "delivery_date", label: "delivery_date", example: "2026-05-01" },
+      { key: "delivery_time_from", label: "delivery_time_from", example: "09:00" },
+      { key: "delivery_time_to", label: "delivery_time_to", example: "18:00" },
+      { key: "payment_type", label: "payment_type", example: "cash" },
+      { key: "prepaid", label: "prepaid", example: 0 },
+      { key: "amount_to_collect", label: "amount_to_collect", example: 5000 },
+      { key: "requires_qr", label: "requires_qr", example: "no" },
+      { key: "marketplace", label: "marketplace", example: "" },
+      { key: "comment", label: "comment" },
+    ],
+  },
+  products: {
+    entity: "products",
+    title: "Товары",
+    description: "Импорт справочника товаров",
+    sheetName: "Товары",
+    columns: [
+      { key: "product_name", label: "product_name", required: true, example: "Шуруп 50мм" },
+      { key: "category", label: "category", example: "Крепёж" },
+      { key: "characteristic", label: "characteristic", example: "оцинкованный" },
+      { key: "weight", label: "weight", example: 0.05 },
+      { key: "volume", label: "volume", example: 0.0001 },
+      { key: "length", label: "length", example: 0.05 },
+      { key: "width", label: "width", example: 0.005 },
+      { key: "height", label: "height", example: 0.005 },
+      { key: "comment", label: "comment" },
+    ],
+  },
+  stock: {
+    entity: "stock",
+    title: "Остатки",
+    description: "Импорт начальных остатков на склад",
+    sheetName: "Остатки",
+    columns: [
+      { key: "warehouse", label: "warehouse", required: true, example: "Главный склад" },
+      { key: "product_name", label: "product_name", required: true, example: "Шуруп 50мм" },
+      { key: "available_quantity", label: "available_quantity", required: true, example: 100 },
+      { key: "reserved_quantity", label: "reserved_quantity", example: 0 },
+      { key: "in_transit_quantity", label: "in_transit_quantity", example: 0 },
+      { key: "min_stock_level", label: "min_stock_level", example: 10 },
+    ],
+  },
+  routes: {
+    entity: "routes",
+    title: "Маршруты",
+    description: "Импорт плановых маршрутов",
+    sheetName: "Маршруты",
+    columns: [
+      { key: "route_number", label: "route_number", required: true, example: "R-2026-001" },
+      { key: "driver_name", label: "driver_name", example: "Петров П. П." },
+      { key: "vehicle_number", label: "vehicle_number", example: "А123БВ77" },
+      { key: "order_number", label: "order_number", example: "ORD-1001" },
+      { key: "point_number", label: "point_number", example: 1 },
+      { key: "customer_name", label: "customer_name", example: "Иван Иванов" },
+      { key: "phone", label: "phone", example: "+7 999 000 00 00" },
+      { key: "address", label: "address", example: "г. Москва, ул. Ленина, 1" },
+      { key: "coordinates", label: "coordinates", example: "55.7558,37.6173" },
+      { key: "amount_to_collect", label: "amount_to_collect", example: 5000 },
+      { key: "requires_qr", label: "requires_qr", example: "no" },
+      { key: "prepaid", label: "prepaid", example: 0 },
+      { key: "comment", label: "comment" },
+    ],
+  },
+  transport_requests: {
+    entity: "transport_requests",
+    title: "Заявки на транспорт",
+    description: "Импорт заявок на транспорт",
+    sheetName: "Заявки на транспорт",
+    columns: [
+      { key: "request_number", label: "request_number", required: true, example: "TR-001" },
+      { key: "request_type", label: "request_type", example: "client_delivery" },
+      { key: "warehouse_from", label: "warehouse_from", example: "Главный склад" },
+      { key: "warehouse_to", label: "warehouse_to", example: "Филиал №2" },
+      { key: "planned_date", label: "planned_date", required: true, example: "2026-05-01" },
+      { key: "planned_time", label: "planned_time", example: "09:00" },
+      { key: "order_number", label: "order_number", example: "ORD-1001" },
+      { key: "product_name", label: "product_name", example: "Шуруп 50мм" },
+      { key: "quantity", label: "quantity", example: 100 },
+      { key: "weight", label: "weight", example: 5 },
+      { key: "volume", label: "volume", example: 0.01 },
+    ],
+  },
+};
+
+// ====== Template download ======
+
+export async function downloadTemplate(entity: ImportEntity) {
+  const XLSX = await import("xlsx");
+  const schema = SCHEMAS[entity];
+  const headers = schema.columns.map((c) => c.label);
+  const exampleRow = schema.columns.map((c) => c.example ?? "");
+  const data = [headers, exampleRow];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, schema.sheetName);
+  XLSX.writeFile(wb, `template_${entity}.xlsx`);
+}
+
+// ====== Parse ======
+
+function normalizeKey(s: string): string {
+  return String(s ?? "").trim().toLowerCase();
+}
+
+function emptyResult(missingColumns: string[]): ParseResult {
+  return { rows: [], missingColumns, totalRows: 0, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 };
+}
+
+// Колонки, которые должны быть сопоставлены ПОЛЬЗОВАТЕЛЕМ (UI обязательность),
+// плюс особое правило «адрес ИЛИ координаты» для заказов.
+export const MANDATORY_FIELDS: Record<ImportEntity, string[]> = {
+  orders: ["order_number", "customer_name", "customer_phone"],
+  products: ["product_name"],
+  stock: ["warehouse", "product_name", "available_quantity"],
+  routes: ["route_number", "order_number", "driver_name"],
+  transport_requests: ["request_number", "request_type", "warehouse_from"],
+};
+
+export interface FilePreview {
+  headers: string[];                  // оригинальные заголовки из файла
+  sampleRows: unknown[][];            // первые N строк данных (без заголовка)
+  totalRows: number;                  // всего строк данных
+  suggestedMapping: ColumnMapping;    // автоподбор: systemKey -> headerIndex
+}
+
+// systemKey -> индекс колонки в файле (или -1 / null если не сопоставлено)
+export type ColumnMapping = Record<string, number | null>;
+
+export interface MappingValidation {
+  missingRequired: string[];          // системные ключи, не сопоставленные
+  ok: boolean;
+}
+
+export function validateMapping(entity: ImportEntity, mapping: ColumnMapping): MappingValidation {
+  const required = MANDATORY_FIELDS[entity] ?? [];
+  const missing: string[] = [];
+  for (const key of required) {
+    const v = mapping[key];
+    if (v == null || v < 0) missing.push(key);
+  }
+  // Особое правило: для заказов — адрес ИЛИ координаты
+  if (entity === "orders") {
+    const hasAddr = (mapping["delivery_address"] ?? -1) >= 0;
+    const hasCoord = (mapping["coordinates"] ?? -1) >= 0;
+    if (!hasAddr && !hasCoord) missing.push("delivery_address|coordinates");
+  }
+  return { missingRequired: missing, ok: missing.length === 0 };
+}
+
+function autoSuggestMapping(entity: ImportEntity, headers: string[]): ColumnMapping {
+  const schema = SCHEMAS[entity];
+  const headerN = headers.map((h) => normalizeKey(String(h)));
+  const map: ColumnMapping = {};
+  for (const col of schema.columns) {
+    const labelN = normalizeKey(col.label);
+    const keyN = normalizeKey(col.key);
+    let idx = headerN.findIndex((h) => h === labelN || h === keyN);
+    if (idx < 0 && labelN.length > 3) {
+      idx = headerN.findIndex((h) => h.startsWith(labelN.split(" ")[0]));
+    }
+    map[col.key] = idx >= 0 ? idx : null;
+  }
+  return map;
+}
+
+export async function readFilePreview(
+  file: File,
+  entity: ImportEntity,
+  options: ParseOptions = {},
+): Promise<FilePreview> {
+  const format = detectFileFormat(file);
+  const { headers, rows } = await readRawSheet(file, format, options);
+  return {
+    headers,
+    sampleRows: rows.slice(0, 5),
+    totalRows: rows.length,
+    suggestedMapping: autoSuggestMapping(entity, headers),
+  };
+}
+
+/** Возвращает дерево JSON-путей с массивами (для UI выбора). Доступно для JSON-файлов. */
+export async function inspectJsonStructure(file: File): Promise<{ paths: string[]; preview: string }> {
+  const text = await file.text();
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return { paths: [], preview: text.slice(0, 500) }; }
+  const paths = listJsonArrayPaths(parsed);
+  return { paths: paths.length ? paths : [""], preview: JSON.stringify(parsed, null, 2).slice(0, 1500) };
+}
+
+// ====== Mapping templates (localStorage) ======
+
+const MAPPING_STORAGE_KEY = "data_import_mapping_templates_v1";
+
+export interface MappingTemplate {
+  entity: ImportEntity;
+  signature: string;        // нормализованная сигнатура заголовков
+  headers: string[];        // оригинальные заголовки
+  mapping: ColumnMapping;
+  savedAt: string;
+  name?: string;
+}
+
+function headerSignature(headers: string[]): string {
+  return headers.map((h) => normalizeKey(h)).join("|");
+}
+
+function readTemplates(): MappingTemplate[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(MAPPING_STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as MappingTemplate[];
+  } catch {
+    return [];
+  }
+}
+
+function writeTemplates(list: MappingTemplate[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(MAPPING_STORAGE_KEY, JSON.stringify(list));
+  } catch {
+    // ignore quota
+  }
+}
+
+export function findMappingTemplate(entity: ImportEntity, headers: string[]): MappingTemplate | null {
+  const sig = headerSignature(headers);
+  return readTemplates().find((t) => t.entity === entity && t.signature === sig) ?? null;
+}
+
+export function saveMappingTemplate(entity: ImportEntity, headers: string[], mapping: ColumnMapping, name?: string): MappingTemplate {
+  const sig = headerSignature(headers);
+  const list = readTemplates().filter((t) => !(t.entity === entity && t.signature === sig));
+  const tpl: MappingTemplate = {
+    entity, signature: sig, headers, mapping,
+    savedAt: new Date().toISOString(),
+    name: name ?? `${entity} • ${headers.length} колонок`,
+  };
+  list.unshift(tpl);
+  writeTemplates(list.slice(0, 50));
+  return tpl;
+}
+
+export function listMappingTemplates(entity?: ImportEntity): MappingTemplate[] {
+  const all = readTemplates();
+  return entity ? all.filter((t) => t.entity === entity) : all;
+}
+
+export function deleteMappingTemplate(entity: ImportEntity, signature: string): void {
+  writeTemplates(readTemplates().filter((t) => !(t.entity === entity && t.signature === signature)));
+}
+
+// ====== Parse ======
+
+export async function parseFile(
+  file: File,
+  entity: ImportEntity,
+  mapping?: ColumnMapping,
+  options: ParseOptions = {},
+): Promise<ParseResult> {
+  const schema = SCHEMAS[entity];
+  const format = detectFileFormat(file);
+  const { headers, rows: dataRows } = await readRawSheet(file, format, options);
+  if (headers.length === 0 && dataRows.length === 0) {
+    return emptyResult(schema.columns.filter(c => c.required).map(c => c.label));
+  }
+
+  // Определяем сопоставление: пользовательское или автоподбор
+  const effectiveMapping: ColumnMapping = mapping ?? autoSuggestMapping(entity, headers);
+
+  const colIndex: Record<string, number> = {};
+  for (const col of schema.columns) {
+    const idx = effectiveMapping[col.key];
+    if (idx != null && idx >= 0) colIndex[col.key] = idx;
+  }
+
+  // Проверяем обязательные поля по UI-правилам (MANDATORY_FIELDS), а также адрес/координаты для заказов
+  const missingColumns: string[] = [];
+  for (const k of MANDATORY_FIELDS[entity] ?? []) {
+    if (!(k in colIndex)) {
+      const col = schema.columns.find((c) => c.key === k);
+      missingColumns.push(col?.label ?? k);
+    }
+  }
+  if (entity === "orders") {
+    if (!("delivery_address" in colIndex) && !("coordinates" in colIndex)) {
+      missingColumns.push("delivery_address или coordinates");
+    }
+  }
+
+  const rows: ParsedRow[] = [];
+  for (let i = 0; i < dataRows.length; i++) {
+    const raw = dataRows[i];
+    if (!raw || raw.every((v) => v === "" || v == null)) continue;
+    const data: Record<string, unknown> = {};
+    const errors: string[] = [];
+    for (const col of schema.columns) {
+      const idx = colIndex[col.key];
+      const val = idx != null ? raw[idx] : undefined;
+      const isEmpty = val === "" || val == null;
+      data[col.key] = isEmpty ? null : val;
+    }
+    for (const k of MANDATORY_FIELDS[entity] ?? []) {
+      if (data[k] == null || data[k] === "") {
+        const col = schema.columns.find((c) => c.key === k);
+        errors.push(`Не заполнено: ${col?.label ?? k}`);
+      }
+    }
+    if (entity === "orders") {
+      if ((data.delivery_address == null || data.delivery_address === "") &&
+          (data.coordinates == null || data.coordinates === "")) {
+        errors.push("Не заполнено: адрес или координаты");
+      }
+    }
+    rows.push({ rowNumber: i + 2, data, errors, duplicate: null });
+  }
+
+  try {
+    const res = await apiPost<{ rows: ParsedRow[] }>("/api/data-import", {
+      op: "duplicates",
+      entity,
+      parsed: { rows, missingColumns: [], totalRows: rows.length, validRows: 0, invalidRows: 0, duplicateRows: 0, newRows: 0 },
+    });
+    if (res?.rows) {
+      for (let i = 0; i < rows.length; i++) rows[i].duplicate = res.rows[i]?.duplicate ?? null;
+    }
+  } catch { /* ignore — продолжим без проверки дубликатов */ }
+
+  const validRows = rows.filter((r) => r.errors.length === 0).length;
+  const duplicateRows = rows.filter((r) => r.duplicate).length;
+  const newRows = rows.filter((r) => r.errors.length === 0 && !r.duplicate).length;
+  return {
+    rows,
+    missingColumns,
+    totalRows: rows.length,
+    validRows,
+    invalidRows: rows.length - validRows,
+    duplicateRows,
+    newRows,
+  };
+}
+
+// ====== Duplicate detection ======
+
+// Дубликаты определяются на сервере (см. /api/data-import op:"duplicates").
+// Локальные матчеры удалены — клиент больше не ходит в Supabase.
+
+
+// ====== Import ======
+
+function num(v: unknown): number | null {
+  if (v == null || v === "") return null;
+  const n = typeof v === "number" ? v : parseFloat(String(v).replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+function str(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s === "" ? null : s;
+}
+
+export async function importParsed(
+  entity: ImportEntity,
+  parsed: ParseResult,
+  source: ImportSource,
+  meta?: { fileName?: string | null; importedBy?: string | null; duplicateAction?: DuplicateAction; fileFormat?: FileFormat },
+): Promise<ImportResult & { logId?: string }> {
+  const result = await apiPost<ImportResult & { logId?: string }>("/api/data-import", {
+    op: "import",
+    entity,
+    parsed,
+    source,
+    fileName: meta?.fileName ?? null,
+    fileFormat: meta?.fileFormat ?? "xlsx",
+    duplicateAction: meta?.duplicateAction ?? "skip",
+  });
+  return result;
+}

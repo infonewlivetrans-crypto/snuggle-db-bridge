@@ -1,0 +1,518 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* Шрифт */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  /* Статусные цвета — для Tailwind-классов bg-status-* / text-status-* */
+  --color-status-new: var(--status-new);
+  --color-status-new-bg: var(--status-new-bg);
+  --color-status-progress: var(--status-progress);
+  --color-status-progress-bg: var(--status-progress-bg);
+  --color-status-delivering: var(--status-delivering);
+  --color-status-delivering-bg: var(--status-delivering-bg);
+  --color-status-completed: var(--status-completed);
+  --color-status-completed-bg: var(--status-completed-bg);
+  --color-status-failed: var(--status-failed);
+  --color-status-failed-bg: var(--status-failed-bg);
+  --color-status-cancelled: var(--status-cancelled);
+  --color-status-cancelled-bg: var(--status-cancelled-bg);
+  /* Тени */
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-elevated: var(--shadow-elevated);
+}
+
+:root {
+  /* Радиус Трек — единый дизайн системы */
+  --radius: 0.75rem; /* 12px — карточки/диалоги/большие элементы */
+
+  /* Базовая палитра */
+  --background: oklch(1 0 0);                  /* #FFFFFF */
+  --foreground: oklch(0.18 0 0);               /* #1E1E1E */
+  --card: oklch(0.972 0 0);                    /* #F7F7F7 */
+  --card-foreground: oklch(0.18 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0 0);
+
+  /* Жёлтый акцент — основной #F4C542 */
+  --primary: oklch(0.84 0.155 90);
+  --primary-foreground: oklch(0.18 0 0);
+  --primary-hover: oklch(0.78 0.16 88);
+
+  /* Вторичные/нейтральные */
+  --secondary: oklch(0.972 0 0);               /* #F7F7F7 */
+  --secondary-foreground: oklch(0.18 0 0);
+  --muted: oklch(0.972 0 0);
+  --muted-foreground: oklch(0.5 0 0);          /* #6B6B6B */
+  --accent: oklch(0.96 0.05 90);
+  --accent-foreground: oklch(0.18 0 0);
+
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.91 0 0);                   /* #E5E5E5 */
+  --input: oklch(0.91 0 0);
+  --ring: oklch(0.84 0.155 90);
+
+  /* Бренд-токены */
+  --brand-yellow: oklch(0.84 0.155 90);
+  --brand-yellow-hover: oklch(0.78 0.16 88);
+  --brand-black: oklch(0.18 0 0);
+  --brand-card: oklch(0.972 0 0);
+
+  /* Тени — мягкие, под карточки */
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06);
+  --shadow-card-hover: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.06);
+  --shadow-elevated: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+
+  /* Статусные цвета (для бейджей) */
+  --status-new: oklch(0.6 0.16 250);           /* синий — новый */
+  --status-new-bg: oklch(0.95 0.04 250);
+  --status-progress: oklch(0.84 0.155 90);     /* жёлтый — в работе */
+  --status-progress-bg: oklch(0.97 0.07 90);
+  --status-delivering: oklch(0.7 0.16 50);     /* оранжевый — доставляется */
+  --status-delivering-bg: oklch(0.96 0.06 60);
+  --status-completed: oklch(0.62 0.16 145);    /* зелёный — доставлено */
+  --status-completed-bg: oklch(0.95 0.06 145);
+  --status-failed: oklch(0.6 0.22 25);         /* красный — не доставлено */
+  --status-failed-bg: oklch(0.96 0.05 25);
+  --status-cancelled: oklch(0.55 0 0);         /* серый — отменено */
+  --status-cancelled-bg: oklch(0.95 0 0);
+
+  /* Графики */
+  --chart-1: oklch(0.84 0.155 90);
+  --chart-2: oklch(0.62 0.16 145);
+  --chart-3: oklch(0.6 0.16 250);
+  --chart-4: oklch(0.7 0.16 50);
+  --chart-5: oklch(0.6 0.22 25);
+
+  /* Sidebar */
+  --sidebar: oklch(0.972 0 0);
+  --sidebar-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.84 0.155 90);
+  --sidebar-primary-foreground: oklch(0.18 0 0);
+  --sidebar-accent: oklch(0.95 0 0);
+  --sidebar-accent-foreground: oklch(0.18 0 0);
+  --sidebar-border: oklch(0.91 0 0);
+  --sidebar-ring: oklch(0.84 0.155 90);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ============================================================
+ * Дизайн-кит «Радиус Трек» — единые утилиты для web + mobile.
+ * Применяются единообразно ко всем экранам. Используются
+ * как в shadcn-компонентах (Button, Card, Table, Badge), так
+ * и напрямую через классы (.rt-card / .rt-btn-primary / ...).
+ * ============================================================ */
+@layer utilities {
+  /* Тени */
+  .shadow-card { box-shadow: var(--shadow-card); }
+  .shadow-card-hover { box-shadow: var(--shadow-card-hover); }
+  .shadow-elevated { box-shadow: var(--shadow-elevated); }
+
+  /* Карточка — мягкая тень + скругление 12px */
+  .rt-card {
+    background-color: var(--color-card);
+    color: var(--color-card-foreground);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    transition: box-shadow 0.18s ease;
+  }
+  .rt-card:hover { box-shadow: var(--shadow-card-hover); }
+
+  /* Кнопки — скругление 10px (default) / 12px (lg) */
+  .rt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+  }
+  .rt-btn-primary {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+    box-shadow: var(--shadow-card);
+  }
+  .rt-btn-primary:hover { background-color: var(--brand-yellow-hover); }
+  .rt-btn-primary:active { transform: translateY(1px); }
+  .rt-btn-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-foreground);
+    border: 1px solid var(--color-border);
+  }
+  .rt-btn-secondary:hover { background-color: oklch(0.95 0 0); }
+  .rt-btn-lg { height: 2.75rem; padding: 0 1.5rem; border-radius: 12px; font-size: 1rem; }
+
+  /* Таблицы — единый вид во всех списках */
+  .rt-table-wrap {
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--color-background);
+    box-shadow: var(--shadow-card);
+  }
+  .rt-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .rt-table thead { background-color: var(--color-card); }
+  .rt-table th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .rt-table td {
+    padding: 0.75rem 1rem;
+    color: var(--color-foreground);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .rt-table tbody tr:last-child td { border-bottom: 0; }
+  .rt-table tbody tr:hover { background-color: oklch(0.97 0 0); }
+
+  /* Бейджи статусов (с цветной точкой) */
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .badge-status::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.85;
+  }
+  .badge-status-new { background: var(--status-new-bg); color: var(--status-new); }
+  .badge-status-progress { background: var(--status-progress-bg); color: var(--status-progress); }
+  .badge-status-delivering { background: var(--status-delivering-bg); color: var(--status-delivering); }
+  .badge-status-completed { background: var(--status-completed-bg); color: var(--status-completed); }
+  .badge-status-failed { background: var(--status-failed-bg); color: var(--status-failed); }
+  .badge-status-cancelled { background: var(--status-cancelled-bg); color: var(--status-cancelled); }
+
+  /* Поля ввода */
+  .rt-input {
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-foreground);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .rt-input::placeholder { color: var(--color-muted-foreground); }
+  .rt-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-primary) 25%, transparent);
+  }
+
+  /* Алерты — мягкие плашки в фирменной палитре статусов.
+   * Используются вместо хардкода bg-amber-50 / bg-red-50 / bg-green-50. */
+  .rt-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    font-size: 0.875rem;
+  }
+  .rt-alert-success {
+    background: var(--status-completed-bg);
+    color: var(--status-completed);
+    border-color: color-mix(in oklab, var(--status-completed) 25%, transparent);
+  }
+  .rt-alert-warning {
+    background: var(--status-delivering-bg);
+    color: var(--status-delivering);
+    border-color: color-mix(in oklab, var(--status-delivering) 25%, transparent);
+  }
+  .rt-alert-danger {
+    background: var(--status-failed-bg);
+    color: var(--status-failed);
+    border-color: color-mix(in oklab, var(--status-failed) 25%, transparent);
+  }
+  .rt-alert-info {
+    background: var(--status-new-bg);
+    color: var(--status-new);
+    border-color: color-mix(in oklab, var(--status-new) 25%, transparent);
+  }
+  .rt-alert-accent {
+    background: var(--status-progress-bg);
+    color: oklch(0.4 0.1 80);
+    border-color: color-mix(in oklab, var(--color-primary) 35%, transparent);
+  }
+
+  /* Текстовые тон-классы — для иконок/подписей внутри алертов и таблиц */
+  .text-status-success { color: var(--status-completed); }
+  .text-status-warning { color: var(--status-delivering); }
+  .text-status-danger { color: var(--status-failed); }
+  .text-status-info { color: var(--status-new); }
+
+  /* ==========================================================
+   * Адаптивные утилиты
+   * ========================================================== */
+
+  /* Безопасный контейнер страниц: центрирован, с max-width.
+   * Используйте оборачивая контент страницы вместо голых div w-full. */
+  .rt-page {
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .rt-page { padding-inline: 1.25rem; }
+  }
+  @media (min-width: 1024px) {
+    .rt-page { padding-inline: 1.5rem; }
+  }
+  @media (min-width: 1536px) {
+    .rt-page { padding-inline: 2rem; }
+  }
+
+  /* Прокрутка таблиц с тонким скроллбаром */
+  .rt-table-scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .rt-table-scroll::-webkit-scrollbar { height: 8px; width: 8px; }
+  .rt-table-scroll::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 9999px;
+  }
+
+  /* Ограничитель высоты таблицы — тогда sticky thead начинает работать */
+  .rt-table-tall { max-height: calc(100vh - 220px); overflow-y: auto; }
+
+  /* Скрытие второстепенных колонок на маленьких экранах.
+   * Применяется на <th> и <td>: class="col-secondary" / "col-tertiary". */
+  @media (max-width: 1023px) {
+    .col-secondary { display: none !important; }
+  }
+  @media (max-width: 767px) {
+    .col-tertiary { display: none !important; }
+  }
+
+  /* Принудительный «горизонтальный скролл вместо переноса» для строк действий */
+  .rt-actions-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  @media (min-width: 1280px) {
+    .rt-actions-row { flex-wrap: nowrap; }
+  }
+}
+
+/* ==========================================================
+ * Глобальные responsive-фиксы (вне @layer utilities)
+ * ========================================================== */
+
+/* Не дать таблицам и широким карточкам пробивать viewport */
+html { max-width: 100%; }
+body { max-width: 100%; overflow-x: hidden; }
+
+/* Любая обёртка с .overflow-x-auto должна нормально работать на тач-экранах */
+.overflow-x-auto { -webkit-overflow-scrolling: touch; }
+
+/* На ноутбуках 1366px — компактная плотность кнопок и инпутов внутри таблиц,
+ * чтобы строки действий не уезжали за экран. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .rt-table td .h-10,
+  .rt-table-scroll td .h-10 { height: 2.25rem; }
+}
+
+/* Мобильная версия: крупные тачабельные кнопки */
+@media (max-width: 640px) {
+  button, [role="button"] { min-height: 40px; }
+}
+
+/* ==========================================================
+ * Дополнительные responsive-фиксы (адаптивность всей программы)
+ * Цель: ничего не съезжает и не выходит за экран.
+ * ========================================================== */
+
+/* Длинные слова/URL/идентификаторы переносятся, а не растягивают контейнер */
+.rt-card, .rt-table td, .rt-table-scroll td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Таблицы внутри обёрток скроллятся горизонтально */
+.rt-table-scroll { max-width: 100%; overflow-x: auto; }
+
+/* Ни один контент-блок не должен пробивать viewport */
+main, main > * { min-width: 0; }
+
+/* Компактный режим для ноутбуков 1366×768 */
+@media (min-width: 1280px) and (max-width: 1440px) {
+  .rt-page { padding-inline: 1rem; }
+  .rt-card { padding: 0.75rem; }
+  .rt-table th { padding: 0.5rem 0.75rem; }
+  .rt-table td { padding: 0.5rem 0.75rem; }
+}
+@media (min-width: 1024px) and (max-width: 1366px) {
+  .rt-actions-row { gap: 0.375rem; }
+  .rt-btn { height: 2.25rem; padding: 0 0.75rem; font-size: 0.8125rem; }
+}
+
+/* Мобильная адаптация: вертикальный стек, крупные кнопки */
+@media (max-width: 767px) {
+  .rt-stack-mobile { display: flex !important; flex-direction: column !important; gap: 0.75rem !important; }
+  .rt-actions-row > button,
+  .rt-actions-row > a { flex: 1 1 auto; min-width: 0; }
+  [role="dialog"] { max-width: 100vw; }
+}
+
+/* Защита от горизонтального переполнения */
+.rt-actions-row { max-width: 100%; }
+.rt-actions-row > * { min-width: 0; }
+
+/* Карточки статистики — переносятся на следующую строку, не ломают сетку.
+ * Универсальный фикс для grid-сеток с дашбордов: разрешаем перенос элементов. */
+.grid > * { min-width: 0; }
+
+/* Кнопки в правой части карточек/строк не должны выходить за экран:
+ * любые flex-контейнеры с justify-between должны давать min-width: 0 детям. */
+.flex > * { min-width: 0; }
+.flex.shrink-0 > *,
+.shrink-0 { min-width: auto; }
+
+/* Запрет переноса текста пунктов меню в две строки */
+header nav a, header nav button { white-space: nowrap; }

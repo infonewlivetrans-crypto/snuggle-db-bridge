@@ -1,0 +1,88 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+import { jsonResponse } from "@/server/api-helpers.server";
+import { ACCESS_COOKIE, REFRESH_COOKIE, setSessionCookies } from "@/server/auth-cookies.server";
+
+export const Route = createFileRoute("/api/auth/login")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+        let body: { email?: string; password?: string };
+        try {
+          body = (await request.json()) as typeof body;
+        } catch {
+          return jsonResponse({ error: "Некорректный запрос" }, { status: 400 });
+        }
+        const email = (body.email ?? "").trim();
+        const password = body.password ?? "";
+        if (!email || !password) {
+          return jsonResponse(
+            { error: "Введите email и пароль" },
+            { status: 400 },
+          );
+        }
+        const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+        const key =
+          process.env.SUPABASE_PUBLISHABLE_KEY ??
+          process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        if (!url || !key) {
+          return jsonResponse(
+            { error: "Сервер не настроен" },
+            { status: 500 },
+          );
+        }
+        const sb = createClient<Database>(url, key, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            storage: undefined,
+          },
+        });
+        let data: Awaited<ReturnType<typeof sb.auth.signInWithPassword>>["data"];
+        let error: Awaited<ReturnType<typeof sb.auth.signInWithPassword>>["error"];
+        try {
+          const res = await sb.auth.signInWithPassword({ email, password });
+          data = res.data;
+          error = res.error;
+        } catch (e) {
+          console.error("[auth.login] signInWithPassword threw:", e);
+          return jsonResponse(
+            { error: "Сервис авторизации недоступен. Повторите позже." },
+            { status: 503 },
+          );
+        }
+        if (error || !data.session) {
+          if (error) console.warn("[auth.login] sign-in failed:", error.status, error.message);
+          return jsonResponse(
+            { error: "Неверный email или пароль" },
+            { status: 401 },
+          );
+        }
+        setSessionCookies({
+          accessToken: data.session.access_token,
+          refreshToken: data.session.refresh_token,
+        });
+        // Возвращаем токены и в body — для Bearer-fallback в окружениях,
+        // где httpOnly cookie не сохраняется (Lovable preview iframe и т.п.).
+        return jsonResponse({
+          ok: true,
+          user_id: data.user?.id ?? null,
+          cookies_set: true,
+          cookie_names: [ACCESS_COOKIE, REFRESH_COOKIE],
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_in: data.session.expires_in ?? 3600,
+        });
+        } catch (e) {
+          console.error("[auth.login] unexpected error:", e);
+          return jsonResponse(
+            { error: "Внутренняя ошибка сервера авторизации" },
+            { status: 500 },
+          );
+        }
+      },
+    },
+  },
+});
