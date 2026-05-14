@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { authHeaders } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
