@@ -1,5 +1,7 @@
 // Тяжёлая библиотека `xlsx` подключается лениво внутри функций.
-import { supabase } from "@/integrations/supabase/client";
+// Импорт маршрутного Excel выполняется на сервере (/api/route-import),
+// здесь — только парсинг файла и отправка строк.
+import { apiPost } from "@/lib/api-client";
 
 export type RouteImportRow = {
   route_number?: string;
