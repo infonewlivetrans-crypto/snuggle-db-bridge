@@ -309,6 +309,7 @@ export async function downloadRouteTemplate() {
   const headers = [
     "route_number",
     "driver_name",
+    "driver_phone",
     "vehicle_number",
     "order_number",
     "customer_name",
