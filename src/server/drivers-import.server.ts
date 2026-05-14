@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeFullName } from "@/lib/normalize-name";
 import { normalizeRuPhone } from "@/lib/phone";
+import { ensureDefaultCarrierId } from "./carriers.server";
 
 export type DriverImportItem = {
   fullName: string;
