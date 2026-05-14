@@ -41,12 +41,8 @@ export type DriverLinkStatus =
 export type DriverLink = {
   deliveryRouteId: string;
   driverId: string | null;
-  driverFullName: string;
-  driverPhone: string | null;
   status: DriverLinkStatus;
-  inviteId?: string | null;
-  inviteToken?: string | null;
-  message?: string;
+  inviteUrl?: string;
 };
 
 export type RouteImportResult = {
