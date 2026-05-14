@@ -106,17 +106,6 @@ const HEADER_MAP: Record<string, keyof RouteImportRow> = {
   "manager_comment": "manager_comment",
 };
 
-const PAYMENT_MAP: Record<string, "cash" | "card" | "online" | "qr"> = {
-  "наличные": "cash",
-  "нал": "cash",
-  "cash": "cash",
-  "карта": "card",
-  "card": "card",
-  "онлайн": "online",
-  "online": "online",
-  "qr": "qr",
-  "qr-код": "qr",
-};
 
 function normalizeKey(k: string): string {
   return k.trim().toLowerCase().replace(/\s+/g, " ");
