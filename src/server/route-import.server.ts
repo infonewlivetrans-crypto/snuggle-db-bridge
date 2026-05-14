@@ -96,10 +96,15 @@ async function resolveDriverByPhone(
   const phone = normalizeRuPhone(rawPhone ?? null);
   if (!phone) return { driver: null, phone: null };
 
-  // 1) Поиск по телефону
+  // Согласованная логика: автосопоставление ТОЛЬКО по carrier_id + phone.
+  // Поиск по ФИО запрещён — иначе можно привязать маршрут не тому человеку.
+  const carrierId = await ensureDefaultCarrierId();
+
+  // 1) Поиск по carrier_id + нормализованному телефону
   const { data: byPhone, error: phErr } = await supabaseAdmin
     .from("drivers")
     .select("id, full_name, phone, user_id")
+    .eq("carrier_id", carrierId)
     .eq("phone", phone)
     .limit(1)
     .maybeSingle();
@@ -112,31 +117,7 @@ async function resolveDriverByPhone(
     };
   }
 
-  // 2) Поиск по нормализованному ФИО (если задано)
-  const norm = normalizeFullName(driverFullName);
-  if (norm) {
-    const { data: all, error: lstErr } = await supabaseAdmin
-      .from("drivers")
-      .select("id, full_name, phone, user_id");
-    if (lstErr) throw new Error(lstErr.message);
-    for (const d of (all ?? []) as Array<{
-      id: string; full_name: string; phone: string | null; user_id: string | null;
-    }>) {
-      if (normalizeFullName(d.full_name) === norm) {
-        // Если у найденного водителя нет телефона — допишем его
-        if (!d.phone) {
-          await supabaseAdmin.from("drivers").update({ phone } as never).eq("id", d.id);
-        }
-        return {
-          driver: { id: d.id, fullName: d.full_name, phone: d.phone ?? phone, hasUser: !!d.user_id },
-          phone,
-        };
-      }
-    }
-  }
-
-  // 3) Создание нового водителя
-  const carrierId = await ensureDefaultCarrierId();
+  // 2) Не найден — создаём нового водителя
   const { data: ins, error: insErr } = await supabaseAdmin
     .from("drivers")
     .insert({
