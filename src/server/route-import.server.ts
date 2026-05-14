@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeRuPhone } from "@/lib/phone";
-import { normalizeFullName } from "@/lib/normalize-name";
+
 import { ensureDefaultCarrierId } from "./carriers.server";
 import {
   adminCreateInvite,
