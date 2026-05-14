@@ -260,6 +260,58 @@ export async function activateInvite(args: {
     .maybeSingle();
   if (existingProfile) throw new Error("Этот email уже используется другим пользователем");
 
+  // Привязка drivers.user_id ДО изменения auth-пользователя.
+  // При любой ошибке активация прерывается, auth и profiles не трогаются.
+  if (invite.role === "driver" && invite.driver_id) {
+    const { data: driverRow, error: drvSelErr } = await supabaseAdmin
+      .from("drivers")
+      .select("id, user_id")
+      .eq("id", invite.driver_id)
+      .maybeSingle();
+    if (drvSelErr) throw new Error(drvSelErr.message);
+    if (!driverRow) {
+      throw new Error("Запись водителя не найдена. Обратитесь к администратору.");
+    }
+    const currentUserId = (driverRow as { user_id: string | null }).user_id;
+    if (currentUserId && currentUserId !== invite.user_id) {
+      throw new Error(
+        "Эта запись водителя уже привязана к другой учётной записи. Обратитесь к администратору.",
+      );
+    }
+    if (!currentUserId) {
+      const { data: updRows, error: drvUpdErr } = await supabaseAdmin
+        .from("drivers")
+        .update({ user_id: invite.user_id })
+        .eq("id", invite.driver_id)
+        .is("user_id", null)
+        .select("id, user_id");
+      if (drvUpdErr) {
+        const code = (drvUpdErr as { code?: string }).code;
+        if (code === "23505" || /duplicate|unique/i.test(drvUpdErr.message ?? "")) {
+          throw new Error(
+            "Эта учётная запись уже привязана к другому водителю. Обратитесь к администратору.",
+          );
+        }
+        throw new Error(drvUpdErr.message);
+      }
+      if (!updRows || updRows.length === 0) {
+        // Гонка: кто-то заполнил user_id между select и update — перечитаем.
+        const { data: recheck, error: recheckErr } = await supabaseAdmin
+          .from("drivers")
+          .select("id, user_id")
+          .eq("id", invite.driver_id)
+          .maybeSingle();
+        if (recheckErr) throw new Error(recheckErr.message);
+        const recheckedUserId = (recheck as { user_id: string | null } | null)?.user_id ?? null;
+        if (recheckedUserId !== invite.user_id) {
+          throw new Error(
+            "Эта запись водителя уже привязана к другой учётной записи. Обратитесь к администратору.",
+          );
+        }
+      }
+    }
+  }
+
   const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(invite.user_id, {
     email,
     password,
