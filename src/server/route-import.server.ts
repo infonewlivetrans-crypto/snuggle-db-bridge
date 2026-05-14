@@ -3,12 +3,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeRuPhone } from "@/lib/phone";
+import { inviteUrl } from "@/lib/invite-url";
 
 import { ensureDefaultCarrierId } from "./carriers.server";
 import {
   adminCreateInvite,
   findReusableDriverInvite,
-  type InviteRow,
 } from "./invites.server";
 
 export type RouteImportRow = {
