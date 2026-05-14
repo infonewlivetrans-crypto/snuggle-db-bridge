@@ -28,11 +28,13 @@ import {
   CheckCircle2,
   AlertTriangle,
   Info,
+  Copy,
 } from "lucide-react";
 import {
   downloadRouteTemplate,
   importRouteFromFile,
   type RouteImportResult,
+  type DriverLink,
 } from "@/lib/route-excel-import";
 import { toast } from "sonner";
 
