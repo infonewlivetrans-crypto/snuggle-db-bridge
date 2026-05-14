@@ -52,6 +52,7 @@ export const Route = createFileRoute("/route-import-template")({
 const COLUMNS: Array<{ key: string; label: string; required?: boolean }> = [
   { key: "route_number", label: "Номер маршрута", required: true },
   { key: "driver_name", label: "ФИО водителя", required: true },
+  { key: "driver_phone", label: "Телефон водителя (для автопривязки и приглашения)" },
   { key: "vehicle_number", label: "Госномер машины" },
   { key: "order_number", label: "Номер заказа", required: true },
   { key: "customer_name", label: "Клиент / получатель", required: true },
