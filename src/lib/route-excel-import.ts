@@ -36,6 +36,8 @@ const HEADER_MAP: Record<string, keyof RouteImportRow> = {
   "водитель": "driver",
   "driver": "driver",
   "driver_name": "driver",
+  "телефон водителя": "driver_phone",
+  "driver_phone": "driver_phone",
   "машина": "vehicle",
   "транспорт": "vehicle",
   "vehicle": "vehicle",
