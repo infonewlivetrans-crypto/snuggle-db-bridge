@@ -67,11 +67,9 @@ export const Route = createFileRoute("/api/import-route-sheet")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const token = getBearerToken(request);
-        if (!token) return jsonResponse({ error: "Не авторизован" }, { status: 401 });
-        const auth = await requireUser(token);
-        if (!auth) return jsonResponse({ error: "Не авторизован" }, { status: 401 });
-        const sb = auth.client;
+        const auth = await requireAnyRole(request, ["admin", "logist", "manager"]);
+        if (auth instanceof Response) return auth;
+        const sb = supabaseAdmin;
 
         let payload: IncomingPayload;
         try {
