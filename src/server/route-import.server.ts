@@ -286,59 +286,48 @@ export async function importRouteRowsServer(
         result.driverLinks.push({
           deliveryRouteId,
           driverId: resolvedDriver?.id ?? null,
-          driverFullName: assignedDriverName,
-          driverPhone: null,
           status: "no_phone",
-          message: "Телефон водителя не указан или некорректен — invite-ссылка не создана.",
         });
       } else if (resolvedDriver.hasUser) {
         result.driverLinks.push({
           deliveryRouteId,
           driverId: resolvedDriver.id,
-          driverFullName: resolvedDriver.fullName,
-          driverPhone: resolvedPhone,
           status: "linked_existing_active",
         });
       } else {
         try {
           const reusable = await findReusableDriverInvite(resolvedDriver.id);
-          let invite: InviteRow;
-          let status: DriverLinkStatus;
           if (reusable) {
-            invite = reusable;
-            status = "linked_existing_invite";
+            result.driverLinks.push({
+              deliveryRouteId,
+              driverId: resolvedDriver.id,
+              status: "linked_existing_invite",
+              inviteUrl: inviteUrl(reusable.token),
+            });
           } else {
-            invite = await adminCreateInvite({
+            const inv = await adminCreateInvite({
               fullName: resolvedDriver.fullName,
               phone: resolvedPhone,
               role: "driver",
               driverId: resolvedDriver.id,
               createdBy: userId ?? null,
             });
-            status = "linked_new_invite";
+            result.driverLinks.push({
+              deliveryRouteId,
+              driverId: resolvedDriver.id,
+              status: "linked_new_invite",
+              inviteUrl: inviteUrl(inv.token),
+            });
           }
-          result.driverLinks.push({
-            deliveryRouteId,
-            driverId: resolvedDriver.id,
-            driverFullName: resolvedDriver.fullName,
-            driverPhone: resolvedPhone,
-            status,
-            inviteId: invite.id,
-            inviteToken: invite.token,
-          });
         } catch (e) {
           // Маршрут уже создан в БД — НЕ откатываем его. Фиксируем invite_failed
-          // и добавляем понятное сообщение в result.errors, чтобы UI не показал
-          // «успех», а пользователь увидел, что invite-ссылка не создана.
+          // и добавляем понятное сообщение в result.errors.
           const msg = e instanceof Error ? e.message : String(e);
           console.error("[route-import] adminCreateInvite failed:", e);
           result.driverLinks.push({
             deliveryRouteId,
             driverId: resolvedDriver.id,
-            driverFullName: resolvedDriver.fullName,
-            driverPhone: resolvedPhone,
             status: "invite_failed",
-            message: msg,
           });
           result.errors.push({
             row: group.firstIndex + 2,
