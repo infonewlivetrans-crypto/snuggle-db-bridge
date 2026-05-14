@@ -23,11 +23,26 @@ export type RouteImportRow = {
   manager_comment?: string;
 };
 
+export type DriverLinkStatus =
+  | "linked_existing_active"
+  | "linked_existing_invite"
+  | "linked_new_invite"
+  | "no_phone"
+  | "invite_failed";
+
+export type DriverLink = {
+  deliveryRouteId: string;
+  driverId: string | null;
+  status: DriverLinkStatus;
+  inviteUrl?: string;
+};
+
 export type RouteImportResult = {
   totalRows: number;
   routesCreated: number;
   pointsCreated: number;
   deliveryRouteIds: string[];
+  driverLinks?: DriverLink[];
   errors: Array<{ row: number; message: string }>;
 };
 
