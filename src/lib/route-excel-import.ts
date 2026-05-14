@@ -119,18 +119,6 @@ function toNumber(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-function toBool(v: unknown): boolean {
-  if (v === null || v === undefined) return false;
-  const s = String(v).trim().toLowerCase();
-  return ["да", "yes", "y", "true", "1", "+", "v", "✓"].includes(s);
-}
-
-function parseCoords(s: string | undefined): { lat: number | null; lon: number | null } {
-  if (!s) return { lat: null, lon: null };
-  const m = s.match(/(-?\d+[.,]\d+)[\s,;]+(-?\d+[.,]\d+)/);
-  if (!m) return { lat: null, lon: null };
-  return { lat: toNumber(m[1]), lon: toNumber(m[2]) };
-}
 
 export async function parseRouteWorkbook(file: ArrayBuffer): Promise<RouteImportRow[]> {
   const XLSX = await import("xlsx");
