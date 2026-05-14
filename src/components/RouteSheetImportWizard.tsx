@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { authHeaders } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -394,18 +394,12 @@ export function RouteSheetImportWizard({
     setErrorMsg(null);
     setErrorDetails(null);
     try {
-      const { data: sess, error: sessErr } = await supabase.auth.getSession();
-      const token = sess.session?.access_token;
-      if (sessErr) {
-        console.warn("[RouteSheetImport] supabase.auth.getSession warning:", sessErr);
-      }
-
-      const headers: Record<string, string> = { "content-type": "application/json" };
-      if (token) headers.authorization = `Bearer ${token}`;
-
       const res = await fetch("/api/import-route-sheet", {
         method: "POST",
-        headers,
+        headers: {
+          "content-type": "application/json",
+          ...authHeaders(),
+        },
         body: JSON.stringify(parsed),
       });
 
