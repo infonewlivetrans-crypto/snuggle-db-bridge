@@ -163,19 +163,12 @@ export async function importRouteRowsServer(
       if (!baseRow.driver) missing.push("водитель");
       if (missing.length) throw new Error("Не заполнены обязательные данные: " + missing.join(", "));
 
-      // Готовим водителя ДО создания маршрута, чтобы при ошибке не плодить routes/orders.
-      let resolvedDriver: ResolvedDriver | null = null;
-      let resolvedPhone: string | null = null;
-      try {
-        const r = await resolveDriverByPhone(baseRow.driver!, baseRow.driver_phone ?? null);
-        resolvedDriver = r.driver;
-        resolvedPhone = r.phone;
-      } catch (e) {
-        // Не валим весь маршрут, если поиск/создание водителя сорвалось — просто пометим как no_phone.
-        console.error("[route-import] resolveDriverByPhone failed:", e);
-        resolvedDriver = null;
-        resolvedPhone = null;
-      }
+      // Если driver_phone отсутствует/не нормализуется — resolveDriverByPhone вернёт { driver: null, phone: null }
+      // и маршрут создастся без driver_id (статус no_phone).
+      // Если телефон есть, но работа с drivers упадёт — ошибка пойдёт во внешний catch
+      // и маршрут этой группы создан НЕ будет.
+      const { driver: resolvedDriver, phone: resolvedPhone } =
+        await resolveDriverByPhone(baseRow.driver!, baseRow.driver_phone ?? null);
 
       const { data: routeNumData, error: rnErr } = await sb.rpc("generate_route_number");
       if (rnErr) throw rnErr;
