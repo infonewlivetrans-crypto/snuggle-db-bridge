@@ -6,7 +6,7 @@ export const Route = createFileRoute("/api/inbound-shipment-items")({
     handlers: {
       GET: listHandler({
         table: "inbound_shipment_items",
-        filters: { shipment_id: "eq", product_id: "eq" },
+        filters: { shipment_id: "in", product_id: "eq" },
         cacheSeconds: 10,
       }),
       POST: insertHandler("inbound_shipment_items"),
