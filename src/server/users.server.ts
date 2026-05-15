@@ -1,5 +1,9 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import type { AppRole } from "@/lib/auth/roles";
+
+type DbClient = SupabaseClient<Database>;
 
 export async function hasAnyAdmin(): Promise<boolean> {
   // Используем SECURITY DEFINER RPC, чтобы публичный эндпоинт первой настройки
