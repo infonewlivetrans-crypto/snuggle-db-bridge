@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { PhoneCallButton } from "@/components/PhoneCallButton";
 import { cn } from "@/lib/utils";
 
@@ -87,123 +86,14 @@ export function useRouteContacts(params: {
   deliveryRouteId?: string | null;
 }) {
   const { routeId, deliveryRouteId } = params;
+  // Временно отключено: блок собирал контакты прямыми browser-запросами в
+  // Supabase REST (delivery_routes / routes / route_points / clients / drivers /
+  // carriers / profiles), которые на production отдают 400. До отдельной
+  // миграции на /api/* возвращаем пустой список — карточка покажет
+  // «Контакты не указаны» и не делает сетевых запросов.
   return useQuery({
     enabled: !!(routeId || deliveryRouteId),
     queryKey: ["route-contacts", routeId ?? null, deliveryRouteId ?? null],
-    queryFn: async (): Promise<ContactPerson[]> => {
-      // 1. Заявка-источник + рейс
-      type RequestRow = { id: string; driver_name: string | null; created_by: string | null };
-      type DRRow = {
-        assigned_driver: string | null;
-        carrier_id: string | null;
-        source_request_id: string;
-      };
-      let request: RequestRow | null = null;
-      let dr: DRRow | null = null;
-
-      if (deliveryRouteId) {
-        const { data } = await supabase
-          .from("delivery_routes")
-          .select("assigned_driver, carrier_id, source_request_id")
-          .eq("id", deliveryRouteId)
-          .maybeSingle();
-        dr = (data as unknown as DRRow | null) ?? null;
-      }
-      const reqId = routeId ?? dr?.source_request_id ?? null;
-      if (reqId) {
-        const { data } = await supabase
-          .from("routes")
-          .select("id, driver_name, created_by")
-          .eq("id", reqId)
-          .maybeSingle();
-        request = (data as unknown as RequestRow | null) ?? null;
-      }
-
-      // 2. Первая точка — берём клиента и менеджера клиента
-      let clientName: string | null = null;
-      let clientPhone: string | null = null;
-      let managerName: string | null = null;
-      let managerPhone: string | null = null;
-      if (reqId) {
-        const { data: pt } = await supabase
-          .from("route_points")
-          .select(
-            "order:order_id(contact_name, contact_phone)",
-          )
-          .eq("route_id", reqId)
-          .order("point_number", { ascending: true })
-          .limit(1)
-          .maybeSingle();
-        const o = (pt as any)?.order as
-          | { contact_name: string | null; contact_phone: string | null }
-          | null
-          | undefined;
-        clientName = o?.contact_name ?? null;
-        clientPhone = o?.contact_phone ?? null;
-        if (clientName) {
-          const { data: cl } = await supabase
-            .from("clients")
-            .select("manager_name, manager_phone")
-            .eq("name", clientName)
-            .maybeSingle();
-          managerName = (cl as any)?.manager_name ?? null;
-          managerPhone = (cl as any)?.manager_phone ?? null;
-        }
-      }
-
-      // 3. Водитель
-      let driverName = dr?.assigned_driver ?? request?.driver_name ?? null;
-      let driverPhone: string | null = null;
-      if (driverName) {
-        const { data: dv } = await supabase
-          .from("drivers")
-          .select("phone, full_name")
-          .ilike("full_name", driverName)
-          .maybeSingle();
-        if (dv) {
-          driverPhone = (dv as any).phone ?? null;
-          driverName = (dv as any).full_name ?? driverName;
-        }
-      }
-
-      // 4. Перевозчик
-      let carrierName: string | null = null;
-      let carrierPhone: string | null = null;
-      if (dr?.carrier_id) {
-        const { data: cr } = await supabase
-          .from("carriers")
-          .select("company_name, contact_person, phone")
-          .eq("id", dr.carrier_id)
-          .maybeSingle();
-        if (cr) {
-          carrierName = (cr as any).contact_person || (cr as any).company_name || null;
-          carrierPhone = (cr as any).phone ?? null;
-        }
-      }
-
-      // 5. Логист — берём из created_by (имя/email из profiles)
-      let logistName: string | null = request?.created_by ?? null;
-      const logistPhone: string | null = null;
-      if (logistName) {
-        const { data: pr } = await supabase
-          .from("profiles")
-          .select("full_name, email")
-          .or(`full_name.ilike.${logistName},email.ilike.${logistName}`)
-          .limit(1)
-          .maybeSingle();
-        const prAny = pr as { full_name: string | null; email: string | null } | null;
-        if (prAny) {
-          logistName = prAny.full_name ?? logistName;
-        }
-      }
-
-      return [
-        { role: "client", label: "Клиент", name: clientName, phone: clientPhone },
-        { role: "manager", label: "Менеджер", name: managerName, phone: managerPhone },
-        { role: "logist", label: "Логист", name: logistName, phone: logistPhone },
-        { role: "driver", label: "Водитель", name: driverName, phone: driverPhone },
-        { role: "carrier", label: "Перевозчик", name: carrierName, phone: carrierPhone },
-      ];
-    },
+    queryFn: async (): Promise<ContactPerson[]> => [],
   });
 }
