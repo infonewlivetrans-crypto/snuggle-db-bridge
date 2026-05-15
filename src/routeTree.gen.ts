@@ -111,6 +111,7 @@ import { Route as ApiPilotTasksRouteImport } from './routes/api/pilot-tasks'
 import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
+import { Route as ApiOrderItemsRouteImport } from './routes/api/order-items'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
 import { Route as ApiManagersRouteImport } from './routes/api/managers'
@@ -696,6 +697,11 @@ const ApiOrderStatusesRoute = ApiOrderStatusesRouteImport.update({
   path: '/api/order-statuses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrderItemsRoute = ApiOrderItemsRouteImport.update({
+  id: '/api/order-items',
+  path: '/api/order-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
   id: '/api/notifications',
   path: '/api/notifications',
@@ -1118,6 +1124,7 @@ export interface FileRoutesByFullPath {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1293,6 +1300,7 @@ export interface FileRoutesByTo {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1469,6 +1477,7 @@ export interface FileRoutesById {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1646,6 +1655,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-items'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -1821,6 +1831,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-items'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -1996,6 +2007,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-items'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -2172,6 +2184,7 @@ export interface RootRouteChildren {
   ApiManagersRoute: typeof ApiManagersRouteWithChildren
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
+  ApiOrderItemsRoute: typeof ApiOrderItemsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPaymentsRoute: typeof ApiPaymentsRoute
@@ -2967,6 +2980,13 @@ declare module '@tanstack/react-router' {
       path: '/api/order-statuses'
       fullPath: '/api/order-statuses'
       preLoaderRoute: typeof ApiOrderStatusesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/order-items': {
+      id: '/api/order-items'
+      path: '/api/order-items'
+      fullPath: '/api/order-items'
+      preLoaderRoute: typeof ApiOrderItemsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/notifications': {
@@ -3842,6 +3862,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManagersRoute: ApiManagersRouteWithChildren,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
+  ApiOrderItemsRoute: ApiOrderItemsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPaymentsRoute: ApiPaymentsRoute,
