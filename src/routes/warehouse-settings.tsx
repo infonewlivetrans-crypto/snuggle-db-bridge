@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,12 +62,13 @@ function WarehouseSettingsPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-list-settings"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouses")
-        .select("id,name,city")
-        .order("name");
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<{
+        id: string;
+        name: string;
+        city: string | null;
+        [k: string]: unknown;
+      }>("/api/warehouses", { limit: 1000 });
+      return r.rows;
     },
   });
 
@@ -77,19 +78,10 @@ function WarehouseSettingsPage() {
     }
   }, [warehouses, warehouseId]);
 
-  const { data: wh } = useQuery({
-    queryKey: ["warehouse-settings", warehouseId],
-    enabled: !!warehouseId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouses")
-        .select("*")
-        .eq("id", warehouseId)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
+  const wh = useMemo(
+    () => (warehouses ?? []).find((w) => w.id === warehouseId) ?? null,
+    [warehouses, warehouseId],
+  );
 
   const [form, setForm] = useState<{
     name: string;
@@ -115,39 +107,37 @@ function WarehouseSettingsPage() {
 
   useEffect(() => {
     if (!wh) return;
+    const w = wh as Record<string, unknown>;
+    const s = (k: string) => (typeof w[k] === "string" ? (w[k] as string) : "");
     setForm({
-      name: wh.name ?? "",
-      city: wh.city ?? "",
-      address: wh.address ?? "",
-      manager_name: wh.manager_name ?? wh.contact_person ?? "",
-      manager_phone: wh.manager_phone ?? "",
-      phone: wh.phone ?? "",
-      notes: wh.notes ?? "",
-      working_hours: { ...DEFAULT_HOURS, ...((wh.working_hours as Partial<WorkingHours>) || {}) } as WorkingHours,
+      name: s("name"),
+      city: s("city"),
+      address: s("address"),
+      manager_name: s("manager_name") || s("contact_person"),
+      manager_phone: s("manager_phone"),
+      phone: s("phone"),
+      notes: s("notes"),
+      working_hours: { ...DEFAULT_HOURS, ...((w.working_hours as Partial<WorkingHours>) || {}) } as WorkingHours,
       breaks:
-        Array.isArray(wh.breaks) && wh.breaks.length > 0
-          ? (wh.breaks as Break[])
+        Array.isArray(w.breaks) && (w.breaks as unknown[]).length > 0
+          ? (w.breaks as Break[])
           : [{ label: "Обед", start: "12:00", end: "13:00" }],
     });
   }, [wh]);
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("warehouses")
-        .update({
-          name: form.name,
-          city: form.city || null,
-          address: form.address || null,
-          manager_name: form.manager_name || null,
-          manager_phone: form.manager_phone || null,
-          phone: form.phone || null,
-          notes: form.notes || null,
-          working_hours: form.working_hours,
-          breaks: form.breaks,
-        })
-        .eq("id", warehouseId);
-      if (error) throw error;
+      await apiPatch(`/api/warehouses/${warehouseId}`, {
+        name: form.name,
+        city: form.city || null,
+        address: form.address || null,
+        manager_name: form.manager_name || null,
+        manager_phone: form.manager_phone || null,
+        phone: form.phone || null,
+        notes: form.notes || null,
+        working_hours: form.working_hours,
+        breaks: form.breaks,
+      });
     },
     onSuccess: () => {
       toast.success("Настройки склада сохранены");
