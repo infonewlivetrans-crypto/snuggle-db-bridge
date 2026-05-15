@@ -764,13 +764,10 @@ function RequestDetailsDialog({
     queryKey: ["supply-request", requestId],
     enabled: !!requestId,
     queryFn: async (): Promise<SupplyRequest | null> => {
-      const { data, error } = await db
-        .from("supply_requests")
-        .select("*")
-        .eq("id", requestId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as SupplyRequest | null;
+      const r = await apiGetAuth<{ row: SupplyRequest | null }>(
+        `/api/supply-requests/${requestId}`,
+      );
+      return r.row ?? null;
     },
   });
 
@@ -778,13 +775,17 @@ function RequestDetailsDialog({
     queryKey: ["supply-request-history", requestId],
     enabled: !!requestId,
     queryFn: async (): Promise<StatusHistoryRow[]> => {
-      const { data, error } = await db
-        .from("supply_request_status_history")
-        .select("*")
-        .eq("supply_request_id", requestId)
-        .order("changed_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as StatusHistoryRow[];
+      const r = await fetchListViaApi<StatusHistoryRow>(
+        "/api/supply-request-status-history",
+        {
+          limit: 200,
+          extra: {
+            supply_request_id: requestId ?? "",
+            order: "changed_at.asc",
+          },
+        },
+      );
+      return r.rows;
     },
   });
 
