@@ -131,12 +131,10 @@ function WarehouseStockPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 1000,
+      });
+      return rows.map((w) => ({ id: w.id, name: w.name }));
     },
     staleTime: CACHE_TIMES.REFERENCE,
   });
@@ -144,12 +142,10 @@ function WarehouseStockPage() {
   const { data: products } = useQuery({
     queryKey: ["products-with-category"],
     queryFn: async (): Promise<ProductRow[]> => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, sku, name, unit, category, warehouse_id")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as ProductRow[];
+      const { rows } = await fetchListViaApi<ProductRow>("/api/products", {
+        limit: 1000,
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.REFERENCE,
   });
@@ -157,12 +153,10 @@ function WarehouseStockPage() {
   const { data: balances, isLoading } = useQuery({
     queryKey: ["stock-balances"],
     queryFn: async (): Promise<StockBalance[]> => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("*")
-        .order("product_name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as StockBalance[];
+      const { rows } = await fetchListViaApi<StockBalance>("/api/stock-balances", {
+        limit: 1000,
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.BUSINESS,
     placeholderData: (prev) => prev,
