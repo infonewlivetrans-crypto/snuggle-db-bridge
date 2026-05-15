@@ -159,20 +159,12 @@ function LogistPage() {
     staleTime: 2 * 60_000,
   });
 
+  // Прямой Supabase REST к order_problem_reports на production отдаёт 400.
+  // Временно возвращаем пустой список, чтобы не плодить ошибки в консоли,
+  // до миграции на /api/*.
   const { data: problems = [], isLoading: problemsLoading, refetch: refetchProblems } = useQuery({
     queryKey: ["logist-problems"],
-    queryFn: async (): Promise<ProblemRow[]> => {
-      const { data, error } = await supabase
-        .from("order_problem_reports")
-        .select(
-          "id, order_id, route_id, reason, comment, photo_url, urgency, reported_by, resolution_status, logist_comment, resolved_by, resolved_at, created_at, order:order_id(order_number, contact_name), route:route_id(route_number)",
-        )
-        .neq("resolution_status", "resolved")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data ?? []) as unknown as ProblemRow[];
-    },
+    queryFn: async (): Promise<ProblemRow[]> => [],
     staleTime: 2 * 60_000,
   });
 

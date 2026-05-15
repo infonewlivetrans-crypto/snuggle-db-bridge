@@ -4,6 +4,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchListViaApi } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth/auth-context";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -55,6 +56,7 @@ const KIND_COLOR: Record<NotificationKind, string> = {
 export function NotificationsBell() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   const { data: items = [] } = useQuery<Notification[]>({
@@ -67,6 +69,7 @@ export function NotificationsBell() {
     },
     staleTime: 30_000,
     refetchInterval: 60_000,
+    enabled: !!user,
   });
 
   const unreadCount = useMemo(() => items.filter((i) => !i.is_read).length, [items]);
@@ -88,6 +91,7 @@ export function NotificationsBell() {
 
   // Realtime subscription
   useEffect(() => {
+    if (!user) return;
     const channel = supabase
       .channel("notifications-bell")
       .on(
@@ -115,7 +119,7 @@ export function NotificationsBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, [qc, user]);
 
   const markAllRead = useMutation({
     mutationFn: async () => {
