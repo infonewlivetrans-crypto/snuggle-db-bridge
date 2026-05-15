@@ -932,9 +932,9 @@ function WarehouseTodayPage() {
                     if (val === (openedEvent?.comment ?? "")) return;
                     const existing = openedEvent;
                     if (existing) {
-                      await supabase.from("warehouse_dock_events").update({ comment: val || null }).eq("id", existing.id);
-                    } else {
-                      await supabase.from("warehouse_dock_events").insert({
+                      await apiPatch(`/api/warehouse-dock-events/${existing.id}`, { comment: val || null });
+                    } else if (openedRoute) {
+                      await apiPost(`/api/warehouse-dock-events`, {
                         delivery_route_id: openedRoute.id,
                         warehouse_id: openedRoute.source_warehouse_id,
                         event_date: date,
