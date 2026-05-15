@@ -181,6 +181,7 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
 import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
+import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
@@ -1059,6 +1060,11 @@ const ApiAuthBootstrapAdminRoute = ApiAuthBootstrapAdminRouteImport.update({
   path: '/api/auth/bootstrap-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAppVersionsIdRoute = ApiAppVersionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAppVersionsRoute,
+} as any)
 const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   id: '/api/admin/reset-owner',
   path: '/api/admin/reset-owner',
@@ -1152,7 +1158,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
-  '/api/app-versions': typeof ApiAppVersionsRoute
+  '/api/app-versions': typeof ApiAppVersionsRouteWithChildren
   '/api/audit-log': typeof ApiAuditLogRoute
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
@@ -1247,6 +1253,7 @@ export interface FileRoutesByFullPath {
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
+  '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1336,7 +1343,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
-  '/api/app-versions': typeof ApiAppVersionsRoute
+  '/api/app-versions': typeof ApiAppVersionsRouteWithChildren
   '/api/audit-log': typeof ApiAuditLogRoute
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
@@ -1431,6 +1438,7 @@ export interface FileRoutesByTo {
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
+  '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1521,7 +1529,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
-  '/api/app-versions': typeof ApiAppVersionsRoute
+  '/api/app-versions': typeof ApiAppVersionsRouteWithChildren
   '/api/audit-log': typeof ApiAuditLogRoute
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
@@ -1616,6 +1624,7 @@ export interface FileRoutesById {
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
+  '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1802,6 +1811,7 @@ export interface FileRouteTypes {
     | '/vehicles/'
     | '/warehouses/'
     | '/api/admin/reset-owner'
+    | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -1986,6 +1996,7 @@ export interface FileRouteTypes {
     | '/vehicles'
     | '/warehouses'
     | '/api/admin/reset-owner'
+    | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -2170,6 +2181,7 @@ export interface FileRouteTypes {
     | '/vehicles/'
     | '/warehouses/'
     | '/api/admin/reset-owner'
+    | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -2260,7 +2272,7 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
   ApiAnalyticsRoute: typeof ApiAnalyticsRoute
-  ApiAppVersionsRoute: typeof ApiAppVersionsRoute
+  ApiAppVersionsRoute: typeof ApiAppVersionsRouteWithChildren
   ApiAuditLogRoute: typeof ApiAuditLogRoute
   ApiBackupsRoute: typeof ApiBackupsRouteWithChildren
   ApiCarriersRoute: typeof ApiCarriersRouteWithChildren
@@ -3574,6 +3586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthBootstrapAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/app-versions/$id': {
+      id: '/api/app-versions/$id'
+      path: '/$id'
+      fullPath: '/api/app-versions/$id'
+      preLoaderRoute: typeof ApiAppVersionsIdRouteImport
+      parentRoute: typeof ApiAppVersionsRoute
+    }
     '/api/admin/reset-owner': {
       id: '/api/admin/reset-owner'
       path: '/api/admin/reset-owner'
@@ -3657,6 +3676,18 @@ const DataImportRouteChildren: DataImportRouteChildren = {
 
 const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
   DataImportRouteChildren,
+)
+
+interface ApiAppVersionsRouteChildren {
+  ApiAppVersionsIdRoute: typeof ApiAppVersionsIdRoute
+}
+
+const ApiAppVersionsRouteChildren: ApiAppVersionsRouteChildren = {
+  ApiAppVersionsIdRoute: ApiAppVersionsIdRoute,
+}
+
+const ApiAppVersionsRouteWithChildren = ApiAppVersionsRoute._addFileChildren(
+  ApiAppVersionsRouteChildren,
 )
 
 interface ApiBackupsRouteChildren {
@@ -4026,7 +4057,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
   ApiAnalyticsRoute: ApiAnalyticsRoute,
-  ApiAppVersionsRoute: ApiAppVersionsRoute,
+  ApiAppVersionsRoute: ApiAppVersionsRouteWithChildren,
   ApiAuditLogRoute: ApiAuditLogRoute,
   ApiBackupsRoute: ApiBackupsRouteWithChildren,
   ApiCarriersRoute: ApiCarriersRouteWithChildren,
