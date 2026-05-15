@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { apiPost, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -61,30 +61,30 @@ function SupplySettingsPage() {
   const { data: products } = useQuery({
     queryKey: ["products-all"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string; sku: string | null; unit: string | null }[];
+      const r = await fetchListViaApi<{ id: string; name: string; sku: string | null; unit: string | null }>(
+        "/api/products",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-all-set"],
     queryFn: async () => {
-      const { data, error } = await db.from("warehouses").select("id, name").order("name");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string }[];
+      const r = await fetchListViaApi<{ id: string; name: string }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["product-stock-settings"],
     queryFn: async (): Promise<Setting[]> => {
-      const { data, error } = await db.from("product_stock_settings").select("*");
-      if (error) throw error;
-      return (data ?? []) as Setting[];
+      const r = await fetchListViaApi<Setting>("/api/product-stock-settings", { limit: 1000 });
+      return r.rows;
     },
   });
 
@@ -111,10 +111,7 @@ function SupplySettingsPage() {
 
   const saveMutation = useMutation({
     mutationFn: async (payload: Setting) => {
-      const { error } = await db
-        .from("product_stock_settings")
-        .upsert(payload, { onConflict: "product_id,warehouse_id" });
-      if (error) throw error;
+      await apiPost("/api/product-stock-settings", payload);
     },
     onSuccess: () => {
       toast.success("Сохранено");
