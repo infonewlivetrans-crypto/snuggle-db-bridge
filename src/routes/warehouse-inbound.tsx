@@ -514,14 +514,10 @@ function ReceivedRow({ item, onSaved }: { item: any; onSaved: () => void }) {
   async function save() {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("inbound_shipment_items" as any)
-        .update({
-          qty_received: qty === "" ? null : Number(qty),
-          comment: comment.trim() || null,
-        })
-        .eq("id", item.id);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipment-items/${item.id}`, {
+        qty_received: qty === "" ? null : Number(qty),
+        comment: comment.trim() || null,
+      });
       onSaved();
       toast.success("Сохранено");
     } catch (e: any) {
