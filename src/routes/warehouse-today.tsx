@@ -139,16 +139,31 @@ function WarehouseTodayPage() {
   const [openCard, setOpenCard] = useState<string | null>(null);
 
   // Маршруты на сегодня (на основе delivery_routes)
+  type RouteRow = {
+    id: string;
+    route_number: string | null;
+    route_date: string;
+    status: string | null;
+    assigned_driver: string | null;
+    assigned_vehicle: string | null;
+    source_warehouse_id: string | null;
+    source_request_id: string | null;
+    comment: string | null;
+    created_at: string;
+  };
   const { data: routes } = useQuery({
     queryKey: ["wh-today-routes", date],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, source_request_id, comment, created_at")
-        .eq("route_date", date)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<RouteRow>("/api/delivery-routes", {
+        limit: 500,
+        extra: {
+          route_date: date,
+          fields:
+            "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, source_request_id, comment, created_at",
+          order: "created_at.asc",
+        },
+      });
+      return rows;
     },
   });
 
@@ -156,57 +171,67 @@ function WarehouseTodayPage() {
   const { data: events } = useQuery({
     queryKey: ["wh-today-events", date],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouse_dock_events")
-        .select("*")
-        .eq("event_date", date)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as DockEvent[];
+      return await apiGetAuth<DockEvent[]>(
+        `/api/warehouse-dock-events?event_date=${encodeURIComponent(date)}`,
+      );
     },
   });
 
   // Точки маршрутов с возвратами на склад (по dp_status / status)
   const routeIds = useMemo(() => (routes ?? []).map((r) => r.id), [routes]);
+  type ReturnPoint = {
+    id: string;
+    route_id: string;
+    order_id: string;
+    status: string | null;
+    dp_status: string | null;
+    dp_return_comment: string | null;
+    dp_expected_return_at: string | null;
+    dp_return_warehouse_id: string | null;
+    completed_at: string | null;
+  };
   const { data: returnPoints } = useQuery({
     queryKey: ["wh-today-returns", routeIds],
     enabled: routeIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("id, route_id, order_id, status, dp_status, dp_return_comment, dp_expected_return_at, dp_return_warehouse_id, completed_at")
-        .in("route_id", routeIds)
-        .or("status.eq.returned_to_warehouse,dp_status.eq.return_to_warehouse");
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<ReturnPoint[]>(
+        `/api/route-points?route_ids=${encodeURIComponent(routeIds.join(","))}&returns_only=1&fields=${encodeURIComponent(
+          "id, route_id, order_id, status, dp_status, dp_return_comment, dp_expected_return_at, dp_return_warehouse_id, completed_at",
+        )}`,
+      );
     },
   });
 
   const orderIds = useMemo(() => (returnPoints ?? []).map((p) => p.order_id), [returnPoints]);
+  type ReturnOrder = {
+    id: string;
+    order_number: string | null;
+    delivery_address: string | null;
+    contact_name: string | null;
+    contact_phone: string | null;
+    comment: string | null;
+  };
   const { data: returnOrders } = useQuery({
     queryKey: ["wh-today-return-orders", orderIds],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, order_number, delivery_address, contact_name, contact_phone, comment")
-        .in("id", orderIds);
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<ReturnOrder>("/api/orders", {
+        limit: 1000,
+        extra: { ids: orderIds.join(",") },
+      });
+      return rows;
     },
   });
 
   const pointIds = useMemo(() => (returnPoints ?? []).map((p) => p.id), [returnPoints]);
+  type PhotoRow = { id: string; route_point_id: string; file_url: string; kind: string };
   const { data: returnPhotos } = useQuery({
     queryKey: ["wh-today-return-photos", pointIds],
     enabled: pointIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_point_photos")
-        .select("id, route_point_id, file_url, kind")
-        .in("route_point_id", pointIds);
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<PhotoRow[]>(
+        `/api/route-point-photos?point_ids=${encodeURIComponent(pointIds.join(","))}`,
+      );
     },
   });
 
@@ -219,17 +244,20 @@ function WarehouseTodayPage() {
   }, [events]);
 
   // Получаем заказы маршрута для карточки
+  type RoutePointRow = {
+    id: string;
+    route_id: string;
+    order_id: string;
+    point_number: number;
+    status: string;
+  };
   const { data: routePoints } = useQuery({
     queryKey: ["wh-today-route-points", routeIds],
     enabled: routeIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("id, route_id, order_id, point_number, status")
-        .in("route_id", routeIds)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<RoutePointRow[]>(
+        `/api/route-points?route_ids=${encodeURIComponent(routeIds.join(","))}&fields=${encodeURIComponent("id, route_id, order_id, point_number, status")}`,
+      );
     },
   });
 
@@ -237,21 +265,29 @@ function WarehouseTodayPage() {
     () => Array.from(new Set((routePoints ?? []).map((p) => p.order_id))),
     [routePoints],
   );
+  type AllOrderRow = {
+    id: string;
+    order_number: string | null;
+    delivery_address: string | null;
+    contact_name: string | null;
+    total_weight_kg: number | null;
+    items_count: number | null;
+    comment: string | null;
+  };
   const { data: allOrders } = useQuery({
     queryKey: ["wh-today-all-orders", allOrderIds],
     enabled: allOrderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, order_number, delivery_address, contact_name, total_weight_kg, items_count, comment")
-        .in("id", allOrderIds);
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<AllOrderRow>("/api/orders", {
+        limit: 1000,
+        extra: { ids: allOrderIds.join(",") },
+      });
+      return rows;
     },
   });
 
   const upsertStatus = useMutation({
-    mutationFn: async (args: { route: typeof routes extends (infer T)[] | undefined ? T : never; status: DockStatus }) => {
+    mutationFn: async (args: { route: NonNullable<typeof routes>[number]; status: DockStatus }) => {
       const r = args.route;
       const existing = eventByRoute.get(r.id);
       const now = new Date().toISOString();
@@ -271,30 +307,23 @@ function WarehouseTodayPage() {
       if (args.status === "return_accepted") patch.return_accepted_at = now;
 
       if (existing) {
-        const { error } = await supabase.from("warehouse_dock_events").update(patch).eq("id", existing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouse-dock-events/${existing.id}`, patch);
       } else {
-        const { error } = await supabase.from("warehouse_dock_events").insert(patch);
-        if (error) throw error;
+        await apiPost(`/api/warehouse-dock-events`, patch);
       }
 
-      // Если приняли возврат — синхронизируем точки маршрута, чтобы событие попало в отчёт склада
+      // Если приняли возврат — синхронизируем точки маршрута
       if (args.status === "return_accepted") {
         const pts = (returnPoints ?? []).filter((p) => p.route_id === r.id);
-        if (pts.length > 0) {
-          const ids = pts.map((p) => p.id);
-          const { error } = await supabase
-            .from("route_points")
-            .update({
-              wh_return_status: "accepted",
-              wh_return_arrived_at: now,
-              wh_return_accepted_at: now,
-              wh_return_accepted_by: "Кладовщик",
-              wh_return_status_changed_at: now,
-              wh_return_status_changed_by: "Кладовщик",
-            })
-            .in("id", ids);
-          if (error) throw error;
+        for (const p of pts) {
+          await apiPatch(`/api/route-points/${p.id}`, {
+            wh_return_status: "accepted",
+            wh_return_arrived_at: now,
+            wh_return_accepted_at: now,
+            wh_return_accepted_by: "Кладовщик",
+            wh_return_status_changed_at: now,
+            wh_return_status_changed_by: "Кладовщик",
+          });
         }
       }
     },
@@ -310,7 +339,7 @@ function WarehouseTodayPage() {
 
   // Группируем возвраты по маршруту для подсветки
   const returnsByRoute = useMemo(() => {
-    const m = new Map<string, typeof returnPoints>();
+    const m = new Map<string, NonNullable<typeof returnPoints>>();
     (returnPoints ?? []).forEach((p) => {
       const arr = m.get(p.route_id) ?? [];
       arr.push(p);
@@ -335,16 +364,19 @@ function WarehouseTodayPage() {
       openCard ? (routePoints ?? []).filter((p) => p.route_id === openCard).map((p) => p.id) : [],
     [openCard, routePoints],
   );
+  type LoadPlanRow = {
+    id: string;
+    route_point_id: string;
+    cargo_position: string | null;
+    warehouse_comment: string | null;
+  };
   const { data: loadPlan } = useQuery({
     queryKey: ["wh-load-plan", openCard, openedPointIds],
     enabled: !!openCard && openedPointIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouse_load_plan")
-        .select("*")
-        .in("route_point_id", openedPointIds);
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<LoadPlanRow[]>(
+        `/api/warehouse-load-plan?route_point_ids=${encodeURIComponent(openedPointIds.join(","))}`,
+      );
     },
   });
   const loadPlanByPoint = useMemo(() => {
@@ -372,16 +404,8 @@ function WarehouseTodayPage() {
       };
       if (args.cargo_position !== undefined) patch.cargo_position = args.cargo_position;
       if (args.warehouse_comment !== undefined) patch.warehouse_comment = args.warehouse_comment;
-      if (existing) {
-        const { error } = await supabase
-          .from("warehouse_load_plan")
-          .update(patch)
-          .eq("route_point_id", args.pointId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("warehouse_load_plan").insert(patch);
-        if (error) throw error;
-      }
+      await apiPost(`/api/warehouse-load-plan`, patch);
+      void existing;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wh-load-plan", openCard] });
@@ -395,13 +419,9 @@ function WarehouseTodayPage() {
       const now = new Date().toISOString();
       const existing = eventByRoute.get(openedRoute.id);
       if (existing) {
-        const { error } = await supabase
-          .from("warehouse_dock_events")
-          .update({ load_plan_confirmed_at: now })
-          .eq("id", existing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouse-dock-events/${existing.id}`, { load_plan_confirmed_at: now });
       } else {
-        const { error } = await supabase.from("warehouse_dock_events").insert({
+        await apiPost(`/api/warehouse-dock-events`, {
           delivery_route_id: openedRoute.id,
           warehouse_id: openedRoute.source_warehouse_id,
           event_date: date,
@@ -410,7 +430,6 @@ function WarehouseTodayPage() {
           vehicle_plate: openedRoute.assigned_vehicle,
           load_plan_confirmed_at: now,
         });
-        if (error) throw error;
       }
     },
     onSuccess: () => {
@@ -465,14 +484,9 @@ function WarehouseTodayPage() {
         expected_at: args.isoTime,
       };
       if (existing) {
-        const { error } = await supabase
-          .from("warehouse_dock_events")
-          .update({ expected_at: args.isoTime })
-          .eq("id", existing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouse-dock-events/${existing.id}`, { expected_at: args.isoTime });
       } else {
-        const { error } = await supabase.from("warehouse_dock_events").insert(patch);
-        if (error) throw error;
+        await apiPost(`/api/warehouse-dock-events`, patch);
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["wh-today-events", date] }),
@@ -918,9 +932,9 @@ function WarehouseTodayPage() {
                     if (val === (openedEvent?.comment ?? "")) return;
                     const existing = openedEvent;
                     if (existing) {
-                      await supabase.from("warehouse_dock_events").update({ comment: val || null }).eq("id", existing.id);
-                    } else {
-                      await supabase.from("warehouse_dock_events").insert({
+                      await apiPatch(`/api/warehouse-dock-events/${existing.id}`, { comment: val || null });
+                    } else if (openedRoute) {
+                      await apiPost(`/api/warehouse-dock-events`, {
                         delivery_route_id: openedRoute.id,
                         warehouse_id: openedRoute.source_warehouse_id,
                         event_date: date,
