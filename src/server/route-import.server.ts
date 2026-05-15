@@ -54,11 +54,18 @@ export type RouteImportResult = {
   errors: Array<{ row: number; message: string }>;
 };
 
-const PAYMENT_MAP: Record<string, "cash" | "card" | "online" | "qr"> = {
+const PAYMENT_MAP: Record<string, "cash" | "card" | "online" | "qr" | "bank_transfer"> = {
   "наличные": "cash", "нал": "cash", "cash": "cash",
   "карта": "card", "card": "card",
   "онлайн": "online", "online": "online",
   "qr": "qr", "qr-код": "qr",
+  "по реквизитам": "bank_transfer",
+  "безнал по реквизитам": "bank_transfer",
+  "реквизиты": "bank_transfer",
+  "безнал": "bank_transfer",
+  "банк": "bank_transfer",
+  "р/с": "bank_transfer",
+  "bank_transfer": "bank_transfer",
 };
 
 function toBool(v: unknown): boolean {

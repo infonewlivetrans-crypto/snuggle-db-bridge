@@ -117,7 +117,12 @@ function detectPayment(raw: string | null): {
   if (n.includes("налич")) return { kind: "cash", requiresQr: false };
   if (n.includes("оплачен") || n.includes("оплата онлайн"))
     return { kind: "paid", requiresQr: false };
-  if (n.includes("безнал") || n.includes("банк") || n.includes("р/с"))
+  if (
+    n.includes("реквизит") ||
+    n.includes("безнал") ||
+    n.includes("банк") ||
+    n.includes("р/с")
+  )
     return { kind: "bank", requiresQr: false };
   return { kind: "unknown", requiresQr: false };
 }
@@ -317,7 +322,9 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
 }
 
 /** Маппинг payment_kind → enum payment_type в БД. */
-export function paymentKindToDbType(kind: RouteSheetPaymentKind): "cash" | "card" | "online" | "qr" {
+export function paymentKindToDbType(
+  kind: RouteSheetPaymentKind,
+): "cash" | "card" | "online" | "qr" | "bank_transfer" {
   switch (kind) {
     case "qr":
       return "qr";
@@ -326,7 +333,7 @@ export function paymentKindToDbType(kind: RouteSheetPaymentKind): "cash" | "card
     case "paid":
       return "online";
     case "bank":
-      return "online";
+      return "bank_transfer";
     default:
       return "cash";
   }

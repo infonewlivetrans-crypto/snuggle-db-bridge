@@ -36,10 +36,13 @@ type IncomingPayload = {
   orders: IncomingOrder[];
 };
 
-function paymentToDb(kind: PaymentKind): "cash" | "qr" | "online" | "card" {
+function paymentToDb(
+  kind: PaymentKind,
+): "cash" | "qr" | "online" | "card" | "bank_transfer" {
   if (kind === "qr") return "qr";
   if (kind === "cash") return "cash";
-  if (kind === "paid" || kind === "bank") return "online";
+  if (kind === "paid") return "online";
+  if (kind === "bank") return "bank_transfer";
   return "cash";
 }
 
@@ -330,6 +333,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               | "qr"
               | "online"
               | "card"
+              | "bank_transfer"
               | undefined;
             const paymentType =
               o.paymentKind === "unknown" && defaultPaymentType

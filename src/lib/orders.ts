@@ -13,7 +13,7 @@ export type OrderStatus =
   | "awaiting_resend"
   | "awaiting_return"
   | "return_accepted";
-export type PaymentType = "cash" | "card" | "online" | "qr";
+export type PaymentType = "cash" | "card" | "online" | "qr" | "bank_transfer";
 export type PaymentStatus = "not_paid" | "partial" | "paid" | "refunded";
 
 export type ClientKind =
@@ -129,6 +129,7 @@ export const PAYMENT_LABELS: Record<PaymentType, string> = {
   card: "Карта",
   online: "Онлайн",
   qr: "QR-код",
+  bank_transfer: "По реквизитам",
 };
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
