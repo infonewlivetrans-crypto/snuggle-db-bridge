@@ -100,6 +100,7 @@ import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
 import { Route as ApiProductsRouteImport } from './routes/api/products'
+import { Route as ApiProductStockSettingsRouteImport } from './routes/api/product-stock-settings'
 import { Route as ApiPilotTasksRouteImport } from './routes/api/pilot-tasks'
 import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
@@ -625,6 +626,11 @@ const ApiProductsRoute = ApiProductsRouteImport.update({
   path: '/api/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProductStockSettingsRoute = ApiProductStockSettingsRouteImport.update({
+  id: '/api/product-stock-settings',
+  path: '/api/product-stock-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPilotTasksRoute = ApiPilotTasksRouteImport.update({
   id: '/api/pilot-tasks',
   path: '/api/pilot-tasks',
@@ -1027,6 +1033,7 @@ export interface FileRoutesByFullPath {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/pilot-tasks': typeof ApiPilotTasksRouteWithChildren
+  '/api/product-stock-settings': typeof ApiProductStockSettingsRoute
   '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
@@ -1187,6 +1194,7 @@ export interface FileRoutesByTo {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/pilot-tasks': typeof ApiPilotTasksRouteWithChildren
+  '/api/product-stock-settings': typeof ApiProductStockSettingsRoute
   '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
@@ -1348,6 +1356,7 @@ export interface FileRoutesById {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/pilot-tasks': typeof ApiPilotTasksRouteWithChildren
+  '/api/product-stock-settings': typeof ApiProductStockSettingsRoute
   '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
@@ -1510,6 +1519,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/payments'
     | '/api/pilot-tasks'
+    | '/api/product-stock-settings'
     | '/api/products'
     | '/api/profile'
     | '/api/reports'
@@ -1670,6 +1680,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/payments'
     | '/api/pilot-tasks'
+    | '/api/product-stock-settings'
     | '/api/products'
     | '/api/profile'
     | '/api/reports'
@@ -1830,6 +1841,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/payments'
     | '/api/pilot-tasks'
+    | '/api/product-stock-settings'
     | '/api/products'
     | '/api/profile'
     | '/api/reports'
@@ -1991,6 +2003,7 @@ export interface RootRouteChildren {
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPaymentsRoute: typeof ApiPaymentsRoute
   ApiPilotTasksRoute: typeof ApiPilotTasksRouteWithChildren
+  ApiProductStockSettingsRoute: typeof ApiProductStockSettingsRoute
   ApiProductsRoute: typeof ApiProductsRoute
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReportsRoute: typeof ApiReportsRoute
@@ -2698,6 +2711,13 @@ declare module '@tanstack/react-router' {
       path: '/api/products'
       fullPath: '/api/products'
       preLoaderRoute: typeof ApiProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/product-stock-settings': {
+      id: '/api/product-stock-settings'
+      path: '/api/product-stock-settings'
+      fullPath: '/api/product-stock-settings'
+      preLoaderRoute: typeof ApiProductStockSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/pilot-tasks': {
@@ -3497,6 +3517,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPaymentsRoute: ApiPaymentsRoute,
   ApiPilotTasksRoute: ApiPilotTasksRouteWithChildren,
+  ApiProductStockSettingsRoute: ApiProductStockSettingsRoute,
   ApiProductsRoute: ApiProductsRoute,
   ApiProfileRoute: ApiProfileRoute,
   ApiReportsRoute: ApiReportsRoute,
