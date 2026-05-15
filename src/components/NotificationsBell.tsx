@@ -69,7 +69,6 @@ export function NotificationsBell() {
     },
     staleTime: 30_000,
     refetchInterval: 60_000,
-    enabled: !!user,
   });
 
   const unreadCount = useMemo(() => items.filter((i) => !i.is_read).length, [items]);

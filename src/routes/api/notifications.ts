@@ -1,20 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   cacheHeaders,
-  getBearerToken,
   jsonResponse,
   parseListParams,
-  requireUser,
+  requireAuth,
 } from "@/server/api-helpers.server";
 
 export const Route = createFileRoute("/api/notifications")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const token = getBearerToken(request);
-        if (!token) return jsonResponse({ error: "unauthorized" }, { status: 401 });
-        const auth = await requireUser(token);
-        if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
 
         const { limit, offset, url } = parseListParams(request);
         const orderId = url.searchParams.get("order_id");
