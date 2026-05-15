@@ -215,41 +215,88 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           ? `Требует заполнения: ${headerMissing.join(", ")}`
           : null;
 
-        const { data: route, error: rErr } = await sb
-          .from("routes")
-          .insert({
-            route_number: routeNumber,
-            route_date: routeDate,
-            request_type: "client_delivery",
-            status: "planned",
-            request_status: "draft",
-            source: "route_sheet",
-            organization: payload.organization,
-            onec_request_number: payload.routeNumber,
-            carrier_id: carrierId,
-            driver_id: driverId,
-            vehicle_id: vehicleId,
-            driver_name: payload.driverName,
-            transport_comment: headerNote,
-            request_status_comment: headerNote,
-          } as never)
-          .select("id")
-          .single();
-
-        if (rErr || !route) {
-          console.error("[import-route-sheet] routes.insert failed (full error):", rErr);
-          return jsonResponse(
-            {
-              error: `Не удалось создать заявку: ${rErr?.message ?? "неизвестная ошибка"}`,
-              message: rErr?.message,
-              details: rErr?.details,
-              hint: rErr?.hint,
-              code: rErr?.code,
-            },
-            { status: 500 },
-          );
+        // 4a. Идемпотентность: ищем существующий route с таким номером
+        let routeId: string | null = null;
+        if (payload.routeNumber?.trim()) {
+          const { data: existingRoute } = await sb
+            .from("routes")
+            .select("id")
+            .eq("route_number", routeNumber)
+            .maybeSingle();
+          if (existingRoute) {
+            const existingId = (existingRoute as { id: string }).id;
+            // Если уже есть route_points — импорт ранее завершился, дублей не плодим
+            const { count: pointsCount } = await sb
+              .from("route_points")
+              .select("id", { count: "exact", head: true })
+              .eq("route_id", existingId);
+            if ((pointsCount ?? 0) > 0) {
+              return jsonResponse(
+                {
+                  error: `Заявка по маршрутному листу №${routeNumber} уже создана`,
+                  code: "route_already_imported",
+                  routeId: existingId,
+                  routeNumber,
+                },
+                { status: 409 },
+              );
+            }
+            // Незавершённый импорт — переиспользуем существующий route
+            routeId = existingId;
+            warnings.push(
+              `Найден незавершённый импорт маршрута №${routeNumber} — продолжаем дозапись.`,
+            );
+          }
         }
-        const routeId = (route as { id: string }).id;
+
+        if (!routeId) {
+          const { data: route, error: rErr } = await sb
+            .from("routes")
+            .insert({
+              route_number: routeNumber,
+              route_date: routeDate,
+              request_type: "client_delivery",
+              status: "planned",
+              request_status: "draft",
+              source: "route_sheet",
+              organization: payload.organization,
+              onec_request_number: payload.routeNumber,
+              carrier_id: carrierId,
+              driver_id: driverId,
+              vehicle_id: vehicleId,
+              driver_name: payload.driverName,
+              transport_comment: headerNote,
+              request_status_comment: headerNote,
+            } as never)
+            .select("id")
+            .single();
+
+          if (rErr || !route) {
+            console.error("[import-route-sheet] routes.insert failed (full error):", rErr);
+            // Гонка по уникальному индексу — отдаём 409, а не 500
+            if (rErr?.code === "23505") {
+              return jsonResponse(
+                {
+                  error: `Заявка по маршрутному листу №${routeNumber} уже создана`,
+                  code: "route_already_imported",
+                  routeNumber,
+                },
+                { status: 409 },
+              );
+            }
+            return jsonResponse(
+              {
+                error: `Не удалось создать заявку: ${rErr?.message ?? "неизвестная ошибка"}`,
+                message: rErr?.message,
+                details: rErr?.details,
+                hint: rErr?.hint,
+                code: rErr?.code,
+              },
+              { status: 500 },
+            );
+          }
+          routeId = (route as { id: string }).id;
+        }
 
         // 5. Заказы + клиенты + точки
         const importedRows: ImportedRow[] = [];
