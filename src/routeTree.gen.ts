@@ -125,6 +125,7 @@ import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
 import { Route as ApiDockLoadedItemsRouteImport } from './routes/api/dock-loaded-items'
 import { Route as ApiDemoModeRouteImport } from './routes/api/demo-mode'
+import { Route as ApiDeliveryTariffsRouteImport } from './routes/api/delivery-tariffs'
 import { Route as ApiDeliveryRoutesRouteImport } from './routes/api/delivery-routes'
 import { Route as ApiDeliveryReportsRouteImport } from './routes/api/delivery-reports'
 import { Route as ApiDeliveryPhotosRouteImport } from './routes/api/delivery-photos'
@@ -144,6 +145,7 @@ import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
 import { Route as ApiTripStageUpdateRouteImport } from './routes/api/trip-stage.update'
+import { Route as ApiSystemSettingsIdRouteImport } from './routes/api/system-settings.$id'
 import { Route as ApiSupplyRequestsIdRouteImport } from './routes/api/supply-requests.$id'
 import { Route as ApiSupplyInTransitIdRouteImport } from './routes/api/supply-in-transit.$id'
 import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
@@ -168,6 +170,7 @@ import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.impor
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
+import { Route as ApiDeliveryTariffsIdRouteImport } from './routes/api/delivery-tariffs.$id'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
@@ -178,6 +181,7 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth.logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth.login'
 import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin'
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
+import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
@@ -772,6 +776,11 @@ const ApiDemoModeRoute = ApiDemoModeRouteImport.update({
   path: '/api/demo-mode',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeliveryTariffsRoute = ApiDeliveryTariffsRouteImport.update({
+  id: '/api/delivery-tariffs',
+  path: '/api/delivery-tariffs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeliveryRoutesRoute = ApiDeliveryRoutesRouteImport.update({
   id: '/api/delivery-routes',
   path: '/api/delivery-routes',
@@ -866,6 +875,11 @@ const ApiTripStageUpdateRoute = ApiTripStageUpdateRouteImport.update({
   id: '/update',
   path: '/update',
   getParentRoute: () => ApiTripStageRoute,
+} as any)
+const ApiSystemSettingsIdRoute = ApiSystemSettingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiSystemSettingsRoute,
 } as any)
 const ApiSupplyRequestsIdRoute = ApiSupplyRequestsIdRouteImport.update({
   id: '/$id',
@@ -991,6 +1005,11 @@ const ApiDockLoadingConfirmRoute = ApiDockLoadingConfirmRouteImport.update({
   path: '/api/dock-loading/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeliveryTariffsIdRoute = ApiDeliveryTariffsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDeliveryTariffsRoute,
+} as any)
 const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1040,6 +1059,11 @@ const ApiAuthBootstrapAdminRoute = ApiAuthBootstrapAdminRouteImport.update({
   id: '/api/auth/bootstrap-admin',
   path: '/api/auth/bootstrap-admin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAppVersionsIdRoute = ApiAppVersionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAppVersionsRoute,
 } as any)
 const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   id: '/api/admin/reset-owner',
@@ -1134,7 +1158,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
-  '/api/app-versions': typeof ApiAppVersionsRoute
+  '/api/app-versions': typeof ApiAppVersionsRouteWithChildren
   '/api/audit-log': typeof ApiAuditLogRoute
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
@@ -1144,6 +1168,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
+  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
@@ -1184,7 +1209,7 @@ export interface FileRoutesByFullPath {
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
-  '/api/system-settings': typeof ApiSystemSettingsRoute
+  '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
@@ -1228,6 +1253,7 @@ export interface FileRoutesByFullPath {
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
+  '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1238,6 +1264,7 @@ export interface FileRoutesByFullPath {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
@@ -1262,6 +1289,7 @@ export interface FileRoutesByFullPath {
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
   '/api/supply-requests/$id': typeof ApiSupplyRequestsIdRoute
+  '/api/system-settings/$id': typeof ApiSystemSettingsIdRoute
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
@@ -1315,7 +1343,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
-  '/api/app-versions': typeof ApiAppVersionsRoute
+  '/api/app-versions': typeof ApiAppVersionsRouteWithChildren
   '/api/audit-log': typeof ApiAuditLogRoute
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
@@ -1325,6 +1353,7 @@ export interface FileRoutesByTo {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
+  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
@@ -1365,7 +1394,7 @@ export interface FileRoutesByTo {
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
-  '/api/system-settings': typeof ApiSystemSettingsRoute
+  '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
@@ -1409,6 +1438,7 @@ export interface FileRoutesByTo {
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
+  '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1419,6 +1449,7 @@ export interface FileRoutesByTo {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
@@ -1443,6 +1474,7 @@ export interface FileRoutesByTo {
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
   '/api/supply-requests/$id': typeof ApiSupplyRequestsIdRoute
+  '/api/system-settings/$id': typeof ApiSystemSettingsIdRoute
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
@@ -1497,7 +1529,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
   '/api/analytics': typeof ApiAnalyticsRoute
-  '/api/app-versions': typeof ApiAppVersionsRoute
+  '/api/app-versions': typeof ApiAppVersionsRouteWithChildren
   '/api/audit-log': typeof ApiAuditLogRoute
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
@@ -1507,6 +1539,7 @@ export interface FileRoutesById {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
+  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
@@ -1547,7 +1580,7 @@ export interface FileRoutesById {
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
-  '/api/system-settings': typeof ApiSystemSettingsRoute
+  '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
@@ -1591,6 +1624,7 @@ export interface FileRoutesById {
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
+  '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
   '/api/auth/has-admin': typeof ApiAuthHasAdminRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -1601,6 +1635,7 @@ export interface FileRoutesById {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
@@ -1625,6 +1660,7 @@ export interface FileRoutesById {
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
   '/api/supply-requests/$id': typeof ApiSupplyRequestsIdRoute
+  '/api/system-settings/$id': typeof ApiSystemSettingsIdRoute
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
@@ -1690,6 +1726,7 @@ export interface FileRouteTypes {
     | '/api/delivery-photos'
     | '/api/delivery-reports'
     | '/api/delivery-routes'
+    | '/api/delivery-tariffs'
     | '/api/demo-mode'
     | '/api/dock-loaded-items'
     | '/api/drivers'
@@ -1774,6 +1811,7 @@ export interface FileRouteTypes {
     | '/vehicles/'
     | '/warehouses/'
     | '/api/admin/reset-owner'
+    | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -1784,6 +1822,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
@@ -1808,6 +1847,7 @@ export interface FileRouteTypes {
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
     | '/api/supply-requests/$id'
+    | '/api/system-settings/$id'
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
@@ -1871,6 +1911,7 @@ export interface FileRouteTypes {
     | '/api/delivery-photos'
     | '/api/delivery-reports'
     | '/api/delivery-routes'
+    | '/api/delivery-tariffs'
     | '/api/demo-mode'
     | '/api/dock-loaded-items'
     | '/api/drivers'
@@ -1955,6 +1996,7 @@ export interface FileRouteTypes {
     | '/vehicles'
     | '/warehouses'
     | '/api/admin/reset-owner'
+    | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -1965,6 +2007,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
@@ -1989,6 +2032,7 @@ export interface FileRouteTypes {
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
     | '/api/supply-requests/$id'
+    | '/api/system-settings/$id'
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
@@ -2052,6 +2096,7 @@ export interface FileRouteTypes {
     | '/api/delivery-photos'
     | '/api/delivery-reports'
     | '/api/delivery-routes'
+    | '/api/delivery-tariffs'
     | '/api/demo-mode'
     | '/api/dock-loaded-items'
     | '/api/drivers'
@@ -2136,6 +2181,7 @@ export interface FileRouteTypes {
     | '/vehicles/'
     | '/warehouses/'
     | '/api/admin/reset-owner'
+    | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
     | '/api/auth/has-admin'
     | '/api/auth/login'
@@ -2146,6 +2192,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
@@ -2170,6 +2217,7 @@ export interface FileRouteTypes {
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
     | '/api/supply-requests/$id'
+    | '/api/system-settings/$id'
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
@@ -2224,7 +2272,7 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
   ApiAnalyticsRoute: typeof ApiAnalyticsRoute
-  ApiAppVersionsRoute: typeof ApiAppVersionsRoute
+  ApiAppVersionsRoute: typeof ApiAppVersionsRouteWithChildren
   ApiAuditLogRoute: typeof ApiAuditLogRoute
   ApiBackupsRoute: typeof ApiBackupsRouteWithChildren
   ApiCarriersRoute: typeof ApiCarriersRouteWithChildren
@@ -2234,6 +2282,7 @@ export interface RootRouteChildren {
   ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
   ApiDeliveryReportsRoute: typeof ApiDeliveryReportsRoute
   ApiDeliveryRoutesRoute: typeof ApiDeliveryRoutesRouteWithChildren
+  ApiDeliveryTariffsRoute: typeof ApiDeliveryTariffsRouteWithChildren
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDockLoadedItemsRoute: typeof ApiDockLoadedItemsRoute
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
@@ -2274,7 +2323,7 @@ export interface RootRouteChildren {
   ApiSupplyRequestsRoute: typeof ApiSupplyRequestsRouteWithChildren
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
-  ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
+  ApiSystemSettingsRoute: typeof ApiSystemSettingsRouteWithChildren
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
   ApiTripStageRoute: typeof ApiTripStageRouteWithChildren
   ApiUserRoleRoute: typeof ApiUserRoleRoute
@@ -3145,6 +3194,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDemoModeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/delivery-tariffs': {
+      id: '/api/delivery-tariffs'
+      path: '/api/delivery-tariffs'
+      fullPath: '/api/delivery-tariffs'
+      preLoaderRoute: typeof ApiDeliveryTariffsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-routes': {
       id: '/api/delivery-routes'
       path: '/api/delivery-routes'
@@ -3277,6 +3333,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/trip-stage/update'
       preLoaderRoute: typeof ApiTripStageUpdateRouteImport
       parentRoute: typeof ApiTripStageRoute
+    }
+    '/api/system-settings/$id': {
+      id: '/api/system-settings/$id'
+      path: '/$id'
+      fullPath: '/api/system-settings/$id'
+      preLoaderRoute: typeof ApiSystemSettingsIdRouteImport
+      parentRoute: typeof ApiSystemSettingsRoute
     }
     '/api/supply-requests/$id': {
       id: '/api/supply-requests/$id'
@@ -3446,6 +3509,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDockLoadingConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/delivery-tariffs/$id': {
+      id: '/api/delivery-tariffs/$id'
+      path: '/$id'
+      fullPath: '/api/delivery-tariffs/$id'
+      preLoaderRoute: typeof ApiDeliveryTariffsIdRouteImport
+      parentRoute: typeof ApiDeliveryTariffsRoute
+    }
     '/api/delivery-routes/$id': {
       id: '/api/delivery-routes/$id'
       path: '/$id'
@@ -3515,6 +3585,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/auth/bootstrap-admin'
       preLoaderRoute: typeof ApiAuthBootstrapAdminRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/app-versions/$id': {
+      id: '/api/app-versions/$id'
+      path: '/$id'
+      fullPath: '/api/app-versions/$id'
+      preLoaderRoute: typeof ApiAppVersionsIdRouteImport
+      parentRoute: typeof ApiAppVersionsRoute
     }
     '/api/admin/reset-owner': {
       id: '/api/admin/reset-owner'
@@ -3601,6 +3678,18 @@ const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
   DataImportRouteChildren,
 )
 
+interface ApiAppVersionsRouteChildren {
+  ApiAppVersionsIdRoute: typeof ApiAppVersionsIdRoute
+}
+
+const ApiAppVersionsRouteChildren: ApiAppVersionsRouteChildren = {
+  ApiAppVersionsIdRoute: ApiAppVersionsIdRoute,
+}
+
+const ApiAppVersionsRouteWithChildren = ApiAppVersionsRoute._addFileChildren(
+  ApiAppVersionsRouteChildren,
+)
+
 interface ApiBackupsRouteChildren {
   ApiBackupsCreateRoute: typeof ApiBackupsCreateRoute
   ApiBackupsIdRestoreRoute: typeof ApiBackupsIdRestoreRoute
@@ -3657,6 +3746,17 @@ const ApiDeliveryRoutesRouteChildren: ApiDeliveryRoutesRouteChildren = {
 
 const ApiDeliveryRoutesRouteWithChildren =
   ApiDeliveryRoutesRoute._addFileChildren(ApiDeliveryRoutesRouteChildren)
+
+interface ApiDeliveryTariffsRouteChildren {
+  ApiDeliveryTariffsIdRoute: typeof ApiDeliveryTariffsIdRoute
+}
+
+const ApiDeliveryTariffsRouteChildren: ApiDeliveryTariffsRouteChildren = {
+  ApiDeliveryTariffsIdRoute: ApiDeliveryTariffsIdRoute,
+}
+
+const ApiDeliveryTariffsRouteWithChildren =
+  ApiDeliveryTariffsRoute._addFileChildren(ApiDeliveryTariffsRouteChildren)
 
 interface ApiDriversRouteChildren {
   ApiDriversIdRoute: typeof ApiDriversIdRoute
@@ -3860,6 +3960,17 @@ const ApiSupplyRequestsRouteChildren: ApiSupplyRequestsRouteChildren = {
 const ApiSupplyRequestsRouteWithChildren =
   ApiSupplyRequestsRoute._addFileChildren(ApiSupplyRequestsRouteChildren)
 
+interface ApiSystemSettingsRouteChildren {
+  ApiSystemSettingsIdRoute: typeof ApiSystemSettingsIdRoute
+}
+
+const ApiSystemSettingsRouteChildren: ApiSystemSettingsRouteChildren = {
+  ApiSystemSettingsIdRoute: ApiSystemSettingsIdRoute,
+}
+
+const ApiSystemSettingsRouteWithChildren =
+  ApiSystemSettingsRoute._addFileChildren(ApiSystemSettingsRouteChildren)
+
 interface ApiTripStageRouteChildren {
   ApiTripStageUpdateRoute: typeof ApiTripStageUpdateRoute
 }
@@ -3946,7 +4057,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
   ApiAnalyticsRoute: ApiAnalyticsRoute,
-  ApiAppVersionsRoute: ApiAppVersionsRoute,
+  ApiAppVersionsRoute: ApiAppVersionsRouteWithChildren,
   ApiAuditLogRoute: ApiAuditLogRoute,
   ApiBackupsRoute: ApiBackupsRouteWithChildren,
   ApiCarriersRoute: ApiCarriersRouteWithChildren,
@@ -3956,6 +4067,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
   ApiDeliveryReportsRoute: ApiDeliveryReportsRoute,
   ApiDeliveryRoutesRoute: ApiDeliveryRoutesRouteWithChildren,
+  ApiDeliveryTariffsRoute: ApiDeliveryTariffsRouteWithChildren,
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDockLoadedItemsRoute: ApiDockLoadedItemsRoute,
   ApiDriversRoute: ApiDriversRouteWithChildren,
@@ -3996,7 +4108,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSupplyRequestsRoute: ApiSupplyRequestsRouteWithChildren,
   ApiSystemActivityRoute: ApiSystemActivityRoute,
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
-  ApiSystemSettingsRoute: ApiSystemSettingsRoute,
+  ApiSystemSettingsRoute: ApiSystemSettingsRouteWithChildren,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,
   ApiTripStageRoute: ApiTripStageRouteWithChildren,
   ApiUserRoleRoute: ApiUserRoleRoute,

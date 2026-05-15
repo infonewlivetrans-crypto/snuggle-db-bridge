@@ -39,13 +39,20 @@ export const Route = createFileRoute("/api/routes")({
         const { limit, offset, search, url } = parseListParams(request);
         const status = url.searchParams.get("status");
         const activeOnly = url.searchParams.get("activeOnly") === "1";
+        const idsParam = url.searchParams.get("ids");
+        const fields = url.searchParams.get("fields") || "*, route_points(eta_at, eta_risk)";
 
         let q = auth.client
           .from("routes")
-          .select("*, route_points(eta_at, eta_risk)", { count: "exact" })
+          .select(fields, { count: "exact" })
           .order("route_date", { ascending: false })
           .order("created_at", { ascending: false });
 
+        if (idsParam) {
+          const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+          if (ids.length === 0) return jsonResponse([], { headers: { "X-Total-Count": "0" } });
+          q = q.in("id", ids);
+        }
         if (activeOnly) q = q.in("status", ["planned", "in_progress"]);
         else if (status && status !== "all") q = q.eq("status", status as never);
         if (search) q = q.ilike("route_number", `%${search}%`);

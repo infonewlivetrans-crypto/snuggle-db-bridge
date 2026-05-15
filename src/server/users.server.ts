@@ -1,5 +1,9 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import type { AppRole } from "@/lib/auth/roles";
+
+type DbClient = SupabaseClient<Database>;
 
 export async function hasAnyAdmin(): Promise<boolean> {
   // Используем SECURITY DEFINER RPC, чтобы публичный эндпоинт первой настройки
@@ -94,15 +98,16 @@ export async function adminSetUserActive(args: { userId: string; isActive: boole
   });
 }
 
-export async function adminListUsers() {
+export async function adminListUsers(client?: DbClient) {
+  const c = (client ?? supabaseAdmin) as DbClient;
   const [
     { data: profiles, error: pErr },
     { data: roles, error: rErr },
     { data: invites, error: iErr },
   ] = await Promise.all([
-    supabaseAdmin.from("profiles").select("*").order("created_at", { ascending: false }),
-    supabaseAdmin.from("user_roles").select("user_id, role"),
-    supabaseAdmin
+    c.from("profiles").select("*").order("created_at", { ascending: false }),
+    c.from("user_roles").select("user_id, role"),
+    c
       .from("invite_tokens")
       .select("id, token, user_id, full_name, phone, role, comment, is_active, last_used_at, created_at")
       .order("created_at", { ascending: false }),
