@@ -1,5 +1,9 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { normalizeRuPhone } from "@/lib/phone";
+
+type DbClient = SupabaseClient<Database>;
 
 export type InviteRole = "admin" | "logist" | "manager" | "driver";
 const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
