@@ -324,7 +324,7 @@ export function AppHeader() {
     isPathEnabled(to, enabledModules) &&
     isPathVisibleInLaunchMode(to, launchMode);
 
-  const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver" || r === "carrier");
+  const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver");
 
   const visibleGroups = useMemo<NavGroup[]>(() => {
     if (isDriverOnly) {
