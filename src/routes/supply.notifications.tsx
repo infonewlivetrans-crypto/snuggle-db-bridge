@@ -55,26 +55,15 @@ function SupplyNotificationsPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["supply-notifications", filter],
     queryFn: async (): Promise<Notif[]> => {
-      let q = db
-        .from("notifications")
-        .select("id, kind, title, body, payload, read_at, created_at")
-        .in("kind", SUPPLY_KINDS)
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (filter === "unread") q = q.is("read_at", null);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as Notif[];
+      const qs = filter === "unread" ? "?unread=1&limit=200" : "?limit=200";
+      const r = await apiGetAuth<{ rows: Notif[] }>(`/api/supply-notifications${qs}`);
+      return r.rows ?? [];
     },
   });
 
   const markRead = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
-        .from("notifications")
-        .update({ read_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPost("/api/supply-notifications", { id });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["supply-notifications"] });
@@ -86,11 +75,7 @@ function SupplyNotificationsPage() {
     mutationFn: async () => {
       const ids = (data ?? []).filter((n) => !n.read_at).map((n) => n.id);
       if (ids.length === 0) return;
-      const { error } = await db
-        .from("notifications")
-        .update({ read_at: new Date().toISOString() })
-        .in("id", ids);
-      if (error) throw error;
+      await apiPost("/api/supply-notifications", { ids });
     },
     onSuccess: () => {
       toast.success("Уведомления отмечены прочитанными");
