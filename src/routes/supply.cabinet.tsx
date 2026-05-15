@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { fetchListViaApi, apiPost, apiPatch } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -196,70 +196,59 @@ function SupplyCabinetPage() {
   const { data: balances } = useQuery({
     queryKey: ["stock-balances"],
     queryFn: async (): Promise<StockBalance[]> => {
-      const { data, error } = await db.from("stock_balances").select("*");
-      if (error) throw error;
-      return (data ?? []) as StockBalance[];
+      const { rows } = await fetchListViaApi<StockBalance>("/api/stock-balances", { limit: 1000 });
+      return rows;
     },
   });
 
   const { data: requests } = useQuery({
     queryKey: ["supply-requests-cabinet"],
     queryFn: async (): Promise<SupplyRequest[]> => {
-      const { data, error } = await db
-        .from("supply_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as SupplyRequest[];
+      const { rows } = await fetchListViaApi<SupplyRequest>("/api/supply-requests", {
+        limit: 500,
+        extra: { order: "created_at.desc" },
+      });
+      return rows;
     },
   });
 
   const { data: transfers } = useQuery({
     queryKey: ["stock-transfers-cabinet"],
     queryFn: async (): Promise<StockTransfer[]> => {
-      const { data, error } = await db
-        .from("stock_transfers")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as StockTransfer[];
+      const { rows } = await fetchListViaApi<StockTransfer>("/api/stock-transfers", {
+        limit: 500,
+        extra: { order: "created_at.desc" },
+      });
+      return rows;
     },
   });
 
   const { data: inTransit } = useQuery({
     queryKey: ["supply-in-transit-cabinet"],
     queryFn: async (): Promise<InTransit[]> => {
-      const { data, error } = await db
-        .from("supply_in_transit")
-        .select("*")
-        .in("status", ["planned", "in_transit"])
-        .order("expected_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as InTransit[];
+      const { rows } = await fetchListViaApi<InTransit>("/api/supply-in-transit", {
+        limit: 500,
+        extra: { status: "planned,in_transit", order: "expected_at.asc" },
+      });
+      return rows;
     },
   });
 
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db.from("warehouses").select("id, name").order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", { limit: 500 });
+      return rows;
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-min"],
     queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Product[];
+      const { rows } = await fetchListViaApi<Product>("/api/products", { limit: 1000 });
+      return rows;
     },
   });
-
   const warehouseById = useMemo(() => {
     const m = new Map<string, string>();
     (warehouses ?? []).forEach((w) => m.set(w.id, w.name));
@@ -313,14 +302,11 @@ function SupplyCabinetPage() {
   const { data: notifications } = useQuery({
     queryKey: ["supply-notifications"],
     queryFn: async (): Promise<SupplyNotification[]> => {
-      const { data, error } = await db
-        .from("notifications")
-        .select("*")
-        .eq("kind", "supply_alert")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as unknown as SupplyNotification[];
+      const { rows } = await fetchListViaApi<SupplyNotification>("/api/notifications", {
+        limit: 100,
+        extra: { kind: "supply_alert" },
+      });
+      return rows;
     },
   });
 
@@ -692,11 +678,7 @@ function SupplyEditDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!request) return;
-      const { error } = await db
-        .from("supply_requests")
-        .update(buildPatch())
-        .eq("id", request.id);
-      if (error) throw error;
+      await apiPatch(`/api/supply-requests/${request.id}`, buildPatch());
     },
     onSuccess: () => {
       toast.success("Заявка обновлена");
@@ -716,16 +698,10 @@ function SupplyEditDialog({
       const expectedAtIso = expectedDate
         ? new Date(`${expectedDate}T${expectedTime || "00:00"}:00`).toISOString()
         : null;
-      // 1. Сохраняем план в заявке
-      const { error: saveError } = await db
-        .from("supply_requests")
-        .update(buildPatch())
-        .eq("id", request.id);
-      if (saveError) throw saveError;
-      // 2. Создаём ожидаемое поступление
-      const { data: shipment, error } = await db
-        .from("inbound_shipments")
-        .insert({
+      await apiPatch(`/api/supply-requests/${request.id}`, buildPatch());
+      const shipment = await apiPost<{ row?: { id: string }; id?: string }>(
+        "/api/inbound-shipments",
+        {
           shipment_number: `IN-${request.request_number}`,
           source_type: sourceType,
           source_name:
@@ -741,28 +717,21 @@ function SupplyEditDialog({
           status: "expected",
           comment: `Из заявки на пополнение № ${request.request_number}`,
           supply_request_id: request.id,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      // 3. Состав поступления
-      const { error: itemError } = await db.from("inbound_shipment_items").insert({
-        shipment_id: (shipment as { id: string }).id,
+        },
+      );
+      const shipmentId = shipment?.row?.id ?? shipment?.id;
+      if (!shipmentId) throw new Error("Не удалось создать поступление");
+      await apiPost("/api/inbound-shipment-items", {
+        shipment_id: shipmentId,
         product_name: productName,
         qty_expected: request.qty,
         unit: productUnit,
       });
-      if (itemError) throw itemError;
-      // 4. Привязываем поступление к заявке + ставим статус «ожидается»
-      const { error: linkError } = await db
-        .from("supply_requests")
-        .update({
-          inbound_shipment_id: (shipment as { id: string }).id,
-          supply_status: "awaiting",
-          supply_status_changed_at: new Date().toISOString(),
-        })
-        .eq("id", request.id);
-      if (linkError) throw linkError;
+      await apiPatch(`/api/supply-requests/${request.id}`, {
+        inbound_shipment_id: shipmentId,
+        supply_status: "awaiting",
+        supply_status_changed_at: new Date().toISOString(),
+      });
     },
     onSuccess: () => {
       toast.success("Ожидаемое поступление создано");
@@ -1060,11 +1029,7 @@ function NotificationsTable({ items }: { items: SupplyNotification[] }) {
 
   const markRead = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/notifications/${id}`, { is_read: true });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["supply-notifications"] }),
     onError: (e: Error) => toast.error(e.message),
@@ -1072,12 +1037,7 @@ function NotificationsTable({ items }: { items: SupplyNotification[] }) {
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      const { error } = await db
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("kind", "supply_alert")
-        .eq("is_read", false);
-      if (error) throw error;
+      await apiPatch("/api/notifications", { kind: "supply_alert", is_read: true });
     },
     onSuccess: () => {
       toast.success("Все уведомления прочитаны");
