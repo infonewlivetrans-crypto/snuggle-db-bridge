@@ -131,6 +131,7 @@ import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
 import { Route as ApiTripStageUpdateRouteImport } from './routes/api/trip-stage.update'
 import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
+import { Route as ApiStockTransfersIdRouteImport } from './routes/api/stock-transfers.$id'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
@@ -776,6 +777,11 @@ const ApiStorageUploadRoute = ApiStorageUploadRouteImport.update({
   path: '/api/storage/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStockTransfersIdRoute = ApiStockTransfersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiStockTransfersRoute,
+} as any)
 const ApiRoutesIdRoute = ApiRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1016,7 +1022,7 @@ export interface FileRoutesByFullPath {
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
-  '/api/stock-transfers': typeof ApiStockTransfersRoute
+  '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
@@ -1083,6 +1089,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
@@ -1172,7 +1179,7 @@ export interface FileRoutesByTo {
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
-  '/api/stock-transfers': typeof ApiStockTransfersRoute
+  '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
@@ -1239,6 +1246,7 @@ export interface FileRoutesByTo {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
@@ -1329,7 +1337,7 @@ export interface FileRoutesById {
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
-  '/api/stock-transfers': typeof ApiStockTransfersRoute
+  '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
@@ -1396,6 +1404,7 @@ export interface FileRoutesById {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
@@ -1554,6 +1563,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/trip-stage/update'
     | '/api/users/$id'
@@ -1710,6 +1720,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/trip-stage/update'
     | '/api/users/$id'
@@ -1866,6 +1877,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/trip-stage/update'
     | '/api/users/$id'
@@ -1956,7 +1968,7 @@ export interface RootRouteChildren {
   ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
   ApiStockBalancesRoute: typeof ApiStockBalancesRoute
   ApiStockMovementsRoute: typeof ApiStockMovementsRoute
-  ApiStockTransfersRoute: typeof ApiStockTransfersRoute
+  ApiStockTransfersRoute: typeof ApiStockTransfersRouteWithChildren
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
@@ -2867,6 +2879,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStorageUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stock-transfers/$id': {
+      id: '/api/stock-transfers/$id'
+      path: '/$id'
+      fullPath: '/api/stock-transfers/$id'
+      preLoaderRoute: typeof ApiStockTransfersIdRouteImport
+      parentRoute: typeof ApiStockTransfersRoute
+    }
     '/api/routes/$id': {
       id: '/api/routes/$id'
       path: '/$id'
@@ -3287,6 +3306,17 @@ const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
   ApiRoutesRouteChildren,
 )
 
+interface ApiStockTransfersRouteChildren {
+  ApiStockTransfersIdRoute: typeof ApiStockTransfersIdRoute
+}
+
+const ApiStockTransfersRouteChildren: ApiStockTransfersRouteChildren = {
+  ApiStockTransfersIdRoute: ApiStockTransfersIdRoute,
+}
+
+const ApiStockTransfersRouteWithChildren =
+  ApiStockTransfersRoute._addFileChildren(ApiStockTransfersRouteChildren)
+
 interface ApiTripStageRouteChildren {
   ApiTripStageUpdateRoute: typeof ApiTripStageUpdateRoute
 }
@@ -3410,7 +3440,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRoutesRoute: ApiRoutesRouteWithChildren,
   ApiStockBalancesRoute: ApiStockBalancesRoute,
   ApiStockMovementsRoute: ApiStockMovementsRoute,
-  ApiStockTransfersRoute: ApiStockTransfersRoute,
+  ApiStockTransfersRoute: ApiStockTransfersRouteWithChildren,
   ApiSystemActivityRoute: ApiSystemActivityRoute,
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
