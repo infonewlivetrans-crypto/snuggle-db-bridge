@@ -21,20 +21,36 @@ export const Route = createFileRoute("/api/route-points")({
         if (auth instanceof Response) return auth;
         const url = new URL(request.url);
         const routeId = url.searchParams.get("route_id");
+        const routeIdsParam = url.searchParams.get("route_ids") ?? null;
+        const fieldsParam = url.searchParams.get("fields");
         const withOrders = url.searchParams.get("withOrders") === "1";
         const embed = url.searchParams.get("embed");
-        if (!routeId) return jsonResponse([], { status: 400, headers: { "X-Error": "route_id required" } });
+
+        // route_id может быть csv (in-фильтр)
+        const idsList: string[] = (() => {
+          const raw = routeIdsParam ?? routeId ?? "";
+          return raw
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0);
+        })();
+        if (idsList.length === 0)
+          return jsonResponse([], { status: 400, headers: { "X-Error": "route_id required" } });
+
         const select =
-          embed === "delivery"
-            ? "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, latitude, longitude, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)"
-            : withOrders
-              ? "*, orders(*)"
-              : "*";
-        const { data, error } = await auth.client
-          .from("route_points")
-          .select(select)
-          .eq("route_id", routeId)
-          .order("point_number", { ascending: true });
+          fieldsParam && fieldsParam.trim().length > 0
+            ? fieldsParam
+            : embed === "delivery"
+              ? "id, point_number, order_id, client_window_from, client_window_to, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, dp_planned_arrival_at, dp_actual_arrival_at, dp_unload_started_at, dp_unload_finished_at, dp_finished_at, dp_idle_started_at, dp_idle_finished_at, dp_idle_duration_minutes, dp_idle_reason, dp_idle_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, latitude, longitude, comment, payment_type, amount_due, requires_qr, marketplace, cash_received, qr_received)"
+              : withOrders
+                ? "*, orders(*)"
+                : "*";
+
+        let q = auth.client.from("route_points").select(select);
+        if (idsList.length === 1) q = q.eq("route_id", idsList[0]!);
+        else q = q.in("route_id", idsList);
+        q = q.order("point_number", { ascending: true });
+        const { data, error } = await q;
         if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
         return jsonResponse(data ?? [], { headers: cacheHeaders(20) });
       },
