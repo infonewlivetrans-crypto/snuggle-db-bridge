@@ -32,7 +32,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/lib/auth/auth-context";
 import { BODY_TYPE_LABELS, type BodyType } from "@/lib/carriers";
-import { apiPost, apiGetAuth } from "@/lib/api-client";
+import { apiPost, apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 
 export const Route = createFileRoute("/carrier-offers")({
   component: CarrierOffersPage,
