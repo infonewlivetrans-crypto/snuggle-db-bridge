@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, AlertTriangle, Send, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
@@ -68,11 +68,9 @@ export function RouteIssueCheckBlock({ deliveryRouteId, status, driver, vehicle,
 
   const issue = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status: "issued" as DeliveryRouteStatus })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${encodeURIComponent(deliveryRouteId)}`, {
+        status: "issued" as DeliveryRouteStatus,
+      });
     },
     onSuccess: () => {
       toast.success("Маршрут выдан водителю");

@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { ExportReportButton } from "@/components/ExportReportButton";
 import { DemoModeBanner } from "@/components/DemoModeBanner";
@@ -58,7 +58,6 @@ import { Search, QrCode, RefreshCw, Package2, Plus, Route as RouteIcon, FileSpre
 import { DataTablePagination } from "@/components/DataTablePagination";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { parseListSearch, useListSearch } from "@/hooks/use-list-search";
-import { usePaginatedTable } from "@/hooks/use-paginated-table";
 
 export const Route = createFileRoute("/")({
   validateSearch: (
@@ -115,17 +114,17 @@ function OrdersPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [routeDialogOpen, setRouteDialogOpen] = useState(false);
 
-  // Серверная пагинация и поиск
-  const paged = usePaginatedTable<Order>({
-    queryKey: ["orders", "paged", statusFilter],
-    table: "orders",
-    select: "*",
-    order: [{ column: "created_at", ascending: false }],
-    page,
-    pageSize,
-    search: q,
-    searchColumns: ["order_number", "delivery_address", "client_name"],
-    eqFilters: { status: statusFilter === "all" ? undefined : statusFilter },
+  // Серверная пагинация и поиск через /api/orders (без прямых запросов к Supabase REST).
+  const paged = useQuery({
+    queryKey: ["orders", "paged", statusFilter, page, pageSize, q],
+    placeholderData: keepPreviousData,
+    queryFn: () =>
+      fetchListViaApi<Order>("/api/orders", {
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+        search: q || undefined,
+        extra: { status: statusFilter === "all" ? undefined : statusFilter },
+      }),
   });
 
   const orders = paged.data?.rows;
@@ -134,28 +133,6 @@ function OrdersPage() {
   const isFetching = paged.isFetching;
   const refetch = paged.refetch;
   const filtered = orders ?? [];
-
-  // Лёгкая статистика по статусам — отдельный быстрый запрос (count-only)
-  const { data: statsData } = useQuery({
-    queryKey: ["orders", "stats"],
-    queryFn: async () => {
-      const counts = async (status?: OrderStatus) => {
-        let qb = supabase.from("orders").select("id", { count: "exact", head: true });
-        if (status) qb = qb.eq("status", status);
-        const { count } = await qb;
-        return count ?? 0;
-      };
-      const [total, neu, inProgress, delivering, completed] = await Promise.all([
-        counts(),
-        counts("new"),
-        counts("in_progress"),
-        counts("delivering"),
-        counts("completed"),
-      ]);
-      return { total, new: neu, inProgress, delivering, completed };
-    },
-  });
-  const stats = statsData ?? { total: 0, new: 0, inProgress: 0, delivering: 0, completed: 0 };
 
   const openOrder = (order: Order) => {
     setSelectedOrder(order);
@@ -235,14 +212,9 @@ function OrdersPage() {
           </div>
         </div>
 
-        {/* Статистика */}
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Всего" value={stats.total} accent />
-          <StatCard label="Новые" value={stats.new} />
-          <StatCard label="В работе" value={stats.inProgress} />
-          <StatCard label="Доставка" value={stats.delivering} />
-          <StatCard label="Выполнено" value={stats.completed} />
-        </div>
+        {/* Статистика временно убрана: блок счётчиков по статусам делал
+            прямые запросы в Supabase REST. Общее число заказов отображается
+            в пагинации (total) — этого достаточно. */}
 
         {/* Фильтры */}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
