@@ -139,6 +139,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
@@ -840,6 +841,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
+  id: '/api/workspace/summary',
+  path: '/api/workspace/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWarehousesIdRoute = ApiWarehousesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1253,6 +1259,7 @@ export interface FileRoutesByFullPath {
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
+  '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1432,6 +1439,7 @@ export interface FileRoutesByTo {
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
+  '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1612,6 +1620,7 @@ export interface FileRoutesById {
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
+  '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1793,6 +1802,7 @@ export interface FileRouteTypes {
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/warehouses/$id'
+    | '/api/workspace/summary'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -1972,6 +1982,7 @@ export interface FileRouteTypes {
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/warehouses/$id'
+    | '/api/workspace/summary'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -2151,6 +2162,7 @@ export interface FileRouteTypes {
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/warehouses/$id'
+    | '/api/workspace/summary'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -2301,6 +2313,7 @@ export interface RootRouteChildren {
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
+  ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
 }
@@ -3217,6 +3230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/workspace/summary': {
+      id: '/api/workspace/summary'
+      path: '/api/workspace/summary'
+      fullPath: '/api/workspace/summary'
+      preLoaderRoute: typeof ApiWorkspaceSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/warehouses/$id': {
       id: '/api/warehouses/$id'
       path: '/$id'
@@ -4005,6 +4025,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
+  ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
 }
