@@ -404,16 +404,8 @@ function WarehouseTodayPage() {
       };
       if (args.cargo_position !== undefined) patch.cargo_position = args.cargo_position;
       if (args.warehouse_comment !== undefined) patch.warehouse_comment = args.warehouse_comment;
-      if (existing) {
-        const { error } = await supabase
-          .from("warehouse_load_plan")
-          .update(patch)
-          .eq("route_point_id", args.pointId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("warehouse_load_plan").insert(patch);
-        if (error) throw error;
-      }
+      await apiPost(`/api/warehouse-load-plan`, patch);
+      void existing;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["wh-load-plan", openCard] });
