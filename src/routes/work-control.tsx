@@ -88,61 +88,68 @@ function WorkControlPage() {
     refetchIntervalInBackground: false,
     staleTime: 30_000,
     queryFn: async (): Promise<Problem[]> => {
-      // 1) Заказы за сегодня — без рейса (route_points отсутствует)
-      const ordersTodayQ = supabase
-        .from("orders")
-        .select("id, order_number, status, created_at")
-        .gte("created_at", startIso)
-        .lt("created_at", endIso)
-        .order("created_at", { ascending: false })
-        .limit(200);
+      type OrderRow = { id: string; order_number: string | null; status: string; created_at: string };
+      type RouteRow = {
+        id: string;
+        route_number: string | null;
+        route_date: string;
+        status: string;
+        driver_id: string | null;
+        driver_name: string | null;
+        planned_departure_at: string | null;
+      };
+      type PointRow = {
+        id: string;
+        route_id: string;
+        status: string;
+        dp_status: string | null;
+        eta_risk: string | null;
+        eta_window_to: string | null;
+        completed_at: string | null;
+        planned_time: string | null;
+        point_number: number;
+      };
+      type ReportRow = { id: string; route_id: string; created_at: string };
 
-      // 2) Рейсы за сегодня
-      const routesTodayQ = supabase
-        .from("routes")
-        .select(
-          "id, route_number, route_date, status, driver_id, driver_name, planned_departure_at",
-        )
-        .eq("route_date", dateStr)
-        .order("created_at", { ascending: false });
-
-      // 3) Точки за сегодня
-      const pointsTodayQ = supabase
-        .from("route_points")
-        .select(
-          "id, route_id, status, dp_status, eta_risk, eta_window_to, completed_at, planned_time, point_number",
-        )
-        .gte("created_at", startIso)
-        .lt("created_at", endIso)
-        .limit(1000);
-
-      // 4) Отчёты за сегодня
-      const reportsTodayQ = supabase
-        .from("delivery_reports")
-        .select("id, route_id, created_at")
-        .gte("created_at", startIso)
-        .lt("created_at", endIso);
-
-      // 5) Активность системы (audit_log) за последний час
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-      const activityQ = supabase
-        .from("audit_log")
-        .select("id, created_at", { count: "exact", head: true })
-        .gte("created_at", oneHourAgo);
+      void startIso;
+      void endIso;
 
       const [ordersRes, routesRes, pointsRes, reportsRes, activityRes] =
         await Promise.all([
-          ordersTodayQ,
-          routesTodayQ,
-          pointsTodayQ,
-          reportsTodayQ,
-          activityQ,
+          fetchListViaApi<OrderRow>("/api/orders", {
+            limit: 200,
+            extra: { created_today: 1, fields: "id, order_number, status, created_at" },
+          }),
+          fetchListViaApi<RouteRow>("/api/routes", {
+            limit: 500,
+            extra: {
+              route_date: dateStr,
+              fields:
+                "id, route_number, route_date, status, driver_id, driver_name, planned_departure_at",
+            },
+          }),
+          fetchListViaApi<PointRow>("/api/route-points", {
+            limit: 1000,
+            extra: {
+              created_today: 1,
+              fields:
+                "id, route_id, status, dp_status, eta_risk, eta_window_to, completed_at, planned_time, point_number",
+            },
+          }),
+          fetchListViaApi<ReportRow>("/api/delivery-reports", {
+            limit: 500,
+            extra: { created_today: 1 },
+          }),
+          apiGetAuth<{ count: number }>(
+            `/api/audit-log?count_only=1&since=${encodeURIComponent(oneHourAgo)}`,
+          ).catch(() => ({ count: 0 })),
         ]);
 
-      const orders = ordersRes.data ?? [];
-      const routes = routesRes.data ?? [];
-      const points = pointsRes.data ?? [];
-      const reports = reportsRes.data ?? [];
+      const orders = ordersRes.rows;
+      const routes = routesRes.rows;
+      const points = pointsRes.rows;
+      const reports = reportsRes.rows;
       const activityCount = activityRes.count ?? 0;
 
       // Какие order_id уже есть в рейсах (по сегодняшним точкам).
