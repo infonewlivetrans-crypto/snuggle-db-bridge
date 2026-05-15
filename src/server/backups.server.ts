@@ -153,8 +153,9 @@ export async function runBackup(opts: {
   }
 }
 
-export async function listBackups(limit = 100) {
-  const { data, error } = await (supabaseAdmin
+export async function listBackups(limit = 100, client?: DbClient) {
+  const c = (client ?? supabaseAdmin) as DbClient;
+  const { data, error } = await (c
     .from("backups") as unknown as {
       select: (s: string) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: unknown[] | null; error: { message: string } | null }> } };
     })
