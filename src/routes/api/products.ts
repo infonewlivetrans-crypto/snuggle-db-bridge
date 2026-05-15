@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { listHandler } from "@/server/table-crud.server";
+import { listHandler, insertHandler } from "@/server/table-crud.server";
 
 export const Route = createFileRoute("/api/products")({
   server: {
@@ -11,6 +11,8 @@ export const Route = createFileRoute("/api/products")({
         filters: { warehouse_id: "eq", is_active: "eq" },
         cacheSeconds: 60,
       }),
+      POST: insertHandler("products", { returning: true }),
     },
   },
 });
+
