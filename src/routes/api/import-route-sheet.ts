@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeRuPhone } from "@/lib/phone";
 
 type PaymentKind = "cash" | "qr" | "paid" | "bank" | "unknown";
@@ -72,7 +71,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
       POST: async ({ request }) => {
         const auth = await requireAnyRole(request, ["admin", "logist", "manager"]);
         if (auth instanceof Response) return auth;
-        const sb = supabaseAdmin;
+        const sb = auth.client;
 
         let payload: IncomingPayload;
         try {
