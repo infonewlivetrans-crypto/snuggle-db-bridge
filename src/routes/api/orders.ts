@@ -46,11 +46,25 @@ export const Route = createFileRoute("/api/orders")({
         const { limit, offset, search, url } = parseListParams(request);
         const status = url.searchParams.get("status");
         const includeRoutes = url.searchParams.get("includeRoutes") === "1";
+        const createdToday = url.searchParams.get("created_today") === "1";
+        const idsParam = url.searchParams.get("ids");
 
         let q = auth.client
           .from("orders")
           .select(SELECT, { count: "exact" })
           .order("created_at", { ascending: false });
+        if (idsParam) {
+          const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+          if (ids.length === 0) return jsonResponse([], { headers: { "X-Total-Count": "0" } });
+          q = q.in("id", ids);
+        }
+        if (createdToday) {
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
+          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+        }
         if (status && status !== "all") q = q.eq("status", status as never);
         if (search) {
           q = q.or(
