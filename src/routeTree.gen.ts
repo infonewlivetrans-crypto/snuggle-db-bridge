@@ -145,6 +145,7 @@ import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-po
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
+import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
 import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
@@ -856,6 +857,11 @@ const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiManagersListRoute = ApiManagersListRouteImport.update({
+  id: '/list',
+  path: '/list',
+  getParentRoute: () => ApiManagersRoute,
+} as any)
 const ApiManagersImportRoute = ApiManagersImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -1138,6 +1144,7 @@ export interface FileRoutesByFullPath {
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
+  '/api/managers/list': typeof ApiManagersListRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1303,6 +1310,7 @@ export interface FileRoutesByTo {
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
+  '/api/managers/list': typeof ApiManagersListRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1469,6 +1477,7 @@ export interface FileRoutesById {
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
+  '/api/managers/list': typeof ApiManagersListRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1636,6 +1645,7 @@ export interface FileRouteTypes {
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
+    | '/api/managers/list'
     | '/api/orders/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -1801,6 +1811,7 @@ export interface FileRouteTypes {
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
+    | '/api/managers/list'
     | '/api/orders/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -1966,6 +1977,7 @@ export interface FileRouteTypes {
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
+    | '/api/managers/list'
     | '/api/orders/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -3079,6 +3091,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/managers/list': {
+      id: '/api/managers/list'
+      path: '/list'
+      fullPath: '/api/managers/list'
+      preLoaderRoute: typeof ApiManagersListRouteImport
+      parentRoute: typeof ApiManagersRoute
+    }
     '/api/managers/import': {
       id: '/api/managers/import'
       path: '/import'
@@ -3389,11 +3408,13 @@ const ApiInvitesRouteWithChildren = ApiInvitesRoute._addFileChildren(
 interface ApiManagersRouteChildren {
   ApiManagersIdRoute: typeof ApiManagersIdRoute
   ApiManagersImportRoute: typeof ApiManagersImportRoute
+  ApiManagersListRoute: typeof ApiManagersListRoute
 }
 
 const ApiManagersRouteChildren: ApiManagersRouteChildren = {
   ApiManagersIdRoute: ApiManagersIdRoute,
   ApiManagersImportRoute: ApiManagersImportRoute,
+  ApiManagersListRoute: ApiManagersListRoute,
 }
 
 const ApiManagersRouteWithChildren = ApiManagersRoute._addFileChildren(
