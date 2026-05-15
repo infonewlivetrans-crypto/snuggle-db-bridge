@@ -34,6 +34,32 @@ export const Route = createFileRoute("/api/notifications")({
           { headers: cacheHeaders(30) },
         );
       },
+      // Bulk mark-read: { ids?: string[], kind?: string, is_read: true }
+      PATCH: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const body = (await request.json().catch(() => ({}))) as {
+          ids?: string[];
+          kind?: string;
+          is_read?: boolean;
+        };
+        const isRead = body.is_read !== false;
+        const patch: Record<string, unknown> = {
+          is_read: isRead,
+          read_at: isRead ? new Date().toISOString() : null,
+        };
+        let q = auth.client.from("notifications").update(patch as never);
+        if (Array.isArray(body.ids) && body.ids.length > 0) {
+          q = q.in("id", body.ids);
+        } else if (body.kind) {
+          q = q.eq("kind", body.kind).eq("is_read", !isRead);
+        } else {
+          return jsonResponse({ error: "ids or kind required" }, { status: 400 });
+        }
+        const { error } = await q;
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ ok: true });
+      },
     },
   },
 });

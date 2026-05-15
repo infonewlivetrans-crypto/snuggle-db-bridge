@@ -20,6 +20,22 @@ function isUuid(v: unknown): v is string {
 export const Route = createFileRoute("/api/route-offers")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const supa = auth.client as unknown as AnyClient;
+        const url = new URL(request.url);
+        const carrierId = url.searchParams.get("carrier_id");
+        const status = url.searchParams.get("status");
+        const fields = url.searchParams.get("fields") || "*";
+        const limit = Math.min(Math.max(1, Number(url.searchParams.get("limit")) || 200), 500);
+        let q = supa.from("route_offers").select(fields).order("sent_at", { ascending: false }).limit(limit);
+        if (carrierId) q = q.eq("carrier_id", carrierId);
+        if (status) q = q.eq("status", status);
+        const { data, error } = await q;
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse(data ?? []);
+      },
       // action: send | update | respond | confirm | reject
       POST: async ({ request }) => {
         const auth = await requireAuth(request);

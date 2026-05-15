@@ -29,6 +29,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
           url.searchParams.get("fields") || "*";
         const dateFrom = url.searchParams.get("route_date_gte");
         const dateTo = url.searchParams.get("route_date_lte");
+        const routeDate = url.searchParams.get("route_date");
         const status = url.searchParams.get("status");
         const carrierId = url.searchParams.get("carrier_id");
         const order = url.searchParams.get("order") ?? "route_date.desc";
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
         let q = auth.client
           .from("delivery_routes")
           .select(fields, { count: "exact" });
+        if (routeDate) q = q.eq("route_date", routeDate);
         if (dateFrom) q = q.gte("route_date", dateFrom);
         if (dateTo) q = q.lte("route_date", dateTo);
         if (status) q = q.eq("status", status as never);

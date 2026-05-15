@@ -22,6 +22,12 @@ export const Route = createFileRoute("/api/route-points")({
         const url = new URL(request.url);
         const routeId = url.searchParams.get("route_id");
         const routeIdsParam = url.searchParams.get("route_ids") ?? null;
+        const orderIdInParam = url.searchParams.get("order_id_in");
+        const statusIn = url.searchParams.get("status_in");
+        const dpStatus = url.searchParams.get("dp_status");
+        const orFilter = url.searchParams.get("or");
+        const returnsOnly = url.searchParams.get("returns_only") === "1";
+        const createdToday = url.searchParams.get("created_today") === "1";
         const fieldsParam = url.searchParams.get("fields");
         const withOrders = url.searchParams.get("withOrders") === "1";
         const embed = url.searchParams.get("embed");
@@ -34,8 +40,14 @@ export const Route = createFileRoute("/api/route-points")({
             .map((s) => s.trim())
             .filter((s) => s.length > 0);
         })();
-        if (idsList.length === 0)
-          return jsonResponse([], { status: 400, headers: { "X-Error": "route_id required" } });
+        const orderIds: string[] = (orderIdInParam ?? "")
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+
+        // Допускаем запрос без route_id, если есть order_id_in / created_today
+        if (idsList.length === 0 && orderIds.length === 0 && !createdToday)
+          return jsonResponse([], { status: 400, headers: { "X-Error": "route_id or order_id_in or created_today required" } });
 
         const select =
           fieldsParam && fieldsParam.trim().length > 0
@@ -48,8 +60,24 @@ export const Route = createFileRoute("/api/route-points")({
 
         let q = auth.client.from("route_points").select(select);
         if (idsList.length === 1) q = q.eq("route_id", idsList[0]!);
-        else q = q.in("route_id", idsList);
-        q = q.order("point_number", { ascending: true });
+        else if (idsList.length > 1) q = q.in("route_id", idsList);
+        if (orderIds.length > 0) q = q.in("order_id", orderIds);
+        if (statusIn) {
+          const arr = statusIn.split(",").map((s) => s.trim()).filter(Boolean);
+          if (arr.length > 0) q = q.in("status", arr as never);
+        }
+        if (dpStatus) q = q.eq("dp_status", dpStatus as never);
+        if (orFilter) q = q.or(orFilter);
+        if (returnsOnly)
+          q = q.or("status.eq.returned_to_warehouse,dp_status.eq.return_to_warehouse");
+        if (createdToday) {
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
+          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+        }
+        q = q.order("point_number", { ascending: true }).limit(2000);
         const { data, error } = await q;
         if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
         return jsonResponse(data ?? [], { headers: cacheHeaders(20) });

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/route-point-photos")({
         if (ids.length === 0) return jsonResponse([], { headers: cacheHeaders(10) });
         const { data, error } = await auth.client
           .from("route_point_photos")
-          .select("route_point_id, kind")
+          .select("id, route_point_id, kind, file_url")
           .in("route_point_id", ids);
         if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
         return jsonResponse(data ?? [], { headers: cacheHeaders(10) });

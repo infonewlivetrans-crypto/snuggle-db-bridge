@@ -9,12 +9,26 @@ export const Route = createFileRoute("/api/delivery-reports")({
         if (auth instanceof Response) return auth;
         const url = new URL(request.url);
         const orderId = url.searchParams.get("order_id");
-        if (!orderId) return jsonResponse([], { status: 400, headers: { "X-Error": "order_id required" } });
-        const { data, error } = await auth.client
+        const routeId = url.searchParams.get("route_id");
+        const createdToday = url.searchParams.get("created_today") === "1";
+        if (!orderId && !routeId && !createdToday) {
+          return jsonResponse([], { status: 400, headers: { "X-Error": "order_id, route_id or created_today required" } });
+        }
+        let q = auth.client
           .from("delivery_reports" as never)
           .select("*")
-          .eq("order_id", orderId)
-          .order("delivered_at", { ascending: false });
+          .order("delivered_at", { ascending: false })
+          .limit(1000);
+        if (orderId) q = q.eq("order_id", orderId);
+        if (routeId) q = q.eq("route_id", routeId);
+        if (createdToday) {
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+          const end = new Date(start);
+          end.setDate(end.getDate() + 1);
+          q = q.gte("created_at", start.toISOString()).lt("created_at", end.toISOString());
+        }
+        const { data, error } = await q;
         if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
         return jsonResponse(data ?? [], { headers: cacheHeaders(30) });
       },
