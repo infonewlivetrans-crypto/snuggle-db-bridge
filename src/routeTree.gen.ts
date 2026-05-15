@@ -147,6 +147,7 @@ import { Route as ApiSupplyRequestsIdRouteImport } from './routes/api/supply-req
 import { Route as ApiSupplyInTransitIdRouteImport } from './routes/api/supply-in-transit.$id'
 import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
 import { Route as ApiStockTransfersIdRouteImport } from './routes/api/stock-transfers.$id'
+import { Route as ApiStockReservationsReserveRouteImport } from './routes/api/stock-reservations.reserve'
 import { Route as ApiStockReservationsIdRouteImport } from './routes/api/stock-reservations.$id'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
@@ -877,6 +878,12 @@ const ApiStockTransfersIdRoute = ApiStockTransfersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiStockTransfersRoute,
 } as any)
+const ApiStockReservationsReserveRoute =
+  ApiStockReservationsReserveRouteImport.update({
+    id: '/reserve',
+    path: '/reserve',
+    getParentRoute: () => ApiStockReservationsRoute,
+  } as any)
 const ApiStockReservationsIdRoute = ApiStockReservationsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1222,6 +1229,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
+  '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
   '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
@@ -1398,6 +1406,7 @@ export interface FileRoutesByTo {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
+  '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
   '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
@@ -1575,6 +1584,7 @@ export interface FileRoutesById {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
+  '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
   '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
@@ -1753,6 +1763,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/stock-reservations/$id'
+    | '/api/stock-reservations/reserve'
     | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
@@ -1929,6 +1940,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/stock-reservations/$id'
+    | '/api/stock-reservations/reserve'
     | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
@@ -2105,6 +2117,7 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/stock-reservations/$id'
+    | '/api/stock-reservations/reserve'
     | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
@@ -3234,6 +3247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStockTransfersIdRouteImport
       parentRoute: typeof ApiStockTransfersRoute
     }
+    '/api/stock-reservations/reserve': {
+      id: '/api/stock-reservations/reserve'
+      path: '/reserve'
+      fullPath: '/api/stock-reservations/reserve'
+      preLoaderRoute: typeof ApiStockReservationsReserveRouteImport
+      parentRoute: typeof ApiStockReservationsRoute
+    }
     '/api/stock-reservations/$id': {
       id: '/api/stock-reservations/$id'
       path: '/$id'
@@ -3711,10 +3731,12 @@ const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
 
 interface ApiStockReservationsRouteChildren {
   ApiStockReservationsIdRoute: typeof ApiStockReservationsIdRoute
+  ApiStockReservationsReserveRoute: typeof ApiStockReservationsReserveRoute
 }
 
 const ApiStockReservationsRouteChildren: ApiStockReservationsRouteChildren = {
   ApiStockReservationsIdRoute: ApiStockReservationsIdRoute,
+  ApiStockReservationsReserveRoute: ApiStockReservationsReserveRoute,
 }
 
 const ApiStockReservationsRouteWithChildren =
