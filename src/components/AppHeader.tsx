@@ -326,7 +326,7 @@ export function AppHeader() {
 
   const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver" || r === "carrier");
 
-  const visibleGroups = useMemo(() => {
+  const visibleGroups = useMemo<NavGroup[]>(() => {
     if (isDriverOnly) {
       return [
         {
@@ -341,7 +341,7 @@ export function AppHeader() {
             { to: "/feedback", label: "Обратная связь", icon: MessageSquare },
           ],
         },
-      ] as typeof GROUPS extends readonly (infer U)[] ? U[] : never;
+      ];
     }
     return GROUPS.map((g) => ({
       ...g,
