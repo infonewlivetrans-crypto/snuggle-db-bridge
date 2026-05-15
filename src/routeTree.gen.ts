@@ -79,6 +79,7 @@ import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
 import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
 import { Route as ApiWarehouseReturnsRouteImport } from './routes/api/warehouse-returns'
 import { Route as ApiWarehouseReportRouteImport } from './routes/api/warehouse-report'
+import { Route as ApiWarehouseDockEventsRouteImport } from './routes/api/warehouse-dock-events'
 import { Route as ApiVehiclesRouteImport } from './routes/api/vehicles'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiUserRoleRouteImport } from './routes/api/user-role'
@@ -543,6 +544,11 @@ const ApiWarehouseReturnsRoute = ApiWarehouseReturnsRouteImport.update({
 const ApiWarehouseReportRoute = ApiWarehouseReportRouteImport.update({
   id: '/api/warehouse-report',
   path: '/api/warehouse-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWarehouseDockEventsRoute = ApiWarehouseDockEventsRouteImport.update({
+  id: '/api/warehouse-dock-events',
+  path: '/api/warehouse-dock-events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVehiclesRoute = ApiVehiclesRouteImport.update({
@@ -1215,6 +1221,7 @@ export interface FileRoutesByFullPath {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
+  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRoute
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1400,6 +1407,7 @@ export interface FileRoutesByTo {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
+  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRoute
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1586,6 +1594,7 @@ export interface FileRoutesById {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
+  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRoute
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1773,6 +1782,7 @@ export interface FileRouteTypes {
     | '/api/user-role'
     | '/api/users'
     | '/api/vehicles'
+    | '/api/warehouse-dock-events'
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
@@ -1958,6 +1968,7 @@ export interface FileRouteTypes {
     | '/api/user-role'
     | '/api/users'
     | '/api/vehicles'
+    | '/api/warehouse-dock-events'
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
@@ -2143,6 +2154,7 @@ export interface FileRouteTypes {
     | '/api/user-role'
     | '/api/users'
     | '/api/vehicles'
+    | '/api/warehouse-dock-events'
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
@@ -2329,6 +2341,7 @@ export interface RootRouteChildren {
   ApiUserRoleRoute: typeof ApiUserRoleRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
+  ApiWarehouseDockEventsRoute: typeof ApiWarehouseDockEventsRoute
   ApiWarehouseReportRoute: typeof ApiWarehouseReportRoute
   ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
@@ -2870,6 +2883,13 @@ declare module '@tanstack/react-router' {
       path: '/api/warehouse-report'
       fullPath: '/api/warehouse-report'
       preLoaderRoute: typeof ApiWarehouseReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warehouse-dock-events': {
+      id: '/api/warehouse-dock-events'
+      path: '/api/warehouse-dock-events'
+      fullPath: '/api/warehouse-dock-events'
+      preLoaderRoute: typeof ApiWarehouseDockEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/vehicles': {
@@ -4114,6 +4134,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUserRoleRoute: ApiUserRoleRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,
+  ApiWarehouseDockEventsRoute: ApiWarehouseDockEventsRoute,
   ApiWarehouseReportRoute: ApiWarehouseReportRoute,
   ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
@@ -4167,13 +4188,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
