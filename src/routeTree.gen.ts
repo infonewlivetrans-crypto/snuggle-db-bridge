@@ -116,6 +116,7 @@ import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-rou
 import { Route as ApiImportLogsRouteImport } from './routes/api/import-logs'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
+import { Route as ApiDockLoadedItemsRouteImport } from './routes/api/dock-loaded-items'
 import { Route as ApiDemoModeRouteImport } from './routes/api/demo-mode'
 import { Route as ApiDeliveryRoutesRouteImport } from './routes/api/delivery-routes'
 import { Route as ApiDeliveryReportsRouteImport } from './routes/api/delivery-reports'
@@ -709,6 +710,11 @@ const ApiDriversRoute = ApiDriversRouteImport.update({
   path: '/api/drivers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDockLoadedItemsRoute = ApiDockLoadedItemsRouteImport.update({
+  id: '/api/dock-loaded-items',
+  path: '/api/dock-loaded-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDemoModeRoute = ApiDemoModeRouteImport.update({
   id: '/api/demo-mode',
   path: '/api/demo-mode',
@@ -1038,6 +1044,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
+  '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
@@ -1202,6 +1209,7 @@ export interface FileRoutesByTo {
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
+  '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
@@ -1367,6 +1375,7 @@ export interface FileRoutesById {
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
+  '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
@@ -1533,6 +1542,7 @@ export interface FileRouteTypes {
     | '/api/delivery-reports'
     | '/api/delivery-routes'
     | '/api/demo-mode'
+    | '/api/dock-loaded-items'
     | '/api/drivers'
     | '/api/feedback'
     | '/api/import-logs'
@@ -1697,6 +1707,7 @@ export interface FileRouteTypes {
     | '/api/delivery-reports'
     | '/api/delivery-routes'
     | '/api/demo-mode'
+    | '/api/dock-loaded-items'
     | '/api/drivers'
     | '/api/feedback'
     | '/api/import-logs'
@@ -1861,6 +1872,7 @@ export interface FileRouteTypes {
     | '/api/delivery-reports'
     | '/api/delivery-routes'
     | '/api/demo-mode'
+    | '/api/dock-loaded-items'
     | '/api/drivers'
     | '/api/feedback'
     | '/api/import-logs'
@@ -2026,6 +2038,7 @@ export interface RootRouteChildren {
   ApiDeliveryReportsRoute: typeof ApiDeliveryReportsRoute
   ApiDeliveryRoutesRoute: typeof ApiDeliveryRoutesRouteWithChildren
   ApiDemoModeRoute: typeof ApiDemoModeRoute
+  ApiDockLoadedItemsRoute: typeof ApiDockLoadedItemsRoute
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
@@ -2863,6 +2876,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriversRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dock-loaded-items': {
+      id: '/api/dock-loaded-items'
+      path: '/api/dock-loaded-items'
+      fullPath: '/api/dock-loaded-items'
+      preLoaderRoute: typeof ApiDockLoadedItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/demo-mode': {
       id: '/api/demo-mode'
       path: '/api/demo-mode'
@@ -3574,6 +3594,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeliveryReportsRoute: ApiDeliveryReportsRoute,
   ApiDeliveryRoutesRoute: ApiDeliveryRoutesRouteWithChildren,
   ApiDemoModeRoute: ApiDemoModeRoute,
+  ApiDockLoadedItemsRoute: ApiDockLoadedItemsRoute,
   ApiDriversRoute: ApiDriversRouteWithChildren,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
