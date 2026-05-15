@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { PackageCheck, AlertTriangle, CheckCircle2, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { fetchListViaApi, apiGetAuth, apiPost } from "@/lib/api-client";
 
 type Pt = { order_id: string };
 type Item = {
@@ -39,10 +39,7 @@ function fmt(n: number, digits = 3) {
 
 /**
  * Чек-лист загрузки для конкретной отгрузки на складе.
- * Источник «нужно загрузить» — заказы маршрута (route_points → order_items, агрегировано).
- * «Уже загружено» — сумма по dock_loaded_items для этого delivery_route_id.
- * При подтверждении: списывает остаток (stock_movements movement_type='shipment')
- * и создаёт запись в dock_loaded_items.
+ * Все мутации/чтения через серверные endpoint'ы (/api/*).
  */
 export function DockLoadingChecklistBlock({
   deliveryRouteId,
@@ -55,16 +52,14 @@ export function DockLoadingChecklistBlock({
 }) {
   const qc = useQueryClient();
 
-  // 1. Точки маршрута → заказы
   const { data: pts = [] } = useQuery({
     queryKey: ["dock-load-points", deliveryRouteId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", deliveryRouteId);
-      if (error) throw error;
-      return (data ?? []) as Pt[];
+      const { rows } = await fetchListViaApi<Pt>("/api/route-points", {
+        extra: { route_id: deliveryRouteId },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
@@ -73,34 +68,28 @@ export function DockLoadingChecklistBlock({
     [pts],
   );
 
-  // 2. Состав заказов
   const { data: items = [] } = useQuery({
     queryKey: ["dock-load-items", deliveryRouteId, orderIds.join(",")],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select("id, order_id, product_id, nomenclature, unit, qty")
-        .in("order_id", orderIds);
-      if (error) throw error;
-      return (data ?? []) as Item[];
+      const { rows } = await fetchListViaApi<Item>("/api/order-items", {
+        extra: { order_id: orderIds.join(",") },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
-  // 3. Уже загружено
   const { data: loaded = [] } = useQuery({
     queryKey: ["dock-loaded", deliveryRouteId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("dock_loaded_items")
-        .select("id, product_id, nomenclature, qty_loaded")
-        .eq("delivery_route_id", deliveryRouteId);
-      if (error) throw error;
-      return (data ?? []) as Loaded[];
+      const res = await apiGetAuth<{ rows: Loaded[] }>(
+        `/api/dock-loaded-items?delivery_route_id=${encodeURIComponent(deliveryRouteId)}`,
+      );
+      return res.rows ?? [];
     },
   });
 
-  // 4. Агрегация «надо загрузить»
   const required = useMemo(() => {
     const map = new Map<
       string,
@@ -140,7 +129,6 @@ export function DockLoadingChecklistBlock({
     return m;
   }, [loaded]);
 
-  // 5. Остатки на складе
   const productIds = required
     .map((r) => r.product_id)
     .filter((x): x is string => !!x);
@@ -149,13 +137,14 @@ export function DockLoadingChecklistBlock({
     queryKey: ["dock-load-stock", warehouseId, productIds.join(",")],
     enabled: !!warehouseId && productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("product_id, available")
-        .eq("warehouse_id", warehouseId)
-        .in("product_id", productIds);
-      if (error) throw error;
-      return (data ?? []) as Bal[];
+      const { rows } = await fetchListViaApi<Bal>("/api/stock-balances", {
+        extra: {
+          warehouse_id: warehouseId!,
+          product_id: productIds.join(","),
+        },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
@@ -177,118 +166,15 @@ export function DockLoadingChecklistBlock({
     }) => {
       if (!warehouseId) throw new Error("Не указан склад отгрузки");
       if (args.qty <= 0) throw new Error("Количество должно быть больше 0");
-      if (args.product_id) {
-        // Доступно «реально для этой заявки» = available + собственный активный резерв заявки.
-        // Без этого корректно зарезервированный товар выглядел бы как «нехватка»,
-        // потому что available из stock_balances уже уменьшен на величину резерва.
-        const av = availableByProduct.get(args.product_id) ?? 0;
-        let ownReserved = 0;
-        const { data: dr } = await db
-          .from("delivery_routes")
-          .select("source_request_id")
-          .eq("id", deliveryRouteId)
-          .maybeSingle();
-        const srcId = (dr as { source_request_id?: string } | null)
-          ?.source_request_id;
-        if (srcId) {
-          const { data: rs } = await db
-            .from("stock_reservations")
-            .select("qty")
-            .eq("transport_request_id", srcId)
-            .eq("product_id", args.product_id)
-            .eq("warehouse_id", warehouseId)
-            .eq("status", "active");
-          const list = (rs ?? []) as Array<{ qty: number }>;
-          ownReserved = list.reduce(
-            (s, r) => s + (Number(r.qty) || 0),
-            0,
-          );
-        }
-        if (av + ownReserved < args.qty) {
-          throw new Error("Недостаточно товара для загрузки");
-        }
-      }
-
-      // 1) запись в журнале загрузки
-      const { error: e1 } = await db.from("dock_loaded_items").insert({
+      await apiPost("/api/dock-loading/confirm", {
         delivery_route_id: deliveryRouteId,
         warehouse_id: warehouseId,
         product_id: args.product_id,
         nomenclature: args.nomenclature,
-        unit: args.unit,
-        qty_loaded: args.qty,
+        unit: args.unit ?? null,
+        qty: args.qty,
+        route_number: routeNumber ?? null,
       });
-      if (e1) throw e1;
-
-      // 2) движение «отгрузка» (списание со склада)
-      if (args.product_id) {
-        const { error: e2 } = await db.from("stock_movements").insert({
-          warehouse_id: warehouseId,
-          product_id: args.product_id,
-          movement_type: "shipment",
-          qty: -args.qty,
-          reason: "shipment_loaded",
-          ref_route_id: deliveryRouteId,
-          comment: routeNumber
-            ? `Загрузка по маршруту ${routeNumber}: ${args.nomenclature}`
-            : `Загрузка: ${args.nomenclature}`,
-        });
-        if (e2) throw e2;
-
-        // 3) уменьшить активные резервы под исходную заявку
-        const { data: dr } = await db
-          .from("delivery_routes")
-          .select("source_request_id")
-          .eq("id", deliveryRouteId)
-          .maybeSingle();
-        const sourceRequestId = (dr as { source_request_id?: string } | null)
-          ?.source_request_id;
-        if (sourceRequestId) {
-          const { data: actives } = await db
-            .from("stock_reservations")
-            .select("id, qty")
-            .eq("transport_request_id", sourceRequestId)
-            .eq("product_id", args.product_id)
-            .eq("warehouse_id", warehouseId)
-            .eq("status", "active");
-          const list = (actives ?? []) as Array<{ id: string; qty: number }>;
-          let toConsume = args.qty;
-          let consumedTotal = 0;
-          for (const r of list) {
-            if (toConsume <= 0) break;
-            const q = Number(r.qty) || 0;
-            const take = Math.min(q, toConsume);
-            const remain = q - take;
-            if (remain <= 0) {
-              await db
-                .from("stock_reservations")
-                .update({ status: "consumed" })
-                .eq("id", r.id);
-            } else {
-              await db
-                .from("stock_reservations")
-                .update({ qty: remain })
-                .eq("id", r.id);
-            }
-            toConsume -= take;
-            consumedTotal += take;
-          }
-          if (consumedTotal > 0) {
-            await db.from("stock_movements").insert({
-              warehouse_id: warehouseId,
-              product_id: args.product_id,
-              movement_type: "reservation_consume",
-              qty: consumedTotal,
-              reason: "reservation_consumed_on_load",
-              ref_route_id: deliveryRouteId,
-              ref_transport_request_id: sourceRequestId,
-              comment: routeNumber
-                ? `Списание резерва при загрузке (маршрут ${routeNumber}): ${args.nomenclature}`
-                : `Списание резерва при загрузке: ${args.nomenclature}`,
-            });
-          }
-        }
-      }
     },
     onSuccess: (_d, args) => {
       toast.success("Загрузка подтверждена");
