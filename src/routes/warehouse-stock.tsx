@@ -699,22 +699,18 @@ function CreateProductDialog({
       if (Number.isNaN(qty) || qty < 0) throw new Error("Некорректный начальный остаток");
       if (Number.isNaN(min) || min < 0) throw new Error("Некорректный мин. остаток");
 
-      const { data: prod, error } = await db
-        .from("products")
-        .insert({
-          name: name.trim(),
-          sku: sku.trim() || null,
-          unit: unit.trim() || null,
-          category: category.trim() || null,
-          warehouse_id: warehouseId,
-          source: "manual",
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
+      const { row: prod } = await apiPost<{ row: { id: string } }>("/api/products", {
+        name: name.trim(),
+        sku: sku.trim() || null,
+        unit: unit.trim() || null,
+        category: category.trim() || null,
+        warehouse_id: warehouseId,
+        source: "manual",
+      });
+      if (!prod?.id) throw new Error("Не удалось создать товар");
 
       if (qty > 0) {
-        const { error: mErr } = await db.from("stock_movements").insert({
+        await apiPost("/api/stock-movements", {
           product_id: prod.id,
           warehouse_id: warehouseId,
           movement_type: "inbound",
@@ -723,19 +719,14 @@ function CreateProductDialog({
           comment: "Начальный остаток при создании товара",
           created_by: "Склад",
         });
-        if (mErr) throw mErr;
       }
 
       if (min > 0) {
-        const { error: sErr } = await db.from("product_stock_settings").upsert(
-          {
-            product_id: prod.id,
-            warehouse_id: warehouseId,
-            min_stock: min,
-          },
-          { onConflict: "product_id,warehouse_id" },
-        );
-        if (sErr) throw sErr;
+        await apiPost("/api/product-stock-settings", {
+          product_id: prod.id,
+          warehouse_id: warehouseId,
+          min_stock: min,
+        });
       }
     },
     onSuccess: () => {
