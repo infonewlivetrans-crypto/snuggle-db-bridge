@@ -27,6 +27,9 @@ export default defineConfig({
       },
     },
     build: {
+      // ВРЕМЕННО: production source maps для диагностики React #418 / toLocaleString / _nonReactive.
+      // Снять обратно (удалить эту строку) сразу после поимки читаемых стеков.
+      sourcemap: true,
       // Чанки для тяжёлых клиентских библиотек, чтобы не входили в initial bundle
       // и грузились только при первом использовании соответствующих экранов/действий.
       rollupOptions: {
