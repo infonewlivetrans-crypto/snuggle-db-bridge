@@ -78,13 +78,7 @@ function SupplyHistoryPage() {
   const { data: statusHistory } = useQuery({
     queryKey: ["supply-history-status"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("supply_request_status_history")
-        .select("id, supply_request_id, from_status, to_status, changed_at, changed_by, comment")
-        .order("changed_at", { ascending: false })
-        .limit(150);
-      if (error) throw error;
-      return (data ?? []) as Array<{
+      const r = await fetchListViaApi<{
         id: string;
         supply_request_id: string;
         from_status: string | null;
@@ -92,20 +86,15 @@ function SupplyHistoryPage() {
         changed_at: string;
         changed_by: string | null;
         comment: string | null;
-      }>;
+      }>("/api/supply-request-status-history", { limit: 150 });
+      return r.rows;
     },
   });
 
   const { data: movements } = useQuery({
     queryKey: ["supply-history-movements"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_movements")
-        .select("id, product_id, warehouse_id, movement_type, qty, reason, comment, created_at, created_by")
-        .order("created_at", { ascending: false })
-        .limit(150);
-      if (error) throw error;
-      return (data ?? []) as Array<{
+      const r = await fetchListViaApi<{
         id: string;
         product_id: string;
         warehouse_id: string;
@@ -115,7 +104,11 @@ function SupplyHistoryPage() {
         comment: string | null;
         created_at: string;
         created_by: string | null;
-      }>;
+      }>("/api/stock-movements", {
+        limit: 150,
+        extra: { order: "created_at.desc" },
+      });
+      return r.rows;
     },
   });
 
@@ -128,29 +121,32 @@ function SupplyHistoryPage() {
     queryKey: ["supply-history-requests", requestIds],
     enabled: requestIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("supply_requests")
-        .select("id, request_number")
-        .in("id", requestIds);
-      if (error) throw error;
-      return (data ?? []) as { id: string; request_number: string }[];
+      const r = await fetchListViaApi<{ id: string; request_number: string }>(
+        "/api/supply-requests",
+        { limit: 1000 },
+      );
+      return r.rows.filter((x) => requestIds.includes(x.id));
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-history"],
     queryFn: async () => {
-      const { data, error } = await db.from("products").select("id, name, sku");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string; sku: string | null }[];
+      const r = await fetchListViaApi<{ id: string; name: string; sku: string | null }>(
+        "/api/products",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-history"],
     queryFn: async () => {
-      const { data, error } = await db.from("warehouses").select("id, name");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string }[];
+      const r = await fetchListViaApi<{ id: string; name: string }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
