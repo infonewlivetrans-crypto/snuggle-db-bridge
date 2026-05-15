@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
           .select(fields, { count: "exact" });
         if (dateFrom) q = q.gte("route_date", dateFrom);
         if (dateTo) q = q.lte("route_date", dateTo);
-        if (status) q = q.eq("status", status);
+        if (status) q = q.eq("status", status as never);
         if (carrierId) q = q.eq("carrier_id", carrierId);
         q = q.order(orderCol || "route_date", { ascending });
 
