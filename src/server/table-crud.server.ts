@@ -5,9 +5,8 @@ import {
   cacheHeaders,
 } from "@/server/api-helpers.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 
-type Tables = keyof Database["public"]["Tables"];
+type Tables = string;
 
 interface ListConfig {
   table: Tables;
