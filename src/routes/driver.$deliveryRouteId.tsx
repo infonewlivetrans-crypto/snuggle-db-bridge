@@ -128,20 +128,32 @@ function DriverRoutePage() {
   const { deliveryRouteId } = Route.useParams();
   const qc = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error: detailError } = useQuery({
     queryKey: ["driver-route", deliveryRouteId],
     queryFn: async (): Promise<Detail | null> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select(
-          "id, route_number, route_date, status, source_request_id, assigned_driver, assigned_vehicle, current_stage",
-        )
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as unknown as Detail | null;
+      const res = await fetch(`/api/driver/route/${deliveryRouteId}`, {
+        credentials: "same-origin",
+        headers: {
+          accept: "application/json",
+          ...((): Record<string, string> => {
+            try {
+              const t = window.localStorage.getItem("rt-access-token");
+              return t ? { authorization: `Bearer ${t}` } : {};
+            } catch {
+              return {};
+            }
+          })(),
+        },
+      });
+      if (res.status === 403) throw new Error("forbidden");
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json()) as { route: Detail | null };
+      return body.route;
     },
+    retry: false,
   });
+  const isForbidden = detailError instanceof Error && detailError.message === "forbidden";
 
   // Реалтайм: изменения рейса/точек/заказов с других устройств — автоматически инвалидируем кэш
   useRealtimeInvalidate("delivery_routes", [["driver-route", deliveryRouteId]], {
@@ -245,21 +257,16 @@ function DriverRoutePage() {
       const list = points ?? [];
       const j = index + dir;
       if (j < 0 || j >= list.length) return;
-      const a = list[index];
-      const b = list[j];
-      const tmp = -Math.floor(Math.random() * 1_000_000) - 1;
-      const e1 = await supabase.from("route_points").update({ point_number: tmp }).eq("id", a.id);
-      if (e1.error) throw e1.error;
-      const e2 = await supabase
-        .from("route_points")
-        .update({ point_number: a.point_number })
-        .eq("id", b.id);
-      if (e2.error) throw e2.error;
-      const e3 = await supabase
-        .from("route_points")
-        .update({ point_number: b.point_number })
-        .eq("id", a.id);
-      if (e3.error) throw e3.error;
+      const ordered = list.map((p) => p.id);
+      [ordered[index], ordered[j]] = [ordered[j], ordered[index]];
+      const routeId = data?.source_request_id;
+      if (!routeId) throw new Error("Маршрут не загружен");
+      const { apiPost } = await import("@/lib/api-client");
+      await apiPost("/api/route-points/reorder", {
+        route_id: routeId,
+        ordered_ids: ordered,
+        changed_by: data?.assigned_driver ?? "Водитель",
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-route-points", data?.source_request_id] });
@@ -364,6 +371,10 @@ function DriverRoutePage() {
       <main className="mx-auto max-w-3xl px-4 py-4 sm:py-6">
         {isLoading ? (
           <div className="text-muted-foreground">Загрузка...</div>
+        ) : isForbidden ? (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center text-sm text-destructive">
+            Этот маршрут не назначен вам.
+          </div>
         ) : !data ? (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
             Маршрут не найден

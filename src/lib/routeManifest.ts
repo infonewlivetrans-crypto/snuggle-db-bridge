@@ -30,6 +30,7 @@ const PAYMENT_LABELS: Record<string, string> = {
   card: "Карта",
   prepaid: "Предоплата",
   invoice: "Счёт / б/н",
+  bank_transfer: "По реквизитам",
 };
 
 export async function loadManifest(deliveryRouteId: string): Promise<ManifestData> {

@@ -324,13 +324,31 @@ export function AppHeader() {
     isPathEnabled(to, enabledModules) &&
     isPathVisibleInLaunchMode(to, launchMode);
 
-  const visibleGroups = useMemo(() => {
+  const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver" || r === "carrier");
+
+  const visibleGroups = useMemo<NavGroup[]>(() => {
+    if (isDriverOnly) {
+      return [
+        {
+          id: "driver",
+          label: "Мои маршруты",
+          icon: Truck,
+          match: (p: string) => p.startsWith("/driver"),
+          items: [
+            { to: "/driver", label: "Мои маршруты", icon: Truck },
+            { to: "/notifications", label: "Уведомления", icon: Bell },
+            { to: "/workspace", label: "Профиль", icon: User },
+            { to: "/feedback", label: "Обратная связь", icon: MessageSquare },
+          ],
+        },
+      ];
+    }
     return GROUPS.map((g) => ({
       ...g,
       items: g.items.filter((it) => isItemVisible(it.to)),
     })).filter((g) => g.items.length > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles.join("|"), JSON.stringify(enabledModules), launchMode]);
+  }, [roles.join("|"), JSON.stringify(enabledModules), launchMode, isDriverOnly]);
 
   const activeGroup =
     visibleGroups.find((g) => g.match(path)) ?? null;

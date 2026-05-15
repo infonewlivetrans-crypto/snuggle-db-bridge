@@ -4361,7 +4361,7 @@ export type Database = {
         | "return_accepted"
         | "excluded_from_route"
       payment_status: "not_paid" | "partial" | "paid" | "refunded"
-      payment_type: "cash" | "card" | "online" | "qr"
+      payment_type: "cash" | "card" | "online" | "qr" | "bank_transfer"
       point_status:
         | "pending"
         | "arrived"
@@ -4668,7 +4668,7 @@ export const Constants = {
         "excluded_from_route",
       ],
       payment_status: ["not_paid", "partial", "paid", "refunded"],
-      payment_type: ["cash", "card", "online", "qr"],
+      payment_type: ["cash", "card", "online", "qr", "bank_transfer"],
       point_status: [
         "pending",
         "arrived",

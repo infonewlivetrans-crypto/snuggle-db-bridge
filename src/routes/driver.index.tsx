@@ -1,11 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Truck, Hash, Calendar, MapPin, ChevronRight, Search } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Truck, Hash, Calendar, MapPin, ChevronRight } from "lucide-react";
 import {
   DELIVERY_ROUTE_STATUS_LABELS,
   DELIVERY_ROUTE_STATUS_STYLES,
@@ -32,54 +30,18 @@ type Row = {
   source_request_id: string;
 };
 
+type Resp = { rows: Row[]; pointsCounts: Record<string, number> };
+
 function DriverRoutesListPage() {
-  const [driver, setDriver] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    return localStorage.getItem("driver-name-filter") ?? "";
-  });
-
   const { data, isLoading } = useQuery({
-    queryKey: ["driver-routes-list", driver],
-    queryFn: async (): Promise<Row[]> => {
-      let q = supabase
-        .from("delivery_routes")
-        .select(
-          "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id",
-        )
-        .in("status", ["issued", "in_progress", "completed"])
-        .order("route_date", { ascending: false })
-        .limit(100);
-      if (driver.trim()) q = q.ilike("assigned_driver", `%${driver.trim()}%`);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as unknown as Row[];
+    queryKey: ["driver-my-routes"],
+    queryFn: async (): Promise<Resp> => {
+      return await apiGetAuth<Resp>("/api/driver/my-routes");
     },
   });
 
-  const ids = useMemo(() => (data ?? []).map((r) => r.source_request_id), [data]);
-  const { data: pointsCounts } = useQuery({
-    enabled: ids.length > 0,
-    queryKey: ["driver-routes-point-counts", ids.join(",")],
-    queryFn: async (): Promise<Record<string, number>> => {
-      const { data: rows, error } = await supabase
-        .from("route_points")
-        .select("route_id")
-        .in("route_id", ids);
-      if (error) throw error;
-      const map: Record<string, number> = {};
-      for (const r of (rows ?? []) as Array<{ route_id: string }>) {
-        map[r.route_id] = (map[r.route_id] ?? 0) + 1;
-      }
-      return map;
-    },
-  });
-
-  const persistDriver = (val: string) => {
-    setDriver(val);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("driver-name-filter", val);
-    }
-  };
+  const rows = data?.rows ?? [];
+  const pointsCounts = data?.pointsCounts ?? {};
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,33 +53,15 @@ function DriverRoutesListPage() {
       </div>
 
       <main className="mx-auto max-w-3xl space-y-4 px-4 py-4">
-        <div className="rounded-lg border border-border bg-card p-3">
-          <div className="mb-1.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Водитель
-          </div>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={driver}
-              onChange={(e) => persistDriver(e.target.value)}
-              placeholder="Введите ФИО водителя"
-              className="pl-9"
-            />
-          </div>
-          <div className="mt-1.5 text-xs text-muted-foreground">
-            Имя сохраняется на этом устройстве и используется для фильтра маршрутов.
-          </div>
-        </div>
-
         {isLoading ? (
           <div className="text-muted-foreground">Загрузка…</div>
-        ) : !data || data.length === 0 ? (
+        ) : rows.length === 0 ? (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
-            {driver ? "Маршрутов не найдено" : "Введите имя водителя, чтобы увидеть свои маршруты"}
+            У вас пока нет назначенных маршрутов
           </div>
         ) : (
           <div className="space-y-3">
-            {data.map((r) => (
+            {rows.map((r) => (
               <Link
                 key={r.id}
                 to="/driver/$deliveryRouteId"
@@ -143,7 +87,7 @@ function DriverRoutesListPage() {
                       )}
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" />
-                        {pointsCounts?.[r.source_request_id] ?? 0} точек
+                        {pointsCounts[r.source_request_id] ?? 0} точек
                       </span>
                     </div>
                   </div>
@@ -160,9 +104,9 @@ function DriverRoutesListPage() {
         )}
 
         <div className="pt-2">
-          <Link to="/" search={{ orderId: undefined }}>
+          <Link to="/workspace">
             <Button variant="outline" size="sm" className="w-full">
-              На главную
+              Профиль
             </Button>
           </Link>
         </div>
