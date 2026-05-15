@@ -158,10 +158,9 @@ function WorkControlPage() {
       const orderIdsToday = orders.map((o) => o.id);
       let assignedOrderIds = new Set<string>();
       if (orderIdsToday.length > 0) {
-        const { data: assigned } = await supabase
-          .from("route_points")
-          .select("order_id")
-          .in("order_id", orderIdsToday);
+        const assigned = await apiGetAuth<Array<{ order_id: string }>>(
+          `/api/route-points?order_id_in=${encodeURIComponent(orderIdsToday.join(","))}&fields=order_id`,
+        ).catch(() => [] as Array<{ order_id: string }>);
         assignedOrderIds = new Set(
           (assigned ?? []).map((r) => String(r.order_id)),
         );
