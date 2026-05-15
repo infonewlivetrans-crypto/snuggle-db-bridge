@@ -873,16 +873,12 @@ function ProblemDialog({
     }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("inbound_shipments" as any)
-        .update({
-          status: "problem",
-          problem_reason: reason.trim(),
-          problem_comment: comment.trim() || null,
-          problem_photo_url: photoUrl || null,
-        })
-        .eq("id", shipmentId);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipments/${shipmentId}`, {
+        status: "problem",
+        problem_reason: reason.trim(),
+        problem_comment: comment.trim() || null,
+        problem_photo_url: photoUrl || null,
+      });
       toast.success("Проблема зафиксирована");
       onSaved();
       setReason("");
