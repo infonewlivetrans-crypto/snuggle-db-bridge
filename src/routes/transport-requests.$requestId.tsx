@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -152,15 +153,17 @@ function TransportRequestDetailPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["transport-request", requestId],
     queryFn: async (): Promise<RequestDetail | null> => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "id, route_number, request_type, status, route_date, departure_time, request_priority, comment, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, request_status, request_status_changed_by, request_status_changed_at, request_status_comment, created_at, carrier_assignment_status, driver_id, carrier_id, carrier_payment_status, carrier_payout_status, organization, transport_kind, unloading_zone, source_warehouse:warehouse_id(name, city, address), destination_warehouse:destination_warehouse_id(name, city, address), carrier:carrier_id(company_name), driver:driver_id(full_name, phone), vehicle:vehicle_id(plate_number, brand, model)",
-        )
-        .eq("id", requestId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as unknown as RequestDetail | null;
+      // Прямой supabase.from('routes') с broken embed
+      // `destination_warehouse:destination_warehouse_id(...)` валился 400.
+      // Идём через /api/routes/:id, который сам дозаполняет destination/warehouse/carrier/driver/vehicle.
+      try {
+        const data = await apiGetAuth<RequestDetail>(`/api/routes/${requestId}`);
+        return data ?? null;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("HTTP 404")) return null;
+        throw e;
+      }
     },
   });
 

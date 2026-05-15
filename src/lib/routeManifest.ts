@@ -34,10 +34,12 @@ const PAYMENT_LABELS: Record<string, string> = {
 };
 
 export async function loadManifest(deliveryRouteId: string): Promise<ManifestData> {
+  // У delivery_routes нет FK на warehouses → embed `source_warehouse:source_warehouse_id(...)`
+  // валится PGRST200. Берём базовые поля, склад дозаполняем отдельным запросом.
   const { data: route, error: rErr } = await supabase
     .from("delivery_routes")
     .select(
-      "route_number, route_date, assigned_driver, assigned_vehicle, source_request_id, source_warehouse:source_warehouse_id(name, city)",
+      "route_number, route_date, assigned_driver, assigned_vehicle, source_request_id, source_warehouse_id",
     )
     .eq("id", deliveryRouteId)
     .maybeSingle();
@@ -50,8 +52,18 @@ export async function loadManifest(deliveryRouteId: string): Promise<ManifestDat
     assigned_driver: string | null;
     assigned_vehicle: string | null;
     source_request_id: string;
-    source_warehouse: { name: string; city: string | null } | null;
+    source_warehouse_id: string | null;
   };
+
+  let sourceWarehouse: { name: string; city: string | null } | null = null;
+  if (r.source_warehouse_id) {
+    const { data: wh } = await supabase
+      .from("warehouses")
+      .select("name, city")
+      .eq("id", r.source_warehouse_id)
+      .maybeSingle();
+    sourceWarehouse = (wh as { name: string; city: string | null } | null) ?? null;
+  }
 
   const { data: pts, error: pErr } = await supabase
     .from("route_points")
