@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
+import {
+  cacheHeaders,
+  jsonResponse,
+  parseListParams,
+  requireAuth,
+} from "@/server/api-helpers.server";
 
 const Schema = z.object({
   route_number: z.string().min(1).max(64),
@@ -15,6 +20,39 @@ const Schema = z.object({
 export const Route = createFileRoute("/api/delivery-routes")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+
+        const { limit, offset, url } = parseListParams(request);
+        const fields =
+          url.searchParams.get("fields") || "*";
+        const dateFrom = url.searchParams.get("route_date_gte");
+        const dateTo = url.searchParams.get("route_date_lte");
+        const status = url.searchParams.get("status");
+        const carrierId = url.searchParams.get("carrier_id");
+        const order = url.searchParams.get("order") ?? "route_date.desc";
+        const [orderCol, orderDirRaw] = order.split(".");
+        const ascending = (orderDirRaw ?? "desc").toLowerCase() !== "desc";
+
+        let q = auth.client
+          .from("delivery_routes")
+          .select(fields, { count: "exact" });
+        if (dateFrom) q = q.gte("route_date", dateFrom);
+        if (dateTo) q = q.lte("route_date", dateTo);
+        if (status) q = q.eq("status", status as never);
+        if (carrierId) q = q.eq("carrier_id", carrierId);
+        q = q.order(orderCol || "route_date", { ascending });
+
+        // Большой limit для списков-фильтраций (страницы директора и т.п.)
+        const useLimit = Math.min(Math.max(limit, 1), 500);
+        const { data, error, count } = await q.range(offset, offset + useLimit - 1);
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse(
+          { rows: data ?? [], total: count ?? 0 },
+          { headers: cacheHeaders(20) },
+        );
+      },
       POST: async ({ request }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
