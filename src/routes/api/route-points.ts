@@ -64,9 +64,9 @@ export const Route = createFileRoute("/api/route-points")({
         if (orderIds.length > 0) q = q.in("order_id", orderIds);
         if (statusIn) {
           const arr = statusIn.split(",").map((s) => s.trim()).filter(Boolean);
-          if (arr.length > 0) q = q.in("status", arr);
+          if (arr.length > 0) q = q.in("status", arr as never);
         }
-        if (dpStatus) q = q.eq("dp_status", dpStatus);
+        if (dpStatus) q = q.eq("dp_status", dpStatus as never);
         if (orFilter) q = q.or(orFilter);
         if (returnsOnly)
           q = q.or("status.eq.returned_to_warehouse,dp_status.eq.return_to_warehouse");
