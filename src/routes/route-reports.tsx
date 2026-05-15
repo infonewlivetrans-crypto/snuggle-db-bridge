@@ -44,14 +44,11 @@ function RouteReportsPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["route-completed-reports-list"],
     queryFn: async (): Promise<Notif[]> => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("id, created_at, payload")
-        .eq("kind", "route_completed_report")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return (data ?? []) as unknown as Notif[];
+      const { rows } = await fetchListViaApi<Notif>("/api/notifications", {
+        limit: 200,
+        extra: { kind: "route_completed_report", fields: "id, created_at, payload" },
+      });
+      return rows;
     },
     staleTime: 2 * 60_000,
     placeholderData: (prev) => prev,
