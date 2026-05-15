@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -105,39 +105,29 @@ function WarehouseMovementsPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<Warehouse>("/api/warehouses", { limit: 1000 });
+      return r.rows;
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-min"],
     queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Product[];
+      const r = await fetchListViaApi<Product>("/api/products", { limit: 1000 });
+      return r.rows;
     },
   });
 
   const { data: movements, isLoading } = useQuery({
     queryKey: ["stock-movements", productFilter],
     queryFn: async (): Promise<Movement[]> => {
-      let q = db
-        .from("stock_movements")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(2000);
-      if (productFilter !== "all") q = q.eq("product_id", productFilter);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as Movement[];
+      const extra: Record<string, string> = { order: "created_at.desc" };
+      if (productFilter !== "all") extra.product_id = productFilter;
+      const r = await fetchListViaApi<Movement>("/api/stock-movements", {
+        limit: 1000,
+        extra,
+      });
+      return r.rows;
     },
   });
 

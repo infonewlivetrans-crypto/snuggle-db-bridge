@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -108,101 +108,70 @@ function WarehouseSchedulePage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-for-schedule"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouses")
-        .select("id,name,city,working_hours,breaks")
-        .order("name");
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<{
+        id: string;
+        name: string;
+        city: string | null;
+        working_hours?: unknown;
+        breaks?: unknown;
+      }>("/api/warehouses", { limit: 1000 });
+      return r.rows;
     },
   });
 
-  const { data: routes, isLoading } = useQuery({
+  type SchedRoute = {
+    id: string;
+    route_number: string | null;
+    route_date: string;
+    planned_departure_at: string | null;
+    departure_time: string | null;
+    status: string;
+    driver_name: string | null;
+    driver_id: string | null;
+    vehicle_id: string | null;
+    warehouse_id: string | null;
+    destination_warehouse_id: string | null;
+    comment: string | null;
+    request_type: string | null;
+  };
+  type SchedPayload = {
+    routes: SchedRoute[];
+    drivers: { id: string; full_name: string }[];
+    vehicles: { id: string; plate_number: string | null; brand: string | null; model: string | null }[];
+    destinations: { id: string; name: string; city: string | null }[];
+  };
+
+  const { data: payload, isLoading } = useQuery({
     queryKey: ["warehouse-schedule", date, warehouseId],
     queryFn: async () => {
-      let q = supabase
-        .from("routes")
-        .select(
-          "id,route_number,route_date,planned_departure_at,departure_time,status,driver_name,driver_id,vehicle_id,warehouse_id,destination_warehouse_id,comment,request_type",
-        )
-        .eq("route_date", date)
-        .order("planned_departure_at", { ascending: true, nullsFirst: false });
-      if (warehouseId !== "all") q = q.eq("warehouse_id", warehouseId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data ?? [];
+      const params = new URLSearchParams({ date });
+      if (warehouseId !== "all") params.set("warehouse_id", warehouseId);
+      return await apiGetAuth<SchedPayload>(`/api/warehouse-schedule?${params.toString()}`);
     },
   });
 
-  const driverIds = useMemo(
-    () => Array.from(new Set((routes ?? []).map((r) => r.driver_id).filter(Boolean) as string[])),
-    [routes],
-  );
-  const vehicleIds = useMemo(
-    () => Array.from(new Set((routes ?? []).map((r) => r.vehicle_id).filter(Boolean) as string[])),
-    [routes],
-  );
-  const destIds = useMemo(
-    () =>
-      Array.from(
-        new Set((routes ?? []).map((r) => r.destination_warehouse_id).filter(Boolean) as string[]),
-      ),
-    [routes],
-  );
-
-  const { data: drivers } = useQuery({
-    queryKey: ["sched-drivers", driverIds],
-    enabled: driverIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("drivers").select("id,full_name").in("id", driverIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: vehicles } = useQuery({
-    queryKey: ["sched-vehicles", vehicleIds],
-    enabled: vehicleIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("id,plate_number,brand,model")
-        .in("id", vehicleIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: destWh } = useQuery({
-    queryKey: ["sched-dest-wh", destIds],
-    enabled: destIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("warehouses").select("id,name,city").in("id", destIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const routes = payload?.routes;
 
   const driverById = useMemo(
-    () => Object.fromEntries((drivers ?? []).map((d) => [d.id, d.full_name])),
-    [drivers],
+    () => Object.fromEntries((payload?.drivers ?? []).map((d) => [d.id, d.full_name])),
+    [payload],
   );
   const vehicleById = useMemo(
     () =>
       Object.fromEntries(
-        (vehicles ?? []).map((v) => [
+        (payload?.vehicles ?? []).map((v) => [
           v.id,
           [v.brand, v.model].filter(Boolean).join(" ") + (v.plate_number ? ` · ${v.plate_number}` : ""),
         ]),
       ),
-    [vehicles],
+    [payload],
   );
   const destNameById = useMemo(
     () =>
       Object.fromEntries(
-        (destWh ?? []).map((w) => [w.id, [w.name, w.city].filter(Boolean).join(" · ")]),
+        (payload?.destinations ?? []).map((w) => [w.id, [w.name, w.city].filter(Boolean).join(" · ")]),
       ),
-    [destWh],
+    [payload],
   );
   const whById = useMemo(
     () => Object.fromEntries((warehouses ?? []).map((w) => [w.id, w])),
