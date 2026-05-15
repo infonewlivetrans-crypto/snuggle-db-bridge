@@ -678,11 +678,7 @@ function SupplyEditDialog({
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!request) return;
-      const { error } = await db
-        .from("supply_requests")
-        .update(buildPatch())
-        .eq("id", request.id);
-      if (error) throw error;
+      await apiPatch(`/api/supply-requests/${request.id}`, buildPatch());
     },
     onSuccess: () => {
       toast.success("Заявка обновлена");
@@ -702,16 +698,10 @@ function SupplyEditDialog({
       const expectedAtIso = expectedDate
         ? new Date(`${expectedDate}T${expectedTime || "00:00"}:00`).toISOString()
         : null;
-      // 1. Сохраняем план в заявке
-      const { error: saveError } = await db
-        .from("supply_requests")
-        .update(buildPatch())
-        .eq("id", request.id);
-      if (saveError) throw saveError;
-      // 2. Создаём ожидаемое поступление
-      const { data: shipment, error } = await db
-        .from("inbound_shipments")
-        .insert({
+      await apiPatch(`/api/supply-requests/${request.id}`, buildPatch());
+      const shipment = await apiPost<{ row?: { id: string }; id?: string }>(
+        "/api/inbound-shipments",
+        {
           shipment_number: `IN-${request.request_number}`,
           source_type: sourceType,
           source_name:
@@ -727,28 +717,21 @@ function SupplyEditDialog({
           status: "expected",
           comment: `Из заявки на пополнение № ${request.request_number}`,
           supply_request_id: request.id,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      // 3. Состав поступления
-      const { error: itemError } = await db.from("inbound_shipment_items").insert({
-        shipment_id: (shipment as { id: string }).id,
+        },
+      );
+      const shipmentId = shipment?.row?.id ?? shipment?.id;
+      if (!shipmentId) throw new Error("Не удалось создать поступление");
+      await apiPost("/api/inbound-shipment-items", {
+        shipment_id: shipmentId,
         product_name: productName,
         qty_expected: request.qty,
         unit: productUnit,
       });
-      if (itemError) throw itemError;
-      // 4. Привязываем поступление к заявке + ставим статус «ожидается»
-      const { error: linkError } = await db
-        .from("supply_requests")
-        .update({
-          inbound_shipment_id: (shipment as { id: string }).id,
-          supply_status: "awaiting",
-          supply_status_changed_at: new Date().toISOString(),
-        })
-        .eq("id", request.id);
-      if (linkError) throw linkError;
+      await apiPatch(`/api/supply-requests/${request.id}`, {
+        inbound_shipment_id: shipmentId,
+        supply_status: "awaiting",
+        supply_status_changed_at: new Date().toISOString(),
+      });
     },
     onSuccess: () => {
       toast.success("Ожидаемое поступление создано");
