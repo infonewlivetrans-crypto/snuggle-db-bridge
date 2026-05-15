@@ -6,7 +6,7 @@ export const Route = createFileRoute("/api/stock-balances")({
     handlers: {
       GET: listHandler({
         table: "stock_balances",
-        filters: { warehouse_id: "eq", product_id: "eq" },
+        filters: { warehouse_id: "eq", product_id: "in" },
         cacheSeconds: 30,
       }),
     },
