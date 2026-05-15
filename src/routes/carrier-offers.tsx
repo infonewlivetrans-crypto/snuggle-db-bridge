@@ -133,11 +133,10 @@ function CarrierOffersPage() {
     queryKey: ["carrier-offers", "list", carrierId, isStaff],
     enabled: !!user && (isStaff || !!carrierId),
     queryFn: async (): Promise<OfferRow[]> => {
-      let q = db.from("route_offers").select("*").order("sent_at", { ascending: false });
-      if (!isStaff && carrierId) q = q.eq("carrier_id", carrierId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as OfferRow[];
+      const qs = new URLSearchParams();
+      qs.set("limit", "500");
+      if (!isStaff && carrierId) qs.set("carrier_id", carrierId);
+      return await apiGetAuth<OfferRow[]>(`/api/route-offers?${qs.toString()}`);
     },
   });
 
@@ -150,15 +149,16 @@ function CarrierOffersPage() {
     queryKey: ["carrier-offers", "routes", routeIds],
     enabled: routeIds.length > 0,
     queryFn: async (): Promise<Record<string, RouteRow>> => {
-      const { data, error } = await db
-        .from("routes")
-        .select(
-          "id, route_number, route_date, planned_departure_at, departure_time, points_count, total_weight_kg, total_volume_m3, total_distance_km, carrier_cost, delivery_cost, carrier_reward, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, warehouse:warehouse_id(name, address, city), destination:destination_warehouse_id(name, city)",
-        )
-        .in("id", routeIds);
-      if (error) throw error;
+      const { rows } = await fetchListViaApi<RouteRow>("/api/routes", {
+        limit: 500,
+        extra: {
+          ids: routeIds.join(","),
+          fields:
+            "id, route_number, route_date, planned_departure_at, departure_time, points_count, total_weight_kg, total_volume_m3, total_distance_km, carrier_cost, delivery_cost, carrier_reward, required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, transport_comment, warehouse:warehouse_id(name, address, city), destination:destination_warehouse_id(name, city)",
+        },
+      });
       const map: Record<string, RouteRow> = {};
-      for (const r of (data ?? []) as unknown as RouteRow[]) map[r.id] = r;
+      for (const r of rows) map[r.id] = r;
       return map;
     },
   });
