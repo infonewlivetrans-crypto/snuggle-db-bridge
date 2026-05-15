@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/lib/db";
 import {
   Table,
   TableBody,
@@ -19,6 +18,7 @@ import {
   CircleDashed,
 } from "lucide-react";
 import { toast } from "sonner";
+import { fetchListViaApi, apiPost } from "@/lib/api-client";
 
 type Pt = { order_id: string };
 type Item = {
@@ -46,9 +46,7 @@ function fmt(n: number, digits = 3) {
 
 /**
  * Резервирование товара под заявку на транспорт.
- * - Резерв уменьшает доступный остаток (через view stock_balances).
- * - При снятии — возвращает в доступный.
- * - Все действия фиксируются в журнале движения товара.
+ * Все мутации/чтения через серверные endpoint'ы (/api/*).
  */
 export function StockReservationBlock({
   requestId,
@@ -61,16 +59,15 @@ export function StockReservationBlock({
 }) {
   const qc = useQueryClient();
 
-  // Заказы заявки
+  // Точки заявки → order_id
   const { data: pts = [] } = useQuery({
     queryKey: ["reserv-points", requestId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", requestId);
-      if (error) throw error;
-      return (data ?? []) as Pt[];
+      const { rows } = await fetchListViaApi<Pt>("/api/route-points", {
+        extra: { route_id: requestId },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
@@ -84,12 +81,11 @@ export function StockReservationBlock({
     queryKey: ["reserv-items", requestId, orderIds.join(",")],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select("id, order_id, product_id, nomenclature, unit, qty")
-        .in("order_id", orderIds);
-      if (error) throw error;
-      return (data ?? []) as Item[];
+      const { rows } = await fetchListViaApi<Item>("/api/order-items", {
+        extra: { order_id: orderIds.join(",") },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
@@ -106,7 +102,7 @@ export function StockReservationBlock({
       }
     >();
     for (const it of items) {
-      if (!it.product_id) continue; // резервируем только каталожные
+      if (!it.product_id) continue;
       const key = it.product_id;
       const cur = map.get(key);
       const q = Number(it.qty) || 0;
@@ -127,17 +123,15 @@ export function StockReservationBlock({
 
   const productIds = required.map((r) => r.product_id!).filter(Boolean);
 
-  // Текущие резервы по этой заявке
+  // Активные резервы по этой заявке
   const { data: reservations = [] } = useQuery({
     queryKey: ["reservations", requestId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_reservations")
-        .select("id, product_id, warehouse_id, qty, status, transport_request_id")
-        .eq("transport_request_id", requestId)
-        .eq("status", "active");
-      if (error) throw error;
-      return (data ?? []) as Reserv[];
+      const { rows } = await fetchListViaApi<Reserv>("/api/stock-reservations", {
+        extra: { transport_request_id: requestId, status: "active" },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
@@ -149,18 +143,19 @@ export function StockReservationBlock({
     return m;
   }, [reservations]);
 
-  // Остатки на складе (доступно — уже учитывает все резервы)
+  // Остатки на складе
   const { data: balances = [] } = useQuery({
     queryKey: ["reserv-bal", warehouseId, productIds.join(",")],
     enabled: !!warehouseId && productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("product_id, available")
-        .eq("warehouse_id", warehouseId)
-        .in("product_id", productIds);
-      if (error) throw error;
-      return (data ?? []) as Bal[];
+      const { rows } = await fetchListViaApi<Bal>("/api/stock-balances", {
+        extra: {
+          warehouse_id: warehouseId!,
+          product_id: productIds.join(","),
+        },
+        limit: 1000,
+      });
+      return rows;
     },
   });
 
@@ -194,7 +189,6 @@ export function StockReservationBlock({
     [required, reservedByProduct, availByProduct],
   );
 
-  // Сводный статус
   const summary = useMemo(() => {
     if (!warehouseId || rows.length === 0) return null;
     const allFull = rows.every((r) => r.fullyReserved);
@@ -216,7 +210,6 @@ export function StockReservationBlock({
     qc.invalidateQueries({ queryKey: ["request-wh-status"] });
   };
 
-  // Резервировать одну строку
   const reserveOne = useMutation({
     mutationFn: async (args: {
       product_id: string;
@@ -224,47 +217,15 @@ export function StockReservationBlock({
       nomenclature: string;
     }) => {
       if (!warehouseId) throw new Error("Не указан склад отгрузки");
-      // Свежая проверка остатка
-      const { data: bal, error: be } = await db
-        .from("stock_balances")
-        .select("available")
-        .eq("warehouse_id", warehouseId)
-        .eq("product_id", args.product_id)
-        .maybeSingle();
-      if (be) throw be;
-      const av = Number(bal?.available ?? 0);
       if (args.qty <= 0) throw new Error("Нечего резервировать");
-      if (av < args.qty) {
-        throw new Error("Нельзя зарезервировать товар: недостаточно остатка");
-      }
-
-      const { error: re } = await db.from("stock_reservations").insert({
-        product_id: args.product_id,
+      await apiPost("/api/stock-reservations/reserve", {
+        request_id: requestId,
         warehouse_id: warehouseId,
-        qty: args.qty,
-        status: "active",
-        transport_request_id: requestId,
-        comment: routeNumber
-          ? `Резерв под заявку ${routeNumber}`
-          : "Резерв под заявку на транспорт",
-        created_by: "Логист",
-      });
-      if (re) throw re;
-
-      const { error: me } = await db.from("stock_movements").insert({
         product_id: args.product_id,
-        warehouse_id: warehouseId,
-        movement_type: "reserve",
         qty: args.qty,
-        reason: "reservation_created",
-        ref_route_id: requestId,
-        ref_transport_request_id: requestId,
-        comment: routeNumber
-          ? `Резерв под заявку ${routeNumber}: ${args.nomenclature}`
-          : `Резерв: ${args.nomenclature}`,
-        created_by: "Логист",
+        nomenclature: args.nomenclature,
+        route_number: routeNumber ?? null,
       });
-      if (me) throw me;
     },
     onSuccess: () => {
       toast.success("Товар зарезервирован");
@@ -273,42 +234,16 @@ export function StockReservationBlock({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Снять резерв по строке (все активные резервы по продукту в этой заявке)
   const releaseOne = useMutation({
     mutationFn: async (args: { product_id: string; nomenclature: string }) => {
       if (!warehouseId) throw new Error("Не указан склад");
-      const { data: active, error: qe } = await db
-        .from("stock_reservations")
-        .select("id, qty")
-        .eq("transport_request_id", requestId)
-        .eq("product_id", args.product_id)
-        .eq("status", "active");
-      if (qe) throw qe;
-      const list = (active ?? []) as Array<{ id: string; qty: number }>;
-      const total = list.reduce((s, r) => s + (Number(r.qty) || 0), 0);
-      if (total <= 0) return;
-
-      const ids = list.map((r) => r.id);
-      const { error: ue } = await db
-        .from("stock_reservations")
-        .update({ status: "released" })
-        .in("id", ids);
-      if (ue) throw ue;
-
-      const { error: me } = await db.from("stock_movements").insert({
-        product_id: args.product_id,
+      await apiPost("/api/stock-reservations/release", {
+        request_id: requestId,
         warehouse_id: warehouseId,
-        movement_type: "reservation_release",
-        qty: total,
-        reason: "reservation_released",
-        ref_route_id: requestId,
-        ref_transport_request_id: requestId,
-        comment: routeNumber
-          ? `Снятие резерва (заявка ${routeNumber}): ${args.nomenclature}`
-          : `Снятие резерва: ${args.nomenclature}`,
-        created_by: "Логист",
+        product_id: args.product_id,
+        nomenclature: args.nomenclature,
+        route_number: routeNumber ?? null,
       });
-      if (me) throw me;
     },
     onSuccess: () => {
       toast.success("Резерв снят");
@@ -317,49 +252,30 @@ export function StockReservationBlock({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Зарезервировать всё, что можно
   const reserveAll = useMutation({
     mutationFn: async () => {
       if (!warehouseId) throw new Error("Не указан склад отгрузки");
       const targets = rows.filter((r) => r.canReserveMore > 0);
-      if (targets.length === 0) {
-        throw new Error("Нечего резервировать");
-      }
+      if (targets.length === 0) throw new Error("Нечего резервировать");
       let anyShortage = false;
       for (const r of targets) {
         if (r.canReserveMore < r.need) anyShortage = true;
-        const { error: re } = await db.from("stock_reservations").insert({
-          product_id: r.product_id!,
+        await apiPost("/api/stock-reservations/reserve", {
+          request_id: requestId,
           warehouse_id: warehouseId,
-          qty: r.canReserveMore,
-          status: "active",
-          transport_request_id: requestId,
-          comment: routeNumber
-            ? `Резерв под заявку ${routeNumber}`
-            : "Резерв под заявку на транспорт",
-          created_by: "Логист",
-        });
-        if (re) throw re;
-        const { error: me } = await db.from("stock_movements").insert({
           product_id: r.product_id!,
-          warehouse_id: warehouseId,
-          movement_type: "reserve",
           qty: r.canReserveMore,
-          reason: "reservation_created",
-          ref_route_id: requestId,
-          ref_transport_request_id: requestId,
-          comment: routeNumber
-            ? `Резерв под заявку ${routeNumber}: ${r.nomenclature}`
-            : `Резерв: ${r.nomenclature}`,
-          created_by: "Логист",
+          nomenclature: r.nomenclature,
+          route_number: routeNumber ?? null,
         });
-        if (me) throw me;
       }
       return { anyShortage };
     },
     onSuccess: ({ anyShortage }) => {
       if (anyShortage) {
-        toast.warning("Часть товара зарезервирована, по некоторым позициям не хватает остатка");
+        toast.warning(
+          "Часть товара зарезервирована, по некоторым позициям не хватает остатка",
+        );
       } else {
         toast.success("Товар зарезервирован");
       }
@@ -368,52 +284,14 @@ export function StockReservationBlock({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Снять все резервы по заявке
   const releaseAll = useMutation({
     mutationFn: async () => {
       if (!warehouseId) throw new Error("Не указан склад");
-      const { data: active, error: qe } = await db
-        .from("stock_reservations")
-        .select("id, product_id, qty")
-        .eq("transport_request_id", requestId)
-        .eq("status", "active");
-      if (qe) throw qe;
-      if (!active || active.length === 0) return;
-
-      const list = active as Array<{ id: string; product_id: string; qty: number }>;
-      const ids = list.map((r) => r.id);
-      const { error: ue } = await db
-        .from("stock_reservations")
-        .update({ status: "released" })
-        .in("id", ids);
-      if (ue) throw ue;
-
-      // Группируем по product_id для журнала
-      const byProduct = new Map<string, number>();
-      for (const r of list) {
-        byProduct.set(
-          r.product_id,
-          (byProduct.get(r.product_id) ?? 0) + (Number(r.qty) || 0),
-        );
-      }
-      for (const [pid, total] of byProduct) {
-        const nomenc =
-          rows.find((x) => x.product_id === pid)?.nomenclature ?? "";
-        const { error: me } = await db.from("stock_movements").insert({
-          product_id: pid,
-          warehouse_id: warehouseId,
-          movement_type: "reservation_release",
-          qty: total,
-          reason: "reservation_released",
-          ref_route_id: requestId,
-          ref_transport_request_id: requestId,
-          comment: routeNumber
-            ? `Снятие резерва (заявка ${routeNumber})${nomenc ? ": " + nomenc : ""}`
-            : `Снятие резерва${nomenc ? ": " + nomenc : ""}`,
-          created_by: "Логист",
-        });
-        if (me) throw me;
-      }
+      await apiPost("/api/stock-reservations/release", {
+        request_id: requestId,
+        warehouse_id: warehouseId,
+        route_number: routeNumber ?? null,
+      });
     },
     onSuccess: () => {
       toast.success("Резерв снят по всем позициям");
