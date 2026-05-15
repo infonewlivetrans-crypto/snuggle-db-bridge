@@ -139,16 +139,31 @@ function WarehouseTodayPage() {
   const [openCard, setOpenCard] = useState<string | null>(null);
 
   // Маршруты на сегодня (на основе delivery_routes)
+  type RouteRow = {
+    id: string;
+    route_number: string | null;
+    route_date: string;
+    status: string | null;
+    assigned_driver: string | null;
+    assigned_vehicle: string | null;
+    source_warehouse_id: string | null;
+    source_request_id: string | null;
+    comment: string | null;
+    created_at: string;
+  };
   const { data: routes } = useQuery({
     queryKey: ["wh-today-routes", date],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, source_request_id, comment, created_at")
-        .eq("route_date", date)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<RouteRow>("/api/delivery-routes", {
+        limit: 500,
+        extra: {
+          route_date: date,
+          fields:
+            "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_warehouse_id, source_request_id, comment, created_at",
+          order: "created_at.asc",
+        },
+      });
+      return rows;
     },
   });
 
@@ -156,57 +171,67 @@ function WarehouseTodayPage() {
   const { data: events } = useQuery({
     queryKey: ["wh-today-events", date],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouse_dock_events")
-        .select("*")
-        .eq("event_date", date)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as DockEvent[];
+      return await apiGetAuth<DockEvent[]>(
+        `/api/warehouse-dock-events?event_date=${encodeURIComponent(date)}`,
+      );
     },
   });
 
   // Точки маршрутов с возвратами на склад (по dp_status / status)
   const routeIds = useMemo(() => (routes ?? []).map((r) => r.id), [routes]);
+  type ReturnPoint = {
+    id: string;
+    route_id: string;
+    order_id: string;
+    status: string | null;
+    dp_status: string | null;
+    dp_return_comment: string | null;
+    dp_expected_return_at: string | null;
+    dp_return_warehouse_id: string | null;
+    completed_at: string | null;
+  };
   const { data: returnPoints } = useQuery({
     queryKey: ["wh-today-returns", routeIds],
     enabled: routeIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("id, route_id, order_id, status, dp_status, dp_return_comment, dp_expected_return_at, dp_return_warehouse_id, completed_at")
-        .in("route_id", routeIds)
-        .or("status.eq.returned_to_warehouse,dp_status.eq.return_to_warehouse");
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<ReturnPoint[]>(
+        `/api/route-points?route_ids=${encodeURIComponent(routeIds.join(","))}&returns_only=1&fields=${encodeURIComponent(
+          "id, route_id, order_id, status, dp_status, dp_return_comment, dp_expected_return_at, dp_return_warehouse_id, completed_at",
+        )}`,
+      );
     },
   });
 
   const orderIds = useMemo(() => (returnPoints ?? []).map((p) => p.order_id), [returnPoints]);
+  type ReturnOrder = {
+    id: string;
+    order_number: string | null;
+    delivery_address: string | null;
+    contact_name: string | null;
+    contact_phone: string | null;
+    comment: string | null;
+  };
   const { data: returnOrders } = useQuery({
     queryKey: ["wh-today-return-orders", orderIds],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, order_number, delivery_address, contact_name, contact_phone, comment")
-        .in("id", orderIds);
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<ReturnOrder>("/api/orders", {
+        limit: 1000,
+        extra: { ids: orderIds.join(",") },
+      });
+      return rows;
     },
   });
 
   const pointIds = useMemo(() => (returnPoints ?? []).map((p) => p.id), [returnPoints]);
+  type PhotoRow = { id: string; route_point_id: string; file_url: string; kind: string };
   const { data: returnPhotos } = useQuery({
     queryKey: ["wh-today-return-photos", pointIds],
     enabled: pointIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_point_photos")
-        .select("id, route_point_id, file_url, kind")
-        .in("route_point_id", pointIds);
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<PhotoRow[]>(
+        `/api/route-point-photos?point_ids=${encodeURIComponent(pointIds.join(","))}`,
+      );
     },
   });
 
