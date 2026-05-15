@@ -6,7 +6,12 @@ export const Route = createFileRoute("/api/stock-reservations")({
     handlers: {
       GET: listHandler({
         table: "stock_reservations",
-        filters: { warehouse_id: "eq", product_id: "eq", status: "eq" },
+        filters: {
+          warehouse_id: "eq",
+          product_id: "eq",
+          status: "eq",
+          transport_request_id: "eq",
+        },
         defaultOrder: { column: "created_at", ascending: false },
         cacheSeconds: 10,
       }),
