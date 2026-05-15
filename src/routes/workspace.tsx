@@ -244,7 +244,7 @@ function ManagerPanel() {
   const { data, isLoading } = useQuery({
     queryKey: ["workspace", "manager"],
     queryFn: async () => {
-      const [notif, qrOrders, routePoints, problems] = await Promise.all([
+      const [notif, qrOrders, routePoints] = await Promise.all([
         supabase
           .from("notifications")
           .select("id, kind", { count: "exact" })
@@ -259,11 +259,10 @@ function ManagerPanel() {
           .select("id, dp_amount_received, order:orders(amount_due, payment_type)")
           .eq("dp_status", "delivered")
           .limit(200),
-        supabase
-          .from("order_problem_reports")
-          .select("id", { count: "exact", head: true })
-          .neq("resolution_status", "resolved"),
       ]);
+      // order_problem_reports временно отключён: прямой Supabase REST на
+      // production отдаёт 400. Счётчик "Проблемные доставки" = 0 до миграции на /api/*.
+      const problems = { count: 0 } as { count: number };
 
       const notifications = notif.data ?? [];
       const newNotifs = notifications.length;
