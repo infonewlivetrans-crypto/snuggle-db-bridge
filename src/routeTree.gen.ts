@@ -146,6 +146,7 @@ import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
+import { Route as ApiInboundShipmentsIdRouteImport } from './routes/api/inbound-shipments.$id'
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
@@ -858,6 +859,11 @@ const ApiInvitesIdRoute = ApiInvitesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiInvitesRoute,
 } as any)
+const ApiInboundShipmentsIdRoute = ApiInboundShipmentsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiInboundShipmentsRoute,
+} as any)
 const ApiImportLogsIdRoute = ApiImportLogsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1030,7 +1036,7 @@ export interface FileRoutesByFullPath {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
-  '/api/inbound-shipments': typeof ApiInboundShipmentsRoute
+  '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/managers': typeof ApiManagersRouteWithChildren
@@ -1114,6 +1120,7 @@ export interface FileRoutesByFullPath {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
+  '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -1192,7 +1199,7 @@ export interface FileRoutesByTo {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
-  '/api/inbound-shipments': typeof ApiInboundShipmentsRoute
+  '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/managers': typeof ApiManagersRouteWithChildren
@@ -1276,6 +1283,7 @@ export interface FileRoutesByTo {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
+  '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -1355,7 +1363,7 @@ export interface FileRoutesById {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
-  '/api/inbound-shipments': typeof ApiInboundShipmentsRoute
+  '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/managers': typeof ApiManagersRouteWithChildren
@@ -1439,6 +1447,7 @@ export interface FileRoutesById {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
+  '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -1603,6 +1612,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
+    | '/api/inbound-shipments/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -1765,6 +1775,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
+    | '/api/inbound-shipments/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -1927,6 +1938,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
+    | '/api/inbound-shipments/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -2006,7 +2018,7 @@ export interface RootRouteChildren {
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
-  ApiInboundShipmentsRoute: typeof ApiInboundShipmentsRoute
+  ApiInboundShipmentsRoute: typeof ApiInboundShipmentsRouteWithChildren
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
   ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
   ApiManagersRoute: typeof ApiManagersRouteWithChildren
@@ -3048,6 +3060,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInvitesIdRouteImport
       parentRoute: typeof ApiInvitesRoute
     }
+    '/api/inbound-shipments/$id': {
+      id: '/api/inbound-shipments/$id'
+      path: '/$id'
+      fullPath: '/api/inbound-shipments/$id'
+      preLoaderRoute: typeof ApiInboundShipmentsIdRouteImport
+      parentRoute: typeof ApiInboundShipmentsRoute
+    }
     '/api/import-logs/$id': {
       id: '/api/import-logs/$id'
       path: '/$id'
@@ -3304,6 +3323,17 @@ const ApiImportLogsRouteWithChildren = ApiImportLogsRoute._addFileChildren(
   ApiImportLogsRouteChildren,
 )
 
+interface ApiInboundShipmentsRouteChildren {
+  ApiInboundShipmentsIdRoute: typeof ApiInboundShipmentsIdRoute
+}
+
+const ApiInboundShipmentsRouteChildren: ApiInboundShipmentsRouteChildren = {
+  ApiInboundShipmentsIdRoute: ApiInboundShipmentsIdRoute,
+}
+
+const ApiInboundShipmentsRouteWithChildren =
+  ApiInboundShipmentsRoute._addFileChildren(ApiInboundShipmentsRouteChildren)
+
 interface ApiInvitesRouteChildren {
   ApiInvitesIdRoute: typeof ApiInvitesIdRoute
 }
@@ -3528,7 +3558,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
-  ApiInboundShipmentsRoute: ApiInboundShipmentsRoute,
+  ApiInboundShipmentsRoute: ApiInboundShipmentsRouteWithChildren,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
   ApiInvitesRoute: ApiInvitesRouteWithChildren,
   ApiManagersRoute: ApiManagersRouteWithChildren,
