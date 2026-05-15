@@ -101,25 +101,19 @@ function SupplyPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<Warehouse>("/api/warehouses", { limit: 1000 });
+      return r.rows;
     },
   });
 
   const { data: balances, isLoading } = useQuery({
     queryKey: ["stock-balances"],
     queryFn: async (): Promise<StockBalance[]> => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("*")
-        .order("deficit_level", { ascending: true })
-        .order("product_name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as StockBalance[];
+      const r = await fetchListViaApi<StockBalance>("/api/stock-balances", {
+        limit: 1000,
+        extra: { order: "deficit_level.asc" },
+      });
+      return r.rows;
     },
   });
 
