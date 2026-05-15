@@ -206,10 +206,9 @@ export function IncomingOfferWatcher() {
     }
     if (o.vehicle_id) {
       try {
-        const v = await apiGetAuth<{ row: { plate_number?: string; brand?: string; model?: string } | null }>(
+        const vv = await apiGetAuth<{ plate_number?: string; brand?: string; model?: string } | null>(
           `/api/vehicles/${o.vehicle_id}`,
         );
-        const vv = v?.row;
         if (vv) {
           enriched.vehicleLabel = [
             vv.plate_number,
