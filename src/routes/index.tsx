@@ -212,14 +212,9 @@ function OrdersPage() {
           </div>
         </div>
 
-        {/* Статистика */}
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Всего" value={stats.total} accent />
-          <StatCard label="Новые" value={stats.new} />
-          <StatCard label="В работе" value={stats.inProgress} />
-          <StatCard label="Доставка" value={stats.delivering} />
-          <StatCard label="Выполнено" value={stats.completed} />
-        </div>
+        {/* Статистика временно убрана: блок счётчиков по статусам делал
+            прямые запросы в Supabase REST. Общее число заказов отображается
+            в пагинации (total) — этого достаточно. */}
 
         {/* Фильтры */}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
