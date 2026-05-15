@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { fetchListViaApi, apiGetAuth, apiPost, apiPatch } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,33 +132,32 @@ function SupplyRequestsPage() {
   const { data: requests, isLoading } = useQuery({
     queryKey: ["supply-requests"],
     queryFn: async (): Promise<SupplyRequest[]> => {
-      const { data, error } = await db
-        .from("supply_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as SupplyRequest[];
+      const r = await fetchListViaApi<SupplyRequest>("/api/supply-requests", {
+        limit: 1000,
+        extra: { order: "created_at.desc" },
+      });
+      return r.rows;
     },
   });
 
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db.from("warehouses").select("id, name").eq("is_active", true).order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const r = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 1000,
+        extra: { activeOnly: "1" },
+      });
+      return r.rows;
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-min"],
     queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Product[];
+      const r = await fetchListViaApi<Product>("/api/products", {
+        limit: 1000,
+      });
+      return r.rows;
     },
   });
 
@@ -353,11 +352,7 @@ function StatusActions({ request }: { request: SupplyRequest }) {
   const qc = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (newStatus: Status) => {
-      const { error } = await db
-        .from("supply_requests")
-        .update({ status: newStatus })
-        .eq("id", request.id);
-      if (error) throw error;
+      await apiPatch(`/api/supply-requests/${request.id}`, { status: newStatus });
     },
     onSuccess: (_d, newStatus) => {
       toast.success(`Статус: ${STATUS_LABELS[newStatus]}`);
@@ -474,12 +469,12 @@ function CreateRequestWizard({
           ? new Date(parsed.data.expected_at).toISOString()
           : null,
       };
-      const { data: inserted, error } = await db
-        .from("supply_requests")
-        .insert(payload)
-        .select("id, request_number")
-        .single();
-      if (error) throw error;
+      const res = await apiPost<{ row: { id: string; request_number: string } | null }>(
+        "/api/supply-requests",
+        payload,
+      );
+      const inserted = res.row;
+      if (!inserted) throw new Error("Не удалось создать заявку");
       // Уведомление снабжению о созданной заявке
       const whName = warehouses.find((w) => w.id === destWarehouseId)?.name ?? null;
       const product = products.find((p) => p.id === productId);
@@ -769,13 +764,10 @@ function RequestDetailsDialog({
     queryKey: ["supply-request", requestId],
     enabled: !!requestId,
     queryFn: async (): Promise<SupplyRequest | null> => {
-      const { data, error } = await db
-        .from("supply_requests")
-        .select("*")
-        .eq("id", requestId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as SupplyRequest | null;
+      const r = await apiGetAuth<{ row: SupplyRequest | null }>(
+        `/api/supply-requests/${requestId}`,
+      );
+      return r.row ?? null;
     },
   });
 
@@ -783,13 +775,17 @@ function RequestDetailsDialog({
     queryKey: ["supply-request-history", requestId],
     enabled: !!requestId,
     queryFn: async (): Promise<StatusHistoryRow[]> => {
-      const { data, error } = await db
-        .from("supply_request_status_history")
-        .select("*")
-        .eq("supply_request_id", requestId)
-        .order("changed_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as StatusHistoryRow[];
+      const r = await fetchListViaApi<StatusHistoryRow>(
+        "/api/supply-request-status-history",
+        {
+          limit: 200,
+          extra: {
+            supply_request_id: requestId ?? "",
+            order: "changed_at.asc",
+          },
+        },
+      );
+      return r.rows;
     },
   });
 
