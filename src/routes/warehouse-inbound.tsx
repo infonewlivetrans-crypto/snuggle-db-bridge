@@ -106,28 +106,26 @@ function WarehouseInboundPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["wh-inbound-warehouses"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("warehouses").select("id,name,city").order("name");
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<{ id: string; name: string; city: string | null }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["wh-inbound", warehouseId, statusFilter],
     queryFn: async () => {
-      let q = supabase
-        .from("inbound_shipments" as any)
-        .select("*")
-        .order("expected_at", { ascending: true, nullsFirst: false });
-      if (warehouseId !== "all") q = q.eq("destination_warehouse_id", warehouseId);
+      const extra: Record<string, string> = { order: "expected_at.asc" };
+      if (warehouseId !== "all") extra.destination_warehouse_id = warehouseId;
       if (statusFilter === "active") {
-        q = q.in("status", ["expected", "arrived", "receiving", "problem"]);
+        extra.status = "expected,arrived,receiving,problem";
       } else if (statusFilter !== "all") {
-        q = q.eq("status", statusFilter);
+        extra.status = statusFilter;
       }
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as any[];
+      const r = await fetchListViaApi<any>("/api/inbound-shipments", { limit: 1000, extra });
+      return r.rows;
     },
   });
 
@@ -137,12 +135,11 @@ function WarehouseInboundPage() {
     queryKey: ["wh-inbound-items", shipmentIds],
     enabled: shipmentIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("inbound_shipment_items" as any)
-        .select("*")
-        .in("shipment_id", shipmentIds);
-      if (error) throw error;
-      return (data ?? []) as any[];
+      const r = await fetchListViaApi<any>("/api/inbound-shipment-items", {
+        limit: 1000,
+        extra: { shipment_id: shipmentIds.join(",") },
+      });
+      return r.rows;
     },
   });
 
