@@ -469,12 +469,12 @@ function CreateRequestWizard({
           ? new Date(parsed.data.expected_at).toISOString()
           : null,
       };
-      const { data: inserted, error } = await db
-        .from("supply_requests")
-        .insert(payload)
-        .select("id, request_number")
-        .single();
-      if (error) throw error;
+      const res = await apiPost<{ row: { id: string; request_number: string } | null }>(
+        "/api/supply-requests",
+        payload,
+      );
+      const inserted = res.row;
+      if (!inserted) throw new Error("Не удалось создать заявку");
       // Уведомление снабжению о созданной заявке
       const whName = warehouses.find((w) => w.id === destWarehouseId)?.name ?? null;
       const product = products.find((p) => p.id === productId);
