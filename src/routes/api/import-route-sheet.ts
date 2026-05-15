@@ -71,7 +71,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
       POST: async ({ request }) => {
         const auth = await requireAnyRole(request, ["admin", "logist", "manager"]);
         if (auth instanceof Response) return auth;
-        const sb = supabaseAdmin;
+        const sb = auth.client;
 
         let payload: IncomingPayload;
         try {
