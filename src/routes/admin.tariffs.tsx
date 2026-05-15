@@ -104,25 +104,19 @@ function TariffsPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min-city"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name, city")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 500,
+        extra: { fields: "id, name, city" },
+      });
+      return rows;
     },
   });
 
   const { data: tariffs, isLoading } = useQuery({
     queryKey: ["delivery-tariffs"],
     queryFn: async (): Promise<Tariff[]> => {
-      const { data, error } = await db
-        .from("delivery_tariffs")
-        .select("*")
-        .order("priority", { ascending: true })
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Tariff[];
+      const { rows } = await apiGetAuth<{ rows: Tariff[] }>("/api/delivery-tariffs");
+      return rows ?? [];
     },
   });
 
