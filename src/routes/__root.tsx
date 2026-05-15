@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { reportError } from "@/lib/errorReporter";
 
 import appCss from "../styles.css?url";
+import faviconUrl from "@/assets/brand-logo.jpeg?url";
 
 function NotFoundComponent() {
   return (
@@ -68,6 +69,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/jpeg", href: faviconUrl },
+      { rel: "shortcut icon", type: "image/jpeg", href: faviconUrl },
+      { rel: "apple-touch-icon", href: faviconUrl },
       // Прогрев соединения с бэкендом — первый запрос данных стартует раньше.
       ...(SUPABASE_ORIGIN
         ? [
