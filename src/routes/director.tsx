@@ -130,14 +130,10 @@ function DirectorPage() {
   const { data: routes = [] } = useQuery({
     queryKey: ["director-routes", dateFrom, dateTo],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id")
-        .gte("route_date", dateFrom)
-        .lte("route_date", dateTo)
-        .order("route_date", { ascending: false });
-      if (error) throw error;
-      const rows = (data ?? []) as Array<RouteRow & { source_request_id: string | null }>;
+      const { rows: data } = await apiGetAuth<{ rows: Array<RouteRow & { source_request_id: string | null }> }>(
+        `/api/delivery-routes?limit=500&route_date_gte=${encodeURIComponent(dateFrom)}&route_date_lte=${encodeURIComponent(dateTo)}&order=route_date.desc&fields=${encodeURIComponent("id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id")}`,
+      );
+      const rows = data ?? [];
 
       const reqIds = Array.from(
         new Set(rows.map((r) => r.source_request_id).filter(Boolean) as string[])
@@ -154,11 +150,17 @@ function DirectorPage() {
         delivery_percent_target: number | null;
       }>();
       if (reqIds.length > 0) {
-        const { data: rs } = await supabase
-          .from("routes")
-          .select("id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost, manual_orders_amount, delivery_percent_target")
-          .in("id", reqIds);
-        (rs ?? []).forEach((x) => costMap.set(x.id as string, x as never));
+        const { rows: rs } = await fetchListViaApi<{ id: string } & Record<string, unknown>>(
+          "/api/routes",
+          {
+            limit: 500,
+            extra: {
+              ids: reqIds.join(","),
+              fields: "id, delivery_cost, cost_method, cost_per_km, cost_per_point, total_distance_km, points_count, manual_cost, manual_orders_amount, delivery_percent_target",
+            },
+          },
+        );
+        rs.forEach((x) => costMap.set(x.id as string, x as never));
       }
 
       return rows.map((r) => {
@@ -185,13 +187,9 @@ function DirectorPage() {
     queryKey: ["director-points", routeIds],
     enabled: routeIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          "route_id, dp_status, dp_undelivered_reason, dp_amount_received, order:orders(amount_due, payment_type, goods_amount)"
-        )
-        .in("route_id", routeIds);
-      if (error) throw error;
+      const data = await apiGetAuth<PointRow[]>(
+        `/api/route-points?route_ids=${encodeURIComponent(routeIds.join(","))}&fields=${encodeURIComponent("route_id, dp_status, dp_undelivered_reason, dp_amount_received, order:orders(amount_due, payment_type, goods_amount)")}`,
+      );
       return (data ?? []) as unknown as PointRow[];
     },
   });
