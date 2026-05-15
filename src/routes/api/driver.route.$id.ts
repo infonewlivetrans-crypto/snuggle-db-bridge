@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const Route = createFileRoute("/api/driver/route/$id")({
   server: {
@@ -8,10 +7,11 @@ export const Route = createFileRoute("/api/driver/route/$id")({
       GET: async ({ request, params }) => {
         const auth = await requireAnyRole(request, ["admin", "driver"]);
         if (auth instanceof Response) return auth;
+        const sb = auth.client;
 
         const routeId = params.id;
 
-        const { data: route, error } = await supabaseAdmin
+        const { data: route, error } = await sb
           .from("delivery_routes")
           .select(
             "id, route_number, route_date, status, source_request_id, assigned_driver, assigned_vehicle, current_stage, driver_id",
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/driver/route/$id")({
         if (!route) return jsonResponse({ error: "not_found" }, { status: 404 });
 
         // Админ — пропускаем; водитель — обязана быть привязка через drivers.user_id
-        const isAdminCheck = await supabaseAdmin
+        const isAdminCheck = await sb
           .from("user_roles")
           .select("role")
           .eq("user_id", auth.userId)
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/api/driver/route/$id")({
         const isAdmin = !!isAdminCheck.data;
 
         if (!isAdmin) {
-          const { data: driverRow } = await supabaseAdmin
+          const { data: driverRow } = await sb
             .from("drivers")
             .select("id")
             .eq("user_id", auth.userId)
