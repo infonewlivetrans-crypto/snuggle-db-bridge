@@ -99,114 +99,37 @@ function WarehouseReturnsPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["wh-returns-warehouses"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("warehouses").select("id,name,city").order("name");
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<{ id: string; name: string; city: string | null }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
-  const { data: points, isLoading } = useQuery({
+  const { data: bundle, isLoading } = useQuery({
     queryKey: ["wh-returns", warehouseId, statusFilter],
     queryFn: async () => {
-      let q = supabase
-        .from("route_points")
-        .select(
-          "id, order_id, route_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_status_changed_at, dp_status_changed_by, wh_return_status, wh_return_arrived_at, wh_return_accepted_at, wh_return_accepted_by, wh_return_comment, wh_return_status_changed_at, wh_return_status_changed_by",
-        )
-        .eq("dp_status", "returned_to_warehouse")
-        .order("dp_expected_return_at", { ascending: true, nullsFirst: false });
-      if (warehouseId !== "all") q = q.eq("dp_return_warehouse_id", warehouseId);
-      if (statusFilter === "active") {
-        q = q.in("wh_return_status", ["expected", "arrived", "needs_check"]);
-      } else if (statusFilter !== "all") {
-        q = q.eq("wh_return_status", statusFilter);
-      }
-      const { data, error } = await q;
-      if (error) throw error;
-      return data ?? [];
+      const qs = new URLSearchParams();
+      if (warehouseId !== "all") qs.set("warehouse_id", warehouseId);
+      qs.set("status", statusFilter);
+      return apiGetAuth<{
+        points: any[];
+        orders: { id: string; order_number: string; contact_name: string | null; delivery_address: string | null }[];
+        routes: { id: string; route_number: string | null; driver_name: string | null; driver_id: string | null; vehicle_id: string | null }[];
+        drivers: { id: string; full_name: string; phone: string | null }[];
+        vehicles: { id: string; plate_number: string | null; brand: string | null; model: string | null }[];
+        photos: { id: string; route_point_id: string; file_url: string; kind: string | null }[];
+      }>(`/api/warehouse-returns?${qs.toString()}`);
     },
   });
 
-  const orderIds = useMemo(
-    () => Array.from(new Set((points ?? []).map((p) => p.order_id).filter(Boolean) as string[])),
-    [points],
-  );
-  const routeIds = useMemo(
-    () => Array.from(new Set((points ?? []).map((p) => p.route_id).filter(Boolean) as string[])),
-    [points],
-  );
-  const pointIds = useMemo(() => (points ?? []).map((p) => p.id), [points]);
-
-  const { data: orders } = useQuery({
-    queryKey: ["wh-returns-orders", orderIds],
-    enabled: orderIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, order_number, contact_name, delivery_address")
-        .in("id", orderIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: routes } = useQuery({
-    queryKey: ["wh-returns-routes", routeIds],
-    enabled: routeIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("id, route_number, driver_name, driver_id, vehicle_id")
-        .in("id", routeIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const driverIds = useMemo(
-    () => Array.from(new Set((routes ?? []).map((r) => r.driver_id).filter(Boolean) as string[])),
-    [routes],
-  );
-  const vehicleIds = useMemo(
-    () => Array.from(new Set((routes ?? []).map((r) => r.vehicle_id).filter(Boolean) as string[])),
-    [routes],
-  );
-
-  const { data: drivers } = useQuery({
-    queryKey: ["wh-returns-drivers", driverIds],
-    enabled: driverIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("drivers").select("id,full_name,phone").in("id", driverIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: vehicles } = useQuery({
-    queryKey: ["wh-returns-vehicles", vehicleIds],
-    enabled: vehicleIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("id, plate_number, brand, model")
-        .in("id", vehicleIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  const { data: photos } = useQuery({
-    queryKey: ["wh-returns-photos", pointIds],
-    enabled: pointIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_point_photos")
-        .select("id, route_point_id, file_url, kind")
-        .in("route_point_id", pointIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
+  const points = bundle?.points;
+  const orders = bundle?.orders;
+  const routes = bundle?.routes;
+  const drivers = bundle?.drivers;
+  const vehicles = bundle?.vehicles;
+  const photos = bundle?.photos;
 
   const orderById = useMemo(() => Object.fromEntries((orders ?? []).map((o) => [o.id, o])), [orders]);
   const routeById = useMemo(() => Object.fromEntries((routes ?? []).map((r) => [r.id, r])), [routes]);
@@ -239,8 +162,7 @@ function WarehouseReturnsPage() {
       if (typeof args.comment === "string" && args.comment.trim().length > 0) {
         patch.wh_return_comment = args.comment.trim();
       }
-      const { error } = await supabase.from("route_points").update(patch as any).eq("id", args.id);
-      if (error) throw error;
+      await apiPatch(`/api/route-points/${args.id}`, patch);
     },
     onSuccess: () => {
       toast.success("Статус возврата обновлён");
