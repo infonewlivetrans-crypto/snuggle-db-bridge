@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/users")({
             100,
           );
           const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
-          const all = await adminListUsers();
+          const all = await adminListUsers(auth.client);
           const arr = Array.isArray(all) ? all : [];
           const rows = arr.slice(offset, offset + limit);
           return jsonResponse(rows, {
