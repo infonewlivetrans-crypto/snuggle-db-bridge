@@ -1029,11 +1029,7 @@ function NotificationsTable({ items }: { items: SupplyNotification[] }) {
 
   const markRead = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/notifications/${id}`, { is_read: true });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["supply-notifications"] }),
     onError: (e: Error) => toast.error(e.message),
@@ -1041,12 +1037,7 @@ function NotificationsTable({ items }: { items: SupplyNotification[] }) {
 
   const markAllRead = useMutation({
     mutationFn: async () => {
-      const { error } = await db
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("kind", "supply_alert")
-        .eq("is_read", false);
-      if (error) throw error;
+      await apiPatch("/api/notifications", { kind: "supply_alert", is_read: true });
     },
     onSuccess: () => {
       toast.success("Все уведомления прочитаны");
