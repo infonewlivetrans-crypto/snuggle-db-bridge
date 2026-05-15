@@ -244,17 +244,20 @@ function WarehouseTodayPage() {
   }, [events]);
 
   // Получаем заказы маршрута для карточки
+  type RoutePointRow = {
+    id: string;
+    route_id: string;
+    order_id: string;
+    point_number: number;
+    status: string;
+  };
   const { data: routePoints } = useQuery({
     queryKey: ["wh-today-route-points", routeIds],
     enabled: routeIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("id, route_id, order_id, point_number, status")
-        .in("route_id", routeIds)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<RoutePointRow[]>(
+        `/api/route-points?route_ids=${encodeURIComponent(routeIds.join(","))}&fields=${encodeURIComponent("id, route_id, order_id, point_number, status")}`,
+      );
     },
   });
 
@@ -262,21 +265,29 @@ function WarehouseTodayPage() {
     () => Array.from(new Set((routePoints ?? []).map((p) => p.order_id))),
     [routePoints],
   );
+  type AllOrderRow = {
+    id: string;
+    order_number: string | null;
+    delivery_address: string | null;
+    contact_name: string | null;
+    total_weight_kg: number | null;
+    items_count: number | null;
+    comment: string | null;
+  };
   const { data: allOrders } = useQuery({
     queryKey: ["wh-today-all-orders", allOrderIds],
     enabled: allOrderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, order_number, delivery_address, contact_name, total_weight_kg, items_count, comment")
-        .in("id", allOrderIds);
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<AllOrderRow>("/api/orders", {
+        limit: 1000,
+        extra: { ids: allOrderIds.join(",") },
+      });
+      return rows;
     },
   });
 
   const upsertStatus = useMutation({
-    mutationFn: async (args: { route: typeof routes extends (infer T)[] | undefined ? T : never; status: DockStatus }) => {
+    mutationFn: async (args: { route: NonNullable<typeof routes>[number]; status: DockStatus }) => {
       const r = args.route;
       const existing = eventByRoute.get(r.id);
       const now = new Date().toISOString();
@@ -296,30 +307,23 @@ function WarehouseTodayPage() {
       if (args.status === "return_accepted") patch.return_accepted_at = now;
 
       if (existing) {
-        const { error } = await supabase.from("warehouse_dock_events").update(patch).eq("id", existing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouse-dock-events/${existing.id}`, patch);
       } else {
-        const { error } = await supabase.from("warehouse_dock_events").insert(patch);
-        if (error) throw error;
+        await apiPost(`/api/warehouse-dock-events`, patch);
       }
 
-      // Если приняли возврат — синхронизируем точки маршрута, чтобы событие попало в отчёт склада
+      // Если приняли возврат — синхронизируем точки маршрута
       if (args.status === "return_accepted") {
         const pts = (returnPoints ?? []).filter((p) => p.route_id === r.id);
-        if (pts.length > 0) {
-          const ids = pts.map((p) => p.id);
-          const { error } = await supabase
-            .from("route_points")
-            .update({
-              wh_return_status: "accepted",
-              wh_return_arrived_at: now,
-              wh_return_accepted_at: now,
-              wh_return_accepted_by: "Кладовщик",
-              wh_return_status_changed_at: now,
-              wh_return_status_changed_by: "Кладовщик",
-            })
-            .in("id", ids);
-          if (error) throw error;
+        for (const p of pts) {
+          await apiPatch(`/api/route-points/${p.id}`, {
+            wh_return_status: "accepted",
+            wh_return_arrived_at: now,
+            wh_return_accepted_at: now,
+            wh_return_accepted_by: "Кладовщик",
+            wh_return_status_changed_at: now,
+            wh_return_status_changed_by: "Кладовщик",
+          });
         }
       }
     },
@@ -335,7 +339,7 @@ function WarehouseTodayPage() {
 
   // Группируем возвраты по маршруту для подсветки
   const returnsByRoute = useMemo(() => {
-    const m = new Map<string, typeof returnPoints>();
+    const m = new Map<string, NonNullable<typeof returnPoints>>();
     (returnPoints ?? []).forEach((p) => {
       const arr = m.get(p.route_id) ?? [];
       arr.push(p);
@@ -360,16 +364,19 @@ function WarehouseTodayPage() {
       openCard ? (routePoints ?? []).filter((p) => p.route_id === openCard).map((p) => p.id) : [],
     [openCard, routePoints],
   );
+  type LoadPlanRow = {
+    id: string;
+    route_point_id: string;
+    cargo_position: string | null;
+    warehouse_comment: string | null;
+  };
   const { data: loadPlan } = useQuery({
     queryKey: ["wh-load-plan", openCard, openedPointIds],
     enabled: !!openCard && openedPointIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouse_load_plan")
-        .select("*")
-        .in("route_point_id", openedPointIds);
-      if (error) throw error;
-      return data ?? [];
+      return await apiGetAuth<LoadPlanRow[]>(
+        `/api/warehouse-load-plan?route_point_ids=${encodeURIComponent(openedPointIds.join(","))}`,
+      );
     },
   });
   const loadPlanByPoint = useMemo(() => {
