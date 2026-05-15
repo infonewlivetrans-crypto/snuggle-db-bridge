@@ -41,11 +41,18 @@ export const Route = createFileRoute("/api/routes")({
         const activeOnly = url.searchParams.get("activeOnly") === "1";
         const idsParam = url.searchParams.get("ids");
         const routeDate = url.searchParams.get("route_date");
-        const fields = url.searchParams.get("fields") || "*, route_points(eta_at, eta_risk)";
+        const rawFields = url.searchParams.get("fields") || "*, route_points(eta_at, eta_risk)";
+        // У `routes.destination_warehouse_id` нет FK → embed валится с PGRST200.
+        // Срезаем broken embed и дозаполняем destination вторым запросом.
+        const fields = rawFields.replace(
+          /,\s*destination\s*:\s*destination_warehouse_id\s*\([^)]*\)/g,
+          "",
+        );
+        const ensured = `${fields}, destination_warehouse_id`;
 
         let q = auth.client
           .from("routes")
-          .select(fields, { count: "exact" })
+          .select(ensured, { count: "exact" })
           .order("route_date", { ascending: false })
           .order("created_at", { ascending: false });
 
@@ -61,9 +68,34 @@ export const Route = createFileRoute("/api/routes")({
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);
         if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
-        const rows = Array.isArray(data) ? data : [];
-        return jsonResponse(rows, {
-          headers: { ...cacheHeaders(60), "X-Total-Count": String(count ?? rows.length) },
+        const rows = (Array.isArray(data) ? (data as unknown as Array<Record<string, unknown>>) : []);
+        const destIds = Array.from(
+          new Set(
+            rows
+              .map((r) => r.destination_warehouse_id)
+              .filter((v): v is string => typeof v === "string" && v.length > 0),
+          ),
+        );
+        const destRes =
+          destIds.length > 0
+            ? await auth.client
+                .from("warehouses")
+                .select("id, name, city")
+                .in("id", destIds)
+            : { data: [] as Array<{ id: string; name: string | null; city: string | null }> };
+        const destMap = new Map<string, { name: string | null; city: string | null }>();
+        for (const w of (destRes.data ?? []) as Array<{ id: string; name: string | null; city: string | null }>) {
+          destMap.set(w.id, { name: w.name, city: w.city });
+        }
+        const enriched = rows.map((r) => ({
+          ...r,
+          destination:
+            typeof r.destination_warehouse_id === "string"
+              ? destMap.get(r.destination_warehouse_id) ?? null
+              : null,
+        }));
+        return jsonResponse(enriched, {
+          headers: { ...cacheHeaders(60), "X-Total-Count": String(count ?? enriched.length) },
         });
       },
 
