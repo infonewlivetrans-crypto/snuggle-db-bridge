@@ -134,11 +134,7 @@ function TariffsPage() {
 
   const toggleActive = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
-      const { error } = await db
-        .from("delivery_tariffs")
-        .update({ is_active: value })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-tariffs/${id}`, { is_active: value });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-tariffs"] });
@@ -149,8 +145,7 @@ function TariffsPage() {
 
   const removeTariff = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db.from("delivery_tariffs").delete().eq("id", id);
-      if (error) throw error;
+      await apiDelete(`/api/delivery-tariffs/${id}`);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-tariffs"] });
