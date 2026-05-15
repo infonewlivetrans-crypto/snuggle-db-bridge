@@ -64,15 +64,15 @@ function DeliveryRoutesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["delivery-routes"],
     queryFn: async (): Promise<Row[]> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select(
-          "id, route_number, route_date, status, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
-        )
-        .order("route_date", { ascending: false })
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as Row[];
+      const { rows } = await fetchListViaApi<Row>("/api/delivery-routes", {
+        limit: 500,
+        extra: {
+          fields:
+            "id, route_number, route_date, status, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, source_request:source_request_id(route_number), source_warehouse:source_warehouse_id(name, city)",
+          order: "route_date.desc",
+        },
+      });
+      return rows;
     },
   });
 
