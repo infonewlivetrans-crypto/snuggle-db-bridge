@@ -171,8 +171,7 @@ function WarehouseInboundPage() {
         patch.accepted_by = acceptedBy || "Кладовщик";
         if (warehouseComment.trim()) patch.warehouse_comment = warehouseComment.trim();
       }
-      const { error } = await supabase.from("inbound_shipments" as any).update(patch).eq("id", args.id);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipments/${args.id}`, patch);
     },
     onSuccess: () => {
       toast.success("Статус обновлён");
