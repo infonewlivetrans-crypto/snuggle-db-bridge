@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { apiDelete, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,33 +116,27 @@ function WarehouseTransfersPage() {
   const { data: transfers = [], isLoading } = useQuery({
     queryKey: ["stock-transfers"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_transfers")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Transfer[];
+      const { rows } = await fetchListViaApi<Transfer>("/api/stock-transfers", {
+        limit: 1000,
+        extra: { order: "created_at.desc" },
+      });
+      return rows;
     },
   });
 
   const { data: warehouses = [] } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async () => {
-      const { data, error } = await db.from("warehouses").select("id, name").order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", { limit: 1000 });
+      return rows.map((w) => ({ id: w.id, name: w.name }));
     },
   });
 
   const { data: products = [] } = useQuery({
     queryKey: ["products-min"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Product[];
+      const { rows } = await fetchListViaApi<Product>("/api/products", { limit: 1000 });
+      return rows;
     },
   });
 
@@ -170,10 +164,9 @@ function WarehouseTransfersPage() {
   // Send transfer: create supply_in_transit, log movement (outbound from source)
   const sendTransfer = async (t: Transfer) => {
     try {
-      // 1) Create in-transit record at destination
-      const { data: inTransit, error: itErr } = await db
-        .from("supply_in_transit")
-        .insert({
+      const { row: inTransit } = await apiPost<{ row: { id: string } | null }>(
+        "/api/supply-in-transit",
+        {
           product_id: t.product_id,
           destination_warehouse_id: t.destination_warehouse_id,
           source_type: "warehouse",
@@ -181,13 +174,9 @@ function WarehouseTransfersPage() {
           source_name: whMap.get(t.source_warehouse_id)?.name ?? null,
           qty: t.qty,
           status: "in_transit",
-        })
-        .select()
-        .single();
-      if (itErr) throw itErr;
-
-      // 2) Decrease available at source via outbound movement
-      const { error: mvErr } = await db.from("stock_movements").insert({
+        },
+      );
+      await apiPost("/api/stock-movements", {
         product_id: t.product_id,
         warehouse_id: t.source_warehouse_id,
         movement_type: "transfer",
@@ -196,19 +185,11 @@ function WarehouseTransfersPage() {
         comment: `Перемещение ${t.transfer_number} → ${whMap.get(t.destination_warehouse_id)?.name ?? "склад"}`,
         created_by: t.created_by,
       });
-      if (mvErr) throw mvErr;
-
-      // 3) Update transfer
-      const { error: upErr } = await db
-        .from("stock_transfers")
-        .update({
-          status: "in_transit",
-          sent_at: new Date().toISOString(),
-          in_transit_id: inTransit?.id ?? null,
-        })
-        .eq("id", t.id);
-      if (upErr) throw upErr;
-
+      await apiPatch(`/api/stock-transfers/${t.id}`, {
+        status: "in_transit",
+        sent_at: new Date().toISOString(),
+        in_transit_id: inTransit?.id ?? null,
+      });
       toast.success("Перемещение отправлено");
       refresh();
     } catch (e: unknown) {
@@ -219,11 +200,10 @@ function WarehouseTransfersPage() {
 
   const markArrived = async (t: Transfer) => {
     try {
-      const { error } = await db
-        .from("stock_transfers")
-        .update({ status: "arrived", arrived_at: new Date().toISOString() })
-        .eq("id", t.id);
-      if (error) throw error;
+      await apiPatch(`/api/stock-transfers/${t.id}`, {
+        status: "arrived",
+        arrived_at: new Date().toISOString(),
+      });
       toast.success("Отмечено: прибыло");
       refresh();
     } catch (e: unknown) {
@@ -232,20 +212,12 @@ function WarehouseTransfersPage() {
     }
   };
 
-  // Accept: remove in-transit, increase available at destination, log inbound
   const acceptTransfer = async (t: Transfer) => {
     try {
-      // 1) Remove in-transit record
       if (t.in_transit_id) {
-        const { error: delErr } = await db
-          .from("supply_in_transit")
-          .delete()
-          .eq("id", t.in_transit_id);
-        if (delErr) throw delErr;
+        await apiDelete(`/api/supply-in-transit/${t.in_transit_id}`);
       }
-
-      // 2) Increase available at destination via inbound movement
-      const { error: mvErr } = await db.from("stock_movements").insert({
+      await apiPost("/api/stock-movements", {
         product_id: t.product_id,
         warehouse_id: t.destination_warehouse_id,
         movement_type: "transfer",
@@ -254,19 +226,11 @@ function WarehouseTransfersPage() {
         comment: `Перемещение ${t.transfer_number} ← ${whMap.get(t.source_warehouse_id)?.name ?? "склад"}`,
         created_by: t.created_by,
       });
-      if (mvErr) throw mvErr;
-
-      // 3) Update transfer
-      const { error: upErr } = await db
-        .from("stock_transfers")
-        .update({
-          status: "accepted",
-          accepted_at: new Date().toISOString(),
-          arrived_at: t.arrived_at ?? new Date().toISOString(),
-        })
-        .eq("id", t.id);
-      if (upErr) throw upErr;
-
+      await apiPatch(`/api/stock-transfers/${t.id}`, {
+        status: "accepted",
+        accepted_at: new Date().toISOString(),
+        arrived_at: t.arrived_at ?? new Date().toISOString(),
+      });
       toast.success("Перемещение принято");
       refresh();
     } catch (e: unknown) {
@@ -277,10 +241,9 @@ function WarehouseTransfersPage() {
 
   const cancelTransfer = async (t: Transfer) => {
     try {
-      // If already in transit, return goods back: remove in-transit, return inbound to source
       if ((t.status === "in_transit" || t.status === "arrived") && t.in_transit_id) {
-        await db.from("supply_in_transit").delete().eq("id", t.in_transit_id);
-        await db.from("stock_movements").insert({
+        await apiDelete(`/api/supply-in-transit/${t.in_transit_id}`);
+        await apiPost("/api/stock-movements", {
           product_id: t.product_id,
           warehouse_id: t.source_warehouse_id,
           movement_type: "transfer",
@@ -290,11 +253,10 @@ function WarehouseTransfersPage() {
           created_by: t.created_by,
         });
       }
-      const { error } = await db
-        .from("stock_transfers")
-        .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
-        .eq("id", t.id);
-      if (error) throw error;
+      await apiPatch(`/api/stock-transfers/${t.id}`, {
+        status: "cancelled",
+        cancelled_at: new Date().toISOString(),
+      });
       toast.success("Перемещение отменено");
       refresh();
     } catch (e: unknown) {
@@ -302,7 +264,6 @@ function WarehouseTransfersPage() {
       toast.error(`Ошибка: ${msg}`);
     }
   };
-
   return (
     <div className="min-h-screen bg-background">
       <AppHeader />
@@ -525,9 +486,9 @@ function CreateTransferDialog({
       const sourceName = warehouses.find((w) => w.id === sourceId)?.name ?? null;
       const destName = warehouses.find((w) => w.id === destId)?.name ?? null;
 
-      const { data: created, error } = await db
-        .from("stock_transfers")
-        .insert({
+      const { row: created } = await apiPost<{ row: { id: string } | null }>(
+        "/api/stock-transfers",
+        {
           transfer_number: number,
           source_warehouse_id: sourceId,
           destination_warehouse_id: destId,
@@ -537,16 +498,13 @@ function CreateTransferDialog({
           comment: comment || null,
           created_by: createdBy || null,
           sent_at: sendNow ? new Date().toISOString() : null,
-        })
-        .select()
-        .single();
-      if (error) throw error;
+        },
+      );
 
       if (sendNow && created) {
-        // Create supply_in_transit
-        const { data: inTransit } = await db
-          .from("supply_in_transit")
-          .insert({
+        const { row: inTransit } = await apiPost<{ row: { id: string } | null }>(
+          "/api/supply-in-transit",
+          {
             product_id: productId,
             destination_warehouse_id: destId,
             source_type: "warehouse",
@@ -554,12 +512,10 @@ function CreateTransferDialog({
             source_name: sourceName,
             qty: qtyNum,
             status: "in_transit",
-          })
-          .select()
-          .single();
+          },
+        );
 
-        // Log outbound movement at source
-        await db.from("stock_movements").insert({
+        await apiPost("/api/stock-movements", {
           product_id: productId,
           warehouse_id: sourceId,
           movement_type: "transfer",
@@ -570,10 +526,9 @@ function CreateTransferDialog({
         });
 
         if (inTransit?.id) {
-          await db
-            .from("stock_transfers")
-            .update({ in_transit_id: inTransit.id })
-            .eq("id", created.id);
+          await apiPatch(`/api/stock-transfers/${created.id}`, {
+            in_transit_id: inTransit.id,
+          });
         }
       }
 

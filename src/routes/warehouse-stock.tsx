@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CACHE_TIMES } from "@/lib/queryCache";
-import { db } from "@/lib/db";
+import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,12 +131,10 @@ function WarehouseStockPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 1000,
+      });
+      return rows.map((w) => ({ id: w.id, name: w.name }));
     },
     staleTime: CACHE_TIMES.REFERENCE,
   });
@@ -144,12 +142,10 @@ function WarehouseStockPage() {
   const { data: products } = useQuery({
     queryKey: ["products-with-category"],
     queryFn: async (): Promise<ProductRow[]> => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, sku, name, unit, category, warehouse_id")
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as ProductRow[];
+      const { rows } = await fetchListViaApi<ProductRow>("/api/products", {
+        limit: 1000,
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.REFERENCE,
   });
@@ -157,12 +153,10 @@ function WarehouseStockPage() {
   const { data: balances, isLoading } = useQuery({
     queryKey: ["stock-balances"],
     queryFn: async (): Promise<StockBalance[]> => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("*")
-        .order("product_name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as StockBalance[];
+      const { rows } = await fetchListViaApi<StockBalance>("/api/stock-balances", {
+        limit: 1000,
+      });
+      return rows;
     },
     staleTime: CACHE_TIMES.BUSINESS,
     placeholderData: (prev) => prev,
@@ -460,7 +454,7 @@ function EditStockDialog({
         comment: string;
       }) => {
         if (params.qty === 0) return;
-        const { error } = await db.from("stock_movements").insert({
+        await apiPost("/api/stock-movements", {
           product_id: balance.product_id,
           warehouse_id: balance.warehouse_id,
           movement_type: params.type,
@@ -469,7 +463,6 @@ function EditStockDialog({
           comment: note ? `${params.comment} · ${note}` : params.comment,
           created_by: actor,
         });
-        if (error) throw error;
       };
 
       // 1) Целевой on_hand = доступно + резерв → корректировка
@@ -488,39 +481,34 @@ function EditStockDialog({
       const reservedDiff = newReserved - Number(balance.reserved ?? 0);
       if (reservedDiff !== 0) {
         if (reservedDiff > 0) {
-          const { error } = await db.from("stock_reservations").insert({
+          await apiPost("/api/stock-reservations", {
             product_id: balance.product_id,
             warehouse_id: balance.warehouse_id,
             qty: reservedDiff,
             status: "active",
           });
-          if (error) throw error;
         } else {
           let remaining = -reservedDiff;
-          const { data: reservations, error: rerr } = await db
-            .from("stock_reservations")
-            .select("id, qty")
-            .eq("product_id", balance.product_id)
-            .eq("warehouse_id", balance.warehouse_id)
-            .eq("status", "active")
-            .order("created_at", { ascending: false });
-          if (rerr) throw rerr;
+          const { rows: reservations } = await fetchListViaApi<{ id: string; qty: number }>(
+            "/api/stock-reservations",
+            {
+              limit: 1000,
+              extra: {
+                product_id: balance.product_id,
+                warehouse_id: balance.warehouse_id,
+                status: "active",
+                order: "created_at.desc",
+              },
+            },
+          );
           for (const r of reservations ?? []) {
             if (remaining <= 0) break;
             const q = Number(r.qty);
             if (q <= remaining) {
-              const { error } = await db
-                .from("stock_reservations")
-                .update({ status: "released" })
-                .eq("id", r.id);
-              if (error) throw error;
+              await apiPatch(`/api/stock-reservations/${r.id}`, { status: "released" });
               remaining -= q;
             } else {
-              const { error } = await db
-                .from("stock_reservations")
-                .update({ qty: q - remaining })
-                .eq("id", r.id);
-              if (error) throw error;
+              await apiPatch(`/api/stock-reservations/${r.id}`, { qty: q - remaining });
               remaining = 0;
             }
           }
@@ -537,7 +525,7 @@ function EditStockDialog({
       const transitDiff = newInTransit - Number(balance.in_transit ?? 0);
       if (transitDiff !== 0) {
         if (transitDiff > 0) {
-          const { error } = await db.from("supply_in_transit").insert({
+          await apiPost("/api/supply-in-transit", {
             product_id: balance.product_id,
             destination_warehouse_id: balance.warehouse_id,
             source_type: "supplier",
@@ -546,33 +534,28 @@ function EditStockDialog({
             status: "in_transit",
             comment: "Ручная корректировка «в пути»",
           });
-          if (error) throw error;
         } else {
           let remaining = -transitDiff;
-          const { data: transits, error: terr } = await db
-            .from("supply_in_transit")
-            .select("id, qty")
-            .eq("product_id", balance.product_id)
-            .eq("destination_warehouse_id", balance.warehouse_id)
-            .eq("status", "in_transit")
-            .order("created_at", { ascending: false });
-          if (terr) throw terr;
+          const { rows: transits } = await fetchListViaApi<{ id: string; qty: number }>(
+            "/api/supply-in-transit",
+            {
+              limit: 1000,
+              extra: {
+                product_id: balance.product_id,
+                destination_warehouse_id: balance.warehouse_id,
+                status: "in_transit",
+                order: "created_at.desc",
+              },
+            },
+          );
           for (const t of transits ?? []) {
             if (remaining <= 0) break;
             const q = Number(t.qty);
             if (q <= remaining) {
-              const { error } = await db
-                .from("supply_in_transit")
-                .update({ status: "cancelled" })
-                .eq("id", t.id);
-              if (error) throw error;
+              await apiPatch(`/api/supply-in-transit/${t.id}`, { status: "cancelled" });
               remaining -= q;
             } else {
-              const { error } = await db
-                .from("supply_in_transit")
-                .update({ qty: q - remaining })
-                .eq("id", t.id);
-              if (error) throw error;
+              await apiPatch(`/api/supply-in-transit/${t.id}`, { qty: q - remaining });
               remaining = 0;
             }
           }
@@ -587,17 +570,11 @@ function EditStockDialog({
 
       // 4) Минимальный остаток
       if (newMin !== Number(balance.min_stock ?? 0)) {
-        const { error } = await db
-          .from("product_stock_settings")
-          .upsert(
-            {
-              product_id: balance.product_id,
-              warehouse_id: balance.warehouse_id,
-              min_stock: newMin,
-            },
-            { onConflict: "product_id,warehouse_id" },
-          );
-        if (error) throw error;
+        await apiPost("/api/product-stock-settings", {
+          product_id: balance.product_id,
+          warehouse_id: balance.warehouse_id,
+          min_stock: newMin,
+        });
         const minDiff = newMin - Number(balance.min_stock ?? 0);
         await logMovement({
           type: "adjustment",
@@ -722,22 +699,18 @@ function CreateProductDialog({
       if (Number.isNaN(qty) || qty < 0) throw new Error("Некорректный начальный остаток");
       if (Number.isNaN(min) || min < 0) throw new Error("Некорректный мин. остаток");
 
-      const { data: prod, error } = await db
-        .from("products")
-        .insert({
-          name: name.trim(),
-          sku: sku.trim() || null,
-          unit: unit.trim() || null,
-          category: category.trim() || null,
-          warehouse_id: warehouseId,
-          source: "manual",
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
+      const { row: prod } = await apiPost<{ row: { id: string } }>("/api/products", {
+        name: name.trim(),
+        sku: sku.trim() || null,
+        unit: unit.trim() || null,
+        category: category.trim() || null,
+        warehouse_id: warehouseId,
+        source: "manual",
+      });
+      if (!prod?.id) throw new Error("Не удалось создать товар");
 
       if (qty > 0) {
-        const { error: mErr } = await db.from("stock_movements").insert({
+        await apiPost("/api/stock-movements", {
           product_id: prod.id,
           warehouse_id: warehouseId,
           movement_type: "inbound",
@@ -746,19 +719,14 @@ function CreateProductDialog({
           comment: "Начальный остаток при создании товара",
           created_by: "Склад",
         });
-        if (mErr) throw mErr;
       }
 
       if (min > 0) {
-        const { error: sErr } = await db.from("product_stock_settings").upsert(
-          {
-            product_id: prod.id,
-            warehouse_id: warehouseId,
-            min_stock: min,
-          },
-          { onConflict: "product_id,warehouse_id" },
-        );
-        if (sErr) throw sErr;
+        await apiPost("/api/product-stock-settings", {
+          product_id: prod.id,
+          warehouse_id: warehouseId,
+          min_stock: min,
+        });
       }
     },
     onSuccess: () => {
