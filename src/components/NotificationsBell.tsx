@@ -119,7 +119,7 @@ export function NotificationsBell() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, [qc, user]);
 
   const markAllRead = useMutation({
     mutationFn: async () => {
