@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const Schema = z.object({
   route_id: z.string().uuid(),
@@ -15,6 +14,7 @@ export const Route = createFileRoute("/api/route-points/reorder")({
       POST: async ({ request }) => {
         const auth = await requireAnyRole(request, ["admin", "logist", "driver"]);
         if (auth instanceof Response) return auth;
+        const sb = auth.client;
 
         let body: unknown;
         try {
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/route-points/reorder")({
         const { route_id, ordered_ids, changed_by } = parsed.data;
 
         // Если водитель — проверяем принадлежность маршрута
-        const { data: roleRows } = await supabaseAdmin
+        const { data: roleRows } = await sb
           .from("user_roles")
           .select("role")
           .eq("user_id", auth.userId)
@@ -36,8 +36,7 @@ export const Route = createFileRoute("/api/route-points/reorder")({
         const isElevated = roles.has("admin") || roles.has("logist");
 
         if (!isElevated && roles.has("driver")) {
-          // Найти drivers.id текущего пользователя
-          const { data: driverRow } = await supabaseAdmin
+          const { data: driverRow } = await sb
             .from("drivers")
             .select("id")
             .eq("user_id", auth.userId)
@@ -45,8 +44,7 @@ export const Route = createFileRoute("/api/route-points/reorder")({
           const driverId = (driverRow as { id: string } | null)?.id ?? null;
           if (!driverId) return jsonResponse({ error: "forbidden" }, { status: 403 });
 
-          // Проверить, что delivery_route с source_request_id = route_id принадлежит этому водителю
-          const { data: dr } = await supabaseAdmin
+          const { data: dr } = await sb
             .from("delivery_routes")
             .select("id, driver_id")
             .eq("source_request_id", route_id)
@@ -54,8 +52,7 @@ export const Route = createFileRoute("/api/route-points/reorder")({
             .maybeSingle();
           if (!dr) return jsonResponse({ error: "forbidden" }, { status: 403 });
 
-          // Защита от подмены ordered_ids: все точки должны принадлежать этому маршруту
-          const { data: pts } = await supabaseAdmin
+          const { data: pts } = await sb
             .from("route_points")
             .select("id")
             .eq("route_id", route_id)
@@ -66,7 +63,6 @@ export const Route = createFileRoute("/api/route-points/reorder")({
           }
         }
 
-        const sb = supabaseAdmin;
         const TEMP = 100000;
         for (let i = 0; i < ordered_ids.length; i++) {
           const { error } = await sb
