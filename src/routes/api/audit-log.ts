@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/audit-log")({
             section: url.searchParams.get("section"),
             action: url.searchParams.get("action"),
             search: url.searchParams.get("search"),
-          });
+          }, auth.client);
           return jsonResponse(result, { headers: cacheHeaders(45) });
         } catch (e) {
           return jsonResponse({ error: (e as Error).message }, { status: 500 });
