@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const PRIORITIES = ["critical", "important", "later"] as const;
 const STATUSES = ["new", "in_progress", "review", "done"] as const;
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/api/pilot-tasks")({
           const from = url.searchParams.get("from");
           const to = url.searchParams.get("to");
 
-          let q = supabaseAdmin.from("pilot_tasks").select("*").order("created_at", { ascending: false }).limit(500);
+          let q = auth.client.from("pilot_tasks").select("*").order("created_at", { ascending: false }).limit(500);
           if (priority) q = q.eq("priority", priority);
           if (status) q = q.eq("status", status);
           if (role) q = q.eq("reporter_role", role);
@@ -58,8 +57,8 @@ export const Route = createFileRoute("/api/pilot-tasks")({
           const priority = String(body.priority ?? "important");
           if (!PRIORITIES.includes(priority as never)) return jsonResponse({ error: "Недопустимый приоритет" }, { status: 400 });
 
-          const { data: prof } = await supabaseAdmin.from("profiles").select("full_name").eq("user_id", auth.userId).maybeSingle();
-          const { error } = await supabaseAdmin.from("pilot_tasks").insert({
+          const { data: prof } = await auth.client.from("profiles").select("full_name").eq("user_id", auth.userId).maybeSingle();
+          const { error } = await auth.client.from("pilot_tasks").insert({
             title,
             description: (body.description as string | null) ?? null,
             what_broke: (body.whatBroke as string | null) ?? null,
@@ -72,7 +71,7 @@ export const Route = createFileRoute("/api/pilot-tasks")({
             source: "manual",
             reporter_user_id: auth.userId,
             reporter_name: (prof as { full_name?: string | null } | null)?.full_name ?? null,
-          });
+          } as never);
           if (error) throw new Error(error.message);
           return jsonResponse({ ok: true });
         } catch (e) {
@@ -102,7 +101,7 @@ export const Route = createFileRoute("/api/pilot-tasks")({
           if (body.whereBroke !== undefined) patch.where_broke = body.whereBroke;
           if (body.howToReproduce !== undefined) patch.how_to_reproduce = body.howToReproduce;
 
-          const { error } = await supabaseAdmin.from("pilot_tasks").update(patch as never).eq("id", id);
+          const { error } = await auth.client.from("pilot_tasks").update(patch as never).eq("id", id);
           if (error) throw new Error(error.message);
           return jsonResponse({ ok: true });
         } catch (e) {
