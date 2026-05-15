@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/routes")({
         const status = url.searchParams.get("status");
         const activeOnly = url.searchParams.get("activeOnly") === "1";
         const idsParam = url.searchParams.get("ids");
+        const routeDate = url.searchParams.get("route_date");
         const fields = url.searchParams.get("fields") || "*, route_points(eta_at, eta_risk)";
 
         let q = auth.client
@@ -53,6 +54,7 @@ export const Route = createFileRoute("/api/routes")({
           if (ids.length === 0) return jsonResponse([], { headers: { "X-Total-Count": "0" } });
           q = q.in("id", ids);
         }
+        if (routeDate) q = q.eq("route_date", routeDate);
         if (activeOnly) q = q.in("status", ["planned", "in_progress"]);
         else if (status && status !== "all") q = q.eq("status", status as never);
         if (search) q = q.ilike("route_number", `%${search}%`);
