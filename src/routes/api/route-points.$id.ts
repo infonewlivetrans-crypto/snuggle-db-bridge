@@ -1,7 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 
-const ALLOWED = new Set(["status", "point_number"]);
+const ALLOWED = new Set([
+  "status",
+  "point_number",
+  "wh_return_status",
+  "wh_return_status_changed_at",
+  "wh_return_status_changed_by",
+  "wh_return_arrived_at",
+  "wh_return_accepted_at",
+  "wh_return_accepted_by",
+  "wh_return_comment",
+  "dp_status",
+  "dp_inbound_status",
+  "comment",
+]);
 
 export const Route = createFileRoute("/api/route-points/$id")({
   server: {
