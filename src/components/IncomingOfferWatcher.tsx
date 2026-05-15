@@ -1,15 +1,12 @@
 // Глобальный сторож входящих предложений (route_offers) для перевозчика/водителя.
-// Слушает realtime INSERT по своему carrier_id, проигрывает звуковой сигнал
-// «Новая подходящая заявка» и показывает модалку с кнопками
-// «Принять», «Отказаться», «Подробнее». Не меняет существующие API.
+// Раньше использовал Supabase Realtime; теперь — обычный polling через REST API,
+// поскольку production backend не отдаёт WebSocket из браузера.
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Bell, Check, X, ExternalLink, Truck, Clock, MapPin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
-import { apiPost } from "@/lib/api-client";
+import { apiPost, apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   getNotifSoundSettings,
@@ -43,6 +40,7 @@ type IncomingOffer = {
   driver_id: string | null;
   expires_at: string | null;
   comment: string | null;
+  status?: string;
   // обогащённые данные
   routeNumber?: string | null;
   routeFrom?: string | null;
@@ -149,89 +147,106 @@ export function IncomingOfferWatcher() {
   const [declineReason, setDeclineReason] = useState<string>("time");
   const [declineComment, setDeclineComment] = useState("");
   const seenIds = useRef<Set<string>>(new Set());
+  // Первый успешный ответ только заполняет seenIds, чтобы не сигналить
+  // о ранее существующих офферах при первой загрузке страницы.
+  const initialized = useRef(false);
 
   const current = queue[0] ?? null;
   const countdown = useCountdown(current?.expires_at ?? null);
 
-  // Обогащаем оффер данными по рейсу/машине
+  // Polling вместо realtime: раз в 30 секунд опрашиваем активные предложения
+  // для текущего carrier_id. Любой новый id играет звук и попадает в очередь.
+  const { data: activeOffers } = useQuery({
+    queryKey: ["incoming-offers-watch", carrierId],
+    enabled: !!carrierId,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+    staleTime: 15_000,
+    queryFn: async (): Promise<IncomingOffer[]> => {
+      const qs = new URLSearchParams();
+      qs.set("carrier_id", String(carrierId));
+      qs.set("status", "sent");
+      qs.set("limit", "50");
+      return await apiGetAuth<IncomingOffer[]>(`/api/route-offers?${qs.toString()}`);
+    },
+  });
+
+  // Обогащаем оффер данными по рейсу/машине через REST API
   const enrich = async (o: IncomingOffer): Promise<IncomingOffer> => {
     const enriched = { ...o };
     if (o.route_id) {
-      const { data: r } = await db
-        .from("routes")
-        .select("route_number, planned_departure_at, route_date")
-        .eq("id", o.route_id)
-        .maybeSingle();
-      if (r) {
-        enriched.routeNumber = r.route_number ?? null;
-        enriched.plannedAt = r.planned_departure_at ?? r.route_date ?? null;
-      }
-      // Маршрут From → To по точкам
-      const { data: pts } = await db
-        .from("route_points")
-        .select("city, sequence, point_type")
-        .eq("route_id", o.route_id)
-        .order("sequence", { ascending: true });
-      if (pts && pts.length > 0) {
-        enriched.routeFrom = pts[0]?.city ?? null;
-        enriched.routeTo = pts[pts.length - 1]?.city ?? null;
-      }
+      try {
+        const { rows: rs } = await fetchListViaApi<{
+          route_number: string | null;
+          planned_departure_at: string | null;
+          route_date: string | null;
+        }>("/api/routes", {
+          limit: 1,
+          extra: {
+            ids: o.route_id,
+            fields: "id, route_number, planned_departure_at, route_date",
+          },
+        });
+        const r = rs[0];
+        if (r) {
+          enriched.routeNumber = r.route_number ?? null;
+          enriched.plannedAt = r.planned_departure_at ?? r.route_date ?? null;
+        }
+      } catch { /* ignore */ }
+      try {
+        const pts = await apiGetAuth<Array<{ city: string | null; sequence: number }>>(
+          `/api/route-points?route_id=${encodeURIComponent(o.route_id)}&fields=city,sequence,point_type`,
+        );
+        if (pts.length > 0) {
+          const sorted = [...pts].sort((a, b) => (a.sequence ?? 0) - (b.sequence ?? 0));
+          enriched.routeFrom = sorted[0]?.city ?? null;
+          enriched.routeTo = sorted[sorted.length - 1]?.city ?? null;
+        }
+      } catch { /* ignore */ }
     }
     if (o.vehicle_id) {
-      const { data: v } = await db
-        .from("vehicles")
-        .select("plate_number, brand, model")
-        .eq("id", o.vehicle_id)
-        .maybeSingle();
-      if (v) {
-        enriched.vehicleLabel = [
-          v.plate_number,
-          [v.brand, v.model].filter(Boolean).join(" "),
-        ]
-          .filter(Boolean)
-          .join(" · ");
-      }
+      try {
+        const v = await apiGetAuth<{ row: { plate_number?: string; brand?: string; model?: string } | null }>(
+          `/api/vehicles/${o.vehicle_id}`,
+        );
+        const vv = v?.row;
+        if (vv) {
+          enriched.vehicleLabel = [
+            vv.plate_number,
+            [vv.brand, vv.model].filter(Boolean).join(" "),
+          ]
+            .filter(Boolean)
+            .join(" · ");
+        }
+      } catch { /* ignore */ }
     }
     return enriched;
   };
 
-  // Подписка realtime
+  // Обработка polling-результата: новые id сигналим, старые игнорируем.
   useEffect(() => {
-    if (!carrierId) return;
-    const channel = supabase
-      .channel(`offer-watch-${carrierId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "route_offers",
-          filter: `carrier_id=eq.${carrierId}`,
-        },
-        (payload) => {
-          const row = payload.new as IncomingOffer;
-          if (!row?.id || seenIds.current.has(row.id)) return;
-          seenIds.current.add(row.id);
-          // Воспроизводим звук и показываем тост
-          triggerNewOfferSignal();
-          toast.info("Новая подходящая заявка", {
-            description: row.comment ?? "Открыто окно с деталями.",
-            duration: 6000,
-          });
-          // Обогащаем и кладём в очередь
-          void enrich(row).then((full) => {
-            setQueue((prev) =>
-              prev.some((x) => x.id === full.id) ? prev : [...prev, full],
-            );
-          });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    if (!activeOffers) return;
+    if (!initialized.current) {
+      activeOffers.forEach((o) => seenIds.current.add(o.id));
+      initialized.current = true;
+      return;
+    }
+    const fresh = activeOffers.filter((o) => o.id && !seenIds.current.has(o.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((o) => seenIds.current.add(o.id));
+    triggerNewOfferSignal();
+    toast.info("Новая подходящая заявка", {
+      description: fresh[0]?.comment ?? "Открыто окно с деталями.",
+      duration: 6000,
+    });
+    void Promise.all(fresh.map((o) => enrich(o))).then((full) => {
+      setQueue((prev) => {
+        const exist = new Set(prev.map((x) => x.id));
+        return [...prev, ...full.filter((x) => !exist.has(x.id))];
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [carrierId]);
+  }, [activeOffers]);
 
   // Закрыть текущее окно (без действия)
   const closeCurrent = () => {
@@ -266,6 +281,7 @@ export function IncomingOfferWatcher() {
       qc.invalidateQueries({ queryKey: ["route-offers"] });
       qc.invalidateQueries({ queryKey: ["route-signals"] });
       qc.invalidateQueries({ queryKey: ["carrier-offers"] });
+      qc.invalidateQueries({ queryKey: ["incoming-offers-watch"] });
       closeCurrent();
     },
     onError: (e: Error) => toast.error(e.message),
