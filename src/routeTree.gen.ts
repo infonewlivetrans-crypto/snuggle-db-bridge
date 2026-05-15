@@ -76,6 +76,9 @@ import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
+import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
+import { Route as ApiWarehouseReturnsRouteImport } from './routes/api/warehouse-returns'
+import { Route as ApiWarehouseReportRouteImport } from './routes/api/warehouse-report'
 import { Route as ApiVehiclesRouteImport } from './routes/api/vehicles'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiUserRoleRouteImport } from './routes/api/user-role'
@@ -151,6 +154,7 @@ import { Route as ApiManagersImportRouteImport } from './routes/api/managers.imp
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
 import { Route as ApiInboundShipmentsIdRouteImport } from './routes/api/inbound-shipments.$id'
+import { Route as ApiInboundShipmentItemsIdRouteImport } from './routes/api/inbound-shipment-items.$id'
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
@@ -510,6 +514,21 @@ const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
 const ApiWarehousesRoute = ApiWarehousesRouteImport.update({
   id: '/api/warehouses',
   path: '/api/warehouses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWarehouseScheduleRoute = ApiWarehouseScheduleRouteImport.update({
+  id: '/api/warehouse-schedule',
+  path: '/api/warehouse-schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWarehouseReturnsRoute = ApiWarehouseReturnsRouteImport.update({
+  id: '/api/warehouse-returns',
+  path: '/api/warehouse-returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWarehouseReportRoute = ApiWarehouseReportRouteImport.update({
+  id: '/api/warehouse-report',
+  path: '/api/warehouse-report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVehiclesRoute = ApiVehiclesRouteImport.update({
@@ -888,6 +907,12 @@ const ApiInboundShipmentsIdRoute = ApiInboundShipmentsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiInboundShipmentsRoute,
 } as any)
+const ApiInboundShipmentItemsIdRoute =
+  ApiInboundShipmentItemsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiInboundShipmentItemsRoute,
+  } as any)
 const ApiImportLogsIdRoute = ApiImportLogsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1061,7 +1086,7 @@ export interface FileRoutesByFullPath {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
-  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRoute
+  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1097,6 +1122,9 @@ export interface FileRoutesByFullPath {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
+  '/api/warehouse-report': typeof ApiWarehouseReportRoute
+  '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
+  '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
@@ -1146,6 +1174,7 @@ export interface FileRoutesByFullPath {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
+  '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
@@ -1228,7 +1257,7 @@ export interface FileRoutesByTo {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
-  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRoute
+  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1264,6 +1293,9 @@ export interface FileRoutesByTo {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
+  '/api/warehouse-report': typeof ApiWarehouseReportRoute
+  '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
+  '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
@@ -1313,6 +1345,7 @@ export interface FileRoutesByTo {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
+  '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
@@ -1396,7 +1429,7 @@ export interface FileRoutesById {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
-  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRoute
+  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1432,6 +1465,9 @@ export interface FileRoutesById {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
+  '/api/warehouse-report': typeof ApiWarehouseReportRoute
+  '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
+  '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
@@ -1481,6 +1517,7 @@ export interface FileRoutesById {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
+  '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
@@ -1601,6 +1638,9 @@ export interface FileRouteTypes {
     | '/api/user-role'
     | '/api/users'
     | '/api/vehicles'
+    | '/api/warehouse-report'
+    | '/api/warehouse-returns'
+    | '/api/warehouse-schedule'
     | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
@@ -1650,6 +1690,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
+    | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
@@ -1768,6 +1809,9 @@ export interface FileRouteTypes {
     | '/api/user-role'
     | '/api/users'
     | '/api/vehicles'
+    | '/api/warehouse-report'
+    | '/api/warehouse-returns'
+    | '/api/warehouse-schedule'
     | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
@@ -1817,6 +1861,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
+    | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
@@ -1935,6 +1980,9 @@ export interface FileRouteTypes {
     | '/api/user-role'
     | '/api/users'
     | '/api/vehicles'
+    | '/api/warehouse-report'
+    | '/api/warehouse-returns'
+    | '/api/warehouse-schedule'
     | '/api/warehouses'
     | '/carriers/$carrierId'
     | '/carriers/verification'
@@ -1984,6 +2032,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
+    | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
     | '/api/invites/$id'
     | '/api/managers/$id'
@@ -2067,7 +2116,7 @@ export interface RootRouteChildren {
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
-  ApiInboundShipmentItemsRoute: typeof ApiInboundShipmentItemsRoute
+  ApiInboundShipmentItemsRoute: typeof ApiInboundShipmentItemsRouteWithChildren
   ApiInboundShipmentsRoute: typeof ApiInboundShipmentsRouteWithChildren
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
   ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
@@ -2103,6 +2152,9 @@ export interface RootRouteChildren {
   ApiUserRoleRoute: typeof ApiUserRoleRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
+  ApiWarehouseReportRoute: typeof ApiWarehouseReportRoute
+  ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
+  ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
   ApiWarehousesRoute: typeof ApiWarehousesRouteWithChildren
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
@@ -2618,6 +2670,27 @@ declare module '@tanstack/react-router' {
       path: '/api/warehouses'
       fullPath: '/api/warehouses'
       preLoaderRoute: typeof ApiWarehousesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warehouse-schedule': {
+      id: '/api/warehouse-schedule'
+      path: '/api/warehouse-schedule'
+      fullPath: '/api/warehouse-schedule'
+      preLoaderRoute: typeof ApiWarehouseScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warehouse-returns': {
+      id: '/api/warehouse-returns'
+      path: '/api/warehouse-returns'
+      fullPath: '/api/warehouse-returns'
+      preLoaderRoute: typeof ApiWarehouseReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warehouse-report': {
+      id: '/api/warehouse-report'
+      path: '/api/warehouse-report'
+      fullPath: '/api/warehouse-report'
+      preLoaderRoute: typeof ApiWarehouseReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/vehicles': {
@@ -3145,6 +3218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInboundShipmentsIdRouteImport
       parentRoute: typeof ApiInboundShipmentsRoute
     }
+    '/api/inbound-shipment-items/$id': {
+      id: '/api/inbound-shipment-items/$id'
+      path: '/$id'
+      fullPath: '/api/inbound-shipment-items/$id'
+      preLoaderRoute: typeof ApiInboundShipmentItemsIdRouteImport
+      parentRoute: typeof ApiInboundShipmentItemsRoute
+    }
     '/api/import-logs/$id': {
       id: '/api/import-logs/$id'
       path: '/$id'
@@ -3401,6 +3481,20 @@ const ApiImportLogsRouteWithChildren = ApiImportLogsRoute._addFileChildren(
   ApiImportLogsRouteChildren,
 )
 
+interface ApiInboundShipmentItemsRouteChildren {
+  ApiInboundShipmentItemsIdRoute: typeof ApiInboundShipmentItemsIdRoute
+}
+
+const ApiInboundShipmentItemsRouteChildren: ApiInboundShipmentItemsRouteChildren =
+  {
+    ApiInboundShipmentItemsIdRoute: ApiInboundShipmentItemsIdRoute,
+  }
+
+const ApiInboundShipmentItemsRouteWithChildren =
+  ApiInboundShipmentItemsRoute._addFileChildren(
+    ApiInboundShipmentItemsRouteChildren,
+  )
+
 interface ApiInboundShipmentsRouteChildren {
   ApiInboundShipmentsIdRoute: typeof ApiInboundShipmentsIdRoute
 }
@@ -3650,7 +3744,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
-  ApiInboundShipmentItemsRoute: ApiInboundShipmentItemsRoute,
+  ApiInboundShipmentItemsRoute: ApiInboundShipmentItemsRouteWithChildren,
   ApiInboundShipmentsRoute: ApiInboundShipmentsRouteWithChildren,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
   ApiInvitesRoute: ApiInvitesRouteWithChildren,
@@ -3686,6 +3780,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUserRoleRoute: ApiUserRoleRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,
+  ApiWarehouseReportRoute: ApiWarehouseReportRoute,
+  ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
+  ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
   ApiWarehousesRoute: ApiWarehousesRouteWithChildren,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
