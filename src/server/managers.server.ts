@@ -43,8 +43,9 @@ export type ManagerImportResult = {
   }>;
 };
 
-export async function listManagers(): Promise<ManagerRow[]> {
-  const { data, error } = await supabaseAdmin
+export async function listManagers(client?: DbClient): Promise<ManagerRow[]> {
+  const c = (client ?? supabaseAdmin) as DbClient;
+  const { data, error } = await c
     .from("managers")
     .select("*")
     .order("full_name", { ascending: true });
