@@ -660,23 +660,18 @@ function CreateShipmentDialog({
     }
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from("inbound_shipments" as any)
-        .insert({
-          source_type: sourceType,
-          source_name: sourceName.trim() || null,
-          destination_warehouse_id: destWh,
-          expected_at: expectedAt ? new Date(expectedAt).toISOString() : null,
-          vehicle_plate: plate.trim() || null,
-          driver_name: driverName.trim() || null,
-          driver_phone: driverPhone.trim() || null,
-          comment: comment.trim() || null,
-          status: "expected",
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      const shipmentId = (data as any).id as string;
+      const created = await apiPost<{ row: { id: string } }>("/api/inbound-shipments", {
+        source_type: sourceType,
+        source_name: sourceName.trim() || null,
+        destination_warehouse_id: destWh,
+        expected_at: expectedAt ? new Date(expectedAt).toISOString() : null,
+        vehicle_plate: plate.trim() || null,
+        driver_name: driverName.trim() || null,
+        driver_phone: driverPhone.trim() || null,
+        comment: comment.trim() || null,
+        status: "expected",
+      });
+      const shipmentId = created.row.id;
       const validItems = items
         .filter((it) => it.name.trim().length > 0)
         .map((it) => ({
@@ -687,10 +682,7 @@ function CreateShipmentDialog({
           qty_expected: Number(it.qty || 0),
         }));
       if (validItems.length > 0) {
-        const { error: e2 } = await supabase
-          .from("inbound_shipment_items" as any)
-          .insert(validItems);
-        if (e2) throw e2;
+        await apiPost("/api/inbound-shipment-items", validItems);
       }
       toast.success("Поступление создано");
       onCreated();
