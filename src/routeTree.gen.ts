@@ -111,6 +111,7 @@ import { Route as ApiManagersRouteImport } from './routes/api/managers'
 import { Route as ApiInvitesRouteImport } from './routes/api/invites'
 import { Route as ApiInviteLoginRouteImport } from './routes/api/invite-login'
 import { Route as ApiInboundShipmentsRouteImport } from './routes/api/inbound-shipments'
+import { Route as ApiInboundShipmentItemsRouteImport } from './routes/api/inbound-shipment-items'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiImportLogsRouteImport } from './routes/api/import-logs'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
@@ -683,6 +684,11 @@ const ApiInboundShipmentsRoute = ApiInboundShipmentsRouteImport.update({
   path: '/api/inbound-shipments',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiInboundShipmentItemsRoute = ApiInboundShipmentItemsRouteImport.update({
+  id: '/api/inbound-shipment-items',
+  path: '/api/inbound-shipment-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiImportRouteSheetRoute = ApiImportRouteSheetRouteImport.update({
   id: '/api/import-route-sheet',
   path: '/api/import-route-sheet',
@@ -1036,6 +1042,7 @@ export interface FileRoutesByFullPath {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRoute
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1199,6 +1206,7 @@ export interface FileRoutesByTo {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRoute
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1363,6 +1371,7 @@ export interface FileRoutesById {
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRoute
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
   '/api/invites': typeof ApiInvitesRouteWithChildren
@@ -1528,6 +1537,7 @@ export interface FileRouteTypes {
     | '/api/feedback'
     | '/api/import-logs'
     | '/api/import-route-sheet'
+    | '/api/inbound-shipment-items'
     | '/api/inbound-shipments'
     | '/api/invite-login'
     | '/api/invites'
@@ -1691,6 +1701,7 @@ export interface FileRouteTypes {
     | '/api/feedback'
     | '/api/import-logs'
     | '/api/import-route-sheet'
+    | '/api/inbound-shipment-items'
     | '/api/inbound-shipments'
     | '/api/invite-login'
     | '/api/invites'
@@ -1854,6 +1865,7 @@ export interface FileRouteTypes {
     | '/api/feedback'
     | '/api/import-logs'
     | '/api/import-route-sheet'
+    | '/api/inbound-shipment-items'
     | '/api/inbound-shipments'
     | '/api/invite-login'
     | '/api/invites'
@@ -2018,6 +2030,7 @@ export interface RootRouteChildren {
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
+  ApiInboundShipmentItemsRoute: typeof ApiInboundShipmentItemsRoute
   ApiInboundShipmentsRoute: typeof ApiInboundShipmentsRouteWithChildren
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
   ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
@@ -2815,6 +2828,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInboundShipmentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/inbound-shipment-items': {
+      id: '/api/inbound-shipment-items'
+      path: '/api/inbound-shipment-items'
+      fullPath: '/api/inbound-shipment-items'
+      preLoaderRoute: typeof ApiInboundShipmentItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/import-route-sheet': {
       id: '/api/import-route-sheet'
       path: '/api/import-route-sheet'
@@ -3558,6 +3578,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
+  ApiInboundShipmentItemsRoute: ApiInboundShipmentItemsRoute,
   ApiInboundShipmentsRoute: ApiInboundShipmentsRouteWithChildren,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
   ApiInvitesRoute: ApiInvitesRouteWithChildren,
