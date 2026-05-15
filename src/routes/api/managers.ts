@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/managers")({
         }
         try {
           const { limit, offset, search } = parseListParams(request);
-          const all = await listManagers();
+          const all = await listManagers(auth.client);
           const filtered = search
             ? all.filter((m) =>
                 [m.full_name, m.phone, m.comment]

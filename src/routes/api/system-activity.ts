@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 function startOfTodayIso(): string {
   const d = new Date(); d.setHours(0, 0, 0, 0); return d.toISOString();
@@ -8,9 +7,6 @@ function startOfTodayIso(): string {
 function startOfDayIso(daysAgo: number): string {
   const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - daysAgo); return d.toISOString();
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sb = supabaseAdmin as any;
 
 async function countWith(builder: Promise<{ count: number | null; error: unknown }>): Promise<number> {
   const res = await builder;
@@ -25,6 +21,8 @@ export const Route = createFileRoute("/api/system-activity")({
         const auth = await requireAnyRole(request, ["admin", "director"]);
         if (auth instanceof Response) return auth;
         try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const sb = auth.client as any;
           const todayStart = startOfTodayIso();
           const today = new Date().toISOString().slice(0, 10);
 
@@ -38,7 +36,7 @@ export const Route = createFileRoute("/api/system-activity")({
             countWith(sb.from("driver_locations").select("*", { count: "exact", head: true }).gte("captured_at", todayStart)),
           ]);
 
-          const { data: todayAudit } = await supabaseAdmin
+          const { data: todayAudit } = await auth.client
             .from("audit_log").select("user_id, user_role").gte("created_at", todayStart).not("user_id", "is", null).limit(5000);
 
           const activeUserIds = new Set<string>();
@@ -50,8 +48,8 @@ export const Route = createFileRoute("/api/system-activity")({
           }
 
           const [{ data: allProfiles }, { data: allRoles }] = await Promise.all([
-            supabaseAdmin.from("profiles").select("user_id, full_name, email, is_active").eq("is_active", true).limit(2000),
-            supabaseAdmin.from("user_roles").select("user_id, role").limit(5000),
+            auth.client.from("profiles").select("user_id, full_name, email, is_active").eq("is_active", true).limit(2000),
+            auth.client.from("user_roles").select("user_id, role").limit(5000),
           ]);
 
           const rolesByUser = new Map<string, string[]>();
@@ -67,7 +65,7 @@ export const Route = createFileRoute("/api/system-activity")({
             .slice(0, 100);
 
           const weekStart = startOfDayIso(6);
-          const { data: weekAudit } = await supabaseAdmin
+          const { data: weekAudit } = await auth.client
             .from("audit_log").select("created_at, user_id").gte("created_at", weekStart).limit(20000);
 
           const dayBuckets = new Map<string, { actions: number; users: Set<string> }>();

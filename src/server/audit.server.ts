@@ -1,4 +1,8 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type DbClient = SupabaseClient<Database>;
 
 export type AuditEvent = {
   userId?: string | null;
@@ -45,13 +49,14 @@ export async function listAudit(filters: {
   search?: string | null;
   page?: number;
   pageSize?: number;
-}) {
+}, client?: DbClient) {
+  const c = (client ?? supabaseAdmin) as DbClient;
   const page = Math.max(1, filters.page ?? 1);
   const pageSize = Math.min(Math.max(1, filters.pageSize ?? 25), 200);
   const fromIdx = (page - 1) * pageSize;
   const toIdx = fromIdx + pageSize - 1;
 
-  let q = supabaseAdmin
+  let q = c
     .from("audit_log")
     .select("*", { count: "exact" })
     .order("created_at", { ascending: false })

@@ -1,4 +1,8 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type DbClient = SupabaseClient<Database>;
 
 // Таблицы, входящие в резервную копию
 export const BACKUP_TABLES = [
@@ -149,8 +153,9 @@ export async function runBackup(opts: {
   }
 }
 
-export async function listBackups(limit = 100) {
-  const { data, error } = await (supabaseAdmin
+export async function listBackups(limit = 100, client?: DbClient) {
+  const c = (client ?? supabaseAdmin) as DbClient;
+  const { data, error } = await (c
     .from("backups") as unknown as {
       select: (s: string) => { order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: unknown[] | null; error: { message: string } | null }> } };
     })

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { FileText, Truck, CheckCircle2, XCircle, RotateCcw, ChevronRight } from "lucide-react";
@@ -44,14 +44,11 @@ function RouteReportsPage() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["route-completed-reports-list"],
     queryFn: async (): Promise<Notif[]> => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("id, created_at, payload")
-        .eq("kind", "route_completed_report")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return (data ?? []) as unknown as Notif[];
+      const { rows } = await fetchListViaApi<Notif>("/api/notifications", {
+        limit: 200,
+        extra: { kind: "route_completed_report", fields: "id, created_at, payload" },
+      });
+      return rows;
     },
     staleTime: 2 * 60_000,
     placeholderData: (prev) => prev,

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { db } from "@/lib/db";
+import { apiDelete, apiGetAuth, apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,25 +104,19 @@ function TariffsPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min-city"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db
-        .from("warehouses")
-        .select("id, name, city")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", {
+        limit: 500,
+        extra: { fields: "id, name, city" },
+      });
+      return rows;
     },
   });
 
   const { data: tariffs, isLoading } = useQuery({
     queryKey: ["delivery-tariffs"],
     queryFn: async (): Promise<Tariff[]> => {
-      const { data, error } = await db
-        .from("delivery_tariffs")
-        .select("*")
-        .order("priority", { ascending: true })
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Tariff[];
+      const { rows } = await apiGetAuth<{ rows: Tariff[] }>("/api/delivery-tariffs");
+      return rows ?? [];
     },
   });
 
@@ -139,11 +134,7 @@ function TariffsPage() {
 
   const toggleActive = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
-      const { error } = await db
-        .from("delivery_tariffs")
-        .update({ is_active: value })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-tariffs/${id}`, { is_active: value });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-tariffs"] });
@@ -154,8 +145,7 @@ function TariffsPage() {
 
   const removeTariff = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db.from("delivery_tariffs").delete().eq("id", id);
-      if (error) throw error;
+      await apiDelete(`/api/delivery-tariffs/${id}`);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-tariffs"] });
@@ -411,11 +401,9 @@ function TariffEditor({
       });
       if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Проверьте поля");
       if (isEdit && tariff) {
-        const { error } = await db.from("delivery_tariffs").update(parsed.data).eq("id", tariff.id);
-        if (error) throw error;
+        await apiPatch(`/api/delivery-tariffs/${tariff.id}`, parsed.data);
       } else {
-        const { error } = await db.from("delivery_tariffs").insert(parsed.data);
-        if (error) throw error;
+        await apiPost("/api/delivery-tariffs", parsed.data);
       }
     },
     onSuccess: () => {

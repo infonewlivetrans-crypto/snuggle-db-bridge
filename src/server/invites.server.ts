@@ -1,5 +1,9 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { normalizeRuPhone } from "@/lib/phone";
+
+type DbClient = SupabaseClient<Database>;
 
 export type InviteRole = "admin" | "logist" | "manager" | "driver";
 const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
@@ -115,8 +119,9 @@ export async function adminCreateInvite(args: CreateInviteArgs): Promise<InviteR
   return inv as InviteRow;
 }
 
-export async function adminListInvites(): Promise<InviteRow[]> {
-  const { data, error } = await supabaseAdmin
+export async function adminListInvites(client?: DbClient): Promise<InviteRow[]> {
+  const c = (client ?? supabaseAdmin) as DbClient;
+  const { data, error } = await c
     .from("invite_tokens")
     .select("*")
     .order("created_at", { ascending: false });

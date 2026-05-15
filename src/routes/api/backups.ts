@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/backups")({
             Math.max(1, Number(url.searchParams.get("limit")) || 50),
             200,
           );
-          const rows = await listBackups(limit);
+          const rows = await listBackups(limit, auth.client);
           return jsonResponse(
             { rows, total: rows.length },
             { headers: cacheHeaders(60) },

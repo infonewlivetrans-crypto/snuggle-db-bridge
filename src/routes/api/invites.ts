@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/invites")({
         if (auth instanceof Response) return auth;
         try {
           const { limit, offset } = parseListParams(request);
-          const all = await adminListInvites();
+          const all = await adminListInvites(auth.client);
           const rows = all.slice(offset, offset + limit);
           return jsonResponse(rows, { headers: { ...cacheHeaders(30), "X-Total-Count": String(all.length) } });
         } catch (e) {
