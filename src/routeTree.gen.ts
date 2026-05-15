@@ -79,6 +79,7 @@ import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
 import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
 import { Route as ApiWarehouseReturnsRouteImport } from './routes/api/warehouse-returns'
 import { Route as ApiWarehouseReportRouteImport } from './routes/api/warehouse-report'
+import { Route as ApiWarehouseLoadPlanRouteImport } from './routes/api/warehouse-load-plan'
 import { Route as ApiWarehouseDockEventsRouteImport } from './routes/api/warehouse-dock-events'
 import { Route as ApiVehiclesRouteImport } from './routes/api/vehicles'
 import { Route as ApiUsersRouteImport } from './routes/api/users'
@@ -545,6 +546,11 @@ const ApiWarehouseReturnsRoute = ApiWarehouseReturnsRouteImport.update({
 const ApiWarehouseReportRoute = ApiWarehouseReportRouteImport.update({
   id: '/api/warehouse-report',
   path: '/api/warehouse-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWarehouseLoadPlanRoute = ApiWarehouseLoadPlanRouteImport.update({
+  id: '/api/warehouse-load-plan',
+  path: '/api/warehouse-load-plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWarehouseDockEventsRoute = ApiWarehouseDockEventsRouteImport.update({
@@ -1229,6 +1235,7 @@ export interface FileRoutesByFullPath {
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
   '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRouteWithChildren
+  '/api/warehouse-load-plan': typeof ApiWarehouseLoadPlanRoute
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1416,6 +1423,7 @@ export interface FileRoutesByTo {
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
   '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRouteWithChildren
+  '/api/warehouse-load-plan': typeof ApiWarehouseLoadPlanRoute
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1604,6 +1612,7 @@ export interface FileRoutesById {
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
   '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRouteWithChildren
+  '/api/warehouse-load-plan': typeof ApiWarehouseLoadPlanRoute
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1793,6 +1802,7 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/vehicles'
     | '/api/warehouse-dock-events'
+    | '/api/warehouse-load-plan'
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
@@ -1980,6 +1990,7 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/vehicles'
     | '/api/warehouse-dock-events'
+    | '/api/warehouse-load-plan'
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
@@ -2167,6 +2178,7 @@ export interface FileRouteTypes {
     | '/api/users'
     | '/api/vehicles'
     | '/api/warehouse-dock-events'
+    | '/api/warehouse-load-plan'
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
@@ -2355,6 +2367,7 @@ export interface RootRouteChildren {
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
   ApiWarehouseDockEventsRoute: typeof ApiWarehouseDockEventsRouteWithChildren
+  ApiWarehouseLoadPlanRoute: typeof ApiWarehouseLoadPlanRoute
   ApiWarehouseReportRoute: typeof ApiWarehouseReportRoute
   ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
@@ -2896,6 +2909,13 @@ declare module '@tanstack/react-router' {
       path: '/api/warehouse-report'
       fullPath: '/api/warehouse-report'
       preLoaderRoute: typeof ApiWarehouseReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warehouse-load-plan': {
+      id: '/api/warehouse-load-plan'
+      path: '/api/warehouse-load-plan'
+      fullPath: '/api/warehouse-load-plan'
+      preLoaderRoute: typeof ApiWarehouseLoadPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/warehouse-dock-events': {
@@ -4169,6 +4189,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,
   ApiWarehouseDockEventsRoute: ApiWarehouseDockEventsRouteWithChildren,
+  ApiWarehouseLoadPlanRoute: ApiWarehouseLoadPlanRoute,
   ApiWarehouseReportRoute: ApiWarehouseReportRoute,
   ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
