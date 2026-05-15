@@ -401,11 +401,9 @@ function TariffEditor({
       });
       if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Проверьте поля");
       if (isEdit && tariff) {
-        const { error } = await db.from("delivery_tariffs").update(parsed.data).eq("id", tariff.id);
-        if (error) throw error;
+        await apiPatch(`/api/delivery-tariffs/${tariff.id}`, parsed.data);
       } else {
-        const { error } = await db.from("delivery_tariffs").insert(parsed.data);
-        if (error) throw error;
+        await apiPost("/api/delivery-tariffs", parsed.data);
       }
     },
     onSuccess: () => {
