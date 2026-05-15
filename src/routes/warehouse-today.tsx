@@ -484,14 +484,9 @@ function WarehouseTodayPage() {
         expected_at: args.isoTime,
       };
       if (existing) {
-        const { error } = await supabase
-          .from("warehouse_dock_events")
-          .update({ expected_at: args.isoTime })
-          .eq("id", existing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouse-dock-events/${existing.id}`, { expected_at: args.isoTime });
       } else {
-        const { error } = await supabase.from("warehouse_dock_events").insert(patch);
-        if (error) throw error;
+        await apiPost(`/api/warehouse-dock-events`, patch);
       }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["wh-today-events", date] }),
