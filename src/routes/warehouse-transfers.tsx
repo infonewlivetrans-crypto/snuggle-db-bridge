@@ -116,33 +116,27 @@ function WarehouseTransfersPage() {
   const { data: transfers = [], isLoading } = useQuery({
     queryKey: ["stock-transfers"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_transfers")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Transfer[];
+      const { rows } = await fetchListViaApi<Transfer>("/api/stock-transfers", {
+        limit: 1000,
+        extra: { order: "created_at.desc" },
+      });
+      return rows;
     },
   });
 
   const { data: warehouses = [] } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async () => {
-      const { data, error } = await db.from("warehouses").select("id, name").order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", { limit: 1000 });
+      return rows.map((w) => ({ id: w.id, name: w.name }));
     },
   });
 
   const { data: products = [] } = useQuery({
     queryKey: ["products-min"],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Product[];
+      const { rows } = await fetchListViaApi<Product>("/api/products", { limit: 1000 });
+      return rows;
     },
   });
 
