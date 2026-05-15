@@ -91,6 +91,7 @@ export function NotificationsBell() {
 
   // Realtime subscription
   useEffect(() => {
+    if (!user) return;
     const channel = supabase
       .channel("notifications-bell")
       .on(
