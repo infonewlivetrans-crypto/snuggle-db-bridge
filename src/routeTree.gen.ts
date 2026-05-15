@@ -89,6 +89,7 @@ import { Route as ApiSystemErrorsRouteImport } from './routes/api/system-errors'
 import { Route as ApiSystemActivityRouteImport } from './routes/api/system-activity'
 import { Route as ApiSupplyRequestsRouteImport } from './routes/api/supply-requests'
 import { Route as ApiSupplyRequestStatusHistoryRouteImport } from './routes/api/supply-request-status-history'
+import { Route as ApiSupplyNotificationsRouteImport } from './routes/api/supply-notifications'
 import { Route as ApiSupplyInTransitRouteImport } from './routes/api/supply-in-transit'
 import { Route as ApiStockTransfersRouteImport } from './routes/api/stock-transfers'
 import { Route as ApiStockReservationsRouteImport } from './routes/api/stock-reservations'
@@ -585,6 +586,11 @@ const ApiSupplyRequestStatusHistoryRoute =
     path: '/api/supply-request-status-history',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiSupplyNotificationsRoute = ApiSupplyNotificationsRouteImport.update({
+  id: '/api/supply-notifications',
+  path: '/api/supply-notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiSupplyInTransitRoute = ApiSupplyInTransitRouteImport.update({
   id: '/api/supply-in-transit',
   path: '/api/supply-in-transit',
@@ -1133,6 +1139,7 @@ export interface FileRoutesByFullPath {
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/supply-in-transit': typeof ApiSupplyInTransitRouteWithChildren
+  '/api/supply-notifications': typeof ApiSupplyNotificationsRoute
   '/api/supply-request-status-history': typeof ApiSupplyRequestStatusHistoryRoute
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
@@ -1307,6 +1314,7 @@ export interface FileRoutesByTo {
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/supply-in-transit': typeof ApiSupplyInTransitRouteWithChildren
+  '/api/supply-notifications': typeof ApiSupplyNotificationsRoute
   '/api/supply-request-status-history': typeof ApiSupplyRequestStatusHistoryRoute
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
@@ -1482,6 +1490,7 @@ export interface FileRoutesById {
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/supply-in-transit': typeof ApiSupplyInTransitRouteWithChildren
+  '/api/supply-notifications': typeof ApiSupplyNotificationsRoute
   '/api/supply-request-status-history': typeof ApiSupplyRequestStatusHistoryRoute
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
@@ -1658,6 +1667,7 @@ export interface FileRouteTypes {
     | '/api/stock-reservations'
     | '/api/stock-transfers'
     | '/api/supply-in-transit'
+    | '/api/supply-notifications'
     | '/api/supply-request-status-history'
     | '/api/supply-requests'
     | '/api/system-activity'
@@ -1832,6 +1842,7 @@ export interface FileRouteTypes {
     | '/api/stock-reservations'
     | '/api/stock-transfers'
     | '/api/supply-in-transit'
+    | '/api/supply-notifications'
     | '/api/supply-request-status-history'
     | '/api/supply-requests'
     | '/api/system-activity'
@@ -2006,6 +2017,7 @@ export interface FileRouteTypes {
     | '/api/stock-reservations'
     | '/api/stock-transfers'
     | '/api/supply-in-transit'
+    | '/api/supply-notifications'
     | '/api/supply-request-status-history'
     | '/api/supply-requests'
     | '/api/system-activity'
@@ -2181,6 +2193,7 @@ export interface RootRouteChildren {
   ApiStockReservationsRoute: typeof ApiStockReservationsRouteWithChildren
   ApiStockTransfersRoute: typeof ApiStockTransfersRouteWithChildren
   ApiSupplyInTransitRoute: typeof ApiSupplyInTransitRouteWithChildren
+  ApiSupplyNotificationsRoute: typeof ApiSupplyNotificationsRoute
   ApiSupplyRequestStatusHistoryRoute: typeof ApiSupplyRequestStatusHistoryRoute
   ApiSupplyRequestsRoute: typeof ApiSupplyRequestsRouteWithChildren
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
@@ -2800,6 +2813,13 @@ declare module '@tanstack/react-router' {
       path: '/api/supply-request-status-history'
       fullPath: '/api/supply-request-status-history'
       preLoaderRoute: typeof ApiSupplyRequestStatusHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/supply-notifications': {
+      id: '/api/supply-notifications'
+      path: '/api/supply-notifications'
+      fullPath: '/api/supply-notifications'
+      preLoaderRoute: typeof ApiSupplyNotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/supply-in-transit': {
@@ -3843,6 +3863,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStockReservationsRoute: ApiStockReservationsRouteWithChildren,
   ApiStockTransfersRoute: ApiStockTransfersRouteWithChildren,
   ApiSupplyInTransitRoute: ApiSupplyInTransitRouteWithChildren,
+  ApiSupplyNotificationsRoute: ApiSupplyNotificationsRoute,
   ApiSupplyRequestStatusHistoryRoute: ApiSupplyRequestStatusHistoryRoute,
   ApiSupplyRequestsRoute: ApiSupplyRequestsRouteWithChildren,
   ApiSystemActivityRoute: ApiSystemActivityRoute,
