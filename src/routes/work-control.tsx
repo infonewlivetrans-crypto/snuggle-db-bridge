@@ -13,7 +13,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi, apiGetAuth } from "@/lib/api-client";
 import { useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
 export const Route = createFileRoute("/work-control")({
