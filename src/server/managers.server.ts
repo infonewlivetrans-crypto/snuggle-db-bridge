@@ -1,6 +1,10 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { normalizeFullName } from "@/lib/normalize-name";
 import { normalizeRuPhone } from "@/lib/phone";
+
+type DbClient = SupabaseClient<Database>;
 
 export type ManagerRow = {
   id: string;
