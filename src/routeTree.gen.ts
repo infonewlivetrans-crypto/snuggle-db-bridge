@@ -138,6 +138,7 @@ import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
+import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
@@ -156,6 +157,7 @@ import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/deli
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
+import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -805,6 +807,11 @@ const ApiDriversIdRoute = ApiDriversIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDriversRoute,
 } as any)
+const ApiDriverMyRoutesRoute = ApiDriverMyRoutesRouteImport.update({
+  id: '/api/driver/my-routes',
+  path: '/api/driver/my-routes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -896,6 +903,11 @@ const ApiBackupsIdRestoreRoute = ApiBackupsIdRestoreRouteImport.update({
 const ApiAdminUsersCleanupRoute = ApiAdminUsersCleanupRouteImport.update({
   id: '/api/admin/users/cleanup',
   path: '/api/admin/users/cleanup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDriverRouteIdRoute = ApiDriverRouteIdRouteImport.update({
+  id: '/api/driver/route/$id',
+  path: '/api/driver/route/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -1024,6 +1036,7 @@ export interface FileRoutesByFullPath {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
@@ -1040,6 +1053,7 @@ export interface FileRoutesByFullPath {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
@@ -1173,6 +1187,7 @@ export interface FileRoutesByTo {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
@@ -1189,6 +1204,7 @@ export interface FileRoutesByTo {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
@@ -1323,6 +1339,7 @@ export interface FileRoutesById {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
@@ -1339,6 +1356,7 @@ export interface FileRoutesById {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
@@ -1474,6 +1492,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
@@ -1490,6 +1509,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
@@ -1623,6 +1643,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
@@ -1639,6 +1660,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
@@ -1772,6 +1794,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
@@ -1788,6 +1811,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
@@ -1917,7 +1941,9 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
+  ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
 }
 
@@ -2826,6 +2852,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriversIdRouteImport
       parentRoute: typeof ApiDriversRoute
     }
+    '/api/driver/my-routes': {
+      id: '/api/driver/my-routes'
+      path: '/api/driver/my-routes'
+      fullPath: '/api/driver/my-routes'
+      preLoaderRoute: typeof ApiDriverMyRoutesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-routes/$id': {
       id: '/api/delivery-routes/$id'
       path: '/$id'
@@ -2950,6 +2983,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/users/cleanup'
       fullPath: '/api/admin/users/cleanup'
       preLoaderRoute: typeof ApiAdminUsersCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/driver/route/$id': {
+      id: '/api/driver/route/$id'
+      path: '/api/driver/route/$id'
+      fullPath: '/api/driver/route/$id'
+      preLoaderRoute: typeof ApiDriverRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -3304,7 +3344,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
+  ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
 }
 export const routeTree = rootRouteImport
