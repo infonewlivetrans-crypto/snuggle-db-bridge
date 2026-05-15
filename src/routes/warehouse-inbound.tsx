@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -106,28 +106,26 @@ function WarehouseInboundPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["wh-inbound-warehouses"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("warehouses").select("id,name,city").order("name");
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<{ id: string; name: string; city: string | null }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["wh-inbound", warehouseId, statusFilter],
     queryFn: async () => {
-      let q = supabase
-        .from("inbound_shipments" as any)
-        .select("*")
-        .order("expected_at", { ascending: true, nullsFirst: false });
-      if (warehouseId !== "all") q = q.eq("destination_warehouse_id", warehouseId);
+      const extra: Record<string, string> = { order: "expected_at.asc" };
+      if (warehouseId !== "all") extra.destination_warehouse_id = warehouseId;
       if (statusFilter === "active") {
-        q = q.in("status", ["expected", "arrived", "receiving", "problem"]);
+        extra.status = "expected,arrived,receiving,problem";
       } else if (statusFilter !== "all") {
-        q = q.eq("status", statusFilter);
+        extra.status = statusFilter;
       }
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as any[];
+      const r = await fetchListViaApi<any>("/api/inbound-shipments", { limit: 1000, extra });
+      return r.rows;
     },
   });
 
@@ -137,12 +135,11 @@ function WarehouseInboundPage() {
     queryKey: ["wh-inbound-items", shipmentIds],
     enabled: shipmentIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("inbound_shipment_items" as any)
-        .select("*")
-        .in("shipment_id", shipmentIds);
-      if (error) throw error;
-      return (data ?? []) as any[];
+      const r = await fetchListViaApi<any>("/api/inbound-shipment-items", {
+        limit: 1000,
+        extra: { shipment_id: shipmentIds.join(",") },
+      });
+      return r.rows;
     },
   });
 
@@ -174,8 +171,7 @@ function WarehouseInboundPage() {
         patch.accepted_by = acceptedBy || "Кладовщик";
         if (warehouseComment.trim()) patch.warehouse_comment = warehouseComment.trim();
       }
-      const { error } = await supabase.from("inbound_shipments" as any).update(patch).eq("id", args.id);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipments/${args.id}`, patch);
     },
     onSuccess: () => {
       toast.success("Статус обновлён");
@@ -518,14 +514,10 @@ function ReceivedRow({ item, onSaved }: { item: any; onSaved: () => void }) {
   async function save() {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("inbound_shipment_items" as any)
-        .update({
-          qty_received: qty === "" ? null : Number(qty),
-          comment: comment.trim() || null,
-        })
-        .eq("id", item.id);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipment-items/${item.id}`, {
+        qty_received: qty === "" ? null : Number(qty),
+        comment: comment.trim() || null,
+      });
       onSaved();
       toast.success("Сохранено");
     } catch (e: any) {
@@ -583,11 +575,7 @@ function DocsUploader({
     try {
       const url = await uploadPublicFile(INBOUND_BUCKET, f, `inbound/${shipmentId}`);
       const next = [...urls, url];
-      const { error } = await supabase
-        .from("inbound_shipments" as any)
-        .update({ docs_photo_urls: next })
-        .eq("id", shipmentId);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipments/${shipmentId}`, { docs_photo_urls: next });
       onChanged();
       toast.success("Документ загружен");
     } catch (err: any) {
@@ -599,12 +587,12 @@ function DocsUploader({
   }
   async function remove(url: string) {
     const next = urls.filter((u) => u !== url);
-    const { error } = await supabase
-      .from("inbound_shipments" as any)
-      .update({ docs_photo_urls: next })
-      .eq("id", shipmentId);
-    if (error) toast.error(error.message);
-    else onChanged();
+    try {
+      await apiPatch(`/api/inbound-shipments/${shipmentId}`, { docs_photo_urls: next });
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "Ошибка");
+    }
   }
   return (
     <div className="space-y-2">
@@ -672,23 +660,18 @@ function CreateShipmentDialog({
     }
     setSaving(true);
     try {
-      const { data, error } = await supabase
-        .from("inbound_shipments" as any)
-        .insert({
-          source_type: sourceType,
-          source_name: sourceName.trim() || null,
-          destination_warehouse_id: destWh,
-          expected_at: expectedAt ? new Date(expectedAt).toISOString() : null,
-          vehicle_plate: plate.trim() || null,
-          driver_name: driverName.trim() || null,
-          driver_phone: driverPhone.trim() || null,
-          comment: comment.trim() || null,
-          status: "expected",
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-      const shipmentId = (data as any).id as string;
+      const created = await apiPost<{ row: { id: string } }>("/api/inbound-shipments", {
+        source_type: sourceType,
+        source_name: sourceName.trim() || null,
+        destination_warehouse_id: destWh,
+        expected_at: expectedAt ? new Date(expectedAt).toISOString() : null,
+        vehicle_plate: plate.trim() || null,
+        driver_name: driverName.trim() || null,
+        driver_phone: driverPhone.trim() || null,
+        comment: comment.trim() || null,
+        status: "expected",
+      });
+      const shipmentId = created.row.id;
       const validItems = items
         .filter((it) => it.name.trim().length > 0)
         .map((it) => ({
@@ -699,10 +682,7 @@ function CreateShipmentDialog({
           qty_expected: Number(it.qty || 0),
         }));
       if (validItems.length > 0) {
-        const { error: e2 } = await supabase
-          .from("inbound_shipment_items" as any)
-          .insert(validItems);
-        if (e2) throw e2;
+        await apiPost("/api/inbound-shipment-items", validItems);
       }
       toast.success("Поступление создано");
       onCreated();
@@ -893,16 +873,12 @@ function ProblemDialog({
     }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("inbound_shipments" as any)
-        .update({
-          status: "problem",
-          problem_reason: reason.trim(),
-          problem_comment: comment.trim() || null,
-          problem_photo_url: photoUrl || null,
-        })
-        .eq("id", shipmentId);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipments/${shipmentId}`, {
+        status: "problem",
+        problem_reason: reason.trim(),
+        problem_comment: comment.trim() || null,
+        problem_photo_url: photoUrl || null,
+      });
       toast.success("Проблема зафиксирована");
       onSaved();
       setReason("");

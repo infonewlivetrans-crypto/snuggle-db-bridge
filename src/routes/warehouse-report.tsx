@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,79 +113,30 @@ function WarehouseReportPage() {
   const { data: warehouses } = useQuery({
     queryKey: ["wh-report-warehouses"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouses")
-        .select("id,name,city")
-        .order("name");
-      if (error) throw error;
-      return data ?? [];
+      const r = await fetchListViaApi<{ id: string; name: string; city: string | null }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
-  // Отгрузки на дату (по event_date)
-  const { data: dockEvents } = useQuery({
-    queryKey: ["wh-report-dock", date],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouse_dock_events")
-        .select("*")
-        .eq("event_date", date);
-      if (error) throw error;
-      return data ?? [];
-    },
+  const { data: report } = useQuery({
+    queryKey: ["wh-report", date],
+    queryFn: async () =>
+      apiGetAuth<{
+        dockEvents: any[];
+        returnPoints: any[];
+        inbounds: any[];
+        returnOrders: { id: string; order_number: string }[];
+      }>(`/api/warehouse-report?date=${encodeURIComponent(date)}`),
   });
 
-  const { fromIso, toIso } = dayBoundaries(date);
+  const dockEvents = report?.dockEvents;
+  const returnPoints = report?.returnPoints;
+  const inbounds = report?.inbounds;
+  const returnOrders = report?.returnOrders;
 
-  // Возвраты: route_points с wh_return_* в течение дня
-  const { data: returnPoints } = useQuery({
-    queryKey: ["wh-report-returns", date],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, route_id, order_id, wh_return_status, wh_return_arrived_at, wh_return_accepted_at, wh_return_accepted_by, wh_return_status_changed_by, wh_return_status_changed_at, wh_return_comment, dp_return_warehouse_id",
-        )
-        .or(
-          `and(wh_return_arrived_at.gte.${fromIso},wh_return_arrived_at.lte.${toIso}),and(wh_return_accepted_at.gte.${fromIso},wh_return_accepted_at.lte.${toIso})`,
-        );
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  // Поступления: создание/прибытие/приёмка в течение дня
-  const { data: inbounds } = useQuery({
-    queryKey: ["wh-report-inbound", date],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("inbound_shipments")
-        .select("*")
-        .or(
-          `and(arrived_at.gte.${fromIso},arrived_at.lte.${toIso}),and(accepted_at.gte.${fromIso},accepted_at.lte.${toIso}),and(expected_at.gte.${fromIso},expected_at.lte.${toIso})`,
-        );
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  // Связанные заказы для возвратов (для номера заказа)
-  const returnOrderIds = useMemo(
-    () => Array.from(new Set((returnPoints ?? []).map((p) => p.order_id).filter(Boolean) as string[])),
-    [returnPoints],
-  );
-  const { data: returnOrders } = useQuery({
-    queryKey: ["wh-report-return-orders", returnOrderIds],
-    enabled: returnOrderIds.length > 0,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("id, order_number")
-        .in("id", returnOrderIds);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
   const orderNumberById = useMemo(
     () => Object.fromEntries((returnOrders ?? []).map((o) => [o.id, o.order_number])),
     [returnOrders],
