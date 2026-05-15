@@ -54,7 +54,6 @@ const KIND_COLOR: Record<NotificationKind, string> = {
 export function NotificationsBell() {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [open, setOpen] = useState(false);
 
   const { data: items = [] } = useQuery<Notification[]>({
@@ -86,58 +85,24 @@ export function NotificationsBell() {
     return { total: stock.length, critical, out, low, lastAt };
   }, [items]);
 
-  // Realtime subscription
-  useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel("notifications-bell")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
-        (payload) => {
-          const n = payload.new as Notification;
-          qc.invalidateQueries({ queryKey: ["notifications"] });
-          // Toast
-          if (n.kind === "qr_uploaded") toast.info(n.title, { description: n.body ?? "" });
-          else if (n.kind === "order_delivered") toast.success(n.title, { description: n.body ?? "" });
-          else if (n.kind === "order_failed") toast.error(n.title, { description: n.body ?? "" });
-          else if (n.kind === "order_returned") toast.warning(n.title, { description: n.body ?? "" });
-          else if (n.kind === "low_stock") toast.warning(n.title, { description: n.body ?? "" });
-          else if (n.kind === "route_completed_report") toast.success(n.title, { description: n.body ?? "" });
-          else toast(n.title, { description: n.body ?? "" });
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "notifications" },
-        () => qc.invalidateQueries({ queryKey: ["notifications"] }),
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [qc, user]);
+  // Realtime отключён: backend не отдаёт WebSocket из браузера. Polling выше
+  // (refetchInterval=60s) обеспечивает актуальность списка уведомлений.
 
   const markAllRead = useMutation({
     mutationFn: async () => {
       const ids = items.filter((i) => !i.is_read).map((i) => i.id);
       if (ids.length === 0) return;
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .in("id", ids);
-      if (error) throw error;
+      await apiPatch("/api/notifications", { ids, is_read: true });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
   const markOne = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/notifications/${id}`, {
+        is_read: true,
+        read_at: new Date().toISOString(),
+      });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
