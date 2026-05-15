@@ -371,6 +371,10 @@ function DriverRoutePage() {
       <main className="mx-auto max-w-3xl px-4 py-4 sm:py-6">
         {isLoading ? (
           <div className="text-muted-foreground">Загрузка...</div>
+        ) : isForbidden ? (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center text-sm text-destructive">
+            Этот маршрут не назначен вам.
+          </div>
         ) : !data ? (
           <div className="rounded-lg border border-border bg-card p-6 text-center text-muted-foreground">
             Маршрут не найден
