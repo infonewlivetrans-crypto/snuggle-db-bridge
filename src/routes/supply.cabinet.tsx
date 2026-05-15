@@ -302,14 +302,11 @@ function SupplyCabinetPage() {
   const { data: notifications } = useQuery({
     queryKey: ["supply-notifications"],
     queryFn: async (): Promise<SupplyNotification[]> => {
-      const { data, error } = await db
-        .from("notifications")
-        .select("*")
-        .eq("kind", "supply_alert")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as unknown as SupplyNotification[];
+      const { rows } = await fetchListViaApi<SupplyNotification>("/api/notifications", {
+        limit: 100,
+        extra: { kind: "supply_alert" },
+      });
+      return rows;
     },
   });
 
