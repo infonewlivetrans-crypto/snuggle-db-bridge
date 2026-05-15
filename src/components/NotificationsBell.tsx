@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchListViaApi } from "@/lib/api-client";
-import { useAuth } from "@/lib/auth/auth-context";
+import { fetchListViaApi, apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
