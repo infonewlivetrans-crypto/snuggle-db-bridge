@@ -162,6 +162,7 @@ import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-po
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
+import { Route as ApiNotificationsIdRouteImport } from './routes/api/notifications.$id'
 import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
 import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
@@ -968,6 +969,11 @@ const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiNotificationsIdRoute = ApiNotificationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiNotificationsRoute,
+} as any)
 const ApiManagersListRoute = ApiManagersListRouteImport.update({
   id: '/list',
   path: '/list',
@@ -1200,7 +1206,7 @@ export interface FileRoutesByFullPath {
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
-  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
@@ -1297,6 +1303,7 @@ export interface FileRoutesByFullPath {
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
   '/api/managers/list': typeof ApiManagersListRoute
+  '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1388,7 +1395,7 @@ export interface FileRoutesByTo {
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
-  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
@@ -1485,6 +1492,7 @@ export interface FileRoutesByTo {
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
   '/api/managers/list': typeof ApiManagersListRoute
+  '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1577,7 +1585,7 @@ export interface FileRoutesById {
   '/api/invites': typeof ApiInvitesRouteWithChildren
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
-  '/api/notifications': typeof ApiNotificationsRoute
+  '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
@@ -1674,6 +1682,7 @@ export interface FileRoutesById {
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
   '/api/managers/list': typeof ApiManagersListRoute
+  '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1864,6 +1873,7 @@ export interface FileRouteTypes {
     | '/api/managers/$id'
     | '/api/managers/import'
     | '/api/managers/list'
+    | '/api/notifications/$id'
     | '/api/orders/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -2052,6 +2062,7 @@ export interface FileRouteTypes {
     | '/api/managers/$id'
     | '/api/managers/import'
     | '/api/managers/list'
+    | '/api/notifications/$id'
     | '/api/orders/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -2240,6 +2251,7 @@ export interface FileRouteTypes {
     | '/api/managers/$id'
     | '/api/managers/import'
     | '/api/managers/list'
+    | '/api/notifications/$id'
     | '/api/orders/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -2332,7 +2344,7 @@ export interface RootRouteChildren {
   ApiInvitesRoute: typeof ApiInvitesRouteWithChildren
   ApiManagersRoute: typeof ApiManagersRouteWithChildren
   ApiModulesRoute: typeof ApiModulesRoute
-  ApiNotificationsRoute: typeof ApiNotificationsRoute
+  ApiNotificationsRoute: typeof ApiNotificationsRouteWithChildren
   ApiOrderItemsRoute: typeof ApiOrderItemsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
@@ -3492,6 +3504,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/notifications/$id': {
+      id: '/api/notifications/$id'
+      path: '/$id'
+      fullPath: '/api/notifications/$id'
+      preLoaderRoute: typeof ApiNotificationsIdRouteImport
+      parentRoute: typeof ApiNotificationsRoute
+    }
     '/api/managers/list': {
       id: '/api/managers/list'
       path: '/list'
@@ -3897,6 +3916,17 @@ const ApiManagersRouteWithChildren = ApiManagersRoute._addFileChildren(
   ApiManagersRouteChildren,
 )
 
+interface ApiNotificationsRouteChildren {
+  ApiNotificationsIdRoute: typeof ApiNotificationsIdRoute
+}
+
+const ApiNotificationsRouteChildren: ApiNotificationsRouteChildren = {
+  ApiNotificationsIdRoute: ApiNotificationsIdRoute,
+}
+
+const ApiNotificationsRouteWithChildren =
+  ApiNotificationsRoute._addFileChildren(ApiNotificationsRouteChildren)
+
 interface ApiOrdersIdRouteChildren {
   ApiOrdersIdRouteLinkRoute: typeof ApiOrdersIdRouteLinkRoute
 }
@@ -4154,7 +4184,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiInvitesRoute: ApiInvitesRouteWithChildren,
   ApiManagersRoute: ApiManagersRouteWithChildren,
   ApiModulesRoute: ApiModulesRoute,
-  ApiNotificationsRoute: ApiNotificationsRoute,
+  ApiNotificationsRoute: ApiNotificationsRouteWithChildren,
   ApiOrderItemsRoute: ApiOrderItemsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
