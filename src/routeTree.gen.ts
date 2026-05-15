@@ -166,6 +166,7 @@ import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$i
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
+import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
@@ -978,6 +979,11 @@ const ApiDriverMyRoutesRoute = ApiDriverMyRoutesRouteImport.update({
   path: '/api/driver/my-routes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDockLoadingConfirmRoute = ApiDockLoadingConfirmRouteImport.update({
+  id: '/api/dock-loading/confirm',
+  path: '/api/dock-loading/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1219,6 +1225,7 @@ export interface FileRoutesByFullPath {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1397,6 +1404,7 @@ export interface FileRoutesByTo {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1576,6 +1584,7 @@ export interface FileRoutesById {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1756,6 +1765,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -1934,6 +1944,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -2112,6 +2123,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -2286,6 +2298,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3393,6 +3406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriverMyRoutesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dock-loading/confirm': {
+      id: '/api/dock-loading/confirm'
+      path: '/api/dock-loading/confirm'
+      fullPath: '/api/dock-loading/confirm'
+      preLoaderRoute: typeof ApiDockLoadingConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-routes/$id': {
       id: '/api/delivery-routes/$id'
       path: '/$id'
@@ -3982,6 +4002,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
