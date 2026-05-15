@@ -575,11 +575,7 @@ function DocsUploader({
     try {
       const url = await uploadPublicFile(INBOUND_BUCKET, f, `inbound/${shipmentId}`);
       const next = [...urls, url];
-      const { error } = await supabase
-        .from("inbound_shipments" as any)
-        .update({ docs_photo_urls: next })
-        .eq("id", shipmentId);
-      if (error) throw error;
+      await apiPatch(`/api/inbound-shipments/${shipmentId}`, { docs_photo_urls: next });
       onChanged();
       toast.success("Документ загружен");
     } catch (err: any) {
