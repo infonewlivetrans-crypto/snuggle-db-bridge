@@ -486,9 +486,9 @@ function CreateTransferDialog({
       const sourceName = warehouses.find((w) => w.id === sourceId)?.name ?? null;
       const destName = warehouses.find((w) => w.id === destId)?.name ?? null;
 
-      const { data: created, error } = await db
-        .from("stock_transfers")
-        .insert({
+      const { row: created } = await apiPost<{ row: { id: string } | null }>(
+        "/api/stock-transfers",
+        {
           transfer_number: number,
           source_warehouse_id: sourceId,
           destination_warehouse_id: destId,
@@ -498,16 +498,13 @@ function CreateTransferDialog({
           comment: comment || null,
           created_by: createdBy || null,
           sent_at: sendNow ? new Date().toISOString() : null,
-        })
-        .select()
-        .single();
-      if (error) throw error;
+        },
+      );
 
       if (sendNow && created) {
-        // Create supply_in_transit
-        const { data: inTransit } = await db
-          .from("supply_in_transit")
-          .insert({
+        const { row: inTransit } = await apiPost<{ row: { id: string } | null }>(
+          "/api/supply-in-transit",
+          {
             product_id: productId,
             destination_warehouse_id: destId,
             source_type: "warehouse",
@@ -515,12 +512,10 @@ function CreateTransferDialog({
             source_name: sourceName,
             qty: qtyNum,
             status: "in_transit",
-          })
-          .select()
-          .single();
+          },
+        );
 
-        // Log outbound movement at source
-        await db.from("stock_movements").insert({
+        await apiPost("/api/stock-movements", {
           product_id: productId,
           warehouse_id: sourceId,
           movement_type: "transfer",
@@ -531,10 +526,9 @@ function CreateTransferDialog({
         });
 
         if (inTransit?.id) {
-          await db
-            .from("stock_transfers")
-            .update({ in_transit_id: inTransit.id })
-            .eq("id", created.id);
+          await apiPatch(`/api/stock-transfers/${created.id}`, {
+            in_transit_id: inTransit.id,
+          });
         }
       }
 
