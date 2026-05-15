@@ -65,7 +65,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
         const { data, error, count } = await q.range(offset, offset + useLimit - 1);
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
 
-        const rows = (data ?? []) as Array<Record<string, unknown>>;
+        const rows = ((data ?? []) as unknown) as Array<Record<string, unknown>>;
         // Сбор distinct id для дозаполнения.
         const reqIds = Array.from(
           new Set(

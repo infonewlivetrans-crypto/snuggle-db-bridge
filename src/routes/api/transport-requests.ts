@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/transport-requests")({
         const { data, error, count } = await q.range(offset, offset + limit - 1);
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
 
-        const rows = (data ?? []) as Array<Record<string, unknown>>;
+        const rows = ((data ?? []) as unknown) as Array<Record<string, unknown>>;
         const destIds = Array.from(
           new Set(
             rows
