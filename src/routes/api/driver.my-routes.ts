@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const Route = createFileRoute("/api/driver/my-routes")({
   server: {
@@ -8,9 +7,9 @@ export const Route = createFileRoute("/api/driver/my-routes")({
       GET: async ({ request }) => {
         const auth = await requireAnyRole(request, ["admin", "driver"]);
         if (auth instanceof Response) return auth;
+        const sb = auth.client;
 
-        // Найти запись водителя по user_id
-        const { data: driverRow } = await supabaseAdmin
+        const { data: driverRow } = await sb
           .from("drivers")
           .select("id")
           .eq("user_id", auth.userId)
@@ -19,7 +18,7 @@ export const Route = createFileRoute("/api/driver/my-routes")({
         const driverId = (driverRow as { id: string } | null)?.id ?? null;
         if (!driverId) return jsonResponse({ rows: [], pointsCounts: {} });
 
-        const { data: rows, error } = await supabaseAdmin
+        const { data: rows, error } = await sb
           .from("delivery_routes")
           .select(
             "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id",
@@ -34,7 +33,7 @@ export const Route = createFileRoute("/api/driver/my-routes")({
         const ids = routes.map((r) => r.source_request_id);
         const pointsCounts: Record<string, number> = {};
         if (ids.length > 0) {
-          const { data: pts } = await supabaseAdmin
+          const { data: pts } = await sb
             .from("route_points")
             .select("route_id")
             .in("route_id", ids);
