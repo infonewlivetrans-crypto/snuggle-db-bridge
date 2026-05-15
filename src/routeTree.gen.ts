@@ -169,6 +169,7 @@ import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.impor
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
+import { Route as ApiDeliveryTariffsIdRouteImport } from './routes/api/delivery-tariffs.$id'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
@@ -997,6 +998,11 @@ const ApiDockLoadingConfirmRoute = ApiDockLoadingConfirmRouteImport.update({
   path: '/api/dock-loading/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDeliveryTariffsIdRoute = ApiDeliveryTariffsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDeliveryTariffsRoute,
+} as any)
 const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1150,7 +1156,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
-  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRoute
+  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
@@ -1245,6 +1251,7 @@ export interface FileRoutesByFullPath {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
@@ -1332,7 +1339,7 @@ export interface FileRoutesByTo {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
-  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRoute
+  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
@@ -1427,6 +1434,7 @@ export interface FileRoutesByTo {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
@@ -1515,7 +1523,7 @@ export interface FileRoutesById {
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
   '/api/delivery-reports': typeof ApiDeliveryReportsRoute
   '/api/delivery-routes': typeof ApiDeliveryRoutesRouteWithChildren
-  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRoute
+  '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
@@ -1610,6 +1618,7 @@ export interface FileRoutesById {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
@@ -1794,6 +1803,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
@@ -1976,6 +1986,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
@@ -2158,6 +2169,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
@@ -2246,7 +2258,7 @@ export interface RootRouteChildren {
   ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
   ApiDeliveryReportsRoute: typeof ApiDeliveryReportsRoute
   ApiDeliveryRoutesRoute: typeof ApiDeliveryRoutesRouteWithChildren
-  ApiDeliveryTariffsRoute: typeof ApiDeliveryTariffsRoute
+  ApiDeliveryTariffsRoute: typeof ApiDeliveryTariffsRouteWithChildren
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDockLoadedItemsRoute: typeof ApiDockLoadedItemsRoute
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
@@ -3466,6 +3478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDockLoadingConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/delivery-tariffs/$id': {
+      id: '/api/delivery-tariffs/$id'
+      path: '/$id'
+      fullPath: '/api/delivery-tariffs/$id'
+      preLoaderRoute: typeof ApiDeliveryTariffsIdRouteImport
+      parentRoute: typeof ApiDeliveryTariffsRoute
+    }
     '/api/delivery-routes/$id': {
       id: '/api/delivery-routes/$id'
       path: '/$id'
@@ -3677,6 +3696,17 @@ const ApiDeliveryRoutesRouteChildren: ApiDeliveryRoutesRouteChildren = {
 
 const ApiDeliveryRoutesRouteWithChildren =
   ApiDeliveryRoutesRoute._addFileChildren(ApiDeliveryRoutesRouteChildren)
+
+interface ApiDeliveryTariffsRouteChildren {
+  ApiDeliveryTariffsIdRoute: typeof ApiDeliveryTariffsIdRoute
+}
+
+const ApiDeliveryTariffsRouteChildren: ApiDeliveryTariffsRouteChildren = {
+  ApiDeliveryTariffsIdRoute: ApiDeliveryTariffsIdRoute,
+}
+
+const ApiDeliveryTariffsRouteWithChildren =
+  ApiDeliveryTariffsRoute._addFileChildren(ApiDeliveryTariffsRouteChildren)
 
 interface ApiDriversRouteChildren {
   ApiDriversIdRoute: typeof ApiDriversIdRoute
@@ -3976,7 +4006,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
   ApiDeliveryReportsRoute: ApiDeliveryReportsRoute,
   ApiDeliveryRoutesRoute: ApiDeliveryRoutesRouteWithChildren,
-  ApiDeliveryTariffsRoute: ApiDeliveryTariffsRoute,
+  ApiDeliveryTariffsRoute: ApiDeliveryTariffsRouteWithChildren,
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDockLoadedItemsRoute: ApiDockLoadedItemsRoute,
   ApiDriversRoute: ApiDriversRouteWithChildren,
