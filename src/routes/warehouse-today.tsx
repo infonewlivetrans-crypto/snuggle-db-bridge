@@ -419,13 +419,9 @@ function WarehouseTodayPage() {
       const now = new Date().toISOString();
       const existing = eventByRoute.get(openedRoute.id);
       if (existing) {
-        const { error } = await supabase
-          .from("warehouse_dock_events")
-          .update({ load_plan_confirmed_at: now })
-          .eq("id", existing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouse-dock-events/${existing.id}`, { load_plan_confirmed_at: now });
       } else {
-        const { error } = await supabase.from("warehouse_dock_events").insert({
+        await apiPost(`/api/warehouse-dock-events`, {
           delivery_route_id: openedRoute.id,
           warehouse_id: openedRoute.source_warehouse_id,
           event_date: date,
@@ -434,7 +430,6 @@ function WarehouseTodayPage() {
           vehicle_plate: openedRoute.assigned_vehicle,
           load_plan_confirmed_at: now,
         });
-        if (error) throw error;
       }
     },
     onSuccess: () => {
