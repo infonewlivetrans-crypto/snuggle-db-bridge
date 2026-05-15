@@ -587,12 +587,12 @@ function DocsUploader({
   }
   async function remove(url: string) {
     const next = urls.filter((u) => u !== url);
-    const { error } = await supabase
-      .from("inbound_shipments" as any)
-      .update({ docs_photo_urls: next })
-      .eq("id", shipmentId);
-    if (error) toast.error(error.message);
-    else onChanged();
+    try {
+      await apiPatch(`/api/inbound-shipments/${shipmentId}`, { docs_photo_urls: next });
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "Ошибка");
+    }
   }
   return (
     <div className="space-y-2">
