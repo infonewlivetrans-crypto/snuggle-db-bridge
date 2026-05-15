@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
 
 export type SettingValue = unknown;
 
@@ -31,33 +31,22 @@ export const APP_CLIENT_VERSION = "1.0.0";
 export const APP_CLIENT_PLATFORM = "web";
 
 export async function fetchAllSettings(): Promise<SystemSetting[]> {
-  const { data, error } = await supabase
-    .from("system_settings")
-    .select("*")
-    .order("category", { ascending: true })
-    .order("setting_key", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as SystemSetting[];
+  const { settings } = await apiGetAuth<{ settings: SystemSetting[] }>("/api/system-settings");
+  return settings ?? [];
 }
 
 export async function fetchSetting(key: string): Promise<SystemSetting | null> {
-  const { data, error } = await supabase
-    .from("system_settings")
-    .select("*")
-    .eq("setting_key", key)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as SystemSetting | null) ?? null;
+  const all = await fetchAllSettings();
+  return all.find((s) => s.setting_key === key) ?? null;
 }
 
 export async function updateSetting(id: string, value: SettingValue, description?: string) {
-  const patch = { setting_value: value as never, ...(description !== undefined ? { description } : {}) };
-  const { error } = await supabase.from("system_settings").update(patch).eq("id", id);
-  if (error) throw error;
+  const body: Record<string, unknown> = { setting_value: value };
+  if (description !== undefined) body.description = description;
+  await apiPatch(`/api/system-settings/${id}`, body);
 }
 
 export async function fetchAppVersion(platform: string = APP_CLIENT_PLATFORM): Promise<AppVersion | null> {
-  const { apiGetAuth } = await import("@/lib/api-client");
   try {
     const { version } = await apiGetAuth<{ version: AppVersion | null }>(
       `/api/app-versions?platform=${encodeURIComponent(platform)}`,
@@ -69,7 +58,6 @@ export async function fetchAppVersion(platform: string = APP_CLIENT_PLATFORM): P
 }
 
 export async function fetchAllAppVersions(): Promise<AppVersion[]> {
-  const { apiGetAuth } = await import("@/lib/api-client");
   try {
     const { rows } = await apiGetAuth<{ rows: AppVersion[] }>("/api/app-versions");
     return rows ?? [];
@@ -79,8 +67,7 @@ export async function fetchAllAppVersions(): Promise<AppVersion[]> {
 }
 
 export async function updateAppVersion(id: string, patch: Partial<AppVersion>) {
-  const { error } = await supabase.from("app_versions").update(patch).eq("id", id);
-  if (error) throw error;
+  await apiPatch(`/api/app-versions/${id}`, patch);
 }
 
 /** Сравнение semver-подобных версий. */
