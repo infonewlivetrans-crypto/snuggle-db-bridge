@@ -143,6 +143,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
+import { Route as ApiWarehouseDockEventsIdRouteImport } from './routes/api/warehouse-dock-events.$id'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
 import { Route as ApiTripStageUpdateRouteImport } from './routes/api/trip-stage.update'
@@ -867,6 +868,12 @@ const ApiWarehousesIdRoute = ApiWarehousesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiWarehousesRoute,
 } as any)
+const ApiWarehouseDockEventsIdRoute =
+  ApiWarehouseDockEventsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiWarehouseDockEventsRoute,
+  } as any)
 const ApiVehiclesIdRoute = ApiVehiclesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1221,7 +1228,7 @@ export interface FileRoutesByFullPath {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
-  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRoute
+  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRouteWithChildren
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1300,6 +1307,7 @@ export interface FileRoutesByFullPath {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -1407,7 +1415,7 @@ export interface FileRoutesByTo {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
-  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRoute
+  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRouteWithChildren
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1486,6 +1494,7 @@ export interface FileRoutesByTo {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -1594,7 +1603,7 @@ export interface FileRoutesById {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
-  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRoute
+  '/api/warehouse-dock-events': typeof ApiWarehouseDockEventsRouteWithChildren
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
@@ -1673,6 +1682,7 @@ export interface FileRoutesById {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -1861,6 +1871,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/api/driver/route/$id'
@@ -2047,6 +2058,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/api/driver/route/$id'
@@ -2233,6 +2245,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/api/driver/route/$id'
@@ -2341,7 +2354,7 @@ export interface RootRouteChildren {
   ApiUserRoleRoute: typeof ApiUserRoleRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
-  ApiWarehouseDockEventsRoute: typeof ApiWarehouseDockEventsRoute
+  ApiWarehouseDockEventsRoute: typeof ApiWarehouseDockEventsRouteWithChildren
   ApiWarehouseReportRoute: typeof ApiWarehouseReportRoute
   ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
@@ -3333,6 +3346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWarehousesIdRouteImport
       parentRoute: typeof ApiWarehousesRoute
     }
+    '/api/warehouse-dock-events/$id': {
+      id: '/api/warehouse-dock-events/$id'
+      path: '/$id'
+      fullPath: '/api/warehouse-dock-events/$id'
+      preLoaderRoute: typeof ApiWarehouseDockEventsIdRouteImport
+      parentRoute: typeof ApiWarehouseDockEventsRoute
+    }
     '/api/vehicles/$id': {
       id: '/api/vehicles/$id'
       path: '/$id'
@@ -4027,6 +4047,20 @@ const ApiVehiclesRouteWithChildren = ApiVehiclesRoute._addFileChildren(
   ApiVehiclesRouteChildren,
 )
 
+interface ApiWarehouseDockEventsRouteChildren {
+  ApiWarehouseDockEventsIdRoute: typeof ApiWarehouseDockEventsIdRoute
+}
+
+const ApiWarehouseDockEventsRouteChildren: ApiWarehouseDockEventsRouteChildren =
+  {
+    ApiWarehouseDockEventsIdRoute: ApiWarehouseDockEventsIdRoute,
+  }
+
+const ApiWarehouseDockEventsRouteWithChildren =
+  ApiWarehouseDockEventsRoute._addFileChildren(
+    ApiWarehouseDockEventsRouteChildren,
+  )
+
 interface ApiWarehousesRouteChildren {
   ApiWarehousesIdRoute: typeof ApiWarehousesIdRoute
 }
@@ -4134,7 +4168,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUserRoleRoute: ApiUserRoleRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,
-  ApiWarehouseDockEventsRoute: ApiWarehouseDockEventsRoute,
+  ApiWarehouseDockEventsRoute: ApiWarehouseDockEventsRouteWithChildren,
   ApiWarehouseReportRoute: ApiWarehouseReportRoute,
   ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
