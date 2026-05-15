@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +56,6 @@ function WorkspacePage() {
           </p>
         </div>
 
-        {/* Role selector */}
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {ROLES.map((r) => {
             const Icon = r.icon;
@@ -148,33 +147,24 @@ function StatTile({
   );
 }
 
-/* ------------------------- DRIVER ------------------------- */
+type DriverRoute = {
+  id: string;
+  route_number: string;
+  route_date: string;
+  status: string;
+  assigned_driver: string | null;
+  assigned_vehicle: string | null;
+};
+type DriverSummary = {
+  list: DriverRoute[];
+  active: DriverRoute | null;
+  pendingPoints: number;
+};
 
 function DriverPanel() {
   const { data, isLoading } = useQuery({
     queryKey: ["workspace", "driver"],
-    queryFn: async () => {
-      const { data: routes } = await supabase
-        .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle")
-        .in("status", ["issued", "in_progress"])
-        .order("route_date", { ascending: false })
-        .limit(20);
-      const list = routes ?? [];
-      const active = list.find((r) => r.status === "in_progress") ?? null;
-
-      let pendingPoints = 0;
-      if (active) {
-        const { count } = await supabase
-          .from("route_points")
-          .select("id", { count: "exact", head: true })
-          .eq("route_id", active.id)
-          .eq("dp_status", "waiting");
-        pendingPoints = count ?? 0;
-      }
-
-      return { list, active, pendingPoints };
-    },
+    queryFn: () => apiGetAuth<DriverSummary>("/api/workspace/summary?role=driver"),
   });
 
   return (
@@ -238,52 +228,18 @@ function DriverPanel() {
   );
 }
 
-/* ------------------------- MANAGER ------------------------- */
+type ManagerSummary = {
+  newNotifs: number;
+  qrOrders: number;
+  mismatch: number;
+  returns: number;
+  problems: number;
+};
 
 function ManagerPanel() {
   const { data, isLoading } = useQuery({
     queryKey: ["workspace", "manager"],
-    queryFn: async () => {
-      const [notif, qrOrders, routePoints] = await Promise.all([
-        supabase
-          .from("notifications")
-          .select("id, kind", { count: "exact" })
-          .eq("is_read", false)
-          .limit(200),
-        supabase
-          .from("orders")
-          .select("id", { count: "exact", head: true })
-          .eq("requires_qr", true),
-        supabase
-          .from("route_points")
-          .select("id, dp_amount_received, order:orders(amount_due, payment_type)")
-          .eq("dp_status", "delivered")
-          .limit(200),
-      ]);
-      // order_problem_reports временно отключён: прямой Supabase REST на
-      // production отдаёт 400. Счётчик "Проблемные доставки" = 0 до миграции на /api/*.
-      const problems = { count: 0 } as { count: number };
-
-      const notifications = notif.data ?? [];
-      const newNotifs = notifications.length;
-      const returns = notifications.filter((n) => n.kind === "return_to_warehouse").length;
-
-      let mismatch = 0;
-      for (const p of routePoints.data ?? []) {
-        const due = Number((p as any).order?.amount_due ?? 0);
-        const recv = Number((p as any).dp_amount_received ?? 0);
-        const ptype = (p as any).order?.payment_type;
-        if (ptype === "cash" && Math.abs(due - recv) > 0.01) mismatch += 1;
-      }
-
-      return {
-        newNotifs,
-        qrOrders: qrOrders.count ?? 0,
-        mismatch,
-        returns,
-        problems: problems.count ?? 0,
-      };
-    },
+    queryFn: () => apiGetAuth<ManagerSummary>("/api/workspace/summary?role=manager"),
     staleTime: 60_000,
     placeholderData: (prev) => prev,
   });
@@ -298,12 +254,7 @@ function ManagerPanel() {
           to="/notifications"
           tone={(data?.newNotifs ?? 0) > 0 ? "warning" : "default"}
         />
-        <StatTile
-          label="Отчёты по маршрутам"
-          value={"›"}
-          icon={FileText}
-          to="/route-reports"
-        />
+        <StatTile label="Отчёты по маршрутам" value={"›"} icon={FileText} to="/route-reports" />
         <StatTile
           label="Заказы с QR"
           value={isLoading ? "—" : data?.qrOrders ?? 0}
@@ -335,37 +286,19 @@ function ManagerPanel() {
   );
 }
 
-/* ------------------------- LOGIST ------------------------- */
+type LogistSummary = {
+  today: number;
+  inProgress: number;
+  completed: number;
+  problems: number;
+};
 
 function LogistPanel() {
   const today = new Date().toISOString().slice(0, 10);
   const { data, isLoading } = useQuery({
     queryKey: ["workspace", "logist", today],
-    queryFn: async () => {
-      const [routesToday, inProgress, completed] = await Promise.all([
-        supabase
-          .from("delivery_routes")
-          .select("id", { count: "exact", head: true })
-          .eq("route_date", today),
-        supabase
-          .from("delivery_routes")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "in_progress"),
-        supabase
-          .from("delivery_routes")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "completed")
-          .eq("route_date", today),
-      ]);
-      // order_problem_reports временно отключён (Supabase REST → 400).
-      const problems = { count: 0 } as { count: number };
-      return {
-        today: routesToday.count ?? 0,
-        inProgress: inProgress.count ?? 0,
-        completed: completed.count ?? 0,
-        problems: problems.count ?? 0,
-      };
-    },
+    queryFn: () =>
+      apiGetAuth<LogistSummary>(`/api/workspace/summary?role=logist&date=${today}`),
   });
 
   return (
@@ -402,44 +335,19 @@ function LogistPanel() {
   );
 }
 
-/* ------------------------- DIRECTOR ------------------------- */
+type DirectorSummary = {
+  due: number;
+  recv: number;
+  returns: number;
+  problems: number;
+};
 
 function DirectorPanel() {
   const [enabled, setEnabled] = useState(false);
   const { data, isLoading, isFetching } = useQuery({
     enabled,
     queryKey: ["workspace", "director"],
-    queryFn: async () => {
-      const since = new Date();
-      since.setDate(since.getDate() - 30);
-      const sinceStr = since.toISOString().slice(0, 10);
-
-      const { data: points } = await supabase
-        .from("route_points")
-        .select(
-          "dp_status, dp_amount_received, order:orders(amount_due, payment_type), route:delivery_routes!inner(route_date)"
-        )
-        .gte("route.route_date", sinceStr)
-        .limit(5000);
-
-      let due = 0;
-      let recv = 0;
-      let returns = 0;
-      let problems = 0;
-      for (const p of points ?? []) {
-        const ptype = (p as any).order?.payment_type;
-        const d = Number((p as any).order?.amount_due ?? 0);
-        const r = Number((p as any).dp_amount_received ?? 0);
-        if ((p as any).dp_status === "delivered") {
-          due += d;
-          if (ptype === "cash") recv += r;
-        }
-        if ((p as any).dp_status === "returned_to_warehouse") returns += 1;
-        if ((p as any).dp_status === "not_delivered") problems += 1;
-      }
-
-      return { due, recv, returns, problems };
-    },
+    queryFn: () => apiGetAuth<DirectorSummary>("/api/workspace/summary?role=director"),
     staleTime: 5 * 60_000,
   });
 
@@ -448,12 +356,7 @@ function DirectorPanel() {
   return (
     <Section title="Сводка за 30 дней">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile
-          label="Общий отчёт"
-          value={"›"}
-          icon={BarChart3}
-          to="/director"
-        />
+        <StatTile label="Общий отчёт" value={"›"} icon={BarChart3} to="/director" />
         <StatTile
           label="Сумма к получению"
           value={isLoading ? "—" : fmt(data?.due ?? 0)}

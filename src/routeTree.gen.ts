@@ -111,6 +111,7 @@ import { Route as ApiPilotTasksRouteImport } from './routes/api/pilot-tasks'
 import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
+import { Route as ApiOrderItemsRouteImport } from './routes/api/order-items'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
 import { Route as ApiManagersRouteImport } from './routes/api/managers'
@@ -138,6 +139,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
@@ -146,6 +148,8 @@ import { Route as ApiSupplyRequestsIdRouteImport } from './routes/api/supply-req
 import { Route as ApiSupplyInTransitIdRouteImport } from './routes/api/supply-in-transit.$id'
 import { Route as ApiStorageUploadRouteImport } from './routes/api/storage.upload'
 import { Route as ApiStockTransfersIdRouteImport } from './routes/api/stock-transfers.$id'
+import { Route as ApiStockReservationsReserveRouteImport } from './routes/api/stock-reservations.reserve'
+import { Route as ApiStockReservationsReleaseRouteImport } from './routes/api/stock-reservations.release'
 import { Route as ApiStockReservationsIdRouteImport } from './routes/api/stock-reservations.$id'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
@@ -163,6 +167,7 @@ import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$i
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
+import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
@@ -178,6 +183,7 @@ import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pi
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
+import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
@@ -696,6 +702,11 @@ const ApiOrderStatusesRoute = ApiOrderStatusesRouteImport.update({
   path: '/api/order-statuses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrderItemsRoute = ApiOrderItemsRouteImport.update({
+  id: '/api/order-items',
+  path: '/api/order-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
   id: '/api/notifications',
   path: '/api/notifications',
@@ -831,6 +842,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
+  id: '/api/workspace/summary',
+  path: '/api/workspace/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWarehousesIdRoute = ApiWarehousesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -871,6 +887,18 @@ const ApiStockTransfersIdRoute = ApiStockTransfersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiStockTransfersRoute,
 } as any)
+const ApiStockReservationsReserveRoute =
+  ApiStockReservationsReserveRouteImport.update({
+    id: '/reserve',
+    path: '/reserve',
+    getParentRoute: () => ApiStockReservationsRoute,
+  } as any)
+const ApiStockReservationsReleaseRoute =
+  ApiStockReservationsReleaseRouteImport.update({
+    id: '/release',
+    path: '/release',
+    getParentRoute: () => ApiStockReservationsRoute,
+  } as any)
 const ApiStockReservationsIdRoute = ApiStockReservationsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -958,6 +986,11 @@ const ApiDriverMyRoutesRoute = ApiDriverMyRoutesRouteImport.update({
   path: '/api/driver/my-routes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDockLoadingConfirmRoute = ApiDockLoadingConfirmRouteImport.update({
+  id: '/api/dock-loading/confirm',
+  path: '/api/dock-loading/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDeliveryRoutesIdRoute = ApiDeliveryRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1034,6 +1067,12 @@ const ApiDeliveryRoutesIdDetailRoute =
   ApiDeliveryRoutesIdDetailRouteImport.update({
     id: '/detail',
     path: '/detail',
+    getParentRoute: () => ApiDeliveryRoutesIdRoute,
+  } as any)
+const ApiDeliveryRoutesIdCompletionReportRoute =
+  ApiDeliveryRoutesIdCompletionReportRouteImport.update({
+    id: '/completion-report',
+    path: '/completion-report',
     getParentRoute: () => ApiDeliveryRoutesIdRoute,
   } as any)
 const ApiBackupsIdUrlRoute = ApiBackupsIdUrlRouteImport.update({
@@ -1118,6 +1157,7 @@ export interface FileRoutesByFullPath {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1198,6 +1238,7 @@ export interface FileRoutesByFullPath {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1215,6 +1256,8 @@ export interface FileRoutesByFullPath {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
+  '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
+  '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
   '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
@@ -1223,10 +1266,12 @@ export interface FileRoutesByFullPath {
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
+  '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1293,6 +1338,7 @@ export interface FileRoutesByTo {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1373,6 +1419,7 @@ export interface FileRoutesByTo {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1390,6 +1437,8 @@ export interface FileRoutesByTo {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
+  '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
+  '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
   '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
@@ -1398,10 +1447,12 @@ export interface FileRoutesByTo {
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
+  '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1469,6 +1520,7 @@ export interface FileRoutesById {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRoute
+  '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1549,6 +1601,7 @@ export interface FileRoutesById {
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
+  '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -1566,6 +1619,8 @@ export interface FileRoutesById {
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
+  '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
+  '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
   '/api/stock-transfers/$id': typeof ApiStockTransfersIdRoute
   '/api/storage/upload': typeof ApiStorageUploadRoute
   '/api/supply-in-transit/$id': typeof ApiSupplyInTransitIdRoute
@@ -1574,10 +1629,12 @@ export interface FileRoutesById {
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
+  '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1646,6 +1703,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-items'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -1726,6 +1784,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -1743,6 +1802,8 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/stock-reservations/$id'
+    | '/api/stock-reservations/release'
+    | '/api/stock-reservations/reserve'
     | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
@@ -1751,10 +1812,12 @@ export interface FileRouteTypes {
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/warehouses/$id'
+    | '/api/workspace/summary'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
@@ -1821,6 +1884,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-items'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -1901,6 +1965,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -1918,6 +1983,8 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/stock-reservations/$id'
+    | '/api/stock-reservations/release'
+    | '/api/stock-reservations/reserve'
     | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
@@ -1926,10 +1993,12 @@ export interface FileRouteTypes {
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/warehouses/$id'
+    | '/api/workspace/summary'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
@@ -1996,6 +2065,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-items'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -2076,6 +2146,7 @@ export interface FileRouteTypes {
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
+    | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -2093,6 +2164,8 @@ export interface FileRouteTypes {
     | '/api/route-points/swap'
     | '/api/routes/$id'
     | '/api/stock-reservations/$id'
+    | '/api/stock-reservations/release'
+    | '/api/stock-reservations/reserve'
     | '/api/stock-transfers/$id'
     | '/api/storage/upload'
     | '/api/supply-in-transit/$id'
@@ -2101,10 +2174,12 @@ export interface FileRouteTypes {
     | '/api/users/$id'
     | '/api/vehicles/$id'
     | '/api/warehouses/$id'
+    | '/api/workspace/summary'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
@@ -2172,6 +2247,7 @@ export interface RootRouteChildren {
   ApiManagersRoute: typeof ApiManagersRouteWithChildren
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRoute
+  ApiOrderItemsRoute: typeof ApiOrderItemsRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPaymentsRoute: typeof ApiPaymentsRoute
@@ -2247,8 +2323,10 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
+  ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
 }
@@ -2969,6 +3047,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrderStatusesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/order-items': {
+      id: '/api/order-items'
+      path: '/api/order-items'
+      fullPath: '/api/order-items'
+      preLoaderRoute: typeof ApiOrderItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/notifications': {
       id: '/api/notifications'
       path: '/api/notifications'
@@ -3158,6 +3243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/workspace/summary': {
+      id: '/api/workspace/summary'
+      path: '/api/workspace/summary'
+      fullPath: '/api/workspace/summary'
+      preLoaderRoute: typeof ApiWorkspaceSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/warehouses/$id': {
       id: '/api/warehouses/$id'
       path: '/$id'
@@ -3213,6 +3305,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/stock-transfers/$id'
       preLoaderRoute: typeof ApiStockTransfersIdRouteImport
       parentRoute: typeof ApiStockTransfersRoute
+    }
+    '/api/stock-reservations/reserve': {
+      id: '/api/stock-reservations/reserve'
+      path: '/reserve'
+      fullPath: '/api/stock-reservations/reserve'
+      preLoaderRoute: typeof ApiStockReservationsReserveRouteImport
+      parentRoute: typeof ApiStockReservationsRoute
+    }
+    '/api/stock-reservations/release': {
+      id: '/api/stock-reservations/release'
+      path: '/release'
+      fullPath: '/api/stock-reservations/release'
+      preLoaderRoute: typeof ApiStockReservationsReleaseRouteImport
+      parentRoute: typeof ApiStockReservationsRoute
     }
     '/api/stock-reservations/$id': {
       id: '/api/stock-reservations/$id'
@@ -3333,6 +3439,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriverMyRoutesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dock-loading/confirm': {
+      id: '/api/dock-loading/confirm'
+      path: '/api/dock-loading/confirm'
+      fullPath: '/api/dock-loading/confirm'
+      preLoaderRoute: typeof ApiDockLoadingConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-routes/$id': {
       id: '/api/delivery-routes/$id'
       path: '/$id'
@@ -3438,6 +3551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeliveryRoutesIdDetailRouteImport
       parentRoute: typeof ApiDeliveryRoutesIdRoute
     }
+    '/api/delivery-routes/$id/completion-report': {
+      id: '/api/delivery-routes/$id/completion-report'
+      path: '/completion-report'
+      fullPath: '/api/delivery-routes/$id/completion-report'
+      preLoaderRoute: typeof ApiDeliveryRoutesIdCompletionReportRouteImport
+      parentRoute: typeof ApiDeliveryRoutesIdRoute
+    }
     '/api/backups/$id/url': {
       id: '/api/backups/$id/url'
       path: '/$id/url'
@@ -3512,11 +3632,14 @@ const ApiCarriersRouteWithChildren = ApiCarriersRoute._addFileChildren(
 )
 
 interface ApiDeliveryRoutesIdRouteChildren {
+  ApiDeliveryRoutesIdCompletionReportRoute: typeof ApiDeliveryRoutesIdCompletionReportRoute
   ApiDeliveryRoutesIdDetailRoute: typeof ApiDeliveryRoutesIdDetailRoute
   ApiDeliveryRoutesIdDriverGeoRoute: typeof ApiDeliveryRoutesIdDriverGeoRoute
 }
 
 const ApiDeliveryRoutesIdRouteChildren: ApiDeliveryRoutesIdRouteChildren = {
+  ApiDeliveryRoutesIdCompletionReportRoute:
+    ApiDeliveryRoutesIdCompletionReportRoute,
   ApiDeliveryRoutesIdDetailRoute: ApiDeliveryRoutesIdDetailRoute,
   ApiDeliveryRoutesIdDriverGeoRoute: ApiDeliveryRoutesIdDriverGeoRoute,
 }
@@ -3691,10 +3814,14 @@ const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
 
 interface ApiStockReservationsRouteChildren {
   ApiStockReservationsIdRoute: typeof ApiStockReservationsIdRoute
+  ApiStockReservationsReleaseRoute: typeof ApiStockReservationsReleaseRoute
+  ApiStockReservationsReserveRoute: typeof ApiStockReservationsReserveRoute
 }
 
 const ApiStockReservationsRouteChildren: ApiStockReservationsRouteChildren = {
   ApiStockReservationsIdRoute: ApiStockReservationsIdRoute,
+  ApiStockReservationsReleaseRoute: ApiStockReservationsReleaseRoute,
+  ApiStockReservationsReserveRoute: ApiStockReservationsReserveRoute,
 }
 
 const ApiStockReservationsRouteWithChildren =
@@ -3842,6 +3969,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManagersRoute: ApiManagersRouteWithChildren,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRoute,
+  ApiOrderItemsRoute: ApiOrderItemsRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPaymentsRoute: ApiPaymentsRoute,
@@ -3917,8 +4045,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
+  ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
 }

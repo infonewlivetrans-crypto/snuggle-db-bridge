@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { FileText, CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { exportRouteReportXlsx, exportRouteReportPdf, type ReportPayload as ExportPayload } from "@/lib/route-report-export";
@@ -63,47 +63,27 @@ const STATUS_ICON: Record<string, React.ReactNode> = {
 const fmtMoney = (n: number | null | undefined) =>
   (n ?? 0).toLocaleString("ru-RU");
 
+type CompletionReportResp = {
+  notification: { id: string; payload: ReportPayload | null; created_at: string } | null;
+  routeCost: {
+    delivery_cost: number;
+    cost_method: string;
+    total_distance_km: number;
+    points_count: number;
+  } | null;
+};
+
 export function RouteCompletionReportBlock({ deliveryRouteId }: { deliveryRouteId: string }) {
-  const { data: notif } = useQuery({
-    queryKey: ["route-completed-report", deliveryRouteId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select("id, payload, created_at")
-        .eq("kind", "route_completed_report")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (error) throw error;
-      const found = (data ?? []).find(
-        (n) => (n.payload as ReportPayload | null)?.delivery_route_id === deliveryRouteId,
-      );
-      return found ?? null;
-    },
+  const { data: bundle } = useQuery({
+    queryKey: ["route-completion-report-bundle", deliveryRouteId],
+    queryFn: () =>
+      apiGetAuth<CompletionReportResp>(
+        `/api/delivery-routes/${deliveryRouteId}/completion-report`,
+      ),
   });
 
-  const { data: routeCost } = useQuery({
-    queryKey: ["route-cost-summary", deliveryRouteId],
-    queryFn: async () => {
-      const { data: dr } = await supabase
-        .from("delivery_routes")
-        .select("route_id")
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      const routeId = (dr as { route_id?: string } | null)?.route_id;
-      if (!routeId) return null;
-      const { data } = await supabase
-        .from("routes")
-        .select("delivery_cost, cost_method, total_distance_km, points_count")
-        .eq("id", routeId)
-        .maybeSingle();
-      return data as {
-        delivery_cost: number;
-        cost_method: string;
-        total_distance_km: number;
-        points_count: number;
-      } | null;
-    },
-  });
+  const notif = bundle?.notification ?? null;
+  const routeCost = bundle?.routeCost ?? null;
 
   if (!notif) return null;
   const p = notif.payload as ReportPayload;
