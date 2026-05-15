@@ -64,8 +64,8 @@ export const requireCookieAuth = createMiddleware({ type: "function" }).server(
     return next({
       context: {
         supabase: client,
-        userId: data.claims.sub as string,
-        claims: data.claims,
+        userId: (claims as { sub: string }).sub,
+        claims: claims as { sub: string } & Record<string, unknown>,
       },
     });
   },
