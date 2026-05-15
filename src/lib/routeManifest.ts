@@ -111,8 +111,8 @@ export async function loadManifest(deliveryRouteId: string): Promise<ManifestDat
     route_date: r.route_date,
     driver: r.assigned_driver,
     vehicle: r.assigned_vehicle,
-    warehouse: r.source_warehouse
-      ? `${r.source_warehouse.name}${r.source_warehouse.city ? `, ${r.source_warehouse.city}` : ""}`
+    warehouse: sourceWarehouse
+      ? `${sourceWarehouse.name}${sourceWarehouse.city ? `, ${sourceWarehouse.city}` : ""}`
       : null,
     points,
   };
