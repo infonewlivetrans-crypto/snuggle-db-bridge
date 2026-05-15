@@ -134,11 +134,9 @@ function WarehousesPage() {
         is_active: form.is_active,
       };
       if (editing) {
-        const { error } = await db.from("warehouses").update(payload).eq("id", editing.id);
-        if (error) throw error;
+        await apiPatch(`/api/warehouses/${editing.id}`, payload);
       } else {
-        const { error } = await db.from("warehouses").insert(payload);
-        if (error) throw error;
+        await apiPost(`/api/warehouses`, payload);
       }
     },
     onSuccess: () => {
@@ -151,11 +149,7 @@ function WarehousesPage() {
 
   const toggleActive = useMutation({
     mutationFn: async (w: Warehouse) => {
-      const { error } = await db
-        .from("warehouses")
-        .update({ is_active: !w.is_active })
-        .eq("id", w.id);
-      if (error) throw error;
+      await apiPatch(`/api/warehouses/${w.id}`, { is_active: !w.is_active });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["warehouses"] });
@@ -165,28 +159,9 @@ function WarehousesPage() {
 
   const remove = useMutation({
     mutationFn: async (w: Warehouse) => {
-      // Проверка связей: заказы, маршруты, остатки.
-      const checks = await Promise.all([
-        supabase.from("routes").select("id", { count: "exact", head: true }).eq("warehouse_id", w.id),
-        supabase
-          .from("stock_balances" as never)
-          .select("product_id", { count: "exact", head: true })
-          .eq("warehouse_id", w.id),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("warehouse_id", w.id),
-      ]);
-      const labels = ["маршруты", "остатки", "товары"];
-      const blockers = checks
-        .map((r, i) => ({ count: r.count ?? 0, label: labels[i] }))
-        .filter((b) => b.count > 0);
-      if (blockers.length > 0) {
-        throw new Error(
-          `Нельзя удалить склад: к нему привязаны ${blockers
-            .map((b) => `${b.label} (${b.count})`)
-            .join(", ")}. Сделайте склад неактивным — он останется в истории, но не будет предлагаться в новых заявках.`,
-        );
-      }
-      const { error } = await db.from("warehouses").delete().eq("id", w.id);
-      if (error) throw error;
+      // Серверная проверка связей выполняется в DELETE /api/warehouses/$id
+      // и при наличии связей возвращает 409 с информативным сообщением.
+      await apiDelete(`/api/warehouses/${w.id}`);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["warehouses"] });
