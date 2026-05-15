@@ -183,6 +183,7 @@ import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pi
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
+import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
@@ -1068,6 +1069,12 @@ const ApiDeliveryRoutesIdDetailRoute =
     path: '/detail',
     getParentRoute: () => ApiDeliveryRoutesIdRoute,
   } as any)
+const ApiDeliveryRoutesIdCompletionReportRoute =
+  ApiDeliveryRoutesIdCompletionReportRouteImport.update({
+    id: '/completion-report',
+    path: '/completion-report',
+    getParentRoute: () => ApiDeliveryRoutesIdRoute,
+  } as any)
 const ApiBackupsIdUrlRoute = ApiBackupsIdUrlRouteImport.update({
   id: '/$id/url',
   path: '/$id/url',
@@ -1264,6 +1271,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1444,6 +1452,7 @@ export interface FileRoutesByTo {
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1625,6 +1634,7 @@ export interface FileRoutesById {
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1807,6 +1817,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
@@ -1987,6 +1998,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
@@ -2167,6 +2179,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
@@ -3538,6 +3551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDeliveryRoutesIdDetailRouteImport
       parentRoute: typeof ApiDeliveryRoutesIdRoute
     }
+    '/api/delivery-routes/$id/completion-report': {
+      id: '/api/delivery-routes/$id/completion-report'
+      path: '/completion-report'
+      fullPath: '/api/delivery-routes/$id/completion-report'
+      preLoaderRoute: typeof ApiDeliveryRoutesIdCompletionReportRouteImport
+      parentRoute: typeof ApiDeliveryRoutesIdRoute
+    }
     '/api/backups/$id/url': {
       id: '/api/backups/$id/url'
       path: '/$id/url'
@@ -3612,11 +3632,14 @@ const ApiCarriersRouteWithChildren = ApiCarriersRoute._addFileChildren(
 )
 
 interface ApiDeliveryRoutesIdRouteChildren {
+  ApiDeliveryRoutesIdCompletionReportRoute: typeof ApiDeliveryRoutesIdCompletionReportRoute
   ApiDeliveryRoutesIdDetailRoute: typeof ApiDeliveryRoutesIdDetailRoute
   ApiDeliveryRoutesIdDriverGeoRoute: typeof ApiDeliveryRoutesIdDriverGeoRoute
 }
 
 const ApiDeliveryRoutesIdRouteChildren: ApiDeliveryRoutesIdRouteChildren = {
+  ApiDeliveryRoutesIdCompletionReportRoute:
+    ApiDeliveryRoutesIdCompletionReportRoute,
   ApiDeliveryRoutesIdDetailRoute: ApiDeliveryRoutesIdDetailRoute,
   ApiDeliveryRoutesIdDriverGeoRoute: ApiDeliveryRoutesIdDriverGeoRoute,
 }
