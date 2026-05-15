@@ -94,6 +94,7 @@ import { Route as ApiRouteExclusionsRouteImport } from './routes/api/route-exclu
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
+import { Route as ApiProductsRouteImport } from './routes/api/products'
 import { Route as ApiPilotTasksRouteImport } from './routes/api/pilot-tasks'
 import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
@@ -587,6 +588,11 @@ const ApiProfileRoute = ApiProfileRouteImport.update({
   path: '/api/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProductsRoute = ApiProductsRouteImport.update({
+  id: '/api/products',
+  path: '/api/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPilotTasksRoute = ApiPilotTasksRouteImport.update({
   id: '/api/pilot-tasks',
   path: '/api/pilot-tasks',
@@ -979,6 +985,7 @@ export interface FileRoutesByFullPath {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/pilot-tasks': typeof ApiPilotTasksRouteWithChildren
+  '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
@@ -1131,6 +1138,7 @@ export interface FileRoutesByTo {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/pilot-tasks': typeof ApiPilotTasksRouteWithChildren
+  '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
@@ -1284,6 +1292,7 @@ export interface FileRoutesById {
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
   '/api/pilot-tasks': typeof ApiPilotTasksRouteWithChildren
+  '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
   '/api/roles': typeof ApiRolesRoute
@@ -1438,6 +1447,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/payments'
     | '/api/pilot-tasks'
+    | '/api/products'
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
@@ -1590,6 +1600,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/payments'
     | '/api/pilot-tasks'
+    | '/api/products'
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
@@ -1742,6 +1753,7 @@ export interface FileRouteTypes {
     | '/api/orders'
     | '/api/payments'
     | '/api/pilot-tasks'
+    | '/api/products'
     | '/api/profile'
     | '/api/reports'
     | '/api/roles'
@@ -1895,6 +1907,7 @@ export interface RootRouteChildren {
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPaymentsRoute: typeof ApiPaymentsRoute
   ApiPilotTasksRoute: typeof ApiPilotTasksRouteWithChildren
+  ApiProductsRoute: typeof ApiProductsRoute
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReportsRoute: typeof ApiReportsRoute
   ApiRolesRoute: typeof ApiRolesRoute
@@ -2554,6 +2567,13 @@ declare module '@tanstack/react-router' {
       path: '/api/profile'
       fullPath: '/api/profile'
       preLoaderRoute: typeof ApiProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/products': {
+      id: '/api/products'
+      path: '/api/products'
+      fullPath: '/api/products'
+      preLoaderRoute: typeof ApiProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/pilot-tasks': {
@@ -3317,6 +3337,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPaymentsRoute: ApiPaymentsRoute,
   ApiPilotTasksRoute: ApiPilotTasksRouteWithChildren,
+  ApiProductsRoute: ApiProductsRoute,
   ApiProfileRoute: ApiProfileRoute,
   ApiReportsRoute: ApiReportsRoute,
   ApiRolesRoute: ApiRolesRoute,
