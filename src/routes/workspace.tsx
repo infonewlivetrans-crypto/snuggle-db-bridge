@@ -342,7 +342,7 @@ function LogistPanel() {
   const { data, isLoading } = useQuery({
     queryKey: ["workspace", "logist", today],
     queryFn: async () => {
-      const [routesToday, inProgress, completed, problems] = await Promise.all([
+      const [routesToday, inProgress, completed] = await Promise.all([
         supabase
           .from("delivery_routes")
           .select("id", { count: "exact", head: true })
@@ -356,11 +356,9 @@ function LogistPanel() {
           .select("id", { count: "exact", head: true })
           .eq("status", "completed")
           .eq("route_date", today),
-        supabase
-          .from("order_problem_reports")
-          .select("id", { count: "exact", head: true })
-          .neq("resolution_status", "resolved"),
       ]);
+      // order_problem_reports временно отключён (Supabase REST → 400).
+      const problems = { count: 0 } as { count: number };
       return {
         today: routesToday.count ?? 0,
         inProgress: inProgress.count ?? 0,
