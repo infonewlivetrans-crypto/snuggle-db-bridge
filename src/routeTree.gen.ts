@@ -84,6 +84,7 @@ import { Route as ApiTransportRequestsRouteImport } from './routes/api/transport
 import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-settings'
 import { Route as ApiSystemErrorsRouteImport } from './routes/api/system-errors'
 import { Route as ApiSystemActivityRouteImport } from './routes/api/system-activity'
+import { Route as ApiStockMovementsRouteImport } from './routes/api/stock-movements'
 import { Route as ApiStockBalancesRouteImport } from './routes/api/stock-balances'
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
@@ -537,6 +538,11 @@ const ApiSystemErrorsRoute = ApiSystemErrorsRouteImport.update({
 const ApiSystemActivityRoute = ApiSystemActivityRouteImport.update({
   id: '/api/system-activity',
   path: '/api/system-activity',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStockMovementsRoute = ApiStockMovementsRouteImport.update({
+  id: '/api/stock-movements',
+  path: '/api/stock-movements',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiStockBalancesRoute = ApiStockBalancesRouteImport.update({
@@ -1003,6 +1009,7 @@ export interface FileRoutesByFullPath {
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
+  '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
@@ -1157,6 +1164,7 @@ export interface FileRoutesByTo {
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
+  '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
@@ -1312,6 +1320,7 @@ export interface FileRoutesById {
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
+  '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRoute
@@ -1468,6 +1477,7 @@ export interface FileRouteTypes {
     | '/api/route-statuses'
     | '/api/routes'
     | '/api/stock-balances'
+    | '/api/stock-movements'
     | '/api/system-activity'
     | '/api/system-errors'
     | '/api/system-settings'
@@ -1622,6 +1632,7 @@ export interface FileRouteTypes {
     | '/api/route-statuses'
     | '/api/routes'
     | '/api/stock-balances'
+    | '/api/stock-movements'
     | '/api/system-activity'
     | '/api/system-errors'
     | '/api/system-settings'
@@ -1776,6 +1787,7 @@ export interface FileRouteTypes {
     | '/api/route-statuses'
     | '/api/routes'
     | '/api/stock-balances'
+    | '/api/stock-movements'
     | '/api/system-activity'
     | '/api/system-errors'
     | '/api/system-settings'
@@ -1931,6 +1943,7 @@ export interface RootRouteChildren {
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
   ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
   ApiStockBalancesRoute: typeof ApiStockBalancesRoute
+  ApiStockMovementsRoute: typeof ApiStockMovementsRoute
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRoute
@@ -2510,6 +2523,13 @@ declare module '@tanstack/react-router' {
       path: '/api/system-activity'
       fullPath: '/api/system-activity'
       preLoaderRoute: typeof ApiSystemActivityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stock-movements': {
+      id: '/api/stock-movements'
+      path: '/api/stock-movements'
+      fullPath: '/api/stock-movements'
+      preLoaderRoute: typeof ApiStockMovementsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/stock-balances': {
@@ -3369,6 +3389,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
   ApiRoutesRoute: ApiRoutesRouteWithChildren,
   ApiStockBalancesRoute: ApiStockBalancesRoute,
+  ApiStockMovementsRoute: ApiStockMovementsRoute,
   ApiSystemActivityRoute: ApiSystemActivityRoute,
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRoute,
