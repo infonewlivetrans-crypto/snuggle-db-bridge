@@ -2,12 +2,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { AppRole } from "@/lib/auth/roles";
 
 export async function hasAnyAdmin(): Promise<boolean> {
-  const { count, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("user_id", { count: "exact", head: true })
-    .eq("role", "admin");
+  // Используем SECURITY DEFINER RPC, чтобы публичный эндпоинт первой настройки
+  // не зависел от SUPABASE_SERVICE_ROLE_KEY.
+  const { makeAnonClient } = await import("@/server/api-helpers.server");
+  const anon = makeAnonClient();
+  const { data, error } = await anon.rpc("has_any_admin");
   if (error) throw new Error(error.message);
-  return (count ?? 0) > 0;
+  return Boolean(data);
 }
 
 export async function bootstrapFirstAdmin(args: {
