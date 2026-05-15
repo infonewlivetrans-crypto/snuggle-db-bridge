@@ -97,9 +97,13 @@ export async function getSessionUser(): Promise<
 
   if (access) {
     const client = makeClient(access);
-    const { data, error } = await client.auth.getClaims(access);
-    if (!error && data?.claims?.sub) {
-      return { userId: data.claims.sub as string, client };
+    try {
+      const { data, error } = await client.auth.getClaims(access);
+      if (!error && data?.claims?.sub) {
+        return { userId: data.claims.sub as string, client };
+      }
+    } catch {
+      // access истёк — провалимся в refresh ниже
     }
   }
 

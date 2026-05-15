@@ -52,14 +52,20 @@ export const requireCookieAuth = createMiddleware({ type: "function" }).server(
     if (!token) unauth();
 
     const client = makeClientFor(token);
-    const { data, error } = await client.auth.getClaims(token);
-    if (error || !data?.claims?.sub) unauth();
+    let claims: Record<string, unknown> | null = null;
+    try {
+      const { data, error } = await client.auth.getClaims(token);
+      if (error || !data?.claims?.sub) unauth();
+      claims = data!.claims as Record<string, unknown>;
+    } catch {
+      unauth();
+    }
 
     return next({
       context: {
         supabase: client,
-        userId: data.claims.sub as string,
-        claims: data.claims,
+        userId: (claims as { sub: string }).sub,
+        claims: claims as { sub: string } & Record<string, unknown>,
       },
     });
   },
