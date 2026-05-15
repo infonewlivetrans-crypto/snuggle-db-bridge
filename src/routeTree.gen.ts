@@ -85,6 +85,7 @@ import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-setti
 import { Route as ApiSystemErrorsRouteImport } from './routes/api/system-errors'
 import { Route as ApiSystemActivityRouteImport } from './routes/api/system-activity'
 import { Route as ApiStockTransfersRouteImport } from './routes/api/stock-transfers'
+import { Route as ApiStockReservationsRouteImport } from './routes/api/stock-reservations'
 import { Route as ApiStockMovementsRouteImport } from './routes/api/stock-movements'
 import { Route as ApiStockBalancesRouteImport } from './routes/api/stock-balances'
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
@@ -545,6 +546,11 @@ const ApiSystemActivityRoute = ApiSystemActivityRouteImport.update({
 const ApiStockTransfersRoute = ApiStockTransfersRouteImport.update({
   id: '/api/stock-transfers',
   path: '/api/stock-transfers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStockReservationsRoute = ApiStockReservationsRouteImport.update({
+  id: '/api/stock-reservations',
+  path: '/api/stock-reservations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiStockMovementsRoute = ApiStockMovementsRouteImport.update({
@@ -1022,6 +1028,7 @@ export interface FileRoutesByFullPath {
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
+  '/api/stock-reservations': typeof ApiStockReservationsRoute
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
@@ -1179,6 +1186,7 @@ export interface FileRoutesByTo {
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
+  '/api/stock-reservations': typeof ApiStockReservationsRoute
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
@@ -1337,6 +1345,7 @@ export interface FileRoutesById {
   '/api/routes': typeof ApiRoutesRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
+  '/api/stock-reservations': typeof ApiStockReservationsRoute
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
@@ -1496,6 +1505,7 @@ export interface FileRouteTypes {
     | '/api/routes'
     | '/api/stock-balances'
     | '/api/stock-movements'
+    | '/api/stock-reservations'
     | '/api/stock-transfers'
     | '/api/system-activity'
     | '/api/system-errors'
@@ -1653,6 +1663,7 @@ export interface FileRouteTypes {
     | '/api/routes'
     | '/api/stock-balances'
     | '/api/stock-movements'
+    | '/api/stock-reservations'
     | '/api/stock-transfers'
     | '/api/system-activity'
     | '/api/system-errors'
@@ -1810,6 +1821,7 @@ export interface FileRouteTypes {
     | '/api/routes'
     | '/api/stock-balances'
     | '/api/stock-movements'
+    | '/api/stock-reservations'
     | '/api/stock-transfers'
     | '/api/system-activity'
     | '/api/system-errors'
@@ -1968,6 +1980,7 @@ export interface RootRouteChildren {
   ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
   ApiStockBalancesRoute: typeof ApiStockBalancesRoute
   ApiStockMovementsRoute: typeof ApiStockMovementsRoute
+  ApiStockReservationsRoute: typeof ApiStockReservationsRoute
   ApiStockTransfersRoute: typeof ApiStockTransfersRouteWithChildren
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
@@ -2555,6 +2568,13 @@ declare module '@tanstack/react-router' {
       path: '/api/stock-transfers'
       fullPath: '/api/stock-transfers'
       preLoaderRoute: typeof ApiStockTransfersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stock-reservations': {
+      id: '/api/stock-reservations'
+      path: '/api/stock-reservations'
+      fullPath: '/api/stock-reservations'
+      preLoaderRoute: typeof ApiStockReservationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/stock-movements': {
@@ -3440,6 +3460,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRoutesRoute: ApiRoutesRouteWithChildren,
   ApiStockBalancesRoute: ApiStockBalancesRoute,
   ApiStockMovementsRoute: ApiStockMovementsRoute,
+  ApiStockReservationsRoute: ApiStockReservationsRoute,
   ApiStockTransfersRoute: ApiStockTransfersRouteWithChildren,
   ApiSystemActivityRoute: ApiSystemActivityRoute,
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
