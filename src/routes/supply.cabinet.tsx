@@ -196,70 +196,59 @@ function SupplyCabinetPage() {
   const { data: balances } = useQuery({
     queryKey: ["stock-balances"],
     queryFn: async (): Promise<StockBalance[]> => {
-      const { data, error } = await db.from("stock_balances").select("*");
-      if (error) throw error;
-      return (data ?? []) as StockBalance[];
+      const { rows } = await fetchListViaApi<StockBalance>("/api/stock-balances", { limit: 1000 });
+      return rows;
     },
   });
 
   const { data: requests } = useQuery({
     queryKey: ["supply-requests-cabinet"],
     queryFn: async (): Promise<SupplyRequest[]> => {
-      const { data, error } = await db
-        .from("supply_requests")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as unknown as SupplyRequest[];
+      const { rows } = await fetchListViaApi<SupplyRequest>("/api/supply-requests", {
+        limit: 500,
+        extra: { order: "created_at.desc" },
+      });
+      return rows;
     },
   });
 
   const { data: transfers } = useQuery({
     queryKey: ["stock-transfers-cabinet"],
     queryFn: async (): Promise<StockTransfer[]> => {
-      const { data, error } = await db
-        .from("stock_transfers")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as StockTransfer[];
+      const { rows } = await fetchListViaApi<StockTransfer>("/api/stock-transfers", {
+        limit: 500,
+        extra: { order: "created_at.desc" },
+      });
+      return rows;
     },
   });
 
   const { data: inTransit } = useQuery({
     queryKey: ["supply-in-transit-cabinet"],
     queryFn: async (): Promise<InTransit[]> => {
-      const { data, error } = await db
-        .from("supply_in_transit")
-        .select("*")
-        .in("status", ["planned", "in_transit"])
-        .order("expected_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as InTransit[];
+      const { rows } = await fetchListViaApi<InTransit>("/api/supply-in-transit", {
+        limit: 500,
+        extra: { status: "planned,in_transit", order: "expected_at.asc" },
+      });
+      return rows;
     },
   });
 
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async (): Promise<Warehouse[]> => {
-      const { data, error } = await db.from("warehouses").select("id, name").order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const { rows } = await fetchListViaApi<Warehouse>("/api/warehouses", { limit: 500 });
+      return rows;
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-min"],
     queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await db
-        .from("products")
-        .select("id, name, sku, unit")
-        .order("name");
-      if (error) throw error;
-      return (data ?? []) as Product[];
+      const { rows } = await fetchListViaApi<Product>("/api/products", { limit: 1000 });
+      return rows;
     },
   });
-
   const warehouseById = useMemo(() => {
     const m = new Map<string, string>();
     (warehouses ?? []).forEach((w) => m.set(w.id, w.name));
