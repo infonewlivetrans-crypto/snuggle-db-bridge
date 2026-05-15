@@ -26,13 +26,14 @@ export const Route = createFileRoute("/api/routes/$id")({
           destination_warehouse_id?: string | null;
           vehicle_id?: string | null;
           driver_id?: string | null;
+          carrier_id?: string | null;
         };
-        const [wh, dwh, veh, drv] = await Promise.all([
+        const [wh, dwh, veh, drv, car] = await Promise.all([
           r.warehouse_id
             ? auth.client.from("warehouses").select("id, name, city, address").eq("id", r.warehouse_id).maybeSingle()
             : Promise.resolve({ data: null }),
           r.destination_warehouse_id
-            ? auth.client.from("warehouses").select("id, name, city").eq("id", r.destination_warehouse_id).maybeSingle()
+            ? auth.client.from("warehouses").select("id, name, city, address").eq("id", r.destination_warehouse_id).maybeSingle()
             : Promise.resolve({ data: null }),
           r.vehicle_id
             ? auth.client
@@ -44,14 +45,20 @@ export const Route = createFileRoute("/api/routes/$id")({
           r.driver_id
             ? auth.client.from("drivers").select("id, full_name, phone").eq("id", r.driver_id).maybeSingle()
             : Promise.resolve({ data: null }),
+          r.carrier_id
+            ? auth.client.from("carriers").select("id, company_name").eq("id", r.carrier_id).maybeSingle()
+            : Promise.resolve({ data: null }),
         ]);
         return jsonResponse(
           {
             ...r,
             warehouse: wh.data ?? null,
+            // Алиас, который ожидает фронт detail-страницы:
+            source_warehouse: wh.data ?? null,
             destination_warehouse: dwh.data ?? null,
             vehicle: veh.data ?? null,
             driver: drv.data ?? null,
+            carrier: car.data ?? null,
           },
           { headers: cacheHeaders(30) },
         );
