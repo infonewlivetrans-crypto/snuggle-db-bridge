@@ -107,18 +107,20 @@ function WarehouseSettingsPage() {
 
   useEffect(() => {
     if (!wh) return;
+    const w = wh as Record<string, unknown>;
+    const s = (k: string) => (typeof w[k] === "string" ? (w[k] as string) : "");
     setForm({
-      name: wh.name ?? "",
-      city: wh.city ?? "",
-      address: wh.address ?? "",
-      manager_name: wh.manager_name ?? wh.contact_person ?? "",
-      manager_phone: wh.manager_phone ?? "",
-      phone: wh.phone ?? "",
-      notes: wh.notes ?? "",
-      working_hours: { ...DEFAULT_HOURS, ...((wh.working_hours as Partial<WorkingHours>) || {}) } as WorkingHours,
+      name: s("name"),
+      city: s("city"),
+      address: s("address"),
+      manager_name: s("manager_name") || s("contact_person"),
+      manager_phone: s("manager_phone"),
+      phone: s("phone"),
+      notes: s("notes"),
+      working_hours: { ...DEFAULT_HOURS, ...((w.working_hours as Partial<WorkingHours>) || {}) } as WorkingHours,
       breaks:
-        Array.isArray(wh.breaks) && wh.breaks.length > 0
-          ? (wh.breaks as Break[])
+        Array.isArray(w.breaks) && (w.breaks as unknown[]).length > 0
+          ? (w.breaks as Break[])
           : [{ label: "Обед", start: "12:00", end: "13:00" }],
     });
   }, [wh]);
