@@ -41,9 +41,14 @@ export async function requireUser(
   token: string,
 ): Promise<{ userId: string; client: SupabaseClient<Database> } | null> {
   const client = makeUserClient(token);
-  const { data, error } = await client.auth.getClaims(token);
-  if (error || !data?.claims?.sub) return null;
-  return { userId: data.claims.sub as string, client };
+  try {
+    const { data, error } = await client.auth.getClaims(token);
+    if (error || !data?.claims?.sub) return null;
+    return { userId: data.claims.sub as string, client };
+  } catch {
+    // expired/invalid JWT — treat as unauthenticated, не валим 500
+    return null;
+  }
 }
 
 /** Проверяет, что текущий пользователь — админ (RLS-клиент). */
