@@ -122,6 +122,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiVehiclesIdRouteImport } from './routes/api/vehicles.$id'
 import { Route as ApiUsersIdRouteImport } from './routes/api/users.$id'
 import { Route as ApiTripStageUpdateRouteImport } from './routes/api/trip-stage.update'
@@ -726,6 +727,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWarehousesIdRoute = ApiWarehousesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiWarehousesRoute,
+} as any)
 const ApiVehiclesIdRoute = ApiVehiclesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -991,7 +997,7 @@ export interface FileRoutesByFullPath {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
-  '/api/warehouses': typeof ApiWarehousesRoute
+  '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1053,6 +1059,7 @@ export interface FileRoutesByFullPath {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1142,7 +1149,7 @@ export interface FileRoutesByTo {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
-  '/api/warehouses': typeof ApiWarehousesRoute
+  '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1204,6 +1211,7 @@ export interface FileRoutesByTo {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1294,7 +1302,7 @@ export interface FileRoutesById {
   '/api/user-role': typeof ApiUserRoleRoute
   '/api/users': typeof ApiUsersRouteWithChildren
   '/api/vehicles': typeof ApiVehiclesRouteWithChildren
-  '/api/warehouses': typeof ApiWarehousesRoute
+  '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1356,6 +1364,7 @@ export interface FileRoutesById {
   '/api/trip-stage/update': typeof ApiTripStageUpdateRoute
   '/api/users/$id': typeof ApiUsersIdRoute
   '/api/vehicles/$id': typeof ApiVehiclesIdRoute
+  '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -1509,6 +1518,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/warehouses/$id'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -1660,6 +1670,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/warehouses/$id'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -1811,6 +1822,7 @@ export interface FileRouteTypes {
     | '/api/trip-stage/update'
     | '/api/users/$id'
     | '/api/vehicles/$id'
+    | '/api/warehouses/$id'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -1901,7 +1913,7 @@ export interface RootRouteChildren {
   ApiUserRoleRoute: typeof ApiUserRoleRoute
   ApiUsersRoute: typeof ApiUsersRouteWithChildren
   ApiVehiclesRoute: typeof ApiVehiclesRouteWithChildren
-  ApiWarehousesRoute: typeof ApiWarehousesRoute
+  ApiWarehousesRoute: typeof ApiWarehousesRouteWithChildren
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
@@ -2740,6 +2752,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/warehouses/$id': {
+      id: '/api/warehouses/$id'
+      path: '/$id'
+      fullPath: '/api/warehouses/$id'
+      preLoaderRoute: typeof ApiWarehousesIdRouteImport
+      parentRoute: typeof ApiWarehousesRoute
+    }
     '/api/vehicles/$id': {
       id: '/api/vehicles/$id'
       path: '/$id'
@@ -3224,6 +3243,18 @@ const ApiVehiclesRouteWithChildren = ApiVehiclesRoute._addFileChildren(
   ApiVehiclesRouteChildren,
 )
 
+interface ApiWarehousesRouteChildren {
+  ApiWarehousesIdRoute: typeof ApiWarehousesIdRoute
+}
+
+const ApiWarehousesRouteChildren: ApiWarehousesRouteChildren = {
+  ApiWarehousesIdRoute: ApiWarehousesIdRoute,
+}
+
+const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
+  ApiWarehousesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
@@ -3304,7 +3335,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUserRoleRoute: ApiUserRoleRoute,
   ApiUsersRoute: ApiUsersRouteWithChildren,
   ApiVehiclesRoute: ApiVehiclesRouteWithChildren,
-  ApiWarehousesRoute: ApiWarehousesRoute,
+  ApiWarehousesRoute: ApiWarehousesRouteWithChildren,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
