@@ -73,30 +73,31 @@ function SupplyTransfersPage() {
   const { data: transfers, isLoading } = useQuery({
     queryKey: ["supply-transfers"],
     queryFn: async (): Promise<Transfer[]> => {
-      const { data, error } = await db
-        .from("stock_transfers")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return (data ?? []) as Transfer[];
+      const r = await fetchListViaApi<Transfer>("/api/stock-transfers", {
+        limit: 500,
+      });
+      return r.rows;
     },
   });
 
   const { data: products } = useQuery({
     queryKey: ["products-min"],
     queryFn: async () => {
-      const { data, error } = await db.from("products").select("id, name, sku");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string; sku: string | null }[];
+      const r = await fetchListViaApi<{ id: string; name: string; sku: string | null }>(
+        "/api/products",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-min-tr"],
     queryFn: async () => {
-      const { data, error } = await db.from("warehouses").select("id, name");
-      if (error) throw error;
-      return (data ?? []) as { id: string; name: string }[];
+      const r = await fetchListViaApi<{ id: string; name: string }>(
+        "/api/warehouses",
+        { limit: 1000 },
+      );
+      return r.rows;
     },
   });
 
