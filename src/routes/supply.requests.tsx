@@ -352,11 +352,7 @@ function StatusActions({ request }: { request: SupplyRequest }) {
   const qc = useQueryClient();
   const mutation = useMutation({
     mutationFn: async (newStatus: Status) => {
-      const { error } = await db
-        .from("supply_requests")
-        .update({ status: newStatus })
-        .eq("id", request.id);
-      if (error) throw error;
+      await apiPatch(`/api/supply-requests/${request.id}`, { status: newStatus });
     },
     onSuccess: (_d, newStatus) => {
       toast.success(`Статус: ${STATUS_LABELS[newStatus]}`);
