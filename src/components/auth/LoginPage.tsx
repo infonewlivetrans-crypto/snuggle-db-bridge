@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -9,10 +9,6 @@ import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { playAuthSignal } from "@/lib/auth-signal";
-import {
-  startAuthBackgroundMusic,
-  stopAuthBackgroundMusic,
-} from "@/lib/auth-background-music";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
@@ -26,9 +22,7 @@ export function LoginPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // 1) Сразу останавливаем фоновую музыку, чтобы звуки не накладывались
-    stopAuthBackgroundMusic();
-    // 2) Проигрываем короткий сигнал кнопки «Войти»
+    // Короткий сигнал кнопки «Войти»
     playAuthSignal();
     setError(null);
     setSteps([]);
@@ -51,14 +45,6 @@ export function LoginPage() {
       setBusy(false);
     }
   };
-
-  // Фоновая музыка играет только пока пользователь на экране входа
-  useEffect(() => {
-    startAuthBackgroundMusic();
-    return () => {
-      stopAuthBackgroundMusic();
-    };
-  }, []);
 
   return (
     <AuthLayout align="left">
