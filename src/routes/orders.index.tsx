@@ -57,6 +57,8 @@ type OrderRow = {
   order_number: string;
   status: OrderStatus;
   payment_status: PaymentStatus | null;
+  payment_type: PaymentType | null;
+  requires_qr: boolean | null;
   amount_due: number | null;
   delivery_cost: number | null;
   goods_amount: number | null;
