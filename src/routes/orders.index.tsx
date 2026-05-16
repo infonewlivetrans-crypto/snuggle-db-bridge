@@ -357,7 +357,8 @@ function OrdersPage() {
                     <TableHead>Перевозчик / водитель / ТС</TableHead>
                     <TableHead>Статус</TableHead>
                     <TableHead className="text-right">Ставка</TableHead>
-                    <TableHead>Оплата</TableHead>
+                    <TableHead>Способ оплаты</TableHead>
+                    <TableHead>Статус оплаты</TableHead>
                     <TableHead>Даты</TableHead>
                     <TableHead className="text-center">Док-ты</TableHead>
                   </TableRow>
