@@ -30,9 +30,9 @@ export const Route = createFileRoute("/api/invite-login")({
           return json({ error: message }, { status: 401 });
         }
       },
-      // POST /api/invite-login { token, email, password, phone } — активация
+      // POST /api/invite-login { token, email, password, phone, fullName? } — активация
       POST: async ({ request }) => {
-        let body: { token?: string; email?: string; password?: string; phone?: string };
+        let body: { token?: string; email?: string; password?: string; phone?: string; fullName?: string };
         try {
           body = (await request.json()) as typeof body;
         } catch {
@@ -44,6 +44,7 @@ export const Route = createFileRoute("/api/invite-login")({
             email: body?.email ?? "",
             password: body?.password ?? "",
             phone: body?.phone ?? "",
+            fullName: body?.fullName ?? "",
           });
           setSessionCookies({
             accessToken: session.accessToken,

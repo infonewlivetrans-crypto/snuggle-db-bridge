@@ -26,6 +26,7 @@ function InviteLoginPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,6 +41,10 @@ function InviteLoginPage() {
           throw new Error((body as { error?: string })?.error || "Ссылка недействительна");
         }
         setInfo(body);
+        // Prefill ФИО для менеджера — он может уточнить/исправить.
+        if (body.role === "manager" && body.full_name) {
+          setFullName(body.full_name);
+        }
       } catch (e) {
         setLoadError(e instanceof Error ? e.message : "Ссылка недействительна");
       }
@@ -53,6 +58,14 @@ function InviteLoginPage() {
 
     const emailTrim = email.trim();
     const phoneTrim = phone.trim();
+    const fullNameTrim = fullName.trim().replace(/\s+/g, " ");
+    const isManager = info?.role === "manager";
+    if (isManager) {
+      if (!fullNameTrim) return setSubmitError("Введите полное ФИО");
+      const parts = fullNameTrim.split(" ").filter((p) => p.length >= 2);
+      if (parts.length < 2)
+        return setSubmitError("Введите полное ФИО (минимум фамилия и имя)");
+    }
     if (!emailTrim) return setSubmitError("Введите email");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailTrim))
       return setSubmitError("Введите корректный email");
@@ -67,7 +80,13 @@ function InviteLoginPage() {
       const res = await fetch("/api/invite-login", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token, email: emailTrim, password, phone: phoneTrim }),
+        body: JSON.stringify({
+          token,
+          email: emailTrim,
+          password,
+          phone: phoneTrim,
+          ...(isManager ? { fullName: fullNameTrim } : {}),
+        }),
       });
       const body = (await res.json().catch(() => null)) as
         | { ok?: boolean; role?: AppRole; error?: string }
@@ -128,6 +147,25 @@ function InviteLoginPage() {
               </p>
             )}
           </div>
+
+          {info.role === "manager" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="fullName">Полное ФИО</Label>
+              <Input
+                id="fullName"
+                type="text"
+                autoComplete="name"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Иванов Иван Иванович"
+                className="bg-white/90"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Укажите фамилию и имя полностью — это будет использоваться в системе.
+              </p>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
