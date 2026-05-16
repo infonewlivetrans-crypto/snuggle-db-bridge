@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
+import { playAuthSignal } from "@/lib/auth-signal";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
@@ -21,6 +22,7 @@ export function LoginPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    playAuthSignal();
     setError(null);
     setSteps([]);
     setBusy(true);
