@@ -53,7 +53,7 @@ export function AssignDriverDialog({
     queryFn: async (): Promise<Driver[]> => {
       const { rows } = await fetchListViaApi<Driver>("/api/drivers", {
         limit: 500,
-        params: { activeOnly: "1" },
+        extra: { activeOnly: "1" },
       });
       return rows;
     },
