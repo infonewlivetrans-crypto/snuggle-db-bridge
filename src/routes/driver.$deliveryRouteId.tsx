@@ -533,6 +533,7 @@ function DriverRoutePage() {
                       routeId={data.source_request_id}
                       driverName={data.assigned_driver}
                       photoKinds={photoKindsByPoint?.[p.id]}
+                      unreadCount={unreadByOrderId.get(p.order_id) ?? 0}
                       onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
                       reordering={reorderPoints.isPending}
                       locked={isCompleted}
