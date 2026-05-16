@@ -191,6 +191,9 @@ export function NotificationsBell() {
                       } else if (n.kind === "qr_uploaded" && orderId) {
                         setOpen(false);
                         navigate({ to: "/", search: { orderId } });
+                      } else if (n.kind === "client_message_received" && orderId) {
+                        setOpen(false);
+                        navigate({ to: "/", search: { orderId } });
                       }
                     }}
                   >
