@@ -193,13 +193,29 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="dr">Водитель</Label>
-            <Input
-              id="dr"
-              value={driver}
-              onChange={(e) => setDriver(e.target.value)}
-              placeholder="ФИО водителя"
-            />
+            <Label htmlFor="dr">Водитель *</Label>
+            <Select value={driverId} onValueChange={setDriverId}>
+              <SelectTrigger id="dr">
+                <SelectValue placeholder="Выберите водителя из справочника" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {(drivers ?? []).length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    Активных водителей нет
+                  </div>
+                ) : (
+                  (drivers ?? []).map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.full_name}
+                      {d.phone ? ` · ${d.phone}` : ""}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Свободный ввод недоступен — назначение идёт только из справочника водителей.
+            </p>
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="cm">Комментарий</Label>
