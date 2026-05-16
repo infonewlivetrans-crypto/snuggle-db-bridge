@@ -75,6 +75,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
         const auth = await requireAnyRole(request, ["admin", "logist", "manager"]);
         if (auth instanceof Response) return auth;
         const sb = auth.client;
+        const authUserId = auth.userId;
 
         let payload: IncomingPayload;
         try {
