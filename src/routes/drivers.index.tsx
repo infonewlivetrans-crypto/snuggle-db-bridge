@@ -124,7 +124,7 @@ function DriversPage() {
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={6} className="py-12 text-center">
                     <User className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Водителей нет</div>
                     <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
