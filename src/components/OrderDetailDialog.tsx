@@ -65,6 +65,7 @@ import { OrderEtaBlock } from "@/components/OrderEtaBlock";
 import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
 import { ClientPortalLinkBlock } from "@/components/ClientPortalLinkBlock";
+import { ClientOrderMessagesBlock } from "@/components/ClientOrderMessagesBlock";
 
 
 type DeliveryReport = {
@@ -445,6 +446,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
 
           {/* Ссылка для клиента (постоянный кабинет по client_id) */}
           <ClientPortalLinkBlock clientId={order.client_id ?? null} />
+
+          {/* Сообщения от клиента по заказу (manager + driver каналы) */}
+          <ClientOrderMessagesBlock orderId={order.id} />
 
           {/* Информация по получателю для этого заказа */}
           <div className="rounded-lg border border-border">

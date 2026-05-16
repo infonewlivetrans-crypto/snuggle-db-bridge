@@ -191,6 +191,8 @@ import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
+import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
+import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -199,7 +201,10 @@ import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.ur
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
 import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
+import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
+import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
+import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -1121,6 +1126,18 @@ const ApiOrdersIdRouteLinkRoute = ApiOrdersIdRouteLinkRouteImport.update({
   path: '/route-link',
   getParentRoute: () => ApiOrdersIdRoute,
 } as any)
+const ApiOrdersIdDriverClientMessagesRoute =
+  ApiOrdersIdDriverClientMessagesRouteImport.update({
+    id: '/driver-client-messages',
+    path: '/driver-client-messages',
+    getParentRoute: () => ApiOrdersIdRoute,
+  } as any)
+const ApiOrdersIdClientMessagesRoute =
+  ApiOrdersIdClientMessagesRouteImport.update({
+    id: '/client-messages',
+    path: '/client-messages',
+    getParentRoute: () => ApiOrdersIdRoute,
+  } as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -1164,11 +1181,29 @@ const ApiDriverRouteIdRoute = ApiDriverRouteIdRouteImport.update({
   path: '/api/driver/route/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrdersIdDriverClientMessagesMarkReadRoute =
+  ApiOrdersIdDriverClientMessagesMarkReadRouteImport.update({
+    id: '/mark-read',
+    path: '/mark-read',
+    getParentRoute: () => ApiOrdersIdDriverClientMessagesRoute,
+  } as any)
+const ApiOrdersIdClientMessagesMarkReadRoute =
+  ApiOrdersIdClientMessagesMarkReadRouteImport.update({
+    id: '/mark-read',
+    path: '/mark-read',
+    getParentRoute: () => ApiOrdersIdClientMessagesRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
     path: '/orders/$orderId',
     getParentRoute: () => ApiPublicClientPortalTokenRoute,
+  } as any)
+const ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute =
+  ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
+    getParentRoute: () => ApiPublicClientPortalTokenOrdersOrderIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -1359,10 +1394,15 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
+  '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
-  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+  '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
+  '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
+  '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1552,10 +1592,15 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
+  '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
-  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+  '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
+  '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
+  '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1746,10 +1791,15 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
+  '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
-  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+  '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
+  '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
+  '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1941,10 +1991,15 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/client-messages'
+    | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/orders/$id/client-messages/mark-read'
+    | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
+    | '/api/public/client-portal/$token/orders/$orderId/messages'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2134,10 +2189,15 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/client-messages'
+    | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/orders/$id/client-messages/mark-read'
+    | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
+    | '/api/public/client-portal/$token/orders/$orderId/messages'
   id:
     | '__root__'
     | '/'
@@ -2327,10 +2387,15 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/client-messages'
+    | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/orders/$id/client-messages/mark-read'
+    | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
+    | '/api/public/client-portal/$token/orders/$orderId/messages'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -3759,6 +3824,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdRouteLinkRouteImport
       parentRoute: typeof ApiOrdersIdRoute
     }
+    '/api/orders/$id/driver-client-messages': {
+      id: '/api/orders/$id/driver-client-messages'
+      path: '/driver-client-messages'
+      fullPath: '/api/orders/$id/driver-client-messages'
+      preLoaderRoute: typeof ApiOrdersIdDriverClientMessagesRouteImport
+      parentRoute: typeof ApiOrdersIdRoute
+    }
+    '/api/orders/$id/client-messages': {
+      id: '/api/orders/$id/client-messages'
+      path: '/client-messages'
+      fullPath: '/api/orders/$id/client-messages'
+      preLoaderRoute: typeof ApiOrdersIdClientMessagesRouteImport
+      parentRoute: typeof ApiOrdersIdRoute
+    }
     '/api/delivery-routes/$id/driver-geo': {
       id: '/api/delivery-routes/$id/driver-geo'
       path: '/driver-geo'
@@ -3815,12 +3894,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriverRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/orders/$id/driver-client-messages/mark-read': {
+      id: '/api/orders/$id/driver-client-messages/mark-read'
+      path: '/mark-read'
+      fullPath: '/api/orders/$id/driver-client-messages/mark-read'
+      preLoaderRoute: typeof ApiOrdersIdDriverClientMessagesMarkReadRouteImport
+      parentRoute: typeof ApiOrdersIdDriverClientMessagesRoute
+    }
+    '/api/orders/$id/client-messages/mark-read': {
+      id: '/api/orders/$id/client-messages/mark-read'
+      path: '/mark-read'
+      fullPath: '/api/orders/$id/client-messages/mark-read'
+      preLoaderRoute: typeof ApiOrdersIdClientMessagesMarkReadRouteImport
+      parentRoute: typeof ApiOrdersIdClientMessagesRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
       path: '/orders/$orderId'
       fullPath: '/api/public/client-portal/$token/orders/$orderId'
       preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRouteImport
       parentRoute: typeof ApiPublicClientPortalTokenRoute
+    }
+    '/api/public/client-portal/$token/orders/$orderId/messages': {
+      id: '/api/public/client-portal/$token/orders/$orderId/messages'
+      path: '/messages'
+      fullPath: '/api/public/client-portal/$token/orders/$orderId/messages'
+      preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport
+      parentRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
     }
   }
 }
@@ -4019,11 +4119,46 @@ const ApiNotificationsRouteChildren: ApiNotificationsRouteChildren = {
 const ApiNotificationsRouteWithChildren =
   ApiNotificationsRoute._addFileChildren(ApiNotificationsRouteChildren)
 
+interface ApiOrdersIdClientMessagesRouteChildren {
+  ApiOrdersIdClientMessagesMarkReadRoute: typeof ApiOrdersIdClientMessagesMarkReadRoute
+}
+
+const ApiOrdersIdClientMessagesRouteChildren: ApiOrdersIdClientMessagesRouteChildren =
+  {
+    ApiOrdersIdClientMessagesMarkReadRoute:
+      ApiOrdersIdClientMessagesMarkReadRoute,
+  }
+
+const ApiOrdersIdClientMessagesRouteWithChildren =
+  ApiOrdersIdClientMessagesRoute._addFileChildren(
+    ApiOrdersIdClientMessagesRouteChildren,
+  )
+
+interface ApiOrdersIdDriverClientMessagesRouteChildren {
+  ApiOrdersIdDriverClientMessagesMarkReadRoute: typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+}
+
+const ApiOrdersIdDriverClientMessagesRouteChildren: ApiOrdersIdDriverClientMessagesRouteChildren =
+  {
+    ApiOrdersIdDriverClientMessagesMarkReadRoute:
+      ApiOrdersIdDriverClientMessagesMarkReadRoute,
+  }
+
+const ApiOrdersIdDriverClientMessagesRouteWithChildren =
+  ApiOrdersIdDriverClientMessagesRoute._addFileChildren(
+    ApiOrdersIdDriverClientMessagesRouteChildren,
+  )
+
 interface ApiOrdersIdRouteChildren {
+  ApiOrdersIdClientMessagesRoute: typeof ApiOrdersIdClientMessagesRouteWithChildren
+  ApiOrdersIdDriverClientMessagesRoute: typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   ApiOrdersIdRouteLinkRoute: typeof ApiOrdersIdRouteLinkRoute
 }
 
 const ApiOrdersIdRouteChildren: ApiOrdersIdRouteChildren = {
+  ApiOrdersIdClientMessagesRoute: ApiOrdersIdClientMessagesRouteWithChildren,
+  ApiOrdersIdDriverClientMessagesRoute:
+    ApiOrdersIdDriverClientMessagesRouteWithChildren,
   ApiOrdersIdRouteLinkRoute: ApiOrdersIdRouteLinkRoute,
 }
 
@@ -4215,14 +4350,29 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface ApiPublicClientPortalTokenOrdersOrderIdRouteChildren {
+  ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
+}
+
+const ApiPublicClientPortalTokenOrdersOrderIdRouteChildren: ApiPublicClientPortalTokenOrdersOrderIdRouteChildren =
+  {
+    ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute:
+      ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute,
+  }
+
+const ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren =
+  ApiPublicClientPortalTokenOrdersOrderIdRoute._addFileChildren(
+    ApiPublicClientPortalTokenOrdersOrderIdRouteChildren,
+  )
+
 interface ApiPublicClientPortalTokenRouteChildren {
-  ApiPublicClientPortalTokenOrdersOrderIdRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+  ApiPublicClientPortalTokenOrdersOrderIdRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
 }
 
 const ApiPublicClientPortalTokenRouteChildren: ApiPublicClientPortalTokenRouteChildren =
   {
     ApiPublicClientPortalTokenOrdersOrderIdRoute:
-      ApiPublicClientPortalTokenOrdersOrderIdRoute,
+      ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren,
   }
 
 const ApiPublicClientPortalTokenRouteWithChildren =

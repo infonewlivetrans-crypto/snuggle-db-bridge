@@ -5,6 +5,7 @@ import { Lock, Package, MapPin, Clock, ChevronRight, X } from "lucide-react";
 import { STATUS_LABELS, STATUS_STYLES, type OrderStatus } from "@/lib/orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PortalOrderMessagesBlock } from "@/components/PortalOrderMessagesBlock";
 
 type PortalOrder = {
   id: string;
@@ -130,7 +131,7 @@ function ClientPortalPage() {
         )}
 
         {selected && (
-          <OrderDrawer order={selected} onClose={() => setOpenId(null)} />
+          <OrderDrawer token={token} order={selected} onClose={() => setOpenId(null)} />
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
@@ -141,14 +142,22 @@ function ClientPortalPage() {
   );
 }
 
-function OrderDrawer({ order, onClose }: { order: PortalOrder; onClose: () => void }) {
+function OrderDrawer({
+  token,
+  order,
+  onClose,
+}: {
+  token: string;
+  order: PortalOrder;
+  onClose: () => void;
+}) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 p-0 sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg rounded-t-xl border border-border bg-card p-5 shadow-lg sm:rounded-xl"
+        className="max-h-[95vh] w-full max-w-lg overflow-y-auto rounded-t-xl border border-border bg-card p-5 shadow-lg sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -187,6 +196,10 @@ function OrderDrawer({ order, onClose }: { order: PortalOrder; onClose: () => vo
           {order.recipient_access_comment && (
             <Row label="Подъезд / разгрузка">{order.recipient_access_comment}</Row>
           )}
+        </div>
+
+        <div className="mt-5 border-t border-border pt-4">
+          <PortalOrderMessagesBlock token={token} orderId={order.id} />
         </div>
       </div>
     </div>

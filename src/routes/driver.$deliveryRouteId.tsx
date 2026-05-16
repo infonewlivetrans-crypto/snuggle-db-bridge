@@ -50,6 +50,7 @@ import type {
 } from "@/lib/deliveryPointStatus";
 import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
 import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
+import { RecipientMessageForDriverBlock } from "@/components/RecipientMessageForDriverBlock";
 import { runWithOfflineFallback, hasPendingForRoute, subscribeQueue, flushQueue } from "@/lib/offlineQueue";
 
 export const Route = createFileRoute("/driver/$deliveryRouteId")({
@@ -733,6 +734,9 @@ function DriverPointCard({
         clientPhone={o?.contact_phone ?? null}
         mapUrl={buildMapUrl(o)}
       />
+
+      {/* Сообщение от получателя (target_role='driver') */}
+      <RecipientMessageForDriverBlock orderId={p.order_id} />
 
       {/* Краткая сводка по оплате/QR */}
       <div className="flex flex-wrap gap-1.5 text-xs">
