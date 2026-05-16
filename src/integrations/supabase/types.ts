@@ -322,6 +322,54 @@ export type Database = {
           },
         ]
       }
+      client_order_messages: {
+        Row: {
+          body: string
+          client_id: string
+          created_at: string
+          id: string
+          order_id: string
+          read_by_driver_at: string | null
+          read_by_manager_at: string | null
+          target_role: string
+        }
+        Insert: {
+          body: string
+          client_id: string
+          created_at?: string
+          id?: string
+          order_id: string
+          read_by_driver_at?: string | null
+          read_by_manager_at?: string | null
+          target_role: string
+        }
+        Update: {
+          body?: string
+          client_id?: string
+          created_at?: string
+          id?: string
+          order_id?: string
+          read_by_driver_at?: string | null
+          read_by_manager_at?: string | null
+          target_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_order_messages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_order_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           access_notes: string | null
@@ -4240,6 +4288,10 @@ export type Database = {
           urole: string
         }[]
       }
+      _driver_can_access_order: {
+        Args: { _order_id: string; _user_id: string }
+        Returns: boolean
+      }
       calc_order_delivery_cost: {
         Args: { p_order_id: string }
         Returns: number
@@ -4297,6 +4349,47 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_client_order_messages: {
+        Args: { _order_id: string; _target_role?: string; _token: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          read_by_driver_at: string
+          read_by_manager_at: string
+          target_role: string
+        }[]
+      }
+      list_order_client_messages_for_staff: {
+        Args: { _order_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          read_by_driver_at: string
+          read_by_manager_at: string
+          target_role: string
+        }[]
+      }
+      list_order_driver_client_messages: {
+        Args: { _order_id: string }
+        Returns: {
+          body: string
+          created_at: string
+          id: string
+          read_by_driver_at: string
+          read_by_manager_at: string
+          target_role: string
+        }[]
+      }
+      mark_order_client_messages_read_by_manager: {
+        Args: { _order_id: string }
+        Returns: number
+      }
+      mark_order_driver_client_messages_read: {
+        Args: { _order_id: string }
+        Returns: number
+      }
       notify_low_stock_for_product: {
         Args: { p_product_id: string; p_warehouse_id: string }
         Returns: undefined
@@ -4339,6 +4432,15 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      post_client_order_message: {
+        Args: {
+          _body: string
+          _order_id: string
+          _target_role: string
+          _token: string
+        }
+        Returns: string
       }
       recalc_route_costs: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_etas: { Args: { p_route_id: string }; Returns: undefined }
