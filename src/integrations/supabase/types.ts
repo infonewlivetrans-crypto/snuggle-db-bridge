@@ -4311,6 +4311,20 @@ export type Database = {
           status: Database["public"]["Enums"]["order_status"]
         }[]
       }
+      get_unread_client_msgs_for_driver: {
+        Args: { _order_ids: string[] }
+        Returns: {
+          order_id: string
+          unread: number
+        }[]
+      }
+      get_unread_client_msgs_for_staff: {
+        Args: { _order_ids: string[] }
+        Returns: {
+          order_id: string
+          unread: number
+        }[]
+      }
       has_any_admin: { Args: never; Returns: boolean }
       has_company_access: {
         Args: { _company_id: string; _user_id: string }

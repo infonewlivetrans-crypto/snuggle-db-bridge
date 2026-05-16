@@ -162,6 +162,7 @@ import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-point
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
+import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiNotificationsIdRouteImport } from './routes/api/notifications.$id'
 import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
@@ -173,6 +174,7 @@ import { Route as ApiInboundShipmentItemsIdRouteImport } from './routes/api/inbo
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
+import { Route as ApiDriverUnreadClientMessagesRouteImport } from './routes/api/driver.unread-client-messages'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
 import { Route as ApiDeliveryTariffsIdRouteImport } from './routes/api/delivery-tariffs.$id'
@@ -978,6 +980,12 @@ const ApiRoutePointPhotosOfflineUploadRoute =
     path: '/offline-upload',
     getParentRoute: () => ApiRoutePointPhotosRoute,
   } as any)
+const ApiOrdersUnreadClientMessagesRoute =
+  ApiOrdersUnreadClientMessagesRouteImport.update({
+    id: '/unread-client-messages',
+    path: '/unread-client-messages',
+    getParentRoute: () => ApiOrdersRoute,
+  } as any)
 const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1034,6 +1042,12 @@ const ApiDriversIdRoute = ApiDriversIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDriversRoute,
 } as any)
+const ApiDriverUnreadClientMessagesRoute =
+  ApiDriverUnreadClientMessagesRouteImport.update({
+    id: '/api/driver/unread-client-messages',
+    path: '/api/driver/unread-client-messages',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDriverMyRoutesRoute = ApiDriverMyRoutesRouteImport.update({
   id: '/api/driver/my-routes',
   path: '/api/driver/my-routes',
@@ -1356,6 +1370,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
+  '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
@@ -1367,6 +1382,7 @@ export interface FileRoutesByFullPath {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1554,6 +1570,7 @@ export interface FileRoutesByTo {
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
+  '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
@@ -1565,6 +1582,7 @@ export interface FileRoutesByTo {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1753,6 +1771,7 @@ export interface FileRoutesById {
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
+  '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
@@ -1764,6 +1783,7 @@ export interface FileRoutesById {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1953,6 +1973,7 @@ export interface FileRouteTypes {
     | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
+    | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
@@ -1964,6 +1985,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2151,6 +2173,7 @@ export interface FileRouteTypes {
     | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
+    | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
@@ -2162,6 +2185,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2349,6 +2373,7 @@ export interface FileRouteTypes {
     | '/api/delivery-tariffs/$id'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
+    | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/import-logs/$id'
@@ -2360,6 +2385,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2541,6 +2567,7 @@ export interface RootRouteChildren {
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
+  ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3621,6 +3648,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRoutePointPhotosOfflineUploadRouteImport
       parentRoute: typeof ApiRoutePointPhotosRoute
     }
+    '/api/orders/unread-client-messages': {
+      id: '/api/orders/unread-client-messages'
+      path: '/unread-client-messages'
+      fullPath: '/api/orders/unread-client-messages'
+      preLoaderRoute: typeof ApiOrdersUnreadClientMessagesRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/orders/$id': {
       id: '/api/orders/$id'
       path: '/$id'
@@ -3697,6 +3731,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/drivers/$id'
       preLoaderRoute: typeof ApiDriversIdRouteImport
       parentRoute: typeof ApiDriversRoute
+    }
+    '/api/driver/unread-client-messages': {
+      id: '/api/driver/unread-client-messages'
+      path: '/api/driver/unread-client-messages'
+      fullPath: '/api/driver/unread-client-messages'
+      preLoaderRoute: typeof ApiDriverUnreadClientMessagesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/driver/my-routes': {
       id: '/api/driver/my-routes'
@@ -4168,10 +4209,12 @@ const ApiOrdersIdRouteWithChildren = ApiOrdersIdRoute._addFileChildren(
 
 interface ApiOrdersRouteChildren {
   ApiOrdersIdRoute: typeof ApiOrdersIdRouteWithChildren
+  ApiOrdersUnreadClientMessagesRoute: typeof ApiOrdersUnreadClientMessagesRoute
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
   ApiOrdersIdRoute: ApiOrdersIdRouteWithChildren,
+  ApiOrdersUnreadClientMessagesRoute: ApiOrdersUnreadClientMessagesRoute,
 }
 
 const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
@@ -4523,6 +4566,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSessionRoute: ApiAuthSessionRoute,
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
+  ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,

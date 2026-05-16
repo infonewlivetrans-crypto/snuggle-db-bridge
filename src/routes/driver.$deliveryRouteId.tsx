@@ -21,7 +21,9 @@ import {
   AlertTriangle,
   ArrowUp,
   ArrowDown,
+  MessageSquare,
 } from "lucide-react";
+import { apiGetAuth } from "@/lib/api-client";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
@@ -206,6 +208,26 @@ function DriverRoutePage() {
       return map;
     },
   });
+
+  const orderIdsKey = (points ?? [])
+    .map((p) => p.order_id)
+    .filter(Boolean)
+    .sort()
+    .join(",");
+  const { data: unreadDriverMsgs } = useQuery({
+    enabled: orderIdsKey.length > 0,
+    queryKey: ["driver-unread-client-msgs", orderIdsKey],
+    queryFn: () =>
+      apiGetAuth<{ items: Array<{ order_id: string; unread: number }> }>(
+        `/api/driver/unread-client-messages?order_ids=${encodeURIComponent(orderIdsKey)}`,
+      ),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+  const unreadByOrderId = new Map<string, number>();
+  for (const it of unreadDriverMsgs?.items ?? []) {
+    unreadByOrderId.set(it.order_id, it.unread);
+  }
 
   // Подписка на изменения очереди для актуальности валидаций
   const [, setQueueTick] = useState(0);
@@ -511,6 +533,7 @@ function DriverRoutePage() {
                       routeId={data.source_request_id}
                       driverName={data.assigned_driver}
                       photoKinds={photoKindsByPoint?.[p.id]}
+                      unreadCount={unreadByOrderId.get(p.order_id) ?? 0}
                       onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
                       reordering={reorderPoints.isPending}
                       locked={isCompleted}
@@ -612,6 +635,7 @@ function DriverPointCard({
   routeId,
   driverName,
   photoKinds,
+  unreadCount,
   onReorder,
   reordering,
   locked,
@@ -623,6 +647,7 @@ function DriverPointCard({
   routeId: string;
   driverName: string | null;
   photoKinds: Set<string> | undefined;
+  unreadCount: number;
   onReorder: (dir: -1 | 1) => void;
   reordering: boolean;
   locked: boolean;
@@ -654,6 +679,15 @@ function DriverPointCard({
             {p.point_number}
           </span>
           <span className="font-semibold">{o?.order_number ?? "—"}</span>
+          {unreadCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+              title="Новое сообщение от получателя"
+            >
+              <MessageSquare className="h-3 w-3" />
+              Сообщение: {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
           <Badge variant="outline" className="ml-auto bg-orange-100 text-orange-900 border-orange-200 text-xs">
             Заблокировано
           </Badge>
@@ -675,6 +709,15 @@ function DriverPointCard({
               {p.point_number}
             </span>
             <span className="font-semibold">{o?.order_number ?? "—"}</span>
+            {unreadCount > 0 && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+                title="Новое сообщение от получателя"
+              >
+                <MessageSquare className="h-3 w-3" />
+                Сообщение: {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
             {!locked && (
               <div className="ml-1 flex gap-0.5">
                 <Button

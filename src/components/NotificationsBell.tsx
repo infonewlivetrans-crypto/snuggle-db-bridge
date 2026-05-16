@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText } from "lucide-react";
+import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText, MessageSquare } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { fetchListViaApi, apiPatch } from "@/lib/api-client";
@@ -18,7 +18,8 @@ type NotificationKind =
   | "order_returned"
   | "payment_received"
   | "low_stock"
-  | "route_completed_report";
+  | "route_completed_report"
+  | "client_message_received";
 
 type Notification = {
   id: string;
@@ -39,6 +40,7 @@ const KIND_ICON: Record<NotificationKind, typeof Bell> = {
   payment_received: CheckCircle2,
   low_stock: PackageSearch,
   route_completed_report: FileText,
+  client_message_received: MessageSquare,
 };
 
 const KIND_COLOR: Record<NotificationKind, string> = {
@@ -49,6 +51,7 @@ const KIND_COLOR: Record<NotificationKind, string> = {
   payment_received: "text-green-600",
   low_stock: "text-orange-600",
   route_completed_report: "text-blue-600",
+  client_message_received: "text-primary",
 };
 
 export function NotificationsBell() {
@@ -186,6 +189,9 @@ export function NotificationsBell() {
                         setOpen(false);
                         navigate({ to: "/delivery-routes/$deliveryRouteId", params: { deliveryRouteId: routeId } });
                       } else if (n.kind === "qr_uploaded" && orderId) {
+                        setOpen(false);
+                        navigate({ to: "/", search: { orderId } });
+                      } else if (n.kind === "client_message_received" && orderId) {
                         setOpen(false);
                         navigate({ to: "/", search: { orderId } });
                       }

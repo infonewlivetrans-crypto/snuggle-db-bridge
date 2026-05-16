@@ -26,8 +26,10 @@ export function RecipientMessageForDriverBlock({ orderId }: { orderId: string })
       apiPatch<{ updated: number }>(
         `/api/orders/${orderId}/driver-client-messages/mark-read`,
       ),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["driver-client-messages", orderId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["driver-client-messages", orderId] });
+      qc.invalidateQueries({ queryKey: ["driver-unread-client-msgs"] });
+    },
   });
 
   const messages = q.data?.messages ?? [];

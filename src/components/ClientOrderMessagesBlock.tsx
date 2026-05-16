@@ -25,7 +25,11 @@ export function ClientOrderMessagesBlock({ orderId }: { orderId: string }) {
   const markRead = useMutation({
     mutationFn: () =>
       apiPatch<{ updated: number }>(`/api/orders/${orderId}/client-messages/mark-read`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["order-client-messages", orderId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["order-client-messages", orderId] });
+      qc.invalidateQueries({ queryKey: ["orders-unread-client-msgs"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+    },
   });
 
   const hasUnread = (q.data?.messages ?? []).some((m) => !m.read_by_manager_at);

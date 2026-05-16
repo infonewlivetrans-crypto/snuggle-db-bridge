@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchListViaApi, apiPatch } from "@/lib/api-client";
+import { fetchListViaApi, apiPatch, apiGetAuth } from "@/lib/api-client";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
@@ -34,7 +34,7 @@ import {
   type PaymentStatus,
   type PaymentType,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText, AlertTriangle, Package } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
 
@@ -177,6 +177,35 @@ function OrdersPage() {
 
   const isDemo = !isLoading && (data?.length ?? 0) === 0;
   const rows = isDemo ? DEMO_ROWS : data ?? [];
+
+  const orderIdsKey = useMemo(
+    () =>
+      isDemo
+        ? ""
+        : rows
+            .map((r) => r.id)
+            .filter(Boolean)
+            .sort()
+            .join(","),
+    [rows, isDemo],
+  );
+
+  const { data: unreadItems } = useQuery({
+    enabled: !isDemo && orderIdsKey.length > 0,
+    queryKey: ["orders-unread-client-msgs", orderIdsKey],
+    queryFn: () =>
+      apiGetAuth<{ items: Array<{ order_id: string; unread: number }> }>(
+        `/api/orders/unread-client-messages?order_ids=${encodeURIComponent(orderIdsKey)}`,
+      ),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
+  const unreadMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const it of unreadItems?.items ?? []) m.set(it.order_id, it.unread);
+    return m;
+  }, [unreadItems]);
 
   const clients = useMemo(() => {
     const set = new Set<string>();
@@ -403,6 +432,19 @@ function OrdersPage() {
                                   {r.order_number}
                                 </Link>
                               )}
+                              {(() => {
+                                const u = unreadMap.get(r.id) ?? 0;
+                                if (u <= 0) return null;
+                                return (
+                                  <span
+                                    title={`Новых сообщений от клиента: ${u}`}
+                                    className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+                                  >
+                                    <MessageSquare className="h-3 w-3" />
+                                    {u > 99 ? "99+" : u}
+                                  </span>
+                                );
+                              })()}
                               {r.driver_comment_is_important && r.driver_comment && (
                                 <span
                                   title={`Важно для водителя: ${r.driver_comment}`}
