@@ -53,28 +53,37 @@ export function RequestTotalsCards({ requestId }: { requestId: string }) {
     pointsCount: 0,
   };
 
+  const fmtNumber = (v: unknown): string => {
+    const n = typeof v === "number" && Number.isFinite(v) ? v : Number(v);
+    return Number.isFinite(n) ? n.toLocaleString("ru-RU") : "—";
+  };
+  const safeCount = (v: unknown): number => {
+    const n = typeof v === "number" && Number.isFinite(v) ? v : Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat
           icon={<Weight className="h-4 w-4" />}
           label="Общий вес"
-          value={`${totals.totalWeight.toLocaleString("ru-RU")} кг`}
+          value={`${fmtNumber(totals.totalWeight)} кг`}
         />
         <Stat
           icon={<Box className="h-4 w-4" />}
           label="Общий объём"
-          value={`${totals.totalVolume.toLocaleString("ru-RU")} м³`}
+          value={`${fmtNumber(totals.totalVolume)} м³`}
         />
         <Stat
           icon={<Package className="h-4 w-4" />}
           label="Заказов"
-          value={totals.ordersCount}
+          value={safeCount(totals.ordersCount)}
         />
         <Stat
           icon={<MapPin className="h-4 w-4" />}
           label="Точек"
-          value={totals.pointsCount}
+          value={safeCount(totals.pointsCount)}
         />
       </div>
 
