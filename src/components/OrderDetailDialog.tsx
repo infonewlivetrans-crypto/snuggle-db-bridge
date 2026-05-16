@@ -64,6 +64,7 @@ import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock"
 import { OrderEtaBlock } from "@/components/OrderEtaBlock";
 import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
+import { ClientPortalLinkBlock } from "@/components/ClientPortalLinkBlock";
 
 
 type DeliveryReport = {
@@ -441,6 +442,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
               Видна сотрудникам, не отправляется клиенту и не перезаписывает комментарий из маршрутного листа.
             </div>
           </div>
+
+          {/* Ссылка для клиента (постоянный кабинет по client_id) */}
+          <ClientPortalLinkBlock clientId={order.client_id ?? null} />
 
           {/* Информация по получателю для этого заказа */}
           <div className="rounded-lg border border-border">
