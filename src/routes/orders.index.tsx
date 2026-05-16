@@ -29,8 +29,10 @@ import {
   STATUS_ORDER,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_STYLES,
+  PAYMENT_LABELS,
   type OrderStatus,
   type PaymentStatus,
+  type PaymentType,
 } from "@/lib/orders";
 import { Search, Sparkles, FileText, AlertTriangle, Package } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
