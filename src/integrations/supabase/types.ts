@@ -1700,6 +1700,7 @@ export type Database = {
           applied_tariff_id: string | null
           cash_received: boolean
           characteristic: string | null
+          client_id: string | null
           client_type: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends: boolean
           comment: string | null
@@ -1765,6 +1766,7 @@ export type Database = {
           applied_tariff_id?: string | null
           cash_received?: boolean
           characteristic?: string | null
+          client_id?: string | null
           client_type?: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends?: boolean
           comment?: string | null
@@ -1830,6 +1832,7 @@ export type Database = {
           applied_tariff_id?: string | null
           cash_received?: boolean
           characteristic?: string | null
+          client_id?: string | null
           client_type?: Database["public"]["Enums"]["client_kind"] | null
           client_works_weekends?: boolean
           comment?: string | null
@@ -1890,6 +1893,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_company_id_fkey"
             columns: ["company_id"]

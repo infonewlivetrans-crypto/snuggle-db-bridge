@@ -64,7 +64,7 @@ import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock"
 import { OrderEtaBlock } from "@/components/OrderEtaBlock";
 import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
-import { RecipientLinkBlock } from "@/components/RecipientLinkBlock";
+
 
 type DeliveryReport = {
   id: string;
@@ -739,9 +739,6 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
 
           {/* История доставки (действия водителя) */}
           <PointActionsHistory orderId={order.id} title="История доставки" />
-
-          {/* Ссылка для получателя */}
-          <RecipientLinkBlock orderId={order.id} />
 
           {/* История изменений */}
           <OrderHistory orderId={order.id} />
