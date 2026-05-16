@@ -197,6 +197,7 @@ import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.ur
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
 import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
+import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -1151,6 +1152,12 @@ const ApiDriverRouteIdRoute = ApiDriverRouteIdRouteImport.update({
   path: '/api/driver/route/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicClientPortalTokenOrdersOrderIdRoute =
+  ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
+    id: '/orders/$orderId',
+    path: '/orders/$orderId',
+    getParentRoute: () => ApiPublicClientPortalTokenRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -1340,7 +1347,8 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
-  '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRoute
+  '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1530,7 +1538,8 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
-  '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRoute
+  '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1721,7 +1730,8 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
-  '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRoute
+  '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1914,6 +1924,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/client-portal/$token/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2104,6 +2115,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/client-portal/$token/orders/$orderId'
   id:
     | '__root__'
     | '/'
@@ -2294,6 +2306,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/client-portal/$token/orders/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2442,7 +2455,7 @@ export interface RootRouteChildren {
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
-  ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRoute
+  ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -3763,6 +3776,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriverRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/client-portal/$token/orders/$orderId': {
+      id: '/api/public/client-portal/$token/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/api/public/client-portal/$token/orders/$orderId'
+      preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRouteImport
+      parentRoute: typeof ApiPublicClientPortalTokenRoute
+    }
   }
 }
 
@@ -4144,6 +4164,21 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface ApiPublicClientPortalTokenRouteChildren {
+  ApiPublicClientPortalTokenOrdersOrderIdRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+}
+
+const ApiPublicClientPortalTokenRouteChildren: ApiPublicClientPortalTokenRouteChildren =
+  {
+    ApiPublicClientPortalTokenOrdersOrderIdRoute:
+      ApiPublicClientPortalTokenOrdersOrderIdRoute,
+  }
+
+const ApiPublicClientPortalTokenRouteWithChildren =
+  ApiPublicClientPortalTokenRoute._addFileChildren(
+    ApiPublicClientPortalTokenRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
@@ -4290,7 +4325,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
-  ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRoute,
+  ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
