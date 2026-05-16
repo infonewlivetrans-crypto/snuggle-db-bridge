@@ -5,13 +5,14 @@ import { assertCallerIsAdmin } from "./users.server";
 import { adminCreateInvite, type InviteRow } from "./invites.server";
 
 const STAFF_ROLES = ["admin", "logist", "manager"] as const;
+type StaffRole = (typeof STAFF_ROLES)[number];
 
 async function assertCallerIsStaff(userId: string): Promise<void> {
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
-    .in("role", STAFF_ROLES as unknown as string[]);
+    .in("role", STAFF_ROLES as unknown as StaffRole[]);
   if (error) throw new Error(error.message);
   if (!data || data.length === 0) {
     throw new Error("Доступ запрещён: требуется роль администратора, логиста или менеджера");
