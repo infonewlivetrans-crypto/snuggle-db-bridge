@@ -1,8 +1,12 @@
 // Резолвер менеджера для импорта маршрутного листа.
-// - Ищет существующего менеджера по нормализованному ФИО.
-// - Создаёт нового, если не найден (source = "route_sheet").
-// - Идемпотентно создаёт invite роли "manager", если активного ещё нет.
-// - Не дублирует менеджера и не дублирует invite-ссылку при повторных вызовах.
+// - Поиск/создание менеджера выполняется через SECURITY DEFINER RPC
+//   public.resolve_manager_for_route_sheet_import — это не требует
+//   SUPABASE_SERVICE_ROLE_KEY и работает на обычном auth-клиенте
+//   ролей admin/logist/manager.
+// - Создание invite остаётся через supabaseAdmin (auth.admin.createUser),
+//   но строго fail-safe: если invite упал — менеджер всё равно возвращается.
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { normalizeFullName } from "@/lib/normalize-name";
 import { normalizeRuPhone } from "@/lib/phone";
@@ -12,6 +16,8 @@ import {
   findReusableManagerInvite,
   type InviteRow,
 } from "./invites.server";
+
+type DbClient = SupabaseClient<Database>;
 
 export type ResolvedManager = {
   id: string;
@@ -23,6 +29,7 @@ export type ResolvedManager = {
 };
 
 export async function resolveManagerForImport(args: {
+  sb: DbClient;
   rawName: string | null | undefined;
   rawPhone?: string | null;
   userId?: string | null;
@@ -33,86 +40,60 @@ export async function resolveManagerForImport(args: {
   if (!norm) return null;
   const phone = normalizeRuPhone(args.rawPhone ?? null);
 
-  // 1) Найти существующего по нормализованному ФИО (managers.normalized_name UNIQUE)
-  const { data: existing, error: findErr } = await supabaseAdmin
-    .from("managers")
-    .select("id, full_name, phone")
-    .eq("normalized_name", norm)
-    .maybeSingle();
-  if (findErr) throw new Error(findErr.message);
+  // 1) Найти/создать менеджера через RPC (без service_role).
+  const { data: rpcData, error: rpcErr } = await args.sb.rpc(
+    "resolve_manager_for_route_sheet_import",
+    {
+      p_full_name: name,
+      p_normalized_name: norm,
+      p_phone: phone,
+      p_created_by: args.userId ?? null,
+    } as never,
+  );
+  if (rpcErr) throw new Error(rpcErr.message);
+  const row = Array.isArray(rpcData) ? (rpcData[0] as unknown) : (rpcData as unknown);
+  if (!row) throw new Error("Не удалось получить менеджера");
+  const r = row as {
+    id: string;
+    full_name: string;
+    phone: string | null;
+    created_manager: boolean;
+  };
+  const managerId = r.id;
+  const fullName = r.full_name;
+  const storedPhone = r.phone;
+  const createdManager = !!r.created_manager;
 
-  let managerId: string;
-  let fullName: string;
-  let storedPhone: string | null;
-  let createdManager = false;
-
-  if (existing) {
-    const row = existing as { id: string; full_name: string; phone: string | null };
-    managerId = row.id;
-    fullName = row.full_name;
-    storedPhone = row.phone;
-    // Дозаполнить пустой телефон, не перетирая существующий
-    if (!storedPhone && phone) {
-      await supabaseAdmin
-        .from("managers")
-        .update({ phone } as never)
-        .eq("id", managerId);
-      storedPhone = phone;
-    }
-  } else {
-    const { data: ins, error: insErr } = await supabaseAdmin
-      .from("managers")
-      .insert({
-        full_name: name,
-        normalized_name: norm,
-        phone,
-        is_active: true,
-        status: "active",
-        source: "route_sheet",
-        created_by: args.userId ?? null,
-      } as never)
-      .select("id, full_name, phone")
-      .single();
-    if (insErr || !ins) {
-      throw new Error(insErr?.message ?? "Не удалось создать менеджера");
-    }
-    const row = ins as { id: string; full_name: string; phone: string | null };
-    managerId = row.id;
-    fullName = row.full_name;
-    storedPhone = row.phone;
-    createdManager = true;
-  }
-
-  // 2) Invite (идемпотентно).
-  // Сначала ищем активный по manager_id, затем — по manager_name (fallback на старые записи).
-  let invite: InviteRow | null = await findReusableManagerInvite(managerId);
-  if (!invite) {
-    const { data: byName, error: byNameErr } = await supabaseAdmin
-      .from("invite_tokens")
-      .select("*")
-      .eq("role", "manager")
-      .ilike("manager_name", fullName)
-      .eq("is_active", true)
-      .is("last_used_at", null)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (byNameErr) throw new Error(byNameErr.message);
-    if (byName) {
-      invite = byName as InviteRow;
-      // Догоняющая привязка manager_id, если её ещё нет
-      if (!(invite as { manager_id?: string | null }).manager_id) {
-        await supabaseAdmin
-          .from("invite_tokens")
-          .update({ manager_id: managerId } as never)
-          .eq("id", invite.id);
+  // 2) Invite — fail-safe. Любая ошибка ниже не должна срывать привязку
+  //    orders.manager_id. Все операции с invite_tokens идут через supabaseAdmin
+  //    и обёрнуты в общий try/catch.
+  let invite: InviteRow | null = null;
+  let inviteCreated = false;
+  try {
+    invite = await findReusableManagerInvite(managerId);
+    if (!invite) {
+      const { data: byName, error: byNameErr } = await supabaseAdmin
+        .from("invite_tokens")
+        .select("*")
+        .eq("role", "manager")
+        .ilike("manager_name", fullName)
+        .eq("is_active", true)
+        .is("last_used_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (byNameErr) throw new Error(byNameErr.message);
+      if (byName) {
+        invite = byName as InviteRow;
+        if (!(invite as { manager_id?: string | null }).manager_id) {
+          await supabaseAdmin
+            .from("invite_tokens")
+            .update({ manager_id: managerId } as never)
+            .eq("id", invite.id);
+        }
       }
     }
-  }
-
-  let inviteCreated = false;
-  if (!invite) {
-    try {
+    if (!invite) {
       invite = await adminCreateInvite({
         fullName,
         phone: storedPhone,
@@ -125,10 +106,11 @@ export async function resolveManagerForImport(args: {
         .update({ manager_id: managerId } as never)
         .eq("id", invite.id);
       inviteCreated = true;
-    } catch (e) {
-      // Не блокируем импорт, если инвайт не удалось создать
-      console.error("[managers-resolve] invite create failed", e);
     }
+  } catch (e) {
+    // Не блокируем импорт. Привязка orders.manager_id уже гарантирована RPC.
+    console.error("[managers-resolve] invite step failed (non-fatal)", e);
+    invite = null;
   }
 
   return {
