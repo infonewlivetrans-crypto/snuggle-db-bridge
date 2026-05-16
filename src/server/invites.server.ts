@@ -390,3 +390,25 @@ export async function findReusableDriverInvite(
   return (data as InviteRow | null) ?? null;
 }
 
+/**
+ * Поиск активного неиспользованного manager-invite по managers.id.
+ * Возвращает самый свежий или null.
+ */
+export async function findReusableManagerInvite(
+  managerId: string,
+): Promise<InviteRow | null> {
+  if (!managerId) return null;
+  const { data, error } = await supabaseAdmin
+    .from("invite_tokens")
+    .select("*")
+    .eq("role", "manager")
+    .eq("manager_id", managerId)
+    .eq("is_active", true)
+    .is("last_used_at", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as InviteRow | null) ?? null;
+}
+
