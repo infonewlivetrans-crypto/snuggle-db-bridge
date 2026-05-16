@@ -214,6 +214,7 @@ function DeliveryRoutePage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [assignDriverOpen, setAssignDriverOpen] = useState(false);
 
   useEffect(() => {
     if (points) setDraftIds(points.map((p) => p.id));
