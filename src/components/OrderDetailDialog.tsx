@@ -98,6 +98,13 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [deliveryTimeComment, setDeliveryTimeComment] = useState<string>(order?.delivery_time_comment ?? "");
   const [driverComment, setDriverComment] = useState<string>(order?.driver_comment ?? "");
   const [driverCommentImportant, setDriverCommentImportant] = useState<boolean>(order?.driver_comment_is_important ?? false);
+  const [managerComment, setManagerComment] = useState<string>(order?.manager_comment ?? "");
+  const [recipientContactTime, setRecipientContactTime] = useState<string>(order?.recipient_contact_time ?? "");
+  const [recipientWorkHours, setRecipientWorkHours] = useState<string>(order?.recipient_work_hours ?? "");
+  const [recipientDeliveryComment, setRecipientDeliveryComment] = useState<string>(order?.recipient_delivery_comment ?? "");
+  const [recipientAccessComment, setRecipientAccessComment] = useState<string>(order?.recipient_access_comment ?? "");
+  const [recipientExtraNote, setRecipientExtraNote] = useState<string>(order?.recipient_extra_note ?? "");
+  const [recipientOpen, setRecipientOpen] = useState<boolean>(false);
 
   // Reset local state when a new order opens
   const orderId = order?.id;
@@ -117,6 +124,21 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setDeliveryTimeComment(order.delivery_time_comment ?? "");
       setDriverComment(order.driver_comment ?? "");
       setDriverCommentImportant(order.driver_comment_is_important ?? false);
+      setManagerComment(order.manager_comment ?? "");
+      setRecipientContactTime(order.recipient_contact_time ?? "");
+      setRecipientWorkHours(order.recipient_work_hours ?? "");
+      setRecipientDeliveryComment(order.recipient_delivery_comment ?? "");
+      setRecipientAccessComment(order.recipient_access_comment ?? "");
+      setRecipientExtraNote(order.recipient_extra_note ?? "");
+      setRecipientOpen(
+        Boolean(
+          order.recipient_contact_time ||
+            order.recipient_work_hours ||
+            order.recipient_delivery_comment ||
+            order.recipient_access_comment ||
+            order.recipient_extra_note,
+        ),
+      );
     }
   });
 
@@ -183,6 +205,12 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       delivery_time_comment: deliveryTimeComment.trim() || null,
       driver_comment: driverComment.trim() || null,
       driver_comment_is_important: driverComment.trim() ? driverCommentImportant : false,
+      manager_comment: managerComment.trim() || null,
+      recipient_contact_time: recipientContactTime.trim() || null,
+      recipient_work_hours: recipientWorkHours.trim() || null,
+      recipient_delivery_comment: recipientDeliveryComment.trim() || null,
+      recipient_access_comment: recipientAccessComment.trim() || null,
+      recipient_extra_note: recipientExtraNote.trim() || null,
     });
   };
 
