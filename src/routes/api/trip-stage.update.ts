@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
+import { tripStageStatusFor } from "@/server/trip-stage-error.server";
 import { recordRouteReturn, recordStageEvent } from "@/server/trip-stage.server";
 import type { TripStage } from "@/lib/tripStage";
 
@@ -56,7 +57,9 @@ export const Route = createFileRoute("/api/trip-stage/update")({
           });
           return jsonResponse({ ok: true });
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const status = tripStageStatusFor(e);
+          if (status >= 500) console.error("/api/trip-stage/update error:", e);
+          return jsonResponse({ error: (e as Error).message }, { status });
         }
       },
     },
