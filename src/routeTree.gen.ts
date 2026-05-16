@@ -75,6 +75,7 @@ import { Route as ClientsNewRouteImport } from './routes/clients.new'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
+import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
 import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
 import { Route as ApiWarehouseReturnsRouteImport } from './routes/api/warehouse-returns'
@@ -530,6 +531,11 @@ const CarriersVerificationRoute = CarriersVerificationRouteImport.update({
 const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
   id: '/carriers/$carrierId',
   path: '/carriers/$carrierId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CTokenRoute = CTokenRouteImport.update({
+  id: '/c/$token',
+  path: '/c/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWarehousesRoute = ApiWarehousesRouteImport.update({
@@ -1266,6 +1272,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
+  '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1458,6 +1465,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
+  '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1651,6 +1659,7 @@ export interface FileRoutesById {
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
+  '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1845,6 +1854,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
     | '/api/warehouses'
+    | '/c/$token'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/clients/$clientId'
@@ -2037,6 +2047,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
     | '/api/warehouses'
+    | '/c/$token'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/clients/$clientId'
@@ -2229,6 +2240,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
     | '/api/warehouses'
+    | '/c/$token'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/clients/$clientId'
@@ -2422,6 +2434,7 @@ export interface RootRouteChildren {
   ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
   ApiWarehousesRoute: typeof ApiWarehousesRouteWithChildren
+  CTokenRoute: typeof CTokenRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
   ClientsClientIdRoute: typeof ClientsClientIdRoute
@@ -2932,6 +2945,13 @@ declare module '@tanstack/react-router' {
       path: '/carriers/$carrierId'
       fullPath: '/carriers/$carrierId'
       preLoaderRoute: typeof CarriersCarrierIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/c/$token': {
+      id: '/c/$token'
+      path: '/c/$token'
+      fullPath: '/c/$token'
+      preLoaderRoute: typeof CTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/warehouses': {
@@ -4311,6 +4331,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
   ApiWarehousesRoute: ApiWarehousesRouteWithChildren,
+  CTokenRoute: CTokenRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
   ClientsClientIdRoute: ClientsClientIdRoute,
