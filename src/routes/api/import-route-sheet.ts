@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import { normalizeRuPhone } from "@/lib/phone";
-
+import {
+  resolveManagerForImport,
+  type ResolvedManager,
+} from "@/server/managers-resolve.server";
 type PaymentKind = "cash" | "qr" | "paid" | "bank" | "unknown";
 
 type IncomingOrder = {
