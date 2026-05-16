@@ -679,6 +679,15 @@ function DriverPointCard({
             {p.point_number}
           </span>
           <span className="font-semibold">{o?.order_number ?? "—"}</span>
+          {unreadCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+              title="Новое сообщение от получателя"
+            >
+              <MessageSquare className="h-3 w-3" />
+              Сообщение: {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
           <Badge variant="outline" className="ml-auto bg-orange-100 text-orange-900 border-orange-200 text-xs">
             Заблокировано
           </Badge>
