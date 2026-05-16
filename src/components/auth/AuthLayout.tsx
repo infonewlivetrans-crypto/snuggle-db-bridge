@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import heroBg from "@/assets/auth-radius-track-hero.jpg";
-import { AuthAmbientToggle } from "./AuthAmbientToggle";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -52,13 +51,6 @@ export function AuthLayout({ children, align = "left" }: AuthLayoutProps) {
         )}
       >
         <div className="w-full max-w-[460px] md:max-w-[440px] lg:ml-[6vw]">{children}</div>
-      </div>
-
-      {/* Ambient toggle */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center md:bottom-6 md:right-6 md:left-auto md:justify-end md:px-0 md:pr-2">
-        <div className="pointer-events-auto">
-          <AuthAmbientToggle />
-        </div>
       </div>
     </div>
   );
