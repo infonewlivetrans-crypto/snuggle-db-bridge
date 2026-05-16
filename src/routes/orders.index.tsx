@@ -34,7 +34,7 @@ import {
   type PaymentStatus,
   type PaymentType,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText, AlertTriangle, Package } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
 
