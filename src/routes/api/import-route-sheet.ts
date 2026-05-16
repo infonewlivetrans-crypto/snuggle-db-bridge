@@ -308,6 +308,32 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           string,
           { name: string; clientId: string | null; missing: Set<string> }
         >();
+        // Кэш менеджеров на время одного импорта: ключ = нормализованное ФИО (lowercase).
+        // Предотвращает повторные запросы и параллельное создание дубликатов.
+        const managerCache = new Map<string, ResolvedManager | null>();
+        async function resolveManagerCached(
+          name: string | null | undefined,
+          phone: string | null | undefined,
+        ): Promise<ResolvedManager | null> {
+          const key = (name ?? "").trim().toLowerCase();
+          if (!key) return null;
+          if (managerCache.has(key)) return managerCache.get(key) ?? null;
+          try {
+            const r = await resolveManagerForImport({
+              rawName: name,
+              rawPhone: phone,
+              userId: auth.userId,
+            });
+            managerCache.set(key, r);
+            return r;
+          } catch (e) {
+            warnings.push(
+              `Менеджер «${name}»: ${e instanceof Error ? e.message : "ошибка"}`,
+            );
+            managerCache.set(key, null);
+            return null;
+          }
+        }
         let inserted = 0;
         let pointNumber = 1;
 
