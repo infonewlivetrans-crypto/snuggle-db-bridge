@@ -513,6 +513,16 @@ function OrdersPage() {
                             </div>
                           </TableCell>
                           <TableCell>
+                            {r.payment_type ? (
+                              <Badge variant="outline" className="text-xs font-normal">
+                                {PAYMENT_LABELS[r.payment_type] ?? r.payment_type}
+                                {r.requires_qr && r.payment_type !== "qr" ? " · QR" : ""}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
                             {r.payment_status ? (
                               <Badge variant="outline" className={PAYMENT_STATUS_STYLES[r.payment_status]}>
                                 {PAYMENT_STATUS_LABELS[r.payment_status]}
