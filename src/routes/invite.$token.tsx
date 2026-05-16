@@ -9,6 +9,7 @@ import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { landingPathForRoles, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { BrandLogo } from "@/components/BrandLogo";
+import { playAuthSignal } from "@/lib/auth-signal";
 
 export const Route = createFileRoute("/invite/$token")({
   head: () => ({ meta: [{ title: "Вход по ссылке — Радиус Трек" }] }),
@@ -47,6 +48,7 @@ function InviteLoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    playAuthSignal();
     setSubmitError(null);
 
     const emailTrim = email.trim();
