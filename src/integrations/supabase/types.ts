@@ -1744,6 +1744,10 @@ export type Database = {
           qr_received: boolean
           quality: string | null
           recipient_access_comment: string | null
+          recipient_access_created_at: string | null
+          recipient_access_enabled: boolean
+          recipient_access_revoked_at: string | null
+          recipient_access_token: string | null
           recipient_contact_time: string | null
           recipient_delivery_comment: string | null
           recipient_extra_note: string | null
@@ -1805,6 +1809,10 @@ export type Database = {
           qr_received?: boolean
           quality?: string | null
           recipient_access_comment?: string | null
+          recipient_access_created_at?: string | null
+          recipient_access_enabled?: boolean
+          recipient_access_revoked_at?: string | null
+          recipient_access_token?: string | null
           recipient_contact_time?: string | null
           recipient_delivery_comment?: string | null
           recipient_extra_note?: string | null
@@ -1866,6 +1874,10 @@ export type Database = {
           qr_received?: boolean
           quality?: string | null
           recipient_access_comment?: string | null
+          recipient_access_created_at?: string | null
+          recipient_access_enabled?: boolean
+          recipient_access_revoked_at?: string | null
+          recipient_access_token?: string | null
           recipient_contact_time?: string | null
           recipient_delivery_comment?: string | null
           recipient_extra_note?: string | null
@@ -4215,6 +4227,20 @@ export type Database = {
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
+      get_order_by_recipient_token: {
+        Args: { _token: string }
+        Returns: {
+          delivery_address: string
+          delivery_time_comment: string
+          delivery_window_from: string
+          delivery_window_to: string
+          order_number: string
+          recipient_access_comment: string
+          recipient_delivery_comment: string
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }[]
+      }
       has_any_admin: { Args: never; Returns: boolean }
       has_company_access: {
         Args: { _company_id: string; _user_id: string }
