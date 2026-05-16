@@ -1805,10 +1805,6 @@ export type Database = {
           qr_received: boolean
           quality: string | null
           recipient_access_comment: string | null
-          recipient_access_created_at: string | null
-          recipient_access_enabled: boolean
-          recipient_access_revoked_at: string | null
-          recipient_access_token: string | null
           recipient_contact_time: string | null
           recipient_delivery_comment: string | null
           recipient_extra_note: string | null
@@ -1871,10 +1867,6 @@ export type Database = {
           qr_received?: boolean
           quality?: string | null
           recipient_access_comment?: string | null
-          recipient_access_created_at?: string | null
-          recipient_access_enabled?: boolean
-          recipient_access_revoked_at?: string | null
-          recipient_access_token?: string | null
           recipient_contact_time?: string | null
           recipient_delivery_comment?: string | null
           recipient_extra_note?: string | null
@@ -1937,10 +1929,6 @@ export type Database = {
           qr_received?: boolean
           quality?: string | null
           recipient_access_comment?: string | null
-          recipient_access_created_at?: string | null
-          recipient_access_enabled?: boolean
-          recipient_access_revoked_at?: string | null
-          recipient_access_token?: string | null
           recipient_contact_time?: string | null
           recipient_delivery_comment?: string | null
           recipient_extra_note?: string | null
@@ -4306,20 +4294,6 @@ export type Database = {
         Returns: {
           id: string
           name: string
-        }[]
-      }
-      get_order_by_recipient_token: {
-        Args: { _token: string }
-        Returns: {
-          delivery_address: string
-          delivery_time_comment: string
-          delivery_window_from: string
-          delivery_window_to: string
-          order_number: string
-          recipient_access_comment: string
-          recipient_delivery_comment: string
-          status: Database["public"]["Enums"]["order_status"]
-          updated_at: string
         }[]
       }
       get_orders_for_portal_token: {
