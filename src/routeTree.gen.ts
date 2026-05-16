@@ -190,6 +190,7 @@ import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset
 import { Route as ApiPublicOrderTrackTokenRouteImport } from './routes/api/public/order-track.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
+import { Route as ApiOrdersIdRecipientLinkRouteImport } from './routes/api/orders.$id.recipient-link'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -1113,6 +1114,12 @@ const ApiOrdersIdRouteLinkRoute = ApiOrdersIdRouteLinkRouteImport.update({
   path: '/route-link',
   getParentRoute: () => ApiOrdersIdRoute,
 } as any)
+const ApiOrdersIdRecipientLinkRoute =
+  ApiOrdersIdRecipientLinkRouteImport.update({
+    id: '/recipient-link',
+    path: '/recipient-link',
+    getParentRoute: () => ApiOrdersIdRoute,
+  } as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -1338,6 +1345,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/recipient-link': typeof ApiOrdersIdRecipientLinkRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
@@ -1528,6 +1536,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/recipient-link': typeof ApiOrdersIdRecipientLinkRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
@@ -1719,6 +1728,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/orders/$id/recipient-link': typeof ApiOrdersIdRecipientLinkRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
@@ -1911,6 +1921,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/recipient-link'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/order-track/$token'
@@ -2101,6 +2112,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/recipient-link'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/order-track/$token'
@@ -2291,6 +2303,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/orders/$id/recipient-link'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/order-track/$token'
@@ -3714,6 +3727,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdRouteLinkRouteImport
       parentRoute: typeof ApiOrdersIdRoute
     }
+    '/api/orders/$id/recipient-link': {
+      id: '/api/orders/$id/recipient-link'
+      path: '/recipient-link'
+      fullPath: '/api/orders/$id/recipient-link'
+      preLoaderRoute: typeof ApiOrdersIdRecipientLinkRouteImport
+      parentRoute: typeof ApiOrdersIdRoute
+    }
     '/api/delivery-routes/$id/driver-geo': {
       id: '/api/delivery-routes/$id/driver-geo'
       path: '/driver-geo'
@@ -3949,10 +3969,12 @@ const ApiNotificationsRouteWithChildren =
   ApiNotificationsRoute._addFileChildren(ApiNotificationsRouteChildren)
 
 interface ApiOrdersIdRouteChildren {
+  ApiOrdersIdRecipientLinkRoute: typeof ApiOrdersIdRecipientLinkRoute
   ApiOrdersIdRouteLinkRoute: typeof ApiOrdersIdRouteLinkRoute
 }
 
 const ApiOrdersIdRouteChildren: ApiOrdersIdRouteChildren = {
+  ApiOrdersIdRecipientLinkRoute: ApiOrdersIdRecipientLinkRoute,
   ApiOrdersIdRouteLinkRoute: ApiOrdersIdRouteLinkRoute,
 }
 
