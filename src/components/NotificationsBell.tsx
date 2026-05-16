@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText } from "lucide-react";
+import { Bell, CheckCheck, QrCode, CheckCircle2, AlertTriangle, PackageX, PackageSearch, FileText, MessageSquare } from "lucide-react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { fetchListViaApi, apiPatch } from "@/lib/api-client";
