@@ -70,6 +70,13 @@ export type Order = {
   delivery_time_comment?: string | null;
   driver_comment?: string | null;
   driver_comment_is_important?: boolean | null;
+  // Комментарий менеджера и разовая информация по получателю для этого заказа
+  manager_comment?: string | null;
+  recipient_contact_time?: string | null;
+  recipient_work_hours?: string | null;
+  recipient_delivery_comment?: string | null;
+  recipient_access_comment?: string | null;
+  recipient_extra_note?: string | null;
   // Источник создания записи
   source?: string;
   external_id?: string | null;

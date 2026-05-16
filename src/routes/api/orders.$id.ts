@@ -16,6 +16,23 @@ const ALLOWED_FIELDS = new Set<string>([
   "delivery_cost_source",
   "driver_comment",
   "driver_comment_is_important",
+  "manager_comment",
+  "recipient_contact_time",
+  "recipient_work_hours",
+  "recipient_delivery_comment",
+  "recipient_access_comment",
+  "recipient_extra_note",
+]);
+
+// Поля, для которых на сервере действует ограничение в 2000 символов
+// (разовая информация по заказу / комментарий менеджера).
+const TEXT_FIELDS_MAX_2000 = new Set<string>([
+  "manager_comment",
+  "recipient_contact_time",
+  "recipient_work_hours",
+  "recipient_delivery_comment",
+  "recipient_access_comment",
+  "recipient_extra_note",
 ]);
 
 export const Route = createFileRoute("/api/orders/$id")({
@@ -29,7 +46,25 @@ export const Route = createFileRoute("/api/orders/$id")({
         catch { return jsonResponse({ error: "Некорректный JSON" }, { status: 400 }); }
         const updates: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(body)) {
-          if (ALLOWED_FIELDS.has(k)) updates[k] = v;
+          if (!ALLOWED_FIELDS.has(k)) continue;
+          if (TEXT_FIELDS_MAX_2000.has(k)) {
+            if (v === null || v === undefined || v === "") {
+              updates[k] = null;
+              continue;
+            }
+            if (typeof v !== "string") {
+              return jsonResponse({ error: `Поле ${k} должно быть строкой` }, { status: 400 });
+            }
+            if (v.length > 2000) {
+              return jsonResponse(
+                { error: `Поле ${k} не должно превышать 2000 символов` },
+                { status: 400 },
+              );
+            }
+            updates[k] = v;
+            continue;
+          }
+          updates[k] = v;
         }
         if (Object.keys(updates).length === 0) {
           return jsonResponse({ error: "Нет допустимых полей для обновления" }, { status: 400 });

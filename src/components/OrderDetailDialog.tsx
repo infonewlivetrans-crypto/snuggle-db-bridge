@@ -98,6 +98,13 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   const [deliveryTimeComment, setDeliveryTimeComment] = useState<string>(order?.delivery_time_comment ?? "");
   const [driverComment, setDriverComment] = useState<string>(order?.driver_comment ?? "");
   const [driverCommentImportant, setDriverCommentImportant] = useState<boolean>(order?.driver_comment_is_important ?? false);
+  const [managerComment, setManagerComment] = useState<string>(order?.manager_comment ?? "");
+  const [recipientContactTime, setRecipientContactTime] = useState<string>(order?.recipient_contact_time ?? "");
+  const [recipientWorkHours, setRecipientWorkHours] = useState<string>(order?.recipient_work_hours ?? "");
+  const [recipientDeliveryComment, setRecipientDeliveryComment] = useState<string>(order?.recipient_delivery_comment ?? "");
+  const [recipientAccessComment, setRecipientAccessComment] = useState<string>(order?.recipient_access_comment ?? "");
+  const [recipientExtraNote, setRecipientExtraNote] = useState<string>(order?.recipient_extra_note ?? "");
+  const [recipientOpen, setRecipientOpen] = useState<boolean>(false);
 
   // Reset local state when a new order opens
   const orderId = order?.id;
@@ -117,6 +124,21 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       setDeliveryTimeComment(order.delivery_time_comment ?? "");
       setDriverComment(order.driver_comment ?? "");
       setDriverCommentImportant(order.driver_comment_is_important ?? false);
+      setManagerComment(order.manager_comment ?? "");
+      setRecipientContactTime(order.recipient_contact_time ?? "");
+      setRecipientWorkHours(order.recipient_work_hours ?? "");
+      setRecipientDeliveryComment(order.recipient_delivery_comment ?? "");
+      setRecipientAccessComment(order.recipient_access_comment ?? "");
+      setRecipientExtraNote(order.recipient_extra_note ?? "");
+      setRecipientOpen(
+        Boolean(
+          order.recipient_contact_time ||
+            order.recipient_work_hours ||
+            order.recipient_delivery_comment ||
+            order.recipient_access_comment ||
+            order.recipient_extra_note,
+        ),
+      );
     }
   });
 
@@ -183,6 +205,12 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
       delivery_time_comment: deliveryTimeComment.trim() || null,
       driver_comment: driverComment.trim() || null,
       driver_comment_is_important: driverComment.trim() ? driverCommentImportant : false,
+      manager_comment: managerComment.trim() || null,
+      recipient_contact_time: recipientContactTime.trim() || null,
+      recipient_work_hours: recipientWorkHours.trim() || null,
+      recipient_delivery_comment: recipientDeliveryComment.trim() || null,
+      recipient_access_comment: recipientAccessComment.trim() || null,
+      recipient_extra_note: recipientExtraNote.trim() || null,
     });
   };
 
@@ -344,6 +372,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           </div>
 
+
+
           {/* QR-код заказа */}
           <QrCapture
             orderId={order.id}
@@ -388,7 +418,121 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             </div>
           </div>
 
-          {/* Комментарий для водителя */}
+          {/* Комментарий менеджера по заказу */}
+          <div className="space-y-2 rounded-lg border border-border p-4">
+            <Label
+              htmlFor="manager-comment"
+              className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              Комментарий менеджера по заказу
+            </Label>
+            <textarea
+              id="manager-comment"
+              value={managerComment}
+              onChange={(e) => setManagerComment(e.target.value.slice(0, 2000))}
+              maxLength={2000}
+              placeholder="Внутренняя рабочая заметка менеджера по этому заказу"
+              rows={3}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            <div className="text-xs text-muted-foreground">
+              Видна сотрудникам, не отправляется клиенту и не перезаписывает комментарий из маршрутного листа.
+            </div>
+          </div>
+
+          {/* Информация по получателю для этого заказа */}
+          <div className="rounded-lg border border-border">
+            <button
+              type="button"
+              onClick={() => setRecipientOpen((v) => !v)}
+              className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left"
+              aria-expanded={recipientOpen}
+            >
+              <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                <MessageSquare className="h-3.5 w-3.5" />
+                Информация по получателю для этого заказа
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {recipientOpen ? "Свернуть" : "Развернуть"}
+              </span>
+            </button>
+            {recipientOpen && (
+              <div className="space-y-3 border-t border-border p-4">
+                <div>
+                  <Label htmlFor="recipient-contact-time" className="text-xs text-muted-foreground">
+                    Удобное время связи
+                  </Label>
+                  <Input
+                    id="recipient-contact-time"
+                    value={recipientContactTime}
+                    onChange={(e) => setRecipientContactTime(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
+                    placeholder="Например: будни 9–18, лучше после 14:00"
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="recipient-work-hours" className="text-xs text-muted-foreground">
+                    Режим работы / когда доступен получатель
+                  </Label>
+                  <Input
+                    id="recipient-work-hours"
+                    value={recipientWorkHours}
+                    onChange={(e) => setRecipientWorkHours(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
+                    placeholder="Например: пн–пт 10–19, обед 13–14, сб 10–14"
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="recipient-delivery-comment" className="text-xs text-muted-foreground">
+                    Комментарий по доставке
+                  </Label>
+                  <textarea
+                    id="recipient-delivery-comment"
+                    value={recipientDeliveryComment}
+                    onChange={(e) => setRecipientDeliveryComment(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
+                    placeholder="Разовое уточнение по доставке для этого заказа"
+                    rows={2}
+                    className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="recipient-access-comment" className="text-xs text-muted-foreground">
+                    Подъезд, пропуск, разгрузка
+                  </Label>
+                  <textarea
+                    id="recipient-access-comment"
+                    value={recipientAccessComment}
+                    onChange={(e) => setRecipientAccessComment(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
+                    placeholder="Например: пропуск на машину заказать у охраны, грузовой въезд со двора"
+                    rows={2}
+                    className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="recipient-extra-note" className="text-xs text-muted-foreground">
+                    Иные разовые инструкции
+                  </Label>
+                  <textarea
+                    id="recipient-extra-note"
+                    value={recipientExtraNote}
+                    onChange={(e) => setRecipientExtraNote(e.target.value.slice(0, 2000))}
+                    maxLength={2000}
+                    placeholder="Любая разовая информация по этому заказу"
+                    rows={2}
+                    className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Эти данные относятся только к текущему заказу и не изменяют карточку клиента.
+                </div>
+              </div>
+            )}
+          </div>
           <div className={
             driverCommentImportant && driverComment.trim()
               ? "space-y-2 rounded-lg border-2 border-destructive bg-destructive/5 p-4"
