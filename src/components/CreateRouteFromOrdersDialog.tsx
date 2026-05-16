@@ -39,7 +39,7 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
   const today = new Date().toISOString().slice(0, 10);
   const [routeNumber, setRouteNumber] = useState("");
   const [routeDate, setRouteDate] = useState(today);
-  const [driver, setDriver] = useState("");
+  const [driverId, setDriverId] = useState<string>("");
   const [vehicle, setVehicle] = useState("");
   const [comment, setComment] = useState("");
 
@@ -47,10 +47,28 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
     (o) => o.latitude == null || o.longitude == null,
   );
 
+  const { data: drivers } = useQuery({
+    enabled: open,
+    queryKey: ["drivers", "active"],
+    queryFn: async (): Promise<Driver[]> => {
+      const { rows } = await fetchListViaApi<Driver>("/api/drivers", {
+        limit: 500,
+        extra: { activeOnly: "1" },
+      });
+      return rows;
+    },
+    staleTime: 60_000,
+  });
+
+  const selectedDriver = useMemo(
+    () => (drivers ?? []).find((d) => d.id === driverId) ?? null,
+    [drivers, driverId],
+  );
+
   const reset = () => {
     setRouteNumber("");
     setRouteDate(today);
-    setDriver("");
+    setDriverId("");
     setVehicle("");
     setComment("");
   };
@@ -58,13 +76,14 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
   const create = useMutation({
     mutationFn: async () => {
       if (orders.length === 0) throw new Error("Не выбран ни один заказ");
+      if (!selectedDriver) throw new Error("Выберите водителя из справочника");
 
       const number = routeNumber.trim();
       const srcRoute = await apiPost<{ id: string; route_number: string }>("/api/routes", {
         route_number: number || undefined,
         generate_number: !number,
         route_date: routeDate,
-        driver_name: driver.trim() || null,
+        driver_name: selectedDriver.full_name,
         comment: comment.trim() || null,
         status: "planned",
         points_count: orders.length,
@@ -73,8 +92,10 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
       const dr = await apiPost<{ id: string }>("/api/delivery-routes", {
         route_number: srcRoute.route_number,
         route_date: routeDate,
-        assigned_driver: driver.trim() || null,
+        assigned_driver: selectedDriver.full_name,
         assigned_vehicle: vehicle.trim() || null,
+        driver_id: selectedDriver.id,
+        carrier_id: selectedDriver.carrier_id,
         source_request_id: srcRoute.id,
         status: "formed",
         comment: comment.trim() || null,
