@@ -22,9 +22,7 @@ export function LoginPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // 1) Сразу останавливаем фоновую музыку, чтобы звуки не накладывались
-    stopAuthBackgroundMusic();
-    // 2) Проигрываем короткий сигнал кнопки «Войти»
+    // Короткий сигнал кнопки «Войти»
     playAuthSignal();
     setError(null);
     setSteps([]);
@@ -47,14 +45,6 @@ export function LoginPage() {
       setBusy(false);
     }
   };
-
-  // Фоновая музыка играет только пока пользователь на экране входа
-  useEffect(() => {
-    startAuthBackgroundMusic();
-    return () => {
-      stopAuthBackgroundMusic();
-    };
-  }, []);
 
   return (
     <AuthLayout align="left">
