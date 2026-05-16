@@ -618,6 +618,15 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               missing: Array.from(c.missing),
             }),
           ),
+          managers: Array.from(managerCache.entries())
+            .filter((entry): entry is [string, ResolvedManager] => entry[1] !== null)
+            .map(([, m]) => ({
+              id: m.id,
+              fullName: m.fullName,
+              createdManager: m.createdManager,
+              inviteCreated: m.inviteCreated,
+              inviteUrl: m.inviteUrl,
+            })),
           needsReview:
             headerMissing.length > 0 || totalMissing > 0 || failedRows.length > 0,
         });
