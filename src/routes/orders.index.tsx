@@ -29,8 +29,10 @@ import {
   STATUS_ORDER,
   PAYMENT_STATUS_LABELS,
   PAYMENT_STATUS_STYLES,
+  PAYMENT_LABELS,
   type OrderStatus,
   type PaymentStatus,
+  type PaymentType,
 } from "@/lib/orders";
 import { Search, Sparkles, FileText, AlertTriangle, Package } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
@@ -55,6 +57,8 @@ type OrderRow = {
   order_number: string;
   status: OrderStatus;
   payment_status: PaymentStatus | null;
+  payment_type: PaymentType | null;
+  requires_qr: boolean | null;
   amount_due: number | null;
   delivery_cost: number | null;
   goods_amount: number | null;
@@ -119,6 +123,8 @@ function demo(
     order_number: num,
     status,
     payment_status: pay,
+    payment_type: "cash",
+    requires_qr: false,
     amount_due: amount,
     delivery_cost: delivery,
     goods_amount: amount,
@@ -351,7 +357,8 @@ function OrdersPage() {
                     <TableHead>Перевозчик / водитель / ТС</TableHead>
                     <TableHead>Статус</TableHead>
                     <TableHead className="text-right">Ставка</TableHead>
-                    <TableHead>Оплата</TableHead>
+                    <TableHead>Способ оплаты</TableHead>
+                    <TableHead>Статус оплаты</TableHead>
                     <TableHead>Даты</TableHead>
                     <TableHead className="text-center">Док-ты</TableHead>
                   </TableRow>
@@ -359,13 +366,13 @@ function OrdersPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="py-6">
+                      <TableCell colSpan={11} className="py-6">
                         <LoadingFallback onRefresh={() => refetch()} />
                       </TableCell>
                     </TableRow>
                   ) : filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
                         Нет заказов под фильтры
                       </TableCell>
                     </TableRow>
@@ -504,6 +511,16 @@ function OrdersPage() {
                             <div className="text-xs text-muted-foreground">
                               доставка: {fmtMoney(r.delivery_cost)}
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {r.payment_type ? (
+                              <Badge variant="outline" className="text-xs font-normal">
+                                {PAYMENT_LABELS[r.payment_type] ?? r.payment_type}
+                                {r.requires_qr && r.payment_type !== "qr" ? " · QR" : ""}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             {r.payment_status ? (

@@ -8,7 +8,8 @@ import {
 } from "@/server/api-helpers.server";
 
 const SELECT = `
-  id, order_number, status, payment_status, amount_due, delivery_cost, goods_amount,
+  id, order_number, status, payment_status, payment_type, requires_qr,
+  amount_due, delivery_cost, goods_amount,
   total_weight_kg, total_volume_m3, destination_city, delivery_address,
   contact_name, contact_phone, created_at, updated_at
 `;
