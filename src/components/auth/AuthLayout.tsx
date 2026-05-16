@@ -41,16 +41,11 @@ export function AuthLayout({ children, align = "left" }: AuthLayoutProps) {
         )}
       />
 
-      {/* Контент */}
-      <div
-        className={cn(
-          "relative z-10 flex w-full px-4 py-8 sm:px-6 md:px-10 lg:px-16",
-          align === "left"
-            ? "items-center justify-center md:justify-start"
-            : "items-center justify-center",
-        )}
-      >
-        <div className="w-full max-w-[460px] md:max-w-[440px] lg:ml-[6vw]">{children}</div>
+      {/* Контент: центр на mobile/tablet, чуть левее центра на desktop, чтобы не закрывать светящийся куб */}
+      <div className="relative z-10 flex w-full items-center justify-center px-4 py-8 sm:px-6 md:px-10 lg:px-16">
+        <div className="w-full max-w-[400px] md:max-w-[400px] lg:max-w-[400px] lg:-translate-x-[6vw]">
+          {children}
+        </div>
       </div>
     </div>
   );
