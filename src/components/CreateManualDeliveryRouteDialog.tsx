@@ -200,7 +200,7 @@ export function CreateManualDeliveryRouteDialog({ open, onOpenChange }: Props) {
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
-          <Button onClick={() => create.mutate()} disabled={create.isPending || !routeDate}>
+          <Button onClick={() => create.mutate()} disabled={create.isPending || !routeDate || !driverId}>
             {create.isPending ? "Создание…" : "Создать маршрут"}
           </Button>
         </DialogFooter>
