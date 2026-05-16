@@ -26,6 +26,7 @@ function InviteLoginPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -40,6 +41,10 @@ function InviteLoginPage() {
           throw new Error((body as { error?: string })?.error || "Ссылка недействительна");
         }
         setInfo(body);
+        // Prefill ФИО для менеджера — он может уточнить/исправить.
+        if (body.role === "manager" && body.full_name) {
+          setFullName(body.full_name);
+        }
       } catch (e) {
         setLoadError(e instanceof Error ? e.message : "Ссылка недействительна");
       }
