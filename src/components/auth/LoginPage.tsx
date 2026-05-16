@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
+import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
@@ -43,12 +44,14 @@ export function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-card">
-        <div className="mb-6 flex justify-center">
-          <BrandLogo size={40} />
+    <AuthLayout align="left">
+      <GlassCard>
+        <div className="mb-5 flex justify-center">
+          <BrandLogo size={64} />
         </div>
-        <h1 className="text-center text-xl font-bold text-foreground">Вход в систему</h1>
+        <h1 className="text-center text-2xl font-bold tracking-tight text-foreground">
+          Вход в систему
+        </h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
           Введите свои учётные данные
         </p>
@@ -63,6 +66,7 @@ export function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="user@company.ru"
+              className="bg-white/90"
             />
           </div>
           <div className="space-y-1.5">
@@ -75,7 +79,7 @@ export function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pr-10"
+                className="bg-white/90 pr-10"
               />
               <button
                 type="button"
@@ -101,11 +105,16 @@ export function LoginPage() {
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? "Входим…" : "Войти"}
           </Button>
-          <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground" aria-live="polite">
-            {steps.length ? steps.map((step, index) => <div key={`${step}-${index}`}>{step}</div>) : "Диагностика входа появится здесь"}
+          <div
+            className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+            aria-live="polite"
+          >
+            {steps.length
+              ? steps.map((step, index) => <div key={`${step}-${index}`}>{step}</div>)
+              : "Диагностика входа появится здесь"}
           </div>
         </form>
-      </div>
-    </div>
+      </GlassCard>
+    </AuthLayout>
   );
 }
