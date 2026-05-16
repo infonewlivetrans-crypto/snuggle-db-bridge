@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { playAuthSignal } from "@/lib/auth-signal";
-import { startAuthLoadingSound, stopAuthLoadingSound } from "@/lib/auth-loading-sound";
+import {
+  startAuthBackgroundMusic,
+  stopAuthBackgroundMusic,
+} from "@/lib/auth-background-music";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
