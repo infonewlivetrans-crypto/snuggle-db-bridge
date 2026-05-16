@@ -6,6 +6,7 @@ import { STATUS_LABELS, STATUS_STYLES, type OrderStatus } from "@/lib/orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PortalOrderMessagesBlock } from "@/components/PortalOrderMessagesBlock";
+import { PortalOrderTimelineBlock } from "@/components/PortalOrderTimelineBlock";
 
 type PortalOrder = {
   id: string;
