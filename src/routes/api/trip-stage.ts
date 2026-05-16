@@ -29,7 +29,9 @@ export const Route = createFileRoute("/api/trip-stage")({
           }
           return jsonResponse(await listStageEvents(drId));
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const status = tripStageStatusFor(e);
+          if (status >= 500) console.error("/api/trip-stage GET error:", e);
+          return jsonResponse({ error: (e as Error).message }, { status });
         }
       },
       POST: async ({ request }) => {
