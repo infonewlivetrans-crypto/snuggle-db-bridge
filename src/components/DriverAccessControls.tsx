@@ -8,8 +8,8 @@ import {
   backfillDriverInvitesFn,
   listDriverAccessStatusFn,
   type DriverAccessStatus,
-} from "@/server/driver-access.functions";
-import { rotateInviteTokenFn } from "@/server/invites.functions";
+} from "@/lib/server-functions/driver-access.functions";
+import { rotateInviteTokenFn } from "@/lib/server-functions/invites.functions";
 import { inviteUrl } from "@/lib/invite-url";
 
 export function useDriverAccessStatus() {
