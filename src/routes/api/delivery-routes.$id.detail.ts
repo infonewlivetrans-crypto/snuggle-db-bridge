@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/delivery-routes/$id/detail")({
         const { data, error } = await auth.client
           .from("delivery_routes")
           .select(
-            "id, route_number, route_date, status, comment, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle",
+            "id, route_number, route_date, status, comment, source_request_id, source_warehouse_id, assigned_driver, assigned_vehicle, driver_id",
           )
           .eq("id", params.id)
           .maybeSingle();
