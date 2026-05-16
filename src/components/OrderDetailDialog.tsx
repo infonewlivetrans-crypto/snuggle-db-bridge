@@ -440,11 +440,11 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
             />
             <div className="text-xs text-muted-foreground">
               Видна сотрудникам, не отправляется клиенту и не перезаписывает комментарий из маршрутного листа.
+            </div>
           </div>
 
           {/* Ссылка для клиента (постоянный кабинет по client_id) */}
           <ClientPortalLinkBlock clientId={order.client_id ?? null} />
-          </div>
 
           {/* Информация по получателю для этого заказа */}
           <div className="rounded-lg border border-border">
