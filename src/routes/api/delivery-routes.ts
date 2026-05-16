@@ -12,6 +12,8 @@ const Schema = z.object({
   route_date: z.string().min(1).max(32),
   assigned_driver: z.string().max(255).nullable().optional(),
   assigned_vehicle: z.string().max(255).nullable().optional(),
+  driver_id: z.string().uuid().nullable().optional(),
+  carrier_id: z.string().uuid().nullable().optional(),
   source_request_id: z.string().uuid(),
   status: z.string().max(32).optional(),
   comment: z.string().max(2000).nullable().optional(),
