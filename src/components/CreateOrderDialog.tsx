@@ -154,6 +154,23 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         throw new Error("Укажите адрес или координаты точки доставки");
       }
 
+      // Сначала тихий upsert клиента — чтобы привязать заказ к client_id.
+      let clientId: string | null = null;
+      if (contactName.trim()) {
+        try {
+          const cl = await upsertClientSilent({
+            name: contactName.trim(),
+            phone: contactPhone.trim() || null,
+            address: deliveryAddress.trim() || null,
+            latitude: lat ?? null,
+            longitude: lng ?? null,
+          });
+          clientId = cl?.id ?? null;
+        } catch {
+          // не блокируем UX
+        }
+      }
+
       await apiPost("/api/orders", {
         order_number: orderNumber.trim(),
         delivery_address: hasAddress ? deliveryAddress.trim() : null,
@@ -172,22 +189,8 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
         total_volume_m3: volumeM3 ? Number(volumeM3) : null,
         items_count: itemsCount ? Number(itemsCount) : null,
         status: "new",
+        client_id: clientId,
       });
-
-      // Тихий upsert клиента, чтобы при следующем заказе данные подставились
-      if (contactName.trim()) {
-        try {
-          await upsertClientSilent({
-            name: contactName.trim(),
-            phone: contactPhone.trim() || null,
-            address: deliveryAddress.trim() || null,
-            latitude: lat ?? null,
-            longitude: lng ?? null,
-          });
-        } catch {
-          // не блокируем UX
-        }
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
