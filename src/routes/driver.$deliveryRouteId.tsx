@@ -209,6 +209,26 @@ function DriverRoutePage() {
     },
   });
 
+  const orderIdsKey = (points ?? [])
+    .map((p) => p.order_id)
+    .filter(Boolean)
+    .sort()
+    .join(",");
+  const { data: unreadDriverMsgs } = useQuery({
+    enabled: orderIdsKey.length > 0,
+    queryKey: ["driver-unread-client-msgs", orderIdsKey],
+    queryFn: () =>
+      apiGetAuth<{ items: Array<{ order_id: string; unread: number }> }>(
+        `/api/driver/unread-client-messages?order_ids=${encodeURIComponent(orderIdsKey)}`,
+      ),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+  const unreadByOrderId = new Map<string, number>();
+  for (const it of unreadDriverMsgs?.items ?? []) {
+    unreadByOrderId.set(it.order_id, it.unread);
+  }
+
   // Подписка на изменения очереди для актуальности валидаций
   const [, setQueueTick] = useState(0);
   useEffect(() => subscribeQueue(() => setQueueTick((n) => n + 1)), []);
