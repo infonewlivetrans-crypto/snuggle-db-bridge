@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import { normalizeRuPhone } from "@/lib/phone";
-
+import {
+  resolveManagerForImport,
+  type ResolvedManager,
+} from "@/server/managers-resolve.server";
 type PaymentKind = "cash" | "qr" | "paid" | "bank" | "unknown";
 
 type IncomingOrder = {
@@ -72,6 +75,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
         const auth = await requireAnyRole(request, ["admin", "logist", "manager"]);
         if (auth instanceof Response) return auth;
         const sb = auth.client;
+        const authUserId = auth.userId;
 
         let payload: IncomingPayload;
         try {
@@ -305,6 +309,32 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           string,
           { name: string; clientId: string | null; missing: Set<string> }
         >();
+        // Кэш менеджеров на время одного импорта: ключ = нормализованное ФИО (lowercase).
+        // Предотвращает повторные запросы и параллельное создание дубликатов.
+        const managerCache = new Map<string, ResolvedManager | null>();
+        async function resolveManagerCached(
+          name: string | null | undefined,
+          phone: string | null | undefined,
+        ): Promise<ResolvedManager | null> {
+          const key = (name ?? "").trim().toLowerCase();
+          if (!key) return null;
+          if (managerCache.has(key)) return managerCache.get(key) ?? null;
+          try {
+            const r = await resolveManagerForImport({
+              rawName: name,
+              rawPhone: phone,
+              userId: authUserId,
+            });
+            managerCache.set(key, r);
+            return r;
+          } catch (e) {
+            warnings.push(
+              `Менеджер «${name}»: ${e instanceof Error ? e.message : "ошибка"}`,
+            );
+            managerCache.set(key, null);
+            return null;
+          }
+        }
         let inserted = 0;
         let pointNumber = 1;
 
@@ -398,6 +428,16 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               missing.push("Тип оплаты");
             if (!o.orderNumber) missing.push("Номер заказа");
 
+            // Менеджер из маршрутного листа: ищем существующего по
+            // нормализованному ФИО, иначе создаём и сразу выпускаем invite.
+            const managerResolved = await resolveManagerCached(
+              o.managerName,
+              o.managerPhone,
+            );
+            if (!managerResolved && o.managerName) {
+              missing.push("Менеджер");
+            }
+
             const orderPayload = {
               order_number: orderNumber,
               onec_order_number: o.orderNumber,
@@ -416,6 +456,8 @@ export const Route = createFileRoute("/api/import-route-sheet")({
                 o.deliveryPeriod ?? clientRow?.preferred_delivery_time ?? null,
               access_instructions:
                 clientRow?.access_notes ?? null,
+              manager_id: managerResolved?.id ?? null,
+              manager_name: managerResolved?.fullName ?? o.managerName ?? null,
               comment: [
                 o.comment,
                 o.paymentRaw ? `Оплата: ${o.paymentRaw}` : null,
@@ -576,6 +618,15 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               missing: Array.from(c.missing),
             }),
           ),
+          managers: Array.from(managerCache.entries())
+            .filter((entry): entry is [string, ResolvedManager] => entry[1] !== null)
+            .map(([, m]) => ({
+              id: m.id,
+              fullName: m.fullName,
+              createdManager: m.createdManager,
+              inviteCreated: m.inviteCreated,
+              inviteUrl: m.inviteUrl,
+            })),
           needsReview:
             headerMissing.length > 0 || totalMissing > 0 || failedRows.length > 0,
         });
