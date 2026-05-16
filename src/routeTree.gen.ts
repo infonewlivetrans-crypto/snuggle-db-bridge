@@ -162,6 +162,7 @@ import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-point
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
+import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiNotificationsIdRouteImport } from './routes/api/notifications.$id'
 import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
@@ -978,6 +979,12 @@ const ApiRoutePointPhotosOfflineUploadRoute =
     path: '/offline-upload',
     getParentRoute: () => ApiRoutePointPhotosRoute,
   } as any)
+const ApiOrdersUnreadClientMessagesRoute =
+  ApiOrdersUnreadClientMessagesRouteImport.update({
+    id: '/unread-client-messages',
+    path: '/unread-client-messages',
+    getParentRoute: () => ApiOrdersRoute,
+  } as any)
 const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1367,6 +1374,7 @@ export interface FileRoutesByFullPath {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1565,6 +1573,7 @@ export interface FileRoutesByTo {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1764,6 +1773,7 @@ export interface FileRoutesById {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1964,6 +1974,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2162,6 +2173,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2360,6 +2372,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -3621,6 +3634,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRoutePointPhotosOfflineUploadRouteImport
       parentRoute: typeof ApiRoutePointPhotosRoute
     }
+    '/api/orders/unread-client-messages': {
+      id: '/api/orders/unread-client-messages'
+      path: '/unread-client-messages'
+      fullPath: '/api/orders/unread-client-messages'
+      preLoaderRoute: typeof ApiOrdersUnreadClientMessagesRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/orders/$id': {
       id: '/api/orders/$id'
       path: '/$id'
@@ -4168,10 +4188,12 @@ const ApiOrdersIdRouteWithChildren = ApiOrdersIdRoute._addFileChildren(
 
 interface ApiOrdersRouteChildren {
   ApiOrdersIdRoute: typeof ApiOrdersIdRouteWithChildren
+  ApiOrdersUnreadClientMessagesRoute: typeof ApiOrdersUnreadClientMessagesRoute
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
   ApiOrdersIdRoute: ApiOrdersIdRouteWithChildren,
+  ApiOrdersUnreadClientMessagesRoute: ApiOrdersUnreadClientMessagesRoute,
 }
 
 const ApiOrdersRouteWithChildren = ApiOrdersRoute._addFileChildren(
