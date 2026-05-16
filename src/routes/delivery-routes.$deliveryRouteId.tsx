@@ -527,6 +527,43 @@ function DeliveryRoutePage() {
               </div>
             </div>
 
+            {/* Назначение водителя */}
+            <div className="rounded-lg border border-border p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Водитель маршрута
+                  </div>
+                  <div className="mt-1 text-sm">
+                    {data.driver_id ? (
+                      <span className="font-medium text-foreground">
+                        {data.assigned_driver ?? "Назначен"}
+                      </span>
+                    ) : (
+                      <span className="text-status-warning">Не назначен — водитель не увидит рейс</span>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant={data.driver_id ? "outline" : "default"}
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => setAssignDriverOpen(true)}
+                >
+                  <Truck className="h-4 w-4" />
+                  {data.driver_id ? "Сменить водителя" : "Назначить водителя"}
+                </Button>
+              </div>
+            </div>
+
+            <AssignDriverDialog
+              open={assignDriverOpen}
+              onOpenChange={setAssignDriverOpen}
+              deliveryRouteId={data.id}
+              currentDriverId={data.driver_id}
+              currentDriverName={data.assigned_driver}
+            />
+
             {/* Контакты по рейсу */}
             <DeliveryRouteContactsBlock deliveryRouteId={deliveryRouteId} />
 
