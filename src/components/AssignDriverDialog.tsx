@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { fetchListViaApi } from "@/lib/api-client";
-import { assignDriverToRouteFn } from "@/server/driver-access.functions";
+import { assignDriverToRouteFn } from "@/lib/server-functions/driver-access.functions";
 import {
   Dialog,
   DialogContent,
