@@ -260,7 +260,7 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
           </Button>
           <Button
             onClick={() => create.mutate()}
-            disabled={create.isPending || !routeDate || orders.length === 0}
+            disabled={create.isPending || !routeDate || !driverId || orders.length === 0}
           >
             {create.isPending ? "Создание…" : "Создать маршрут"}
           </Button>
