@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { playAuthSignal } from "@/lib/auth-signal";
+import { startAuthLoadingSound, stopAuthLoadingSound } from "@/lib/auth-loading-sound";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
@@ -26,11 +27,13 @@ export function LoginPage() {
     setError(null);
     setSteps([]);
     setBusy(true);
+    startAuthLoadingSound();
     const addStep = (message: string) => setSteps((prev) => [...prev, message]);
     try {
       const result = await diagnoseSignIn(email.trim(), password, addStep);
       const target = landingPathForRoles(result.roles);
       addStep(`redirect выполнен: ${target}`);
+      stopAuthLoadingSound();
       navigate({ to: target, search: target === "/" ? { orderId: undefined } : (undefined as never) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Ошибка входа";
@@ -40,10 +43,19 @@ export function LoginPage() {
           : msg,
       );
       setSteps((prev) => [...prev, `ошибка: ${msg}`]);
+      stopAuthLoadingSound();
     } finally {
       setBusy(false);
+      stopAuthLoadingSound();
     }
   };
+
+  // На случай ухода со страницы во время загрузки — гарантированно глушим звук
+  useEffect(() => {
+    return () => {
+      stopAuthLoadingSound();
+    };
+  }, []);
 
   return (
     <AuthLayout align="left">
