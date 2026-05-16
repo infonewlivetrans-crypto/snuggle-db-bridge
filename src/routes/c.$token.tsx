@@ -200,6 +200,10 @@ function OrderDrawer({
         </div>
 
         <div className="mt-5 border-t border-border pt-4">
+          <PortalOrderTimelineBlock token={token} orderId={order.id} />
+        </div>
+
+        <div className="mt-5 border-t border-border pt-4">
           <PortalOrderMessagesBlock token={token} orderId={order.id} />
         </div>
       </div>
