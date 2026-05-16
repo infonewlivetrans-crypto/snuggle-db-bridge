@@ -170,6 +170,12 @@ function DriversPage() {
                         <span className="badge-status badge-status-cancelled">Неактивен</span>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <DriverAccessCell
+                        status={statusByDriverId.get(d.id) ?? null}
+                        onChanged={onAccessChanged}
+                      />
+                    </TableCell>
                   </TableRow>
                 ))
               )}
