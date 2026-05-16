@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { DriverFormDialog } from "@/components/DriverFormDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
+import {
+  DriverAccessBulkPanel,
+  DriverAccessCell,
+  useDriverAccessStatus,
+} from "@/components/DriverAccessControls";
 import {
   Table,
   TableBody,
@@ -13,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Carrier, Driver } from "@/lib/carriers";
