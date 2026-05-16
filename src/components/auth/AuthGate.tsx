@@ -8,7 +8,7 @@ import { canAccess } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
-const PUBLIC_PREFIXES = ["/d/", "/invite/"]; // публичные ссылки: /d/ — токен водителя, /invite/ — обмен инвайт-токена на сессию
+const PUBLIC_PREFIXES = ["/d/", "/invite/", "/c/"]; // публичные ссылки: /d/ — токен водителя, /invite/ — обмен инвайт-токена на сессию, /c/ — публичный кабинет клиента по portal_token
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, loadError, refresh } = useAuth();
