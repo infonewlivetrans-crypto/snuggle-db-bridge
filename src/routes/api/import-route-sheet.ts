@@ -459,6 +459,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
                 clientRow?.access_notes ?? null,
               manager_id: managerResolved?.id ?? null,
               manager_name: managerResolved?.fullName ?? o.managerName ?? null,
+              client_id: clientRow?.id ?? null,
               comment: [
                 o.comment,
                 o.paymentRaw ? `Оплата: ${o.paymentRaw}` : null,

@@ -80,6 +80,7 @@ export type Order = {
   // Источник создания записи
   source?: string;
   external_id?: string | null;
+  client_id?: string | null;
 };
 
 export const CLIENT_KIND_LABELS: Record<ClientKind, string> = {

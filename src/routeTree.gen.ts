@@ -66,7 +66,6 @@ import { Route as SupplyNotificationsRouteImport } from './routes/supply.notific
 import { Route as SupplyHistoryRouteImport } from './routes/supply.history'
 import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
-import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
@@ -188,10 +187,8 @@ import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
 import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
-import { Route as ApiPublicOrderTrackTokenRouteImport } from './routes/api/public/order-track.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
-import { Route as ApiOrdersIdRecipientLinkRouteImport } from './routes/api/orders.$id.recipient-link'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -484,11 +481,6 @@ const SupplyCabinetRoute = SupplyCabinetRouteImport.update({
 const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   id: '/routes/$routeId',
   path: '/routes/$routeId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RTokenRoute = RTokenRouteImport.update({
-  id: '/r/$token',
-  path: '/r/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -1103,12 +1095,6 @@ const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   path: '/api/admin/reset-owner',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicOrderTrackTokenRoute =
-  ApiPublicOrderTrackTokenRouteImport.update({
-    id: '/api/public/order-track/$token',
-    path: '/api/public/order-track/$token',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPilotTasksTaskIdCommentsRoute =
   ApiPilotTasksTaskIdCommentsRouteImport.update({
     id: '/$taskId/comments',
@@ -1120,12 +1106,6 @@ const ApiOrdersIdRouteLinkRoute = ApiOrdersIdRouteLinkRouteImport.update({
   path: '/route-link',
   getParentRoute: () => ApiOrdersIdRoute,
 } as any)
-const ApiOrdersIdRecipientLinkRoute =
-  ApiOrdersIdRecipientLinkRouteImport.update({
-    id: '/recipient-link',
-    path: '/recipient-link',
-    getParentRoute: () => ApiOrdersIdRoute,
-  } as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -1275,7 +1255,6 @@ export interface FileRoutesByFullPath {
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/r/$token': typeof RTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/history': typeof SupplyHistoryRoute
@@ -1352,10 +1331,8 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
-  '/api/orders/$id/recipient-link': typeof ApiOrdersIdRecipientLinkRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
-  '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1467,7 +1444,6 @@ export interface FileRoutesByTo {
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/r/$token': typeof RTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/history': typeof SupplyHistoryRoute
@@ -1544,10 +1520,8 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
-  '/api/orders/$id/recipient-link': typeof ApiOrdersIdRecipientLinkRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
-  '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1660,7 +1634,6 @@ export interface FileRoutesById {
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/invite/$token': typeof InviteTokenRoute
-  '/r/$token': typeof RTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/history': typeof SupplyHistoryRoute
@@ -1737,10 +1710,8 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
-  '/api/orders/$id/recipient-link': typeof ApiOrdersIdRecipientLinkRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
-  '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1854,7 +1825,6 @@ export interface FileRouteTypes {
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/invite/$token'
-    | '/r/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/history'
@@ -1931,10 +1901,8 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
-    | '/api/orders/$id/recipient-link'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
-    | '/api/public/order-track/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2046,7 +2014,6 @@ export interface FileRouteTypes {
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/invite/$token'
-    | '/r/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/history'
@@ -2123,10 +2090,8 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
-    | '/api/orders/$id/recipient-link'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
-    | '/api/public/order-track/$token'
   id:
     | '__root__'
     | '/'
@@ -2238,7 +2203,6 @@ export interface FileRouteTypes {
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/invite/$token'
-    | '/r/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/history'
@@ -2315,10 +2279,8 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
-    | '/api/orders/$id/recipient-link'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
-    | '/api/public/order-track/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2430,7 +2392,6 @@ export interface RootRouteChildren {
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
   DriverDeliveryRouteIdRoute: typeof DriverDeliveryRouteIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
-  RTokenRoute: typeof RTokenRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyCabinetRoute: typeof SupplyCabinetRoute
   SupplyHistoryRoute: typeof SupplyHistoryRoute
@@ -2468,7 +2429,6 @@ export interface RootRouteChildren {
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
-  ApiPublicOrderTrackTokenRoute: typeof ApiPublicOrderTrackTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -2870,13 +2830,6 @@ declare module '@tanstack/react-router' {
       path: '/routes/$routeId'
       fullPath: '/routes/$routeId'
       preLoaderRoute: typeof RoutesRouteIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/r/$token': {
-      id: '/r/$token'
-      path: '/r/$token'
-      fullPath: '/r/$token'
-      preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -3726,13 +3679,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminResetOwnerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/order-track/$token': {
-      id: '/api/public/order-track/$token'
-      path: '/api/public/order-track/$token'
-      fullPath: '/api/public/order-track/$token'
-      preLoaderRoute: typeof ApiPublicOrderTrackTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/pilot-tasks/$taskId/comments': {
       id: '/api/pilot-tasks/$taskId/comments'
       path: '/$taskId/comments'
@@ -3745,13 +3691,6 @@ declare module '@tanstack/react-router' {
       path: '/route-link'
       fullPath: '/api/orders/$id/route-link'
       preLoaderRoute: typeof ApiOrdersIdRouteLinkRouteImport
-      parentRoute: typeof ApiOrdersIdRoute
-    }
-    '/api/orders/$id/recipient-link': {
-      id: '/api/orders/$id/recipient-link'
-      path: '/recipient-link'
-      fullPath: '/api/orders/$id/recipient-link'
-      preLoaderRoute: typeof ApiOrdersIdRecipientLinkRouteImport
       parentRoute: typeof ApiOrdersIdRoute
     }
     '/api/delivery-routes/$id/driver-geo': {
@@ -3989,12 +3928,10 @@ const ApiNotificationsRouteWithChildren =
   ApiNotificationsRoute._addFileChildren(ApiNotificationsRouteChildren)
 
 interface ApiOrdersIdRouteChildren {
-  ApiOrdersIdRecipientLinkRoute: typeof ApiOrdersIdRecipientLinkRoute
   ApiOrdersIdRouteLinkRoute: typeof ApiOrdersIdRouteLinkRoute
 }
 
 const ApiOrdersIdRouteChildren: ApiOrdersIdRouteChildren = {
-  ApiOrdersIdRecipientLinkRoute: ApiOrdersIdRecipientLinkRoute,
   ApiOrdersIdRouteLinkRoute: ApiOrdersIdRouteLinkRoute,
 }
 
@@ -4295,7 +4232,6 @@ const rootRouteChildren: RootRouteChildren = {
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
   DriverDeliveryRouteIdRoute: DriverDeliveryRouteIdRoute,
   InviteTokenRoute: InviteTokenRoute,
-  RTokenRoute: RTokenRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyCabinetRoute: SupplyCabinetRoute,
   SupplyHistoryRoute: SupplyHistoryRoute,
@@ -4333,8 +4269,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
-  ApiPublicOrderTrackTokenRoute: ApiPublicOrderTrackTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
