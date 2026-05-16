@@ -321,6 +321,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           if (managerCache.has(key)) return managerCache.get(key) ?? null;
           try {
             const r = await resolveManagerForImport({
+              sb,
               rawName: name,
               rawPhone: phone,
               userId: authUserId,
