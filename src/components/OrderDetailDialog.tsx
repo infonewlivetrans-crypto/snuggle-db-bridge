@@ -64,6 +64,7 @@ import { OrderProblemReportsBlock } from "@/components/OrderProblemReportsBlock"
 import { OrderEtaBlock } from "@/components/OrderEtaBlock";
 import { OrderClientMessageBlock } from "@/components/OrderClientMessageBlock";
 import { ContactsCard, useRouteContacts } from "@/components/ContactsCard";
+import { RecipientLinkBlock } from "@/components/RecipientLinkBlock";
 
 type DeliveryReport = {
   id: string;
