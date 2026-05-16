@@ -87,8 +87,8 @@ function InviteLoginPage() {
 
   if (loadError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
-        <div className="max-w-md text-center">
+      <AuthLayout align="center">
+        <GlassCard className="text-center">
           <AlertTriangle className="mx-auto h-10 w-10 text-amber-500" />
           <h1 className="mt-3 text-xl font-semibold text-foreground">
             Ссылка недействительна
@@ -97,95 +97,101 @@ function InviteLoginPage() {
           <p className="mt-2 text-xs text-muted-foreground">
             Попросите администратора перевыпустить ссылку или проверьте, что ссылка скопирована полностью.
           </p>
-        </div>
-      </div>
+        </GlassCard>
+      </AuthLayout>
     );
   }
 
   if (!info) return <SplashScreen />;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-4 rounded-lg border border-border bg-card p-6 shadow-sm"
-      >
-        <div className="text-center">
-          <ShieldCheck className="mx-auto h-10 w-10 text-primary" />
-          <h1 className="mt-2 text-xl font-semibold text-foreground">Активация доступа</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Здравствуйте, <span className="font-medium text-foreground">{info.full_name}</span>!
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Роль: {ROLE_LABELS[info.role] ?? info.role}
-          </p>
-          {info.already_activated && (
-            <p className="mt-2 text-xs text-amber-600">
-              Эта ссылка уже использовалась. Вы можете задать новый email и пароль.
+    <AuthLayout align="left">
+      <GlassCard>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex flex-col items-center text-center">
+            <BrandLogo size={56} />
+            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Активация доступа
+            </div>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">
+              Здравствуйте, {info.full_name}!
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              Роль: {ROLE_LABELS[info.role] ?? info.role}
             </p>
+            {info.already_activated && (
+              <p className="mt-2 text-xs text-amber-600">
+                Эта ссылка уже использовалась. Вы можете задать новый email и пароль.
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="bg-white/90"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="phone">Телефон</Label>
+            <Input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+7 (999) 123-45-67"
+              className="bg-white/90"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Пароль (минимум 6 символов)</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-white/90"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="passwordConfirm">Повторите пароль</Label>
+            <Input
+              id="passwordConfirm"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              className="bg-white/90"
+            />
+          </div>
+
+          {submitError && (
+            <p className="text-sm text-destructive">{submitError}</p>
           )}
-        </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="phone">Телефон</Label>
-          <Input
-            id="phone"
-            type="tel"
-            autoComplete="tel"
-            required
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="+7 (999) 123-45-67"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Пароль (минимум 6 символов)</Label>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="passwordConfirm">Повторите пароль</Label>
-          <Input
-            id="passwordConfirm"
-            type="password"
-            autoComplete="new-password"
-            required
-            minLength={6}
-            value={passwordConfirm}
-            onChange={(e) => setPasswordConfirm(e.target.value)}
-          />
-        </div>
-
-        {submitError && (
-          <p className="text-sm text-destructive">{submitError}</p>
-        )}
-
-        <Button type="submit" className="w-full" disabled={submitting}>
-          {submitting ? "Активация…" : "Войти"}
-        </Button>
-        <p className="text-center text-xs text-muted-foreground">
-          После входа email и пароль сохранятся — в дальнейшем вы сможете входить с обычной страницы входа.
-        </p>
-      </form>
-    </div>
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Активация…" : "Войти"}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            После входа email и пароль сохранятся — в дальнейшем вы сможете входить с обычной страницы входа.
+          </p>
+        </form>
+      </GlassCard>
+    </AuthLayout>
   );
 }
