@@ -2,7 +2,7 @@
  * Короткий фирменный звуковой сигнал auth-страницы.
  * Файл можно заменить — путь стабильный: /public/audio/auth-signal.mp3.
  */
-const AUTH_SIGNAL_SRC = "/audio/auth-signal.mp3";
+const AUTH_SIGNAL_SRC = "/audio/radius-track-auth-signal.mp3";
 
 export function playAuthSignal(volume = 0.25) {
   if (typeof window === "undefined") return;
