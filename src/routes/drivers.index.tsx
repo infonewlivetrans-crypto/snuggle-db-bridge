@@ -95,6 +95,11 @@ function DriversPage() {
           </div>
         </div>
 
+        <DriverAccessBulkPanel
+          drivers={(drivers ?? []).map((d) => ({ id: d.id, full_name: d.full_name, is_active: d.is_active }))}
+          statusByDriverId={statusByDriverId}
+        />
+
         <div className="mb-4 relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
