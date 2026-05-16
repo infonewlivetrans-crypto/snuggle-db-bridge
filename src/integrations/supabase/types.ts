@@ -4252,6 +4252,20 @@ export type Database = {
       recalc_route_costs: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_etas: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
+      resolve_manager_for_route_sheet_import: {
+        Args: {
+          p_created_by: string
+          p_full_name: string
+          p_normalized_name: string
+          p_phone: string
+        }
+        Returns: {
+          created_manager: boolean
+          full_name: string
+          id: string
+          phone: string
+        }[]
+      }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
       vehicle_busy_until: { Args: { _vehicle_id: string }; Returns: string }
     }
