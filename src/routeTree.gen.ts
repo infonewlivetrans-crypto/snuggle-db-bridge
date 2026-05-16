@@ -66,6 +66,7 @@ import { Route as SupplyNotificationsRouteImport } from './routes/supply.notific
 import { Route as SupplyHistoryRouteImport } from './routes/supply.history'
 import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
+import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
@@ -483,6 +484,11 @@ const SupplyCabinetRoute = SupplyCabinetRouteImport.update({
 const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
   id: '/routes/$routeId',
   path: '/routes/$routeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RTokenRoute = RTokenRouteImport.update({
+  id: '/r/$token',
+  path: '/r/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InviteTokenRoute = InviteTokenRouteImport.update({
@@ -1269,6 +1275,7 @@ export interface FileRoutesByFullPath {
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/r/$token': typeof RTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/history': typeof SupplyHistoryRoute
@@ -1460,6 +1467,7 @@ export interface FileRoutesByTo {
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/r/$token': typeof RTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/history': typeof SupplyHistoryRoute
@@ -1652,6 +1660,7 @@ export interface FileRoutesById {
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/r/$token': typeof RTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
   '/supply/history': typeof SupplyHistoryRoute
@@ -1845,6 +1854,7 @@ export interface FileRouteTypes {
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/invite/$token'
+    | '/r/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/history'
@@ -2036,6 +2046,7 @@ export interface FileRouteTypes {
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/invite/$token'
+    | '/r/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/history'
@@ -2227,6 +2238,7 @@ export interface FileRouteTypes {
     | '/delivery-routes/$deliveryRouteId'
     | '/driver/$deliveryRouteId'
     | '/invite/$token'
+    | '/r/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
     | '/supply/history'
@@ -2418,6 +2430,7 @@ export interface RootRouteChildren {
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
   DriverDeliveryRouteIdRoute: typeof DriverDeliveryRouteIdRoute
   InviteTokenRoute: typeof InviteTokenRoute
+  RTokenRoute: typeof RTokenRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyCabinetRoute: typeof SupplyCabinetRoute
   SupplyHistoryRoute: typeof SupplyHistoryRoute
@@ -2857,6 +2870,13 @@ declare module '@tanstack/react-router' {
       path: '/routes/$routeId'
       fullPath: '/routes/$routeId'
       preLoaderRoute: typeof RoutesRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/r/$token': {
+      id: '/r/$token'
+      path: '/r/$token'
+      fullPath: '/r/$token'
+      preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/invite/$token': {
@@ -4275,6 +4295,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
   DriverDeliveryRouteIdRoute: DriverDeliveryRouteIdRoute,
   InviteTokenRoute: InviteTokenRoute,
+  RTokenRoute: RTokenRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyCabinetRoute: SupplyCabinetRoute,
   SupplyHistoryRoute: SupplyHistoryRoute,
