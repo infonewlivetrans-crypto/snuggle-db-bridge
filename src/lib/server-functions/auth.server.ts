@@ -4,6 +4,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 import { getSessionUser } from "@/server/auth-cookies.server";
 
+type AppRole = Database["public"]["Enums"]["app_role"];
+
 function unauth(): never {
   throw new Response(JSON.stringify({ error: "unauthorized" }), {
     status: 401,
@@ -59,7 +61,7 @@ export async function assertCallerIsAdmin(userId: string): Promise<void> {
   }
 }
 
-export async function assertCallerHasAnyRole(userId: string, roles: readonly string[]): Promise<void> {
+export async function assertCallerHasAnyRole(userId: string, roles: readonly AppRole[]): Promise<void> {
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role")
