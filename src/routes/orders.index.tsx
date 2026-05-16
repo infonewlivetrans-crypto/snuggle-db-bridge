@@ -366,13 +366,13 @@ function OrdersPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="py-6">
+                      <TableCell colSpan={11} className="py-6">
                         <LoadingFallback onRefresh={() => refetch()} />
                       </TableCell>
                     </TableRow>
                   ) : filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="py-10 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
                         Нет заказов под фильтры
                       </TableCell>
                     </TableRow>
