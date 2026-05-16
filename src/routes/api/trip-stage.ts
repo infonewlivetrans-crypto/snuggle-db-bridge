@@ -74,7 +74,9 @@ export const Route = createFileRoute("/api/trip-stage")({
           });
           return jsonResponse({ ok: true });
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const status = tripStageStatusFor(e);
+          if (status >= 500) console.error("/api/trip-stage POST error:", e);
+          return jsonResponse({ error: (e as Error).message }, { status });
         }
       },
     },
