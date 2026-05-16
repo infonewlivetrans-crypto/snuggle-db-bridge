@@ -187,6 +187,7 @@ import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
 import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
+import { Route as ApiPublicOrderTrackTokenRouteImport } from './routes/api/public/order-track.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
@@ -1095,6 +1096,12 @@ const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   path: '/api/admin/reset-owner',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOrderTrackTokenRoute =
+  ApiPublicOrderTrackTokenRouteImport.update({
+    id: '/api/public/order-track/$token',
+    path: '/api/public/order-track/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPilotTasksTaskIdCommentsRoute =
   ApiPilotTasksTaskIdCommentsRouteImport.update({
     id: '/$taskId/comments',
@@ -1333,6 +1340,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
+  '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1522,6 +1530,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
+  '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1712,6 +1721,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
+  '/api/public/order-track/$token': typeof ApiPublicOrderTrackTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -1903,6 +1913,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
+    | '/api/public/order-track/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2092,6 +2103,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
+    | '/api/public/order-track/$token'
   id:
     | '__root__'
     | '/'
@@ -2281,6 +2293,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
+    | '/api/public/order-track/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -2429,6 +2442,7 @@ export interface RootRouteChildren {
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
+  ApiPublicOrderTrackTokenRoute: typeof ApiPublicOrderTrackTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -3679,6 +3693,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminResetOwnerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/order-track/$token': {
+      id: '/api/public/order-track/$token'
+      path: '/api/public/order-track/$token'
+      fullPath: '/api/public/order-track/$token'
+      preLoaderRoute: typeof ApiPublicOrderTrackTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pilot-tasks/$taskId/comments': {
       id: '/api/pilot-tasks/$taskId/comments'
       path: '/$taskId/comments'
@@ -4269,6 +4290,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
+  ApiPublicOrderTrackTokenRoute: ApiPublicOrderTrackTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
