@@ -6,6 +6,7 @@ import { STATUS_LABELS, STATUS_STYLES, type OrderStatus } from "@/lib/orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PortalOrderMessagesBlock } from "@/components/PortalOrderMessagesBlock";
+import { PortalOrderTimelineBlock } from "@/components/PortalOrderTimelineBlock";
 
 type PortalOrder = {
   id: string;
@@ -196,6 +197,10 @@ function OrderDrawer({
           {order.recipient_access_comment && (
             <Row label="Подъезд / разгрузка">{order.recipient_access_comment}</Row>
           )}
+        </div>
+
+        <div className="mt-5 border-t border-border pt-4">
+          <PortalOrderTimelineBlock token={token} orderId={order.id} />
         </div>
 
         <div className="mt-5 border-t border-border pt-4">

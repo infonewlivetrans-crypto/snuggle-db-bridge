@@ -206,6 +206,7 @@ import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.
 import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
 import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
+import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
@@ -1213,6 +1214,12 @@ const ApiPublicClientPortalTokenOrdersOrderIdRoute =
     path: '/orders/$orderId',
     getParentRoute: () => ApiPublicClientPortalTokenRoute,
   } as any)
+const ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute =
+  ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport.update({
+    id: '/timeline',
+    path: '/timeline',
+    getParentRoute: () => ApiPublicClientPortalTokenOrdersOrderIdRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute =
   ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport.update({
     id: '/messages',
@@ -1419,6 +1426,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
+  '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -1619,6 +1627,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
+  '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -1820,6 +1829,7 @@ export interface FileRoutesById {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
+  '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -2022,6 +2032,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
+    | '/api/public/client-portal/$token/orders/$orderId/timeline'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -2222,6 +2233,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
+    | '/api/public/client-portal/$token/orders/$orderId/timeline'
   id:
     | '__root__'
     | '/'
@@ -2422,6 +2434,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
+    | '/api/public/client-portal/$token/orders/$orderId/timeline'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -3956,6 +3969,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRouteImport
       parentRoute: typeof ApiPublicClientPortalTokenRoute
     }
+    '/api/public/client-portal/$token/orders/$orderId/timeline': {
+      id: '/api/public/client-portal/$token/orders/$orderId/timeline'
+      path: '/timeline'
+      fullPath: '/api/public/client-portal/$token/orders/$orderId/timeline'
+      preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport
+      parentRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId/messages': {
       id: '/api/public/client-portal/$token/orders/$orderId/messages'
       path: '/messages'
@@ -4395,12 +4415,15 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
 
 interface ApiPublicClientPortalTokenOrdersOrderIdRouteChildren {
   ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
+  ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
 
 const ApiPublicClientPortalTokenOrdersOrderIdRouteChildren: ApiPublicClientPortalTokenOrdersOrderIdRouteChildren =
   {
     ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute:
       ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute,
+    ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute:
+      ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute,
   }
 
 const ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren =

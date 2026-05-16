@@ -4296,6 +4296,14 @@ export type Database = {
           name: string
         }[]
       }
+      get_order_timeline_for_portal_token: {
+        Args: { _order_id: string; _token: string }
+        Returns: {
+          kind: string
+          occurred_at: string
+          payload: Json
+        }[]
+      }
       get_orders_for_portal_token: {
         Args: { _token: string }
         Returns: {
