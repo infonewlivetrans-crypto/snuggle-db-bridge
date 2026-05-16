@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { playAuthSignal } from "@/lib/auth-signal";
-import { startAuthLoadingSound, stopAuthLoadingSound } from "@/lib/auth-loading-sound";
+import {
+  startAuthBackgroundMusic,
+  stopAuthBackgroundMusic,
+} from "@/lib/auth-background-music";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
@@ -23,17 +26,18 @@ export function LoginPage() {
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    // 1) Сразу останавливаем фоновую музыку, чтобы звуки не накладывались
+    stopAuthBackgroundMusic();
+    // 2) Проигрываем короткий сигнал кнопки «Войти»
     playAuthSignal();
     setError(null);
     setSteps([]);
     setBusy(true);
-    startAuthLoadingSound();
     const addStep = (message: string) => setSteps((prev) => [...prev, message]);
     try {
       const result = await diagnoseSignIn(email.trim(), password, addStep);
       const target = landingPathForRoles(result.roles);
       addStep(`redirect выполнен: ${target}`);
-      stopAuthLoadingSound();
       navigate({ to: target, search: target === "/" ? { orderId: undefined } : (undefined as never) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Ошибка входа";
@@ -43,17 +47,16 @@ export function LoginPage() {
           : msg,
       );
       setSteps((prev) => [...prev, `ошибка: ${msg}`]);
-      stopAuthLoadingSound();
     } finally {
       setBusy(false);
-      stopAuthLoadingSound();
     }
   };
 
-  // На случай ухода со страницы во время загрузки — гарантированно глушим звук
+  // Фоновая музыка играет только пока пользователь на экране входа
   useEffect(() => {
+    startAuthBackgroundMusic();
     return () => {
-      stopAuthLoadingSound();
+      stopAuthBackgroundMusic();
     };
   }, []);
 
