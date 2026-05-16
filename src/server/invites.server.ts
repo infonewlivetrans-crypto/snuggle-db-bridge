@@ -229,6 +229,7 @@ export async function activateInvite(args: {
   email: string;
   password: string;
   phone?: string;
+  fullName?: string;
 }): Promise<{
   accessToken: string;
   refreshToken: string;
@@ -239,6 +240,7 @@ export async function activateInvite(args: {
   const email = args.email?.trim().toLowerCase();
   const password = args.password ?? "";
   const phoneRaw = (args.phone ?? "").trim();
+  const fullNameRaw = (args.fullName ?? "").trim().replace(/\s+/g, " ");
   if (!token || token.length < 8) throw new Error("Некорректная ссылка");
   if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Введите корректный email");
   if (password.length < 6) throw new Error("Пароль должен содержать минимум 6 символов");
