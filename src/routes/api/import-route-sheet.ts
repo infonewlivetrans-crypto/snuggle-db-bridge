@@ -428,6 +428,16 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               missing.push("Тип оплаты");
             if (!o.orderNumber) missing.push("Номер заказа");
 
+            // Менеджер из маршрутного листа: ищем существующего по
+            // нормализованному ФИО, иначе создаём и сразу выпускаем invite.
+            const managerResolved = await resolveManagerCached(
+              o.managerName,
+              o.managerPhone,
+            );
+            if (!managerResolved && o.managerName) {
+              missing.push("Менеджер");
+            }
+
             const orderPayload = {
               order_number: orderNumber,
               onec_order_number: o.orderNumber,
@@ -446,6 +456,8 @@ export const Route = createFileRoute("/api/import-route-sheet")({
                 o.deliveryPeriod ?? clientRow?.preferred_delivery_time ?? null,
               access_instructions:
                 clientRow?.access_notes ?? null,
+              manager_id: managerResolved?.id ?? null,
+              manager_name: managerResolved?.fullName ?? o.managerName ?? null,
               comment: [
                 o.comment,
                 o.paymentRaw ? `Оплата: ${o.paymentRaw}` : null,
