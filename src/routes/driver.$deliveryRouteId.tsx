@@ -21,7 +21,9 @@ import {
   AlertTriangle,
   ArrowUp,
   ArrowDown,
+  MessageSquare,
 } from "lucide-react";
+import { apiGetAuth } from "@/lib/api-client";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { RouteManifestButton } from "@/components/RouteManifestButton";
