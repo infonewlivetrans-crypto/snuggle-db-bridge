@@ -734,6 +734,9 @@ function DriverPointCard({
         mapUrl={buildMapUrl(o)}
       />
 
+      {/* Сообщение от получателя (target_role='driver') */}
+      <RecipientMessageForDriverBlock orderId={p.order_id} />
+
       {/* Краткая сводка по оплате/QR */}
       <div className="flex flex-wrap gap-1.5 text-xs">
         {o?.amount_due != null && (
