@@ -47,6 +47,7 @@ export type InviteRow = {
   role: InviteRole;
   comment: string | null;
   driver_id: string | null;
+  manager_id: string | null;
   manager_name: string | null;
   is_active: boolean;
   created_at: string;
