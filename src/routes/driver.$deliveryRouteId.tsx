@@ -635,6 +635,7 @@ function DriverPointCard({
   routeId,
   driverName,
   photoKinds,
+  unreadCount,
   onReorder,
   reordering,
   locked,
@@ -646,6 +647,7 @@ function DriverPointCard({
   routeId: string;
   driverName: string | null;
   photoKinds: Set<string> | undefined;
+  unreadCount: number;
   onReorder: (dir: -1 | 1) => void;
   reordering: boolean;
   locked: boolean;
