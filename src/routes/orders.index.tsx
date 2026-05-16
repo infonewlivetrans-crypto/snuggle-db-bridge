@@ -178,6 +178,35 @@ function OrdersPage() {
   const isDemo = !isLoading && (data?.length ?? 0) === 0;
   const rows = isDemo ? DEMO_ROWS : data ?? [];
 
+  const orderIdsKey = useMemo(
+    () =>
+      isDemo
+        ? ""
+        : rows
+            .map((r) => r.id)
+            .filter(Boolean)
+            .sort()
+            .join(","),
+    [rows, isDemo],
+  );
+
+  const { data: unreadItems } = useQuery({
+    enabled: !isDemo && orderIdsKey.length > 0,
+    queryKey: ["orders-unread-client-msgs", orderIdsKey],
+    queryFn: () =>
+      apiGetAuth<{ items: Array<{ order_id: string; unread: number }> }>(
+        `/api/orders/unread-client-messages?order_ids=${encodeURIComponent(orderIdsKey)}`,
+      ),
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
+  const unreadMap = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const it of unreadItems?.items ?? []) m.set(it.order_id, it.unread);
+    return m;
+  }, [unreadItems]);
+
   const clients = useMemo(() => {
     const set = new Set<string>();
     for (const r of rows) if (r.contact_name) set.add(r.contact_name);
