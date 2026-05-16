@@ -114,6 +114,7 @@ function DriversPage() {
                 <TableHead className="font-semibold">Телефон</TableHead>
                 <TableHead className="font-semibold">ВУ</TableHead>
                 <TableHead className="font-semibold">Статус</TableHead>
+                <TableHead className="font-semibold">Доступ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
