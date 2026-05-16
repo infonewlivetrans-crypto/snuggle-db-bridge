@@ -31,6 +31,16 @@ export const Route = createFileRoute("/drivers/")({
 function DriversPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const qc = useQueryClient();
+  const { data: accessStatus } = useDriverAccessStatus();
+  const statusByDriverId = useMemo(() => {
+    const m = new Map<string, NonNullable<typeof accessStatus>[number]>();
+    for (const s of accessStatus ?? []) m.set(s.driverId, s);
+    return m;
+  }, [accessStatus]);
+  const onAccessChanged = () => {
+    qc.invalidateQueries({ queryKey: ["driver-access-status"] });
+  };
 
   const { data: drivers, isLoading, refetch } = useQuery({
     queryKey: ["drivers"],
