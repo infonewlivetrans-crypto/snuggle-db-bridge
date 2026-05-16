@@ -700,6 +700,15 @@ function DriverPointCard({
               {p.point_number}
             </span>
             <span className="font-semibold">{o?.order_number ?? "—"}</span>
+            {unreadCount > 0 && (
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+                title="Новое сообщение от получателя"
+              >
+                <MessageSquare className="h-3 w-3" />
+                Сообщение: {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
             {!locked && (
               <div className="ml-1 flex gap-0.5">
                 <Button
