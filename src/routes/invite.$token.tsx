@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { landingPathForRoles, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
+import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const Route = createFileRoute("/invite/$token")({
   head: () => ({ meta: [{ title: "Вход по ссылке — Радиус Трек" }] }),
