@@ -58,6 +58,9 @@ export function LoginPage() {
         <p className="mt-1 text-center text-sm text-muted-foreground">
           Введите свои учётные данные
         </p>
+        <p className="mt-2 text-center text-[13px] font-medium text-foreground/80">
+          Система полного цикла для управления перевозками
+        </p>
         <form className="mt-6 space-y-4" onSubmit={onSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
