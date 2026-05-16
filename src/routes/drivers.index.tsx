@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { DriverFormDialog } from "@/components/DriverFormDialog";
 import { ExportReportButton } from "@/components/ExportReportButton";
+import {
+  DriverAccessBulkPanel,
+  DriverAccessCell,
+  useDriverAccessStatus,
+} from "@/components/DriverAccessControls";
 import {
   Table,
   TableBody,
@@ -13,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Carrier, Driver } from "@/lib/carriers";
@@ -27,6 +31,16 @@ export const Route = createFileRoute("/drivers/")({
 function DriversPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const qc = useQueryClient();
+  const { data: accessStatus } = useDriverAccessStatus();
+  const statusByDriverId = useMemo(() => {
+    const m = new Map<string, NonNullable<typeof accessStatus>[number]>();
+    for (const s of accessStatus ?? []) m.set(s.driverId, s);
+    return m;
+  }, [accessStatus]);
+  const onAccessChanged = () => {
+    qc.invalidateQueries({ queryKey: ["driver-access-status"] });
+  };
 
   const { data: drivers, isLoading, refetch } = useQuery({
     queryKey: ["drivers"],
@@ -81,6 +95,11 @@ function DriversPage() {
           </div>
         </div>
 
+        <DriverAccessBulkPanel
+          drivers={(drivers ?? []).map((d) => ({ id: d.id, full_name: d.full_name, is_active: d.is_active }))}
+          statusByDriverId={statusByDriverId}
+        />
+
         <div className="mb-4 relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -100,16 +119,17 @@ function DriversPage() {
                 <TableHead className="font-semibold">Телефон</TableHead>
                 <TableHead className="font-semibold">ВУ</TableHead>
                 <TableHead className="font-semibold">Статус</TableHead>
+                <TableHead className="font-semibold">Доступ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Загрузка...</TableCell>
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Загрузка...</TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center">
+                  <TableCell colSpan={6} className="py-12 text-center">
                     <User className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">Водителей нет</div>
                     <Button variant="outline" size="sm" className="mt-3" onClick={() => refetch()}>
@@ -154,6 +174,12 @@ function DriversPage() {
                       ) : (
                         <span className="badge-status badge-status-cancelled">Неактивен</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <DriverAccessCell
+                        status={statusByDriverId.get(d.id) ?? null}
+                        onChanged={onAccessChanged}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
