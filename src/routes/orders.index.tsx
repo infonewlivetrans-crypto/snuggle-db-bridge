@@ -123,6 +123,8 @@ function demo(
     order_number: num,
     status,
     payment_status: pay,
+    payment_type: "cash",
+    requires_qr: false,
     amount_due: amount,
     delivery_cost: delivery,
     goods_amount: amount,
