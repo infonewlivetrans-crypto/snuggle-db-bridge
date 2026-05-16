@@ -120,7 +120,7 @@ function DriversPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-12 text-center text-muted-foreground">Загрузка...</TableCell>
+                  <TableCell colSpan={6} className="py-12 text-center text-muted-foreground">Загрузка...</TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
