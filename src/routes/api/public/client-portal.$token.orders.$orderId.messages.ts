@@ -19,13 +19,14 @@ export const Route = createFileRoute(
 
         const url = new URL(request.url);
         const target = url.searchParams.get("target_role");
-        const targetArg = target === "manager" || target === "driver" ? target : null;
+        const targetArg =
+          target === "manager" || target === "driver" ? target : undefined;
 
         const sb = makeAnonClient();
         const { data, error } = await sb.rpc("list_client_order_messages", {
           _token: token,
           _order_id: orderId,
-          _target_role: targetArg,
+          ...(targetArg ? { _target_role: targetArg } : {}),
         });
         if (error) {
           const status = /forbidden/i.test(error.message) ? 403 : 500;
