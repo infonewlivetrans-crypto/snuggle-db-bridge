@@ -342,6 +342,10 @@ export type Database = {
           name: string
           phone: string | null
           phone_alt: string | null
+          portal_access_enabled: boolean
+          portal_token: string | null
+          portal_token_created_at: string | null
+          portal_token_revoked_at: string | null
           preferred_delivery_time: string | null
           source: string
           unloading_notes: string | null
@@ -368,6 +372,10 @@ export type Database = {
           name: string
           phone?: string | null
           phone_alt?: string | null
+          portal_access_enabled?: boolean
+          portal_token?: string | null
+          portal_token_created_at?: string | null
+          portal_token_revoked_at?: string | null
           preferred_delivery_time?: string | null
           source?: string
           unloading_notes?: string | null
@@ -394,6 +402,10 @@ export type Database = {
           name?: string
           phone?: string | null
           phone_alt?: string | null
+          portal_access_enabled?: boolean
+          portal_token?: string | null
+          portal_token_created_at?: string | null
+          portal_token_revoked_at?: string | null
           preferred_delivery_time?: string | null
           source?: string
           unloading_notes?: string | null
@@ -4237,6 +4249,13 @@ export type Database = {
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
+      get_client_by_portal_token: {
+        Args: { _token: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_order_by_recipient_token: {
         Args: { _token: string }
         Returns: {
@@ -4249,6 +4268,21 @@ export type Database = {
           recipient_delivery_comment: string
           status: Database["public"]["Enums"]["order_status"]
           updated_at: string
+        }[]
+      }
+      get_orders_for_portal_token: {
+        Args: { _token: string }
+        Returns: {
+          created_at: string
+          delivery_address: string
+          delivery_time_comment: string
+          delivery_window_from: string
+          delivery_window_to: string
+          id: string
+          order_number: string
+          recipient_access_comment: string
+          recipient_delivery_comment: string
+          status: Database["public"]["Enums"]["order_status"]
         }[]
       }
       has_any_admin: { Args: never; Returns: boolean }
