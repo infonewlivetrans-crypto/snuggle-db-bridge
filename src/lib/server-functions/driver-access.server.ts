@@ -1,9 +1,17 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminCreateInvite, type InviteRow } from "@/server/invites.server";
 import { assertCallerHasAnyRole, assertCallerIsAdmin, requireAuthenticatedUserId } from "./auth.server";
-import type { DriverAccessStatus } from "./driver-access.functions";
 
 const STAFF_ROLES = ["admin", "logist", "manager"] as const;
+
+export type DriverAccessStatus = {
+  driverId: string;
+  hasUserId: boolean;
+  inviteId: string | null;
+  token: string | null;
+  isActive: boolean;
+  lastUsedAt: string | null;
+};
 
 export async function listDriverAccessStatus(): Promise<DriverAccessStatus[]> {
   const userId = await requireAuthenticatedUserId();
