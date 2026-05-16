@@ -42,6 +42,11 @@ import { DeliveryReportBlock } from "@/components/DeliveryReportBlock";
 import { RouteCompletionReportBlock } from "@/components/RouteCompletionReportBlock";
 import { RouteIssueCheckBlock } from "@/components/RouteIssueCheckBlock";
 import { DriverAccessLinkBlock } from "@/components/DriverAccessLinkBlock";
+import { AssignDriverDialog } from "@/components/AssignDriverDialog";
+
+// Feature flag: публичная анонимная ссылка /d/:token откладывается до пакета 6.3.
+// До тех пор управление доступом водителя идёт только через invite + drivers.user_id.
+const DRIVER_PUBLIC_LINK_ENABLED = false;
 import { CarrierOffersBlockForRoute } from "@/components/CarrierOffersBlock";
 import { CarrierConfirmationBlock } from "@/components/CarrierConfirmationBlock";
 import { DriverGeoBlock } from "@/components/DriverGeoBlock";
