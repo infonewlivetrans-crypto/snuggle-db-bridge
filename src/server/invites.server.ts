@@ -327,6 +327,58 @@ export async function activateInvite(args: {
     }
   }
 
+  // Привязка managers.user_id ДО изменения auth-пользователя.
+  // managers.full_name / normalized_name НЕ ТРОГАЕМ — это стабильная сущность
+  // для сопоставления с маршрутными листами.
+  if (invite.role === "manager" && invite.manager_id) {
+    const { data: mgrRow, error: mgrSelErr } = await supabaseAdmin
+      .from("managers")
+      .select("id, user_id")
+      .eq("id", invite.manager_id)
+      .maybeSingle();
+    if (mgrSelErr) throw new Error(mgrSelErr.message);
+    if (!mgrRow) {
+      throw new Error("Запись менеджера не найдена. Обратитесь к администратору.");
+    }
+    const currentMgrUserId = (mgrRow as { user_id: string | null }).user_id;
+    if (currentMgrUserId && currentMgrUserId !== invite.user_id) {
+      throw new Error(
+        "Эта запись менеджера уже привязана к другой учётной записи. Обратитесь к администратору.",
+      );
+    }
+    if (!currentMgrUserId) {
+      const { data: mgrUpdRows, error: mgrUpdErr } = await supabaseAdmin
+        .from("managers")
+        .update({ user_id: invite.user_id } as never)
+        .eq("id", invite.manager_id)
+        .is("user_id", null)
+        .select("id, user_id");
+      if (mgrUpdErr) {
+        const code = (mgrUpdErr as { code?: string }).code;
+        if (code === "23505" || /duplicate|unique/i.test(mgrUpdErr.message ?? "")) {
+          throw new Error(
+            "Эта учётная запись уже привязана к другому менеджеру. Обратитесь к администратору.",
+          );
+        }
+        throw new Error(mgrUpdErr.message);
+      }
+      if (!mgrUpdRows || mgrUpdRows.length === 0) {
+        const { data: mgrRecheck, error: mgrRecheckErr } = await supabaseAdmin
+          .from("managers")
+          .select("id, user_id")
+          .eq("id", invite.manager_id)
+          .maybeSingle();
+        if (mgrRecheckErr) throw new Error(mgrRecheckErr.message);
+        const recheckedUserId = (mgrRecheck as { user_id: string | null } | null)?.user_id ?? null;
+        if (recheckedUserId !== invite.user_id) {
+          throw new Error(
+            "Эта запись менеджера уже привязана к другой учётной записи. Обратитесь к администратору.",
+          );
+        }
+      }
+    }
+  }
+
   const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(invite.user_id, {
     email,
     password,
@@ -340,14 +392,20 @@ export async function activateInvite(args: {
     throw new Error(msg);
   }
 
+  // profiles.full_name обновляем, если пользователь явно ввёл ФИО (manager flow).
+  const profilePatch: Record<string, unknown> = { email, phone: phoneNorm, is_active: true };
+  if (fullNameRaw) profilePatch.full_name = fullNameRaw;
   await supabaseAdmin
     .from("profiles")
-    .update({ email, phone: phoneNorm, is_active: true })
+    .update(profilePatch as never)
     .eq("user_id", invite.user_id);
 
+  // invite_tokens.full_name можно синхронизировать (managers.full_name НЕ трогаем).
+  const inviteTokenPatch: Record<string, unknown> = { phone: phoneNorm };
+  if (fullNameRaw) inviteTokenPatch.full_name = fullNameRaw;
   await supabaseAdmin
     .from("invite_tokens")
-    .update({ phone: phoneNorm })
+    .update(inviteTokenPatch as never)
     .eq("id", invite.id);
 
   const { createClient } = await import("@supabase/supabase-js");
