@@ -259,6 +259,13 @@ export async function activateInvite(args: {
   const invite = inv as InviteRow;
   if (!invite.is_active) throw new Error("Ссылка отключена администратором");
 
+  // Для роли manager обязательно ФИО (минимум 2 слова, каждое >=2 символов).
+  if (invite.role === "manager") {
+    if (!fullNameRaw) throw new Error("Введите полное ФИО");
+    const parts = fullNameRaw.split(" ").filter((p) => p.length >= 2);
+    if (parts.length < 2) throw new Error("Введите полное ФИО (минимум фамилия и имя)");
+  }
+
   // Проверка занятости email
   const { data: existingProfile } = await supabaseAdmin
     .from("profiles")
