@@ -4316,7 +4316,7 @@ export type Database = {
           order_number: string
           recipient_access_comment: string
           recipient_delivery_comment: string
-          status: Database["public"]["Enums"]["order_status"]
+          status: string
         }[]
       }
       get_unread_client_msgs_for_driver: {
