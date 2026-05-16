@@ -27,11 +27,13 @@ export function LoginPage() {
     setError(null);
     setSteps([]);
     setBusy(true);
+    startAuthLoadingSound();
     const addStep = (message: string) => setSteps((prev) => [...prev, message]);
     try {
       const result = await diagnoseSignIn(email.trim(), password, addStep);
       const target = landingPathForRoles(result.roles);
       addStep(`redirect выполнен: ${target}`);
+      stopAuthLoadingSound();
       navigate({ to: target, search: target === "/" ? { orderId: undefined } : (undefined as never) });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Ошибка входа";
@@ -41,10 +43,19 @@ export function LoginPage() {
           : msg,
       );
       setSteps((prev) => [...prev, `ошибка: ${msg}`]);
+      stopAuthLoadingSound();
     } finally {
       setBusy(false);
+      stopAuthLoadingSound();
     }
   };
+
+  // На случай ухода со страницы во время загрузки — гарантированно глушим звук
+  useEffect(() => {
+    return () => {
+      stopAuthLoadingSound();
+    };
+  }, []);
 
   return (
     <AuthLayout align="left">
