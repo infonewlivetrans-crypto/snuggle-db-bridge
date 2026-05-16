@@ -322,7 +322,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
             const r = await resolveManagerForImport({
               rawName: name,
               rawPhone: phone,
-              userId: auth.userId,
+              userId: authUserId,
             });
             managerCache.set(key, r);
             return r;
