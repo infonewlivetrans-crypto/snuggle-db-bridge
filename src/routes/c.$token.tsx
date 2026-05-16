@@ -5,6 +5,7 @@ import { Lock, Package, MapPin, Clock, ChevronRight, X } from "lucide-react";
 import { STATUS_LABELS, STATUS_STYLES, type OrderStatus } from "@/lib/orders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PortalOrderMessagesBlock } from "@/components/PortalOrderMessagesBlock";
 
 type PortalOrder = {
   id: string;
