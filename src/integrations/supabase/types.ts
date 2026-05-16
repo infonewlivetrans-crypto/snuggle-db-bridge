@@ -1725,6 +1725,7 @@ export type Database = {
           landmarks: string | null
           latitude: number | null
           longitude: number | null
+          manager_comment: string | null
           manager_id: string | null
           manager_name: string | null
           manual_cost_reason: string | null
@@ -1742,6 +1743,11 @@ export type Database = {
           qr_photo_url: string | null
           qr_received: boolean
           quality: string | null
+          recipient_access_comment: string | null
+          recipient_contact_time: string | null
+          recipient_delivery_comment: string | null
+          recipient_extra_note: string | null
+          recipient_work_hours: string | null
           requires_qr: boolean
           source: string
           status: Database["public"]["Enums"]["order_status"]
@@ -1780,6 +1786,7 @@ export type Database = {
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
+          manager_comment?: string | null
           manager_id?: string | null
           manager_name?: string | null
           manual_cost_reason?: string | null
@@ -1797,6 +1804,11 @@ export type Database = {
           qr_photo_url?: string | null
           qr_received?: boolean
           quality?: string | null
+          recipient_access_comment?: string | null
+          recipient_contact_time?: string | null
+          recipient_delivery_comment?: string | null
+          recipient_extra_note?: string | null
+          recipient_work_hours?: string | null
           requires_qr?: boolean
           source?: string
           status?: Database["public"]["Enums"]["order_status"]
@@ -1835,6 +1847,7 @@ export type Database = {
           landmarks?: string | null
           latitude?: number | null
           longitude?: number | null
+          manager_comment?: string | null
           manager_id?: string | null
           manager_name?: string | null
           manual_cost_reason?: string | null
@@ -1852,6 +1865,11 @@ export type Database = {
           qr_photo_url?: string | null
           qr_received?: boolean
           quality?: string | null
+          recipient_access_comment?: string | null
+          recipient_contact_time?: string | null
+          recipient_delivery_comment?: string | null
+          recipient_extra_note?: string | null
+          recipient_work_hours?: string | null
           requires_qr?: boolean
           source?: string
           status?: Database["public"]["Enums"]["order_status"]
