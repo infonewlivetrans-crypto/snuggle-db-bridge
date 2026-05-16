@@ -148,6 +148,25 @@ function InviteLoginPage() {
             )}
           </div>
 
+          {info.role === "manager" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="fullName">Полное ФИО</Label>
+              <Input
+                id="fullName"
+                type="text"
+                autoComplete="name"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Иванов Иван Иванович"
+                className="bg-white/90"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Укажите фамилию и имя полностью — это будет использоваться в системе.
+              </p>
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
