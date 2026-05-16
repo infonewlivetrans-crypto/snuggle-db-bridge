@@ -4447,6 +4447,27 @@ export type Database = {
           phone: string
         }[]
       }
+      staff_rotate_portal_token: {
+        Args: { _client_id: string }
+        Returns: {
+          active: boolean
+          has_token: boolean
+          portal_access_enabled: boolean
+          portal_token: string
+          portal_token_created_at: string
+          portal_token_revoked_at: string
+        }[]
+      }
+      staff_set_portal_enabled: {
+        Args: { _client_id: string; _enabled: boolean }
+        Returns: {
+          active: boolean
+          has_token: boolean
+          portal_access_enabled: boolean
+          portal_token_created_at: string
+          portal_token_revoked_at: string
+        }[]
+      }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
       vehicle_busy_until: { Args: { _vehicle_id: string }; Returns: string }
     }
