@@ -636,7 +636,7 @@ function DeliveryRoutePage() {
             />
 
             {/* Доступ водителя по уникальной ссылке */}
-            <DriverAccessLinkBlock deliveryRouteId={data.id} />
+            {DRIVER_PUBLIC_LINK_ENABLED && <DriverAccessLinkBlock deliveryRouteId={data.id} />}
 
             {/* Подтверждение перевозчика логистом + подбор перевозчиков (Радиус Трек) */}
             {data.source_request_id && (
