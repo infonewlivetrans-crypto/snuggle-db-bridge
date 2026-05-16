@@ -78,6 +78,7 @@ type Detail = {
   source_warehouse_id: string | null;
   assigned_driver: string | null;
   assigned_vehicle: string | null;
+  driver_id: string | null;
   source_request: { route_number: string } | null;
   source_warehouse: { name: string; city: string | null } | null;
 };
