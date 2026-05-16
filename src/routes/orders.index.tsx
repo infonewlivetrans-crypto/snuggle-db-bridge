@@ -432,6 +432,19 @@ function OrdersPage() {
                                   {r.order_number}
                                 </Link>
                               )}
+                              {(() => {
+                                const u = unreadMap.get(r.id) ?? 0;
+                                if (u <= 0) return null;
+                                return (
+                                  <span
+                                    title={`Новых сообщений от клиента: ${u}`}
+                                    className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+                                  >
+                                    <MessageSquare className="h-3 w-3" />
+                                    {u > 99 ? "99+" : u}
+                                  </span>
+                                );
+                              })()}
                               {r.driver_comment_is_important && r.driver_comment && (
                                 <span
                                   title={`Важно для водителя: ${r.driver_comment}`}
