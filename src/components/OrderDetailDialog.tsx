@@ -740,6 +740,9 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
           {/* История доставки (действия водителя) */}
           <PointActionsHistory orderId={order.id} title="История доставки" />
 
+          {/* Ссылка для получателя */}
+          <RecipientLinkBlock orderId={order.id} />
+
           {/* История изменений */}
           <OrderHistory orderId={order.id} />
 
