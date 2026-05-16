@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -9,10 +9,6 @@ import { Label } from "@/components/ui/label";
 import { BrandLogo } from "@/components/BrandLogo";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { playAuthSignal } from "@/lib/auth-signal";
-import {
-  startAuthBackgroundMusic,
-  stopAuthBackgroundMusic,
-} from "@/lib/auth-background-music";
 
 export function LoginPage() {
   const { diagnoseSignIn } = useAuth();
