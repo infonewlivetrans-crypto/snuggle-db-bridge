@@ -35,15 +35,30 @@ export function CreateManualDeliveryRouteDialog({ open, onOpenChange }: Props) {
   const today = new Date().toISOString().slice(0, 10);
   const [routeNumber, setRouteNumber] = useState("");
   const [routeDate, setRouteDate] = useState(today);
-  const [driver, setDriver] = useState("");
+  const [driverId, setDriverId] = useState<string>("");
   const [vehicle, setVehicle] = useState("");
   const [manager, setManager] = useState("");
   const [comment, setComment] = useState("");
 
+  const { data: drivers } = useQuery({
+    enabled: open,
+    queryKey: ["drivers", "active"],
+    queryFn: async (): Promise<Driver[]> => {
+      const { rows } = await fetchListViaApi<Driver>("/api/drivers", {
+        limit: 500,
+        extra: { activeOnly: "1" },
+      });
+      return rows;
+    },
+    staleTime: 60_000,
+  });
+
+  const selectedDriver = (drivers ?? []).find((d) => d.id === driverId) ?? null;
+
   const reset = () => {
     setRouteNumber("");
     setRouteDate(today);
-    setDriver("");
+    setDriverId("");
     setVehicle("");
     setManager("");
     setComment("");
@@ -51,6 +66,8 @@ export function CreateManualDeliveryRouteDialog({ open, onOpenChange }: Props) {
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!selectedDriver) throw new Error("Выберите водителя из справочника");
+
       const number = routeNumber.trim();
       const combinedComment =
         [
@@ -64,7 +81,7 @@ export function CreateManualDeliveryRouteDialog({ open, onOpenChange }: Props) {
         route_number: number || undefined,
         generate_number: !number,
         route_date: routeDate,
-        driver_name: driver.trim() || null,
+        driver_name: selectedDriver.full_name,
         comment: combinedComment,
         status: "planned",
       });
@@ -72,8 +89,10 @@ export function CreateManualDeliveryRouteDialog({ open, onOpenChange }: Props) {
       const dr = await apiPost<{ id: string }>("/api/delivery-routes", {
         route_number: srcRoute.route_number,
         route_date: routeDate,
-        assigned_driver: driver.trim() || null,
+        assigned_driver: selectedDriver.full_name,
         assigned_vehicle: vehicle.trim() || null,
+        driver_id: selectedDriver.id,
+        carrier_id: selectedDriver.carrier_id,
         source_request_id: srcRoute.id,
         status: "formed",
         comment: combinedComment,
