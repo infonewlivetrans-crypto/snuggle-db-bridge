@@ -264,12 +264,17 @@ export async function buildRoute(waypoints: LngLat[]): Promise<RouteGeometry> {
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
   if (cached) {
+    const c = cached as unknown as {
+      distance_m: number | null;
+      duration_s: number | null;
+      geometry: Array<[number, number]>;
+      segments: RouteGeometry["segments"] | null;
+    };
     return {
-      distance_m: (cached as { distance_m: number | null }).distance_m,
-      duration_s: (cached as { duration_s: number | null }).duration_s,
-      geometry: (cached as { geometry: Array<[number, number]> }).geometry,
-      segments:
-        ((cached as { segments: RouteGeometry["segments"] | null }).segments ?? []),
+      distance_m: c.distance_m,
+      duration_s: c.duration_s,
+      geometry: c.geometry,
+      segments: c.segments ?? [],
     };
   }
 
