@@ -47,6 +47,11 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
     (o) => o.latitude == null || o.longitude == null,
   );
 
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeFailed, setGeocodeFailed] = useState<
+    Array<{ id: string; order_number: string; address: string | null }>
+  >([]);
+
   const { data: drivers } = useQuery({
     enabled: open,
     queryKey: ["drivers", "active"],
@@ -77,6 +82,52 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
     mutationFn: async () => {
       if (orders.length === 0) throw new Error("Не выбран ни один заказ");
       if (!selectedDriver) throw new Error("Выберите водителя из справочника");
+
+      // Геокодируем заказы без координат батчами по 50.
+      const missing = orders.filter(
+        (o) => o.latitude == null || o.longitude == null,
+      );
+      const stillFailed: Array<{
+        id: string;
+        order_number: string;
+        address: string | null;
+      }> = [];
+      if (missing.length > 0) {
+        setGeocoding(true);
+        try {
+          for (let i = 0; i < missing.length; i += 50) {
+            const slice = missing.slice(i, i + 50);
+            const res = await apiPost<{
+              updated: Array<{ id: string; lat: number; lng: number }>;
+              failed: Array<{ id: string; order_number: string; address: string | null }>;
+            }>(
+              "/api/orders/geocode-batch",
+              { order_ids: slice.map((o) => o.id) },
+              30_000,
+            );
+            // обновим локальные данные заказа, чтобы карта/точки увидели координаты
+            for (const u of res.updated ?? []) {
+              const o = orders.find((x) => x.id === u.id);
+              if (o) {
+                o.latitude = u.lat;
+                o.longitude = u.lng;
+              }
+            }
+            for (const f of res.failed ?? []) stillFailed.push(f);
+          }
+        } finally {
+          setGeocoding(false);
+        }
+        setGeocodeFailed(stillFailed);
+        if (stillFailed.length > 0) {
+          toast.warning(
+            `Не удалось определить координаты: ${stillFailed.length}. Уточните адрес в заказе и повторите.`,
+          );
+          // не блокируем создание маршрута — пользователь видит список failed
+        }
+        // обновим списки заказов, чтобы остальной UI получил координаты
+        qc.invalidateQueries({ queryKey: ["orders"] });
+      }
 
       const number = routeNumber.trim();
       const srcRoute = await apiPost<{ id: string; route_number: string }>("/api/routes", {
@@ -143,7 +194,7 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
           </DialogDescription>
         </DialogHeader>
 
-        {ordersWithoutCoords.length > 0 && (
+        {ordersWithoutCoords.length > 0 && geocodeFailed.length === 0 && (
           <div className="rt-alert rt-alert-warning">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="flex-1">
@@ -151,13 +202,57 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
                 Нет координат у {ordersWithoutCoords.length} {pluralOrders(ordersWithoutCoords.length)}
               </div>
               <div className="mt-0.5 text-xs">
-                Маршрут может быть неточным.{" "}
+                При создании маршрута система автоматически попробует определить координаты по адресу.{" "}
                 {ordersWithoutCoords
                   .slice(0, 5)
                   .map((o) => o.order_number)
                   .join(", ")}
                 {ordersWithoutCoords.length > 5 ? "…" : ""}
               </div>
+            </div>
+          </div>
+        )}
+
+        {geocoding && (
+          <div className="rt-alert">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 animate-pulse" />
+            <div className="flex-1 text-xs">
+              Геокодирую {ordersWithoutCoords.length} {pluralOrders(ordersWithoutCoords.length)}…
+            </div>
+          </div>
+        )}
+
+        {geocodeFailed.length > 0 && (
+          <div className="rt-alert rt-alert-warning">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="flex-1">
+              <div className="font-medium">
+                Не удалось определить координаты: {geocodeFailed.length}
+              </div>
+              <ul className="mt-1 space-y-0.5 text-xs">
+                {geocodeFailed.slice(0, 8).map((f) => (
+                  <li key={f.id} className="flex items-center gap-2">
+                    <span className="font-mono font-semibold">{f.order_number}</span>
+                    <span className="truncate">{f.address ?? "адрес не указан"}</span>
+                    <button
+                      type="button"
+                      className="ml-auto text-xs text-primary underline"
+                      onClick={() => {
+                        onOpenChange(false);
+                        navigate({
+                          to: "/orders",
+                          search: { highlight: f.id } as never,
+                        });
+                      }}
+                    >
+                      Уточнить адрес
+                    </button>
+                  </li>
+                ))}
+                {geocodeFailed.length > 8 && (
+                  <li className="text-muted-foreground">…ещё {geocodeFailed.length - 8}</li>
+                )}
+              </ul>
             </div>
           </div>
         )}
@@ -260,9 +355,15 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
           </Button>
           <Button
             onClick={() => create.mutate()}
-            disabled={create.isPending || !routeDate || !driverId || orders.length === 0}
+            disabled={create.isPending || geocoding || !routeDate || !driverId || orders.length === 0}
           >
-            {create.isPending ? "Создание…" : "Создать маршрут"}
+            {geocoding
+              ? "Геокодирую…"
+              : create.isPending
+                ? "Создание…"
+                : ordersWithoutCoords.length > 0
+                  ? "Геокодировать и создать"
+                  : "Создать маршрут"}
           </Button>
         </DialogFooter>
       </DialogContent>

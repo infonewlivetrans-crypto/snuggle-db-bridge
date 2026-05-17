@@ -167,6 +167,7 @@ import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-po
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
+import { Route as ApiOrdersGeocodeBatchRouteImport } from './routes/api/orders.geocode-batch'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiNotificationsIdRouteImport } from './routes/api/notifications.$id'
 import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
@@ -1013,6 +1014,11 @@ const ApiOrdersUnreadClientMessagesRoute =
     path: '/unread-client-messages',
     getParentRoute: () => ApiOrdersRoute,
   } as any)
+const ApiOrdersGeocodeBatchRoute = ApiOrdersGeocodeBatchRouteImport.update({
+  id: '/geocode-batch',
+  path: '/geocode-batch',
+  getParentRoute: () => ApiOrdersRoute,
+} as any)
 const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1429,6 +1435,7 @@ export interface FileRoutesByFullPath {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1636,6 +1643,7 @@ export interface FileRoutesByTo {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -1844,6 +1852,7 @@ export interface FileRoutesById {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -2053,6 +2062,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -2260,6 +2270,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -2467,6 +2478,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -3770,6 +3782,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersUnreadClientMessagesRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/orders/geocode-batch': {
+      id: '/api/orders/geocode-batch'
+      path: '/geocode-batch'
+      fullPath: '/api/orders/geocode-batch'
+      preLoaderRoute: typeof ApiOrdersGeocodeBatchRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/orders/$id': {
       id: '/api/orders/$id'
       path: '/$id'
@@ -4358,11 +4377,13 @@ const ApiOrdersIdRouteWithChildren = ApiOrdersIdRoute._addFileChildren(
 
 interface ApiOrdersRouteChildren {
   ApiOrdersIdRoute: typeof ApiOrdersIdRouteWithChildren
+  ApiOrdersGeocodeBatchRoute: typeof ApiOrdersGeocodeBatchRoute
   ApiOrdersUnreadClientMessagesRoute: typeof ApiOrdersUnreadClientMessagesRoute
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
   ApiOrdersIdRoute: ApiOrdersIdRouteWithChildren,
+  ApiOrdersGeocodeBatchRoute: ApiOrdersGeocodeBatchRoute,
   ApiOrdersUnreadClientMessagesRoute: ApiOrdersUnreadClientMessagesRoute,
 }
 
@@ -4744,13 +4765,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

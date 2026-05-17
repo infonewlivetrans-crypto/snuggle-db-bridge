@@ -156,6 +156,29 @@ export async function importRouteRowsServer(
   };
   if (rows.length === 0) throw new Error("Файл пуст или не распознан");
 
+  // Бюджет геокодирования: максимум 50 адресов на один импорт,
+  // чтобы большие файлы не тормозили. Остальные останутся без координат
+  // и могут быть догеокодированы через /api/orders/geocode-batch.
+  let geocodeBudget = 50;
+  let defaultRegion: string | null = null;
+  try {
+    const { data: ds } = await sb
+      .from("system_settings")
+      .select("setting_value")
+      .eq("setting_key", "default_geocode_region")
+      .maybeSingle();
+    const v = ds?.setting_value;
+    defaultRegion =
+      typeof v === "string"
+        ? v
+        : v && typeof v === "object" && "value" in (v as Record<string, unknown>) &&
+            typeof (v as Record<string, unknown>).value === "string"
+          ? ((v as Record<string, unknown>).value as string)
+          : null;
+  } catch {
+    defaultRegion = null;
+  }
+
   const groups = new Map<string, { rows: RouteImportRow[]; firstIndex: number }>();
   rows.forEach((r, i) => {
     const key = (r.route_number || "__default__").trim();
@@ -218,6 +241,23 @@ export async function importRouteRowsServer(
             const c = parseCoords(r.map_link);
             latitude = latitude ?? c.lat;
             longitude = longitude ?? c.lon;
+          }
+          // Если координат всё ещё нет, но есть адрес — пробуем геокодер
+          // (но не более geocodeBudget раз на импорт, чтобы не тормозить большие файлы).
+          if ((latitude == null || longitude == null) && r.address && geocodeBudget > 0) {
+            geocodeBudget--;
+            try {
+              const { geocodeOrderRow } = await import("@/server/order-geocode.server");
+              const outcome = await geocodeOrderRow(sb, r.address, {
+                defaultRegion: defaultRegion ?? "Краснодарский край",
+              });
+              if (outcome) {
+                latitude = outcome.lat;
+                longitude = outcome.lng;
+              }
+            } catch (e) {
+              console.warn("[route-import] geocode failed:", e);
+            }
           }
 
           const { data: order, error: orderErr } = await sb
