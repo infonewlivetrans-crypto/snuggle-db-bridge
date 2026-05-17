@@ -1375,6 +1375,8 @@ export type Database = {
       }
       invite_tokens: {
         Row: {
+          activated_at: string | null
+          activated_email: string | null
           comment: string | null
           created_at: string
           created_by: string | null
@@ -1389,9 +1391,11 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           token: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          activated_at?: string | null
+          activated_email?: string | null
           comment?: string | null
           created_at?: string
           created_by?: string | null
@@ -1406,9 +1410,11 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           token: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          activated_at?: string | null
+          activated_email?: string | null
           comment?: string | null
           created_at?: string
           created_by?: string | null
@@ -1423,7 +1429,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           token?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -4276,18 +4282,19 @@ export type Database = {
           urole: string
         }[]
       }
+      _caller_is_admin: { Args: never; Returns: boolean }
       _driver_can_access_order: {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
       }
-      admin_create_invite: {
+      _gen_invite_token: { Args: never; Returns: string }
+      admin_bind_invite_to_user: {
         Args: {
-          p_comment?: string
-          p_driver_id?: string
+          p_email: string
           p_full_name: string
-          p_manager_name?: string
-          p_phone?: string
-          p_role?: string
+          p_phone: string
+          p_token: string
+          p_user_id: string
         }
         Returns: Json
       }
@@ -4295,9 +4302,73 @@ export type Database = {
         Args: { p_route_id: string }
         Returns: Json
       }
-      admin_rotate_invite_token: {
+      admin_delete_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      admin_issue_invite: {
+        Args: {
+          p_comment: string
+          p_driver_id: string
+          p_full_name: string
+          p_manager_name: string
+          p_phone: string
+          p_role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: {
+          activated_at: string | null
+          activated_email: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          driver_id: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          manager_id: string | null
+          manager_name: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invite_tokens"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_rotate_invite: {
         Args: { p_invite_id: string }
-        Returns: Json
+        Returns: {
+          activated_at: string | null
+          activated_email: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          driver_id: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          manager_id: string | null
+          manager_name: string | null
+          phone: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token: string
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "invite_tokens"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_set_invite_active: {
+        Args: { p_active: boolean; p_invite_id: string }
+        Returns: undefined
       }
       calc_order_delivery_cost: {
         Args: { p_order_id: string }
@@ -4313,6 +4384,17 @@ export type Database = {
         Returns: {
           id: string
           name: string
+        }[]
+      }
+      get_invite_public: {
+        Args: { p_token: string }
+        Returns: {
+          already_activated: boolean
+          full_name: string
+          is_active: boolean
+          manager_name: string
+          phone: string
+          role: Database["public"]["Enums"]["app_role"]
         }[]
       }
       get_order_timeline_for_portal_token: {
@@ -4496,6 +4578,15 @@ export type Database = {
         }[]
       }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
+      validate_invite_for_activation: {
+        Args: { p_token: string }
+        Returns: {
+          driver_id: string
+          invite_id: string
+          manager_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }[]
+      }
       vehicle_busy_until: { Args: { _vehicle_id: string }; Returns: string }
     }
     Enums: {
