@@ -155,11 +155,20 @@ function LaunchModePanel({
               : "Доступны все разделы, разрешённые ролью и модулями."}
           </div>
         </div>
-        <Switch
-          checked={isMinimal}
-          disabled={busy}
-          onCheckedChange={(v) => setMode(v ? "minimal" : "full")}
-        />
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`text-xs ${isMinimal ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+            Мин.
+          </span>
+          <Switch
+            checked={!isMinimal}
+            disabled={busy}
+            aria-label="Переключить режим запуска"
+            onCheckedChange={(v) => setMode(v ? "full" : "minimal")}
+          />
+          <span className={`text-xs ${!isMinimal ? "font-medium text-foreground" : "text-muted-foreground"}`}>
+            Полный
+          </span>
+        </div>
       </CardContent>
     </Card>
   );
