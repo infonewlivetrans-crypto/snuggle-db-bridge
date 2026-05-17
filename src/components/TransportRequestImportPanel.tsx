@@ -72,6 +72,9 @@ export function TransportRequestImportPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResponse | null>(null);
+  const [itemsText, setItemsText] = useState("");
+  const [itemsParsed, setItemsParsed] =
+    useState<OrderItemsParseResult | null>(null);
 
   const reset = () => {
     setStep("upload");
@@ -80,6 +83,8 @@ export function TransportRequestImportPanel({
     setBusy(false);
     setError(null);
     setResult(null);
+    setItemsText("");
+    setItemsParsed(null);
   };
 
   const handleParse = async () => {
@@ -112,7 +117,10 @@ export function TransportRequestImportPanel({
       const res = await fetch("/api/import-transport-request", {
         method: "POST",
         headers: { "content-type": "application/json", ...authHeaders() },
-        body: JSON.stringify(parsed),
+        body: JSON.stringify({
+          ...parsed,
+          itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
+        }),
       });
       const text = await res.text();
       let json: Partial<ImportResponse> & {
