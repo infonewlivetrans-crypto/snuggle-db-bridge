@@ -14,7 +14,7 @@ export const Route = createFileRoute("/api/geo/geocode")({
           return jsonResponse({ error: "address required (1..500)" }, { status: 400 });
         }
         try {
-          const row = await geocodeAddress(address);
+          const row = await geocodeAddress(auth.client, address);
           return jsonResponse(
             {
               lat: row.lat,

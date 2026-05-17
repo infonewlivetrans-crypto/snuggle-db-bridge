@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/routing/matrix")({
           return jsonResponse({ error: "invalid body" }, { status: 400 });
         }
         try {
-          const matrix = await distanceMatrix(parsed.data.origins, parsed.data.destinations);
+          const matrix = await distanceMatrix(auth.client, parsed.data.origins, parsed.data.destinations);
           return jsonResponse({ matrix }, { headers: cacheHeaders(3600) });
         } catch (e) {
           return jsonResponse(
