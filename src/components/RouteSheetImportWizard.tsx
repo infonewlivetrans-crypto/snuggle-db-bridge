@@ -498,11 +498,16 @@ export function RouteSheetImportWizard({
         total: json.total ?? parsed.orders.length,
         failedRows: json.failedRows ?? [],
         headerMissing: json.headerMissing ?? [],
+        warnings: json.warnings ?? [],
         rows: json.rows ?? [],
         clientsNeedingFill: json.clientsNeedingFill ?? [],
         needsReview: Boolean(json.needsReview),
       });
       setStep("done");
+      // Чтобы новая заявка появилась в кабинете логиста и в списке заявок
+      // на транспорт без ручного обновления страницы.
+      queryClient.invalidateQueries({ queryKey: ["logist-routes"] });
+      queryClient.invalidateQueries({ queryKey: ["transport-requests"] });
       if (json.needsReview) {
         toast.warning("Заявка создана, но требует заполнения данных");
       } else {
