@@ -38,14 +38,14 @@ export function getBearerToken(request: Request): string | null {
 }
 
 export function makeUserClient(token: string): SupabaseClient<Database> {
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(getSupabaseUrl(), getSupabasePublishableKey(), {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 }
 
 export function makeAnonClient(): SupabaseClient<Database> {
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(getSupabaseUrl(), getSupabasePublishableKey(), {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 }
