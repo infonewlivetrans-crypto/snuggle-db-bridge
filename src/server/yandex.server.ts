@@ -234,11 +234,11 @@ export async function distanceMatrix(
 
   const { error } = await sb.rpc("upsert_route_matrix_cache", {
     p_cache_key: key,
-    p_origins: origins as never,
-    p_destinations: destinations as never,
-    p_matrix: matrix as never,
+    p_origins: origins,
+    p_destinations: destinations,
+    p_matrix: matrix,
     p_ttl_days: 7,
-  });
+  } as never);
   if (error) console.warn("[yandex] matrix cache upsert failed:", error.message);
   return matrix;
 }
