@@ -85,18 +85,18 @@ function AdminSettingsPage() {
           </TabsList>
 
           <TabsContent value="modules" className="mt-4 space-y-4">
-            <LaunchModePanel items={data.settings} onChanged={() => router.invalidate()} />
-            <DemoModePanel items={data.settings} onChanged={() => router.invalidate()} />
-            <DriverDocumentPhotosPanel items={data.settings} onChanged={() => router.invalidate()} />
-            <ModuleTogglesPanel items={data.settings} onChanged={() => router.invalidate()} />
+            <LaunchModePanel items={data.settings} onChanged={invalidate} />
+            <DemoModePanel items={data.settings} onChanged={invalidate} />
+            <DriverDocumentPhotosPanel items={data.settings} onChanged={invalidate} />
+            <ModuleTogglesPanel items={data.settings} onChanged={invalidate} />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4">
-            <SettingsList items={data.settings} onChanged={() => router.invalidate()} />
+            <SettingsList items={data.settings} onChanged={invalidate} />
           </TabsContent>
 
           <TabsContent value="versions" className="mt-4">
-            <VersionsList items={data.versions} onChanged={() => router.invalidate()} />
+            <VersionsList items={data.versions} onChanged={invalidate} />
           </TabsContent>
         </Tabs>
       </main>
