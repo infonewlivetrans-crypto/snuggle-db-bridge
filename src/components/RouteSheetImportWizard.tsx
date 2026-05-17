@@ -331,10 +331,11 @@ export function RouteSheetImportWizard({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState<"route_sheet" | "transport_request">("route_sheet");
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
+  const [trFile, setTrFile] = useState<File | null>(null);
+  const [trParsed, setTrParsed] = useState<ParsedTransportRequest | null>(null);
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<ErrorDetails | null>(null);
