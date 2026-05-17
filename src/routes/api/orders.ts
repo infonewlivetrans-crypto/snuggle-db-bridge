@@ -78,40 +78,54 @@ export const Route = createFileRoute("/api/orders")({
         }
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);
-        if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
+        if (error) {
+          console.error("/api/orders GET error:", error.message);
+          return jsonResponse([], { headers: { "X-Total-Count": "0", "X-Error": error.message } });
+        }
 
         let rows: unknown[] = Array.isArray(data) ? data : [];
         if (includeRoutes && rows.length > 0) {
-          const ids = (rows as { id: string }[]).map((r) => r.id);
-          const { data: pts } = await auth.client
-            .from("route_points")
-            .select(
-              `order_id,
-               route:route_id (
-                 id, route_number, route_date, driver_name, status, organization, transport_kind,
-                 warehouse:warehouse_id ( id, name, city ),
-                 carrier:carrier_id ( id, company_name ),
-                 driver:driver_id ( id, full_name, phone ),
-                 vehicle:vehicle_id ( id, plate_number, brand, model )
-               )`,
-            )
-            .in("order_id", ids);
-          const map = new Map<string, unknown>();
-          for (const p of pts ?? []) {
-            const pp = p as { order_id: string; route: unknown };
-            if (pp.order_id && pp.route && !map.has(pp.order_id)) {
-              map.set(pp.order_id, pp.route);
+          const ids = (rows as { id: string }[]).map((r) => r.id).filter(Boolean);
+          if (ids.length > 0) {
+            const { data: pts, error: ptsErr } = await auth.client
+              .from("route_points")
+              .select(
+                `order_id,
+                 route:route_id (
+                   id, route_number, route_date, driver_name, status, organization, transport_kind,
+                   warehouse:warehouse_id ( id, name, city ),
+                   carrier:carrier_id ( id, company_name ),
+                   driver:driver_id ( id, full_name, phone ),
+                   vehicle:vehicle_id ( id, plate_number, brand, model )
+                 )`,
+              )
+              .in("order_id", ids);
+            if (ptsErr) {
+              console.error("/api/orders includeRoutes error:", ptsErr.message);
             }
+            const map = new Map<string, unknown>();
+            for (const p of pts ?? []) {
+              const pp = p as { order_id: string | null; route: unknown };
+              if (pp?.order_id && pp.route && !map.has(pp.order_id)) {
+                map.set(pp.order_id, pp.route);
+              }
+            }
+            rows = (rows as { id: string }[]).map((r) => ({
+              ...r,
+              route: map.get(r.id) ?? null,
+            }));
+          } else {
+            rows = (rows as { id: string }[]).map((r) => ({ ...r, route: null }));
           }
-          rows = (rows as { id: string }[]).map((r) => ({
-            ...r,
-            route: map.get(r.id) ?? null,
-          }));
         }
 
         return jsonResponse(rows, {
           headers: { ...cacheHeaders(60), "X-Total-Count": String(count ?? rows.length) },
         });
+        } catch (e) {
+          console.error("/api/orders GET unhandled:", e);
+          return jsonResponse([], { headers: { "X-Total-Count": "0", "X-Error": "unhandled" } });
+        }
       },
 
       POST: async ({ request }) => {
