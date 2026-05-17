@@ -162,8 +162,8 @@ function parseBlockLines(lines: string[], startSourceLine: number): ParsedItem[]
     // Должен иметь высокий приоритет: если текущий буфер уже накопил
     // хотя бы одно число → закрываем его и начинаем новый.
     if (/^\d{1,4}(?:\.\d+)?$/.test(s)) {
-      // Если уже есть незакрытый буфер с qty — это число открывает новый.
-      if (buf && buf.numbers.length > 0 && buf.unit) {
+      const prev = buf as Buf | null;
+      if (prev && prev.numbers.length > 0 && prev.unit) {
         flush();
       }
       const cur = buf as Buf | null;
