@@ -11,12 +11,22 @@ import {
   getRequestHost,
 } from "@tanstack/react-start/server";
 
-const SUPABASE_URL =
-  process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
-const SUPABASE_PUBLISHABLE_KEY =
-  process.env.SUPABASE_PUBLISHABLE_KEY ??
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-  "";
+function getSupabaseUrl(): string {
+  return (
+    process.env.SUPABASE_URL ??
+    process.env.VITE_SUPABASE_URL ??
+    ""
+  );
+}
+function getSupabasePublishableKey(): string {
+  return (
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    ""
+  );
+}
 
 export const ACCESS_COOKIE = "sb-access-token";
 export const REFRESH_COOKIE = "sb-refresh-token";
@@ -73,7 +83,7 @@ export function clearSessionCookies() {
 }
 
 function makeClient(token?: string): SupabaseClient<Database> {
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(getSupabaseUrl(), getSupabasePublishableKey(), {
     global: token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : undefined,
