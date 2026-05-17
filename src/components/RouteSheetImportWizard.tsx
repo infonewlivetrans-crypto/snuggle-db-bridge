@@ -877,6 +877,37 @@ export function RouteSheetImportWizard({
               </AlertDescription>
             </Alert>
 
+            {/* Итоговые счётчики */}
+            <div className="grid gap-2 sm:grid-cols-3">
+              <Stat label="Заказов создано" value={result.inserted} />
+              <Stat label="Точек маршрута" value={result.inserted} />
+              <Stat label="Товарных строк" value={result.itemsCreated} />
+              {result.itemsUnmatched > 0 && (
+                <Stat label="Не сопоставлено товаров" value={result.itemsUnmatched} />
+              )}
+              {result.ordersWithoutItems.length > 0 && (
+                <Stat
+                  label="Заказы без товарного состава"
+                  value={result.ordersWithoutItems.length}
+                />
+              )}
+            </div>
+
+            {result.ordersWithoutItems.length > 0 && (
+              <div className="rounded-md border">
+                <div className="border-b bg-secondary/40 px-3 py-2 text-sm font-medium">
+                  Заказы без товарного состава
+                </div>
+                <div className="p-3 text-xs flex flex-wrap gap-1">
+                  {result.ordersWithoutItems.slice(0, 100).map((n) => (
+                    <Badge key={n} variant="outline" className="font-mono">
+                      {n}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {result.headerMissing.length > 0 && (
               <Alert>
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
