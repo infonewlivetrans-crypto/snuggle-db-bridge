@@ -29,8 +29,32 @@ export const Route = createFileRoute("/admin/settings")({
 });
 
 function AdminSettingsPage() {
-  const data = Route.useLoaderData();
   const router = useRouter();
+  const settingsQ = useQuery({
+    queryKey: ["admin.settings.all"],
+    queryFn: fetchAllSettings,
+  });
+  const versionsQ = useQuery({
+    queryKey: ["admin.app-versions.all"],
+    queryFn: fetchAllAppVersions,
+  });
+
+  if (settingsQ.isLoading || versionsQ.isLoading) {
+    return (
+      <div className="p-8 text-muted-foreground flex items-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Загрузка настроек…
+      </div>
+    );
+  }
+  if (settingsQ.error) {
+    return <div className="p-8 text-destructive">Ошибка загрузки: {(settingsQ.error as Error).message}</div>;
+  }
+  const data = { settings: settingsQ.data ?? [], versions: versionsQ.data ?? [] };
+  const invalidate = () => {
+    settingsQ.refetch();
+    versionsQ.refetch();
+    router.invalidate();
+  };
 
   return (
     <div className="min-h-screen bg-background">
