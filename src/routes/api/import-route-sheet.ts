@@ -27,6 +27,21 @@ type IncomingOrder = {
   comment: string | null;
 };
 
+type IncomingItem = {
+  sourceLine: number;
+  lineNumber: number | null;
+  nomenclature: string;
+  characteristic: string | null;
+  quality: string | null;
+  unit: string | null;
+  qty: number | null;
+  weight_kg: number | null;
+  volume_m3: number | null;
+  comment: string | null;
+  raw_text: string;
+  needsReview: boolean;
+};
+
 type IncomingPayload = {
   routeNumber: string | null;
   routeDate: string | null;
@@ -38,6 +53,8 @@ type IncomingPayload = {
   driverPhone: string | null;
   vehiclePlate: string | null;
   orders: IncomingOrder[];
+  /** Опциональный товарный состав: ключ — нормализованный номер заказа. */
+  itemsByOrderNumber?: Record<string, IncomingItem[]>;
 };
 
 function paymentToDb(
