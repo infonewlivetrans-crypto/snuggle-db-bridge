@@ -90,69 +90,32 @@ export type InviteRow = {
   last_used_at: string | null;
 };
 
-/** Создание скрытого пользователя + invite-записи. */
+/**
+ * Создание скрытого пользователя + invite-записи через SECURITY DEFINER RPC
+ * в Lovable Cloud. RPC проверяет роль администратора по auth.uid() и сама
+ * выполняет все привилегированные операции (auth.users, auth.identities,
+ * profiles, user_roles, invite_tokens). Никакой зависимости от
+ * SUPABASE_SERVICE_ROLE_KEY на сервере приложения.
+ */
 export async function adminCreateInvite(args: CreateInviteArgs): Promise<InviteRow> {
   if (!args.fullName?.trim()) throw new Error("Укажите ФИО");
   if (!ALLOWED_INVITE_ROLES.includes(args.role)) {
     throw new Error("Инвайт-ссылки доступны для ролей: администратор, логист, менеджер, водитель");
   }
 
-  const token = generateToken();
-  const password = randomPassword();
-  const email = inviteEmail(token);
-
-  // 1) скрытый Supabase-пользователь
-  const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: {
-      full_name: args.fullName,
-      invite: true,
-      role: args.role,
-    },
-  });
-  if (createErr || !created.user) {
-    throw new Error(createErr?.message ?? "Не удалось создать пользователя");
-  }
-  const userId = created.user.id;
-
-  // 2) профиль (на случай, если триггер не сработал)
-  await supabaseAdmin
-    .from("profiles")
-    .upsert(
-      { user_id: userId, email, full_name: args.fullName, is_active: true },
-      { onConflict: "user_id" },
-    );
-
-  // 3) роль
-  await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: args.role });
-
-  // 4) запись инвайта
   const phoneNorm = normalizeRuPhone(args.phone ?? null);
-  const { data: inv, error: invErr } = await supabaseAdmin
-    .from("invite_tokens")
-    .insert({
-      token,
-      user_id: userId,
-      full_name: args.fullName.trim(),
-      phone: phoneNorm,
-      role: args.role,
-      comment: args.comment?.trim() || null,
-      driver_id: args.driverId ?? null,
-      manager_name: args.managerName?.trim() || null,
-      is_active: true,
-      created_by: args.createdBy ?? null,
-    })
-    .select("*")
-    .single();
-  if (invErr || !inv) {
-    // откат пользователя, чтобы не оставить «висящего»
-    await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => undefined);
-    throw new Error(invErr?.message ?? "Не удалось создать инвайт");
-  }
-
-  return inv as InviteRow;
+  const caller = await getCallerSupabaseClient();
+  const { data, error } = await caller.rpc("admin_create_invite", {
+    p_full_name: args.fullName.trim(),
+    p_phone: phoneNorm,
+    p_role: args.role,
+    p_comment: args.comment?.trim() || null,
+    p_driver_id: args.driverId ?? null,
+    p_manager_name: args.managerName?.trim() || null,
+  } as never);
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Не удалось создать инвайт");
+  return data as unknown as InviteRow;
 }
 
 export async function adminListInvites(client?: DbClient): Promise<InviteRow[]> {
