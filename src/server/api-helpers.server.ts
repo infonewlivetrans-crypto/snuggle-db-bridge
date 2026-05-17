@@ -61,8 +61,20 @@ export function makeAnonClient(): SupabaseClient<Database> {
 export function makeAdminClient(): SupabaseClient<Database> {
   const url = getSupabaseUrl();
   const serviceRoleKey = getSupabaseServiceRoleKey();
-  if (!url || !serviceRoleKey) {
-    throw new Error("Server database configuration is missing");
+  if (!url) {
+    throw new Error("Missing SUPABASE_URL for admin client");
+  }
+  if (!serviceRoleKey) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY for admin client");
+  }
+  // Защитная проверка: если по ошибке в env положили publishable/anon key
+  // под именем SUPABASE_SERVICE_ROLE_KEY, Supabase вернёт "Invalid API key"
+  // на любую admin-операцию. Ловим это раньше и с понятным сообщением.
+  const publishable = getSupabasePublishableKey();
+  if (publishable && serviceRoleKey === publishable) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY equals publishable/anon key — admin client cannot use a public key",
+    );
   }
   return createClient<Database>(url, serviceRoleKey, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
