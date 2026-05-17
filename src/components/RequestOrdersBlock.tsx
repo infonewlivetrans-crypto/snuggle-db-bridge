@@ -154,8 +154,8 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
       ) : (
         <ul className="space-y-2">
           {list.map((it, idx) => {
-            const o = it.order;
-            const sum = o.amount_due ?? o.delivery_cost ?? 0;
+            const o = it.order ?? ({} as RequestOrder["order"]);
+            const sum = (o?.amount_due ?? o?.delivery_cost ?? 0) as number;
             return (
               <li
                 key={it.id}
