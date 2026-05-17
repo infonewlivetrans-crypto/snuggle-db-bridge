@@ -718,6 +718,120 @@ export function RouteSheetImportWizard({
               </Table>
             </div>
 
+            {/* Товарный состав (опционально) */}
+            <div className="rounded-lg border bg-card p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium">Товарный состав (опционально)</div>
+                {itemsParsed && (
+                  <div className="text-xs text-muted-foreground">
+                    Распознано <b>{itemsParsed.totals.items}</b> товарных строк
+                    по <b>{itemsParsed.totals.orders}</b> заказам
+                    {itemsParsed.totals.needsReview > 0 && (
+                      <>
+                        {" "}· требуют проверки:{" "}
+                        <b className="text-amber-600">{itemsParsed.totals.needsReview}</b>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Загрузите Excel/CSV/TXT с товарами или вставьте текст из 1С.
+                Группировка по «Заказ покупателя КП_…». Без него заявка тоже создастся.
+              </p>
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="text">Вставить текст</TabsTrigger>
+                  <TabsTrigger value="file">Загрузить файл</TabsTrigger>
+                </TabsList>
+                <TabsContent value="text" className="space-y-2">
+                  <Textarea
+                    value={itemsText}
+                    onChange={(e) => {
+                      setItemsText(e.target.value);
+                      setItemsError(null);
+                    }}
+                    placeholder="Заказ покупателя КП_ЮФ_02740 от 13.05.2026 0:00:00&#10;1&#10;BО1. Арочная Оптима Каркас 3*4&#10;Новый&#10;шт&#10;45&#10;1,000"
+                    className="min-h-[140px] font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={!itemsText.trim() || itemsBusy}
+                    onClick={() => {
+                      setItemsBusy(true);
+                      setItemsError(null);
+                      try {
+                        const r = parseOrderItemsText(itemsText);
+                        setItemsParsed(r);
+                        if (r.totals.items === 0) {
+                          setItemsError(
+                            r.warnings[0] ?? "Не распознано ни одной товарной строки",
+                          );
+                        }
+                      } catch (e) {
+                        setItemsError(e instanceof Error ? e.message : "Ошибка парсера");
+                      } finally {
+                        setItemsBusy(false);
+                      }
+                    }}
+                  >
+                    Распознать товары
+                  </Button>
+                </TabsContent>
+                <TabsContent value="file" className="space-y-2">
+                  <Input
+                    type="file"
+                    accept=".xlsx,.xls,.csv,.txt"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setItemsFile(f);
+                      setItemsError(null);
+                      if (!f) return;
+                      setItemsBusy(true);
+                      try {
+                        const r = await parseOrderItemsFile(f);
+                        setItemsParsed(r);
+                        if (r.totals.items === 0) {
+                          setItemsError(
+                            r.warnings[0] ?? "Не распознано ни одной товарной строки",
+                          );
+                        }
+                      } catch (err) {
+                        setItemsError(err instanceof Error ? err.message : "Ошибка чтения файла");
+                      } finally {
+                        setItemsBusy(false);
+                      }
+                    }}
+                  />
+                  {itemsFile && (
+                    <div className="text-xs text-muted-foreground">
+                      {itemsFile.name} · {(itemsFile.size / 1024).toFixed(1)} КБ
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+              {itemsError && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">{itemsError}</AlertDescription>
+                </Alert>
+              )}
+              {itemsParsed && itemsParsed.totals.orders > 0 && (
+                <div className="rounded-md border bg-muted/30 p-2 text-xs">
+                  <div className="font-medium mb-1">Распознанные заказы:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {Object.entries(itemsParsed.byOrderNumber).map(([k, v]) => (
+                      <Badge key={k} variant="outline" className="font-mono">
+                        {k} · {v.length}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {errorMsg && (
               <ErrorDetailsPanel
                 title="Ошибка импорта маршрутного листа"
