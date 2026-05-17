@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAdmin } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 export const Route = createFileRoute("/api/admin/users/cleanup")({
   server: {
     handlers: {

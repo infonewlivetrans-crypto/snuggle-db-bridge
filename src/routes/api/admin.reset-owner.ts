@@ -4,7 +4,8 @@
 // Передаётся в заголовке `x-reset-token` или в теле как { token }.
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import { clearSessionCookies } from "@/server/auth-cookies.server";
 
 export const Route = createFileRoute("/api/admin/reset-owner")({

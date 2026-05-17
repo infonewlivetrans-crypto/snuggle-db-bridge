@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAdmin } from "@/server/api-helpers.server";
 import { runBackup } from "@/server/backups.server";
 import { writeAudit } from "@/server/audit.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 async function getName(userId: string): Promise<string | null> {
   const { data } = await supabaseAdmin.from("profiles").select("full_name").eq("user_id", userId).maybeSingle();
   return ((data as { full_name?: string | null } | null)?.full_name) ?? null;

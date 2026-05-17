@@ -1,4 +1,5 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { AppRole } from "@/lib/auth/roles";

@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireCookieAuth } from "@/server/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import { writeAudit } from "../../server/audit.server";
 import { getBackupDownloadUrl, listBackups, runBackup } from "../../server/backups.server";
 

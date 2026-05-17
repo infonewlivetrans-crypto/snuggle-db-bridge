@@ -1,6 +1,7 @@
 import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import type { Database } from "@/integrations/supabase/types";
 import { getSessionUser } from "@/server/auth-cookies.server";
 

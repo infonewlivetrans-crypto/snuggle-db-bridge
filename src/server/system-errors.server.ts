@@ -1,5 +1,5 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 export type SystemErrorInput = {
   code?: string | null;
   title: string;

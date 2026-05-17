@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole, requireAuth } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 const ROLES = ["driver", "logist", "manager", "warehouse", "director"] as const;
 type FeedbackRole = (typeof ROLES)[number];
 const ROLE_SET = new Set<string>(ROLES);

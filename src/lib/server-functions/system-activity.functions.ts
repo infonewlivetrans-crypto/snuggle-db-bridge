@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireCookieAuth } from "@/server/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 async function ensureAdminOrDirector(userId: string) {
   const { data: roles } = await supabaseAdmin
     .from("user_roles")
