@@ -178,22 +178,115 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           );
         }
 
-        if (!payload || !Array.isArray(payload.orders)) {
+        const tr = payload.transportRequest ?? null;
+        const hasTr = !!tr;
+        const rsOrdersIn = Array.isArray(payload.orders) ? payload.orders : [];
+        const hasRsOrders = rsOrdersIn.length > 0;
+
+        if (!hasTr && !hasRsOrders) {
           return jsonResponse(
-            { error: "Файл маршрутного листа не содержит заказов" },
+            {
+              error:
+                "Импорт пуст: нет ни заявки на транспорт, ни маршрутного листа с заказами",
+            },
             { status: 400 },
           );
         }
 
+        // Объединение шапки: TR имеет приоритет для шапки/источника,
+        // routeSheet — для операционных полей (carrier/driver/vehicle берём
+        // прежде всего из RS, если в нём указаны).
+        const mergedRouteNumber =
+          payload.routeNumber?.trim() ||
+          tr?.requestNumber?.trim() ||
+          null;
+        const mergedRouteDate =
+          payload.routeDate ||
+          tr?.loadingDate ||
+          tr?.requestDate ||
+          null;
+        const mergedOrganization = payload.organization ?? tr?.organization ?? null;
+        const mergedCarrier = payload.carrier ?? tr?.carrier ?? null;
+        const mergedDriverName = payload.driverName ?? tr?.driverName ?? null;
+        const mergedDriverPhone = payload.driverPhone ?? tr?.driverPhone ?? null;
+        const mergedVehiclePlate = payload.vehiclePlate ?? tr?.vehiclePlate ?? null;
+        const mergedContract = payload.contract ?? null;
+
+        // Перезаписываем payload-подобный объект, дальше код работает с ним.
+        const effective = {
+          routeNumber: mergedRouteNumber,
+          routeDate: mergedRouteDate,
+          organization: mergedOrganization,
+          carrier: mergedCarrier,
+          driverName: mergedDriverName,
+          driverPhone: mergedDriverPhone,
+          vehiclePlate: mergedVehiclePlate,
+          contract: mergedContract,
+        };
+
         const warnings: string[] = [];
         const headerMissing: string[] = [];
-        if (!payload.routeNumber) headerMissing.push("Номер маршрутного листа");
-        if (!payload.routeDate) headerMissing.push("Дата");
-        if (!payload.carrier) headerMissing.push("Перевозчик");
-        if (!payload.driverName) headerMissing.push("Водитель");
-        if (!payload.driverPhone) headerMissing.push("Телефон водителя");
-        if (!payload.vehiclePlate) headerMissing.push("Номер ТС");
-        if (!payload.contract) headerMissing.push("Договор");
+        if (!effective.routeNumber) headerMissing.push("Номер маршрутного листа");
+        if (!effective.routeDate) headerMissing.push("Дата");
+        if (!effective.carrier) headerMissing.push("Перевозчик");
+        if (!effective.driverName) headerMissing.push("Водитель");
+        if (!effective.driverPhone) headerMissing.push("Телефон водителя");
+        if (!effective.vehiclePlate) headerMissing.push("Номер ТС");
+        if (!effective.contract && !hasTr) headerMissing.push("Договор");
+
+        // Если есть только заявка на транспорт без маршрутного листа —
+        // синтезируем orders из orderNumbers (или один синтетический).
+        // Эти заказы пройдут стандартный путь создания orders + route_points.
+        const synthesizedFromTr = !hasRsOrders && hasTr;
+        if (synthesizedFromTr) {
+          const keys: Array<string | null> =
+            tr!.orderNumbers.length > 0 ? [...tr!.orderNumbers] : [null];
+          rsOrdersIn.push(
+            ...keys.map<IncomingOrder>((k, idx) => ({
+              rowIndex: idx + 1,
+              orderNumber: k,
+              orderDate: tr!.requestDate,
+              customer: tr!.consignee ?? tr!.contactPerson ?? null,
+              deliveryAddress: tr!.unloadingAddress,
+              contactPhone: tr!.contactPhone,
+              deliveryPeriod: tr!.loadingTime,
+              amountToCollect: null,
+              paymentRaw: null,
+              paymentKind: "unknown",
+              requiresQr: false,
+              managerName: null,
+              managerPhone: null,
+              organization: tr!.organization,
+              comment: [
+                tr!.cargoDescription ? `Груз: ${tr!.cargoDescription}` : null,
+                tr!.comment,
+              ]
+                .filter(Boolean)
+                .join(" · ") || null,
+            })),
+          );
+          if (keys.length > 1 && tr!.unloadingAddress) {
+            warnings.push(
+              "Адрес выгрузки общий для всех заказов — проверьте точки для каждого заказа.",
+            );
+          }
+          if (!tr!.unloadingAddress) {
+            warnings.push(
+              "Адрес доставки не найден в заявке — заказы созданы с пометкой «Требует заполнения».",
+            );
+          }
+        }
+
+        // Перетягиваем именованные алиасы старой логики — она ниже читает payload.*
+        payload.routeNumber = effective.routeNumber;
+        payload.routeDate = effective.routeDate;
+        payload.organization = effective.organization;
+        payload.carrier = effective.carrier;
+        payload.driverName = effective.driverName;
+        payload.driverPhone = effective.driverPhone;
+        payload.vehiclePlate = effective.vehiclePlate;
+        payload.contract = effective.contract;
+        payload.orders = rsOrdersIn;
 
         // 1. Перевозчик (тихий upsert)
         let carrierId: string | null = null;
