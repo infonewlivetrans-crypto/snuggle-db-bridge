@@ -399,6 +399,16 @@ export function TransportRequestImportPanel({
             </AlertDescription>
           </Alert>
 
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 text-center text-sm">
+            <Stat label="Заказов" value={result.ordersCreated} />
+            <Stat label="Точек" value={result.pointsCreated} />
+            <Stat label="Товаров" value={result.itemsCreated} />
+            <Stat
+              label="Без коорд."
+              value={result.summary.unloadingGeo ? 0 : result.pointsCreated}
+            />
+          </div>
+
           <div className="grid gap-2 sm:grid-cols-2 text-sm">
             <Field label="Дата погрузки" value={result.summary.loadingDate} />
             <Field label="Время погрузки" value={result.summary.loadingTime} />
