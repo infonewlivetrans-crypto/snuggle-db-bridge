@@ -328,6 +328,7 @@ export function RouteSheetImportWizard({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [mode, setMode] = useState<"route_sheet" | "transport_request">("route_sheet");
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
