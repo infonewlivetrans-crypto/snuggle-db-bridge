@@ -344,10 +344,174 @@ export const Route = createFileRoute("/api/import-transport-request")({
           }
         }
 
+        // 7) Создаём orders + route_points (по списку КП_..., либо один синтетический)
+        const orderKeys: Array<string | null> =
+          payload.orderNumbers.length > 0 ? [...payload.orderNumbers] : [null];
+
+        const deliveryAddress =
+          payload.unloadingAddress?.trim() || ADDRESS_PLACEHOLDER;
+        const contactPhoneNorm = payload.contactPhone
+          ? (normalizeRuPhone(payload.contactPhone) ?? payload.contactPhone)
+          : null;
+
+        if (!payload.unloadingAddress) {
+          warnings.push(
+            "Адрес доставки не найден — заказы созданы с пометкой «Требует заполнения».",
+          );
+        } else if (orderKeys.length > 1) {
+          warnings.push(
+            "Адрес выгрузки общий — проверьте точки для каждого заказа.",
+          );
+        }
+
+        type CreatedOrder = { id: string; orderNumber: string; keys: string[] };
+        const createdOrders: CreatedOrder[] = [];
+        let pointNumber = 1;
+        let pointsCreated = 0;
+
+        for (const rawKey of orderKeys) {
+          const orderNumber =
+            rawKey?.trim() ||
+            `TR-${Date.now().toString().slice(-6)}-${pointNumber}`;
+          const orderPayload = {
+            order_number: orderNumber,
+            onec_order_number: rawKey,
+            contact_name: payload.consignee ?? payload.contactPerson ?? null,
+            contact_phone: contactPhoneNorm,
+            delivery_address: deliveryAddress,
+            latitude: unloadingGeo?.lat ?? null,
+            longitude: unloadingGeo?.lng ?? null,
+            payment_type: "cash" as const,
+            comment:
+              [
+                payload.cargoDescription
+                  ? `Груз: ${payload.cargoDescription}`
+                  : null,
+                payload.comment,
+                deliveryAddress === ADDRESS_PLACEHOLDER
+                  ? "⚠ Адрес доставки не найден"
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || null,
+            source: "transport_request",
+          };
+          const { data: ord, error: oErr } = await sb
+            .from("orders")
+            .insert(orderPayload as never)
+            .select("id")
+            .single();
+          if (oErr || !ord) {
+            warnings.push(
+              `Заказ ${orderNumber}: ${oErr?.message ?? "не создан"}`,
+            );
+            continue;
+          }
+          const orderId = (ord as { id: string }).id;
+
+          const { error: pErr } = await sb.from("route_points").insert({
+            route_id: routeId,
+            order_id: orderId,
+            point_number: pointNumber,
+          } as never);
+          if (pErr) {
+            warnings.push(
+              `Точка ${pointNumber} (${orderNumber}): ${pErr.message}`,
+            );
+          } else {
+            pointsCreated++;
+            pointNumber++;
+          }
+          createdOrders.push({
+            id: orderId,
+            orderNumber,
+            keys: [normKey(rawKey), normKey(orderNumber)].filter(Boolean),
+          });
+        }
+
+        // 8) Товарный состав (опционально) — матчинг по КП_...
+        const itemsByOrderNumber = payload.itemsByOrderNumber ?? {};
+        let itemsCreated = 0;
+        let itemsUnmatched = 0;
+        const ordersWithoutItems: string[] = [];
+        if (Object.keys(itemsByOrderNumber).length > 0) {
+          const ordersByKey = new Map<string, string>();
+          for (const o of createdOrders) {
+            for (const k of o.keys) {
+              if (k && !ordersByKey.has(k)) ordersByKey.set(k, o.id);
+            }
+          }
+          const usedKeys = new Set<string>();
+          for (const [rawKey, rows] of Object.entries(itemsByOrderNumber)) {
+            const k = normKey(rawKey);
+            const targetId = ordersByKey.get(k);
+            if (!targetId) {
+              itemsUnmatched += rows.length;
+              warnings.push(
+                `Не сопоставлен товарный состав ${rawKey} (строк: ${rows.length})`,
+              );
+              continue;
+            }
+            usedKeys.add(k);
+            const toInsert = rows.map((it) => ({
+              order_id: targetId,
+              nomenclature:
+                it.nomenclature?.trim() || it.raw_text?.slice(0, 240) || "—",
+              characteristic: it.characteristic,
+              quality: it.quality,
+              qty: it.qty ?? 0,
+              unit: it.unit,
+              weight_kg: it.weight_kg,
+              volume_m3: it.volume_m3,
+              comment: it.needsReview
+                ? [it.comment, "⚠ Требует проверки", it.raw_text]
+                    .filter(Boolean)
+                    .join(" · ")
+                : it.comment,
+              external_id: it.lineNumber != null ? String(it.lineNumber) : null,
+              source: "excel" as const,
+            }));
+            const { error: iErr } = await sb
+              .from("order_items")
+              .insert(toInsert as never);
+            if (iErr) warnings.push(`Товарный состав ${rawKey}: ${iErr.message}`);
+            else itemsCreated += toInsert.length;
+          }
+          for (const o of createdOrders) {
+            if (!o.keys.some((k) => usedKeys.has(k))) {
+              ordersWithoutItems.push(o.orderNumber);
+            }
+          }
+        }
+
+        // 9) Пересчёт сумм по товарному составу (если был); иначе оставляем шапку файла
+        const allItems = Object.values(itemsByOrderNumber).flat();
+        const sumWeight = allItems.reduce((s, it) => s + (it.weight_kg ?? 0), 0);
+        const sumVolume = allItems.reduce((s, it) => s + (it.volume_m3 ?? 0), 0);
+        try {
+          await sb
+            .from("routes")
+            .update({
+              points_count: pointsCreated,
+              total_weight_kg:
+                sumWeight > 0 ? sumWeight : (payload.weightKg ?? 0),
+              total_volume_m3:
+                sumVolume > 0 ? sumVolume : (payload.volumeM3 ?? 0),
+            } as never)
+            .eq("id", routeId);
+        } catch {
+          /* не критично */
+        }
+
         return jsonResponse({
           ok: true,
           routeId,
           routeNumber: (route as { route_number: string }).route_number,
+          ordersCreated: createdOrders.length,
+          pointsCreated,
+          itemsCreated,
+          itemsUnmatched,
+          ordersWithoutItems,
           summary: {
             requestNumber: rawNumber,
             requestDate: payload.requestDate,
@@ -357,8 +521,8 @@ export const Route = createFileRoute("/api/import-transport-request")({
             unloadingAddress: payload.unloadingAddress,
             unloadingGeo,
             cargo: payload.cargoDescription,
-            weightKg: payload.weightKg,
-            volumeM3: payload.volumeM3,
+            weightKg: sumWeight > 0 ? sumWeight : payload.weightKg,
+            volumeM3: sumVolume > 0 ? sumVolume : payload.volumeM3,
             placesCount: payload.placesCount,
             orderNumbers: payload.orderNumbers,
           },
