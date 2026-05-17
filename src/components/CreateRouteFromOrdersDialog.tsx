@@ -83,6 +83,52 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
       if (orders.length === 0) throw new Error("Не выбран ни один заказ");
       if (!selectedDriver) throw new Error("Выберите водителя из справочника");
 
+      // Геокодируем заказы без координат батчами по 50.
+      const missing = orders.filter(
+        (o) => o.latitude == null || o.longitude == null,
+      );
+      const stillFailed: Array<{
+        id: string;
+        order_number: string;
+        address: string | null;
+      }> = [];
+      if (missing.length > 0) {
+        setGeocoding(true);
+        try {
+          for (let i = 0; i < missing.length; i += 50) {
+            const slice = missing.slice(i, i + 50);
+            const res = await apiPost<{
+              updated: Array<{ id: string; lat: number; lng: number }>;
+              failed: Array<{ id: string; order_number: string; address: string | null }>;
+            }>(
+              "/api/orders/geocode-batch",
+              { order_ids: slice.map((o) => o.id) },
+              30_000,
+            );
+            // обновим локальные данные заказа, чтобы карта/точки увидели координаты
+            for (const u of res.updated ?? []) {
+              const o = orders.find((x) => x.id === u.id);
+              if (o) {
+                o.latitude = u.lat;
+                o.longitude = u.lng;
+              }
+            }
+            for (const f of res.failed ?? []) stillFailed.push(f);
+          }
+        } finally {
+          setGeocoding(false);
+        }
+        setGeocodeFailed(stillFailed);
+        if (stillFailed.length > 0) {
+          toast.warning(
+            `Не удалось определить координаты: ${stillFailed.length}. Уточните адрес в заказе и повторите.`,
+          );
+          // не блокируем создание маршрута — пользователь видит список failed
+        }
+        // обновим списки заказов, чтобы остальной UI получил координаты
+        qc.invalidateQueries({ queryKey: ["orders"] });
+      }
+
       const number = routeNumber.trim();
       const srcRoute = await apiPost<{ id: string; route_number: string }>("/api/routes", {
         route_number: number || undefined,
