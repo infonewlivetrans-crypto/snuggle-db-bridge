@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
   jsonResponse,
+  makeAdminClient,
   requireAuth,
   requireAdmin,
   cacheHeaders,
 } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { writeAudit } from "@/server/audit.server";
 
 const ALLOWED = new Set([
@@ -102,9 +102,10 @@ export const Route = createFileRoute("/api/routes/$id")({
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
         const id = params.id;
+        const admin = makeAdminClient();
 
         // 1. Загружаем заявку для проверки статуса и label.
-        const { data: route, error: loadErr } = await supabaseAdmin
+        const { data: route, error: loadErr } = await admin
           .from("routes")
           .select("id, route_number, status, request_status")
           .eq("id", id)
@@ -131,7 +132,7 @@ export const Route = createFileRoute("/api/routes/$id")({
 
         // 3. По заявке не должно быть активных (нечерновых) рейсов.
         // delivery_routes.source_request_id ссылается на routes.id (FK нет).
-        const { data: drList, error: drErr } = await supabaseAdmin
+        const { data: drList, error: drErr } = await admin
           .from("delivery_routes")
           .select("id, status")
           .eq("source_request_id", id);
@@ -150,7 +151,7 @@ export const Route = createFileRoute("/api/routes/$id")({
 
         // 4. Удаляем оставшиеся delivery_routes-черновики вручную
         // (FK к routes на source_request_id отсутствует).
-        const { error: cleanupErr } = await supabaseAdmin
+        const { error: cleanupErr } = await admin
           .from("delivery_routes")
           .delete()
           .eq("source_request_id", id);
@@ -163,7 +164,7 @@ export const Route = createFileRoute("/api/routes/$id")({
 
         // 5. Удаляем саму заявку. route_points / route_offers /
         // route_carrier_* имеют FK ON DELETE CASCADE на routes.
-        const { error: delErr } = await supabaseAdmin
+        const { error: delErr } = await admin
           .from("routes")
           .delete()
           .eq("id", id);
@@ -176,7 +177,7 @@ export const Route = createFileRoute("/api/routes/$id")({
 
         // 6. Аудит.
         try {
-          const { data: prof } = await supabaseAdmin
+          const { data: prof } = await admin
             .from("profiles")
             .select("full_name")
             .eq("user_id", auth.userId)
