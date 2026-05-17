@@ -244,7 +244,8 @@ function createImportDiagnostics(args: {
   };
 }
 
-function getRouteInsertPayloadForDiagnostics(parsed: ParsedRouteSheet) {
+function getRouteInsertPayloadForDiagnostics(parsed: ParsedRouteSheet | null) {
+  if (!parsed) return { route_number: "<unknown>", source: "transport_request" };
   const routeNumber = parsed.routeNumber?.trim() || "RL-<generated>";
   const routeDate = parsed.routeDate || "<today>";
   const headerMissing: string[] = [];
