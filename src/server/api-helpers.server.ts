@@ -20,6 +20,10 @@ function getSupabasePublishableKey(): string {
   );
 }
 function getSupabaseServiceRoleKey(): string {
+  // ВНИМАНИЕ: admin client должен использовать СТРОГО service_role key.
+  // Никаких fallback на ANON / PUBLISHABLE — иначе Supabase вернёт
+  // "Invalid API key" при попытке выполнить операцию, требующую
+  // service_role (например, bypass RLS при admin-delete).
   return process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 }
 
