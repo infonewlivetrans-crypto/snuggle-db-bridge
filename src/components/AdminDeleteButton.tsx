@@ -24,7 +24,7 @@ type Props = {
   /** DELETE URL, например /api/orders/<id>. */
   deleteUrl: string;
   /** Колбэк после успешного удаления (например, redirect или refetch). */
-  onDeleted?: () => void;
+  onDeleted?: () => void | Promise<void>;
   /** Доп. описание ограничений (когда и почему может не получиться). */
   description?: string;
   /** Размер/вариант кнопки. */
