@@ -1,10 +1,44 @@
 import { makeAdminClient } from "@/server/api-helpers.server";
 const supabaseAdmin = makeAdminClient();
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeRuPhone } from "@/lib/phone";
+import { getRequest } from "@tanstack/react-start/server";
+import { getSessionUser } from "@/server/auth-cookies.server";
 
 type DbClient = SupabaseClient<Database>;
+
+/**
+ * Возвращает Supabase-клиент, действующий от имени текущего пользователя
+ * (cookie-сессия или Bearer). Используется для вызова SECURITY DEFINER RPC,
+ * где внутри необходим auth.uid() — без зависимости от service_role.
+ */
+async function getCallerSupabaseClient(): Promise<DbClient> {
+  const session = await getSessionUser();
+  if (session?.client) return session.client as DbClient;
+
+  let token: string | null = null;
+  try {
+    const req = getRequest();
+    const h = req?.headers?.get("authorization") ?? req?.headers?.get("Authorization");
+    if (h?.startsWith("Bearer ")) token = h.slice(7).trim() || null;
+  } catch {
+    token = null;
+  }
+  if (!token) throw new Error("unauthorized");
+
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
+  const key =
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    "";
+  return createClient<Database>(url, key, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
 
 export type InviteRole = "admin" | "logist" | "manager" | "driver";
 const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
