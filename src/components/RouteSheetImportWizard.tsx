@@ -554,7 +554,7 @@ export function RouteSheetImportWizard({
         routeId: json.routeId,
         routeNumber: json.routeNumber ?? "",
         inserted: json.inserted ?? 0,
-        total: json.total ?? parsed.orders.length,
+        total: json.total ?? parsed?.orders.length ?? 0,
         itemsCreated: json.itemsCreated ?? 0,
         itemsUnmatched: json.itemsUnmatched ?? 0,
         ordersWithoutItems: json.ordersWithoutItems ?? [],
