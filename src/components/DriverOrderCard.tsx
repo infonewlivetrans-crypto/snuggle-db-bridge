@@ -231,7 +231,8 @@ export function DriverOrderCard({
           </div>
         </div>
 
-        {/* Время */}
+        {/* Что выгрузить — товарный состав заказа */}
+        <OrderItemsBlock orderId={order.id} />
         <div className="flex items-start gap-2 text-xs">
           <Clock className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
           <div className="space-y-0.5">
