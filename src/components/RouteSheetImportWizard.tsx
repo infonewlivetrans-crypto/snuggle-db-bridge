@@ -423,7 +423,10 @@ export function RouteSheetImportWizard({
           "content-type": "application/json",
           ...authHeaders(),
         },
-        body: JSON.stringify(parsed),
+        body: JSON.stringify({
+          ...parsed,
+          itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
+        }),
       });
 
       const rawText = await res.text();
