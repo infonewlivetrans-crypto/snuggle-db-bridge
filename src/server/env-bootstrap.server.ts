@@ -18,8 +18,17 @@ if (typeof process !== "undefined" && process.env) {
   if (!env.SUPABASE_URL && env.VITE_SUPABASE_URL) {
     env.SUPABASE_URL = env.VITE_SUPABASE_URL;
   }
-  if (!env.SUPABASE_PUBLISHABLE_KEY && env.VITE_SUPABASE_PUBLISHABLE_KEY) {
-    env.SUPABASE_PUBLISHABLE_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  // PUBLISHABLE_KEY и ANON_KEY — это один и тот же ключ под разными именами.
+  // PM2/Node-окружение в проде часто выставляет SUPABASE_ANON_KEY; код читает
+  // SUPABASE_PUBLISHABLE_KEY — нормализуем оба направления, плюс VITE_*-фоллбек.
+  const publishable =
+    env.SUPABASE_PUBLISHABLE_KEY ??
+    env.SUPABASE_ANON_KEY ??
+    env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    env.VITE_SUPABASE_ANON_KEY;
+  if (publishable) {
+    if (!env.SUPABASE_PUBLISHABLE_KEY) env.SUPABASE_PUBLISHABLE_KEY = publishable;
+    if (!env.SUPABASE_ANON_KEY) env.SUPABASE_ANON_KEY = publishable;
   }
 }
 
