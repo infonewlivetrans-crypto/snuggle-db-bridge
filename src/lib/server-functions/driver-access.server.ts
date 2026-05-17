@@ -1,7 +1,5 @@
-import { makeAdminClient } from "@/server/api-helpers.server";
-const supabaseAdmin = makeAdminClient();
 import { adminCreateInvite, type InviteRow } from "@/server/invites.server";
-import { assertCallerHasAnyRole, assertCallerIsAdmin, requireAuthenticatedUserId } from "./auth.server";
+import { assertCallerHasAnyRole, assertCallerIsAdmin, requireAuthenticatedUser } from "./auth.server";
 
 const STAFF_ROLES = ["admin", "logist", "manager"] as const;
 
@@ -15,13 +13,13 @@ export type DriverAccessStatus = {
 };
 
 export async function listDriverAccessStatus(): Promise<DriverAccessStatus[]> {
-  const userId = await requireAuthenticatedUserId();
-  await assertCallerHasAnyRole(userId, STAFF_ROLES);
+  const { userId, client } = await requireAuthenticatedUser();
+  await assertCallerHasAnyRole(userId, STAFF_ROLES, client);
 
-  const { data: drivers, error: dErr } = await supabaseAdmin.from("drivers").select("id, user_id");
+  const { data: drivers, error: dErr } = await client.from("drivers").select("id, user_id");
   if (dErr) throw new Error(dErr.message);
 
-  const { data: invites, error: iErr } = await supabaseAdmin
+  const { data: invites, error: iErr } = await client
     .from("invite_tokens")
     .select("id, driver_id, token, is_active, last_used_at, created_at")
     .eq("role", "driver")
@@ -49,15 +47,15 @@ export async function listDriverAccessStatus(): Promise<DriverAccessStatus[]> {
 }
 
 export async function backfillDriverInvites() {
-  const userId = await requireAuthenticatedUserId();
-  await assertCallerIsAdmin(userId);
+  const { userId, client } = await requireAuthenticatedUser();
+  await assertCallerIsAdmin(userId, client);
 
-  const { data: drivers, error: dErr } = await supabaseAdmin
+  const { data: drivers, error: dErr } = await client
     .from("drivers")
     .select("id, full_name, phone, user_id, is_active");
   if (dErr) throw new Error(dErr.message);
 
-  const { data: invites, error: iErr } = await supabaseAdmin
+  const { data: invites, error: iErr } = await client
     .from("invite_tokens")
     .select("driver_id, is_active")
     .eq("role", "driver");
@@ -108,10 +106,10 @@ export async function backfillDriverInvites() {
 }
 
 export async function assignDriverToRoute(data: { deliveryRouteId: string; driverId: string }) {
-  const userId = await requireAuthenticatedUserId();
-  await assertCallerHasAnyRole(userId, STAFF_ROLES);
+  const { userId, client } = await requireAuthenticatedUser();
+  await assertCallerHasAnyRole(userId, STAFF_ROLES, client);
 
-  const { data: route, error: rErr } = await supabaseAdmin
+  const { data: route, error: rErr } = await client
     .from("delivery_routes")
     .select("id, driver_id, assigned_driver, carrier_id")
     .eq("id", data.deliveryRouteId)
@@ -119,7 +117,7 @@ export async function assignDriverToRoute(data: { deliveryRouteId: string; drive
   if (rErr) throw new Error(rErr.message);
   if (!route) throw new Error("Маршрут не найден");
 
-  const { data: driver, error: dErr } = await supabaseAdmin
+  const { data: driver, error: dErr } = await client
     .from("drivers")
     .select("id, full_name, carrier_id, is_active")
     .eq("id", data.driverId)
@@ -137,7 +135,7 @@ export async function assignDriverToRoute(data: { deliveryRouteId: string; drive
     updates.carrier_id = dr.carrier_id;
   }
 
-  const { error: uErr } = await supabaseAdmin
+  const { error: uErr } = await client
     .from("delivery_routes")
     .update(updates as never)
     .eq("id", data.deliveryRouteId);
