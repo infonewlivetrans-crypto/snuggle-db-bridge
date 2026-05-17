@@ -44,6 +44,7 @@ export const Route = createFileRoute("/api/orders")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        try {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
 
