@@ -486,6 +486,31 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               missing.push("Менеджер");
             }
 
+            // Геокодирование адреса (если есть реальный адрес и есть бюджет).
+            let geoLat: number | null = null;
+            let geoLng: number | null = null;
+            if (
+              finalAddress &&
+              finalAddress !== ADDRESS_PLACEHOLDER &&
+              geocodeBudget > 0
+            ) {
+              geocodeBudget--;
+              try {
+                const outcome = await geocodeOrderRow(sb, finalAddress, {
+                  clientAddress: clientRow?.address ?? null,
+                  defaultRegion: defaultRegion ?? "Краснодарский край",
+                });
+                if (outcome) {
+                  geoLat = outcome.lat;
+                  geoLng = outcome.lng;
+                }
+              } catch (e) {
+                warnings.push(
+                  `Геокодер (стр. ${o.rowIndex}): ${e instanceof Error ? e.message : "ошибка"}`,
+                );
+              }
+            }
+
             const orderPayload = {
               order_number: orderNumber,
               onec_order_number: o.orderNumber,
