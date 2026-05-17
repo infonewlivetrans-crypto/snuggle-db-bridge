@@ -177,21 +177,36 @@ function DeliveryRoutePage() {
   });
 
   const pointIds = (points ?? []).map((p) => p.id);
+  // ВАЖНО: возвращаем Record<string, string[]>, а не Set.
+  // Set теряется при сериализации (persist React Query → localStorage → JSON),
+  // и потом обращение `.has(...)` на гидратированном `{}` падает с
+  // `has is not a function`. Массивы сериализуются безопасно.
   const { data: photoKindsByPoint } = useQuery({
     enabled: pointIds.length > 0,
     queryKey: ["route-point-photos-kinds", pointIds.join(",")],
-    queryFn: async (): Promise<Record<string, Set<string>>> => {
+    queryFn: async (): Promise<Record<string, string[]>> => {
       const rows = await apiGetAuth<Array<{ route_point_id: string; kind: string }>>(
         `/api/route-point-photos?point_ids=${encodeURIComponent(pointIds.join(","))}`,
       );
-      const map: Record<string, Set<string>> = {};
+      const map: Record<string, string[]> = {};
       for (const r of rows) {
-        if (!map[r.route_point_id]) map[r.route_point_id] = new Set();
-        map[r.route_point_id].add(r.kind);
+        const arr = map[r.route_point_id] ?? (map[r.route_point_id] = []);
+        if (!arr.includes(r.kind)) arr.push(r.kind);
       }
       return map;
     },
   });
+
+  // Безопасная проверка наличия kind в коллекции (Set | массив | объект | null).
+  // Защищает от ситуации, когда после гидратации кеша приходит не-Set.
+  const hasPhotoKind = (pointId: string, kind: string): boolean => {
+    const c = photoKindsByPoint?.[pointId] as unknown;
+    if (!c) return false;
+    if (c instanceof Set) return c.has(kind);
+    if (Array.isArray(c)) return c.includes(kind);
+    if (typeof c === "object") return Boolean((c as Record<string, unknown>)[kind]);
+    return false;
+  };
 
   const { data: driverGeo } = useQuery({
     queryKey: ["driver-geo-map", deliveryRouteId],
