@@ -609,26 +609,50 @@ export function RouteSheetImportWizard({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={mode}
-          onValueChange={(v) => setMode(v as "route_sheet" | "transport_request")}
-          className="flex flex-1 flex-col overflow-hidden"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="route_sheet">Маршрутный лист</TabsTrigger>
-            <TabsTrigger value="transport_request">Заявка на транспорт</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="transport_request" className="flex flex-1 flex-col overflow-hidden mt-3">
-            <TransportRequestImportPanel onClose={() => onOpenChange(false)} />
-          </TabsContent>
-
-          <TabsContent value="route_sheet" className="flex flex-1 flex-col overflow-hidden mt-3 space-y-3">
+        <div className="flex flex-1 flex-col overflow-hidden space-y-3">
 
         {step === "upload" && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="rs-file">Файл маршрутного листа</Label>
+              <Label htmlFor="tr-file">
+                Файл «Заявка на транспорт» (опционально)
+              </Label>
+              <Input
+                id="tr-file"
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setTrFile(f);
+                  setTrParsed(null);
+                  setErrorMsg(null);
+                  if (!f) return;
+                  try {
+                    const d = await parseTransportRequestXlsx(f);
+                    setTrParsed(d);
+                    toast.success(
+                      `Заявка №${d.requestNumber ?? "—"} распознана`,
+                    );
+                  } catch (err) {
+                    const msg =
+                      err instanceof Error ? err.message : "Файл не распознан";
+                    setErrorMsg(msg);
+                    toast.error(msg);
+                  }
+                }}
+              />
+              {trFile && trParsed && (
+                <div className="rounded-md border bg-secondary/30 p-2 text-xs">
+                  <b>{trFile.name}</b> · №{trParsed.requestNumber ?? "—"} ·
+                  погрузка: {trParsed.loadingDate ?? "—"}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rs-file">
+                Файл маршрутного листа (опционально, если есть заявка)
+              </Label>
               <Input
                 id="rs-file"
                 type="file"
@@ -639,7 +663,7 @@ export function RouteSheetImportWizard({
                 }}
               />
               <p className="text-xs text-muted-foreground">
-                Поддерживаются Excel-файлы из 1С (.xlsx, .xls)
+                Заявка + маршрутный лист + товарный состав = одна заявка/рейс.
               </p>
             </div>
             {file && (
