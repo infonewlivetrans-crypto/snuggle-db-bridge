@@ -219,6 +219,23 @@ export async function importRouteRowsServer(
             latitude = latitude ?? c.lat;
             longitude = longitude ?? c.lon;
           }
+          // Если координат всё ещё нет, но есть адрес — пробуем геокодер
+          // (но не более geocodeBudget раз на импорт, чтобы не тормозить большие файлы).
+          if ((latitude == null || longitude == null) && r.address && geocodeBudget > 0) {
+            geocodeBudget--;
+            try {
+              const { geocodeOrderRow } = await import("@/server/order-geocode.server");
+              const outcome = await geocodeOrderRow(sb, r.address, {
+                defaultRegion: defaultRegion ?? "Краснодарский край",
+              });
+              if (outcome) {
+                latitude = outcome.lat;
+                longitude = outcome.lng;
+              }
+            } catch (e) {
+              console.warn("[route-import] geocode failed:", e);
+            }
+          }
 
           const { data: order, error: orderErr } = await sb
             .from("orders")
