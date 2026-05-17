@@ -22,13 +22,21 @@ export function useDriverAccessStatus() {
 }
 
 export function DriverAccessCell({
+  driverId,
+  driverFullName,
+  driverPhone,
   status,
   onChanged,
 }: {
+  driverId: string;
+  driverFullName: string;
+  driverPhone?: string | null;
   status: DriverAccessStatus | null;
   onChanged: () => void;
 }) {
   const rotateFn = useServerFn(rotateInviteTokenFn);
+  const createFn = useServerFn(createInviteFn);
+
   const rotate = useMutation({
     mutationFn: async (id: string) => rotateFn({ data: { id } }),
     onSuccess: (inv) => {
@@ -40,16 +48,35 @@ export function DriverAccessCell({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  if (!status) return <span className="text-xs text-muted-foreground">—</span>;
+  const create = useMutation({
+    mutationFn: async () =>
+      createFn({
+        data: {
+          fullName: driverFullName,
+          phone: driverPhone ?? null,
+          role: "driver",
+          driverId,
+        },
+      }),
+    onSuccess: (inv) => {
+      const url = inviteUrl(inv.token);
+      navigator.clipboard?.writeText(url).then(
+        () => toast.success("Ссылка создана и скопирована"),
+        () => toast.success("Ссылка создана"),
+      );
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-  if (status.hasUserId) {
+  if (status?.hasUserId) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-status-success">
         <CheckCircle2 className="h-3.5 w-3.5" /> Активирован
       </span>
     );
   }
-  if (status.token && status.isActive) {
+  if (status?.token && status.isActive) {
     const url = inviteUrl(status.token);
     return (
       <div className="flex items-center gap-1.5">
@@ -81,7 +108,18 @@ export function DriverAccessCell({
       </div>
     );
   }
-  return <span className="text-xs text-muted-foreground">Нет ссылки</span>;
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      className="h-7 gap-1.5 px-2 text-xs"
+      onClick={() => create.mutate()}
+      disabled={create.isPending}
+    >
+      <Link2 className="h-3.5 w-3.5" />
+      {create.isPending ? "Создание…" : "Создать ссылку"}
+    </Button>
+  );
 }
 
 export function DriverAccessBulkPanel({
