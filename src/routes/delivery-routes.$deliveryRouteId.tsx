@@ -504,7 +504,7 @@ function DeliveryRoutePage() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field icon={<Calendar className="h-4 w-4" />} label="Дата">
-                {new Date(data.route_date).toLocaleDateString("ru-RU")}
+                {formatRouteDate(data.route_date)}
               </Field>
               <Field icon={<Hash className="h-4 w-4" />} label="Заявка">
                 {data.source_request ? (
