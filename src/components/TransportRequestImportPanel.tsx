@@ -5,6 +5,7 @@ import { authHeaders } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +20,11 @@ import {
   parseTransportRequestXlsx,
   type ParsedTransportRequest,
 } from "@/lib/transport-request-parser";
+import {
+  parseOrderItemsFile,
+  parseOrderItemsText,
+  type OrderItemsParseResult,
+} from "@/lib/order-items-parser";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
@@ -26,6 +32,11 @@ type ImportResponse = {
   ok: boolean;
   routeId: string;
   routeNumber: string;
+  ordersCreated: number;
+  pointsCreated: number;
+  itemsCreated: number;
+  itemsUnmatched: number;
+  ordersWithoutItems: string[];
   summary: {
     requestNumber: string | null;
     requestDate: string | null;
@@ -61,6 +72,9 @@ export function TransportRequestImportPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportResponse | null>(null);
+  const [itemsText, setItemsText] = useState("");
+  const [itemsParsed, setItemsParsed] =
+    useState<OrderItemsParseResult | null>(null);
 
   const reset = () => {
     setStep("upload");
@@ -69,6 +83,8 @@ export function TransportRequestImportPanel({
     setBusy(false);
     setError(null);
     setResult(null);
+    setItemsText("");
+    setItemsParsed(null);
   };
 
   const handleParse = async () => {
@@ -101,7 +117,10 @@ export function TransportRequestImportPanel({
       const res = await fetch("/api/import-transport-request", {
         method: "POST",
         headers: { "content-type": "application/json", ...authHeaders() },
-        body: JSON.stringify(parsed),
+        body: JSON.stringify({
+          ...parsed,
+          itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
+        }),
       });
       const text = await res.text();
       let json: Partial<ImportResponse> & {
@@ -265,6 +284,81 @@ export function TransportRequestImportPanel({
             </Alert>
           )}
 
+          {/* Товарный состав (опционально) — текст или Excel/CSV */}
+          <div className="rounded-md border bg-card p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">Товарный состав (опционально)</div>
+              {itemsParsed && (
+                <div className="text-xs text-muted-foreground">
+                  Распознано <b>{itemsParsed.totals.items}</b> строк по{" "}
+                  <b>{itemsParsed.totals.orders}</b> заказам
+                </div>
+              )}
+            </div>
+            <Textarea
+              placeholder="Вставьте текст из 1С (блоки «Заказ покупателя КП_… от …»)"
+              value={itemsText}
+              onChange={(e) => setItemsText(e.target.value)}
+              className="min-h-[80px] text-xs font-mono"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (!itemsText.trim()) return;
+                  try {
+                    setItemsParsed(parseOrderItemsText(itemsText));
+                  } catch (e) {
+                    toast.error(
+                      e instanceof Error ? e.message : "Не удалось разобрать товары",
+                    );
+                  }
+                }}
+                disabled={!itemsText.trim()}
+              >
+                Распознать текст
+              </Button>
+              <Label className="text-xs text-muted-foreground">или файл:</Label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls,.csv,.txt"
+                className="h-8 text-xs file:mr-2 file:rounded file:border-0 file:bg-secondary file:px-2 file:py-1"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  try {
+                    setItemsParsed(await parseOrderItemsFile(f));
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error ? err.message : "Файл не распознан",
+                    );
+                  }
+                }}
+              />
+              {itemsParsed && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setItemsParsed(null);
+                    setItemsText("");
+                  }}
+                >
+                  Очистить
+                </Button>
+              )}
+            </div>
+            {itemsParsed && itemsParsed.totals.orders > 0 && (
+              <div className="text-xs text-muted-foreground">
+                Заказы:{" "}
+                {Object.entries(itemsParsed.byOrderNumber)
+                  .map(([k, v]) => `${k} (${v.length})`)
+                  .join(", ")}
+              </div>
+            )}
+          </div>
+
           {error && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
@@ -304,6 +398,16 @@ export function TransportRequestImportPanel({
               </div>
             </AlertDescription>
           </Alert>
+
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 text-center text-sm">
+            <Stat label="Заказов" value={result.ordersCreated} />
+            <Stat label="Точек" value={result.pointsCreated} />
+            <Stat label="Товаров" value={result.itemsCreated} />
+            <Stat
+              label="Без коорд."
+              value={result.summary.unloadingGeo ? 0 : result.pointsCreated}
+            />
+          </div>
 
           <div className="grid gap-2 sm:grid-cols-2 text-sm">
             <Field label="Дата погрузки" value={result.summary.loadingDate} />
@@ -390,6 +494,15 @@ function Field({
     <div className={`rounded-md border bg-card p-2 ${wide ? "sm:col-span-2" : ""}`}>
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-sm font-medium break-words">{value || "—"}</div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border bg-card p-2">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-base font-semibold">{value}</div>
     </div>
   );
 }
