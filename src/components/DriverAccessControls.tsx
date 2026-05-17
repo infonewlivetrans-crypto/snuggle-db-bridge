@@ -3,13 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Copy, RefreshCw, Send, Download, CheckCircle2, Clock } from "lucide-react";
+import { Copy, RefreshCw, Send, Download, CheckCircle2, Clock, Link2 } from "lucide-react";
 import {
   backfillDriverInvitesFn,
   listDriverAccessStatusFn,
   type DriverAccessStatus,
 } from "@/lib/server-functions/driver-access.functions";
-import { rotateInviteTokenFn } from "@/lib/server-functions/invites.functions";
+import { createInviteFn, rotateInviteTokenFn } from "@/lib/server-functions/invites.functions";
 import { inviteUrl } from "@/lib/invite-url";
 
 export function useDriverAccessStatus() {
