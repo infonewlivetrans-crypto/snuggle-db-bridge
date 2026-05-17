@@ -58,7 +58,7 @@ export function makeAnonClient(): SupabaseClient<Database> {
   });
 }
 
-export function makeAdminClient(): SupabaseClient<Database> {
+function buildAdminClient(): SupabaseClient<Database> {
   const url = getSupabaseUrl();
   const serviceRoleKey = getSupabaseServiceRoleKey();
   if (!url) {
@@ -78,6 +78,30 @@ export function makeAdminClient(): SupabaseClient<Database> {
   }
   return createClient<Database>(url, serviceRoleKey, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/**
+ * Возвращает ЛЕНИВЫЙ admin-клиент. Сам вызов `makeAdminClient()` не делает
+ * никаких сетевых запросов и не падает, если env service_role не сконфигурирован.
+ * Ошибка "Missing SUPABASE_URL/SERVICE_ROLE_KEY" возникает только при первой
+ * реальной попытке обратиться к клиенту (например `.from(...)` / `.auth.admin`).
+ *
+ * Это позволяет публичным/пользовательским GET endpoint (которые сами admin не
+ * используют, но через транзитивные импорты подтаскивают модули с
+ * `const supabaseAdmin = makeAdminClient()` на верхнем уровне) не падать 500
+ * при загрузке модуля на VPS без service_role.
+ */
+export function makeAdminClient(): SupabaseClient<Database> {
+  let real: SupabaseClient<Database> | undefined;
+  const getReal = () => (real ??= buildAdminClient());
+  return new Proxy({} as SupabaseClient<Database>, {
+    get(_t, prop, receiver) {
+      return Reflect.get(getReal() as object, prop, receiver);
+    },
+    has(_t, prop) {
+      return Reflect.has(getReal() as object, prop);
+    },
   });
 }
 
