@@ -319,6 +319,7 @@ export function RouteSheetImportWizard({
   onOpenChange: (v: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
@@ -332,6 +333,7 @@ export function RouteSheetImportWizard({
     total: number;
     failedRows: Array<{ rowIndex: number; reason: string }>;
     headerMissing: string[];
+    warnings: string[];
     rows: Array<{
       rowIndex: number;
       orderNumber: string;
