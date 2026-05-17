@@ -143,6 +143,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as ApiRoutingRouteRouteImport } from './routes/api/routing.route'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiWarehouseDockEventsIdRouteImport } from './routes/api/warehouse-dock-events.$id'
@@ -157,6 +158,7 @@ import { Route as ApiStockTransfersIdRouteImport } from './routes/api/stock-tran
 import { Route as ApiStockReservationsReserveRouteImport } from './routes/api/stock-reservations.reserve'
 import { Route as ApiStockReservationsReleaseRouteImport } from './routes/api/stock-reservations.release'
 import { Route as ApiStockReservationsIdRouteImport } from './routes/api/stock-reservations.$id'
+import { Route as ApiRoutingMatrixRouteImport } from './routes/api/routing.matrix'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
@@ -172,6 +174,8 @@ import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
 import { Route as ApiInboundShipmentsIdRouteImport } from './routes/api/inbound-shipments.$id'
 import { Route as ApiInboundShipmentItemsIdRouteImport } from './routes/api/inbound-shipment-items.$id'
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
+import { Route as ApiGeoReverseRouteImport } from './routes/api/geo.reverse'
+import { Route as ApiGeoGeocodeRouteImport } from './routes/api/geo.geocode'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverUnreadClientMessagesRouteImport } from './routes/api/driver.unread-client-messages'
@@ -882,6 +886,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutingRouteRoute = ApiRoutingRouteRouteImport.update({
+  id: '/api/routing',
+  path: '/api/routing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
   id: '/api/workspace/summary',
   path: '/api/workspace/summary',
@@ -954,6 +963,11 @@ const ApiStockReservationsIdRoute = ApiStockReservationsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiStockReservationsRoute,
+} as any)
+const ApiRoutingMatrixRoute = ApiRoutingMatrixRouteImport.update({
+  id: '/matrix',
+  path: '/matrix',
+  getParentRoute: () => ApiRoutingRouteRoute,
 } as any)
 const ApiRoutesIdRoute = ApiRoutesIdRouteImport.update({
   id: '/$id',
@@ -1032,6 +1046,16 @@ const ApiImportLogsIdRoute = ApiImportLogsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiImportLogsRoute,
+} as any)
+const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
+  id: '/api/geo/reverse',
+  path: '/api/geo/reverse',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoGeocodeRoute = ApiGeoGeocodeRouteImport.update({
+  id: '/api/geo/geocode',
+  path: '/api/geo/geocode',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDriversImportRoute = ApiDriversImportRouteImport.update({
   id: '/import',
@@ -1261,6 +1285,7 @@ export interface FileRoutesByFullPath {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/api/routing': typeof ApiRoutingRouteRouteWithChildren
   '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -1380,6 +1405,8 @@ export interface FileRoutesByFullPath {
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/geo/geocode': typeof ApiGeoGeocodeRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
@@ -1395,6 +1422,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
   '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
   '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
@@ -1462,6 +1490,7 @@ export interface FileRoutesByTo {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/api/routing': typeof ApiRoutingRouteRouteWithChildren
   '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -1581,6 +1610,8 @@ export interface FileRoutesByTo {
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/geo/geocode': typeof ApiGeoGeocodeRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
@@ -1596,6 +1627,7 @@ export interface FileRoutesByTo {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
   '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
   '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
@@ -1664,6 +1696,7 @@ export interface FileRoutesById {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/api/routing': typeof ApiRoutingRouteRouteWithChildren
   '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -1783,6 +1816,8 @@ export interface FileRoutesById {
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
+  '/api/geo/geocode': typeof ApiGeoGeocodeRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
@@ -1798,6 +1833,7 @@ export interface FileRoutesById {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
   '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
   '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
@@ -1867,6 +1903,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/api/routing'
     | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -1986,6 +2023,8 @@ export interface FileRouteTypes {
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/geo/geocode'
+    | '/api/geo/reverse'
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
@@ -2001,6 +2040,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/routing/matrix'
     | '/api/stock-reservations/$id'
     | '/api/stock-reservations/release'
     | '/api/stock-reservations/reserve'
@@ -2068,6 +2108,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/api/routing'
     | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -2187,6 +2228,8 @@ export interface FileRouteTypes {
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/geo/geocode'
+    | '/api/geo/reverse'
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
@@ -2202,6 +2245,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/routing/matrix'
     | '/api/stock-reservations/$id'
     | '/api/stock-reservations/release'
     | '/api/stock-reservations/reserve'
@@ -2269,6 +2313,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/api/routing'
     | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -2388,6 +2433,8 @@ export interface FileRouteTypes {
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
+    | '/api/geo/geocode'
+    | '/api/geo/reverse'
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
@@ -2403,6 +2450,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/routing/matrix'
     | '/api/stock-reservations/$id'
     | '/api/stock-reservations/release'
     | '/api/stock-reservations/reserve'
@@ -2471,6 +2519,7 @@ export interface RootRouteChildren {
   WorkControlRoute: typeof WorkControlRoute
   WorkDayRoute: typeof WorkDayRoute
   WorkspaceRoute: typeof WorkspaceRoute
+  ApiRoutingRouteRoute: typeof ApiRoutingRouteRouteWithChildren
   AdminImpersonateRoute: typeof AdminImpersonateRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
@@ -2581,6 +2630,8 @@ export interface RootRouteChildren {
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
+  ApiGeoGeocodeRoute: typeof ApiGeoGeocodeRoute
+  ApiGeoReverseRoute: typeof ApiGeoReverseRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3528,6 +3579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/routing': {
+      id: '/api/routing'
+      path: '/api/routing'
+      fullPath: '/api/routing'
+      preLoaderRoute: typeof ApiRoutingRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/workspace/summary': {
       id: '/api/workspace/summary'
       path: '/api/workspace/summary'
@@ -3625,6 +3683,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/stock-reservations/$id'
       preLoaderRoute: typeof ApiStockReservationsIdRouteImport
       parentRoute: typeof ApiStockReservationsRoute
+    }
+    '/api/routing/matrix': {
+      id: '/api/routing/matrix'
+      path: '/matrix'
+      fullPath: '/api/routing/matrix'
+      preLoaderRoute: typeof ApiRoutingMatrixRouteImport
+      parentRoute: typeof ApiRoutingRouteRoute
     }
     '/api/routes/$id': {
       id: '/api/routes/$id'
@@ -3730,6 +3795,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/import-logs/$id'
       preLoaderRoute: typeof ApiImportLogsIdRouteImport
       parentRoute: typeof ApiImportLogsRoute
+    }
+    '/api/geo/reverse': {
+      id: '/api/geo/reverse'
+      path: '/api/geo/reverse'
+      fullPath: '/api/geo/reverse'
+      preLoaderRoute: typeof ApiGeoReverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geo/geocode': {
+      id: '/api/geo/geocode'
+      path: '/api/geo/geocode'
+      fullPath: '/api/geo/geocode'
+      preLoaderRoute: typeof ApiGeoGeocodeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/drivers/import': {
       id: '/api/drivers/import'
@@ -3996,6 +4075,18 @@ const DataImportRouteChildren: DataImportRouteChildren = {
 
 const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
   DataImportRouteChildren,
+)
+
+interface ApiRoutingRouteRouteChildren {
+  ApiRoutingMatrixRoute: typeof ApiRoutingMatrixRoute
+}
+
+const ApiRoutingRouteRouteChildren: ApiRoutingRouteRouteChildren = {
+  ApiRoutingMatrixRoute: ApiRoutingMatrixRoute,
+}
+
+const ApiRoutingRouteRouteWithChildren = ApiRoutingRouteRoute._addFileChildren(
+  ApiRoutingRouteRouteChildren,
 )
 
 interface ApiAppVersionsRouteChildren {
@@ -4480,6 +4571,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkControlRoute: WorkControlRoute,
   WorkDayRoute: WorkDayRoute,
   WorkspaceRoute: WorkspaceRoute,
+  ApiRoutingRouteRoute: ApiRoutingRouteRouteWithChildren,
   AdminImpersonateRoute: AdminImpersonateRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
@@ -4590,6 +4682,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
+  ApiGeoGeocodeRoute: ApiGeoGeocodeRoute,
+  ApiGeoReverseRoute: ApiGeoReverseRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
@@ -4599,13 +4693,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
