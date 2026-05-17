@@ -166,7 +166,8 @@ function parseBlockLines(lines: string[], startSourceLine: number): ParsedItem[]
       if (buf && buf.numbers.length > 0 && buf.unit) {
         flush();
       }
-      if (!buf) {
+      const cur = buf as Buf | null;
+      if (!cur) {
         const ln = parseInt(s.split(".")[0], 10);
         startNew(srcLine, Number.isFinite(ln) ? ln : null, raw);
         continue;
@@ -174,8 +175,8 @@ function parseBlockLines(lines: string[], startSourceLine: number): ParsedItem[]
       // если буфер пустой по числам — это, скорее всего, вес/qty
       const n = num(s);
       if (n != null) {
-        buf.numbers.push(n);
-        buf.raw.push(raw);
+        cur.numbers.push(n);
+        cur.raw.push(raw);
         continue;
       }
     }
