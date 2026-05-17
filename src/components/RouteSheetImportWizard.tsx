@@ -1049,6 +1049,8 @@ export function RouteSheetImportWizard({
             </>
           )}
         </DialogFooter>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
