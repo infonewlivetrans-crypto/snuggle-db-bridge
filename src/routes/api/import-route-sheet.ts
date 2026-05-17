@@ -689,6 +689,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           );
         }
 
+        const totalMissing = importedRows.filter(
+          (r) => r.missingFields.length > 0,
+        ).length;
+
         // 5b. Товарный состав — опционально.
         // Сопоставление по orders.order_number ИЛИ orders.onec_order_number.
         let itemsCreated = 0;
