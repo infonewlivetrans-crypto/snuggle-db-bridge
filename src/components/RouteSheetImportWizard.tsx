@@ -1076,8 +1076,7 @@ export function RouteSheetImportWizard({
             </>
           )}
         </DialogFooter>
-          </TabsContent>
-        </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );
