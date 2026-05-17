@@ -45,6 +45,16 @@ const ORDER_DELETABLE_STATUSES = new Set<string>([
   "excluded_from_route",
 ]);
 
+function logAdminDeleteError(marker: string, id: string, error: unknown) {
+  console.error(marker, {
+    id,
+    name: error instanceof Error ? error.name : undefined,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    raw: error,
+  });
+}
+
 export const Route = createFileRoute("/api/orders/$id")({
   server: {
     handlers: {
@@ -88,9 +98,10 @@ export const Route = createFileRoute("/api/orders/$id")({
       },
 
       DELETE: async ({ request, params }) => {
+        const id = params.id;
+        try {
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
-        const id = params.id;
         const admin = makeAdminClient();
 
         // 1. Загружаем заказ, чтобы проверить статус/оплату и иметь label
@@ -102,7 +113,10 @@ export const Route = createFileRoute("/api/orders/$id")({
           )
           .eq("id", id)
           .maybeSingle();
-        if (loadErr) return jsonResponse({ error: loadErr.message }, { status: 500 });
+        if (loadErr) {
+          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, loadErr);
+          return jsonResponse({ error: loadErr.message }, { status: 500 });
+        }
         if (!order) return jsonResponse({ error: "Заказ не найден" }, { status: 404 });
 
         const o = order as {
@@ -139,6 +153,7 @@ export const Route = createFileRoute("/api/orders/$id")({
           .delete()
           .eq("order_id", id);
         if (itemsErr) {
+          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, itemsErr);
           return jsonResponse(
             { error: `Не удалось удалить позиции заказа: ${itemsErr.message}` },
             { status: 500 },
@@ -153,6 +168,7 @@ export const Route = createFileRoute("/api/orders/$id")({
           .delete()
           .eq("id", id);
         if (delErr) {
+          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, delErr);
           return jsonResponse(
             { error: `Не удалось удалить заказ: ${delErr.message}` },
             { status: 500 },
@@ -182,11 +198,19 @@ export const Route = createFileRoute("/api/orders/$id")({
               qr_received: o.qr_received,
             },
           });
-        } catch {
+        } catch (error) {
+          logAdminDeleteError("[admin-delete][orders DELETE][audit] failed", id, error);
           // ignore
         }
 
         return jsonResponse({ ok: true });
+        } catch (error) {
+          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, error);
+          return jsonResponse(
+            { error: error instanceof Error ? error.message : String(error) },
+            { status: 500 },
+          );
+        }
       },
     },
   },
