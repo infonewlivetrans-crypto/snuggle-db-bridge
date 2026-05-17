@@ -316,13 +316,13 @@ export async function buildRoute(sb: Sb, waypoints: LngLat[]): Promise<RouteGeom
 
   const { error } = await sb.rpc("upsert_route_geometry_cache", {
     p_cache_key: key,
-    p_waypoints: waypoints as never,
+    p_waypoints: waypoints,
     p_distance_m: result.distance_m,
     p_duration_s: result.duration_s,
-    p_geometry: result.geometry as never,
-    p_segments: result.segments as never,
+    p_geometry: result.geometry,
+    p_segments: result.segments,
     p_ttl_days: 7,
-  });
+  } as never);
   if (error) console.warn("[yandex] route cache upsert failed:", error.message);
   return result;
 }
