@@ -504,7 +504,7 @@ export function RouteSheetImportWizard({
         // Сервер отвечает 409 + code: "route_already_imported".
         // Не показываем технический дамп и не логируем как ошибку.
         if (res.status === 409 && json.code === "route_already_imported") {
-          const friendly = `Заявка по маршрутному листу №${json.routeNumber ?? parsed.routeNumber ?? ""} уже создана`;
+          const friendly = `Заявка по маршрутному листу №${json.routeNumber ?? parsed?.routeNumber ?? ""} уже создана`;
           setErrorMsg(friendly);
           setErrorDetails(null);
           toast.info(friendly);
