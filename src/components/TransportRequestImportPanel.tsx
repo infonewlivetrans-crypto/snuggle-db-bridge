@@ -5,6 +5,7 @@ import { authHeaders } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +20,11 @@ import {
   parseTransportRequestXlsx,
   type ParsedTransportRequest,
 } from "@/lib/transport-request-parser";
+import {
+  parseOrderItemsFile,
+  parseOrderItemsText,
+  type OrderItemsParseResult,
+} from "@/lib/order-items-parser";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
@@ -26,6 +32,11 @@ type ImportResponse = {
   ok: boolean;
   routeId: string;
   routeNumber: string;
+  ordersCreated: number;
+  pointsCreated: number;
+  itemsCreated: number;
+  itemsUnmatched: number;
+  ordersWithoutItems: string[];
   summary: {
     requestNumber: string | null;
     requestDate: string | null;
