@@ -7,7 +7,8 @@
 //   но строго fail-safe: если invite упал — менеджер всё равно возвращается.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import { normalizeFullName } from "@/lib/normalize-name";
 import { normalizeRuPhone } from "@/lib/phone";
 import { inviteUrl } from "@/lib/invite-url";

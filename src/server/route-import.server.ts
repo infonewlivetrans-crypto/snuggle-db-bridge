@@ -1,7 +1,8 @@
 // Server: создание маршрута + заказов + точек + delivery_route из строк маршрутного Excel.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import { normalizeRuPhone } from "@/lib/phone";
 import { inviteUrl } from "@/lib/invite-url";
 

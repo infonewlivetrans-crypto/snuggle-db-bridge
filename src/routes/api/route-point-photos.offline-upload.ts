@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 const BUCKET = "route-point-photos";
 const ALLOWED_KINDS = new Set(["qr", "signed_docs", "payment", "problem", "unloading_place"]);
 const MAX_BYTES = 20 * 1024 * 1024;

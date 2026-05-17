@@ -5,8 +5,8 @@
 // 4. Пишем запись в route_order_exclusions (триггер создаёт уведомление).
 // 5. Триггеры на route_points сами пересчитают веса/объёмы/стоимость.
 
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 export const EXCLUSION_REASONS = [
   "Не влез",
   "Отменился",

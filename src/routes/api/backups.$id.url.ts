@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAdmin } from "@/server/api-helpers.server";
 import { getBackupDownloadUrl } from "@/server/backups.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 export const Route = createFileRoute("/api/backups/$id/url")({
   server: {
     handlers: {

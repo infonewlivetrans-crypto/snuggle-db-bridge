@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireCookieAuth } from "@/server/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 const ROLES = ["driver", "logist", "manager", "warehouse", "director"] as const;
 
 const SubmitInput = z.object({

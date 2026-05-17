@@ -1,4 +1,5 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeRuPhone } from "@/lib/phone";
@@ -408,12 +409,8 @@ export async function activateInvite(args: {
     .update(inviteTokenPatch as never)
     .eq("id", invite.id);
 
-  const { createClient } = await import("@supabase/supabase-js");
-  const url = process.env.SUPABASE_URL!;
-  const anon = process.env.SUPABASE_PUBLISHABLE_KEY!;
-  const publicClient = createClient(url, anon, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const { makeAnonClient } = await import("@/server/api-helpers.server");
+  const publicClient = makeAnonClient();
   const { data: signIn, error: signErr } = await publicClient.auth.signInWithPassword({
     email,
     password,

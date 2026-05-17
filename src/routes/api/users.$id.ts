@@ -5,7 +5,8 @@ import {
   adminSetUserRole,
   adminSetUserRoles,
 } from "@/server/users.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import { APP_ROLES, type AppRole } from "@/lib/auth/roles";
 
 const ROLE_SET = new Set<AppRole>(APP_ROLES);

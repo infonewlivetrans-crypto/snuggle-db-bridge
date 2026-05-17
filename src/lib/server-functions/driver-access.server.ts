@@ -1,4 +1,5 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { makeAdminClient } from "@/server/api-helpers.server";
+const supabaseAdmin = makeAdminClient();
 import { adminCreateInvite, type InviteRow } from "@/server/invites.server";
 import { assertCallerHasAnyRole, assertCallerIsAdmin, requireAuthenticatedUserId } from "./auth.server";
 
