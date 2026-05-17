@@ -518,6 +518,8 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               contact_phone: finalPhone,
               // Триггер требует адрес ИЛИ координаты — ставим placeholder.
               delivery_address: finalAddress ?? ADDRESS_PLACEHOLDER,
+              latitude: geoLat,
+              longitude: geoLng,
               payment_type: paymentType,
               requires_qr: requiresQr,
               amount_due:
