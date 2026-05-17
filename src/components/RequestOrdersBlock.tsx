@@ -109,7 +109,7 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const list = items ?? [];
+  const list = (items ?? []).filter((it) => it && it.order);
   const nextPoint = list.length + 1;
 
   return (
@@ -154,8 +154,8 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
       ) : (
         <ul className="space-y-2">
           {list.map((it, idx) => {
-            const o = it.order;
-            const sum = o.amount_due ?? o.delivery_cost ?? 0;
+            const o = it.order ?? ({} as RequestOrder["order"]);
+            const sum = (o?.amount_due ?? o?.delivery_cost ?? 0) as number;
             return (
               <li
                 key={it.id}

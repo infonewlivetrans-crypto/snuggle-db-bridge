@@ -18,14 +18,10 @@ import {
   type AppVersion,
 } from "@/lib/system-settings";
 import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules, LAUNCH_MODE_LABELS, type LaunchMode } from "@/lib/modules";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettingsPage,
-  loader: async () => {
-    const [settings, versions] = await Promise.all([fetchAllSettings(), fetchAllAppVersions()]);
-    return { settings, versions };
-  },
   errorComponent: ({ error }) => (
     <div className="p-8 text-destructive">Ошибка загрузки: {error.message}</div>
   ),
@@ -33,8 +29,32 @@ export const Route = createFileRoute("/admin/settings")({
 });
 
 function AdminSettingsPage() {
-  const data = Route.useLoaderData();
   const router = useRouter();
+  const settingsQ = useQuery({
+    queryKey: ["admin.settings.all"],
+    queryFn: fetchAllSettings,
+  });
+  const versionsQ = useQuery({
+    queryKey: ["admin.app-versions.all"],
+    queryFn: fetchAllAppVersions,
+  });
+
+  if (settingsQ.isLoading || versionsQ.isLoading) {
+    return (
+      <div className="p-8 text-muted-foreground flex items-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin" /> Загрузка настроек…
+      </div>
+    );
+  }
+  if (settingsQ.error) {
+    return <div className="p-8 text-destructive">Ошибка загрузки: {(settingsQ.error as Error).message}</div>;
+  }
+  const data = { settings: settingsQ.data ?? [], versions: versionsQ.data ?? [] };
+  const invalidate = () => {
+    settingsQ.refetch();
+    versionsQ.refetch();
+    router.invalidate();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,18 +85,18 @@ function AdminSettingsPage() {
           </TabsList>
 
           <TabsContent value="modules" className="mt-4 space-y-4">
-            <LaunchModePanel items={data.settings} onChanged={() => router.invalidate()} />
-            <DemoModePanel items={data.settings} onChanged={() => router.invalidate()} />
-            <DriverDocumentPhotosPanel items={data.settings} onChanged={() => router.invalidate()} />
-            <ModuleTogglesPanel items={data.settings} onChanged={() => router.invalidate()} />
+            <LaunchModePanel items={data.settings} onChanged={invalidate} />
+            <DemoModePanel items={data.settings} onChanged={invalidate} />
+            <DriverDocumentPhotosPanel items={data.settings} onChanged={invalidate} />
+            <ModuleTogglesPanel items={data.settings} onChanged={invalidate} />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-4">
-            <SettingsList items={data.settings} onChanged={() => router.invalidate()} />
+            <SettingsList items={data.settings} onChanged={invalidate} />
           </TabsContent>
 
           <TabsContent value="versions" className="mt-4">
-            <VersionsList items={data.versions} onChanged={() => router.invalidate()} />
+            <VersionsList items={data.versions} onChanged={invalidate} />
           </TabsContent>
         </Tabs>
       </main>
