@@ -48,6 +48,7 @@ import {
   type ErrorDetails,
 } from "@/lib/supabaseError";
 import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
+import { TransportRequestImportPanel } from "@/components/TransportRequestImportPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
