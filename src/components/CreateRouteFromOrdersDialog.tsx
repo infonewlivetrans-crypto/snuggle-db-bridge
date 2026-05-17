@@ -355,9 +355,15 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
           </Button>
           <Button
             onClick={() => create.mutate()}
-            disabled={create.isPending || !routeDate || !driverId || orders.length === 0}
+            disabled={create.isPending || geocoding || !routeDate || !driverId || orders.length === 0}
           >
-            {create.isPending ? "Создание…" : "Создать маршрут"}
+            {geocoding
+              ? "Геокодирую…"
+              : create.isPending
+                ? "Создание…"
+                : ordersWithoutCoords.length > 0
+                  ? "Геокодировать и создать"
+                  : "Создать маршрут"}
           </Button>
         </DialogFooter>
       </DialogContent>
