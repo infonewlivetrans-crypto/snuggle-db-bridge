@@ -1,67 +1,35 @@
-import { makeAdminClient } from "@/server/api-helpers.server";
-const supabaseAdmin = makeAdminClient();
+// Радиус Трек — Пакет 6.1: invite-flow без service_role на VPS и без
+// ручных INSERT/UPDATE в auth.users / auth.identities.
+//
+// Архитектура:
+//   • admin_issue_invite           — создание приглашения (только invite_tokens)
+//   • admin_rotate_invite          — перевыпуск токена (только неактивированные)
+//   • admin_set_invite_active      — вкл./откл. приглашение
+//   • admin_delete_invite          — удаление (только неактивированные)
+//   • get_invite_public            — публичные поля по токену (для страницы активации)
+//   • validate_invite_for_activation — проверка перед регистрацией
+//   • admin_bind_invite_to_user    — связывание свежезарегистрированного user
+//                                    с приглашением (profiles + user_roles +
+//                                    drivers/managers + activated_at)
+//
+// Все административные операции выполняются под bearer-токеном текущего
+// пользователя (cookie-сессия или Authorization-заголовок). Активация
+// использует штатный supabase.auth.signUp + signInWithPassword (anon-клиент).
+//
+// Confirm Email отключён в настройках Auth — signUp сразу возвращает session.
+
+import "@/server/env-bootstrap.server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeRuPhone } from "@/lib/phone";
 import { getRequest } from "@tanstack/react-start/server";
 import { getSessionUser } from "@/server/auth-cookies.server";
+import { makeAnonClient } from "@/server/api-helpers.server";
 
 type DbClient = SupabaseClient<Database>;
 
-/**
- * Возвращает Supabase-клиент, действующий от имени текущего пользователя
- * (cookie-сессия или Bearer). Используется для вызова SECURITY DEFINER RPC,
- * где внутри необходим auth.uid() — без зависимости от service_role.
- */
-async function getCallerSupabaseClient(): Promise<DbClient> {
-  const session = await getSessionUser();
-  if (session?.client) return session.client as DbClient;
-
-  let token: string | null = null;
-  try {
-    const req = getRequest();
-    const h = req?.headers?.get("authorization") ?? req?.headers?.get("Authorization");
-    if (h?.startsWith("Bearer ")) token = h.slice(7).trim() || null;
-  } catch {
-    token = null;
-  }
-  if (!token) throw new Error("unauthorized");
-
-  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
-  const key =
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-    process.env.SUPABASE_ANON_KEY ??
-    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
-    process.env.VITE_SUPABASE_ANON_KEY ??
-    "";
-  return createClient<Database>(url, key, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
-}
-
 export type InviteRole = "admin" | "logist" | "manager" | "driver";
 const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
-
-const INVITE_EMAIL_DOMAIN = "invite.radius-track.local";
-
-/** Случайный URL-safe токен (~22 символа). */
-function generateToken(): string {
-  // 16 байт энтропии = 128 бит, base64url без паддинга
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  let s = "";
-  for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function inviteEmail(token: string): string {
-  return `${token.toLowerCase()}@${INVITE_EMAIL_DOMAIN}`;
-}
-
-function randomPassword(): string {
-  return generateToken() + generateToken();
-}
 
 export type CreateInviteArgs = {
   fullName: string;
@@ -76,7 +44,7 @@ export type CreateInviteArgs = {
 export type InviteRow = {
   id: string;
   token: string;
-  user_id: string;
+  user_id: string | null;
   full_name: string;
   phone: string | null;
   role: InviteRole;
@@ -88,24 +56,58 @@ export type InviteRow = {
   created_at: string;
   updated_at: string;
   last_used_at: string | null;
+  activated_at: string | null;
+  activated_email: string | null;
 };
 
+function getSupabaseUrl(): string {
+  return process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
+}
+function getSupabasePublishableKey(): string {
+  return (
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    ""
+  );
+}
+
 /**
- * Создание скрытого пользователя + invite-записи через SECURITY DEFINER RPC
- * в Lovable Cloud. RPC проверяет роль администратора по auth.uid() и сама
- * выполняет все привилегированные операции (auth.users, auth.identities,
- * profiles, user_roles, invite_tokens). Никакой зависимости от
- * SUPABASE_SERVICE_ROLE_KEY на сервере приложения.
+ * Возвращает Supabase-клиент, действующий от имени текущего администратора
+ * (cookie или Bearer). Все admin_*-RPC внутри Postgres проверяют auth.uid().
  */
+async function getCallerSupabaseClient(): Promise<DbClient> {
+  const session = await getSessionUser();
+  if (session?.client) return session.client as DbClient;
+
+  let token: string | null = null;
+  try {
+    const req = getRequest();
+    const h =
+      req?.headers?.get("authorization") ?? req?.headers?.get("Authorization");
+    if (h?.startsWith("Bearer ")) token = h.slice(7).trim() || null;
+  } catch {
+    token = null;
+  }
+  if (!token) throw new Error("unauthorized");
+
+  return createClient<Database>(getSupabaseUrl(), getSupabasePublishableKey(), {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
+
+// ===== Admin operations =====
+
 export async function adminCreateInvite(args: CreateInviteArgs): Promise<InviteRow> {
   if (!args.fullName?.trim()) throw new Error("Укажите ФИО");
   if (!ALLOWED_INVITE_ROLES.includes(args.role)) {
-    throw new Error("Инвайт-ссылки доступны для ролей: администратор, логист, менеджер, водитель");
+    throw new Error("Недопустимая роль для приглашения");
   }
-
   const phoneNorm = normalizeRuPhone(args.phone ?? null);
   const caller = await getCallerSupabaseClient();
-  const { data, error } = await caller.rpc("admin_create_invite", {
+  const { data, error } = await caller.rpc("admin_issue_invite", {
     p_full_name: args.fullName.trim(),
     p_phone: phoneNorm,
     p_role: args.role,
@@ -114,94 +116,83 @@ export async function adminCreateInvite(args: CreateInviteArgs): Promise<InviteR
     p_manager_name: args.managerName?.trim() || null,
   } as never);
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Не удалось создать инвайт");
+  if (!data) throw new Error("Не удалось создать приглашение");
   return data as unknown as InviteRow;
 }
 
 export async function adminListInvites(client?: DbClient): Promise<InviteRow[]> {
-  const c = (client ?? supabaseAdmin) as DbClient;
+  const c = client ?? (await getCallerSupabaseClient());
   const { data, error } = await c
     .from("invite_tokens")
     .select("*")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []) as InviteRow[];
+  return (data ?? []) as unknown as InviteRow[];
 }
 
 export async function adminSetInviteActive(args: { id: string; isActive: boolean }) {
-  const { error } = await supabaseAdmin
-    .from("invite_tokens")
-    .update({ is_active: args.isActive })
-    .eq("id", args.id);
+  const caller = await getCallerSupabaseClient();
+  const { error } = await caller.rpc("admin_set_invite_active", {
+    p_invite_id: args.id,
+    p_active: args.isActive,
+  } as never);
   if (error) throw new Error(error.message);
-
-  // Заодно блокируем/разблокируем самого пользователя
-  const { data: row } = await supabaseAdmin
-    .from("invite_tokens")
-    .select("user_id")
-    .eq("id", args.id)
-    .maybeSingle();
-  if (row?.user_id) {
-    await supabaseAdmin.auth.admin.updateUserById(row.user_id, {
-      ban_duration: args.isActive ? "none" : "876000h",
-    });
-  }
 }
 
-/**
- * Перевыпуск ссылки через SECURITY DEFINER RPC: одна транзакция в Cloud-базе,
- * обновляет токен в invite_tokens и временные учётные данные скрытого
- * пользователя в auth.users / auth.identities / profiles.
- */
 export async function adminRotateInviteToken(args: { id: string }): Promise<InviteRow> {
   const caller = await getCallerSupabaseClient();
-  const { data, error } = await caller.rpc("admin_rotate_invite_token", {
+  const { data, error } = await caller.rpc("admin_rotate_invite", {
     p_invite_id: args.id,
   } as never);
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Не удалось обновить токен");
+  if (!data) throw new Error("Не удалось перевыпустить ссылку");
   return data as unknown as InviteRow;
 }
 
 export async function adminDeleteInvite(args: { id: string }) {
-  const { data: row } = await supabaseAdmin
-    .from("invite_tokens")
-    .select("user_id")
-    .eq("id", args.id)
-    .maybeSingle();
-  if (row?.user_id) {
-    await supabaseAdmin.auth.admin.deleteUser(row.user_id).catch(() => undefined);
-  }
-  // CASCADE удалит запись invite_tokens; на всякий случай — явное удаление
-  await supabaseAdmin.from("invite_tokens").delete().eq("id", args.id);
+  const caller = await getCallerSupabaseClient();
+  const { error } = await caller.rpc("admin_delete_invite", {
+    p_invite_id: args.id,
+  } as never);
+  if (error) throw new Error(error.message);
 }
 
-/** Информация по токену для страницы активации (без авторизации). */
+// ===== Public / activation flow =====
+
+/** Публичные данные приглашения по токену (для страницы активации). */
 export async function getInviteInfo(token: string): Promise<{
   fullName: string;
   role: InviteRole;
   alreadyActivated: boolean;
 } | null> {
   if (!token || token.length < 8) return null;
-  const { data, error } = await supabaseAdmin
-    .from("invite_tokens")
-    .select("full_name, role, is_active, last_used_at")
-    .eq("token", token)
-    .maybeSingle();
+  const anon = makeAnonClient();
+  const { data, error } = await anon.rpc("get_invite_public", {
+    p_token: token,
+  } as never);
   if (error) throw new Error(error.message);
-  if (!data) return null;
-  if (!data.is_active) throw new Error("Ссылка отключена администратором");
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+  if (!row.is_active) throw new Error("Ссылка отключена администратором");
   return {
-    fullName: (data as { full_name: string }).full_name,
-    role: (data as { role: InviteRole }).role,
-    alreadyActivated: !!(data as { last_used_at: string | null }).last_used_at,
+    fullName: row.full_name as string,
+    role: row.role as InviteRole,
+    alreadyActivated: Boolean(row.already_activated),
   };
 }
 
 /**
- * Активация инвайта реальным email + паролем.
- * Меняет email/password скрытого пользователя на введённые,
- * помечает invite как использованный и возвращает сессию.
+ * Активация приглашения штатной регистрацией пользователя.
+ *
+ * 1) validate_invite_for_activation — проверка токена.
+ * 2) supabase.auth.signUp({ email, password }) — штатная регистрация
+ *    (Confirm Email выключен → сразу session).
+ * 3) admin_bind_invite_to_user — привязка пользователя к приглашению,
+ *    создание profile + user_roles + связь с drivers/managers,
+ *    проставление activated_at.
+ *
+ * При ошибке на шаге (3) пытаемся откатить локальную сессию через signOut,
+ * чтобы клиент не оказался в полусостоянии.
  */
 export async function activateInvite(args: {
   token: string;
@@ -220,237 +211,138 @@ export async function activateInvite(args: {
   const password = args.password ?? "";
   const phoneRaw = (args.phone ?? "").trim();
   const fullNameRaw = (args.fullName ?? "").trim().replace(/\s+/g, " ");
+
   if (!token || token.length < 8) throw new Error("Некорректная ссылка");
-  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("Введите корректный email");
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+    throw new Error("Введите корректный email");
   if (password.length < 6) throw new Error("Пароль должен содержать минимум 6 символов");
   if (!phoneRaw) throw new Error("Введите номер телефона");
   const phoneNorm = normalizeRuPhone(phoneRaw);
   if (!phoneNorm) throw new Error("Введите корректный номер телефона");
 
-  const { data: inv, error } = await supabaseAdmin
-    .from("invite_tokens")
-    .select("*")
-    .eq("token", token)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!inv) throw new Error("Ссылка недействительна");
-  const invite = inv as InviteRow;
-  if (!invite.is_active) throw new Error("Ссылка отключена администратором");
+  const anon = makeAnonClient();
 
-  // Для роли manager обязательно ФИО (минимум 2 слова, каждое >=2 символов).
-  if (invite.role === "manager") {
+  // 1) validate invite
+  const { data: validation, error: vErr } = await anon.rpc(
+    "validate_invite_for_activation",
+    { p_token: token } as never,
+  );
+  if (vErr) {
+    const m = vErr.message || "";
+    if (/already activated/i.test(m)) throw new Error("Эта ссылка уже использовалась");
+    if (/disabled/i.test(m)) throw new Error("Ссылка отключена администратором");
+    if (/not found/i.test(m)) throw new Error("Ссылка недействительна");
+    throw new Error(m || "Ссылка недействительна");
+  }
+  const v = (Array.isArray(validation) ? validation[0] : validation) as
+    | { role: InviteRole }
+    | null;
+  if (!v) throw new Error("Ссылка недействительна");
+
+  if (v.role === "manager") {
     if (!fullNameRaw) throw new Error("Введите полное ФИО");
     const parts = fullNameRaw.split(" ").filter((p) => p.length >= 2);
     if (parts.length < 2) throw new Error("Введите полное ФИО (минимум фамилия и имя)");
   }
 
-  // Проверка занятости email
-  const { data: existingProfile } = await supabaseAdmin
-    .from("profiles")
-    .select("user_id")
-    .eq("email", email)
-    .neq("user_id", invite.user_id)
-    .maybeSingle();
-  if (existingProfile) throw new Error("Этот email уже используется другим пользователем");
-
-  // Привязка drivers.user_id ДО изменения auth-пользователя.
-  // При любой ошибке активация прерывается, auth и profiles не трогаются.
-  if (invite.role === "driver" && invite.driver_id) {
-    const { data: driverRow, error: drvSelErr } = await supabaseAdmin
-      .from("drivers")
-      .select("id, user_id")
-      .eq("id", invite.driver_id)
-      .maybeSingle();
-    if (drvSelErr) throw new Error(drvSelErr.message);
-    if (!driverRow) {
-      throw new Error("Запись водителя не найдена. Обратитесь к администратору.");
-    }
-    const currentUserId = (driverRow as { user_id: string | null }).user_id;
-    if (currentUserId && currentUserId !== invite.user_id) {
-      throw new Error(
-        "Эта запись водителя уже привязана к другой учётной записи. Обратитесь к администратору.",
-      );
-    }
-    if (!currentUserId) {
-      const { data: updRows, error: drvUpdErr } = await supabaseAdmin
-        .from("drivers")
-        .update({ user_id: invite.user_id })
-        .eq("id", invite.driver_id)
-        .is("user_id", null)
-        .select("id, user_id");
-      if (drvUpdErr) {
-        const code = (drvUpdErr as { code?: string }).code;
-        if (code === "23505" || /duplicate|unique/i.test(drvUpdErr.message ?? "")) {
-          throw new Error(
-            "Эта учётная запись уже привязана к другому водителю. Обратитесь к администратору.",
-          );
-        }
-        throw new Error(drvUpdErr.message);
-      }
-      if (!updRows || updRows.length === 0) {
-        // Гонка: кто-то заполнил user_id между select и update — перечитаем.
-        const { data: recheck, error: recheckErr } = await supabaseAdmin
-          .from("drivers")
-          .select("id, user_id")
-          .eq("id", invite.driver_id)
-          .maybeSingle();
-        if (recheckErr) throw new Error(recheckErr.message);
-        const recheckedUserId = (recheck as { user_id: string | null } | null)?.user_id ?? null;
-        if (recheckedUserId !== invite.user_id) {
-          throw new Error(
-            "Эта запись водителя уже привязана к другой учётной записи. Обратитесь к администратору.",
-          );
-        }
-      }
-    }
-  }
-
-  // Привязка managers.user_id ДО изменения auth-пользователя.
-  // managers.full_name / normalized_name НЕ ТРОГАЕМ — это стабильная сущность
-  // для сопоставления с маршрутными листами.
-  if (invite.role === "manager" && invite.manager_id) {
-    const { data: mgrRow, error: mgrSelErr } = await supabaseAdmin
-      .from("managers")
-      .select("id, user_id")
-      .eq("id", invite.manager_id)
-      .maybeSingle();
-    if (mgrSelErr) throw new Error(mgrSelErr.message);
-    if (!mgrRow) {
-      throw new Error("Запись менеджера не найдена. Обратитесь к администратору.");
-    }
-    const currentMgrUserId = (mgrRow as { user_id: string | null }).user_id;
-    if (currentMgrUserId && currentMgrUserId !== invite.user_id) {
-      throw new Error(
-        "Эта запись менеджера уже привязана к другой учётной записи. Обратитесь к администратору.",
-      );
-    }
-    if (!currentMgrUserId) {
-      const { data: mgrUpdRows, error: mgrUpdErr } = await supabaseAdmin
-        .from("managers")
-        .update({ user_id: invite.user_id } as never)
-        .eq("id", invite.manager_id)
-        .is("user_id", null)
-        .select("id, user_id");
-      if (mgrUpdErr) {
-        const code = (mgrUpdErr as { code?: string }).code;
-        if (code === "23505" || /duplicate|unique/i.test(mgrUpdErr.message ?? "")) {
-          throw new Error(
-            "Эта учётная запись уже привязана к другому менеджеру. Обратитесь к администратору.",
-          );
-        }
-        throw new Error(mgrUpdErr.message);
-      }
-      if (!mgrUpdRows || mgrUpdRows.length === 0) {
-        const { data: mgrRecheck, error: mgrRecheckErr } = await supabaseAdmin
-          .from("managers")
-          .select("id, user_id")
-          .eq("id", invite.manager_id)
-          .maybeSingle();
-        if (mgrRecheckErr) throw new Error(mgrRecheckErr.message);
-        const recheckedUserId = (mgrRecheck as { user_id: string | null } | null)?.user_id ?? null;
-        if (recheckedUserId !== invite.user_id) {
-          throw new Error(
-            "Эта запись менеджера уже привязана к другой учётной записи. Обратитесь к администратору.",
-          );
-        }
-      }
-    }
-  }
-
-  const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(invite.user_id, {
-    email,
-    password,
-    email_confirm: true,
-  });
-  if (updErr) {
-    const msg = updErr.message || "";
-    if (/already|exists|registered|duplicate/i.test(msg)) {
-      throw new Error("Этот email уже занят");
-    }
-    throw new Error(msg);
-  }
-
-  // profiles.full_name обновляем, если пользователь явно ввёл ФИО (manager flow).
-  const profilePatch: Record<string, unknown> = { email, phone: phoneNorm, is_active: true };
-  if (fullNameRaw) profilePatch.full_name = fullNameRaw;
-  await supabaseAdmin
-    .from("profiles")
-    .update(profilePatch as never)
-    .eq("user_id", invite.user_id);
-
-  // invite_tokens.full_name можно синхронизировать (managers.full_name НЕ трогаем).
-  const inviteTokenPatch: Record<string, unknown> = { phone: phoneNorm };
-  if (fullNameRaw) inviteTokenPatch.full_name = fullNameRaw;
-  await supabaseAdmin
-    .from("invite_tokens")
-    .update(inviteTokenPatch as never)
-    .eq("id", invite.id);
-
-  const { makeAnonClient } = await import("@/server/api-helpers.server");
-  const publicClient = makeAnonClient();
-  const { data: signIn, error: signErr } = await publicClient.auth.signInWithPassword({
+  // 2) standard auth signUp
+  const { data: signUp, error: signUpErr } = await anon.auth.signUp({
     email,
     password,
   });
-  if (signErr || !signIn.session) {
-    throw new Error(signErr?.message ?? "Не удалось войти после активации");
+  if (signUpErr) {
+    const m = signUpErr.message || "";
+    if (/already|registered|exists/i.test(m))
+      throw new Error("Этот email уже занят. Используйте другой адрес.");
+    throw new Error(m || "Не удалось зарегистрировать пользователя");
+  }
+  const newUserId = signUp.user?.id;
+  if (!newUserId) throw new Error("Не удалось зарегистрировать пользователя");
+
+  // С Confirm Email = off signUp возвращает session сразу.
+  // Если по какой-то причине session нет — пробуем signIn, который сработает
+  // при auto_confirm_email=true.
+  let session = signUp.session;
+  if (!session) {
+    const { data: si, error: siErr } = await anon.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (siErr || !si.session) {
+      throw new Error(
+        "Регистрация прошла, но не удалось войти. Откройте страницу входа и войдите вручную.",
+      );
+    }
+    session = si.session;
   }
 
-  await supabaseAdmin
-    .from("invite_tokens")
-    .update({ last_used_at: new Date().toISOString() })
-    .eq("id", invite.id);
+  // 3) bind invite -> user
+  const { error: bindErr } = await anon.rpc("admin_bind_invite_to_user", {
+    p_token: token,
+    p_user_id: newUserId,
+    p_email: email,
+    p_phone: phoneNorm,
+    p_full_name: fullNameRaw || null,
+  } as never);
+
+  if (bindErr) {
+    // Локальный rollback клиента — серверный auth-user остаётся,
+    // следующая попытка с тем же email вернёт "уже занят" и админ при
+    // необходимости перевыпустит ссылку / поменяет email.
+    try {
+      await anon.auth.signOut();
+    } catch {
+      /* noop */
+    }
+    throw new Error(bindErr.message || "Не удалось завершить активацию");
+  }
 
   return {
-    accessToken: signIn.session.access_token,
-    refreshToken: signIn.session.refresh_token,
-    userId: invite.user_id,
-    role: invite.role,
+    accessToken: session.access_token,
+    refreshToken: session.refresh_token,
+    userId: newUserId,
+    role: v.role,
   };
 }
 
-/**
- * Поиск активного неиспользованного driver-invite, привязанного к конкретному driverId.
- * Возвращает самый свежий по created_at или null. Ничего не создаёт и не обновляет.
- * Предназначен для будущего переиспользования invite при импорте маршрутных листов.
- */
+// ===== Helpers used elsewhere (route-import reuse) =====
+
+/** Самый свежий активный и неактивированный driver-invite. */
 export async function findReusableDriverInvite(
   driverId: string,
 ): Promise<InviteRow | null> {
   if (!driverId) return null;
-  const { data, error } = await supabaseAdmin
+  const caller = await getCallerSupabaseClient();
+  const { data, error } = await caller
     .from("invite_tokens")
     .select("*")
     .eq("role", "driver")
     .eq("driver_id", driverId)
     .eq("is_active", true)
-    .is("last_used_at", null)
+    .is("activated_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return (data as InviteRow | null) ?? null;
+  return (data as unknown as InviteRow | null) ?? null;
 }
 
-/**
- * Поиск активного неиспользованного manager-invite по managers.id.
- * Возвращает самый свежий или null.
- */
+/** Самый свежий активный и неактивированный manager-invite. */
 export async function findReusableManagerInvite(
   managerId: string,
 ): Promise<InviteRow | null> {
   if (!managerId) return null;
-  const { data, error } = await supabaseAdmin
+  const caller = await getCallerSupabaseClient();
+  const { data, error } = await caller
     .from("invite_tokens")
     .select("*")
     .eq("role", "manager")
     .eq("manager_id", managerId)
     .eq("is_active", true)
-    .is("last_used_at", null)
+    .is("activated_at", null)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  return (data as InviteRow | null) ?? null;
+  return (data as unknown as InviteRow | null) ?? null;
 }
-
