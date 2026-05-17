@@ -143,6 +143,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as ApiRoutingRouteRouteImport } from './routes/api/routing.route'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiWarehouseDockEventsIdRouteImport } from './routes/api/warehouse-dock-events.$id'
@@ -885,6 +886,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutingRouteRoute = ApiRoutingRouteRouteImport.update({
+  id: '/api/routing',
+  path: '/api/routing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
   id: '/api/workspace/summary',
   path: '/api/workspace/summary',
@@ -959,9 +965,9 @@ const ApiStockReservationsIdRoute = ApiStockReservationsIdRouteImport.update({
   getParentRoute: () => ApiStockReservationsRoute,
 } as any)
 const ApiRoutingMatrixRoute = ApiRoutingMatrixRouteImport.update({
-  id: '/api/routing/matrix',
-  path: '/api/routing/matrix',
-  getParentRoute: () => rootRouteImport,
+  id: '/matrix',
+  path: '/matrix',
+  getParentRoute: () => ApiRoutingRouteRoute,
 } as any)
 const ApiRoutesIdRoute = ApiRoutesIdRouteImport.update({
   id: '/$id',
@@ -1279,6 +1285,7 @@ export interface FileRoutesByFullPath {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/api/routing': typeof ApiRoutingRouteRouteWithChildren
   '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -1483,6 +1490,7 @@ export interface FileRoutesByTo {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/api/routing': typeof ApiRoutingRouteRouteWithChildren
   '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -1688,6 +1696,7 @@ export interface FileRoutesById {
   '/work-control': typeof WorkControlRoute
   '/work-day': typeof WorkDayRoute
   '/workspace': typeof WorkspaceRoute
+  '/api/routing': typeof ApiRoutingRouteRouteWithChildren
   '/admin/impersonate': typeof AdminImpersonateRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/tariffs': typeof AdminTariffsRoute
@@ -1894,6 +1903,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/api/routing'
     | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -2098,6 +2108,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/api/routing'
     | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -2302,6 +2313,7 @@ export interface FileRouteTypes {
     | '/work-control'
     | '/work-day'
     | '/workspace'
+    | '/api/routing'
     | '/admin/impersonate'
     | '/admin/settings'
     | '/admin/tariffs'
@@ -2507,6 +2519,7 @@ export interface RootRouteChildren {
   WorkControlRoute: typeof WorkControlRoute
   WorkDayRoute: typeof WorkDayRoute
   WorkspaceRoute: typeof WorkspaceRoute
+  ApiRoutingRouteRoute: typeof ApiRoutingRouteRouteWithChildren
   AdminImpersonateRoute: typeof AdminImpersonateRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminTariffsRoute: typeof AdminTariffsRoute
@@ -2619,7 +2632,6 @@ export interface RootRouteChildren {
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiGeoGeocodeRoute: typeof ApiGeoGeocodeRoute
   ApiGeoReverseRoute: typeof ApiGeoReverseRoute
-  ApiRoutingMatrixRoute: typeof ApiRoutingMatrixRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3567,6 +3579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/routing': {
+      id: '/api/routing'
+      path: '/api/routing'
+      fullPath: '/api/routing'
+      preLoaderRoute: typeof ApiRoutingRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/workspace/summary': {
       id: '/api/workspace/summary'
       path: '/api/workspace/summary'
@@ -3667,10 +3686,10 @@ declare module '@tanstack/react-router' {
     }
     '/api/routing/matrix': {
       id: '/api/routing/matrix'
-      path: '/api/routing/matrix'
+      path: '/matrix'
       fullPath: '/api/routing/matrix'
       preLoaderRoute: typeof ApiRoutingMatrixRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoutingRouteRoute
     }
     '/api/routes/$id': {
       id: '/api/routes/$id'
@@ -4056,6 +4075,18 @@ const DataImportRouteChildren: DataImportRouteChildren = {
 
 const DataImportRouteWithChildren = DataImportRoute._addFileChildren(
   DataImportRouteChildren,
+)
+
+interface ApiRoutingRouteRouteChildren {
+  ApiRoutingMatrixRoute: typeof ApiRoutingMatrixRoute
+}
+
+const ApiRoutingRouteRouteChildren: ApiRoutingRouteRouteChildren = {
+  ApiRoutingMatrixRoute: ApiRoutingMatrixRoute,
+}
+
+const ApiRoutingRouteRouteWithChildren = ApiRoutingRouteRoute._addFileChildren(
+  ApiRoutingRouteRouteChildren,
 )
 
 interface ApiAppVersionsRouteChildren {
@@ -4540,6 +4571,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkControlRoute: WorkControlRoute,
   WorkDayRoute: WorkDayRoute,
   WorkspaceRoute: WorkspaceRoute,
+  ApiRoutingRouteRoute: ApiRoutingRouteRouteWithChildren,
   AdminImpersonateRoute: AdminImpersonateRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminTariffsRoute: AdminTariffsRoute,
@@ -4652,7 +4684,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiGeoGeocodeRoute: ApiGeoGeocodeRoute,
   ApiGeoReverseRoute: ApiGeoReverseRoute,
-  ApiRoutingMatrixRoute: ApiRoutingMatrixRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
