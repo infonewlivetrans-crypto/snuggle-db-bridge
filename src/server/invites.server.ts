@@ -1,10 +1,44 @@
 import { makeAdminClient } from "@/server/api-helpers.server";
 const supabaseAdmin = makeAdminClient();
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { normalizeRuPhone } from "@/lib/phone";
+import { getRequest } from "@tanstack/react-start/server";
+import { getSessionUser } from "@/server/auth-cookies.server";
 
 type DbClient = SupabaseClient<Database>;
+
+/**
+ * Возвращает Supabase-клиент, действующий от имени текущего пользователя
+ * (cookie-сессия или Bearer). Используется для вызова SECURITY DEFINER RPC,
+ * где внутри необходим auth.uid() — без зависимости от service_role.
+ */
+async function getCallerSupabaseClient(): Promise<DbClient> {
+  const session = await getSessionUser();
+  if (session?.client) return session.client as DbClient;
+
+  let token: string | null = null;
+  try {
+    const req = getRequest();
+    const h = req?.headers?.get("authorization") ?? req?.headers?.get("Authorization");
+    if (h?.startsWith("Bearer ")) token = h.slice(7).trim() || null;
+  } catch {
+    token = null;
+  }
+  if (!token) throw new Error("unauthorized");
+
+  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
+  const key =
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.VITE_SUPABASE_ANON_KEY ??
+    "";
+  return createClient<Database>(url, key, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
 
 export type InviteRole = "admin" | "logist" | "manager" | "driver";
 const ALLOWED_INVITE_ROLES: InviteRole[] = ["admin", "logist", "manager", "driver"];
@@ -56,69 +90,32 @@ export type InviteRow = {
   last_used_at: string | null;
 };
 
-/** Создание скрытого пользователя + invite-записи. */
+/**
+ * Создание скрытого пользователя + invite-записи через SECURITY DEFINER RPC
+ * в Lovable Cloud. RPC проверяет роль администратора по auth.uid() и сама
+ * выполняет все привилегированные операции (auth.users, auth.identities,
+ * profiles, user_roles, invite_tokens). Никакой зависимости от
+ * SUPABASE_SERVICE_ROLE_KEY на сервере приложения.
+ */
 export async function adminCreateInvite(args: CreateInviteArgs): Promise<InviteRow> {
   if (!args.fullName?.trim()) throw new Error("Укажите ФИО");
   if (!ALLOWED_INVITE_ROLES.includes(args.role)) {
     throw new Error("Инвайт-ссылки доступны для ролей: администратор, логист, менеджер, водитель");
   }
 
-  const token = generateToken();
-  const password = randomPassword();
-  const email = inviteEmail(token);
-
-  // 1) скрытый Supabase-пользователь
-  const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: {
-      full_name: args.fullName,
-      invite: true,
-      role: args.role,
-    },
-  });
-  if (createErr || !created.user) {
-    throw new Error(createErr?.message ?? "Не удалось создать пользователя");
-  }
-  const userId = created.user.id;
-
-  // 2) профиль (на случай, если триггер не сработал)
-  await supabaseAdmin
-    .from("profiles")
-    .upsert(
-      { user_id: userId, email, full_name: args.fullName, is_active: true },
-      { onConflict: "user_id" },
-    );
-
-  // 3) роль
-  await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: args.role });
-
-  // 4) запись инвайта
   const phoneNorm = normalizeRuPhone(args.phone ?? null);
-  const { data: inv, error: invErr } = await supabaseAdmin
-    .from("invite_tokens")
-    .insert({
-      token,
-      user_id: userId,
-      full_name: args.fullName.trim(),
-      phone: phoneNorm,
-      role: args.role,
-      comment: args.comment?.trim() || null,
-      driver_id: args.driverId ?? null,
-      manager_name: args.managerName?.trim() || null,
-      is_active: true,
-      created_by: args.createdBy ?? null,
-    })
-    .select("*")
-    .single();
-  if (invErr || !inv) {
-    // откат пользователя, чтобы не оставить «висящего»
-    await supabaseAdmin.auth.admin.deleteUser(userId).catch(() => undefined);
-    throw new Error(invErr?.message ?? "Не удалось создать инвайт");
-  }
-
-  return inv as InviteRow;
+  const caller = await getCallerSupabaseClient();
+  const { data, error } = await caller.rpc("admin_create_invite", {
+    p_full_name: args.fullName.trim(),
+    p_phone: phoneNorm,
+    p_role: args.role,
+    p_comment: args.comment?.trim() || null,
+    p_driver_id: args.driverId ?? null,
+    p_manager_name: args.managerName?.trim() || null,
+  } as never);
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Не удалось создать инвайт");
+  return data as unknown as InviteRow;
 }
 
 export async function adminListInvites(client?: DbClient): Promise<InviteRow[]> {
@@ -151,39 +148,19 @@ export async function adminSetInviteActive(args: { id: string; isActive: boolean
   }
 }
 
-/** Перевыпуск ссылки: меняем токен и одновременно сбрасываем пароль скрытого пользователя. */
+/**
+ * Перевыпуск ссылки через SECURITY DEFINER RPC: одна транзакция в Cloud-базе,
+ * обновляет токен в invite_tokens и временные учётные данные скрытого
+ * пользователя в auth.users / auth.identities / profiles.
+ */
 export async function adminRotateInviteToken(args: { id: string }): Promise<InviteRow> {
-  const { data: row, error: getErr } = await supabaseAdmin
-    .from("invite_tokens")
-    .select("*")
-    .eq("id", args.id)
-    .maybeSingle();
-  if (getErr) throw new Error(getErr.message);
-  if (!row) throw new Error("Инвайт не найден");
-
-  const newToken = generateToken();
-  const newPassword = randomPassword();
-  const newEmail = inviteEmail(newToken);
-
-  const { error: updUserErr } = await supabaseAdmin.auth.admin.updateUserById(
-    (row as InviteRow).user_id,
-    { email: newEmail, password: newPassword, email_confirm: true },
-  );
-  if (updUserErr) throw new Error(updUserErr.message);
-
-  await supabaseAdmin
-    .from("profiles")
-    .update({ email: newEmail })
-    .eq("user_id", (row as InviteRow).user_id);
-
-  const { data: updated, error: updErr } = await supabaseAdmin
-    .from("invite_tokens")
-    .update({ token: newToken })
-    .eq("id", args.id)
-    .select("*")
-    .single();
-  if (updErr || !updated) throw new Error(updErr?.message ?? "Не удалось обновить токен");
-  return updated as InviteRow;
+  const caller = await getCallerSupabaseClient();
+  const { data, error } = await caller.rpc("admin_rotate_invite_token", {
+    p_invite_id: args.id,
+  } as never);
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Не удалось обновить токен");
+  return data as unknown as InviteRow;
 }
 
 export async function adminDeleteInvite(args: { id: string }) {
