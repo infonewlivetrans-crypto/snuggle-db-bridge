@@ -375,6 +375,8 @@ export function RouteSheetImportWizard({
     setStep("upload");
     setFile(null);
     setParsed(null);
+    setTrFile(null);
+    setTrParsed(null);
     setBusy(false);
     setErrorMsg(null);
     setErrorDetails(null);
@@ -386,22 +388,45 @@ export function RouteSheetImportWizard({
   };
 
   const handleParse = async () => {
-    if (!file) return;
+    if (!file && !trParsed) return;
     setBusy(true);
     setErrorMsg(null);
     setErrorDetails(null);
     try {
-      const name = file.name.toLowerCase();
-      if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
-        throw new Error(
-          "Поддерживаются только Excel-файлы (.xlsx, .xls). PDF/CSV — в разработке.",
-        );
-      }
-      const data = await parseRouteSheetXlsx(file);
-      if (data.orders.length === 0) {
-        throw new Error(
-          "Не удалось распознать заказы в маршрутном листе. Проверьте формат файла.",
-        );
+      let data: ParsedRouteSheet | null = null;
+      if (file) {
+        const name = file.name.toLowerCase();
+        if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
+          throw new Error("Поддерживаются только Excel-файлы (.xlsx, .xls).");
+        }
+        data = await parseRouteSheetXlsx(file);
+        if (data.orders.length === 0 && !trParsed) {
+          throw new Error(
+            "Не удалось распознать заказы. Загрузите также «Заявку на транспорт» или другой маршрутный лист.",
+          );
+        }
+      } else {
+        // Только заявка на транспорт — синтезируем пустой ParsedRouteSheet
+        // для предпросмотра, реальные orders создаст сервер из TR.orderNumbers.
+        data = {
+          routeNumber: trParsed?.requestNumber ?? null,
+          routeDate: trParsed?.loadingDate ?? null,
+          organization: trParsed?.organization ?? null,
+          shipper: trParsed?.shipper ?? null,
+          carrier: trParsed?.carrier ?? null,
+          contract: null,
+          driverName: trParsed?.driverName ?? null,
+          driverPhone: trParsed?.driverPhone ?? null,
+          vehiclePlate: trParsed?.vehiclePlate ?? null,
+          orders: [],
+          totals: {
+            ordersCount: trParsed?.orderNumbers.length ?? 0,
+            cashSum: 0,
+            qrCount: 0,
+            paidCount: 0,
+            issuesCount: 0,
+          },
+        };
       }
       setParsed(data);
       setStep("preview");
@@ -417,7 +442,7 @@ export function RouteSheetImportWizard({
   };
 
   const handleImport = async () => {
-    if (!parsed) return;
+    if (!parsed && !trParsed) return;
     setBusy(true);
     setStep("importing");
     setErrorMsg(null);
@@ -430,7 +455,8 @@ export function RouteSheetImportWizard({
           ...authHeaders(),
         },
         body: JSON.stringify({
-          ...parsed,
+          ...(parsed ?? {}),
+          transportRequest: trParsed ?? null,
           itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
         }),
       });
