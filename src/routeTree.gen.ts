@@ -172,6 +172,7 @@ import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
 import { Route as ApiInboundShipmentsIdRouteImport } from './routes/api/inbound-shipments.$id'
 import { Route as ApiInboundShipmentItemsIdRouteImport } from './routes/api/inbound-shipment-items.$id'
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
+import { Route as ApiGeoReverseRouteImport } from './routes/api/geo.reverse'
 import { Route as ApiGeoGeocodeRouteImport } from './routes/api/geo.geocode'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
@@ -1034,6 +1035,11 @@ const ApiImportLogsIdRoute = ApiImportLogsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiImportLogsRoute,
 } as any)
+const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
+  id: '/api/geo/reverse',
+  path: '/api/geo/reverse',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGeoGeocodeRoute = ApiGeoGeocodeRouteImport.update({
   id: '/api/geo/geocode',
   path: '/api/geo/geocode',
@@ -1387,6 +1393,7 @@ export interface FileRoutesByFullPath {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/geo/geocode': typeof ApiGeoGeocodeRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
@@ -1589,6 +1596,7 @@ export interface FileRoutesByTo {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/geo/geocode': typeof ApiGeoGeocodeRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
@@ -1792,6 +1800,7 @@ export interface FileRoutesById {
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
   '/api/geo/geocode': typeof ApiGeoGeocodeRoute
+  '/api/geo/reverse': typeof ApiGeoReverseRoute
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
@@ -1996,6 +2005,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/geo/geocode'
+    | '/api/geo/reverse'
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
@@ -2198,6 +2208,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/geo/geocode'
+    | '/api/geo/reverse'
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
@@ -2400,6 +2411,7 @@ export interface FileRouteTypes {
     | '/api/drivers/$id'
     | '/api/drivers/import'
     | '/api/geo/geocode'
+    | '/api/geo/reverse'
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
@@ -2594,6 +2606,7 @@ export interface RootRouteChildren {
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiGeoGeocodeRoute: typeof ApiGeoGeocodeRoute
+  ApiGeoReverseRoute: typeof ApiGeoReverseRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3744,6 +3757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImportLogsIdRouteImport
       parentRoute: typeof ApiImportLogsRoute
     }
+    '/api/geo/reverse': {
+      id: '/api/geo/reverse'
+      path: '/api/geo/reverse'
+      fullPath: '/api/geo/reverse'
+      preLoaderRoute: typeof ApiGeoReverseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/geo/geocode': {
       id: '/api/geo/geocode'
       path: '/api/geo/geocode'
@@ -4611,6 +4631,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiGeoGeocodeRoute: ApiGeoGeocodeRoute,
+  ApiGeoReverseRoute: ApiGeoReverseRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
