@@ -69,7 +69,7 @@ async function writeGeocodeCache(
 ): Promise<void> {
   // SECURITY DEFINER RPC — пишет в кэш без service_role.
   // Любая ошибка кэша не должна валить основной ответ Яндекса.
-  const { error } = await sb.rpc("upsert_geocode_cache", {
+  const { error } = await sb.rpc("upsert_geocode_cache" as never, ({
     p_cache_key: key,
     p_kind: kind,
     p_query: query,
