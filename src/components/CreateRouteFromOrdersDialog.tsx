@@ -194,7 +194,7 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
           </DialogDescription>
         </DialogHeader>
 
-        {ordersWithoutCoords.length > 0 && (
+        {ordersWithoutCoords.length > 0 && geocodeFailed.length === 0 && (
           <div className="rt-alert rt-alert-warning">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div className="flex-1">
@@ -202,13 +202,57 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
                 Нет координат у {ordersWithoutCoords.length} {pluralOrders(ordersWithoutCoords.length)}
               </div>
               <div className="mt-0.5 text-xs">
-                Маршрут может быть неточным.{" "}
+                При создании маршрута система автоматически попробует определить координаты по адресу.{" "}
                 {ordersWithoutCoords
                   .slice(0, 5)
                   .map((o) => o.order_number)
                   .join(", ")}
                 {ordersWithoutCoords.length > 5 ? "…" : ""}
               </div>
+            </div>
+          </div>
+        )}
+
+        {geocoding && (
+          <div className="rt-alert">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 animate-pulse" />
+            <div className="flex-1 text-xs">
+              Геокодирую {ordersWithoutCoords.length} {pluralOrders(ordersWithoutCoords.length)}…
+            </div>
+          </div>
+        )}
+
+        {geocodeFailed.length > 0 && (
+          <div className="rt-alert rt-alert-warning">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="flex-1">
+              <div className="font-medium">
+                Не удалось определить координаты: {geocodeFailed.length}
+              </div>
+              <ul className="mt-1 space-y-0.5 text-xs">
+                {geocodeFailed.slice(0, 8).map((f) => (
+                  <li key={f.id} className="flex items-center gap-2">
+                    <span className="font-mono font-semibold">{f.order_number}</span>
+                    <span className="truncate">{f.address ?? "адрес не указан"}</span>
+                    <button
+                      type="button"
+                      className="ml-auto text-xs text-primary underline"
+                      onClick={() => {
+                        onOpenChange(false);
+                        navigate({
+                          to: "/orders",
+                          search: { highlight: f.id } as never,
+                        });
+                      }}
+                    >
+                      Уточнить адрес
+                    </button>
+                  </li>
+                ))}
+                {geocodeFailed.length > 8 && (
+                  <li className="text-muted-foreground">…ещё {geocodeFailed.length - 8}</li>
+                )}
+              </ul>
             </div>
           </div>
         )}
