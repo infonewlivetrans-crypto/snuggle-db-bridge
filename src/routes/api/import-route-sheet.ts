@@ -1032,10 +1032,28 @@ export const Route = createFileRoute("/api/import-route-sheet")({
 
         if (itemWarnings.length > 0) warnings.push(...itemWarnings);
 
+        // 6b. Пересчёт total_weight_kg/total_volume_m3 по товарам и points_count.
+        const allItems = Object.values(itemsByOrderNumber).flat();
+        const sumWeight = allItems.reduce((s, it) => s + (it.weight_kg ?? 0), 0);
+        const sumVolume = allItems.reduce((s, it) => s + (it.volume_m3 ?? 0), 0);
+        try {
+          await sb
+            .from("routes")
+            .update({
+              points_count: inserted,
+              ...(sumWeight > 0 ? { total_weight_kg: sumWeight } : {}),
+              ...(sumVolume > 0 ? { total_volume_m3: sumVolume } : {}),
+            } as never)
+            .eq("id", routeId);
+        } catch {
+          /* не критично */
+        }
+
         return jsonResponse({
           ok: true,
           routeId,
           routeNumber,
+          source: routeSource,
           inserted,
           total: payload.orders.length,
           pointsCreated: inserted,
@@ -1046,6 +1064,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           failedRows,
           warnings,
           headerMissing,
+          trUnrecognized,
           rows: importedRows,
           missingRowsCount: totalMissing,
           clientsNeedingFill: Array.from(clientsNeedingFill.values()).map(
@@ -1065,7 +1084,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               inviteUrl: m.inviteUrl,
             })),
           needsReview:
-            headerMissing.length > 0 || totalMissing > 0 || failedRows.length > 0,
+            headerMissing.length > 0 ||
+            totalMissing > 0 ||
+            failedRows.length > 0 ||
+            trUnrecognized.length > 0,
         });
       },
     },
