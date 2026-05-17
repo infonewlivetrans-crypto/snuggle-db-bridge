@@ -18,14 +18,10 @@ import {
   type AppVersion,
 } from "@/lib/system-settings";
 import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules, LAUNCH_MODE_LABELS, type LaunchMode } from "@/lib/modules";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettingsPage,
-  loader: async () => {
-    const [settings, versions] = await Promise.all([fetchAllSettings(), fetchAllAppVersions()]);
-    return { settings, versions };
-  },
   errorComponent: ({ error }) => (
     <div className="p-8 text-destructive">Ошибка загрузки: {error.message}</div>
   ),
