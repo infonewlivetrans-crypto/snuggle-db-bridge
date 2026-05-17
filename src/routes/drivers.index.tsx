@@ -177,6 +177,9 @@ function DriversPage() {
                     </TableCell>
                     <TableCell>
                       <DriverAccessCell
+                        driverId={d.id}
+                        driverFullName={d.full_name}
+                        driverPhone={d.phone}
                         status={statusByDriverId.get(d.id) ?? null}
                         onChanged={onAccessChanged}
                       />
