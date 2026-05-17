@@ -1,3 +1,4 @@
+import "@/server/env-bootstrap.server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { getSessionUser } from "@/server/auth-cookies.server";
@@ -17,6 +18,9 @@ function getSupabasePublishableKey(): string {
     process.env.VITE_SUPABASE_ANON_KEY ??
     ""
   );
+}
+function getSupabaseServiceRoleKey(): string {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 }
 
 export function jsonResponse(body: unknown, init?: ResponseInit): Response {
@@ -46,6 +50,17 @@ export function makeUserClient(token: string): SupabaseClient<Database> {
 
 export function makeAnonClient(): SupabaseClient<Database> {
   return createClient<Database>(getSupabaseUrl(), getSupabasePublishableKey(), {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
+
+export function makeAdminClient(): SupabaseClient<Database> {
+  const url = getSupabaseUrl();
+  const serviceRoleKey = getSupabaseServiceRoleKey();
+  if (!url || !serviceRoleKey) {
+    throw new Error("Server database configuration is missing");
+  }
+  return createClient<Database>(url, serviceRoleKey, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 }
