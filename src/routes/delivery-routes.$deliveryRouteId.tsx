@@ -481,9 +481,18 @@ function DeliveryRoutePage() {
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">Маршрут доставки</p>
               </div>
-              <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[data.status]}>
-                {DELIVERY_ROUTE_STATUS_LABELS[data.status]}
-              </Badge>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[data.status]}>
+                  {DELIVERY_ROUTE_STATUS_LABELS[data.status]}
+                </Badge>
+                <AdminDeleteButton
+                  entityLabel="рейс"
+                  confirmationCode={data.route_number}
+                  deleteUrl={`/api/delivery-routes/${data.id}`}
+                  description="Рейс не должен быть выпущен, в пути или завершён; водитель не должен начинать этапы маршрута."
+                  onDeleted={() => router.navigate({ to: "/delivery-routes" })}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
