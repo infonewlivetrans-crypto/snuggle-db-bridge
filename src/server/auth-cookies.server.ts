@@ -83,7 +83,7 @@ export function clearSessionCookies() {
 }
 
 function makeClient(token?: string): SupabaseClient<Database> {
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(getSupabaseUrl(), getSupabasePublishableKey(), {
     global: token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : undefined,
