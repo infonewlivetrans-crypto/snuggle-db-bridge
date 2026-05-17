@@ -48,6 +48,7 @@ import {
   type ErrorDetails,
 } from "@/lib/supabaseError";
 import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
+import { TransportRequestImportPanel } from "@/components/TransportRequestImportPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
@@ -327,6 +328,7 @@ export function RouteSheetImportWizard({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [mode, setMode] = useState<"route_sheet" | "transport_request">("route_sheet");
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
@@ -597,12 +599,28 @@ export function RouteSheetImportWizard({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            Загрузить маршрутный лист
+            Импорт документов
           </DialogTitle>
           <DialogDescription>
-            Excel из 1С — заявка на транспорт создастся автоматически
+            Маршрутный лист или одиночная заявка на транспорт из 1С (Excel)
           </DialogDescription>
         </DialogHeader>
+
+        <Tabs
+          value={mode}
+          onValueChange={(v) => setMode(v as "route_sheet" | "transport_request")}
+          className="flex flex-1 flex-col overflow-hidden"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="route_sheet">Маршрутный лист</TabsTrigger>
+            <TabsTrigger value="transport_request">Заявка на транспорт</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="transport_request" className="flex flex-1 flex-col overflow-hidden mt-3">
+            <TransportRequestImportPanel onClose={() => onOpenChange(false)} />
+          </TabsContent>
+
+          <TabsContent value="route_sheet" className="flex flex-1 flex-col overflow-hidden mt-3 space-y-3">
 
         {step === "upload" && (
           <div className="space-y-4">
@@ -1031,6 +1049,8 @@ export function RouteSheetImportWizard({
             </>
           )}
         </DialogFooter>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

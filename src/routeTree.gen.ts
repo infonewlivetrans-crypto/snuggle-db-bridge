@@ -123,6 +123,7 @@ import { Route as ApiInvitesRouteImport } from './routes/api/invites'
 import { Route as ApiInviteLoginRouteImport } from './routes/api/invite-login'
 import { Route as ApiInboundShipmentsRouteImport } from './routes/api/inbound-shipments'
 import { Route as ApiInboundShipmentItemsRouteImport } from './routes/api/inbound-shipment-items'
+import { Route as ApiImportTransportRequestRouteImport } from './routes/api/import-transport-request'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiImportLogsRouteImport } from './routes/api/import-logs'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
@@ -789,6 +790,12 @@ const ApiInboundShipmentItemsRoute = ApiInboundShipmentItemsRouteImport.update({
   path: '/api/inbound-shipment-items',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiImportTransportRequestRoute =
+  ApiImportTransportRequestRouteImport.update({
+    id: '/api/import-transport-request',
+    path: '/api/import-transport-request',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiImportRouteSheetRoute = ApiImportRouteSheetRouteImport.update({
   id: '/api/import-route-sheet',
   path: '/api/import-route-sheet',
@@ -1325,6 +1332,7 @@ export interface FileRoutesByFullPath {
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/import-transport-request': typeof ApiImportTransportRequestRoute
   '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
@@ -1533,6 +1541,7 @@ export interface FileRoutesByTo {
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/import-transport-request': typeof ApiImportTransportRequestRoute
   '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
@@ -1742,6 +1751,7 @@ export interface FileRoutesById {
   '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
+  '/api/import-transport-request': typeof ApiImportTransportRequestRoute
   '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
   '/api/inbound-shipments': typeof ApiInboundShipmentsRouteWithChildren
   '/api/invite-login': typeof ApiInviteLoginRoute
@@ -1952,6 +1962,7 @@ export interface FileRouteTypes {
     | '/api/geo'
     | '/api/import-logs'
     | '/api/import-route-sheet'
+    | '/api/import-transport-request'
     | '/api/inbound-shipment-items'
     | '/api/inbound-shipments'
     | '/api/invite-login'
@@ -2160,6 +2171,7 @@ export interface FileRouteTypes {
     | '/api/geo'
     | '/api/import-logs'
     | '/api/import-route-sheet'
+    | '/api/import-transport-request'
     | '/api/inbound-shipment-items'
     | '/api/inbound-shipments'
     | '/api/invite-login'
@@ -2368,6 +2380,7 @@ export interface FileRouteTypes {
     | '/api/geo'
     | '/api/import-logs'
     | '/api/import-route-sheet'
+    | '/api/import-transport-request'
     | '/api/inbound-shipment-items'
     | '/api/inbound-shipments'
     | '/api/invite-login'
@@ -2577,6 +2590,7 @@ export interface RootRouteChildren {
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
+  ApiImportTransportRequestRoute: typeof ApiImportTransportRequestRoute
   ApiInboundShipmentItemsRoute: typeof ApiInboundShipmentItemsRouteWithChildren
   ApiInboundShipmentsRoute: typeof ApiInboundShipmentsRouteWithChildren
   ApiInviteLoginRoute: typeof ApiInviteLoginRoute
@@ -3472,6 +3486,13 @@ declare module '@tanstack/react-router' {
       path: '/api/inbound-shipment-items'
       fullPath: '/api/inbound-shipment-items'
       preLoaderRoute: typeof ApiInboundShipmentItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/import-transport-request': {
+      id: '/api/import-transport-request'
+      path: '/api/import-transport-request'
+      fullPath: '/api/import-transport-request'
+      preLoaderRoute: typeof ApiImportTransportRequestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/import-route-sheet': {
@@ -4666,6 +4687,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
+  ApiImportTransportRequestRoute: ApiImportTransportRequestRoute,
   ApiInboundShipmentItemsRoute: ApiInboundShipmentItemsRouteWithChildren,
   ApiInboundShipmentsRoute: ApiInboundShipmentsRouteWithChildren,
   ApiInviteLoginRoute: ApiInviteLoginRoute,
@@ -4765,13 +4787,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

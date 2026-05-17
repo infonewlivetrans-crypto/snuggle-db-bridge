@@ -231,7 +231,7 @@ function LogistPage() {
           </Button>
           <Button size="sm" className="gap-2" onClick={() => setImportOpen(true)}>
             <Upload className="h-4 w-4" />
-            Загрузить маршрутный лист
+            Импорт документов
           </Button>
         </div>
         <RouteSheetImportWizard open={importOpen} onOpenChange={setImportOpen} />
