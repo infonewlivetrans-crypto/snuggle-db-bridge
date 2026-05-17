@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/routing")({
           return jsonResponse({ error: "invalid body" }, { status: 400 });
         }
         try {
-          const route = await buildRoute(parsed.data.waypoints);
+          const route = await buildRoute(auth.client, parsed.data.waypoints);
           return jsonResponse(
             {
               distance_m: route.distance_m,

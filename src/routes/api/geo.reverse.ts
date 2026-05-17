@@ -16,7 +16,7 @@ export const Route = createFileRoute("/api/geo/reverse")({
           return jsonResponse({ error: "valid lat/lng required" }, { status: 400 });
         }
         try {
-          const row = await reverseGeocode({ lat, lng });
+          const row = await reverseGeocode(auth.client, { lat, lng });
           return jsonResponse(
             {
               lat: row.lat,

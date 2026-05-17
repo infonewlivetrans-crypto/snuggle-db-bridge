@@ -4697,6 +4697,41 @@ export type Database = {
           portal_token_revoked_at: string
         }[]
       }
+      upsert_geocode_cache: {
+        Args: {
+          p_cache_key: string
+          p_formatted_address: string
+          p_kind: string
+          p_lat: number
+          p_lng: number
+          p_query: string
+          p_raw: Json
+          p_ttl_days?: number
+        }
+        Returns: undefined
+      }
+      upsert_route_geometry_cache: {
+        Args: {
+          p_cache_key: string
+          p_distance_m: number
+          p_duration_s: number
+          p_geometry: Json
+          p_segments: Json
+          p_ttl_days?: number
+          p_waypoints: Json
+        }
+        Returns: undefined
+      }
+      upsert_route_matrix_cache: {
+        Args: {
+          p_cache_key: string
+          p_destinations: Json
+          p_matrix: Json
+          p_origins: Json
+          p_ttl_days?: number
+        }
+        Returns: undefined
+      }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
       validate_invite_for_activation: {
         Args: { p_token: string }

@@ -1,17 +1,26 @@
 /**
  * Server-side Yandex Maps wrappers.
  *
- * Принципы:
- *  - все ключи читаются ТОЛЬКО из process.env внутри хендлеров (никаких import-time чтений);
- *  - наружу из браузера эти ключи не попадают;
- *  - все ответы кэшируются в БД (geocode_cache / route_matrix_cache / route_geometry_cache);
- *  - используется service-role клиент только для записи в кэш (RLS read-only для authenticated).
+ * Production-архитектура:
+ *  - НЕ используется SUPABASE_SERVICE_ROLE_KEY (на VPS его нет);
+ *  - все обращения к БД идут через переданный user-context SupabaseClient
+ *    (тот, что выдаёт api-helpers.requireAuth) — то есть от имени
+ *    залогиненного пользователя;
+ *  - чтение кэша — обычный SELECT, разрешённый RLS-политикой
+ *    `*_cache_select_auth` для authenticated;
+ *  - запись кэша — через SECURITY DEFINER RPC
+ *    `upsert_geocode_cache` / `upsert_route_matrix_cache` /
+ *    `upsert_route_geometry_cache`. Сами таблицы для прямой записи из
+ *    клиента закрыты (нет INSERT/UPDATE policy).
+ *  - ключи Яндекса читаются ТОЛЬКО из process.env внутри хендлеров.
  */
 import "@/server/env-bootstrap.server";
 import { createHash } from "crypto";
-import { makeAdminClient } from "@/server/api-helpers.server";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 export type LngLat = { lat: number; lng: number };
+type Sb = SupabaseClient<Database>;
 
 const GEOCODER_URL = "https://geocode-maps.yandex.ru/1.x/";
 const DISTANCE_MATRIX_URL = "https://api.routing.yandex.net/v2/distancematrix";
@@ -41,11 +50,10 @@ type GeocodeRow = {
   raw: unknown;
 };
 
-async function readGeocodeCache(key: string): Promise<GeocodeRow | null> {
-  const admin = makeAdminClient();
-  const { data } = await admin
+async function readGeocodeCache(sb: Sb, key: string): Promise<GeocodeRow | null> {
+  const { data } = await sb
     .from("geocode_cache")
-    .select("lat,lng,formatted_address,raw,expires_at")
+    .select("lat,lng,formatted_address,raw")
     .eq("cache_key", key)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -53,24 +61,25 @@ async function readGeocodeCache(key: string): Promise<GeocodeRow | null> {
 }
 
 async function writeGeocodeCache(
+  sb: Sb,
   key: string,
   kind: "forward" | "reverse",
   query: string,
   row: GeocodeRow,
 ): Promise<void> {
-  const admin = makeAdminClient();
-  await admin.from("geocode_cache").upsert(
-    {
-      cache_key: key,
-      kind,
-      query,
-      lat: row.lat,
-      lng: row.lng,
-      formatted_address: row.formatted_address,
-      raw: row.raw as never,
-    },
-    { onConflict: "cache_key" },
-  );
+  // SECURITY DEFINER RPC — пишет в кэш без service_role.
+  // Любая ошибка кэша не должна валить основной ответ Яндекса.
+  const { error } = await sb.rpc("upsert_geocode_cache", {
+    p_cache_key: key,
+    p_kind: kind,
+    p_query: query,
+    p_lat: row.lat,
+    p_lng: row.lng,
+    p_formatted_address: row.formatted_address,
+    p_raw: (row.raw ?? null),
+    p_ttl_days: 90,
+  } as never);
+  if (error) console.warn("[yandex] geocode cache upsert failed:", error.message);
 }
 
 /* -------------------- geocoder -------------------- */
@@ -81,9 +90,7 @@ type YandexGeoResponse = {
       featureMember?: Array<{
         GeoObject?: {
           Point?: { pos?: string };
-          metaDataProperty?: {
-            GeocoderMetaData?: { text?: string };
-          };
+          metaDataProperty?: { GeocoderMetaData?: { text?: string } };
         };
       }>;
     };
@@ -108,11 +115,11 @@ function parseFirstFeature(json: YandexGeoResponse): GeocodeRow {
   return { lat, lng, formatted_address: formatted, raw: json };
 }
 
-export async function geocodeAddress(address: string): Promise<GeocodeRow> {
+export async function geocodeAddress(sb: Sb, address: string): Promise<GeocodeRow> {
   const q = address.trim();
   if (!q) throw new Error("address is empty");
   const key = `fwd:${hashKey(q.toLowerCase())}`;
-  const cached = await readGeocodeCache(key);
+  const cached = await readGeocodeCache(sb, key);
   if (cached) return cached;
 
   const url = new URL(GEOCODER_URL);
@@ -129,18 +136,18 @@ export async function geocodeAddress(address: string): Promise<GeocodeRow> {
   }
   const json = (await res.json()) as YandexGeoResponse;
   const row = parseFirstFeature(json);
-  await writeGeocodeCache(key, "forward", q, row);
+  await writeGeocodeCache(sb, key, "forward", q, row);
   return row;
 }
 
-export async function reverseGeocode(coords: LngLat): Promise<GeocodeRow> {
+export async function reverseGeocode(sb: Sb, coords: LngLat): Promise<GeocodeRow> {
   const { lat, lng } = coords;
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     throw new Error("invalid coords");
   }
   const q = `${lng.toFixed(6)},${lat.toFixed(6)}`;
   const key = `rev:${hashKey(q)}`;
-  const cached = await readGeocodeCache(key);
+  const cached = await readGeocodeCache(sb, key);
   if (cached) return cached;
 
   const url = new URL(GEOCODER_URL);
@@ -158,7 +165,7 @@ export async function reverseGeocode(coords: LngLat): Promise<GeocodeRow> {
   }
   const json = (await res.json()) as YandexGeoResponse;
   const row = parseFirstFeature(json);
-  await writeGeocodeCache(key, "reverse", q, row);
+  await writeGeocodeCache(sb, key, "reverse", q, row);
   return row;
 }
 
@@ -179,6 +186,7 @@ function pointsKey(points: LngLat[]): string {
 }
 
 export async function distanceMatrix(
+  sb: Sb,
   origins: LngLat[],
   destinations: LngLat[],
 ): Promise<Matrix> {
@@ -186,10 +194,9 @@ export async function distanceMatrix(
     return { rows: [] };
   }
   const key = `dm:${hashKey(`${pointsKey(origins)}::${pointsKey(destinations)}`)}`;
-  const admin = makeAdminClient();
-  const { data: cached } = await admin
+  const { data: cached } = await sb
     .from("route_matrix_cache")
-    .select("matrix,expires_at")
+    .select("matrix")
     .eq("cache_key", key)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -197,14 +204,8 @@ export async function distanceMatrix(
 
   const url = new URL(DISTANCE_MATRIX_URL);
   url.searchParams.set("apikey", getRoutingKey());
-  url.searchParams.set(
-    "origins",
-    origins.map((p) => `${p.lat},${p.lng}`).join("|"),
-  );
-  url.searchParams.set(
-    "destinations",
-    destinations.map((p) => `${p.lat},${p.lng}`).join("|"),
-  );
+  url.searchParams.set("origins", origins.map((p) => `${p.lat},${p.lng}`).join("|"));
+  url.searchParams.set("destinations", destinations.map((p) => `${p.lat},${p.lng}`).join("|"));
   url.searchParams.set("mode", "driving");
 
   const res = await fetch(url.toString());
@@ -231,15 +232,14 @@ export async function distanceMatrix(
     })),
   };
 
-  await admin.from("route_matrix_cache").upsert(
-    {
-      cache_key: key,
-      origins: origins as never,
-      destinations: destinations as never,
-      matrix: matrix as never,
-    },
-    { onConflict: "cache_key" },
-  );
+  const { error } = await sb.rpc("upsert_route_matrix_cache", {
+    p_cache_key: key,
+    p_origins: origins,
+    p_destinations: destinations,
+    p_matrix: matrix,
+    p_ttl_days: 7,
+  } as never);
+  if (error) console.warn("[yandex] matrix cache upsert failed:", error.message);
   return matrix;
 }
 
@@ -248,18 +248,16 @@ export async function distanceMatrix(
 export type RouteGeometry = {
   distance_m: number | null;
   duration_s: number | null;
-  geometry: Array<[number, number]>; // [lng, lat]
+  geometry: Array<[number, number]>;
   segments: Array<{ distance_m: number | null; duration_s: number | null }>;
-  raw?: unknown;
 };
 
-export async function buildRoute(waypoints: LngLat[]): Promise<RouteGeometry> {
+export async function buildRoute(sb: Sb, waypoints: LngLat[]): Promise<RouteGeometry> {
   if (waypoints.length < 2) throw new Error("need at least 2 waypoints");
   const key = `rt:${hashKey(pointsKey(waypoints))}`;
-  const admin = makeAdminClient();
-  const { data: cached } = await admin
+  const { data: cached } = await sb
     .from("route_geometry_cache")
-    .select("distance_m,duration_s,geometry,segments,expires_at")
+    .select("distance_m,duration_s,geometry,segments")
     .eq("cache_key", key)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
@@ -280,10 +278,7 @@ export async function buildRoute(waypoints: LngLat[]): Promise<RouteGeometry> {
 
   const url = new URL(ROUTING_URL);
   url.searchParams.set("apikey", getRoutingKey());
-  url.searchParams.set(
-    "waypoints",
-    waypoints.map((p) => `${p.lat},${p.lng}`).join("|"),
-  );
+  url.searchParams.set("waypoints", waypoints.map((p) => `${p.lat},${p.lng}`).join("|"));
   url.searchParams.set("mode", "driving");
 
   const res = await fetch(url.toString());
@@ -317,19 +312,17 @@ export async function buildRoute(waypoints: LngLat[]): Promise<RouteGeometry> {
     duration_s: route.duration?.value ?? null,
     geometry: geom,
     segments,
-    raw,
   };
 
-  await admin.from("route_geometry_cache").upsert(
-    {
-      cache_key: key,
-      waypoints: waypoints as never,
-      distance_m: result.distance_m,
-      duration_s: result.duration_s,
-      geometry: result.geometry as never,
-      segments: result.segments as never,
-    },
-    { onConflict: "cache_key" },
-  );
+  const { error } = await sb.rpc("upsert_route_geometry_cache", {
+    p_cache_key: key,
+    p_waypoints: waypoints,
+    p_distance_m: result.distance_m,
+    p_duration_s: result.duration_s,
+    p_geometry: result.geometry,
+    p_segments: result.segments,
+    p_ttl_days: 7,
+  } as never);
+  if (error) console.warn("[yandex] route cache upsert failed:", error.message);
   return result;
 }
