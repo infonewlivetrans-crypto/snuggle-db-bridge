@@ -1,16 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
-import { writeAudit } from "@/server/audit.server";
+import { jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 
 const ALLOWED = new Set(["status", "comment"]);
 
-// delivery_route_status, при которых рейс уже выпущен/в работе/завершён.
-// Удаление запрещено — только 'draft'/'formed' можно удалять админом.
-const NON_DELETABLE_DELIVERY_STATUSES = new Set<string>([
-  "issued",
-  "in_progress",
-  "completed",
-]);
+type DeleteDeliveryRouteResult = {
+  ok?: boolean;
+  code?: string;
+  message?: string;
+  error?: string;
+};
+
+const DELETE_STATUS_BY_CODE: Record<string, number> = {
+  unauthorized: 401,
+  forbidden: 403,
+  not_found: 404,
+  not_deletable_status: 409,
+  stage_started: 409,
+};
 
 function logAdminDeleteError(marker: string, id: string, error: unknown) {
   console.error(marker, {
