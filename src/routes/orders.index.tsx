@@ -51,6 +51,30 @@ export const Route = createFileRoute("/orders/")({
     ],
   }),
   component: OrdersPage,
+  errorComponent: ({ error, reset }) => {
+    console.error("/orders errorComponent:", error);
+    return (
+      <div className="min-h-screen bg-background">
+        <AppHeader />
+        <main className="mx-auto max-w-3xl px-4 py-10 text-sm">
+          <h1 className="mb-2 text-xl font-semibold">Не удалось загрузить заказы</h1>
+          <p className="mb-4 text-muted-foreground">
+            Произошла ошибка при отображении страницы. Попробуйте обновить.
+          </p>
+          <pre className="mb-4 overflow-auto rounded bg-muted p-3 text-xs">
+            {String(error?.message ?? error)}
+          </pre>
+          <button
+            type="button"
+            onClick={() => reset()}
+            className="rounded bg-primary px-3 py-1.5 text-primary-foreground"
+          >
+            Повторить
+          </button>
+        </main>
+      </div>
+    );
+  },
 });
 
 type OrderRow = {
