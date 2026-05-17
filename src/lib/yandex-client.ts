@@ -65,7 +65,7 @@ export type RouteResult = {
 };
 
 export async function buildRoute(waypoints: LngLat[]): Promise<RouteResult> {
-  const r = await apiFetch(`/api/routing/route`, {
+  const r = await apiFetch(`/api/routing/directions`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ waypoints }),
