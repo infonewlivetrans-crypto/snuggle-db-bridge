@@ -284,6 +284,81 @@ export function TransportRequestImportPanel({
             </Alert>
           )}
 
+          {/* Товарный состав (опционально) — текст или Excel/CSV */}
+          <div className="rounded-md border bg-card p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">Товарный состав (опционально)</div>
+              {itemsParsed && (
+                <div className="text-xs text-muted-foreground">
+                  Распознано <b>{itemsParsed.totals.items}</b> строк по{" "}
+                  <b>{itemsParsed.totals.orders}</b> заказам
+                </div>
+              )}
+            </div>
+            <Textarea
+              placeholder="Вставьте текст из 1С (блоки «Заказ покупателя КП_… от …»)"
+              value={itemsText}
+              onChange={(e) => setItemsText(e.target.value)}
+              className="min-h-[80px] text-xs font-mono"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (!itemsText.trim()) return;
+                  try {
+                    setItemsParsed(parseOrderItemsText(itemsText));
+                  } catch (e) {
+                    toast.error(
+                      e instanceof Error ? e.message : "Не удалось разобрать товары",
+                    );
+                  }
+                }}
+                disabled={!itemsText.trim()}
+              >
+                Распознать текст
+              </Button>
+              <Label className="text-xs text-muted-foreground">или файл:</Label>
+              <Input
+                type="file"
+                accept=".xlsx,.xls,.csv,.txt"
+                className="h-8 text-xs file:mr-2 file:rounded file:border-0 file:bg-secondary file:px-2 file:py-1"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0];
+                  if (!f) return;
+                  try {
+                    setItemsParsed(await parseOrderItemsFile(f));
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error ? err.message : "Файл не распознан",
+                    );
+                  }
+                }}
+              />
+              {itemsParsed && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setItemsParsed(null);
+                    setItemsText("");
+                  }}
+                >
+                  Очистить
+                </Button>
+              )}
+            </div>
+            {itemsParsed && itemsParsed.totals.orders > 0 && (
+              <div className="text-xs text-muted-foreground">
+                Заказы:{" "}
+                {Object.entries(itemsParsed.byOrderNumber)
+                  .map(([k, v]) => `${k} (${v.length})`)
+                  .join(", ")}
+              </div>
+            )}
+          </div>
+
           {error && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
