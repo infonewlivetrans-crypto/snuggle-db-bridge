@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { AppHeader } from "@/components/AppHeader";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -132,6 +133,7 @@ type PointRow = {
 };
 
 function DeliveryRoutePage() {
+  const router = useRouter();
   const { deliveryRouteId } = Route.useParams();
   const qc = useQueryClient();
 
