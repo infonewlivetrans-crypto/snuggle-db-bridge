@@ -42,20 +42,92 @@ type IncomingItem = {
   needsReview: boolean;
 };
 
-type IncomingPayload = {
-  routeNumber: string | null;
-  routeDate: string | null;
-  organization: string | null;
+type IncomingTransportRequest = {
+  requestNumber: string | null;
+  requestDate: string | null;
+  loadingDate: string | null;
+  loadingTime: string | null;
+  loadingAddress: string | null;
+  unloadingAddress: string | null;
   shipper: string | null;
+  consignee: string | null;
+  contactPerson: string | null;
+  contactPhone: string | null;
+  cargoDescription: string | null;
+  weightKg: number | null;
+  volumeM3: number | null;
+  placesCount: number | null;
+  vehicleRequirements: string | null;
   carrier: string | null;
-  contract?: string | null;
   driverName: string | null;
   driverPhone: string | null;
   vehiclePlate: string | null;
-  orders: IncomingOrder[];
+  comment: string | null;
+  organization: string | null;
+  orderNumbers: string[];
+  raw: Record<string, string>;
+};
+
+type IncomingPayload = {
+  // Маршрутный лист (всё опционально — может прийти только заявка на транспорт)
+  routeNumber?: string | null;
+  routeDate?: string | null;
+  organization?: string | null;
+  shipper?: string | null;
+  carrier?: string | null;
+  contract?: string | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  vehiclePlate?: string | null;
+  orders?: IncomingOrder[];
   /** Опциональный товарный состав: ключ — нормализованный номер заказа. */
   itemsByOrderNumber?: Record<string, IncomingItem[]>;
+  /** Опциональная шапка из файла «Заявка на транспорт». */
+  transportRequest?: IncomingTransportRequest | null;
 };
+
+function buildTransportComment(
+  tr: IncomingTransportRequest,
+  unrecognized: string[],
+): string {
+  const lines: string[] = [];
+  const push = (label: string, value: string | number | null | undefined) => {
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+      lines.push(`${label}: ${value}`);
+    }
+  };
+  push("Адрес погрузки", tr.loadingAddress);
+  push("Адрес выгрузки", tr.unloadingAddress);
+  if (tr.loadingDate || tr.loadingTime) {
+    push(
+      "Погрузка",
+      `${tr.loadingDate ?? ""}${tr.loadingTime ? " " + tr.loadingTime : ""}`.trim(),
+    );
+  }
+  push("Грузоотправитель", tr.shipper);
+  push("Грузополучатель", tr.consignee);
+  push("Контактное лицо", tr.contactPerson);
+  push("Телефон", tr.contactPhone);
+  push("Груз", tr.cargoDescription);
+  push("Вес, кг", tr.weightKg);
+  push("Объём, м³", tr.volumeM3);
+  push("Мест", tr.placesCount);
+  push("Требования к ТС", tr.vehicleRequirements);
+  if (tr.orderNumbers.length)
+    push("Номера заказов из заявки", tr.orderNumbers.join(", "));
+  if (unrecognized.length)
+    lines.push(`Не распознано: ${unrecognized.join(", ")}`);
+  return lines.join("\n");
+}
+
+function buildAuditComment(tr: IncomingTransportRequest): string {
+  const entries = Object.entries(tr.raw ?? {}).slice(0, 50);
+  if (entries.length === 0) return "";
+  return [
+    "Импорт из файла «Заявка на транспорт». Исходные поля:",
+    ...entries.map(([k, v]) => `• ${k}: ${v}`),
+  ].join("\n");
+}
 
 function paymentToDb(
   kind: PaymentKind,
