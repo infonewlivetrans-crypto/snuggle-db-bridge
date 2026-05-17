@@ -415,6 +415,7 @@ export function RouteSheetImportWizard({
         total?: number;
         failedRows?: Array<{ rowIndex: number; reason: string }>;
         headerMissing?: string[];
+        warnings?: string[];
         rows?: Array<{
           rowIndex: number;
           orderNumber: string;
