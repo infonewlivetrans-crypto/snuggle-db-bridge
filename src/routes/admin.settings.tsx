@@ -160,10 +160,12 @@ function LaunchModePanel({
             Мин.
           </span>
           <Switch
+            key={current}
             checked={!isMinimal}
             disabled={busy}
             aria-label="Переключить режим запуска"
             onCheckedChange={(v) => setMode(v ? "full" : "minimal")}
+            className="data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-muted-foreground/40"
           />
           <span className={`text-xs ${!isMinimal ? "font-medium text-foreground" : "text-muted-foreground"}`}>
             Полный
