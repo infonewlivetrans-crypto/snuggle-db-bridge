@@ -1,11 +1,10 @@
 import { getRequest } from "@tanstack/react-start/server";
-import { createClient } from "@supabase/supabase-js";
-import { makeAdminClient } from "@/server/api-helpers.server";
-const supabaseAdmin = makeAdminClient();
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { getSessionUser } from "@/server/auth-cookies.server";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
+type AuthContext = { userId: string; client: SupabaseClient<Database> };
 
 function unauth(): never {
   throw new Response(JSON.stringify({ error: "unauthorized" }), {
@@ -29,9 +28,9 @@ function makeClientFor(token: string) {
   });
 }
 
-export async function requireAuthenticatedUserId(): Promise<string> {
+export async function requireAuthenticatedUser(): Promise<AuthContext> {
   const session = await getSessionUser();
-  if (session?.userId) return session.userId;
+  if (session?.userId) return session as AuthContext;
 
   const req = getRequest();
   const authHeader = req?.headers?.get("authorization");
@@ -44,14 +43,22 @@ export async function requireAuthenticatedUserId(): Promise<string> {
   try {
     const { data, error } = await client.auth.getClaims(token);
     if (error || !data?.claims?.sub) unauth();
-    return data.claims.sub as string;
+    return { userId: data.claims.sub as string, client };
   } catch {
     unauth();
   }
 }
 
-export async function assertCallerIsAdmin(userId: string): Promise<void> {
-  const { data, error } = await supabaseAdmin
+export async function requireAuthenticatedUserId(): Promise<string> {
+  return (await requireAuthenticatedUser()).userId;
+}
+
+export async function assertCallerIsAdmin(
+  userId: string,
+  client?: SupabaseClient<Database>,
+): Promise<void> {
+  const c = client ?? (await requireAuthenticatedUser()).client;
+  const { data, error } = await c
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
@@ -62,8 +69,13 @@ export async function assertCallerIsAdmin(userId: string): Promise<void> {
   }
 }
 
-export async function assertCallerHasAnyRole(userId: string, roles: readonly AppRole[]): Promise<void> {
-  const { data, error } = await supabaseAdmin
+export async function assertCallerHasAnyRole(
+  userId: string,
+  roles: readonly AppRole[],
+  client?: SupabaseClient<Database>,
+): Promise<void> {
+  const c = client ?? (await requireAuthenticatedUser()).client;
+  const { data, error } = await c
     .from("user_roles")
     .select("role")
     .eq("user_id", userId)
