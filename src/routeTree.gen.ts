@@ -98,6 +98,7 @@ import { Route as ApiStockTransfersRouteImport } from './routes/api/stock-transf
 import { Route as ApiStockReservationsRouteImport } from './routes/api/stock-reservations'
 import { Route as ApiStockMovementsRouteImport } from './routes/api/stock-movements'
 import { Route as ApiStockBalancesRouteImport } from './routes/api/stock-balances'
+import { Route as ApiRoutingRouteImport } from './routes/api/routing'
 import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
@@ -124,6 +125,7 @@ import { Route as ApiInboundShipmentsRouteImport } from './routes/api/inbound-sh
 import { Route as ApiInboundShipmentItemsRouteImport } from './routes/api/inbound-shipment-items'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiImportLogsRouteImport } from './routes/api/import-logs'
+import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
 import { Route as ApiDockLoadedItemsRouteImport } from './routes/api/dock-loaded-items'
@@ -661,6 +663,11 @@ const ApiStockBalancesRoute = ApiStockBalancesRouteImport.update({
   path: '/api/stock-balances',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutingRoute = ApiRoutingRouteImport.update({
+  id: '/api/routing',
+  path: '/api/routing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRoutesRoute = ApiRoutesRouteImport.update({
   id: '/api/routes',
   path: '/api/routes',
@@ -789,6 +796,11 @@ const ApiImportRouteSheetRoute = ApiImportRouteSheetRouteImport.update({
 const ApiImportLogsRoute = ApiImportLogsRouteImport.update({
   id: '/api/import-logs',
   path: '/api/import-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGeoRoute = ApiGeoRouteImport.update({
+  id: '/api/geo',
+  path: '/api/geo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFeedbackRoute = ApiFeedbackRouteImport.update({
@@ -960,14 +972,14 @@ const ApiStockReservationsIdRoute = ApiStockReservationsIdRouteImport.update({
   getParentRoute: () => ApiStockReservationsRoute,
 } as any)
 const ApiRoutingMatrixRoute = ApiRoutingMatrixRouteImport.update({
-  id: '/api/routing/matrix',
-  path: '/api/routing/matrix',
-  getParentRoute: () => rootRouteImport,
+  id: '/matrix',
+  path: '/matrix',
+  getParentRoute: () => ApiRoutingRoute,
 } as any)
 const ApiRoutingDirectionsRoute = ApiRoutingDirectionsRouteImport.update({
-  id: '/api/routing/directions',
-  path: '/api/routing/directions',
-  getParentRoute: () => rootRouteImport,
+  id: '/directions',
+  path: '/directions',
+  getParentRoute: () => ApiRoutingRoute,
 } as any)
 const ApiRoutesIdRoute = ApiRoutesIdRouteImport.update({
   id: '/$id',
@@ -1048,14 +1060,14 @@ const ApiImportLogsIdRoute = ApiImportLogsIdRouteImport.update({
   getParentRoute: () => ApiImportLogsRoute,
 } as any)
 const ApiGeoReverseRoute = ApiGeoReverseRouteImport.update({
-  id: '/api/geo/reverse',
-  path: '/api/geo/reverse',
-  getParentRoute: () => rootRouteImport,
+  id: '/reverse',
+  path: '/reverse',
+  getParentRoute: () => ApiGeoRoute,
 } as any)
 const ApiGeoGeocodeRoute = ApiGeoGeocodeRouteImport.update({
-  id: '/api/geo/geocode',
-  path: '/api/geo/geocode',
-  getParentRoute: () => rootRouteImport,
+  id: '/geocode',
+  path: '/geocode',
+  getParentRoute: () => ApiGeoRoute,
 } as any)
 const ApiDriversImportRoute = ApiDriversImportRouteImport.update({
   id: '/import',
@@ -1304,6 +1316,7 @@ export interface FileRoutesByFullPath {
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
+  '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
@@ -1330,6 +1343,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
+  '/api/routing': typeof ApiRoutingRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
@@ -1509,6 +1523,7 @@ export interface FileRoutesByTo {
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
+  '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
@@ -1535,6 +1550,7 @@ export interface FileRoutesByTo {
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
+  '/api/routing': typeof ApiRoutingRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
@@ -1715,6 +1731,7 @@ export interface FileRoutesById {
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
+  '/api/geo': typeof ApiGeoRouteWithChildren
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/inbound-shipment-items': typeof ApiInboundShipmentItemsRouteWithChildren
@@ -1741,6 +1758,7 @@ export interface FileRoutesById {
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
   '/api/routes': typeof ApiRoutesRouteWithChildren
+  '/api/routing': typeof ApiRoutingRouteWithChildren
   '/api/stock-balances': typeof ApiStockBalancesRoute
   '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
@@ -1922,6 +1940,7 @@ export interface FileRouteTypes {
     | '/api/dock-loaded-items'
     | '/api/drivers'
     | '/api/feedback'
+    | '/api/geo'
     | '/api/import-logs'
     | '/api/import-route-sheet'
     | '/api/inbound-shipment-items'
@@ -1948,6 +1967,7 @@ export interface FileRouteTypes {
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
+    | '/api/routing'
     | '/api/stock-balances'
     | '/api/stock-movements'
     | '/api/stock-reservations'
@@ -2127,6 +2147,7 @@ export interface FileRouteTypes {
     | '/api/dock-loaded-items'
     | '/api/drivers'
     | '/api/feedback'
+    | '/api/geo'
     | '/api/import-logs'
     | '/api/import-route-sheet'
     | '/api/inbound-shipment-items'
@@ -2153,6 +2174,7 @@ export interface FileRouteTypes {
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
+    | '/api/routing'
     | '/api/stock-balances'
     | '/api/stock-movements'
     | '/api/stock-reservations'
@@ -2332,6 +2354,7 @@ export interface FileRouteTypes {
     | '/api/dock-loaded-items'
     | '/api/drivers'
     | '/api/feedback'
+    | '/api/geo'
     | '/api/import-logs'
     | '/api/import-route-sheet'
     | '/api/inbound-shipment-items'
@@ -2358,6 +2381,7 @@ export interface FileRouteTypes {
     | '/api/route-points'
     | '/api/route-statuses'
     | '/api/routes'
+    | '/api/routing'
     | '/api/stock-balances'
     | '/api/stock-movements'
     | '/api/stock-reservations'
@@ -2538,6 +2562,7 @@ export interface RootRouteChildren {
   ApiDockLoadedItemsRoute: typeof ApiDockLoadedItemsRoute
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
   ApiFeedbackRoute: typeof ApiFeedbackRoute
+  ApiGeoRoute: typeof ApiGeoRouteWithChildren
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
   ApiInboundShipmentItemsRoute: typeof ApiInboundShipmentItemsRouteWithChildren
@@ -2564,6 +2589,7 @@ export interface RootRouteChildren {
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
   ApiRoutesRoute: typeof ApiRoutesRouteWithChildren
+  ApiRoutingRoute: typeof ApiRoutingRouteWithChildren
   ApiStockBalancesRoute: typeof ApiStockBalancesRoute
   ApiStockMovementsRoute: typeof ApiStockMovementsRoute
   ApiStockReservationsRoute: typeof ApiStockReservationsRouteWithChildren
@@ -2629,10 +2655,6 @@ export interface RootRouteChildren {
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
-  ApiGeoGeocodeRoute: typeof ApiGeoGeocodeRoute
-  ApiGeoReverseRoute: typeof ApiGeoReverseRoute
-  ApiRoutingDirectionsRoute: typeof ApiRoutingDirectionsRoute
-  ApiRoutingMatrixRoute: typeof ApiRoutingMatrixRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3265,6 +3287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStockBalancesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/routing': {
+      id: '/api/routing'
+      path: '/api/routing'
+      fullPath: '/api/routing'
+      preLoaderRoute: typeof ApiRoutingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/routes': {
       id: '/api/routes'
       path: '/api/routes'
@@ -3445,6 +3474,13 @@ declare module '@tanstack/react-router' {
       path: '/api/import-logs'
       fullPath: '/api/import-logs'
       preLoaderRoute: typeof ApiImportLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/geo': {
+      id: '/api/geo'
+      path: '/api/geo'
+      fullPath: '/api/geo'
+      preLoaderRoute: typeof ApiGeoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/feedback': {
@@ -3680,17 +3716,17 @@ declare module '@tanstack/react-router' {
     }
     '/api/routing/matrix': {
       id: '/api/routing/matrix'
-      path: '/api/routing/matrix'
+      path: '/matrix'
       fullPath: '/api/routing/matrix'
       preLoaderRoute: typeof ApiRoutingMatrixRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoutingRoute
     }
     '/api/routing/directions': {
       id: '/api/routing/directions'
-      path: '/api/routing/directions'
+      path: '/directions'
       fullPath: '/api/routing/directions'
       preLoaderRoute: typeof ApiRoutingDirectionsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiRoutingRoute
     }
     '/api/routes/$id': {
       id: '/api/routes/$id'
@@ -3799,17 +3835,17 @@ declare module '@tanstack/react-router' {
     }
     '/api/geo/reverse': {
       id: '/api/geo/reverse'
-      path: '/api/geo/reverse'
+      path: '/reverse'
       fullPath: '/api/geo/reverse'
       preLoaderRoute: typeof ApiGeoReverseRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiGeoRoute
     }
     '/api/geo/geocode': {
       id: '/api/geo/geocode'
-      path: '/api/geo/geocode'
+      path: '/geocode'
       fullPath: '/api/geo/geocode'
       preLoaderRoute: typeof ApiGeoGeocodeRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiGeoRoute
     }
     '/api/drivers/import': {
       id: '/api/drivers/import'
@@ -4184,6 +4220,19 @@ const ApiDriversRouteWithChildren = ApiDriversRoute._addFileChildren(
   ApiDriversRouteChildren,
 )
 
+interface ApiGeoRouteChildren {
+  ApiGeoGeocodeRoute: typeof ApiGeoGeocodeRoute
+  ApiGeoReverseRoute: typeof ApiGeoReverseRoute
+}
+
+const ApiGeoRouteChildren: ApiGeoRouteChildren = {
+  ApiGeoGeocodeRoute: ApiGeoGeocodeRoute,
+  ApiGeoReverseRoute: ApiGeoReverseRoute,
+}
+
+const ApiGeoRouteWithChildren =
+  ApiGeoRoute._addFileChildren(ApiGeoRouteChildren)
+
 interface ApiImportLogsRouteChildren {
   ApiImportLogsIdRoute: typeof ApiImportLogsIdRoute
 }
@@ -4370,6 +4419,20 @@ const ApiRoutesRouteChildren: ApiRoutesRouteChildren = {
 
 const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
   ApiRoutesRouteChildren,
+)
+
+interface ApiRoutingRouteChildren {
+  ApiRoutingDirectionsRoute: typeof ApiRoutingDirectionsRoute
+  ApiRoutingMatrixRoute: typeof ApiRoutingMatrixRoute
+}
+
+const ApiRoutingRouteChildren: ApiRoutingRouteChildren = {
+  ApiRoutingDirectionsRoute: ApiRoutingDirectionsRoute,
+  ApiRoutingMatrixRoute: ApiRoutingMatrixRoute,
+}
+
+const ApiRoutingRouteWithChildren = ApiRoutingRoute._addFileChildren(
+  ApiRoutingRouteChildren,
 )
 
 interface ApiStockReservationsRouteChildren {
@@ -4579,6 +4642,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadedItemsRoute: ApiDockLoadedItemsRoute,
   ApiDriversRoute: ApiDriversRouteWithChildren,
   ApiFeedbackRoute: ApiFeedbackRoute,
+  ApiGeoRoute: ApiGeoRouteWithChildren,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
   ApiInboundShipmentItemsRoute: ApiInboundShipmentItemsRouteWithChildren,
@@ -4605,6 +4669,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
   ApiRoutesRoute: ApiRoutesRouteWithChildren,
+  ApiRoutingRoute: ApiRoutingRouteWithChildren,
   ApiStockBalancesRoute: ApiStockBalancesRoute,
   ApiStockMovementsRoute: ApiStockMovementsRoute,
   ApiStockReservationsRoute: ApiStockReservationsRouteWithChildren,
@@ -4670,10 +4735,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
-  ApiGeoGeocodeRoute: ApiGeoGeocodeRoute,
-  ApiGeoReverseRoute: ApiGeoReverseRoute,
-  ApiRoutingDirectionsRoute: ApiRoutingDirectionsRoute,
-  ApiRoutingMatrixRoute: ApiRoutingMatrixRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
@@ -4683,3 +4744,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
