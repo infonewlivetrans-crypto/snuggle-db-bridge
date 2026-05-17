@@ -4,7 +4,15 @@
  * НЕ обращается напрямую к api.yandex.* — это требование production-архитектуры
  * (серверные ключи ограничены IP VPS).
  */
-import { apiFetch } from "@/lib/api-client";
+import { authHeaders } from "@/lib/api-client";
+
+async function apiFetch(url: string, init: RequestInit = {}): Promise<Response> {
+  return fetch(url, {
+    ...init,
+    credentials: "include",
+    headers: { ...(init.headers ?? {}), ...authHeaders() },
+  });
+}
 
 export type LngLat = { lat: number; lng: number };
 
