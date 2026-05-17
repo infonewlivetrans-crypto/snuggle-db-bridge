@@ -37,6 +37,10 @@ import {
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
 import {
+  parseTransportRequestXlsx,
+  type ParsedTransportRequest,
+} from "@/lib/transport-request-parser";
+import {
   parseOrderItemsFile,
   parseOrderItemsText,
   type OrderItemsParseResult,
@@ -48,7 +52,6 @@ import {
   type ErrorDetails,
 } from "@/lib/supabaseError";
 import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
-import { TransportRequestImportPanel } from "@/components/TransportRequestImportPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
