@@ -1,8 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
 import { AppHeader } from "@/components/AppHeader";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -132,6 +133,7 @@ type PointRow = {
 };
 
 function DeliveryRoutePage() {
+  const router = useRouter();
   const { deliveryRouteId } = Route.useParams();
   const qc = useQueryClient();
 
@@ -479,9 +481,18 @@ function DeliveryRoutePage() {
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">Маршрут доставки</p>
               </div>
-              <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[data.status]}>
-                {DELIVERY_ROUTE_STATUS_LABELS[data.status]}
-              </Badge>
+              <div className="flex flex-col items-end gap-2">
+                <Badge variant="outline" className={DELIVERY_ROUTE_STATUS_STYLES[data.status]}>
+                  {DELIVERY_ROUTE_STATUS_LABELS[data.status]}
+                </Badge>
+                <AdminDeleteButton
+                  entityLabel="рейс"
+                  confirmationCode={data.route_number}
+                  deleteUrl={`/api/delivery-routes/${data.id}`}
+                  description="Рейс не должен быть выпущен, в пути или завершён; водитель не должен начинать этапы маршрута."
+                  onDeleted={() => router.navigate({ to: "/delivery-routes" })}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

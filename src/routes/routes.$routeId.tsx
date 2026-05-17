@@ -5,6 +5,7 @@ import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 import {
   Tooltip,
   TooltipContent,
@@ -138,6 +139,7 @@ export const Route = createFileRoute("/routes/$routeId")({
 function RouteDetailPage() {
   const { routeId } = Route.useParams();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
@@ -446,6 +448,13 @@ function RouteDetailPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <AdminDeleteButton
+                entityLabel="заявку"
+                confirmationCode={route.route_number}
+                deleteUrl={`/api/routes/${route.id}`}
+                description="Заявка не должна быть в работе/завершена, и по ней не должно быть активных (не-черновых) рейсов доставки."
+                onDeleted={() => router.navigate({ to: "/routes" })}
+              />
             </div>
           </div>
         </div>

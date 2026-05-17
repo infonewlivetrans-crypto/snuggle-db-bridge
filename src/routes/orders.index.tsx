@@ -37,6 +37,7 @@ import {
 import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
+import { AdminDeleteButton } from "@/components/AdminDeleteButton";
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -577,12 +578,27 @@ function OrdersPage() {
                             <div>загр.: {r.route?.route_date ?? "—"}</div>
                             <div>обн.: {new Date(r.updated_at).toLocaleDateString("ru-RU")}</div>
                           </TableCell>
-                          <TableCell className="text-center">
-                            <FileText className="mx-auto h-4 w-4 text-muted-foreground" aria-hidden />
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
+                           <TableCell className="text-center">
+                             <div className="flex items-center justify-center gap-1">
+                               <FileText className="h-4 w-4 text-muted-foreground" aria-hidden />
+                               <AdminDeleteButton
+                                 entityLabel="заказ"
+                                 confirmationCode={r.order_number}
+                                 deleteUrl={`/api/orders/${r.id}`}
+                                 description="Удаление невозможно, если заказ уже в работе/доставке или по нему получена оплата."
+                                 size="icon"
+                                 variant="ghost"
+                                 iconOnly
+                                 onDeleted={() => {
+                                   qc.invalidateQueries({ queryKey: ["orders-overview"] });
+                                   void refetch();
+                                 }}
+                               />
+                             </div>
+                           </TableCell>
+                         </TableRow>
+                       );
+                     })
                   )}
                 </TableBody>
               </Table>

@@ -1,11 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, requireAuth, cacheHeaders } from "@/server/api-helpers.server";
+import {
+  jsonResponse,
+  requireAuth,
+  requireAdmin,
+  cacheHeaders,
+} from "@/server/api-helpers.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { writeAudit } from "@/server/audit.server";
 
 const ALLOWED = new Set([
   "status",
   "comment",
   "points_order_changed_at",
   "points_order_changed_by",
+]);
+
+// delivery_route_status, при которых рейс уже не черновик — удаление
+// исходной транспортной заявки запрещено.
+const NON_DRAFT_DELIVERY_STATUSES = new Set<string>([
+  "formed",
+  "issued",
+  "in_progress",
+  "completed",
 ]);
 
 export const Route = createFileRoute("/api/routes/$id")({
@@ -79,6 +95,107 @@ export const Route = createFileRoute("/api/routes/$id")({
         }
         const { error } = await auth.client.from("routes").update(updates as never).eq("id", params.id);
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ ok: true });
+      },
+
+      DELETE: async ({ request, params }) => {
+        const auth = await requireAdmin(request);
+        if (auth instanceof Response) return auth;
+        const id = params.id;
+
+        // 1. Загружаем заявку для проверки статуса и label.
+        const { data: route, error: loadErr } = await supabaseAdmin
+          .from("routes")
+          .select("id, route_number, status, request_status")
+          .eq("id", id)
+          .maybeSingle();
+        if (loadErr) return jsonResponse({ error: loadErr.message }, { status: 500 });
+        if (!route) return jsonResponse({ error: "Заявка не найдена" }, { status: 404 });
+        const r = route as {
+          id: string;
+          route_number: string;
+          status: string;
+          request_status: string;
+        };
+
+        // 2. Сама заявка не должна быть уже в работе.
+        if (r.status === "in_progress" || r.status === "completed") {
+          return jsonResponse(
+            {
+              error:
+                "Нельзя удалить заявку: маршрут уже в работе или завершён.",
+            },
+            { status: 409 },
+          );
+        }
+
+        // 3. По заявке не должно быть активных (нечерновых) рейсов.
+        // delivery_routes.source_request_id ссылается на routes.id (FK нет).
+        const { data: drList, error: drErr } = await supabaseAdmin
+          .from("delivery_routes")
+          .select("id, status")
+          .eq("source_request_id", id);
+        if (drErr) return jsonResponse({ error: drErr.message }, { status: 500 });
+        const activeCount = (drList ?? []).filter((d) =>
+          NON_DRAFT_DELIVERY_STATUSES.has((d as { status: string }).status),
+        ).length;
+        if (activeCount > 0) {
+          return jsonResponse(
+            {
+              error: `Нельзя удалить заявку: по ней есть активные рейсы доставки (${activeCount}). Сначала удалите или переведите рейсы в черновик.`,
+            },
+            { status: 409 },
+          );
+        }
+
+        // 4. Удаляем оставшиеся delivery_routes-черновики вручную
+        // (FK к routes на source_request_id отсутствует).
+        const { error: cleanupErr } = await supabaseAdmin
+          .from("delivery_routes")
+          .delete()
+          .eq("source_request_id", id);
+        if (cleanupErr) {
+          return jsonResponse(
+            { error: `Не удалось удалить связанные рейсы-черновики: ${cleanupErr.message}` },
+            { status: 500 },
+          );
+        }
+
+        // 5. Удаляем саму заявку. route_points / route_offers /
+        // route_carrier_* имеют FK ON DELETE CASCADE на routes.
+        const { error: delErr } = await supabaseAdmin
+          .from("routes")
+          .delete()
+          .eq("id", id);
+        if (delErr) {
+          return jsonResponse(
+            { error: `Не удалось удалить заявку: ${delErr.message}` },
+            { status: 500 },
+          );
+        }
+
+        // 6. Аудит.
+        try {
+          const { data: prof } = await supabaseAdmin
+            .from("profiles")
+            .select("full_name")
+            .eq("user_id", auth.userId)
+            .maybeSingle();
+          await writeAudit({
+            userId: auth.userId,
+            userName: (prof as { full_name?: string | null } | null)?.full_name ?? null,
+            userRole: "admin",
+            section: "routes",
+            action: "delete",
+            objectType: "route",
+            objectId: r.id,
+            objectLabel: r.route_number,
+            oldValue: { status: r.status, request_status: r.request_status },
+          });
+        } catch {
+          // ignore
+        }
+
         return jsonResponse({ ok: true });
       },
     },
