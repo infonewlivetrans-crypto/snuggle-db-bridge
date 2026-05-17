@@ -436,6 +436,9 @@ export function RouteSheetImportWizard({
         routeNumber?: string;
         inserted?: number;
         total?: number;
+        itemsCreated?: number;
+        itemsUnmatched?: number;
+        ordersWithoutItems?: string[];
         failedRows?: Array<{ rowIndex: number; reason: string }>;
         headerMissing?: string[];
         warnings?: string[];
