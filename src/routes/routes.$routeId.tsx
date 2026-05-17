@@ -139,6 +139,7 @@ export const Route = createFileRoute("/routes/$routeId")({
 function RouteDetailPage() {
   const { routeId } = Route.useParams();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
