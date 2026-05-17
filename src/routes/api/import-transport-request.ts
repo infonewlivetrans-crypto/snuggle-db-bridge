@@ -16,6 +16,21 @@ import { geocodeOrderRow } from "@/server/order-geocode.server";
  *   ошибки только в warnings.
  */
 
+type IncomingItem = {
+  sourceLine: number;
+  lineNumber: number | null;
+  nomenclature: string;
+  characteristic: string | null;
+  quality: string | null;
+  unit: string | null;
+  qty: number | null;
+  weight_kg: number | null;
+  volume_m3: number | null;
+  comment: string | null;
+  raw_text: string;
+  needsReview: boolean;
+};
+
 type IncomingPayload = {
   requestNumber: string | null;
   requestDate: string | null;
@@ -40,7 +55,13 @@ type IncomingPayload = {
   organization: string | null;
   orderNumbers: string[];
   raw: Record<string, string>;
+  /** Опциональный товарный состав: ключ — нормализованный номер заказа (КП_...). */
+  itemsByOrderNumber?: Record<string, IncomingItem[]>;
 };
+
+const ADDRESS_PLACEHOLDER = "Требует заполнения";
+const normKey = (s: string | null | undefined) =>
+  (s ?? "").trim().toUpperCase().replace(/\s+/g, "");
 
 function buildTransportComment(p: IncomingPayload, unrecognized: string[]): string {
   const lines: string[] = [];
