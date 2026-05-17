@@ -64,6 +64,19 @@ import type {
   DeliveryPointUndeliveredReason,
 } from "@/lib/deliveryPointStatus";
 
+/**
+ * Детерминированный формат даты DD.MM.YYYY без зависимости от locale/timezone
+ * среды (SSR-worker vs браузер). Использовать на render-пути, где
+ * toLocaleDateString вызывает hydration mismatch (React #418).
+ */
+function formatRouteDate(value: string | null | undefined): string {
+  if (!value) return "";
+  const calendar = value.slice(0, 10); // YYYY-MM-DD
+  const [y, m, d] = calendar.split("-");
+  if (!y || !m || !d) return value;
+  return `${d}.${m}.${y}`;
+}
+
 export const Route = createFileRoute("/delivery-routes/$deliveryRouteId")({
   head: () => ({
     meta: [
@@ -504,7 +517,7 @@ function DeliveryRoutePage() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field icon={<Calendar className="h-4 w-4" />} label="Дата">
-                {new Date(data.route_date).toLocaleDateString("ru-RU")}
+                {formatRouteDate(data.route_date)}
               </Field>
               <Field icon={<Hash className="h-4 w-4" />} label="Заявка">
                 {data.source_request ? (
