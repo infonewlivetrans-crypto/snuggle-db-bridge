@@ -12,10 +12,7 @@ export const Route = createFileRoute("/api/system-settings")({
           .order("category", { ascending: true })
           .order("setting_key", { ascending: true });
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse(
-          { settings: data ?? [] },
-          { headers: { "cache-control": "public, max-age=600" } },
-        );
+        return jsonResponse({ settings: data ?? [] });
       },
     },
   },
