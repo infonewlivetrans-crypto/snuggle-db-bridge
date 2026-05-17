@@ -5,6 +5,8 @@ import {
   resolveManagerForImport,
   type ResolvedManager,
 } from "@/server/managers-resolve.server";
+import { ensureDefaultCarrierId } from "@/server/carriers.server";
+import { geocodeOrderRow } from "@/server/order-geocode.server";
 type PaymentKind = "cash" | "qr" | "paid" | "bank" | "unknown";
 
 type IncomingOrder = {
@@ -120,7 +122,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
                 .from("carriers")
                 .insert({
                   company_name: payload.carrier,
-                  carrier_type: "ooo",
+                  carrier_type: "self_employed",
                   source: "route_sheet",
                 } as never)
                 .select("id")
@@ -135,7 +137,24 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           }
         }
 
-        // 2. Водитель
+        // Фоллбек: если перевозчик не указан или не удалось создать —
+        // используем «Без перевозчика». Импорт не блокируем.
+        if (!carrierId) {
+          try {
+            carrierId = await ensureDefaultCarrierId();
+            warnings.push(
+              payload.carrier
+                ? `Перевозчик «${payload.carrier}» не создан — использован «Без перевозчика», можно изменить вручную.`
+                : `Перевозчик в маршрутном листе не указан — использован «Без перевозчика», можно изменить вручную.`,
+            );
+          } catch (e) {
+            warnings.push(
+              `Перевозчик: не удалось получить fallback (${e instanceof Error ? e.message : "ошибка"})`,
+            );
+          }
+        }
+
+        // 2. Водитель (после того, как carrierId гарантированно есть)
         let driverId: string | null = null;
         if (payload.driverName && carrierId) {
           try {
@@ -178,8 +197,11 @@ export const Route = createFileRoute("/api/import-route-sheet")({
             );
           }
         }
+        if (!driverId) {
+          warnings.push("Водитель не найден, можно назначить вручную.");
+        }
 
-        // 3. ТС
+        // 3. ТС (после того, как carrierId гарантированно есть)
         let vehicleId: string | null = null;
         if (payload.vehiclePlate && carrierId) {
           try {
@@ -209,6 +231,31 @@ export const Route = createFileRoute("/api/import-route-sheet")({
             warnings.push(`ТС: ${e instanceof Error ? e.message : "ошибка"}`);
           }
         }
+        if (!vehicleId) {
+          warnings.push("Авто не найдено, можно назначить вручную.");
+        }
+
+        // 3a. default_geocode_region из system_settings (для геокодера).
+        let defaultRegion: string | null = null;
+        try {
+          const { data: ds } = await sb
+            .from("system_settings")
+            .select("setting_value")
+            .eq("setting_key", "default_geocode_region")
+            .maybeSingle();
+          const v = ds?.setting_value;
+          defaultRegion =
+            typeof v === "string"
+              ? v
+              : v && typeof v === "object" && "value" in (v as Record<string, unknown>) &&
+                  typeof (v as Record<string, unknown>).value === "string"
+                ? ((v as Record<string, unknown>).value as string)
+                : null;
+        } catch {
+          defaultRegion = null;
+        }
+        // Бюджет геокодирования: максимум 50 адресов на один импорт.
+        let geocodeBudget = 50;
 
         // 4. Маршрут — ВСЕГДА создаём как черновик
         const routeNumber =
@@ -439,6 +486,31 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               missing.push("Менеджер");
             }
 
+            // Геокодирование адреса (если есть реальный адрес и есть бюджет).
+            let geoLat: number | null = null;
+            let geoLng: number | null = null;
+            if (
+              finalAddress &&
+              finalAddress !== ADDRESS_PLACEHOLDER &&
+              geocodeBudget > 0
+            ) {
+              geocodeBudget--;
+              try {
+                const outcome = await geocodeOrderRow(sb, finalAddress, {
+                  clientAddress: clientRow?.address ?? null,
+                  defaultRegion: defaultRegion ?? "Краснодарский край",
+                });
+                if (outcome) {
+                  geoLat = outcome.lat;
+                  geoLng = outcome.lng;
+                }
+              } catch (e) {
+                warnings.push(
+                  `Геокодер (стр. ${o.rowIndex}): ${e instanceof Error ? e.message : "ошибка"}`,
+                );
+              }
+            }
+
             const orderPayload = {
               order_number: orderNumber,
               onec_order_number: o.orderNumber,
@@ -446,6 +518,8 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               contact_phone: finalPhone,
               // Триггер требует адрес ИЛИ координаты — ставим placeholder.
               delivery_address: finalAddress ?? ADDRESS_PLACEHOLDER,
+              latitude: geoLat,
+              longitude: geoLng,
               payment_type: paymentType,
               requires_qr: requiresQr,
               amount_due:

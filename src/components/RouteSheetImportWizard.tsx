@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { authHeaders } from "@/lib/api-client";
 import {
   Dialog,
@@ -318,6 +319,7 @@ export function RouteSheetImportWizard({
   onOpenChange: (v: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
@@ -331,6 +333,7 @@ export function RouteSheetImportWizard({
     total: number;
     failedRows: Array<{ rowIndex: number; reason: string }>;
     headerMissing: string[];
+    warnings: string[];
     rows: Array<{
       rowIndex: number;
       orderNumber: string;
@@ -412,6 +415,7 @@ export function RouteSheetImportWizard({
         total?: number;
         failedRows?: Array<{ rowIndex: number; reason: string }>;
         headerMissing?: string[];
+        warnings?: string[];
         rows?: Array<{
           rowIndex: number;
           orderNumber: string;
@@ -494,11 +498,16 @@ export function RouteSheetImportWizard({
         total: json.total ?? parsed.orders.length,
         failedRows: json.failedRows ?? [],
         headerMissing: json.headerMissing ?? [],
+        warnings: json.warnings ?? [],
         rows: json.rows ?? [],
         clientsNeedingFill: json.clientsNeedingFill ?? [],
         needsReview: Boolean(json.needsReview),
       });
       setStep("done");
+      // Чтобы новая заявка появилась в кабинете логиста и в списке заявок
+      // на транспорт без ручного обновления страницы.
+      queryClient.invalidateQueries({ queryKey: ["logist-routes"] });
+      queryClient.invalidateQueries({ queryKey: ["transport-requests"] });
       if (json.needsReview) {
         toast.warning("Заявка создана, но требует заполнения данных");
       } else {
@@ -735,6 +744,22 @@ export function RouteSheetImportWizard({
                   <div className="text-xs text-muted-foreground">
                     {result.headerMissing.join(", ")}
                   </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {result.warnings.length > 0 && (
+              <Alert className="border-amber-500/40">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription>
+                  <div className="font-medium">
+                    Предупреждения импорта ({result.warnings.length})
+                  </div>
+                  <ul className="mt-1 max-h-40 list-disc space-y-1 overflow-auto pl-5 text-xs">
+                    {result.warnings.slice(0, 100).map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
                 </AlertDescription>
               </Alert>
             )}
