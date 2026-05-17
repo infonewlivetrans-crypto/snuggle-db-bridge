@@ -338,6 +338,9 @@ export function RouteSheetImportWizard({
     routeNumber: string;
     inserted: number;
     total: number;
+    itemsCreated: number;
+    itemsUnmatched: number;
+    ordersWithoutItems: string[];
     failedRows: Array<{ rowIndex: number; reason: string }>;
     headerMissing: string[];
     warnings: string[];
@@ -355,6 +358,12 @@ export function RouteSheetImportWizard({
     }>;
     needsReview: boolean;
   } | null>(null);
+  // Товарный состав
+  const [itemsText, setItemsText] = useState("");
+  const [itemsFile, setItemsFile] = useState<File | null>(null);
+  const [itemsParsed, setItemsParsed] = useState<OrderItemsParseResult | null>(null);
+  const [itemsBusy, setItemsBusy] = useState(false);
+  const [itemsError, setItemsError] = useState<string | null>(null);
 
   const reset = () => {
     setStep("upload");
@@ -364,6 +373,10 @@ export function RouteSheetImportWizard({
     setErrorMsg(null);
     setErrorDetails(null);
     setResult(null);
+    setItemsText("");
+    setItemsFile(null);
+    setItemsParsed(null);
+    setItemsError(null);
   };
 
   const handleParse = async () => {
