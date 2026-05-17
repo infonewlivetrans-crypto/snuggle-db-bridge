@@ -148,39 +148,19 @@ export async function adminSetInviteActive(args: { id: string; isActive: boolean
   }
 }
 
-/** Перевыпуск ссылки: меняем токен и одновременно сбрасываем пароль скрытого пользователя. */
+/**
+ * Перевыпуск ссылки через SECURITY DEFINER RPC: одна транзакция в Cloud-базе,
+ * обновляет токен в invite_tokens и временные учётные данные скрытого
+ * пользователя в auth.users / auth.identities / profiles.
+ */
 export async function adminRotateInviteToken(args: { id: string }): Promise<InviteRow> {
-  const { data: row, error: getErr } = await supabaseAdmin
-    .from("invite_tokens")
-    .select("*")
-    .eq("id", args.id)
-    .maybeSingle();
-  if (getErr) throw new Error(getErr.message);
-  if (!row) throw new Error("Инвайт не найден");
-
-  const newToken = generateToken();
-  const newPassword = randomPassword();
-  const newEmail = inviteEmail(newToken);
-
-  const { error: updUserErr } = await supabaseAdmin.auth.admin.updateUserById(
-    (row as InviteRow).user_id,
-    { email: newEmail, password: newPassword, email_confirm: true },
-  );
-  if (updUserErr) throw new Error(updUserErr.message);
-
-  await supabaseAdmin
-    .from("profiles")
-    .update({ email: newEmail })
-    .eq("user_id", (row as InviteRow).user_id);
-
-  const { data: updated, error: updErr } = await supabaseAdmin
-    .from("invite_tokens")
-    .update({ token: newToken })
-    .eq("id", args.id)
-    .select("*")
-    .single();
-  if (updErr || !updated) throw new Error(updErr?.message ?? "Не удалось обновить токен");
-  return updated as InviteRow;
+  const caller = await getCallerSupabaseClient();
+  const { data, error } = await caller.rpc("admin_rotate_invite_token", {
+    p_invite_id: args.id,
+  } as never);
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Не удалось обновить токен");
+  return data as unknown as InviteRow;
 }
 
 export async function adminDeleteInvite(args: { id: string }) {
