@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 import { writeAudit } from "@/server/audit.server";
 
 const ALLOWED = new Set(["status", "comment"]);
@@ -41,8 +40,9 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
         const id = params.id;
+        const admin = makeAdminClient();
 
-        const { data: dr, error: loadErr } = await supabaseAdmin
+        const { data: dr, error: loadErr } = await admin
           .from("delivery_routes")
           .select("id, route_number, status, current_stage")
           .eq("id", id)
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
         // driver_locations, route_stage_events, route_returns,
         // route_order_exclusions имеют FK ON DELETE CASCADE
         // на delivery_routes — каскад отработает.
-        const { error: delErr } = await supabaseAdmin
+        const { error: delErr } = await admin
           .from("delivery_routes")
           .delete()
           .eq("id", id);
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
         }
 
         try {
-          const { data: prof } = await supabaseAdmin
+          const { data: prof } = await admin
             .from("profiles")
             .select("full_name")
             .eq("user_id", auth.userId)

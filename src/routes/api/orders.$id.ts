@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 import { writeAudit } from "@/server/audit.server";
 
 const ALLOWED_FIELDS = new Set<string>([
@@ -92,10 +91,11 @@ export const Route = createFileRoute("/api/orders/$id")({
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
         const id = params.id;
+        const admin = makeAdminClient();
 
         // 1. Загружаем заказ, чтобы проверить статус/оплату и иметь label
         // для аудита.
-        const { data: order, error: loadErr } = await supabaseAdmin
+        const { data: order, error: loadErr } = await admin
           .from("orders")
           .select(
             "id, order_number, status, payment_status, cash_received, qr_received",
@@ -134,7 +134,7 @@ export const Route = createFileRoute("/api/orders/$id")({
         }
 
         // 3. Ручная очистка order_items (FK к orders отсутствует).
-        const { error: itemsErr } = await supabaseAdmin
+        const { error: itemsErr } = await admin
           .from("order_items")
           .delete()
           .eq("order_id", id);
@@ -148,7 +148,7 @@ export const Route = createFileRoute("/api/orders/$id")({
         // 4. Удаление заказа (остальные связанные таблицы — route_points,
         // client_order_messages, route_order_exclusions, notifications —
         // имеют FK ON DELETE CASCADE; route_returns.order_id — ON DELETE SET NULL).
-        const { error: delErr } = await supabaseAdmin
+        const { error: delErr } = await admin
           .from("orders")
           .delete()
           .eq("id", id);
@@ -161,7 +161,7 @@ export const Route = createFileRoute("/api/orders/$id")({
 
         // 5. Аудит. Не валим операцию, если запись в audit_log упала.
         try {
-          const { data: prof } = await supabaseAdmin
+          const { data: prof } = await admin
             .from("profiles")
             .select("full_name")
             .eq("user_id", auth.userId)
