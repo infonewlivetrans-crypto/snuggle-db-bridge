@@ -617,7 +617,12 @@ export type Database = {
           last_driver_location_at: string | null
           loaded_at: string | null
           route_date: string
+          route_distance_m: number | null
+          route_duration_s: number | null
+          route_eta_computed_at: string | null
+          route_geometry: Json | null
           route_number: string
+          route_segments: Json | null
           source_request_id: string
           source_warehouse_id: string | null
           status: Database["public"]["Enums"]["delivery_route_status"]
@@ -647,7 +652,12 @@ export type Database = {
           last_driver_location_at?: string | null
           loaded_at?: string | null
           route_date?: string
+          route_distance_m?: number | null
+          route_duration_s?: number | null
+          route_eta_computed_at?: string | null
+          route_geometry?: Json | null
           route_number: string
+          route_segments?: Json | null
           source_request_id: string
           source_warehouse_id?: string | null
           status?: Database["public"]["Enums"]["delivery_route_status"]
@@ -677,7 +687,12 @@ export type Database = {
           last_driver_location_at?: string | null
           loaded_at?: string | null
           route_date?: string
+          route_distance_m?: number | null
+          route_duration_s?: number | null
+          route_eta_computed_at?: string | null
+          route_geometry?: Json | null
           route_number?: string
+          route_segments?: Json | null
           source_request_id?: string
           source_warehouse_id?: string | null
           status?: Database["public"]["Enums"]["delivery_route_status"]
@@ -1079,6 +1094,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      geocode_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          expires_at: string
+          formatted_address: string | null
+          id: string
+          kind: string
+          lat: number | null
+          lng: number | null
+          query: string
+          raw: Json | null
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          expires_at?: string
+          formatted_address?: string | null
+          id?: string
+          kind: string
+          lat?: number | null
+          lng?: number | null
+          query: string
+          raw?: Json | null
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          formatted_address?: string | null
+          id?: string
+          kind?: string
+          lat?: number | null
+          lng?: number | null
+          query?: string
+          raw?: Json | null
+        }
+        Relationships: []
       }
       import_log_rows: {
         Row: {
@@ -2385,6 +2439,72 @@ export type Database = {
           old_cost?: number
           old_method?: string | null
           route_id?: string
+        }
+        Relationships: []
+      }
+      route_geometry_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          distance_m: number | null
+          duration_s: number | null
+          expires_at: string
+          geometry: Json
+          id: string
+          segments: Json | null
+          waypoints: Json
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          distance_m?: number | null
+          duration_s?: number | null
+          expires_at?: string
+          geometry: Json
+          id?: string
+          segments?: Json | null
+          waypoints: Json
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          distance_m?: number | null
+          duration_s?: number | null
+          expires_at?: string
+          geometry?: Json
+          id?: string
+          segments?: Json | null
+          waypoints?: Json
+        }
+        Relationships: []
+      }
+      route_matrix_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          destinations: Json
+          expires_at: string
+          id: string
+          matrix: Json
+          origins: Json
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          destinations: Json
+          expires_at?: string
+          id?: string
+          matrix: Json
+          origins: Json
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          destinations?: Json
+          expires_at?: string
+          id?: string
+          matrix?: Json
+          origins?: Json
         }
         Relationships: []
       }
