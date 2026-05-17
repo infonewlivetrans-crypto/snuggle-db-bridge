@@ -490,7 +490,14 @@ function DeliveryRoutePage() {
                   confirmationCode={data.route_number}
                   deleteUrl={`/api/delivery-routes/${data.id}`}
                   description="Рейс не должен быть выпущен, в пути или завершён; водитель не должен начинать этапы маршрута."
-                  onDeleted={() => router.navigate({ to: "/delivery-routes" })}
+                  onDeleted={async () => {
+                    // Останавливаем все запросы по удалённому рейсу, чтобы не было
+                    // повторного refetch (404) после успешного DELETE.
+                    await qc.cancelQueries({ queryKey: ["delivery-route", deliveryRouteId] });
+                    qc.removeQueries({ queryKey: ["delivery-route", deliveryRouteId] });
+                    qc.invalidateQueries({ queryKey: ["delivery-routes"] });
+                    router.navigate({ to: "/delivery-routes", replace: true });
+                  }}
                 />
               </div>
             </div>
