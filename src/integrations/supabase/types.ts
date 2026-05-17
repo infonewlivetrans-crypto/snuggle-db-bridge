@@ -4280,6 +4280,10 @@ export type Database = {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
       }
+      admin_delete_delivery_route: {
+        Args: { p_route_id: string }
+        Returns: Json
+      }
       calc_order_delivery_cost: {
         Args: { p_order_id: string }
         Returns: number
