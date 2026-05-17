@@ -1114,8 +1114,8 @@ function DeliveryRoutePage() {
                               }
                             : undefined
                         }
-                        hasQrPhoto={!!photoKindsByPoint?.[p.id]?.has("qr")}
-                        hasProblemPhoto={!!photoKindsByPoint?.[p.id]?.has("problem")}
+                        hasQrPhoto={hasPhotoKind(p.id, "qr")}
+                        hasProblemPhoto={hasPhotoKind(p.id, "problem")}
                       />
                       <DeliveryReportBlock orderId={p.order_id} />
                       <OrderNotificationsBlock orderId={p.order_id} />
