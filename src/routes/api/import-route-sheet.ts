@@ -441,45 +441,114 @@ export const Route = createFileRoute("/api/import-route-sheet")({
 
         // 4. Маршрут — ВСЕГДА создаём как черновик
         const routeNumber =
-          payload.routeNumber?.trim() || `RL-${Date.now().toString().slice(-8)}`;
+          payload.routeNumber?.trim() ||
+          (hasTr
+            ? `TR-${Date.now().toString().slice(-8)}`
+            : `RL-${Date.now().toString().slice(-8)}`);
         const routeDate = payload.routeDate || todayIso();
 
-        const headerNote = headerMissing.length
-          ? `Требует заполнения: ${headerMissing.join(", ")}`
+        // Дополнительные поля шапки, если пришла заявка на транспорт.
+        const trUnrecognized: string[] = [];
+        if (hasTr) {
+          if (!tr!.loadingDate) trUnrecognized.push("дата погрузки");
+          if (!tr!.loadingAddress) trUnrecognized.push("адрес погрузки");
+          if (!tr!.unloadingAddress) trUnrecognized.push("адрес выгрузки");
+          if (!tr!.cargoDescription) trUnrecognized.push("описание груза");
+          if (!tr!.contactPhone) trUnrecognized.push("контактный телефон");
+        }
+        const transportCommentText = hasTr
+          ? buildTransportComment(tr!, trUnrecognized)
+          : null;
+        const auditCommentText = hasTr ? buildAuditComment(tr!) : null;
+        const headerNoteParts = [
+          headerMissing.length
+            ? `Требует заполнения: ${headerMissing.join(", ")}`
+            : null,
+          trUnrecognized.length
+            ? `Требует проверки: ${trUnrecognized.join(", ")}`
+            : null,
+        ].filter(Boolean) as string[];
+        const headerNote = headerNoteParts.length
+          ? headerNoteParts.join(" · ")
           : null;
 
-        // 4a. Идемпотентность: ищем существующий route с таким номером
+        // Склад погрузки — нестрогий поиск по имени/адресу (только при TR)
+        let warehouseId: string | null = null;
+        if (hasTr && tr!.loadingAddress) {
+          try {
+            const slice = tr!.loadingAddress.slice(0, 40);
+            const { data: wh } = await sb
+              .from("warehouses")
+              .select("id")
+              .or(`name.ilike.%${slice}%,address.ilike.%${slice}%`)
+              .limit(1)
+              .maybeSingle();
+            if (wh) warehouseId = (wh as { id: string }).id;
+          } catch {
+            /* не критично */
+          }
+        }
+
+        const plannedDepartureAt =
+          hasTr && tr!.loadingDate && tr!.loadingTime
+            ? `${tr!.loadingDate}T${tr!.loadingTime}:00`
+            : null;
+        const departureTime = hasTr ? tr!.loadingTime : null;
+        const initWeight = hasTr ? (tr!.weightKg ?? 0) : 0;
+        const initVolume = hasTr ? (tr!.volumeM3 ?? 0) : 0;
+        const onecRequestNumber = hasTr
+          ? (tr!.requestNumber ?? payload.routeNumber ?? null)
+          : payload.routeNumber;
+        const routeSource: "route_sheet" | "transport_request" = hasTr
+          ? "transport_request"
+          : "route_sheet";
+
+        // 4a. Идемпотентность: ищем существующий route по onec_request_number
+        // (если есть TR) ИЛИ по route_number.
         let routeId: string | null = null;
-        if (payload.routeNumber?.trim()) {
-          const { data: existingRoute } = await sb
-            .from("routes")
-            .select("id")
-            .eq("route_number", routeNumber)
-            .maybeSingle();
-          if (existingRoute) {
-            const existingId = (existingRoute as { id: string }).id;
-            // Если уже есть route_points — импорт ранее завершился, дублей не плодим
-            const { count: pointsCount } = await sb
-              .from("route_points")
-              .select("id", { count: "exact", head: true })
-              .eq("route_id", existingId);
-            if ((pointsCount ?? 0) > 0) {
-              return jsonResponse(
-                {
-                  error: `Заявка по маршрутному листу №${routeNumber} уже создана`,
-                  code: "route_already_imported",
-                  routeId: existingId,
-                  routeNumber,
-                },
-                { status: 409 },
-              );
-            }
-            // Незавершённый импорт — переиспользуем существующий route
-            routeId = existingId;
-            warnings.push(
-              `Найден незавершённый импорт маршрута №${routeNumber} — продолжаем дозапись.`,
+        async function findExisting() {
+          if (hasTr && tr!.requestNumber) {
+            const { data } = await sb
+              .from("routes")
+              .select("id, route_number")
+              .eq("onec_request_number", tr!.requestNumber)
+              .maybeSingle();
+            if (data) return data as { id: string; route_number: string };
+          }
+          if (payload.routeNumber?.trim()) {
+            const { data } = await sb
+              .from("routes")
+              .select("id, route_number")
+              .eq("route_number", routeNumber)
+              .maybeSingle();
+            if (data) return data as { id: string; route_number: string };
+          }
+          return null;
+        }
+        const existingRoute = await findExisting();
+        if (existingRoute) {
+          const existingId = existingRoute.id;
+          const { count: pointsCount } = await sb
+            .from("route_points")
+            .select("id", { count: "exact", head: true })
+            .eq("route_id", existingId);
+          if ((pointsCount ?? 0) > 0) {
+            return jsonResponse(
+              {
+                error: `Заявка №${existingRoute.route_number} уже создана`,
+                code: hasTr
+                  ? "transport_request_already_imported"
+                  : "route_already_imported",
+                routeId: existingId,
+                routeNumber: existingRoute.route_number,
+              },
+              { status: 409 },
             );
           }
+          routeId = existingId;
+          warnings.push(
+            `Найден незавершённый импорт №${existingRoute.route_number} — продолжаем дозапись.`,
+          );
         }
 
         if (!routeId) {
@@ -491,14 +560,20 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               request_type: "client_delivery",
               status: "planned",
               request_status: "draft",
-              source: "route_sheet",
+              source: routeSource,
               organization: payload.organization,
-              onec_request_number: payload.routeNumber,
+              onec_request_number: onecRequestNumber,
               carrier_id: carrierId,
               driver_id: driverId,
               vehicle_id: vehicleId,
+              warehouse_id: warehouseId,
               driver_name: payload.driverName,
-              transport_comment: headerNote,
+              departure_time: departureTime,
+              planned_departure_at: plannedDepartureAt,
+              total_weight_kg: initWeight,
+              total_volume_m3: initVolume,
+              transport_comment: transportCommentText || headerNote,
+              comment: auditCommentText || null,
               request_status_comment: headerNote,
             } as never)
             .select("id")
@@ -510,8 +585,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
             if (rErr?.code === "23505") {
               return jsonResponse(
                 {
-                  error: `Заявка по маршрутному листу №${routeNumber} уже создана`,
-                  code: "route_already_imported",
+                  error: `Заявка №${routeNumber} уже создана`,
+                  code: hasTr
+                    ? "transport_request_already_imported"
+                    : "route_already_imported",
                   routeNumber,
                 },
                 { status: 409 },
