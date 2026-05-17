@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Trash2, Loader2 } from "lucide-react";
 import {
   AlertDialog,
@@ -24,7 +24,7 @@ type Props = {
   /** DELETE URL, например /api/orders/<id>. */
   deleteUrl: string;
   /** Колбэк после успешного удаления (например, redirect или refetch). */
-  onDeleted?: () => void;
+  onDeleted?: () => void | Promise<void>;
   /** Доп. описание ограничений (когда и почему может не получиться). */
   description?: string;
   /** Размер/вариант кнопки. */
@@ -52,13 +52,17 @@ export function AdminDeleteButton({
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
+  // Синхронный guard от двойного клика/тапа: setState асинхронен, поэтому
+  // disabled на кнопке успевает не примениться до второго клика.
+  const inFlightRef = useRef(false);
 
   if (!roles.includes("admin")) return null;
 
   const match = typed.trim() === confirmationCode.trim();
 
   async function handleDelete() {
-    if (!match || busy) return;
+    if (!match || inFlightRef.current) return;
+    inFlightRef.current = true;
     setBusy(true);
     try {
       const res = await fetch(deleteUrl, {
@@ -68,16 +72,19 @@ export function AdminDeleteButton({
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
         toast.error(payload?.error ?? "Не удалось удалить");
+        inFlightRef.current = false;
         setBusy(false);
         return;
       }
       toast.success(`Удалено: ${entityLabel} ${confirmationCode}`);
       setOpen(false);
       setTyped("");
-      onDeleted?.();
+      // Важно: НЕ сбрасываем inFlightRef после успеха — компонент сейчас
+      // будет размонтирован onDeleted-редиректом, повторный DELETE не нужен.
+      await onDeleted?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Сетевая ошибка");
-    } finally {
+      inFlightRef.current = false;
       setBusy(false);
     }
   }
