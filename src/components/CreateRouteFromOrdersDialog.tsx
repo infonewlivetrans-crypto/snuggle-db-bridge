@@ -47,6 +47,11 @@ export function CreateRouteFromOrdersDialog({ open, onOpenChange, orders }: Prop
     (o) => o.latitude == null || o.longitude == null,
   );
 
+  const [geocoding, setGeocoding] = useState(false);
+  const [geocodeFailed, setGeocodeFailed] = useState<
+    Array<{ id: string; order_number: string; address: string | null }>
+  >([]);
+
   const { data: drivers } = useQuery({
     enabled: open,
     queryKey: ["drivers", "active"],
