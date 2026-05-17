@@ -37,6 +37,13 @@ import {
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
 import {
+  parseOrderItemsFile,
+  parseOrderItemsText,
+  type OrderItemsParseResult,
+} from "@/lib/order-items-parser";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
   extractErrorDetails,
   type ErrorDetails,
 } from "@/lib/supabaseError";
@@ -331,6 +338,9 @@ export function RouteSheetImportWizard({
     routeNumber: string;
     inserted: number;
     total: number;
+    itemsCreated: number;
+    itemsUnmatched: number;
+    ordersWithoutItems: string[];
     failedRows: Array<{ rowIndex: number; reason: string }>;
     headerMissing: string[];
     warnings: string[];
@@ -348,6 +358,12 @@ export function RouteSheetImportWizard({
     }>;
     needsReview: boolean;
   } | null>(null);
+  // Товарный состав
+  const [itemsText, setItemsText] = useState("");
+  const [itemsFile, setItemsFile] = useState<File | null>(null);
+  const [itemsParsed, setItemsParsed] = useState<OrderItemsParseResult | null>(null);
+  const [itemsBusy, setItemsBusy] = useState(false);
+  const [itemsError, setItemsError] = useState<string | null>(null);
 
   const reset = () => {
     setStep("upload");
@@ -357,6 +373,10 @@ export function RouteSheetImportWizard({
     setErrorMsg(null);
     setErrorDetails(null);
     setResult(null);
+    setItemsText("");
+    setItemsFile(null);
+    setItemsParsed(null);
+    setItemsError(null);
   };
 
   const handleParse = async () => {
@@ -403,7 +423,10 @@ export function RouteSheetImportWizard({
           "content-type": "application/json",
           ...authHeaders(),
         },
-        body: JSON.stringify(parsed),
+        body: JSON.stringify({
+          ...parsed,
+          itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
+        }),
       });
 
       const rawText = await res.text();
@@ -413,6 +436,9 @@ export function RouteSheetImportWizard({
         routeNumber?: string;
         inserted?: number;
         total?: number;
+        itemsCreated?: number;
+        itemsUnmatched?: number;
+        ordersWithoutItems?: string[];
         failedRows?: Array<{ rowIndex: number; reason: string }>;
         headerMissing?: string[];
         warnings?: string[];
@@ -496,6 +522,9 @@ export function RouteSheetImportWizard({
         routeNumber: json.routeNumber ?? "",
         inserted: json.inserted ?? 0,
         total: json.total ?? parsed.orders.length,
+        itemsCreated: json.itemsCreated ?? 0,
+        itemsUnmatched: json.itemsUnmatched ?? 0,
+        ordersWithoutItems: json.ordersWithoutItems ?? [],
         failedRows: json.failedRows ?? [],
         headerMissing: json.headerMissing ?? [],
         warnings: json.warnings ?? [],
@@ -689,6 +718,120 @@ export function RouteSheetImportWizard({
               </Table>
             </div>
 
+            {/* Товарный состав (опционально) */}
+            <div className="rounded-lg border bg-card p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium">Товарный состав (опционально)</div>
+                {itemsParsed && (
+                  <div className="text-xs text-muted-foreground">
+                    Распознано <b>{itemsParsed.totals.items}</b> товарных строк
+                    по <b>{itemsParsed.totals.orders}</b> заказам
+                    {itemsParsed.totals.needsReview > 0 && (
+                      <>
+                        {" "}· требуют проверки:{" "}
+                        <b className="text-amber-600">{itemsParsed.totals.needsReview}</b>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Загрузите Excel/CSV/TXT с товарами или вставьте текст из 1С.
+                Группировка по «Заказ покупателя КП_…». Без него заявка тоже создастся.
+              </p>
+              <Tabs defaultValue="text" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="text">Вставить текст</TabsTrigger>
+                  <TabsTrigger value="file">Загрузить файл</TabsTrigger>
+                </TabsList>
+                <TabsContent value="text" className="space-y-2">
+                  <Textarea
+                    value={itemsText}
+                    onChange={(e) => {
+                      setItemsText(e.target.value);
+                      setItemsError(null);
+                    }}
+                    placeholder="Заказ покупателя КП_ЮФ_02740 от 13.05.2026 0:00:00&#10;1&#10;BО1. Арочная Оптима Каркас 3*4&#10;Новый&#10;шт&#10;45&#10;1,000"
+                    className="min-h-[140px] font-mono text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={!itemsText.trim() || itemsBusy}
+                    onClick={() => {
+                      setItemsBusy(true);
+                      setItemsError(null);
+                      try {
+                        const r = parseOrderItemsText(itemsText);
+                        setItemsParsed(r);
+                        if (r.totals.items === 0) {
+                          setItemsError(
+                            r.warnings[0] ?? "Не распознано ни одной товарной строки",
+                          );
+                        }
+                      } catch (e) {
+                        setItemsError(e instanceof Error ? e.message : "Ошибка парсера");
+                      } finally {
+                        setItemsBusy(false);
+                      }
+                    }}
+                  >
+                    Распознать товары
+                  </Button>
+                </TabsContent>
+                <TabsContent value="file" className="space-y-2">
+                  <Input
+                    type="file"
+                    accept=".xlsx,.xls,.csv,.txt"
+                    onChange={async (e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setItemsFile(f);
+                      setItemsError(null);
+                      if (!f) return;
+                      setItemsBusy(true);
+                      try {
+                        const r = await parseOrderItemsFile(f);
+                        setItemsParsed(r);
+                        if (r.totals.items === 0) {
+                          setItemsError(
+                            r.warnings[0] ?? "Не распознано ни одной товарной строки",
+                          );
+                        }
+                      } catch (err) {
+                        setItemsError(err instanceof Error ? err.message : "Ошибка чтения файла");
+                      } finally {
+                        setItemsBusy(false);
+                      }
+                    }}
+                  />
+                  {itemsFile && (
+                    <div className="text-xs text-muted-foreground">
+                      {itemsFile.name} · {(itemsFile.size / 1024).toFixed(1)} КБ
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+              {itemsError && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="text-xs">{itemsError}</AlertDescription>
+                </Alert>
+              )}
+              {itemsParsed && itemsParsed.totals.orders > 0 && (
+                <div className="rounded-md border bg-muted/30 p-2 text-xs">
+                  <div className="font-medium mb-1">Распознанные заказы:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {Object.entries(itemsParsed.byOrderNumber).map(([k, v]) => (
+                      <Badge key={k} variant="outline" className="font-mono">
+                        {k} · {v.length}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {errorMsg && (
               <ErrorDetailsPanel
                 title="Ошибка импорта маршрутного листа"
@@ -733,6 +876,37 @@ export function RouteSheetImportWizard({
                 </div>
               </AlertDescription>
             </Alert>
+
+            {/* Итоговые счётчики */}
+            <div className="grid gap-2 sm:grid-cols-3">
+              <Stat label="Заказов создано" value={result.inserted} />
+              <Stat label="Точек маршрута" value={result.inserted} />
+              <Stat label="Товарных строк" value={result.itemsCreated} />
+              {result.itemsUnmatched > 0 && (
+                <Stat label="Не сопоставлено товаров" value={result.itemsUnmatched} />
+              )}
+              {result.ordersWithoutItems.length > 0 && (
+                <Stat
+                  label="Заказы без товарного состава"
+                  value={result.ordersWithoutItems.length}
+                />
+              )}
+            </div>
+
+            {result.ordersWithoutItems.length > 0 && (
+              <div className="rounded-md border">
+                <div className="border-b bg-secondary/40 px-3 py-2 text-sm font-medium">
+                  Заказы без товарного состава
+                </div>
+                <div className="p-3 text-xs flex flex-wrap gap-1">
+                  {result.ordersWithoutItems.slice(0, 100).map((n) => (
+                    <Badge key={n} variant="outline" className="font-mono">
+                      {n}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {result.headerMissing.length > 0 && (
               <Alert>

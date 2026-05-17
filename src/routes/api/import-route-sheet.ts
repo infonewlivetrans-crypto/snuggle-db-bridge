@@ -27,6 +27,21 @@ type IncomingOrder = {
   comment: string | null;
 };
 
+type IncomingItem = {
+  sourceLine: number;
+  lineNumber: number | null;
+  nomenclature: string;
+  characteristic: string | null;
+  quality: string | null;
+  unit: string | null;
+  qty: number | null;
+  weight_kg: number | null;
+  volume_m3: number | null;
+  comment: string | null;
+  raw_text: string;
+  needsReview: boolean;
+};
+
 type IncomingPayload = {
   routeNumber: string | null;
   routeDate: string | null;
@@ -38,6 +53,8 @@ type IncomingPayload = {
   driverPhone: string | null;
   vehiclePlate: string | null;
   orders: IncomingOrder[];
+  /** Опциональный товарный состав: ключ — нормализованный номер заказа. */
+  itemsByOrderNumber?: Record<string, IncomingItem[]>;
 };
 
 function paymentToDb(
@@ -676,12 +693,114 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           (r) => r.missingFields.length > 0,
         ).length;
 
+        // 5b. Товарный состав — опционально.
+        // Сопоставление по orders.order_number ИЛИ orders.onec_order_number.
+        let itemsCreated = 0;
+        let itemsUnmatched = 0;
+        const ordersWithoutItems: string[] = [];
+        const itemWarnings: string[] = [];
+        const itemsByOrderNumber = payload.itemsByOrderNumber ?? {};
+        const itemKeys = Object.keys(itemsByOrderNumber);
+
+        if (itemKeys.length > 0) {
+          const usedKeys = new Set<string>();
+          // Индексы для матчинга
+          const ordersByKey = new Map<string, { id: string }>();
+          for (const r of importedRows) {
+            if (!r.orderId) continue;
+            const candidates = new Set<string>();
+            const norm = (s: string | null | undefined) =>
+              (s ?? "").trim().toUpperCase().replace(/\s+/g, "");
+            const a = norm(r.orderNumber);
+            if (a) candidates.add(a);
+            // onec_order_number из исходных данных
+            const src = payload.orders.find((x) => x.rowIndex === r.rowIndex);
+            const b = norm(src?.orderNumber);
+            if (b) candidates.add(b);
+            for (const k of candidates) {
+              if (!ordersByKey.has(k)) ordersByKey.set(k, { id: r.orderId });
+            }
+          }
+
+          for (const [rawKey, rows] of Object.entries(itemsByOrderNumber)) {
+            const key = (rawKey ?? "").trim().toUpperCase().replace(/\s+/g, "");
+            const target = ordersByKey.get(key);
+            if (!target) {
+              itemsUnmatched += rows.length;
+              itemWarnings.push(
+                `Не сопоставлен товарный состав заказа ${rawKey} (строк: ${rows.length})`,
+              );
+              continue;
+            }
+            usedKeys.add(key);
+            try {
+              const toInsert = rows.map((it) => ({
+                order_id: target.id,
+                nomenclature: it.nomenclature?.trim() || it.raw_text?.slice(0, 240) || "—",
+                characteristic: it.characteristic,
+                quality: it.quality,
+                qty: it.qty ?? 0,
+                unit: it.unit,
+                weight_kg: it.weight_kg,
+                volume_m3: it.volume_m3,
+                comment: it.needsReview
+                  ? [it.comment, `⚠ Требует проверки`, it.raw_text]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : it.comment,
+                external_id: it.lineNumber != null ? String(it.lineNumber) : null,
+                source: "excel" as const,
+              }));
+              const { error: iErr } = await sb
+                .from("order_items")
+                .insert(toInsert as never);
+              if (iErr) {
+                itemWarnings.push(
+                  `Товарный состав ${rawKey}: ${iErr.message}`,
+                );
+              } else {
+                itemsCreated += toInsert.length;
+                const reviewCount = rows.filter((r) => r.needsReview).length;
+                if (reviewCount > 0) {
+                  itemWarnings.push(
+                    `Товарный состав ${rawKey}: ${reviewCount} строк сохранены как raw_text (требуют проверки)`,
+                  );
+                }
+              }
+            } catch (e) {
+              itemWarnings.push(
+                `Товарный состав ${rawKey}: ${e instanceof Error ? e.message : "ошибка"}`,
+              );
+            }
+          }
+
+          // Заказы, для которых не пришёл товарный состав вообще
+          for (const r of importedRows) {
+            if (!r.orderId) continue;
+            const norm = (s: string | null | undefined) =>
+              (s ?? "").trim().toUpperCase().replace(/\s+/g, "");
+            const src = payload.orders.find((x) => x.rowIndex === r.rowIndex);
+            const a = norm(r.orderNumber);
+            const b = norm(src?.orderNumber);
+            if (!usedKeys.has(a) && !usedKeys.has(b)) {
+              ordersWithoutItems.push(r.orderNumber);
+            }
+          }
+        }
+
+        if (itemWarnings.length > 0) warnings.push(...itemWarnings);
+
         return jsonResponse({
           ok: true,
           routeId,
           routeNumber,
           inserted,
           total: payload.orders.length,
+          pointsCreated: inserted,
+          itemsCreated,
+          itemsUnmatched,
+          ordersWithoutItems,
+          itemWarnings,
           failedRows,
           warnings,
           headerMissing,
