@@ -109,7 +109,7 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const list = items ?? [];
+  const list = (items ?? []).filter((it) => it && it.order);
   const nextPoint = list.length + 1;
 
   return (
