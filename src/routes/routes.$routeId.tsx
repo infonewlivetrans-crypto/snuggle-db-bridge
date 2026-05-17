@@ -447,6 +447,13 @@ function RouteDetailPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <AdminDeleteButton
+                entityLabel="заявку"
+                confirmationCode={route.route_number}
+                deleteUrl={`/api/routes/${route.id}`}
+                description="Заявка не должна быть в работе/завершена, и по ней не должно быть активных (не-черновых) рейсов доставки."
+                onDeleted={() => router.navigate({ to: "/routes" })}
+              />
             </div>
           </div>
         </div>
