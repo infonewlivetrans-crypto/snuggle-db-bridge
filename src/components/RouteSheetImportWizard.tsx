@@ -37,6 +37,10 @@ import {
   type ParsedRouteSheet,
 } from "@/lib/route-sheet-parser";
 import {
+  parseTransportRequestXlsx,
+  type ParsedTransportRequest,
+} from "@/lib/transport-request-parser";
+import {
   parseOrderItemsFile,
   parseOrderItemsText,
   type OrderItemsParseResult,
@@ -48,7 +52,6 @@ import {
   type ErrorDetails,
 } from "@/lib/supabaseError";
 import { ErrorDetailsPanel } from "@/components/ErrorDetailsPanel";
-import { TransportRequestImportPanel } from "@/components/TransportRequestImportPanel";
 
 type Step = "upload" | "preview" | "importing" | "done";
 
@@ -241,7 +244,8 @@ function createImportDiagnostics(args: {
   };
 }
 
-function getRouteInsertPayloadForDiagnostics(parsed: ParsedRouteSheet) {
+function getRouteInsertPayloadForDiagnostics(parsed: ParsedRouteSheet | null) {
+  if (!parsed) return { route_number: "<unknown>", source: "transport_request" };
   const routeNumber = parsed.routeNumber?.trim() || "RL-<generated>";
   const routeDate = parsed.routeDate || "<today>";
   const headerMissing: string[] = [];
@@ -328,10 +332,11 @@ export function RouteSheetImportWizard({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState<"route_sheet" | "transport_request">("route_sheet");
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParsedRouteSheet | null>(null);
+  const [trFile, setTrFile] = useState<File | null>(null);
+  const [trParsed, setTrParsed] = useState<ParsedTransportRequest | null>(null);
   const [busy, setBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<ErrorDetails | null>(null);
@@ -371,6 +376,8 @@ export function RouteSheetImportWizard({
     setStep("upload");
     setFile(null);
     setParsed(null);
+    setTrFile(null);
+    setTrParsed(null);
     setBusy(false);
     setErrorMsg(null);
     setErrorDetails(null);
@@ -382,22 +389,45 @@ export function RouteSheetImportWizard({
   };
 
   const handleParse = async () => {
-    if (!file) return;
+    if (!file && !trParsed) return;
     setBusy(true);
     setErrorMsg(null);
     setErrorDetails(null);
     try {
-      const name = file.name.toLowerCase();
-      if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
-        throw new Error(
-          "Поддерживаются только Excel-файлы (.xlsx, .xls). PDF/CSV — в разработке.",
-        );
-      }
-      const data = await parseRouteSheetXlsx(file);
-      if (data.orders.length === 0) {
-        throw new Error(
-          "Не удалось распознать заказы в маршрутном листе. Проверьте формат файла.",
-        );
+      let data: ParsedRouteSheet | null = null;
+      if (file) {
+        const name = file.name.toLowerCase();
+        if (!name.endsWith(".xlsx") && !name.endsWith(".xls")) {
+          throw new Error("Поддерживаются только Excel-файлы (.xlsx, .xls).");
+        }
+        data = await parseRouteSheetXlsx(file);
+        if (data.orders.length === 0 && !trParsed) {
+          throw new Error(
+            "Не удалось распознать заказы. Загрузите также «Заявку на транспорт» или другой маршрутный лист.",
+          );
+        }
+      } else {
+        // Только заявка на транспорт — синтезируем пустой ParsedRouteSheet
+        // для предпросмотра, реальные orders создаст сервер из TR.orderNumbers.
+        data = {
+          routeNumber: trParsed?.requestNumber ?? null,
+          routeDate: trParsed?.loadingDate ?? null,
+          organization: trParsed?.organization ?? null,
+          shipper: trParsed?.shipper ?? null,
+          carrier: trParsed?.carrier ?? null,
+          contract: null,
+          driverName: trParsed?.driverName ?? null,
+          driverPhone: trParsed?.driverPhone ?? null,
+          vehiclePlate: trParsed?.vehiclePlate ?? null,
+          orders: [],
+          totals: {
+            ordersCount: trParsed?.orderNumbers.length ?? 0,
+            cashSum: 0,
+            qrCount: 0,
+            paidCount: 0,
+            issuesCount: 0,
+          },
+        };
       }
       setParsed(data);
       setStep("preview");
@@ -413,7 +443,7 @@ export function RouteSheetImportWizard({
   };
 
   const handleImport = async () => {
-    if (!parsed) return;
+    if (!parsed && !trParsed) return;
     setBusy(true);
     setStep("importing");
     setErrorMsg(null);
@@ -426,7 +456,8 @@ export function RouteSheetImportWizard({
           ...authHeaders(),
         },
         body: JSON.stringify({
-          ...parsed,
+          ...(parsed ?? {}),
+          transportRequest: trParsed ?? null,
           itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
         }),
       });
@@ -474,7 +505,7 @@ export function RouteSheetImportWizard({
         // Сервер отвечает 409 + code: "route_already_imported".
         // Не показываем технический дамп и не логируем как ошибку.
         if (res.status === 409 && json.code === "route_already_imported") {
-          const friendly = `Заявка по маршрутному листу №${json.routeNumber ?? parsed.routeNumber ?? ""} уже создана`;
+          const friendly = `Заявка по маршрутному листу №${json.routeNumber ?? parsed?.routeNumber ?? ""} уже создана`;
           setErrorMsg(friendly);
           setErrorDetails(null);
           toast.info(friendly);
@@ -523,7 +554,7 @@ export function RouteSheetImportWizard({
         routeId: json.routeId,
         routeNumber: json.routeNumber ?? "",
         inserted: json.inserted ?? 0,
-        total: json.total ?? parsed.orders.length,
+        total: json.total ?? parsed?.orders.length ?? 0,
         itemsCreated: json.itemsCreated ?? 0,
         itemsUnmatched: json.itemsUnmatched ?? 0,
         ordersWithoutItems: json.ordersWithoutItems ?? [],
@@ -606,26 +637,50 @@ export function RouteSheetImportWizard({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs
-          value={mode}
-          onValueChange={(v) => setMode(v as "route_sheet" | "transport_request")}
-          className="flex flex-1 flex-col overflow-hidden"
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="route_sheet">Маршрутный лист</TabsTrigger>
-            <TabsTrigger value="transport_request">Заявка на транспорт</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="transport_request" className="flex flex-1 flex-col overflow-hidden mt-3">
-            <TransportRequestImportPanel onClose={() => onOpenChange(false)} />
-          </TabsContent>
-
-          <TabsContent value="route_sheet" className="flex flex-1 flex-col overflow-hidden mt-3 space-y-3">
+        <div className="flex flex-1 flex-col overflow-hidden space-y-3">
 
         {step === "upload" && (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="rs-file">Файл маршрутного листа</Label>
+              <Label htmlFor="tr-file">
+                Файл «Заявка на транспорт» (опционально)
+              </Label>
+              <Input
+                id="tr-file"
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={async (e) => {
+                  const f = e.target.files?.[0] ?? null;
+                  setTrFile(f);
+                  setTrParsed(null);
+                  setErrorMsg(null);
+                  if (!f) return;
+                  try {
+                    const d = await parseTransportRequestXlsx(f);
+                    setTrParsed(d);
+                    toast.success(
+                      `Заявка №${d.requestNumber ?? "—"} распознана`,
+                    );
+                  } catch (err) {
+                    const msg =
+                      err instanceof Error ? err.message : "Файл не распознан";
+                    setErrorMsg(msg);
+                    toast.error(msg);
+                  }
+                }}
+              />
+              {trFile && trParsed && (
+                <div className="rounded-md border bg-secondary/30 p-2 text-xs">
+                  <b>{trFile.name}</b> · №{trParsed.requestNumber ?? "—"} ·
+                  погрузка: {trParsed.loadingDate ?? "—"}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rs-file">
+                Файл маршрутного листа (опционально, если есть заявка)
+              </Label>
               <Input
                 id="rs-file"
                 type="file"
@@ -636,7 +691,7 @@ export function RouteSheetImportWizard({
                 }}
               />
               <p className="text-xs text-muted-foreground">
-                Поддерживаются Excel-файлы из 1С (.xlsx, .xls)
+                Заявка + маршрутный лист + товарный состав = одна заявка/рейс.
               </p>
             </div>
             {file && (
@@ -1023,7 +1078,7 @@ export function RouteSheetImportWizard({
               <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
                 Отмена
               </Button>
-              <Button onClick={handleParse} disabled={!file || busy} className="gap-2">
+              <Button onClick={handleParse} disabled={(!file && !trParsed) || busy} className="gap-2">
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 Распознать
               </Button>
@@ -1049,8 +1104,7 @@ export function RouteSheetImportWizard({
             </>
           )}
         </DialogFooter>
-          </TabsContent>
-        </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

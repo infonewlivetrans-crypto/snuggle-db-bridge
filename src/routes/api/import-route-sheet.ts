@@ -42,20 +42,92 @@ type IncomingItem = {
   needsReview: boolean;
 };
 
-type IncomingPayload = {
-  routeNumber: string | null;
-  routeDate: string | null;
-  organization: string | null;
+type IncomingTransportRequest = {
+  requestNumber: string | null;
+  requestDate: string | null;
+  loadingDate: string | null;
+  loadingTime: string | null;
+  loadingAddress: string | null;
+  unloadingAddress: string | null;
   shipper: string | null;
+  consignee: string | null;
+  contactPerson: string | null;
+  contactPhone: string | null;
+  cargoDescription: string | null;
+  weightKg: number | null;
+  volumeM3: number | null;
+  placesCount: number | null;
+  vehicleRequirements: string | null;
   carrier: string | null;
-  contract?: string | null;
   driverName: string | null;
   driverPhone: string | null;
   vehiclePlate: string | null;
-  orders: IncomingOrder[];
+  comment: string | null;
+  organization: string | null;
+  orderNumbers: string[];
+  raw: Record<string, string>;
+};
+
+type IncomingPayload = {
+  // Маршрутный лист (всё опционально — может прийти только заявка на транспорт)
+  routeNumber?: string | null;
+  routeDate?: string | null;
+  organization?: string | null;
+  shipper?: string | null;
+  carrier?: string | null;
+  contract?: string | null;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  vehiclePlate?: string | null;
+  orders?: IncomingOrder[];
   /** Опциональный товарный состав: ключ — нормализованный номер заказа. */
   itemsByOrderNumber?: Record<string, IncomingItem[]>;
+  /** Опциональная шапка из файла «Заявка на транспорт». */
+  transportRequest?: IncomingTransportRequest | null;
 };
+
+function buildTransportComment(
+  tr: IncomingTransportRequest,
+  unrecognized: string[],
+): string {
+  const lines: string[] = [];
+  const push = (label: string, value: string | number | null | undefined) => {
+    if (value !== null && value !== undefined && String(value).trim() !== "") {
+      lines.push(`${label}: ${value}`);
+    }
+  };
+  push("Адрес погрузки", tr.loadingAddress);
+  push("Адрес выгрузки", tr.unloadingAddress);
+  if (tr.loadingDate || tr.loadingTime) {
+    push(
+      "Погрузка",
+      `${tr.loadingDate ?? ""}${tr.loadingTime ? " " + tr.loadingTime : ""}`.trim(),
+    );
+  }
+  push("Грузоотправитель", tr.shipper);
+  push("Грузополучатель", tr.consignee);
+  push("Контактное лицо", tr.contactPerson);
+  push("Телефон", tr.contactPhone);
+  push("Груз", tr.cargoDescription);
+  push("Вес, кг", tr.weightKg);
+  push("Объём, м³", tr.volumeM3);
+  push("Мест", tr.placesCount);
+  push("Требования к ТС", tr.vehicleRequirements);
+  if (tr.orderNumbers.length)
+    push("Номера заказов из заявки", tr.orderNumbers.join(", "));
+  if (unrecognized.length)
+    lines.push(`Не распознано: ${unrecognized.join(", ")}`);
+  return lines.join("\n");
+}
+
+function buildAuditComment(tr: IncomingTransportRequest): string {
+  const entries = Object.entries(tr.raw ?? {}).slice(0, 50);
+  if (entries.length === 0) return "";
+  return [
+    "Импорт из файла «Заявка на транспорт». Исходные поля:",
+    ...entries.map(([k, v]) => `• ${k}: ${v}`),
+  ].join("\n");
+}
 
 function paymentToDb(
   kind: PaymentKind,
@@ -106,22 +178,115 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           );
         }
 
-        if (!payload || !Array.isArray(payload.orders)) {
+        const tr = payload.transportRequest ?? null;
+        const hasTr = !!tr;
+        const rsOrdersIn = Array.isArray(payload.orders) ? payload.orders : [];
+        const hasRsOrders = rsOrdersIn.length > 0;
+
+        if (!hasTr && !hasRsOrders) {
           return jsonResponse(
-            { error: "Файл маршрутного листа не содержит заказов" },
+            {
+              error:
+                "Импорт пуст: нет ни заявки на транспорт, ни маршрутного листа с заказами",
+            },
             { status: 400 },
           );
         }
 
+        // Объединение шапки: TR имеет приоритет для шапки/источника,
+        // routeSheet — для операционных полей (carrier/driver/vehicle берём
+        // прежде всего из RS, если в нём указаны).
+        const mergedRouteNumber =
+          payload.routeNumber?.trim() ||
+          tr?.requestNumber?.trim() ||
+          null;
+        const mergedRouteDate =
+          payload.routeDate ||
+          tr?.loadingDate ||
+          tr?.requestDate ||
+          null;
+        const mergedOrganization = payload.organization ?? tr?.organization ?? null;
+        const mergedCarrier = payload.carrier ?? tr?.carrier ?? null;
+        const mergedDriverName = payload.driverName ?? tr?.driverName ?? null;
+        const mergedDriverPhone = payload.driverPhone ?? tr?.driverPhone ?? null;
+        const mergedVehiclePlate = payload.vehiclePlate ?? tr?.vehiclePlate ?? null;
+        const mergedContract = payload.contract ?? null;
+
+        // Перезаписываем payload-подобный объект, дальше код работает с ним.
+        const effective = {
+          routeNumber: mergedRouteNumber,
+          routeDate: mergedRouteDate,
+          organization: mergedOrganization,
+          carrier: mergedCarrier,
+          driverName: mergedDriverName,
+          driverPhone: mergedDriverPhone,
+          vehiclePlate: mergedVehiclePlate,
+          contract: mergedContract,
+        };
+
         const warnings: string[] = [];
         const headerMissing: string[] = [];
-        if (!payload.routeNumber) headerMissing.push("Номер маршрутного листа");
-        if (!payload.routeDate) headerMissing.push("Дата");
-        if (!payload.carrier) headerMissing.push("Перевозчик");
-        if (!payload.driverName) headerMissing.push("Водитель");
-        if (!payload.driverPhone) headerMissing.push("Телефон водителя");
-        if (!payload.vehiclePlate) headerMissing.push("Номер ТС");
-        if (!payload.contract) headerMissing.push("Договор");
+        if (!effective.routeNumber) headerMissing.push("Номер маршрутного листа");
+        if (!effective.routeDate) headerMissing.push("Дата");
+        if (!effective.carrier) headerMissing.push("Перевозчик");
+        if (!effective.driverName) headerMissing.push("Водитель");
+        if (!effective.driverPhone) headerMissing.push("Телефон водителя");
+        if (!effective.vehiclePlate) headerMissing.push("Номер ТС");
+        if (!effective.contract && !hasTr) headerMissing.push("Договор");
+
+        // Если есть только заявка на транспорт без маршрутного листа —
+        // синтезируем orders из orderNumbers (или один синтетический).
+        // Эти заказы пройдут стандартный путь создания orders + route_points.
+        const synthesizedFromTr = !hasRsOrders && hasTr;
+        if (synthesizedFromTr) {
+          const keys: Array<string | null> =
+            tr!.orderNumbers.length > 0 ? [...tr!.orderNumbers] : [null];
+          rsOrdersIn.push(
+            ...keys.map<IncomingOrder>((k, idx) => ({
+              rowIndex: idx + 1,
+              orderNumber: k,
+              orderDate: tr!.requestDate,
+              customer: tr!.consignee ?? tr!.contactPerson ?? null,
+              deliveryAddress: tr!.unloadingAddress,
+              contactPhone: tr!.contactPhone,
+              deliveryPeriod: tr!.loadingTime,
+              amountToCollect: null,
+              paymentRaw: null,
+              paymentKind: "unknown",
+              requiresQr: false,
+              managerName: null,
+              managerPhone: null,
+              organization: tr!.organization,
+              comment: [
+                tr!.cargoDescription ? `Груз: ${tr!.cargoDescription}` : null,
+                tr!.comment,
+              ]
+                .filter(Boolean)
+                .join(" · ") || null,
+            })),
+          );
+          if (keys.length > 1 && tr!.unloadingAddress) {
+            warnings.push(
+              "Адрес выгрузки общий для всех заказов — проверьте точки для каждого заказа.",
+            );
+          }
+          if (!tr!.unloadingAddress) {
+            warnings.push(
+              "Адрес доставки не найден в заявке — заказы созданы с пометкой «Требует заполнения».",
+            );
+          }
+        }
+
+        // Перетягиваем именованные алиасы старой логики — она ниже читает payload.*
+        payload.routeNumber = effective.routeNumber;
+        payload.routeDate = effective.routeDate;
+        payload.organization = effective.organization;
+        payload.carrier = effective.carrier;
+        payload.driverName = effective.driverName;
+        payload.driverPhone = effective.driverPhone;
+        payload.vehiclePlate = effective.vehiclePlate;
+        payload.contract = effective.contract;
+        payload.orders = rsOrdersIn;
 
         // 1. Перевозчик (тихий upsert)
         let carrierId: string | null = null;
@@ -276,45 +441,114 @@ export const Route = createFileRoute("/api/import-route-sheet")({
 
         // 4. Маршрут — ВСЕГДА создаём как черновик
         const routeNumber =
-          payload.routeNumber?.trim() || `RL-${Date.now().toString().slice(-8)}`;
+          payload.routeNumber?.trim() ||
+          (hasTr
+            ? `TR-${Date.now().toString().slice(-8)}`
+            : `RL-${Date.now().toString().slice(-8)}`);
         const routeDate = payload.routeDate || todayIso();
 
-        const headerNote = headerMissing.length
-          ? `Требует заполнения: ${headerMissing.join(", ")}`
+        // Дополнительные поля шапки, если пришла заявка на транспорт.
+        const trUnrecognized: string[] = [];
+        if (hasTr) {
+          if (!tr!.loadingDate) trUnrecognized.push("дата погрузки");
+          if (!tr!.loadingAddress) trUnrecognized.push("адрес погрузки");
+          if (!tr!.unloadingAddress) trUnrecognized.push("адрес выгрузки");
+          if (!tr!.cargoDescription) trUnrecognized.push("описание груза");
+          if (!tr!.contactPhone) trUnrecognized.push("контактный телефон");
+        }
+        const transportCommentText = hasTr
+          ? buildTransportComment(tr!, trUnrecognized)
+          : null;
+        const auditCommentText = hasTr ? buildAuditComment(tr!) : null;
+        const headerNoteParts = [
+          headerMissing.length
+            ? `Требует заполнения: ${headerMissing.join(", ")}`
+            : null,
+          trUnrecognized.length
+            ? `Требует проверки: ${trUnrecognized.join(", ")}`
+            : null,
+        ].filter(Boolean) as string[];
+        const headerNote = headerNoteParts.length
+          ? headerNoteParts.join(" · ")
           : null;
 
-        // 4a. Идемпотентность: ищем существующий route с таким номером
+        // Склад погрузки — нестрогий поиск по имени/адресу (только при TR)
+        let warehouseId: string | null = null;
+        if (hasTr && tr!.loadingAddress) {
+          try {
+            const slice = tr!.loadingAddress.slice(0, 40);
+            const { data: wh } = await sb
+              .from("warehouses")
+              .select("id")
+              .or(`name.ilike.%${slice}%,address.ilike.%${slice}%`)
+              .limit(1)
+              .maybeSingle();
+            if (wh) warehouseId = (wh as { id: string }).id;
+          } catch {
+            /* не критично */
+          }
+        }
+
+        const plannedDepartureAt =
+          hasTr && tr!.loadingDate && tr!.loadingTime
+            ? `${tr!.loadingDate}T${tr!.loadingTime}:00`
+            : null;
+        const departureTime = hasTr ? tr!.loadingTime : null;
+        const initWeight = hasTr ? (tr!.weightKg ?? 0) : 0;
+        const initVolume = hasTr ? (tr!.volumeM3 ?? 0) : 0;
+        const onecRequestNumber = hasTr
+          ? (tr!.requestNumber ?? payload.routeNumber ?? null)
+          : payload.routeNumber;
+        const routeSource: "route_sheet" | "transport_request" = hasTr
+          ? "transport_request"
+          : "route_sheet";
+
+        // 4a. Идемпотентность: ищем существующий route по onec_request_number
+        // (если есть TR) ИЛИ по route_number.
         let routeId: string | null = null;
-        if (payload.routeNumber?.trim()) {
-          const { data: existingRoute } = await sb
-            .from("routes")
-            .select("id")
-            .eq("route_number", routeNumber)
-            .maybeSingle();
-          if (existingRoute) {
-            const existingId = (existingRoute as { id: string }).id;
-            // Если уже есть route_points — импорт ранее завершился, дублей не плодим
-            const { count: pointsCount } = await sb
-              .from("route_points")
-              .select("id", { count: "exact", head: true })
-              .eq("route_id", existingId);
-            if ((pointsCount ?? 0) > 0) {
-              return jsonResponse(
-                {
-                  error: `Заявка по маршрутному листу №${routeNumber} уже создана`,
-                  code: "route_already_imported",
-                  routeId: existingId,
-                  routeNumber,
-                },
-                { status: 409 },
-              );
-            }
-            // Незавершённый импорт — переиспользуем существующий route
-            routeId = existingId;
-            warnings.push(
-              `Найден незавершённый импорт маршрута №${routeNumber} — продолжаем дозапись.`,
+        async function findExisting() {
+          if (hasTr && tr!.requestNumber) {
+            const { data } = await sb
+              .from("routes")
+              .select("id, route_number")
+              .eq("onec_request_number", tr!.requestNumber)
+              .maybeSingle();
+            if (data) return data as { id: string; route_number: string };
+          }
+          if (payload.routeNumber?.trim()) {
+            const { data } = await sb
+              .from("routes")
+              .select("id, route_number")
+              .eq("route_number", routeNumber)
+              .maybeSingle();
+            if (data) return data as { id: string; route_number: string };
+          }
+          return null;
+        }
+        const existingRoute = await findExisting();
+        if (existingRoute) {
+          const existingId = existingRoute.id;
+          const { count: pointsCount } = await sb
+            .from("route_points")
+            .select("id", { count: "exact", head: true })
+            .eq("route_id", existingId);
+          if ((pointsCount ?? 0) > 0) {
+            return jsonResponse(
+              {
+                error: `Заявка №${existingRoute.route_number} уже создана`,
+                code: hasTr
+                  ? "transport_request_already_imported"
+                  : "route_already_imported",
+                routeId: existingId,
+                routeNumber: existingRoute.route_number,
+              },
+              { status: 409 },
             );
           }
+          routeId = existingId;
+          warnings.push(
+            `Найден незавершённый импорт №${existingRoute.route_number} — продолжаем дозапись.`,
+          );
         }
 
         if (!routeId) {
@@ -326,14 +560,20 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               request_type: "client_delivery",
               status: "planned",
               request_status: "draft",
-              source: "route_sheet",
+              source: routeSource,
               organization: payload.organization,
-              onec_request_number: payload.routeNumber,
+              onec_request_number: onecRequestNumber,
               carrier_id: carrierId,
               driver_id: driverId,
               vehicle_id: vehicleId,
+              warehouse_id: warehouseId,
               driver_name: payload.driverName,
-              transport_comment: headerNote,
+              departure_time: departureTime,
+              planned_departure_at: plannedDepartureAt,
+              total_weight_kg: initWeight,
+              total_volume_m3: initVolume,
+              transport_comment: transportCommentText || headerNote,
+              comment: auditCommentText || null,
               request_status_comment: headerNote,
             } as never)
             .select("id")
@@ -345,8 +585,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
             if (rErr?.code === "23505") {
               return jsonResponse(
                 {
-                  error: `Заявка по маршрутному листу №${routeNumber} уже создана`,
-                  code: "route_already_imported",
+                  error: `Заявка №${routeNumber} уже создана`,
+                  code: hasTr
+                    ? "transport_request_already_imported"
+                    : "route_already_imported",
                   routeNumber,
                 },
                 { status: 409 },
@@ -790,10 +1032,28 @@ export const Route = createFileRoute("/api/import-route-sheet")({
 
         if (itemWarnings.length > 0) warnings.push(...itemWarnings);
 
+        // 6b. Пересчёт total_weight_kg/total_volume_m3 по товарам и points_count.
+        const allItems = Object.values(itemsByOrderNumber).flat();
+        const sumWeight = allItems.reduce((s, it) => s + (it.weight_kg ?? 0), 0);
+        const sumVolume = allItems.reduce((s, it) => s + (it.volume_m3 ?? 0), 0);
+        try {
+          await sb
+            .from("routes")
+            .update({
+              points_count: inserted,
+              ...(sumWeight > 0 ? { total_weight_kg: sumWeight } : {}),
+              ...(sumVolume > 0 ? { total_volume_m3: sumVolume } : {}),
+            } as never)
+            .eq("id", routeId);
+        } catch {
+          /* не критично */
+        }
+
         return jsonResponse({
           ok: true,
           routeId,
           routeNumber,
+          source: routeSource,
           inserted,
           total: payload.orders.length,
           pointsCreated: inserted,
@@ -804,6 +1064,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           failedRows,
           warnings,
           headerMissing,
+          trUnrecognized,
           rows: importedRows,
           missingRowsCount: totalMissing,
           clientsNeedingFill: Array.from(clientsNeedingFill.values()).map(
@@ -823,7 +1084,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               inviteUrl: m.inviteUrl,
             })),
           needsReview:
-            headerMissing.length > 0 || totalMissing > 0 || failedRows.length > 0,
+            headerMissing.length > 0 ||
+            totalMissing > 0 ||
+            failedRows.length > 0 ||
+            trUnrecognized.length > 0,
         });
       },
     },
