@@ -157,6 +157,7 @@ import { Route as ApiStockTransfersIdRouteImport } from './routes/api/stock-tran
 import { Route as ApiStockReservationsReserveRouteImport } from './routes/api/stock-reservations.reserve'
 import { Route as ApiStockReservationsReleaseRouteImport } from './routes/api/stock-reservations.release'
 import { Route as ApiStockReservationsIdRouteImport } from './routes/api/stock-reservations.$id'
+import { Route as ApiRoutingMatrixRouteImport } from './routes/api/routing.matrix'
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
@@ -957,6 +958,11 @@ const ApiStockReservationsIdRoute = ApiStockReservationsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiStockReservationsRoute,
 } as any)
+const ApiRoutingMatrixRoute = ApiRoutingMatrixRouteImport.update({
+  id: '/api/routing/matrix',
+  path: '/api/routing/matrix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRoutesIdRoute = ApiRoutesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1409,6 +1415,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
   '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
   '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
@@ -1612,6 +1619,7 @@ export interface FileRoutesByTo {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
   '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
   '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
@@ -1816,6 +1824,7 @@ export interface FileRoutesById {
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
   '/api/stock-reservations/release': typeof ApiStockReservationsReleaseRoute
   '/api/stock-reservations/reserve': typeof ApiStockReservationsReserveRoute
@@ -2021,6 +2030,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/routing/matrix'
     | '/api/stock-reservations/$id'
     | '/api/stock-reservations/release'
     | '/api/stock-reservations/reserve'
@@ -2224,6 +2234,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/routing/matrix'
     | '/api/stock-reservations/$id'
     | '/api/stock-reservations/release'
     | '/api/stock-reservations/reserve'
@@ -2427,6 +2438,7 @@ export interface FileRouteTypes {
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
+    | '/api/routing/matrix'
     | '/api/stock-reservations/$id'
     | '/api/stock-reservations/release'
     | '/api/stock-reservations/reserve'
@@ -2607,6 +2619,7 @@ export interface RootRouteChildren {
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiGeoGeocodeRoute: typeof ApiGeoGeocodeRoute
   ApiGeoReverseRoute: typeof ApiGeoReverseRoute
+  ApiRoutingMatrixRoute: typeof ApiRoutingMatrixRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -3652,6 +3665,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStockReservationsIdRouteImport
       parentRoute: typeof ApiStockReservationsRoute
     }
+    '/api/routing/matrix': {
+      id: '/api/routing/matrix'
+      path: '/api/routing/matrix'
+      fullPath: '/api/routing/matrix'
+      preLoaderRoute: typeof ApiRoutingMatrixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/routes/$id': {
       id: '/api/routes/$id'
       path: '/$id'
@@ -4632,6 +4652,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiGeoGeocodeRoute: ApiGeoGeocodeRoute,
   ApiGeoReverseRoute: ApiGeoReverseRoute,
+  ApiRoutingMatrixRoute: ApiRoutingMatrixRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
