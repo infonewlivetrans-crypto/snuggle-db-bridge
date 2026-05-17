@@ -11,7 +11,7 @@ const BodySchema = z.object({
   waypoints: z.array(PointSchema).min(2).max(50),
 });
 
-export const Route = createFileRoute("/api/routing")({
+export const Route = createFileRoute("/api/routing/directions")({
   server: {
     handlers: {
       POST: async ({ request }) => {
