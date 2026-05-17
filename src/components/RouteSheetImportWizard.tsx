@@ -748,6 +748,22 @@ export function RouteSheetImportWizard({
               </Alert>
             )}
 
+            {result.warnings.length > 0 && (
+              <Alert className="border-amber-500/40">
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertDescription>
+                  <div className="font-medium">
+                    Предупреждения импорта ({result.warnings.length})
+                  </div>
+                  <ul className="mt-1 max-h-40 list-disc space-y-1 overflow-auto pl-5 text-xs">
+                    {result.warnings.slice(0, 100).map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {result.rows.some((r) => r.missingFields.length > 0) && (
               <div className="rounded-md border">
                 <div className="border-b bg-secondary/40 px-3 py-2 text-sm font-medium">
