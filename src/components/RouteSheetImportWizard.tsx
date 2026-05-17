@@ -1078,7 +1078,7 @@ export function RouteSheetImportWizard({
               <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={busy}>
                 Отмена
               </Button>
-              <Button onClick={handleParse} disabled={!file || busy} className="gap-2">
+              <Button onClick={handleParse} disabled={(!file && !trParsed) || busy} className="gap-2">
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 Распознать
               </Button>
