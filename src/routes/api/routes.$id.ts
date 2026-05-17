@@ -24,6 +24,16 @@ const NON_DRAFT_DELIVERY_STATUSES = new Set<string>([
   "completed",
 ]);
 
+function logAdminDeleteError(marker: string, id: string, error: unknown) {
+  console.error(marker, {
+    id,
+    name: error instanceof Error ? error.name : undefined,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    raw: error,
+  });
+}
+
 export const Route = createFileRoute("/api/routes/$id")({
   server: {
     handlers: {
@@ -99,9 +109,10 @@ export const Route = createFileRoute("/api/routes/$id")({
       },
 
       DELETE: async ({ request, params }) => {
+        const id = params.id;
+        try {
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
-        const id = params.id;
         const admin = makeAdminClient();
 
         // 1. Загружаем заявку для проверки статуса и label.
@@ -110,7 +121,10 @@ export const Route = createFileRoute("/api/routes/$id")({
           .select("id, route_number, status, request_status")
           .eq("id", id)
           .maybeSingle();
-        if (loadErr) return jsonResponse({ error: loadErr.message }, { status: 500 });
+        if (loadErr) {
+          logAdminDeleteError("[admin-delete][routes DELETE] failed", id, loadErr);
+          return jsonResponse({ error: loadErr.message }, { status: 500 });
+        }
         if (!route) return jsonResponse({ error: "Заявка не найдена" }, { status: 404 });
         const r = route as {
           id: string;
@@ -136,7 +150,10 @@ export const Route = createFileRoute("/api/routes/$id")({
           .from("delivery_routes")
           .select("id, status")
           .eq("source_request_id", id);
-        if (drErr) return jsonResponse({ error: drErr.message }, { status: 500 });
+        if (drErr) {
+          logAdminDeleteError("[admin-delete][routes DELETE] failed", id, drErr);
+          return jsonResponse({ error: drErr.message }, { status: 500 });
+        }
         const activeCount = (drList ?? []).filter((d) =>
           NON_DRAFT_DELIVERY_STATUSES.has((d as { status: string }).status),
         ).length;
@@ -156,6 +173,7 @@ export const Route = createFileRoute("/api/routes/$id")({
           .delete()
           .eq("source_request_id", id);
         if (cleanupErr) {
+          logAdminDeleteError("[admin-delete][routes DELETE] failed", id, cleanupErr);
           return jsonResponse(
             { error: `Не удалось удалить связанные рейсы-черновики: ${cleanupErr.message}` },
             { status: 500 },
@@ -169,6 +187,7 @@ export const Route = createFileRoute("/api/routes/$id")({
           .delete()
           .eq("id", id);
         if (delErr) {
+          logAdminDeleteError("[admin-delete][routes DELETE] failed", id, delErr);
           return jsonResponse(
             { error: `Не удалось удалить заявку: ${delErr.message}` },
             { status: 500 },
@@ -193,11 +212,19 @@ export const Route = createFileRoute("/api/routes/$id")({
             objectLabel: r.route_number,
             oldValue: { status: r.status, request_status: r.request_status },
           });
-        } catch {
+        } catch (error) {
+          logAdminDeleteError("[admin-delete][routes DELETE][audit] failed", id, error);
           // ignore
         }
 
         return jsonResponse({ ok: true });
+        } catch (error) {
+          logAdminDeleteError("[admin-delete][routes DELETE] failed", id, error);
+          return jsonResponse(
+            { error: error instanceof Error ? error.message : String(error) },
+            { status: 500 },
+          );
+        }
       },
     },
   },

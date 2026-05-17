@@ -12,6 +12,16 @@ const NON_DELETABLE_DELIVERY_STATUSES = new Set<string>([
   "completed",
 ]);
 
+function logAdminDeleteError(marker: string, id: string, error: unknown) {
+  console.error(marker, {
+    id,
+    name: error instanceof Error ? error.name : undefined,
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    raw: error,
+  });
+}
+
 export const Route = createFileRoute("/api/delivery-routes/$id")({
   server: {
     handlers: {
@@ -37,9 +47,10 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
       },
 
       DELETE: async ({ request, params }) => {
+        const id = params.id;
+        try {
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
-        const id = params.id;
         const admin = makeAdminClient();
 
         const { data: dr, error: loadErr } = await admin
@@ -47,7 +58,10 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
           .select("id, route_number, status, current_stage")
           .eq("id", id)
           .maybeSingle();
-        if (loadErr) return jsonResponse({ error: loadErr.message }, { status: 500 });
+        if (loadErr) {
+          logAdminDeleteError("[admin-delete][delivery-routes DELETE] failed", id, loadErr);
+          return jsonResponse({ error: loadErr.message }, { status: 500 });
+        }
         if (!dr) return jsonResponse({ error: "Рейс не найден" }, { status: 404 });
         const d = dr as {
           id: string;
@@ -83,6 +97,7 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
           .delete()
           .eq("id", id);
         if (delErr) {
+          logAdminDeleteError("[admin-delete][delivery-routes DELETE] failed", id, delErr);
           return jsonResponse(
             { error: `Не удалось удалить рейс: ${delErr.message}` },
             { status: 500 },
@@ -106,11 +121,19 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
             objectLabel: d.route_number,
             oldValue: { status: d.status, current_stage: d.current_stage },
           });
-        } catch {
+        } catch (error) {
+          logAdminDeleteError("[admin-delete][delivery-routes DELETE][audit] failed", id, error);
           // ignore
         }
 
         return jsonResponse({ ok: true });
+        } catch (error) {
+          logAdminDeleteError("[admin-delete][delivery-routes DELETE] failed", id, error);
+          return jsonResponse(
+            { error: error instanceof Error ? error.message : String(error) },
+            { status: 500 },
+          );
+        }
       },
     },
   },
