@@ -1,6 +1,6 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { makeAdminClient } from "@/server/api-helpers.server";
 
 type DbClient = SupabaseClient<Database>;
 
@@ -21,7 +21,8 @@ export type AuditEvent = {
 };
 
 export async function writeAudit(e: AuditEvent) {
-  const { error } = await (supabaseAdmin.from("audit_log") as unknown as { insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).insert({
+  const admin = makeAdminClient();
+  const { error } = await (admin.from("audit_log") as unknown as { insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }> }).insert({
     user_id: e.userId ?? null,
     user_name: e.userName ?? null,
     user_role: e.userRole ?? null,
@@ -50,7 +51,7 @@ export async function listAudit(filters: {
   page?: number;
   pageSize?: number;
 }, client?: DbClient) {
-  const c = (client ?? supabaseAdmin) as DbClient;
+  const c = (client ?? makeAdminClient()) as DbClient;
   const page = Math.max(1, filters.page ?? 1);
   const pageSize = Math.min(Math.max(1, filters.pageSize ?? 25), 200);
   const fromIdx = (page - 1) * pageSize;
