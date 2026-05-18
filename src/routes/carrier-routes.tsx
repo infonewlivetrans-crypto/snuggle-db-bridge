@@ -46,11 +46,13 @@ function CarrierRoutesPage() {
     queryKey: ["carrier-routes", carrierId],
     queryFn: async (): Promise<Row[]> => {
       const { rows } = await fetchListViaApi<Row>("/api/delivery-routes", {
-        select:
-          "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id, carrier_id",
-        filters: { carrier_id: carrierId! },
-        order: "route_date.desc",
         limit: 200,
+        extra: {
+          fields:
+            "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id, carrier_id",
+          carrier_id: carrierId!,
+          order: "route_date.desc",
+        },
       });
       return rows;
     },
