@@ -41,9 +41,18 @@ const ALLOWED = new Set([
   "warehouse_id",
   "destination_warehouse_id",
   // scheduling
+  // scheduling
   "route_date",
   "departure_time",
   "request_priority",
+  // transport requirements
+  "required_body_type",
+  "required_capacity_kg",
+  "required_volume_m3",
+  "required_body_length_m",
+  "requires_tent",
+  "requires_manipulator",
+  "requires_straps",
   // timing / eta
   "avg_speed_kmh",
   "default_service_minutes",
