@@ -166,9 +166,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [impersonation, setImpersonation] = useState<ImpersonationState | null>(
-    () => loadImpersonation(),
-  );
+  // SSR: всегда null, чтобы избежать hydration mismatch (#418).
+  // Восстанавливаем impersonation из sessionStorage уже после mount.
+  const [impersonation, setImpersonation] = useState<ImpersonationState | null>(null);
+
+  useEffect(() => {
+    const restored = loadImpersonation();
+    if (restored) setImpersonation(restored);
+  }, []);
 
   // Устанавливаем глобальный fetch-guard один раз
   useEffect(() => {
