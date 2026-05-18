@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/api-client";
 import {
   Select,
   SelectContent,
@@ -38,14 +38,10 @@ export function RouteExecutionBlock({
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({
-          assigned_driver: d || null,
-          assigned_vehicle: v || null,
-        })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${deliveryRouteId}`, {
+        assigned_driver: d || null,
+        assigned_vehicle: v || null,
+      });
     },
     onSuccess: () => {
       toast.success("Назначение сохранено");

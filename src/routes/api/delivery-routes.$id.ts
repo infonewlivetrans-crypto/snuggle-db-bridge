@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
+import { cacheHeaders, jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 
 const ALLOWED = new Set([
   "status",
@@ -42,6 +42,19 @@ function logAdminDeleteError(marker: string, id: string, error: unknown) {
 export const Route = createFileRoute("/api/delivery-routes/$id")({
   server: {
     handlers: {
+      GET: async ({ request, params }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const url = new URL(request.url);
+        const fields = url.searchParams.get("fields") || "*";
+        const { data, error } = await auth.client
+          .from("delivery_routes")
+          .select(fields)
+          .eq("id", params.id)
+          .maybeSingle();
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse(data ?? null, { headers: cacheHeaders(10) });
+      },
       PATCH: async ({ request, params }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
