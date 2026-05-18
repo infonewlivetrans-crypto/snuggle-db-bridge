@@ -152,8 +152,30 @@ const LABELS = {
   driverPhone: [/телефон\s+водител/i, /^тел\.?\s+водител/i],
   vehiclePlate: [/гос\.?\s*ном/i, /номер\s+тс/i, /номер\s+(автомобил|машин)/i, /^автомобиль$/i],
   comment: [/^комментар/i, /^примечан/i, /^доп\.?\s+информ/i],
-  organization: [/^организац/i, /заказчик/i],
+  organization: [/^организац/i, /^заказчик\s*:?$/i],
 };
+
+/**
+ * Принимает строку, претендующую на название организации, и возвращает её
+ * только если она похожа на нормальное название компании.
+ * Отсеивает фрагменты договорных условий, штрафов, требований и т.п.,
+ * которые в 1С-выгрузках часто оказываются в той же ячейке/рядом.
+ */
+function sanitizeOrganization(v: string | null): string | null {
+  if (!v) return null;
+  const s = v.replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  if (s.length > 160) return null;
+  // Слова, типичные для пунктов договора/условий — точно не имя организации.
+  const banned = /(штраф|сутки|просто[яй]|уплачив|обязуется|неустойк|пеня|пени|ответствен|сверхнормат|претензи|расторж|настоящ(его|ему)|договор|услов|порядок|оплат[аы]|тариф|нормат)/i;
+  if (banned.test(s)) return null;
+  // Слишком "литературный" текст: длинная фраза с несколькими предложениями.
+  if (/[.!?]\s+[А-ЯЁA-Z]/.test(s)) return null;
+  // Должно быть похоже на короткое название (1-8 слов).
+  const words = s.split(/\s+/);
+  if (words.length > 10) return null;
+  return s;
+}
 
 export async function parseTransportRequestXlsx(file: File): Promise<ParsedTransportRequest> {
   const XLSX = await import("xlsx");
@@ -211,7 +233,7 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
   const driverPhone = pick("driverPhone").value;
   const vehiclePlate = pick("vehiclePlate").value;
   const comment = pick("comment").value;
-  const organization = pick("organization").value;
+  const organization = sanitizeOrganization(pick("organization").value);
 
   // КП_...  по всему файлу
   const orderSet = new Set<string>();

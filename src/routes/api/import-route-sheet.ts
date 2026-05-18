@@ -120,13 +120,21 @@ function buildTransportComment(
   return lines.join("\n");
 }
 
-function buildAuditComment(tr: IncomingTransportRequest): string {
-  const entries = Object.entries(tr.raw ?? {}).slice(0, 50);
-  if (entries.length === 0) return "";
-  return [
-    "Импорт из файла «Заявка на транспорт». Исходные поля:",
-    ...entries.map(([k, v]) => `• ${k}: ${v}`),
-  ].join("\n");
+/**
+ * Защитная нормализация значения организации: отсеивает фрагменты
+ * договорных условий/штрафов, которые иногда попадают в это поле
+ * при импорте из 1С.
+ */
+function sanitizeOrganizationValue(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const s = String(v).replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  if (s.length > 160) return null;
+  const banned = /(штраф|сутки|просто[яй]|уплачив|обязуется|неустойк|пеня|пени|ответствен|сверхнормат|претензи|расторж|настоящ(его|ему)|договор|услов|порядок|оплат[аы]|тариф|нормат)/i;
+  if (banned.test(s)) return null;
+  if (/[.!?]\s+[А-ЯЁA-Z]/.test(s)) return null;
+  if (s.split(/\s+/).length > 10) return null;
+  return s;
 }
 
 function paymentToDb(
@@ -205,7 +213,9 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           tr?.loadingDate ||
           tr?.requestDate ||
           null;
-        const mergedOrganization = payload.organization ?? tr?.organization ?? null;
+        const mergedOrganization =
+          sanitizeOrganizationValue(payload.organization) ??
+          sanitizeOrganizationValue(tr?.organization ?? null);
         const mergedCarrier = payload.carrier ?? tr?.carrier ?? null;
         const mergedDriverName = payload.driverName ?? tr?.driverName ?? null;
         const mergedDriverPhone = payload.driverPhone ?? tr?.driverPhone ?? null;
@@ -459,7 +469,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
         const transportCommentText = hasTr
           ? buildTransportComment(tr!, trUnrecognized)
           : null;
-        const auditCommentText = hasTr ? buildAuditComment(tr!) : null;
+        // Пользовательский комментарий из исходной заявки (если в TR есть
+        // поле «Комментарий/Примечание»). НЕ дамп всех распознанных полей —
+        // дамп оставляем только в transport_comment в человекочитаемом виде.
+        const userCommentText = hasTr ? (tr!.comment?.trim() || null) : null;
         const headerNoteParts = [
           headerMissing.length
             ? `Требует заполнения: ${headerMissing.join(", ")}`
@@ -561,7 +574,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               status: "planned",
               request_status: "draft",
               source: routeSource,
-              organization: payload.organization,
+              organization: mergedOrganization,
               onec_request_number: onecRequestNumber,
               carrier_id: carrierId,
               driver_id: driverId,
@@ -573,7 +586,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               total_weight_kg: initWeight,
               total_volume_m3: initVolume,
               transport_comment: transportCommentText || headerNote,
-              comment: auditCommentText || null,
+              comment: userCommentText,
               request_status_comment: headerNote,
             } as never)
             .select("id")

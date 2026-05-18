@@ -114,11 +114,15 @@ export function TransportRequestImportPanel({
     setStep("importing");
     setError(null);
     try {
-      const res = await fetch("/api/import-transport-request", {
+      // Единый endpoint: оборачиваем заявку в transportRequest, чтобы
+      // routes/orders/route_points создавались согласованно (как в
+      // RouteSheetImportWizard). Старый /api/import-transport-request
+      // больше не используется.
+      const res = await fetch("/api/import-route-sheet", {
         method: "POST",
         headers: { "content-type": "application/json", ...authHeaders() },
         body: JSON.stringify({
-          ...parsed,
+          transportRequest: parsed,
           itemsByOrderNumber: itemsParsed?.byOrderNumber ?? {},
         }),
       });
