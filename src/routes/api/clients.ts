@@ -17,12 +17,37 @@ export const Route = createFileRoute("/api/clients")({
         if (!auth) return jsonResponse({ error: "unauthorized" }, { status: 401 });
 
         const { limit, offset, search } = parseListParams(request);
+        const url = new URL(request.url);
+        const nameExact = url.searchParams.get("name");
+        const fieldsParam = url.searchParams.get("fields");
+
+        // Whitelist полей. По умолчанию — *.
+        const ALLOWED = new Set<string>([
+          "id",
+          "name",
+          "phone",
+          "phone_secondary",
+          "address",
+          "type",
+          "is_active",
+          "created_at",
+          "updated_at",
+          "comment",
+          "contact_person",
+        ]);
+        let select = "*";
+        if (fieldsParam && fieldsParam.trim().length > 0) {
+          const parts = fieldsParam.split(",").map((s) => s.trim()).filter(Boolean);
+          const safe = parts.filter((p) => ALLOWED.has(p));
+          if (safe.length > 0) select = safe.join(", ");
+        }
 
         let q = auth.client
           .from("clients" as never)
-          .select("*", { count: "exact" })
+          .select(select, { count: "exact" })
           .order("name", { ascending: true });
         if (search) q = q.ilike("name", `%${search}%`);
+        if (nameExact) q = q.eq("name", nameExact);
 
         const { data, error, count } = await q.range(offset, offset + limit - 1);
         if (error) return jsonResponse({ error: error.message }, { status: 500 });

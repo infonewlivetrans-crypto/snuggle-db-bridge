@@ -4506,6 +4506,13 @@ export type Database = {
           name: string
         }[]
       }
+      get_driver_access_route_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          driver_access_enabled: boolean
+          id: string
+        }[]
+      }
       get_invite_public: {
         Args: { p_token: string }
         Returns: {

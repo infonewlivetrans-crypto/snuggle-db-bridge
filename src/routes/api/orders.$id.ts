@@ -23,6 +23,10 @@ const ALLOWED_FIELDS = new Set<string>([
   "recipient_delivery_comment",
   "recipient_access_comment",
   "recipient_extra_note",
+  "delivery_address",
+  "contact_name",
+  "contact_phone",
+  "comment",
 ]);
 
 // Поля, для которых на сервере действует ограничение в 2000 символов
