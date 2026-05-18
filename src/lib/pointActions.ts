@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 
 export type PointActionKind =
   | "point_opened"
