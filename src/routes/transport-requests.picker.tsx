@@ -246,21 +246,10 @@ function OrderPickerPage() {
       return;
     }
     try {
-      const { data: pts } = await db
-        .from("route_points")
-        .select("point_number")
-        .eq("route_id", requestId);
-      const next = ((pts ?? []) as { point_number: number }[]).reduce(
-        (m, p) => Math.max(m, Number(p.point_number) || 0),
-        0,
-      ) + 1;
-
-      const { error } = await db.from("route_points").insert({
+      await apiPost("/api/route-points/append", {
         route_id: requestId,
-        order_id: orderId,
-        point_number: next,
+        order_ids: [orderId],
       });
-      if (error) throw error;
       toast.success("Заказ добавлен в заявку");
       refresh();
     } catch (e: unknown) {
@@ -272,12 +261,9 @@ function OrderPickerPage() {
   const removeOrder = async (orderId: string) => {
     if (!requestId) return;
     try {
-      const { error } = await db
-        .from("route_points")
-        .delete()
-        .eq("route_id", requestId)
-        .eq("order_id", orderId);
-      if (error) throw error;
+      await apiDelete(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&order_id=${encodeURIComponent(orderId)}`,
+      );
       toast.success("Заказ убран из заявки");
       refresh();
     } catch (e: unknown) {
@@ -297,9 +283,9 @@ function OrderPickerPage() {
     setCreating(true);
     try {
       const number = generateRequestNumber();
-      const { data, error } = await db
-        .from("routes")
-        .insert({
+      const data = await apiPost<{ id: string; route_number: string }>(
+        "/api/routes",
+        {
           route_number: number,
           route_date: newReqDate,
           warehouse_id: newReqWh || null,
@@ -308,10 +294,8 @@ function OrderPickerPage() {
           request_status: "draft",
           request_type: "client_delivery",
           source: "manual",
-        })
-        .select()
-        .single();
-      if (error) throw error;
+        },
+      );
       setRequestId(data.id);
       navigate({
         to: "/transport-requests/picker",
