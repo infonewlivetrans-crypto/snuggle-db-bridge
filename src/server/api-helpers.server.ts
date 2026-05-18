@@ -5,17 +5,17 @@ import { getSessionUser } from "@/server/auth-cookies.server";
 
 function getSupabaseUrl(): string {
   return (
-    process.env.SUPABASE_URL ??
     process.env.VITE_SUPABASE_URL ??
+    process.env.SUPABASE_URL ??
     ""
   );
 }
 function getSupabasePublishableKey(): string {
   return (
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-    process.env.SUPABASE_ANON_KEY ??
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
     process.env.VITE_SUPABASE_ANON_KEY ??
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+    process.env.SUPABASE_ANON_KEY ??
     ""
   );
 }
