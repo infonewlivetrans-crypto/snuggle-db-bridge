@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAdmin } from "@/server/api-helpers.server";
-import { adminDeleteInvite, adminRotateInviteToken, adminSetInviteActive } from "@/server/invites.server";
+import {
+  adminDeleteInvite,
+  adminRotateInviteToken,
+  adminSetInviteActive,
+} from "@/server/invites.server";
 
 export const Route = createFileRoute("/api/invites/$id")({
   server: {
@@ -8,31 +12,47 @@ export const Route = createFileRoute("/api/invites/$id")({
       PATCH: async ({ request, params }) => {
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
+        if (!params.id) {
+          return jsonResponse({ error: "id обязателен" }, { status: 400 });
+        }
+        let body: { isActive?: boolean; rotate?: boolean } = {};
         try {
-          if (!params.id) return jsonResponse({ error: "id обязателен" }, { status: 400 });
-          const body = (await request.json().catch(() => ({}))) as { isActive?: boolean; rotate?: boolean };
+          body = (await request.json()) as typeof body;
+        } catch {
+          body = {};
+        }
+        try {
           if (body?.rotate) {
-            const row = await adminRotateInviteToken({ id: params.id });
+            const row = await adminRotateInviteToken({ id: params.id }, auth.client);
             return jsonResponse(row);
           }
           if (typeof body?.isActive === "boolean") {
-            await adminSetInviteActive({ id: params.id, isActive: body.isActive });
+            await adminSetInviteActive(
+              { id: params.id, isActive: body.isActive },
+              auth.client,
+            );
             return jsonResponse({ ok: true });
           }
           return jsonResponse({ error: "Нет изменений" }, { status: 400 });
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[api/invites/:id PATCH] failed", { id: params.id, body, msg, error: e });
+          return jsonResponse({ error: msg || "invite update failed" }, { status: 500 });
         }
       },
       DELETE: async ({ request, params }) => {
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
+        if (!params.id) {
+          return jsonResponse({ error: "id обязателен" }, { status: 400 });
+        }
         try {
-          if (!params.id) return jsonResponse({ error: "id обязателен" }, { status: 400 });
-          await adminDeleteInvite({ id: params.id });
+          await adminDeleteInvite({ id: params.id }, auth.client);
           return jsonResponse({ ok: true });
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[api/invites/:id DELETE] failed", { id: params.id, msg, error: e });
+          return jsonResponse({ error: msg || "invite delete failed" }, { status: 500 });
         }
       },
     },
