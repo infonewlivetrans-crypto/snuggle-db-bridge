@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, RotateCcw, Image as ImageIcon, Wallet, MessageSquare, QrCode } from "lucide-react";
 
@@ -34,36 +34,16 @@ const STATUS_ICON: Record<string, React.ReactNode> = {
 };
 
 export function OrderDeliveryResultBlock({ orderId, requiresQr, amountDue }: Props) {
-  const { data: point } = useQuery({
-    queryKey: ["order-route-point-result", orderId],
-    queryFn: async (): Promise<PointRow | null> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, dp_status, dp_amount_received, dp_payment_comment, dp_status_changed_at, dp_status_changed_by, route:route_id(id, route_number, driver_name)",
-        )
-        .eq("order_id", orderId)
-        .in("dp_status", ["delivered", "not_delivered", "returned_to_warehouse"])
-        .order("dp_status_changed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as unknown as PointRow) ?? null;
+  const { data } = useQuery({
+    queryKey: ["order-delivery-result", orderId],
+    queryFn: async () => {
+      return await apiGetAuth<{ point: PointRow | null; photos: Array<{ kind: string; file_url: string }> }>(
+        `/api/order-delivery-result?order_id=${encodeURIComponent(orderId)}`,
+      );
     },
   });
-
-  const { data: photos } = useQuery({
-    enabled: !!point?.id,
-    queryKey: ["order-route-point-photos", point?.id],
-    queryFn: async (): Promise<Array<{ kind: string; file_url: string }>> => {
-      const { data, error } = await supabase
-        .from("route_point_photos")
-        .select("kind, file_url")
-        .eq("route_point_id", point!.id);
-      if (error) throw error;
-      return (data ?? []) as Array<{ kind: string; file_url: string }>;
-    },
-  });
+  const point = data?.point ?? null;
+  const photos = data?.photos ?? [];
 
   if (!point) return null;
   const diff = (point.dp_amount_received ?? 0) - (amountDue ?? 0);
