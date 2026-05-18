@@ -82,28 +82,17 @@ export function CarrierDocumentsBlock({
   const { data: route } = useQuery({
     queryKey: ["carrier-docs-route", routeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "id,status,carrier_id,carrier_docs_status,carrier_docs_comment,carrier_docs_uploaded_at,carrier_docs_uploaded_by,carrier_docs_accepted_at,carrier_docs_accepted_by,carrier_docs_fix_reason",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as RouteRow | null;
+      const r = await apiGetAuth<RouteRow & Record<string, unknown>>(`/api/routes/${routeId}`);
+      return (r ?? null) as RouteRow | null;
     },
   });
 
   const { data: docs = [] } = useQuery({
     queryKey: ["carrier-docs-list", routeId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_carrier_documents")
-        .select("*")
-        .eq("route_id", routeId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Doc[];
+    queryFn: async (): Promise<Doc[]> => {
+      return await apiGetAuth<Doc[]>(
+        `/api/route-carrier-documents?route_id=${encodeURIComponent(routeId)}`,
+      );
     },
   });
 
