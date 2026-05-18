@@ -148,8 +148,7 @@ export function CarrierDocumentsBlock({
 
   const deleteDoc = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("route_carrier_documents").delete().eq("id", id);
-      if (error) throw error;
+      await apiDelete(`/api/route-carrier-documents/${id}`);
     },
     onSuccess: () => {
       toast.success("Удалено");
@@ -160,11 +159,7 @@ export function CarrierDocumentsBlock({
 
   const saveComment = useMutation({
     mutationFn: async (text: string) => {
-      const { error } = await supabase
-        .from("routes")
-        .update({ carrier_docs_comment: text })
-        .eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${routeId}`, { carrier_docs_comment: text });
     },
     onSuccess: () => {
       toast.success("Комментарий сохранён");
@@ -176,17 +171,13 @@ export function CarrierDocumentsBlock({
   const acceptDocs = useMutation({
     mutationFn: async () => {
       const label = profile?.full_name ?? user?.email ?? null;
-      const { error } = await supabase
-        .from("routes")
-        .update({
-          carrier_docs_status: "accepted",
-          carrier_docs_accepted_at: new Date().toISOString(),
-          carrier_docs_accepted_by: user?.id ?? null,
-          carrier_docs_fix_reason: null,
-        })
-        .eq("id", routeId);
-      if (error) throw error;
-      await supabase.from("route_carrier_history").insert({
+      await apiPatch(`/api/routes/${routeId}`, {
+        carrier_docs_status: "accepted",
+        carrier_docs_accepted_at: new Date().toISOString(),
+        carrier_docs_accepted_by: user?.id ?? null,
+        carrier_docs_fix_reason: null,
+      });
+      await apiPost(`/api/route-carrier-history`, {
         route_id: routeId,
         carrier_id: route?.carrier_id ?? null,
         action: "documents_accepted",
@@ -205,15 +196,11 @@ export function CarrierDocumentsBlock({
     mutationFn: async () => {
       if (!fixReason.trim()) throw new Error("Укажите причину");
       const label = profile?.full_name ?? user?.email ?? null;
-      const { error } = await supabase
-        .from("routes")
-        .update({
-          carrier_docs_status: "needs_fix",
-          carrier_docs_fix_reason: fixReason.trim(),
-        })
-        .eq("id", routeId);
-      if (error) throw error;
-      await supabase.from("route_carrier_history").insert({
+      await apiPatch(`/api/routes/${routeId}`, {
+        carrier_docs_status: "needs_fix",
+        carrier_docs_fix_reason: fixReason.trim(),
+      });
+      await apiPost(`/api/route-carrier-history`, {
         route_id: routeId,
         carrier_id: route?.carrier_id ?? null,
         action: "documents_rejected",
