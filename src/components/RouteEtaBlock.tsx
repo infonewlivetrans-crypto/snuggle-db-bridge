@@ -85,7 +85,7 @@ export function RouteEtaBlock({
       if (now - (lastNotifiedRef.current[key] ?? 0) < NOTIFY_COOLDOWN_MS) continue;
       lastNotifiedRef.current[key] = now;
 
-      void supabase.from("notifications").insert({
+      void apiPost("/api/notifications", {
         kind: "order_eta_late_risk",
         title: "Риск опоздания к клиенту",
         body: `По заказу №${meta.order_number} есть риск опоздания (≈ ${e.delay_minutes} мин).`,
@@ -101,7 +101,7 @@ export function RouteEtaBlock({
           recipients: ["manager", "logistician"],
           occurred_at: new Date().toISOString(),
         },
-      });
+      }).catch(() => { /* лог уведомления — не блокируем UI */ });
     }
   }, [eta, points, deliveryRouteId, routeNumber]);
 
