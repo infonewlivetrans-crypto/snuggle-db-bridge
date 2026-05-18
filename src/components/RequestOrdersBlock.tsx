@@ -469,13 +469,10 @@ function AddOrdersDialog({
   const addMutation = useMutation({
     mutationFn: async () => {
       if (selected.size === 0) return;
-      const rows = Array.from(selected).map((order_id, idx) => ({
+      await apiPost("/api/route-points/append", {
         route_id: requestId,
-        order_id,
-        point_number: nextPointNumber + idx,
-      }));
-      const { error } = await supabase.from("route_points").insert(rows);
-      if (error) throw error;
+        order_ids: Array.from(selected),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["request-orders", requestId] });
