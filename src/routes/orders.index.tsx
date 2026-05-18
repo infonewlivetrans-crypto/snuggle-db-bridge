@@ -826,6 +826,43 @@ function OrdersPage() {
             )}
           </CardContent>
         </Card>
+
+        <AlertDialog
+          open={bulkConfirmOpen}
+          onOpenChange={(o) => {
+            if (!bulkDelete.isPending) setBulkConfirmOpen(o);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить выбранные заказы?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Будет удалено заказов: {selectedIds.size}. Действие нельзя отменить.
+                Заказы с полученной оплатой или в работе будут пропущены. Если у
+                импортированной заявки маршрута не останется ни одной точки, она
+                и связанный с ней черновой рейс также будут удалены.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkDelete.isPending}>
+                Отмена
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={bulkDelete.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  bulkDelete.mutate(Array.from(selectedIds));
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {bulkDelete.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Удалить
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
