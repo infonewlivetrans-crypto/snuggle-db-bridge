@@ -146,6 +146,11 @@ function extractOrderNumberAndDate(saleDoc: string | null): {
   return { number: null, date: null };
 }
 
+function syntheticOrderNumber(routeNumber: string | null, lineNumber: number | null): string | null {
+  if (!routeNumber || lineNumber == null) return null;
+  return `ML-${routeNumber}-${String(lineNumber).padStart(3, "0")}`;
+}
+
 function extractRouteNumberAndDate(s: string | null): {
   number: string | null;
   date: string | null;
@@ -205,13 +210,15 @@ function buildColumnMap(headerRow: unknown[]): Record<string, number> {
   return map;
 }
 
-/** Строка считается строкой заказа, если в колонке № стоит число и есть «Реализация». */
+/** Строка считается строкой заказа, если в колонке № стоит число и есть реализация или данные точки. */
 function isOrderRow(row: unknown[], cols: Record<string, number>): boolean {
-  if (cols.n === undefined || cols.sale === undefined) return false;
+  if (cols.n === undefined) return false;
   const n = row[cols.n];
-  const sale = str(row[cols.sale]);
+  const sale = cols.sale === undefined ? null : str(row[cols.sale]);
+  const customer = cols.customer === undefined ? null : str(row[cols.customer]);
+  const address = cols.address === undefined ? null : str(row[cols.address]);
   const isNum = typeof n === "number" || (typeof n === "string" && /^\d+$/.test(n.trim()));
-  return isNum && !!sale && /реализац/i.test(sale);
+  return isNum && ((!!sale && /реализац/i.test(sale)) || (!!customer && !!address));
 }
 
 export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet> {
