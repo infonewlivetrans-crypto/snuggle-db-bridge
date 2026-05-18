@@ -132,7 +132,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
         const { data, error } = await auth.client
           .from("delivery_routes")
           .insert(parsed.data as never)
-          .select("id")
+          .select("id, route_number")
           .single();
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse(data);
