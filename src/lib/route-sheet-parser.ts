@@ -272,7 +272,7 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
         typeof row[cols.n] === "number"
           ? (row[cols.n] as number)
           : parseInt(String(row[cols.n] ?? ""), 10) || null;
-      const finalOrderNumber = orderNumber ?? syntheticOrderNumber(routeNumber, lineNumber);
+      const finalOrderNumber = orderNumber;
       const paymentRaw = str(row[cols.payment]);
       const { kind, requiresQr } = detectPayment(paymentRaw);
       const amount = parseAmount(row[cols.amount]);
