@@ -105,7 +105,11 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
   // 2. Загружаем активные маршруты, чтобы вычислить «занятость» машин
   const { data: busyMap } = useQuery({
     queryKey: ["route-offers", "busy"],
-    queryFn: async (): Promise<Record<string, Date>> => {
+    // ВАЖНО: храним ISO-строки, а не Date. React Query при SSR-дегидратации
+    // сериализует кэш в JSON, из-за чего Date превращается в строку и
+    // вызовы .toISOString() / сравнения падают с
+    // "d.toISOString is not a function".
+    queryFn: async (): Promise<Record<string, string>> => {
       const fields = "vehicle_id,planned_departure_at,route_date,status";
       const data = await apiGetAuth<Array<{
         vehicle_id: string | null;
@@ -114,20 +118,23 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
       }>>(
         `/api/routes?activeOnly=1&limit=500&fields=${encodeURIComponent(fields)}`,
       );
-      const map: Record<string, Date> = {};
+      const map: Record<string, string> = {};
       for (const r of data ?? []) {
         if (!r.vehicle_id) continue;
         const baseRaw = r.planned_departure_at ?? (r.route_date ? `${r.route_date}T00:00:00` : null);
         if (!baseRaw) continue;
         const base = new Date(baseRaw);
-        const end = new Date(base.getTime() + 8 * 3600_000); // оценка: рейс длится ~8 часов
-        if (!map[r.vehicle_id] || end > map[r.vehicle_id]) {
-          map[r.vehicle_id] = end;
+        if (Number.isNaN(base.getTime())) continue;
+        const endIso = new Date(base.getTime() + 8 * 3600_000).toISOString();
+        const prev = map[r.vehicle_id];
+        if (!prev || endIso > prev) {
+          map[r.vehicle_id] = endIso;
         }
       }
       return map;
     },
   });
+
 
   // 3. Загружаем драйверов (для подсказки)
   const { data: drivers } = useQuery({
@@ -166,7 +173,8 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
 
     return list.map((v) => {
       const reasons: string[] = [];
-      const busyUntil = busyMap?.[v.id] ?? null;
+      const busyRaw = busyMap?.[v.id] ?? null;
+      const busyUntil = busyRaw ? new Date(busyRaw) : null;
 
       let availability: VehicleAvailabilityStatus = "free";
       if (busyUntil) {
