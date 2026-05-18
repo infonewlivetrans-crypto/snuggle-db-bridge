@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 
 export type ManifestPoint = {
   point_number: number;
@@ -33,48 +33,13 @@ const PAYMENT_LABELS: Record<string, string> = {
   bank_transfer: "По реквизитам",
 };
 
-export async function loadManifest(deliveryRouteId: string): Promise<ManifestData> {
-  // У delivery_routes нет FK на warehouses → embed `source_warehouse:source_warehouse_id(...)`
-  // валится PGRST200. Берём базовые поля, склад дозаполняем отдельным запросом.
-  const { data: route, error: rErr } = await supabase
-    .from("delivery_routes")
-    .select(
-      "route_number, route_date, assigned_driver, assigned_vehicle, source_request_id, source_warehouse_id",
-    )
-    .eq("id", deliveryRouteId)
-    .maybeSingle();
-  if (rErr) throw rErr;
-  if (!route) throw new Error("Маршрут не найден");
-
-  const r = route as unknown as {
-    route_number: string;
-    route_date: string;
-    assigned_driver: string | null;
-    assigned_vehicle: string | null;
-    source_request_id: string;
-    source_warehouse_id: string | null;
-  };
-
-  let sourceWarehouse: { name: string; city: string | null } | null = null;
-  if (r.source_warehouse_id) {
-    const { data: wh } = await supabase
-      .from("warehouses")
-      .select("name, city")
-      .eq("id", r.source_warehouse_id)
-      .maybeSingle();
-    sourceWarehouse = (wh as { name: string; city: string | null } | null) ?? null;
-  }
-
-  const { data: pts, error: pErr } = await supabase
-    .from("route_points")
-    .select(
-      "point_number, order:order_id(order_number, contact_name, contact_phone, delivery_address, map_link, latitude, longitude, amount_due, payment_type, payment_status, requires_qr, comment)",
-    )
-    .eq("route_id", r.source_request_id)
-    .order("point_number", { ascending: true });
-  if (pErr) throw pErr;
-
-  const points: ManifestPoint[] = ((pts ?? []) as unknown as Array<{
+type ApiManifest = {
+  route_number: string;
+  route_date: string;
+  driver: string | null;
+  vehicle: string | null;
+  warehouse: string | null;
+  points: Array<{
     point_number: number;
     order: {
       order_number: string;
@@ -90,31 +55,34 @@ export async function loadManifest(deliveryRouteId: string): Promise<ManifestDat
       requires_qr: boolean;
       comment: string | null;
     } | null;
-  }>).map((p) => ({
-    point_number: p.point_number,
-    order_number: p.order?.order_number ?? "",
-    contact_name: p.order?.contact_name ?? null,
-    contact_phone: p.order?.contact_phone ?? null,
-    delivery_address: p.order?.delivery_address ?? null,
-    map_link: p.order?.map_link ?? null,
-    latitude: p.order?.latitude ?? null,
-    longitude: p.order?.longitude ?? null,
-    amount_due: p.order?.amount_due ?? null,
-    payment_type: p.order?.payment_type ?? "cash",
-    payment_status: p.order?.payment_status ?? "not_paid",
-    requires_qr: !!p.order?.requires_qr,
-    manager_comment: p.order?.comment ?? null,
-  }));
+  }>;
+};
 
+export async function loadManifest(deliveryRouteId: string): Promise<ManifestData> {
+  const m = await apiGetAuth<ApiManifest>(
+    `/api/route-manifest?delivery_route_id=${encodeURIComponent(deliveryRouteId)}`,
+  );
   return {
-    route_number: r.route_number,
-    route_date: r.route_date,
-    driver: r.assigned_driver,
-    vehicle: r.assigned_vehicle,
-    warehouse: sourceWarehouse
-      ? `${sourceWarehouse.name}${sourceWarehouse.city ? `, ${sourceWarehouse.city}` : ""}`
-      : null,
-    points,
+    route_number: m.route_number,
+    route_date: m.route_date,
+    driver: m.driver,
+    vehicle: m.vehicle,
+    warehouse: m.warehouse,
+    points: (m.points ?? []).map((p) => ({
+      point_number: p.point_number,
+      order_number: p.order?.order_number ?? "",
+      contact_name: p.order?.contact_name ?? null,
+      contact_phone: p.order?.contact_phone ?? null,
+      delivery_address: p.order?.delivery_address ?? null,
+      map_link: p.order?.map_link ?? null,
+      latitude: p.order?.latitude ?? null,
+      longitude: p.order?.longitude ?? null,
+      amount_due: p.order?.amount_due ?? null,
+      payment_type: p.order?.payment_type ?? "cash",
+      payment_status: p.order?.payment_status ?? "not_paid",
+      requires_qr: !!p.order?.requires_qr,
+      manager_comment: p.order?.comment ?? null,
+    })),
   };
 }
 
@@ -234,70 +202,30 @@ export function buildManifestHtml(m: ManifestData): string {
   * { box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: #111;
-    margin: 0;
-    padding: 16px;
-    font-size: 13px;
-    line-height: 1.4;
-    background: #fff;
+    color: #111; margin: 0; padding: 16px; font-size: 13px; line-height: 1.4; background: #fff;
   }
   .sheet { max-width: 800px; margin: 0 auto; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .head { border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 14px; }
   .head .meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 16px; margin-top: 8px; }
   .head .meta div { font-size: 12px; }
-  .head .meta b { font-weight: 600; }
-  .point {
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
-    page-break-inside: avoid;
-  }
+  .point { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; page-break-inside: avoid; }
   .point-h { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-  .point-h .num {
-    background: #111; color: #fff; width: 28px; height: 28px;
-    border-radius: 999px; display: flex; align-items: center; justify-content: center;
-    font-weight: 700; flex-shrink: 0;
-  }
+  .point-h .num { background: #111; color: #fff; width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
   .ord-num { font-weight: 700; }
   .ord-client { color: #374151; font-size: 12px; }
   .row { margin: 3px 0; }
   .lbl { color: #6b7280; }
   .muted { color: #9ca3af; }
   .comment { background: #fef3c7; border-radius: 4px; padding: 4px 6px; }
-  .reminders {
-    margin: 6px 0 0; padding: 6px 10px 6px 26px;
-    background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px;
-    list-style: disc;
-  }
-  .reminders li { margin: 2px 0; }
-  .signoff {
-    margin-top: 8px; padding-top: 6px; border-top: 1px dashed #d1d5db;
-    display: flex; justify-content: space-between; gap: 12px;
-    font-size: 11px; color: #4b5563;
-  }
+  .reminders { margin: 6px 0 0; padding: 6px 10px 6px 26px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; list-style: disc; }
+  .signoff { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #d1d5db; display: flex; justify-content: space-between; gap: 12px; font-size: 11px; color: #4b5563; }
   a { color: #2563eb; text-decoration: none; }
-  .actions {
-    position: sticky; top: 0; background: #f9fafb; padding: 8px;
-    margin: -16px -16px 16px; border-bottom: 1px solid #e5e7eb;
-    display: flex; gap: 8px; justify-content: flex-end; z-index: 10;
-  }
-  .actions button {
-    background: #2563eb; color: #fff; border: 0; padding: 8px 14px;
-    border-radius: 6px; font-size: 14px; cursor: pointer;
-  }
+  .actions { position: sticky; top: 0; background: #f9fafb; padding: 8px; margin: -16px -16px 16px; border-bottom: 1px solid #e5e7eb; display: flex; gap: 8px; justify-content: flex-end; z-index: 10; }
+  .actions button { background: #2563eb; color: #fff; border: 0; padding: 8px 14px; border-radius: 6px; font-size: 14px; cursor: pointer; }
   .actions .secondary { background: #6b7280; }
-  @media print {
-    .actions { display: none; }
-    body { padding: 0; }
-    .sheet { max-width: none; }
-    .point { border-color: #999; }
-  }
-  @media (max-width: 480px) {
-    .head .meta { grid-template-columns: 1fr; }
-    .signoff { flex-direction: column; gap: 4px; }
-  }
+  @media print { .actions { display: none; } body { padding: 0; } .sheet { max-width: none; } .point { border-color: #999; } }
+  @media (max-width: 480px) { .head .meta { grid-template-columns: 1fr; } .signoff { flex-direction: column; gap: 4px; } }
 </style>
 </head>
 <body>

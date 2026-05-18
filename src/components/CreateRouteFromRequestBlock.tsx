@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch, apiPost, fetchListViaApi } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Route as RouteIcon, Plus, ArrowRight } from "lucide-react";
@@ -41,51 +41,48 @@ export function CreateRouteFromRequestBlock({
   const { data: existing } = useQuery({
     queryKey: ["delivery-routes-by-request", requestId],
     queryFn: async (): Promise<Existing[]> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("id, route_number, status, route_date")
-        .eq("source_request_id", requestId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Existing[];
+      const { rows } = await fetchListViaApi<Existing>(
+        "/api/delivery-routes",
+        {
+          extra: {
+            source_request_id: requestId,
+            fields: "id,route_number,status,route_date",
+            order: "created_at.desc",
+          },
+          limit: 100,
+        },
+      );
+      return rows;
     },
   });
 
   const createRoute = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .insert({
-          route_number: "",
+      const created = await apiPost<{ id: string; route_number: string }>(
+        "/api/delivery-routes",
+        {
+          route_date: routeDate,
           source_request_id: requestId,
           source_warehouse_id: warehouseId,
-          route_date: routeDate,
           status: "formed",
-        })
-        .select("id, route_number")
-        .single();
-      if (error) throw error;
+        },
+      );
 
-      // Заявка → "В работе"
-      const { error: upErr } = await supabase
-        .from("routes")
-        .update({
-          request_status: "in_progress",
-          request_status_changed_by: "Логист",
-          request_status_changed_at: new Date().toISOString(),
-          request_status_comment: `Создан маршрут ${data.route_number}`,
-        })
-        .eq("id", requestId);
-      if (upErr) throw upErr;
+      await apiPatch(`/api/routes/${requestId}`, {
+        request_status: "in_progress",
+        request_status_changed_by: "Логист",
+        request_status_changed_at: new Date().toISOString(),
+        request_status_comment: `Создан маршрут ${created.route_number}`,
+      });
 
-      await supabase.from("transport_request_status_history").insert({
+      await apiPost("/api/transport-request-status-history", {
         route_id: requestId,
         to_status: "in_progress",
         changed_by: "Логист",
-        comment: `Создан маршрут ${data.route_number}`,
+        comment: `Создан маршрут ${created.route_number}`,
       });
 
-      return data;
+      return created;
     },
     onSuccess: (data) => {
       toast.success(`Маршрут ${data.route_number} создан`);

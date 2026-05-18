@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -96,28 +96,27 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
   const routeQ = useQuery({
     queryKey: ["request-route-date", requestId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("id, route_date")
-        .eq("id", requestId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as { id: string; route_date: string | null } | null;
+      try {
+        return await apiGetAuth<{ id: string; route_date: string | null }>(
+          `/api/routes/${requestId}`,
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes("HTTP 404")) return null;
+        throw e;
+      }
     },
   });
 
   const { data, isLoading } = useQuery({
     queryKey: ["request-delivery-points", requestId],
     queryFn: async (): Promise<Point[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends, comment, driver_comment, driver_comment_is_important)",
-        )
-        .eq("route_id", requestId)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as unknown as Point[];
+      const fields =
+        "id, point_number, status, planned_time, client_window_from, client_window_to, order:order_id(id, order_number, delivery_address, contact_name, contact_phone, latitude, longitude, map_link, client_works_weekends, comment, driver_comment, driver_comment_is_important)";
+      const rows = await apiGetAuth<Point[]>(
+        `/api/route-points?route_id=${requestId}&fields=${encodeURIComponent(fields)}`,
+      );
+      return rows ?? [];
     },
   });
 
@@ -143,21 +142,10 @@ export function DeliveryPointsBlock({ requestId }: { requestId: string }) {
 
   const reorder = useMutation({
     mutationFn: async (newOrder: Point[]) => {
-      const tempBase = 100000;
-      for (let i = 0; i < newOrder.length; i++) {
-        const { error } = await supabase
-          .from("route_points")
-          .update({ point_number: tempBase + i })
-          .eq("id", newOrder[i].id);
-        if (error) throw error;
-      }
-      for (let i = 0; i < newOrder.length; i++) {
-        const { error } = await supabase
-          .from("route_points")
-          .update({ point_number: i + 1 })
-          .eq("id", newOrder[i].id);
-        if (error) throw error;
-      }
+      await apiPost("/api/route-points/reorder", {
+        route_id: requestId,
+        ordered_ids: newOrder.map((p) => p.id),
+      });
     },
     onSuccess: () => {
       toast.success("Порядок точек обновлён");
