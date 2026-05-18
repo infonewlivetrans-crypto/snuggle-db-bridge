@@ -35,6 +35,7 @@ const CreateOrderSchema = z.object({
   total_volume_m3: z.number().nullable().optional(),
   items_count: z.number().nullable().optional(),
   amount_due: z.number().nullable().optional(),
+  delivery_cost: z.number().nullable().optional(),
   status: z.string().max(32).optional(),
   source: z.string().max(32).optional(),
   client_id: z.string().uuid().nullable().optional(),
