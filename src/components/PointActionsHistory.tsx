@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { History } from "lucide-react";
 import { POINT_ACTION_LABELS, type PointActionRow } from "@/lib/pointActions";
 
@@ -26,21 +26,13 @@ export function PointActionsHistory({
     queryKey: key,
     enabled: !!(orderId || routePointId || routeId),
     queryFn: async (): Promise<PointActionRow[]> => {
-      let q = (supabase.from("route_point_actions" as never) as unknown as {
-        select: (s: string) => {
-          eq: (c: string, v: string) => {
-            order: (c: string, o: { ascending: boolean }) => { limit: (n: number) => Promise<{ data: unknown; error: Error | null }> };
-          };
-        };
-      }).select("*");
-      const builder = orderId
-        ? q.eq("order_id", orderId)
-        : routePointId
-          ? q.eq("route_point_id", routePointId)
-          : q.eq("route_id", routeId!);
-      const { data, error } = await builder.order("created_at", { ascending: false }).limit(200);
-      if (error) throw error;
-      return (data ?? []) as PointActionRow[];
+      const qs = new URLSearchParams();
+      if (orderId) qs.set("order_id", orderId);
+      else if (routePointId) qs.set("route_point_id", routePointId);
+      else if (routeId) qs.set("route_id", routeId);
+      qs.set("limit", "200");
+      const rows = await apiGetAuth<PointActionRow[]>(`/api/route-point-actions?${qs.toString()}`);
+      return rows ?? [];
     },
   });
 
