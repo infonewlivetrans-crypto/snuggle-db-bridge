@@ -574,7 +574,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               status: "planned",
               request_status: "draft",
               source: routeSource,
-              organization: payload.organization,
+              organization: mergedOrganization,
               onec_request_number: onecRequestNumber,
               carrier_id: carrierId,
               driver_id: driverId,
