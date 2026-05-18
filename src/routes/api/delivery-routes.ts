@@ -59,7 +59,11 @@ export const Route = createFileRoute("/api/delivery-routes")({
         if (routeDate) q = q.eq("route_date", routeDate);
         if (dateFrom) q = q.gte("route_date", dateFrom);
         if (dateTo) q = q.lte("route_date", dateTo);
-        if (status) q = q.eq("status", status as never);
+        if (status) {
+          const statuses = status.split(",").map((s) => s.trim()).filter(Boolean);
+          if (statuses.length > 1) q = q.in("status", statuses as never[]);
+          else if (statuses.length === 1) q = q.eq("status", statuses[0] as never);
+        }
         if (carrierId) q = q.eq("carrier_id", carrierId);
         q = q.order(orderCol || "route_date", { ascending });
 

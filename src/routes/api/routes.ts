@@ -7,6 +7,21 @@ import {
   requireAuth,
 } from "@/server/api-helpers.server";
 
+function stripBrokenEmbeds(fields: string): { fields: string; wantsRoutePoints: boolean } {
+  const wantsRoutePoints = /(?:^|,)\s*route_points\s*\(/.test(fields);
+  const clean = fields
+    .replace(/,\s*destination\s*:\s*destination_warehouse_id\s*\([^)]*\)/g, "")
+    .replace(/\s*,?\s*route_points\s*\([^)]*\)/g, "")
+    .replace(/^\s*,\s*|\s*,\s*$/g, "")
+    .trim();
+  return { fields: clean || "*", wantsRoutePoints };
+}
+
+function ensureColumn(fields: string, column: string): string {
+  if (fields === "*" || new RegExp(`(^|[,\\s])${column}([,\\s]|$)`).test(fields)) return fields;
+  return `${fields}, ${column}`;
+}
+
 const CreateRouteSchema = z.object({
   route_number: z.string().min(1).max(64).optional(),
   route_date: z.string().min(1).max(32),
@@ -41,14 +56,14 @@ export const Route = createFileRoute("/api/routes")({
         const activeOnly = url.searchParams.get("activeOnly") === "1";
         const idsParam = url.searchParams.get("ids");
         const routeDate = url.searchParams.get("route_date");
-        const rawFields = url.searchParams.get("fields") || "*, route_points(eta_at, eta_risk)";
-        // У `routes.destination_warehouse_id` нет FK → embed валится с PGRST200.
-        // Срезаем broken embed и дозаполняем destination вторым запросом.
-        const fields = rawFields.replace(
-          /,\s*destination\s*:\s*destination_warehouse_id\s*\([^)]*\)/g,
-          "",
-        );
-        const ensured = `${fields}, destination_warehouse_id`;
+        const rawFields = url.searchParams.get("fields") || "*";
+        // У routes/route_points и routes.destination_warehouse_id нет FK →
+        // embedded select валится PGRST200. Читаем routes отдельно и
+        // дозаполняем зависимые данные отдельными запросами.
+        const parsedFields = stripBrokenEmbeds(rawFields);
+        const wantsRoutePoints = parsedFields.wantsRoutePoints || !url.searchParams.has("fields");
+        let ensured = ensureColumn(parsedFields.fields, "destination_warehouse_id");
+        if (wantsRoutePoints) ensured = ensureColumn(ensured, "id");
 
         let q = auth.client
           .from("routes")
@@ -69,6 +84,9 @@ export const Route = createFileRoute("/api/routes")({
         const { data, error, count } = await q.range(offset, offset + limit - 1);
         if (error) return jsonResponse([], { status: 500, headers: { "X-Error": error.message } });
         const rows = (Array.isArray(data) ? (data as unknown as Array<Record<string, unknown>>) : []);
+        const routeIds = rows
+          .map((r) => r.id)
+          .filter((v): v is string => typeof v === "string" && v.length > 0);
         const destIds = Array.from(
           new Set(
             rows
@@ -76,16 +94,23 @@ export const Route = createFileRoute("/api/routes")({
               .filter((v): v is string => typeof v === "string" && v.length > 0),
           ),
         );
-        const destRes =
+        const [destRes, pointsRes] = await Promise.all([
           destIds.length > 0
-            ? await auth.client
-                .from("warehouses")
-                .select("id, name, city")
-                .in("id", destIds)
-            : { data: [] as Array<{ id: string; name: string | null; city: string | null }> };
+            ? auth.client.from("warehouses").select("id, name, city").in("id", destIds)
+            : Promise.resolve({ data: [] as Array<{ id: string; name: string | null; city: string | null }> }),
+          wantsRoutePoints && routeIds.length > 0
+            ? auth.client.from("route_points").select("route_id, eta_at, eta_risk").in("route_id", routeIds)
+            : Promise.resolve({ data: [] as Array<{ route_id: string; eta_at: string | null; eta_risk: string | null }> }),
+        ]);
         const destMap = new Map<string, { name: string | null; city: string | null }>();
         for (const w of (destRes.data ?? []) as Array<{ id: string; name: string | null; city: string | null }>) {
           destMap.set(w.id, { name: w.name, city: w.city });
+        }
+        const pointsMap = new Map<string, Array<{ eta_at: string | null; eta_risk: string | null }>>();
+        for (const p of (pointsRes.data ?? []) as Array<{ route_id: string; eta_at: string | null; eta_risk: string | null }>) {
+          const arr = pointsMap.get(p.route_id) ?? [];
+          arr.push({ eta_at: p.eta_at, eta_risk: p.eta_risk });
+          pointsMap.set(p.route_id, arr);
         }
         const enriched = rows.map((r) => ({
           ...r,
@@ -93,6 +118,7 @@ export const Route = createFileRoute("/api/routes")({
             typeof r.destination_warehouse_id === "string"
               ? destMap.get(r.destination_warehouse_id) ?? null
               : null,
+          ...(wantsRoutePoints && typeof r.id === "string" ? { route_points: pointsMap.get(r.id) ?? [] } : {}),
         }));
         return jsonResponse(enriched, {
           headers: { ...cacheHeaders(60), "X-Total-Count": String(count ?? enriched.length) },

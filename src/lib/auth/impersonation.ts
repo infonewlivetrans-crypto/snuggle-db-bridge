@@ -55,12 +55,25 @@ export function isImpersonationActive(): boolean {
  * Это не подменяет авторизацию, а защищает от случайных мутаций.
  */
 let installed = false;
+function isProductionAppHost(): boolean {
+  const host = window.location.hostname.toLowerCase();
+  return host === "radius-track.ru" || host === "www.radius-track.ru";
+}
+
+function isDirectSupabaseRest(url: string): boolean {
+  try {
+    const u = new URL(url, window.location.origin);
+    return u.hostname.endsWith(".supabase.co") && u.pathname.startsWith("/rest/v1/");
+  } catch {
+    return false;
+  }
+}
+
 export function installImpersonationFetchGuard(onBlocked?: (url: string, method: string) => void) {
   if (installed || typeof window === "undefined") return;
   installed = true;
   const orig = window.fetch.bind(window);
   window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    if (!isImpersonationActive()) return orig(input, init);
     const method = (init?.method || (typeof input !== "string" && "method" in (input as Request)
       ? (input as Request).method
       : "GET")).toUpperCase();
@@ -70,6 +83,17 @@ export function installImpersonationFetchGuard(onBlocked?: (url: string, method:
         : input instanceof URL
           ? input.toString()
           : (input as Request).url;
+
+    if (isProductionAppHost() && isDirectSupabaseRest(url)) {
+      console.warn("[production-data] blocked direct browser Supabase REST request", method, url);
+      const isReadOnly = method === "GET" || method === "HEAD" || method === "OPTIONS";
+      return new Response(isReadOnly ? "[]" : JSON.stringify({ error: "direct_supabase_rest_blocked" }), {
+        status: isReadOnly ? 200 : 403,
+        headers: { "content-type": "application/json", "x-radius-track-blocked": "direct-supabase-rest" },
+      });
+    }
+
+    if (!isImpersonationActive()) return orig(input, init);
 
     const isReadOnly = method === "GET" || method === "HEAD" || method === "OPTIONS";
     // Разрешаем серверные функции остановки имперсонации

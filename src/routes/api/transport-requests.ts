@@ -6,13 +6,8 @@ import {
   requireAuth,
 } from "@/server/api-helpers.server";
 
-/**
- * `routes.destination_warehouse_id` не имеет FK → PostgREST embed
- * `destination:destination_warehouse_id(...)` валится с PGRST200 → 500.
- * Убрали embed, дозаполняем destination вторым запросом по warehouses.
- */
 const SELECT =
-  "id, route_number, request_type, status, request_status, route_date, departure_time, request_priority, warehouse_id, destination_warehouse_id, points_count, total_weight_kg, total_volume_m3, delivery_cost, carrier_cost, carrier_payment_status, warehouses:warehouse_id(name, address), carrier:carrier_id(company_name), driver:driver_id(full_name, phone), vehicle:vehicle_id(plate_number, brand, model)";
+  "id, route_number, request_type, status, request_status, route_date, departure_time, request_priority, warehouse_id, destination_warehouse_id, carrier_id, driver_id, vehicle_id, points_count, total_weight_kg, total_volume_m3, delivery_cost, carrier_cost, carrier_payment_status";
 
 export const Route = createFileRoute("/api/transport-requests")({
   server: {
@@ -38,30 +33,29 @@ export const Route = createFileRoute("/api/transport-requests")({
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
 
         const rows = ((data ?? []) as unknown) as Array<Record<string, unknown>>;
-        const destIds = Array.from(
-          new Set(
-            rows
-              .map((r) => r.destination_warehouse_id)
-              .filter((v): v is string => typeof v === "string" && v.length > 0),
-          ),
-        );
-        const destRes =
-          destIds.length > 0
-            ? await auth.client
-                .from("warehouses")
-                .select("id, name, address")
-                .in("id", destIds)
-            : { data: [] as Array<{ id: string; name: string | null; address: string | null }> };
-        const destMap = new Map<string, { name: string | null; address: string | null }>();
-        for (const w of (destRes.data ?? []) as Array<{ id: string; name: string | null; address: string | null }>) {
-          destMap.set(w.id, { name: w.name, address: w.address });
-        }
+        const whIds = Array.from(new Set(rows.flatMap((r) => [r.warehouse_id, r.destination_warehouse_id]).filter((v): v is string => typeof v === "string" && v.length > 0)));
+        const carrierIds = Array.from(new Set(rows.map((r) => r.carrier_id).filter((v): v is string => typeof v === "string" && v.length > 0)));
+        const driverIds = Array.from(new Set(rows.map((r) => r.driver_id).filter((v): v is string => typeof v === "string" && v.length > 0)));
+        const vehicleIds = Array.from(new Set(rows.map((r) => r.vehicle_id).filter((v): v is string => typeof v === "string" && v.length > 0)));
+
+        const [whRes, carrierRes, driverRes, vehicleRes] = await Promise.all([
+          whIds.length > 0 ? auth.client.from("warehouses").select("id, name, address").in("id", whIds) : Promise.resolve({ data: [] as Array<{ id: string; name: string | null; address: string | null }> }),
+          carrierIds.length > 0 ? auth.client.from("carriers").select("id, company_name").in("id", carrierIds) : Promise.resolve({ data: [] as Array<{ id: string; company_name: string | null }> }),
+          driverIds.length > 0 ? auth.client.from("drivers").select("id, full_name, phone").in("id", driverIds) : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null; phone: string | null }> }),
+          vehicleIds.length > 0 ? auth.client.from("vehicles").select("id, plate_number, brand, model").in("id", vehicleIds) : Promise.resolve({ data: [] as Array<{ id: string; plate_number: string | null; brand: string | null; model: string | null }> }),
+        ]);
+
+        const whMap = new Map((whRes.data ?? []).map((w) => [w.id, { name: w.name, address: w.address }]));
+        const carrierMap = new Map((carrierRes.data ?? []).map((c) => [c.id, { company_name: c.company_name }]));
+        const driverMap = new Map((driverRes.data ?? []).map((d) => [d.id, { full_name: d.full_name, phone: d.phone }]));
+        const vehicleMap = new Map((vehicleRes.data ?? []).map((v) => [v.id, { plate_number: v.plate_number, brand: v.brand, model: v.model }]));
         const enriched = rows.map((r) => ({
           ...r,
-          destination:
-            typeof r.destination_warehouse_id === "string"
-              ? destMap.get(r.destination_warehouse_id) ?? null
-              : null,
+          warehouses: typeof r.warehouse_id === "string" ? whMap.get(r.warehouse_id) ?? null : null,
+          destination: typeof r.destination_warehouse_id === "string" ? whMap.get(r.destination_warehouse_id) ?? null : null,
+          carrier: typeof r.carrier_id === "string" ? carrierMap.get(r.carrier_id) ?? null : null,
+          driver: typeof r.driver_id === "string" ? driverMap.get(r.driver_id) ?? null : null,
+          vehicle: typeof r.vehicle_id === "string" ? vehicleMap.get(r.vehicle_id) ?? null : null,
         }));
 
         return jsonResponse(
