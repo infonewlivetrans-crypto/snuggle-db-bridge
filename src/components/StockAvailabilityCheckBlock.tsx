@@ -151,13 +151,14 @@ export function StockAvailabilityCheckBlock({
     queryKey: ["stock-check-own-reserv", requestId, productIds.join(",")],
     enabled: productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_reservations")
-        .select("product_id, qty")
-        .eq("transport_request_id", requestId)
-        .eq("status", "active")
-        .in("product_id", productIds);
-      if (error) throw error;
+      const params = new URLSearchParams({
+        transport_request_id: requestId,
+        status: "active",
+        product_id: productIds.join(","),
+      });
+      const data = await apiGetAuth<Array<{ product_id: string; qty: number }>>(
+        `/api/stock-reservations?${params.toString()}`,
+      );
       return (data ?? []) as Array<{ product_id: string; qty: number }>;
     },
   });
