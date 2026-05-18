@@ -271,6 +271,7 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
         typeof row[cols.n] === "number"
           ? (row[cols.n] as number)
           : parseInt(String(row[cols.n] ?? ""), 10) || null;
+      const finalOrderNumber = orderNumber ?? syntheticOrderNumber(routeNumber, lineNumber);
       const paymentRaw = str(row[cols.payment]);
       const { kind, requiresQr } = detectPayment(paymentRaw);
       const amount = parseAmount(row[cols.amount]);
@@ -280,7 +281,7 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
       const issues: string[] = [];
       if (!customer) issues.push("Не распознан покупатель");
       if (!address) issues.push("Нет адреса доставки");
-      if (!orderNumber) issues.push("Не выделен номер заказа");
+      if (!finalOrderNumber) issues.push("Не выделен номер заказа");
       if (kind === "unknown" && paymentRaw) issues.push(`Тип оплаты не распознан: «${paymentRaw}»`);
       if (kind === "cash" && amount == null) issues.push("Не указана сумма наличных");
 
@@ -288,7 +289,7 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
         rowIndex: r + 1,
         lineNumber,
         saleDoc,
-        orderNumber: orderNumber ?? syntheticOrderNumber(routeNumber, lineNumber),
+        orderNumber: finalOrderNumber,
         orderDate,
         customer,
         deliveryAddress: address,
