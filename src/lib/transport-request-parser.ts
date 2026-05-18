@@ -199,7 +199,7 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
     for (const cell of row) {
       const s = str(cell);
       if (!s) continue;
-      const m = s.match(/заявк[аи]\s+на\s+транспорт\s*№?\s*([\w\-/]+)(?:\s+от\s+(\d{2}\.\d{2}\.\d{4}))?/i);
+      const m = s.match(/заявк[аи](?:\s+на\s+транспорт)?\s*№?\s*([\w\-/]+)(?:\s+от\s+(\d{2}\.\d{2}\.\d{4}))?/i);
       if (m) {
         requestNumber = requestNumber ?? m[1];
         requestDate = requestDate ?? (m[2] ? parseDate(m[2]) : null);
@@ -211,7 +211,8 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
 
   if (!requestNumber) {
     const v = pick("requestNumber").value;
-    if (v) requestNumber = v.replace(/^№\s*/i, "").trim();
+    const candidate = v?.replace(/^№\s*/i, "").trim() ?? null;
+    if (candidate && /^[\w\-/]+$/.test(candidate)) requestNumber = candidate;
   }
   if (!requestDate) requestDate = parseDate(pick("requestDate").value);
 
