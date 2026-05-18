@@ -13,6 +13,31 @@ const ALLOWED = new Set([
   "comment",
   "points_order_changed_at",
   "points_order_changed_by",
+  // request_status flow
+  "request_status",
+  "request_status_changed_by",
+  "request_status_changed_at",
+  "request_status_comment",
+  // carrier payment
+  "carrier_payment_status",
+  "carrier_cost_comment",
+  "carrier_cost_approved_at",
+  // carrier payout
+  "carrier_payout_status",
+  "carrier_payout_scheduled_date",
+  "carrier_payout_paid_amount",
+  "carrier_payout_paid_at",
+  "carrier_payout_comment",
+  "carrier_payout_changed_at",
+  "carrier_payout_changed_by",
+  // carrier docs
+  "carrier_docs_status",
+  "carrier_docs_comment",
+  "carrier_docs_uploaded_at",
+  "carrier_docs_uploaded_by",
+  "carrier_docs_accepted_at",
+  "carrier_docs_accepted_by",
+  "carrier_docs_fix_reason",
 ]);
 
 // delivery_route_status, при которых рейс уже не черновик — удаление

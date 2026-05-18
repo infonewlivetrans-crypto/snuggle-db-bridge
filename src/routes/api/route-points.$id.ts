@@ -13,6 +13,8 @@ const ALLOWED = new Set([
   "wh_return_comment",
   "dp_status",
   "dp_inbound_status",
+  "dp_amount_received",
+  "dp_payment_comment",
   "comment",
 ]);
 

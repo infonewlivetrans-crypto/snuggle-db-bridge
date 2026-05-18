@@ -87,6 +87,7 @@ import { Route as ApiUsersRouteImport } from './routes/api/users'
 import { Route as ApiUserRoleRouteImport } from './routes/api/user-role'
 import { Route as ApiTripStageRouteImport } from './routes/api/trip-stage'
 import { Route as ApiTransportRequestsRouteImport } from './routes/api/transport-requests'
+import { Route as ApiTransportRequestStatusHistoryRouteImport } from './routes/api/transport-request-status-history'
 import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-settings'
 import { Route as ApiSystemErrorsRouteImport } from './routes/api/system-errors'
 import { Route as ApiSystemActivityRouteImport } from './routes/api/system-activity'
@@ -104,9 +105,13 @@ import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuse
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
 import { Route as ApiRoutePointPhotosRouteImport } from './routes/api/route-point-photos'
 import { Route as ApiRouteOffersRouteImport } from './routes/api/route-offers'
+import { Route as ApiRouteManifestRouteImport } from './routes/api/route-manifest'
 import { Route as ApiRouteImportRouteImport } from './routes/api/route-import'
 import { Route as ApiRouteExclusionsRouteImport } from './routes/api/route-exclusions'
+import { Route as ApiRouteCarrierHistoryRouteImport } from './routes/api/route-carrier-history'
+import { Route as ApiRouteCarrierDocumentsRouteImport } from './routes/api/route-carrier-documents'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
+import { Route as ApiRequestWarehouseStatusRouteImport } from './routes/api/request-warehouse-status'
 import { Route as ApiReportsRouteImport } from './routes/api/reports'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
 import { Route as ApiProductsRouteImport } from './routes/api/products'
@@ -167,6 +172,7 @@ import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-point
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
+import { Route as ApiRouteCarrierDocumentsIdRouteImport } from './routes/api/route-carrier-documents.$id'
 import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
 import { Route as ApiOrdersGeocodeBatchRouteImport } from './routes/api/orders.geocode-batch'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
@@ -609,6 +615,12 @@ const ApiTransportRequestsRoute = ApiTransportRequestsRouteImport.update({
   path: '/api/transport-requests',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTransportRequestStatusHistoryRoute =
+  ApiTransportRequestStatusHistoryRouteImport.update({
+    id: '/api/transport-request-status-history',
+    path: '/api/transport-request-status-history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiSystemSettingsRoute = ApiSystemSettingsRouteImport.update({
   id: '/api/system-settings',
   path: '/api/system-settings',
@@ -695,6 +707,11 @@ const ApiRouteOffersRoute = ApiRouteOffersRouteImport.update({
   path: '/api/route-offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRouteManifestRoute = ApiRouteManifestRouteImport.update({
+  id: '/api/route-manifest',
+  path: '/api/route-manifest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRouteImportRoute = ApiRouteImportRouteImport.update({
   id: '/api/route-import',
   path: '/api/route-import',
@@ -705,11 +722,28 @@ const ApiRouteExclusionsRoute = ApiRouteExclusionsRouteImport.update({
   path: '/api/route-exclusions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRouteCarrierHistoryRoute = ApiRouteCarrierHistoryRouteImport.update({
+  id: '/api/route-carrier-history',
+  path: '/api/route-carrier-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRouteCarrierDocumentsRoute =
+  ApiRouteCarrierDocumentsRouteImport.update({
+    id: '/api/route-carrier-documents',
+    path: '/api/route-carrier-documents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiRolesRoute = ApiRolesRouteImport.update({
   id: '/api/roles',
   path: '/api/roles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRequestWarehouseStatusRoute =
+  ApiRequestWarehouseStatusRouteImport.update({
+    id: '/api/request-warehouse-status',
+    path: '/api/request-warehouse-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiReportsRoute = ApiReportsRouteImport.update({
   id: '/api/reports',
   path: '/api/reports',
@@ -1014,6 +1048,12 @@ const ApiRoutePointPhotosOfflineUploadRoute =
     id: '/offline-upload',
     path: '/offline-upload',
     getParentRoute: () => ApiRoutePointPhotosRoute,
+  } as any)
+const ApiRouteCarrierDocumentsIdRoute =
+  ApiRouteCarrierDocumentsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiRouteCarrierDocumentsRoute,
   } as any)
 const ApiOrdersUnreadClientMessagesRoute =
   ApiOrdersUnreadClientMessagesRouteImport.update({
@@ -1349,9 +1389,13 @@ export interface FileRoutesByFullPath {
   '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
+  '/api/request-warehouse-status': typeof ApiRequestWarehouseStatusRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-carrier-documents': typeof ApiRouteCarrierDocumentsRouteWithChildren
+  '/api/route-carrier-history': typeof ApiRouteCarrierHistoryRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
   '/api/route-import': typeof ApiRouteImportRoute
+  '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
@@ -1369,6 +1413,7 @@ export interface FileRoutesByFullPath {
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
+  '/api/transport-request-status-history': typeof ApiTransportRequestStatusHistoryRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
@@ -1445,6 +1490,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1558,9 +1604,13 @@ export interface FileRoutesByTo {
   '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
+  '/api/request-warehouse-status': typeof ApiRequestWarehouseStatusRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-carrier-documents': typeof ApiRouteCarrierDocumentsRouteWithChildren
+  '/api/route-carrier-history': typeof ApiRouteCarrierHistoryRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
   '/api/route-import': typeof ApiRouteImportRoute
+  '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
@@ -1578,6 +1628,7 @@ export interface FileRoutesByTo {
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
+  '/api/transport-request-status-history': typeof ApiTransportRequestStatusHistoryRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
@@ -1654,6 +1705,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1768,9 +1820,13 @@ export interface FileRoutesById {
   '/api/products': typeof ApiProductsRoute
   '/api/profile': typeof ApiProfileRoute
   '/api/reports': typeof ApiReportsRoute
+  '/api/request-warehouse-status': typeof ApiRequestWarehouseStatusRoute
   '/api/roles': typeof ApiRolesRoute
+  '/api/route-carrier-documents': typeof ApiRouteCarrierDocumentsRouteWithChildren
+  '/api/route-carrier-history': typeof ApiRouteCarrierHistoryRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
   '/api/route-import': typeof ApiRouteImportRoute
+  '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
@@ -1788,6 +1844,7 @@ export interface FileRoutesById {
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
   '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
+  '/api/transport-request-status-history': typeof ApiTransportRequestStatusHistoryRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
   '/api/trip-stage': typeof ApiTripStageRouteWithChildren
   '/api/user-role': typeof ApiUserRoleRoute
@@ -1864,6 +1921,7 @@ export interface FileRoutesById {
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
@@ -1979,9 +2037,13 @@ export interface FileRouteTypes {
     | '/api/products'
     | '/api/profile'
     | '/api/reports'
+    | '/api/request-warehouse-status'
     | '/api/roles'
+    | '/api/route-carrier-documents'
+    | '/api/route-carrier-history'
     | '/api/route-exclusions'
     | '/api/route-import'
+    | '/api/route-manifest'
     | '/api/route-offers'
     | '/api/route-point-photos'
     | '/api/route-points'
@@ -1999,6 +2061,7 @@ export interface FileRouteTypes {
     | '/api/system-activity'
     | '/api/system-errors'
     | '/api/system-settings'
+    | '/api/transport-request-status-history'
     | '/api/transport-requests'
     | '/api/trip-stage'
     | '/api/user-role'
@@ -2075,6 +2138,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2188,9 +2252,13 @@ export interface FileRouteTypes {
     | '/api/products'
     | '/api/profile'
     | '/api/reports'
+    | '/api/request-warehouse-status'
     | '/api/roles'
+    | '/api/route-carrier-documents'
+    | '/api/route-carrier-history'
     | '/api/route-exclusions'
     | '/api/route-import'
+    | '/api/route-manifest'
     | '/api/route-offers'
     | '/api/route-point-photos'
     | '/api/route-points'
@@ -2208,6 +2276,7 @@ export interface FileRouteTypes {
     | '/api/system-activity'
     | '/api/system-errors'
     | '/api/system-settings'
+    | '/api/transport-request-status-history'
     | '/api/transport-requests'
     | '/api/trip-stage'
     | '/api/user-role'
@@ -2284,6 +2353,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2397,9 +2467,13 @@ export interface FileRouteTypes {
     | '/api/products'
     | '/api/profile'
     | '/api/reports'
+    | '/api/request-warehouse-status'
     | '/api/roles'
+    | '/api/route-carrier-documents'
+    | '/api/route-carrier-history'
     | '/api/route-exclusions'
     | '/api/route-import'
+    | '/api/route-manifest'
     | '/api/route-offers'
     | '/api/route-point-photos'
     | '/api/route-points'
@@ -2417,6 +2491,7 @@ export interface FileRouteTypes {
     | '/api/system-activity'
     | '/api/system-errors'
     | '/api/system-settings'
+    | '/api/transport-request-status-history'
     | '/api/transport-requests'
     | '/api/trip-stage'
     | '/api/user-role'
@@ -2493,6 +2568,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
     | '/api/route-points/reorder'
@@ -2607,9 +2683,13 @@ export interface RootRouteChildren {
   ApiProductsRoute: typeof ApiProductsRoute
   ApiProfileRoute: typeof ApiProfileRoute
   ApiReportsRoute: typeof ApiReportsRoute
+  ApiRequestWarehouseStatusRoute: typeof ApiRequestWarehouseStatusRoute
   ApiRolesRoute: typeof ApiRolesRoute
+  ApiRouteCarrierDocumentsRoute: typeof ApiRouteCarrierDocumentsRouteWithChildren
+  ApiRouteCarrierHistoryRoute: typeof ApiRouteCarrierHistoryRoute
   ApiRouteExclusionsRoute: typeof ApiRouteExclusionsRoute
   ApiRouteImportRoute: typeof ApiRouteImportRoute
+  ApiRouteManifestRoute: typeof ApiRouteManifestRoute
   ApiRouteOffersRoute: typeof ApiRouteOffersRoute
   ApiRoutePointPhotosRoute: typeof ApiRoutePointPhotosRouteWithChildren
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
@@ -2627,6 +2707,7 @@ export interface RootRouteChildren {
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRouteWithChildren
+  ApiTransportRequestStatusHistoryRoute: typeof ApiTransportRequestStatusHistoryRoute
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
   ApiTripStageRoute: typeof ApiTripStageRouteWithChildren
   ApiUserRoleRoute: typeof ApiUserRoleRoute
@@ -3236,6 +3317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTransportRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/transport-request-status-history': {
+      id: '/api/transport-request-status-history'
+      path: '/api/transport-request-status-history'
+      fullPath: '/api/transport-request-status-history'
+      preLoaderRoute: typeof ApiTransportRequestStatusHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/system-settings': {
       id: '/api/system-settings'
       path: '/api/system-settings'
@@ -3355,6 +3443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRouteOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/route-manifest': {
+      id: '/api/route-manifest'
+      path: '/api/route-manifest'
+      fullPath: '/api/route-manifest'
+      preLoaderRoute: typeof ApiRouteManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/route-import': {
       id: '/api/route-import'
       path: '/api/route-import'
@@ -3369,11 +3464,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRouteExclusionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/route-carrier-history': {
+      id: '/api/route-carrier-history'
+      path: '/api/route-carrier-history'
+      fullPath: '/api/route-carrier-history'
+      preLoaderRoute: typeof ApiRouteCarrierHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/route-carrier-documents': {
+      id: '/api/route-carrier-documents'
+      path: '/api/route-carrier-documents'
+      fullPath: '/api/route-carrier-documents'
+      preLoaderRoute: typeof ApiRouteCarrierDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/roles': {
       id: '/api/roles'
       path: '/api/roles'
       fullPath: '/api/roles'
       preLoaderRoute: typeof ApiRolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/request-warehouse-status': {
+      id: '/api/request-warehouse-status'
+      path: '/api/request-warehouse-status'
+      fullPath: '/api/request-warehouse-status'
+      preLoaderRoute: typeof ApiRequestWarehouseStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/reports': {
@@ -3795,6 +3911,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/route-point-photos/offline-upload'
       preLoaderRoute: typeof ApiRoutePointPhotosOfflineUploadRouteImport
       parentRoute: typeof ApiRoutePointPhotosRoute
+    }
+    '/api/route-carrier-documents/$id': {
+      id: '/api/route-carrier-documents/$id'
+      path: '/$id'
+      fullPath: '/api/route-carrier-documents/$id'
+      preLoaderRoute: typeof ApiRouteCarrierDocumentsIdRouteImport
+      parentRoute: typeof ApiRouteCarrierDocumentsRoute
     }
     '/api/orders/unread-client-messages': {
       id: '/api/orders/unread-client-messages'
@@ -4424,6 +4547,20 @@ const ApiPilotTasksRouteWithChildren = ApiPilotTasksRoute._addFileChildren(
   ApiPilotTasksRouteChildren,
 )
 
+interface ApiRouteCarrierDocumentsRouteChildren {
+  ApiRouteCarrierDocumentsIdRoute: typeof ApiRouteCarrierDocumentsIdRoute
+}
+
+const ApiRouteCarrierDocumentsRouteChildren: ApiRouteCarrierDocumentsRouteChildren =
+  {
+    ApiRouteCarrierDocumentsIdRoute: ApiRouteCarrierDocumentsIdRoute,
+  }
+
+const ApiRouteCarrierDocumentsRouteWithChildren =
+  ApiRouteCarrierDocumentsRoute._addFileChildren(
+    ApiRouteCarrierDocumentsRouteChildren,
+  )
+
 interface ApiRoutePointPhotosRouteChildren {
   ApiRoutePointPhotosOfflineUploadRoute: typeof ApiRoutePointPhotosOfflineUploadRoute
 }
@@ -4704,9 +4841,13 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProductsRoute: ApiProductsRoute,
   ApiProfileRoute: ApiProfileRoute,
   ApiReportsRoute: ApiReportsRoute,
+  ApiRequestWarehouseStatusRoute: ApiRequestWarehouseStatusRoute,
   ApiRolesRoute: ApiRolesRoute,
+  ApiRouteCarrierDocumentsRoute: ApiRouteCarrierDocumentsRouteWithChildren,
+  ApiRouteCarrierHistoryRoute: ApiRouteCarrierHistoryRoute,
   ApiRouteExclusionsRoute: ApiRouteExclusionsRoute,
   ApiRouteImportRoute: ApiRouteImportRoute,
+  ApiRouteManifestRoute: ApiRouteManifestRoute,
   ApiRouteOffersRoute: ApiRouteOffersRoute,
   ApiRoutePointPhotosRoute: ApiRoutePointPhotosRouteWithChildren,
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
@@ -4724,6 +4865,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSystemActivityRoute: ApiSystemActivityRoute,
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRouteWithChildren,
+  ApiTransportRequestStatusHistoryRoute: ApiTransportRequestStatusHistoryRoute,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,
   ApiTripStageRoute: ApiTripStageRouteWithChildren,
   ApiUserRoleRoute: ApiUserRoleRoute,
