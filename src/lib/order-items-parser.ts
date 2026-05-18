@@ -340,14 +340,28 @@ export function parseOrderItemsText(text: string): OrderItemsParseResult {
 
   let unassignedLines = 0;
   if (markers.length === 0) {
-    // Нет маркеров — пробуем извлечь только номер из первой подходящей строки
-    warnings.push(
-      "Не найден маркер «Заказ покупателя КП_…». Проверьте, что номера заказов присутствуют в тексте.",
-    );
+    // Если табличный пред-проход уже что-то нашёл — отдаём это.
+    if (Object.keys(byOrderNumber).length === 0) {
+      warnings.push(
+        "Не найден маркер «Заказ покупателя КП_…». Проверьте, что номера заказов присутствуют в тексте.",
+      );
+      return {
+        byOrderNumber: {},
+        totals: { orders: 0, items: 0, needsReview: 0 },
+        unassignedLines: lines.filter((l) => l.trim()).length,
+        warnings,
+      };
+    }
+    let total = 0;
+    let needsReview = 0;
+    for (const arr of Object.values(byOrderNumber)) {
+      total += arr.length;
+      needsReview += arr.filter((x) => x.needsReview).length;
+    }
     return {
-      byOrderNumber: {},
-      totals: { orders: 0, items: 0, needsReview: 0 },
-      unassignedLines: lines.filter((l) => l.trim()).length,
+      byOrderNumber,
+      totals: { orders: Object.keys(byOrderNumber).length, items: total, needsReview },
+      unassignedLines: 0,
       warnings,
     };
   }
