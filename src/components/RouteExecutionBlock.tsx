@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiFetch } from "@/lib/apiFetch";
+import { apiPatch } from "@/lib/api-client";
 import {
   Select,
   SelectContent,
@@ -38,15 +38,10 @@ export function RouteExecutionBlock({
 
   const save = useMutation({
     mutationFn: async () => {
-      const res = await apiFetch(`/api/delivery-routes/${deliveryRouteId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          assigned_driver: d || null,
-          assigned_vehicle: v || null,
-        }),
+      await apiPatch(`/api/delivery-routes/${deliveryRouteId}`, {
+        assigned_driver: d || null,
+        assigned_vehicle: v || null,
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Не удалось сохранить");
     },
     onSuccess: () => {
       toast.success("Назначение сохранено");
