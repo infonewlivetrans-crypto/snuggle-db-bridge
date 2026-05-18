@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { apiGetAuth } from "@/lib/api-client";
 import { db } from "@/lib/db";
 import {
   Table,
@@ -50,11 +51,9 @@ export function RequestLoadingListBlock({
   const { data: pts = [] } = useQuery({
     queryKey: ["loading-list-points", requestId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", requestId);
-      if (error) throw error;
+      const data = await apiGetAuth<Pt[]>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=order_id`,
+      );
       return (data ?? []) as Pt[];
     },
   });

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGetAuth } from "@/lib/api-client";
 import { db } from "@/lib/db";
 import {
   Table,
@@ -62,11 +63,9 @@ export function StockAvailabilityCheckBlock({
   const { data: pts = [] } = useQuery({
     queryKey: ["stock-check-points", requestId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", requestId);
-      if (error) throw error;
+      const data = await apiGetAuth<Pt[]>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=order_id`,
+      );
       return (data ?? []) as Pt[];
     },
   });
@@ -152,13 +151,14 @@ export function StockAvailabilityCheckBlock({
     queryKey: ["stock-check-own-reserv", requestId, productIds.join(",")],
     enabled: productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_reservations")
-        .select("product_id, qty")
-        .eq("transport_request_id", requestId)
-        .eq("status", "active")
-        .in("product_id", productIds);
-      if (error) throw error;
+      const params = new URLSearchParams({
+        transport_request_id: requestId,
+        status: "active",
+        product_id: productIds.join(","),
+      });
+      const data = await apiGetAuth<Array<{ product_id: string; qty: number }>>(
+        `/api/stock-reservations?${params.toString()}`,
+      );
       return (data ?? []) as Array<{ product_id: string; qty: number }>;
     },
   });

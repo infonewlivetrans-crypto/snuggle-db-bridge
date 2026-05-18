@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { Weight, Box, Package, MapPin, AlertTriangle } from "lucide-react";
 
 type OrderTotals = {
@@ -13,14 +13,13 @@ export function RequestTotalsCards({ requestId }: { requestId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["request-totals", requestId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("order:order_id(id, total_weight_kg, total_volume_m3, items_count)")
-        .eq("route_id", requestId);
-      if (error) throw error;
+      const fields = "order:order_id(id, total_weight_kg, total_volume_m3, items_count)";
+      const data = await apiGetAuth<Array<{ order: OrderTotals | null }>>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=${encodeURIComponent(fields)}`,
+      );
       const orders: OrderTotals[] = (data ?? [])
-        .map((r: any) => r.order)
-        .filter(Boolean);
+        .map((r) => r.order)
+        .filter(Boolean) as OrderTotals[];
 
       let totalWeight = 0;
       let totalVolume = 0;
