@@ -1,6 +1,5 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Lock } from "lucide-react";
 
 export const Route = createFileRoute("/d/$token")({
@@ -25,17 +24,15 @@ function DriverTokenGate() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["driver-access-resolve", token],
     queryFn: async (): Promise<Resolved | null> => {
-      const { data, error } = await (supabase
-        .from("delivery_routes")
-        .select("id, driver_access_enabled")
-        .eq("driver_access_token", token)
-        .maybeSingle() as unknown as Promise<{
-        data: Resolved | null;
-        error: Error | null;
-      }>);
-      if (error) throw error;
-      return data;
+      const res = await fetch(
+        `/api/public/driver-access/resolve?token=${encodeURIComponent(token)}`,
+        { credentials: "same-origin", headers: { accept: "application/json" } },
+      );
+      if (res.status === 404) return null;
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return (await res.json()) as Resolved;
     },
+    retry: false,
   });
 
   if (isLoading) {
