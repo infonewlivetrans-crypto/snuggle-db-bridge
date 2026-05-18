@@ -243,29 +243,30 @@ function PhotoKindRow({
       }
       setUploading(true);
       try {
-        const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-        const path = `${routePointId}/${kind}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from(ROUTE_POINT_PHOTOS_BUCKET)
-          .upload(path, file, { upsert: false, contentType: file.type });
-        if (upErr) {
-          await saveOffline(upErr.message);
+        const fd = new FormData();
+        fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
+        fd.set("file", file);
+        let uploadResp: { path: string; public_url: string };
+        try {
+          uploadResp = await apiPost<{ path: string; public_url: string }>(
+            "/api/storage/upload",
+            fd,
+            60000,
+          );
+        } catch (e) {
+          await saveOffline(e instanceof Error ? e.message : String(e));
           return;
         }
-        const { data: pub } = supabase.storage.from(ROUTE_POINT_PHOTOS_BUCKET).getPublicUrl(path);
-        const { error: insErr } = await (
-          supabase.from("route_point_photos") as unknown as {
-            insert: (p: Record<string, unknown>) => Promise<{ error: Error | null }>;
-          }
-        ).insert({
-          route_point_id: routePointId,
-          order_id: orderId,
-          kind,
-          file_url: pub.publicUrl,
-          storage_path: path,
-        });
-        if (insErr) {
-          await saveOffline(insErr.message);
+        try {
+          await apiPost("/api/route-point-photos", {
+            route_point_id: routePointId,
+            order_id: orderId,
+            kind,
+            file_url: uploadResp.public_url,
+            storage_path: uploadResp.path,
+          });
+        } catch (e) {
+          await saveOffline(e instanceof Error ? e.message : String(e));
           return;
         }
         toast.success("Фото загружено");
