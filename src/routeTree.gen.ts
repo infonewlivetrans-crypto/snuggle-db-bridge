@@ -105,6 +105,7 @@ import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
 import { Route as ApiRoutePointPhotosRouteImport } from './routes/api/route-point-photos'
+import { Route as ApiRoutePointActionsRouteImport } from './routes/api/route-point-actions'
 import { Route as ApiRouteOffersRouteImport } from './routes/api/route-offers'
 import { Route as ApiRouteManifestRouteImport } from './routes/api/route-manifest'
 import { Route as ApiRouteImportRouteImport } from './routes/api/route-import'
@@ -713,6 +714,11 @@ const ApiRoutePointsRoute = ApiRoutePointsRouteImport.update({
 const ApiRoutePointPhotosRoute = ApiRoutePointPhotosRouteImport.update({
   id: '/api/route-point-photos',
   path: '/api/route-point-photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRoutePointActionsRoute = ApiRoutePointActionsRouteImport.update({
+  id: '/api/route-point-actions',
+  path: '/api/route-point-actions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRouteOffersRoute = ApiRouteOffersRouteImport.update({
@@ -1451,6 +1457,7 @@ export interface FileRoutesByFullPath {
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
+  '/api/route-point-actions': typeof ApiRoutePointActionsRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
@@ -1674,6 +1681,7 @@ export interface FileRoutesByTo {
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
+  '/api/route-point-actions': typeof ApiRoutePointActionsRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
@@ -1898,6 +1906,7 @@ export interface FileRoutesById {
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
+  '/api/route-point-actions': typeof ApiRoutePointActionsRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
@@ -2123,6 +2132,7 @@ export interface FileRouteTypes {
     | '/api/route-import'
     | '/api/route-manifest'
     | '/api/route-offers'
+    | '/api/route-point-actions'
     | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
@@ -2346,6 +2356,7 @@ export interface FileRouteTypes {
     | '/api/route-import'
     | '/api/route-manifest'
     | '/api/route-offers'
+    | '/api/route-point-actions'
     | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
@@ -2569,6 +2580,7 @@ export interface FileRouteTypes {
     | '/api/route-import'
     | '/api/route-manifest'
     | '/api/route-offers'
+    | '/api/route-point-actions'
     | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
@@ -2793,6 +2805,7 @@ export interface RootRouteChildren {
   ApiRouteImportRoute: typeof ApiRouteImportRoute
   ApiRouteManifestRoute: typeof ApiRouteManifestRoute
   ApiRouteOffersRoute: typeof ApiRouteOffersRoute
+  ApiRoutePointActionsRoute: typeof ApiRoutePointActionsRoute
   ApiRoutePointPhotosRoute: typeof ApiRoutePointPhotosRouteWithChildren
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
@@ -3545,6 +3558,13 @@ declare module '@tanstack/react-router' {
       path: '/api/route-point-photos'
       fullPath: '/api/route-point-photos'
       preLoaderRoute: typeof ApiRoutePointPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/route-point-actions': {
+      id: '/api/route-point-actions'
+      path: '/api/route-point-actions'
+      fullPath: '/api/route-point-actions'
+      preLoaderRoute: typeof ApiRoutePointActionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/route-offers': {
@@ -5016,6 +5036,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRouteImportRoute: ApiRouteImportRoute,
   ApiRouteManifestRoute: ApiRouteManifestRoute,
   ApiRouteOffersRoute: ApiRouteOffersRoute,
+  ApiRoutePointActionsRoute: ApiRoutePointActionsRoute,
   ApiRoutePointPhotosRoute: ApiRoutePointPhotosRouteWithChildren,
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
