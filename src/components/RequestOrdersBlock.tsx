@@ -383,14 +383,10 @@ function EditPointDialog({
   const submit = async () => {
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          delivery_address: address.trim() || null,
-          contact_name: contact.trim() || null,
-        })
-        .eq("id", point.order_id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${point.order_id}`, {
+        delivery_address: address.trim() || null,
+        contact_name: contact.trim() || null,
+      });
       toast.success("Сохранено");
       onSaved();
       onOpenChange(false);
