@@ -239,9 +239,9 @@ export function StockAvailabilityCheckBlock({
       const reason = routeNumber
         ? `Нехватка товара под отгрузку (заявка ${routeNumber})`
         : "Нехватка товара под отгрузку";
-      const { data: inserted, error } = await db
-        .from("supply_requests")
-        .insert({
+      const inserted = await apiPost<{ row: { id: string; request_number: string } }>(
+        "/api/supply-requests",
+        {
           source_type: "factory",
           source_name: null,
           destination_warehouse_id: warehouseId,
@@ -251,10 +251,9 @@ export function StockAvailabilityCheckBlock({
           status: "draft",
           comment: `${reason}. Товар: ${args.nomenclature}. Дефицит: ${fmt(args.qty)}.`,
           created_by: "Логист",
-        })
-        .select("id, request_number")
-        .single();
-      if (error) throw error;
+        },
+      );
+      const insertedRow = inserted.row;
       // Уведомление снабжению
       const { data: wh } = await db
         .from("warehouses")
