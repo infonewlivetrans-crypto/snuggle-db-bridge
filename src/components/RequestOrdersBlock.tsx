@@ -448,13 +448,10 @@ function AddOrdersDialog({
     queryKey: ["available-orders-for-request"],
     enabled: open,
     queryFn: async (): Promise<Order[]> => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .in("status", ELIGIBLE_STATUSES)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Order[];
+      const data = await apiGetAuth<Order[]>("/api/orders?limit=500");
+      return ((data ?? []) as Order[]).filter((o) =>
+        ELIGIBLE_STATUSES.includes(o.status as OrderStatus),
+      );
     },
   });
 
