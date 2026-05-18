@@ -144,17 +144,14 @@ async function getBrowserSupabase() {
   return mod.supabase;
 }
 
-async function fetchPreviewProfileAndRoles(userId: string) {
-  const supabase = await getBrowserSupabase();
-  const [{ data: prof, error: profileError }, { data: rolesData, error: rolesError }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("user_id", userId).maybeSingle(),
-    supabase.from("user_roles").select("role").eq("user_id", userId),
+async function fetchPreviewProfileAndRoles(_userId: string) {
+  const [prof, rolesData] = await Promise.all([
+    fetchProfileViaApi(),
+    fetchUserRolesViaApi(),
   ]);
-  if (profileError) throw profileError;
-  if (rolesError) throw rolesError;
   return {
     profile: (prof as Profile | null) ?? null,
-    roles: ((rolesData ?? []).map((r: { role: string }) => r.role).filter((role) =>
+    roles: ((rolesData ?? []).filter((role) =>
       (APP_ROLES as readonly string[]).includes(role),
     ) as AppRole[]) ?? [],
   };
