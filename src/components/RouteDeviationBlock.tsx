@@ -142,12 +142,12 @@ export function RouteDeviationBlock({
       occurred_at: new Date().toISOString(),
     };
 
-    void supabase.from("notifications").insert({
+    void apiPost("/api/notifications", {
       kind: "driver_route_deviation",
       title: "Возможное отклонение водителя от маршрута",
       body: `Водитель по маршруту №${routeNumber} возможно отклонился от маршрута. До ближайшей точки №${nearest.point_number}: ${Math.round(nearest.distance)} м (порог ${thresholdM} м).`,
       payload,
-    });
+    }).catch(() => undefined);
   }, [deviated, nearest, deliveryRouteId, routeNumber, driverName, driverLat, driverLng, thresholdM, lastUpdateAt]);
 
   const [thresholdLocal, setThresholdLocal] = useState<number>(thresholdM);
