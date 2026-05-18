@@ -1,13 +1,25 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchListViaApi, apiPatch, apiGetAuth } from "@/lib/api-client";
+import { fetchListViaApi, apiPatch, apiGetAuth, apiPost } from "@/lib/api-client";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -34,10 +46,12 @@ import {
   type PaymentStatus,
   type PaymentType,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare, Trash2, Loader2 } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
 import { AdminDeleteButton } from "@/components/AdminDeleteButton";
+import { useAuth } from "@/lib/auth/auth-context";
+
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({

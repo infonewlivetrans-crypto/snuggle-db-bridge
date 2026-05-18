@@ -187,6 +187,7 @@ import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/a
 import { Route as ApiRouteCarrierDocumentsIdRouteImport } from './routes/api/route-carrier-documents.$id'
 import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
 import { Route as ApiOrdersGeocodeBatchRouteImport } from './routes/api/orders.geocode-batch'
+import { Route as ApiOrdersBulkDeleteRouteImport } from './routes/api/orders.bulk-delete'
 import { Route as ApiOrdersIdRouteImport } from './routes/api/orders.$id'
 import { Route as ApiNotificationsIdRouteImport } from './routes/api/notifications.$id'
 import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
@@ -1140,6 +1141,11 @@ const ApiOrdersGeocodeBatchRoute = ApiOrdersGeocodeBatchRouteImport.update({
   path: '/geocode-batch',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
+const ApiOrdersBulkDeleteRoute = ApiOrdersBulkDeleteRouteImport.update({
+  id: '/bulk-delete',
+  path: '/bulk-delete',
+  getParentRoute: () => ApiOrdersRoute,
+} as any)
 const ApiOrdersIdRoute = ApiOrdersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1579,6 +1585,7 @@ export interface FileRoutesByFullPath {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
@@ -1807,6 +1814,7 @@ export interface FileRoutesByTo {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
@@ -2036,6 +2044,7 @@ export interface FileRoutesById {
   '/api/managers/list': typeof ApiManagersListRoute
   '/api/notifications/$id': typeof ApiNotificationsIdRoute
   '/api/orders/$id': typeof ApiOrdersIdRouteWithChildren
+  '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
@@ -2266,6 +2275,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
     | '/api/route-carrier-documents/$id'
@@ -2494,6 +2504,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
     | '/api/route-carrier-documents/$id'
@@ -2722,6 +2733,7 @@ export interface FileRouteTypes {
     | '/api/managers/list'
     | '/api/notifications/$id'
     | '/api/orders/$id'
+    | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
     | '/api/route-carrier-documents/$id'
@@ -4187,6 +4199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersGeocodeBatchRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
+    '/api/orders/bulk-delete': {
+      id: '/api/orders/bulk-delete'
+      path: '/bulk-delete'
+      fullPath: '/api/orders/bulk-delete'
+      preLoaderRoute: typeof ApiOrdersBulkDeleteRouteImport
+      parentRoute: typeof ApiOrdersRoute
+    }
     '/api/orders/$id': {
       id: '/api/orders/$id'
       path: '/$id'
@@ -4782,12 +4801,14 @@ const ApiOrdersIdRouteWithChildren = ApiOrdersIdRoute._addFileChildren(
 
 interface ApiOrdersRouteChildren {
   ApiOrdersIdRoute: typeof ApiOrdersIdRouteWithChildren
+  ApiOrdersBulkDeleteRoute: typeof ApiOrdersBulkDeleteRoute
   ApiOrdersGeocodeBatchRoute: typeof ApiOrdersGeocodeBatchRoute
   ApiOrdersUnreadClientMessagesRoute: typeof ApiOrdersUnreadClientMessagesRoute
 }
 
 const ApiOrdersRouteChildren: ApiOrdersRouteChildren = {
   ApiOrdersIdRoute: ApiOrdersIdRouteWithChildren,
+  ApiOrdersBulkDeleteRoute: ApiOrdersBulkDeleteRoute,
   ApiOrdersGeocodeBatchRoute: ApiOrdersGeocodeBatchRoute,
   ApiOrdersUnreadClientMessagesRoute: ApiOrdersUnreadClientMessagesRoute,
 }
