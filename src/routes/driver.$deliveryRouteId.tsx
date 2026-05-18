@@ -239,11 +239,8 @@ function DriverRoutePage() {
         "route_finish",
         { deliveryRouteId },
         async () => {
-          const { error } = await supabase
-            .from("delivery_routes")
-            .update({ status: "completed" as DeliveryRouteStatus })
-            .eq("id", deliveryRouteId);
-          if (error) throw error;
+          const { apiPatch } = await import("@/lib/api-client");
+          await apiPatch(`/api/delivery-routes/${deliveryRouteId}`, { status: "completed" });
           if (lastPoint) {
             await logPointAction({
               routePointId: lastPoint.id,
