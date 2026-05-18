@@ -113,43 +113,20 @@ function PilotPage() {
   const readiness = useQuery({
     queryKey: ["pilot-readiness"],
     queryFn: async (): Promise<Record<ReadinessKey, boolean>> => {
-      const [routes, tokens, photos, qrPhotos, cashPay, reports, completedRoutes, returns, notifs] =
-        await Promise.all([
-          supabase.from("delivery_routes").select("id", { count: "exact", head: true }),
-          supabase
-            .from("delivery_routes")
-            .select("id", { count: "exact", head: true })
-            .not("driver_access_token" as never, "is", null),
-          supabase.from("route_point_photos").select("id", { count: "exact", head: true }),
-          supabase
-            .from("route_point_photos")
-            .select("id", { count: "exact", head: true })
-            .eq("kind" as never, "qr"),
-          supabase
-            .from("route_points")
-            .select("id", { count: "exact", head: true })
-            .gt("dp_amount_received" as never, 0),
-          supabase.from("delivery_reports").select("id", { count: "exact", head: true }),
-          supabase
-            .from("delivery_routes")
-            .select("id", { count: "exact", head: true })
-            .eq("status" as never, "completed"),
-          supabase
-            .from("route_points")
-            .select("id", { count: "exact", head: true })
-            .eq("status" as never, "returned_to_warehouse"),
-          supabase.from("notifications").select("id", { count: "exact", head: true }),
-        ]);
+      const res = await apiGetAuth<{ counts: Record<string, number> }>(
+        "/api/dashboard-counts?include=routes,driverLink,photos,qr,cash,managerReport,completedRoutes,returns,notifications",
+      );
+      const c = res.counts ?? {};
       return {
-        routes: (routes.count ?? 0) > 0,
-        driverLink: (tokens.count ?? 0) > 0,
-        photos: (photos.count ?? 0) > 0,
-        qr: (qrPhotos.count ?? 0) > 0,
-        cash: (cashPay.count ?? 0) > 0,
-        managerReport: (reports.count ?? 0) > 0,
-        directorReport: (completedRoutes.count ?? 0) > 0,
-        warehouseReturns: (returns.count ?? 0) > 0,
-        notifications: (notifs.count ?? 0) > 0,
+        routes: (c.routes ?? 0) > 0,
+        driverLink: (c.driverLink ?? 0) > 0,
+        photos: (c.photos ?? 0) > 0,
+        qr: (c.qr ?? 0) > 0,
+        cash: (c.cash ?? 0) > 0,
+        managerReport: (c.managerReport ?? 0) > 0,
+        directorReport: (c.completedRoutes ?? 0) > 0,
+        warehouseReturns: (c.returns ?? 0) > 0,
+        notifications: (c.notifications ?? 0) > 0,
       };
     },
     refetchInterval: 5000,
@@ -158,24 +135,21 @@ function PilotPage() {
   const testRoutes = useQuery({
     queryKey: ["pilot-test-routes"],
     queryFn: async (): Promise<TestRoute[]> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, created_at")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      const rows = (data ?? []) as TestRoute[];
-      // Подсчёт точек по каждому маршруту
+      const { rows } = await fetchListViaApi<TestRoute>("/api/delivery-routes", {
+        limit: 10,
+        offset: 0,
+        extra: { fields: "id, route_number, route_date, status, assigned_driver, created_at" },
+      });
       const ids = rows.map((r) => r.id);
       if (ids.length > 0) {
-        const { data: pts } = await supabase
-          .from("route_points")
-          .select("route_id")
-          .in("route_id", ids);
+        const pts = await fetchListViaApi<{ route_id: string; order_id: string }>(
+          "/api/route-points",
+          { limit: 2000, offset: 0, extra: { route_ids: ids.join(","), fields: "route_id, order_id" } },
+        );
         const counts = new Map<string, number>();
-        (pts ?? []).forEach((p: { route_id: string }) => {
+        for (const p of pts.rows) {
           counts.set(p.route_id, (counts.get(p.route_id) ?? 0) + 1);
-        });
+        }
         rows.forEach((r) => {
           r.points_count = counts.get(r.id) ?? 0;
         });
@@ -188,14 +162,12 @@ function PilotPage() {
   const issues = useQuery({
     queryKey: ["pilot-issues"],
     queryFn: async (): Promise<SystemIssue[]> => {
-      const { data, error } = await supabase
-        .from("system_issues")
-        .select("id, title, severity, status, role, location, created_at")
-        .neq("status", "done")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      if (error) throw error;
-      return (data ?? []) as SystemIssue[];
+      const { rows } = await fetchListViaApi<SystemIssue>("/api/system-issues", {
+        limit: 20,
+        offset: 0,
+        extra: { status_neq: "done" },
+      });
+      return rows;
     },
     refetchInterval: 10000,
   });
