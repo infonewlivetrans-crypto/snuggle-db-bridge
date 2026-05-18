@@ -1,4 +1,4 @@
-import { makeAdminClient } from "@/server/api-helpers.server";
+import { makeAdminClient, makeAnonClient } from "@/server/api-helpers.server";
 const supabaseAdmin = makeAdminClient();
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
@@ -7,36 +7,10 @@ import type { AppRole } from "@/lib/auth/roles";
 type DbClient = SupabaseClient<Database>;
 
 export async function hasAnyAdmin(): Promise<boolean> {
-  // Основной путь: прямой запрос через admin-клиент (bypass RLS).
-  // Это устойчиво к ситуации, когда PostgREST конкретного инстанса не видит
-  // SECURITY DEFINER RPC `public.has_any_admin` в своём schema cache
-  // (PGRST202) — независимо от состояния кэша, count по user_roles работает.
-  try {
-    const { count, error } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id", { count: "exact", head: true })
-      .eq("role", "admin");
-    if (!error) return (count ?? 0) > 0;
-    // если admin-клиент сконфигурирован, но запрос упал по иной причине —
-    // пробуем fallback на RPC ниже, не пробрасывая ошибку наверх.
-  } catch {
-    // admin-клиент недоступен (нет SUPABASE_SERVICE_ROLE_KEY на VPS) —
-    // молча уходим в fallback на anon RPC.
-  }
-
-  // Fallback: SECURITY DEFINER RPC (для окружений без service_role).
-  try {
-    const { makeAnonClient } = await import("@/server/api-helpers.server");
-    const anon = makeAnonClient();
-    const { data, error } = await anon.rpc("has_any_admin");
-    if (error) throw new Error(error.message);
-    return Boolean(data);
-  } catch (e) {
-    // Безопасный дефолт: считаем, что админ есть — чтобы публичный
-    // эндпоинт первой настройки не показывал FirstRun по cache-glitch.
-    console.warn("hasAnyAdmin fallback returned true (degraded):", e instanceof Error ? e.message : e);
-    return true;
-  }
+  const anon = makeAnonClient();
+  const { data, error } = await anon.rpc("has_any_admin");
+  if (error) throw new Error(error.message);
+  return Boolean(data);
 }
 
 export async function bootstrapFirstAdmin(args: {
