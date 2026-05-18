@@ -482,16 +482,11 @@ export function CarrierOffersBlockForRoute({ routeId }: { routeId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["route-offers-requirements", routeId],
     queryFn: async (): Promise<OfferRequirements | null> => {
-      const { data, error } = await db
-        .from("routes")
-        .select(
-          "required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, planned_departure_at, warehouse:warehouse_id(city)",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
+      const data = await apiGetAuth<Record<string, unknown> | null>(
+        `/api/routes/${routeId}`,
+      );
       if (!data) return null;
-      const r = data as Record<string, unknown>;
+      const r = data;
       const wh = r.warehouse as { city?: string | null } | null;
       return {
         required_body_type: (r.required_body_type as BodyType) ?? null,
