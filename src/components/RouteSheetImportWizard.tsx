@@ -401,9 +401,9 @@ export function RouteSheetImportWizard({
           throw new Error("Поддерживаются только Excel-файлы (.xlsx, .xls).");
         }
         data = await parseRouteSheetXlsx(file);
-        if (data.orders.length === 0 && !trParsed) {
+        if (data.orders.length === 0) {
           throw new Error(
-            "Не удалось распознать заказы. Загрузите также «Заявку на транспорт» или другой маршрутный лист.",
+            "Не удалось распознать заказы в маршрутном листе. Проверьте, что вы загрузили именно маршрутный лист, а не «Заявку на транспорт» — для заявки используйте отдельное поле ниже.",
           );
         }
       } else {
