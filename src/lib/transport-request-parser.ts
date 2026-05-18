@@ -236,15 +236,62 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
   const comment = pick("comment").value;
   const organization = sanitizeOrganization(pick("organization").value);
 
-  // КП_...  по всему файлу
-  const orderSet = new Set<string>();
-  for (const row of grid) {
-    for (const cell of row ?? []) {
-      const s = str(cell);
-      if (!s) continue;
-      const re = /\b(КП[_\-][A-ZА-Я0-9_]+)/giu;
-      let m: RegExpExecArray | null;
-      while ((m = re.exec(s)) !== null) orderSet.add(m[1].toUpperCase());
+  // КП_... — пытаемся вычитать в порядке строк из таблицы заказов
+  // (колонка «Номер»), а не просто собрать множеством по всему файлу.
+  const KP_RE = /\b(КП[_\-][A-ZА-Я0-9_]+)/iu;
+  const orderNumbersOrdered: string[] = [];
+  const seen = new Set<string>();
+  const pushKp = (raw: string) => {
+    const m = raw.match(KP_RE);
+    if (!m) return;
+    const code = m[1].toUpperCase();
+    if (seen.has(code)) return;
+    seen.add(code);
+    orderNumbersOrdered.push(code);
+  };
+
+  // 1) Ищем заголовок таблицы заказов: строка с ячейкой «Номер»
+  //    (часто соседствует с «Дата», «Контрагент», «Сумма»).
+  let kpCol = -1;
+  let kpHeaderRow = -1;
+  for (let r = 0; r < Math.min(grid.length, 80); r++) {
+    const row = grid[r] ?? [];
+    const idx = row.findIndex((c) => /^\s*номер\s*$/i.test(String(c ?? "")));
+    if (idx >= 0) {
+      // подтверждаем, что это шапка таблицы: рядом есть осмысленные заголовки
+      const rowNorm = row.map((c) => norm(c));
+      const looksLikeOrdersHeader = rowNorm.some((c) =>
+        /дата|контрагент|сумма|получател|покупател|реализац/i.test(c),
+      );
+      if (looksLikeOrdersHeader) {
+        kpCol = idx;
+        kpHeaderRow = r;
+        break;
+      }
+    }
+  }
+  if (kpCol >= 0) {
+    for (let r = kpHeaderRow + 1; r < grid.length; r++) {
+      const row = grid[r] ?? [];
+      const cell = str(row[kpCol]);
+      if (!cell) continue;
+      // строка таблицы прерывается, когда снова появляется секционная подпись
+      if (/^(итого|всего|подпис|водител|перевозчик|примечан)/i.test(cell)) break;
+      if (KP_RE.test(cell)) pushKp(cell);
+    }
+  }
+
+  // 2) Фоллбэк: если таблица не распознана — берём все КП_... по документу
+  //    в порядке появления (как было раньше).
+  if (orderNumbersOrdered.length === 0) {
+    for (const row of grid) {
+      for (const cell of row ?? []) {
+        const s = str(cell);
+        if (!s) continue;
+        const re = /\b(КП[_\-][A-ZА-Я0-9_]+)/giu;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(s)) !== null) pushKp(m[1]);
+      }
     }
   }
 
@@ -284,7 +331,7 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
     vehiclePlate,
     comment,
     organization,
-    orderNumbers: Array.from(orderSet),
+    orderNumbers: orderNumbersOrdered,
     raw,
     warnings,
   };
