@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { Weight, Box, Package, MapPin, AlertTriangle } from "lucide-react";
 
 type OrderTotals = {
