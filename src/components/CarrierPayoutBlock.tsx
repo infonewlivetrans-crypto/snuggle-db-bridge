@@ -75,15 +75,8 @@ export function CarrierPayoutBlock({ routeId }: { routeId: string }) {
   const { data: row } = useQuery({
     queryKey: ["carrier-payout", routeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "carrier_cost,carrier_payment_status,carrier_payout_status,carrier_payout_scheduled_date,carrier_payout_paid_amount,carrier_payout_paid_at,carrier_payout_comment,carrier_payout_changed_at,carrier_id",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Row | null;
+      const r = await apiGetAuth<Row & Record<string, unknown>>(`/api/routes/${routeId}`);
+      return (r ?? null) as Row | null;
     },
   });
 
