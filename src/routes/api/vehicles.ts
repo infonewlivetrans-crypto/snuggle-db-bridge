@@ -18,14 +18,21 @@ export const Route = createFileRoute("/api/vehicles")({
         const carrierId = url.searchParams.get("carrierId");
         const bodyType = url.searchParams.get("bodyType");
         const activeOnly = url.searchParams.get("activeOnly") === "1";
+        const idsParam = url.searchParams.get("ids");
+        const fields = url.searchParams.get("fields") || "*";
 
         let q = auth.client
           .from("vehicles")
-          .select("*", { count: "exact" })
+          .select(fields, { count: "exact" })
           .order("plate_number", { ascending: true });
         if (carrierId) q = q.eq("carrier_id", carrierId);
         if (bodyType && bodyType !== "all") q = q.eq("body_type", bodyType as never);
         if (activeOnly) q = q.eq("is_active", true);
+        if (idsParam) {
+          const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+          if (ids.length === 0) return jsonResponse([], { headers: { "X-Total-Count": "0" } });
+          q = q.in("id", ids);
+        }
         if (search) {
           q = q.or(
             `plate_number.ilike.%${search}%,brand.ilike.%${search}%,model.ilike.%${search}%`,
