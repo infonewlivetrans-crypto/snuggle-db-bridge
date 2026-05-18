@@ -89,6 +89,7 @@ import { Route as ApiTripStageRouteImport } from './routes/api/trip-stage'
 import { Route as ApiTransportRequestsRouteImport } from './routes/api/transport-requests'
 import { Route as ApiTransportRequestStatusHistoryRouteImport } from './routes/api/transport-request-status-history'
 import { Route as ApiSystemSettingsRouteImport } from './routes/api/system-settings'
+import { Route as ApiSystemIssuesRouteImport } from './routes/api/system-issues'
 import { Route as ApiSystemErrorsRouteImport } from './routes/api/system-errors'
 import { Route as ApiSystemActivityRouteImport } from './routes/api/system-activity'
 import { Route as ApiSupplyRequestsRouteImport } from './routes/api/supply-requests'
@@ -629,6 +630,11 @@ const ApiTransportRequestStatusHistoryRoute =
 const ApiSystemSettingsRoute = ApiSystemSettingsRouteImport.update({
   id: '/api/system-settings',
   path: '/api/system-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSystemIssuesRoute = ApiSystemIssuesRouteImport.update({
+  id: '/api/system-issues',
+  path: '/api/system-issues',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSystemErrorsRoute = ApiSystemErrorsRouteImport.update({
@@ -1446,6 +1452,7 @@ export interface FileRoutesByFullPath {
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
+  '/api/system-issues': typeof ApiSystemIssuesRoute
   '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
   '/api/transport-request-status-history': typeof ApiTransportRequestStatusHistoryRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
@@ -1666,6 +1673,7 @@ export interface FileRoutesByTo {
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
+  '/api/system-issues': typeof ApiSystemIssuesRoute
   '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
   '/api/transport-request-status-history': typeof ApiTransportRequestStatusHistoryRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
@@ -1887,6 +1895,7 @@ export interface FileRoutesById {
   '/api/supply-requests': typeof ApiSupplyRequestsRouteWithChildren
   '/api/system-activity': typeof ApiSystemActivityRoute
   '/api/system-errors': typeof ApiSystemErrorsRoute
+  '/api/system-issues': typeof ApiSystemIssuesRoute
   '/api/system-settings': typeof ApiSystemSettingsRouteWithChildren
   '/api/transport-request-status-history': typeof ApiTransportRequestStatusHistoryRoute
   '/api/transport-requests': typeof ApiTransportRequestsRoute
@@ -2109,6 +2118,7 @@ export interface FileRouteTypes {
     | '/api/supply-requests'
     | '/api/system-activity'
     | '/api/system-errors'
+    | '/api/system-issues'
     | '/api/system-settings'
     | '/api/transport-request-status-history'
     | '/api/transport-requests'
@@ -2329,6 +2339,7 @@ export interface FileRouteTypes {
     | '/api/supply-requests'
     | '/api/system-activity'
     | '/api/system-errors'
+    | '/api/system-issues'
     | '/api/system-settings'
     | '/api/transport-request-status-history'
     | '/api/transport-requests'
@@ -2549,6 +2560,7 @@ export interface FileRouteTypes {
     | '/api/supply-requests'
     | '/api/system-activity'
     | '/api/system-errors'
+    | '/api/system-issues'
     | '/api/system-settings'
     | '/api/transport-request-status-history'
     | '/api/transport-requests'
@@ -2770,6 +2782,7 @@ export interface RootRouteChildren {
   ApiSupplyRequestsRoute: typeof ApiSupplyRequestsRouteWithChildren
   ApiSystemActivityRoute: typeof ApiSystemActivityRoute
   ApiSystemErrorsRoute: typeof ApiSystemErrorsRoute
+  ApiSystemIssuesRoute: typeof ApiSystemIssuesRoute
   ApiSystemSettingsRoute: typeof ApiSystemSettingsRouteWithChildren
   ApiTransportRequestStatusHistoryRoute: typeof ApiTransportRequestStatusHistoryRoute
   ApiTransportRequestsRoute: typeof ApiTransportRequestsRoute
@@ -3394,6 +3407,13 @@ declare module '@tanstack/react-router' {
       path: '/api/system-settings'
       fullPath: '/api/system-settings'
       preLoaderRoute: typeof ApiSystemSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/system-issues': {
+      id: '/api/system-issues'
+      path: '/api/system-issues'
+      fullPath: '/api/system-issues'
+      preLoaderRoute: typeof ApiSystemIssuesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/system-errors': {
@@ -4969,6 +4989,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSupplyRequestsRoute: ApiSupplyRequestsRouteWithChildren,
   ApiSystemActivityRoute: ApiSystemActivityRoute,
   ApiSystemErrorsRoute: ApiSystemErrorsRoute,
+  ApiSystemIssuesRoute: ApiSystemIssuesRoute,
   ApiSystemSettingsRoute: ApiSystemSettingsRouteWithChildren,
   ApiTransportRequestStatusHistoryRoute: ApiTransportRequestStatusHistoryRoute,
   ApiTransportRequestsRoute: ApiTransportRequestsRoute,
