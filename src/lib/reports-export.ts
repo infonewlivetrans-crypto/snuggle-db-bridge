@@ -1,6 +1,5 @@
 // Тяжёлые библиотеки `xlsx`, `docx`, `file-saver` подключаются лениво
 // внутри функций, чтобы не попадать в initial bundle.
-import { supabase } from "@/integrations/supabase/client";
 import { STATUS_LABELS, PAYMENT_LABELS, type OrderStatus, type PaymentType } from "@/lib/orders";
 
 // ---------- helpers ----------
