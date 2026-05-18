@@ -1,6 +1,6 @@
 // Тяжёлая библиотека `xlsx` подключается лениво внутри функций,
 // чтобы не попадать в initial bundle.
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 
 export type ImportResult = {
   inserted: number;
