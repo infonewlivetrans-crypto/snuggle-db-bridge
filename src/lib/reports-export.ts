@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 // Тяжёлые библиотеки `xlsx`, `docx`, `file-saver` подключаются лениво
 // внутри функций, чтобы не попадать в initial bundle.
 import { STATUS_LABELS, PAYMENT_LABELS, type OrderStatus, type PaymentType } from "@/lib/orders";
@@ -103,23 +103,86 @@ async function downloadDocx(title: string, headers: string[], rows: string[][], 
   saveAs(blob, fileName);
 }
 
+// ---------- helpers ----------
+
+type DeliveryReportRow = {
+  order_id: string;
+  delivered_at: string | null;
+  outcome: string;
+  reason: string | null;
+  driver_name: string | null;
+  requires_resend: boolean | null;
+  comment: string | null;
+};
+
+type OrderLite = {
+  id: string;
+  order_number: string;
+  delivery_address: string | null;
+};
+
+type OrderPaymentRow = {
+  order_number: string;
+  payment_type: string | null;
+  status: string;
+  cash_received: boolean | null;
+  qr_received: boolean | null;
+  delivery_address: string | null;
+  updated_at: string;
+};
+
+type DriverRow = { id: string; full_name: string | null; phone: string | null };
+
+type RouteRow = {
+  route_number: string;
+  route_date: string;
+  request_type: string;
+  driver_name: string | null;
+  points_count: number | null;
+  total_weight_kg: number | null;
+  total_volume_m3: number | null;
+  status: string;
+};
+
+async function fetchAllPaged<T>(
+  path: string,
+  extra: Record<string, string | number | boolean | undefined> = {},
+  pageSize = 100,
+): Promise<T[]> {
+  const out: T[] = [];
+  let offset = 0;
+  // hard cap чтобы не уйти в бесконечный цикл
+  for (let i = 0; i < 200; i++) {
+    const { rows, total } = await fetchListViaApi<T>(path, {
+      limit: pageSize,
+      offset,
+      extra,
+    });
+    out.push(...rows);
+    if (rows.length < pageSize || out.length >= total) break;
+    offset += pageSize;
+  }
+  return out;
+}
+
 // ---------- 1. Отчёт по доставке ----------
 
 export async function exportDeliveryReport(format: "xlsx" | "docx") {
-  const { data, error } = await supabase
-    .from("delivery_reports")
-    .select("*")
-    .order("delivered_at", { ascending: false });
-  if (error) throw error;
+  // /api/delivery-reports?all=1 — отдаёт до 1000 строк за один запрос,
+  // отчётный набор обычно укладывается в одну страницу.
+  const data = await apiGetAuth<DeliveryReportRow[]>(
+    "/api/delivery-reports?all=1&limit=1000",
+  );
 
   const orderIds = Array.from(new Set((data ?? []).map((r) => r.order_id))).filter(Boolean);
   const ordersMap = new Map<string, { order_number: string; delivery_address: string | null }>();
   if (orderIds.length) {
-    const { data: orders } = await supabase
-      .from("orders")
-      .select("id, order_number, delivery_address")
-      .in("id", orderIds);
-    for (const o of orders ?? []) ordersMap.set(o.id, o);
+    const orders = await apiGetAuth<OrderLite[]>(
+      `/api/orders?ids=${encodeURIComponent(orderIds.join(","))}&limit=100`,
+    );
+    for (const o of orders ?? []) {
+      ordersMap.set(o.id, { order_number: o.order_number, delivery_address: o.delivery_address });
+    }
   }
 
   const headers = ["Дата", "Заказ", "Адрес", "Итог", "Причина", "Водитель", "Повторная", "Комментарий"];
@@ -150,16 +213,12 @@ export async function exportDeliveryReport(format: "xlsx" | "docx") {
 // ---------- 2. Отчёт по оплатам ----------
 
 export async function exportPaymentsReport(format: "xlsx" | "docx") {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("order_number, payment_type, status, cash_received, qr_received, delivery_address, updated_at")
-    .order("updated_at", { ascending: false });
-  if (error) throw error;
+  const data = await fetchAllPaged<OrderPaymentRow>("/api/orders");
 
   const headers = ["Заказ", "Тип оплаты", "Статус", "Наличные получены", "QR получен", "Адрес", "Обновлено"];
-  const rowsArr = (data ?? []).map((o) => [
+  const rowsArr = data.map((o) => [
     o.order_number,
-    PAYMENT_LABELS[o.payment_type as PaymentType] ?? o.payment_type,
+    PAYMENT_LABELS[o.payment_type as PaymentType] ?? (o.payment_type ?? ""),
     STATUS_LABELS[o.status as OrderStatus] ?? o.status,
     o.cash_received ? "Да" : "Нет",
     o.qr_received ? "Да" : "Нет",
@@ -178,15 +237,10 @@ export async function exportPaymentsReport(format: "xlsx" | "docx") {
 // ---------- 3. Отчёт по водителям ----------
 
 export async function exportDriversReport(format: "xlsx" | "docx") {
-  const { data: drivers, error } = await supabase
-    .from("drivers")
-    .select("id, full_name, phone")
-    .eq("is_active", true);
-  if (error) throw error;
-
-  const { data: reports } = await supabase
-    .from("delivery_reports")
-    .select("driver_name, outcome, requires_resend");
+  const drivers = await fetchAllPaged<DriverRow>("/api/drivers", { activeOnly: 1 });
+  const reports = await apiGetAuth<DeliveryReportRow[]>(
+    "/api/delivery-reports?all=1&limit=1000",
+  );
 
   const stats = new Map<string, { total: number; delivered: number; failed: number; resend: number }>();
   for (const r of reports ?? []) {
@@ -199,13 +253,12 @@ export async function exportDriversReport(format: "xlsx" | "docx") {
     stats.set(name, s);
   }
 
-  // Объединяем по именам водителей и тех, что есть в справочнике
   const allNames = new Set<string>([...stats.keys()]);
-  for (const d of drivers ?? []) if (d.full_name) allNames.add(d.full_name);
+  for (const d of drivers) if (d.full_name) allNames.add(d.full_name);
 
   const headers = ["Водитель", "Телефон", "Всего точек", "Доставлено", "Не доставлено", "Повторная"];
   const rowsArr = Array.from(allNames).map((name) => {
-    const d = drivers?.find((x) => x.full_name === name);
+    const d = drivers.find((x) => x.full_name === name);
     const s = stats.get(name) ?? { total: 0, delivered: 0, failed: 0, resend: 0 };
     return [
       name,
@@ -228,11 +281,7 @@ export async function exportDriversReport(format: "xlsx" | "docx") {
 // ---------- 4. Отчёт по заявкам на транспорт ----------
 
 export async function exportTransportRequestsReport(format: "xlsx" | "docx") {
-  const { data, error } = await supabase
-    .from("routes")
-    .select("*")
-    .order("route_date", { ascending: false });
-  if (error) throw error;
+  const data = await fetchAllPaged<RouteRow>("/api/routes");
 
   const TYPE_LABELS: Record<string, string> = {
     client_delivery: "Доставка клиентам",
@@ -241,7 +290,7 @@ export async function exportTransportRequestsReport(format: "xlsx" | "docx") {
   };
 
   const headers = ["№ заявки", "Дата", "Тип", "Водитель", "Точек", "Вес, кг", "Объём, м³", "Статус"];
-  const rowsArr = (data ?? []).map((r) => [
+  const rowsArr = data.map((r) => [
     r.route_number,
     r.route_date,
     TYPE_LABELS[r.request_type] ?? r.request_type,
