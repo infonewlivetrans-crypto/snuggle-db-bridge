@@ -130,8 +130,11 @@ export async function adminListInvites(client?: DbClient): Promise<InviteRow[]> 
   return (data ?? []) as unknown as InviteRow[];
 }
 
-export async function adminSetInviteActive(args: { id: string; isActive: boolean }) {
-  const caller = await getCallerSupabaseClient();
+export async function adminSetInviteActive(
+  args: { id: string; isActive: boolean },
+  client?: DbClient,
+) {
+  const caller = client ?? (await getCallerSupabaseClient());
   const { error } = await caller.rpc("admin_set_invite_active", {
     p_invite_id: args.id,
     p_active: args.isActive,
@@ -139,8 +142,11 @@ export async function adminSetInviteActive(args: { id: string; isActive: boolean
   if (error) throw new Error(error.message);
 }
 
-export async function adminRotateInviteToken(args: { id: string }): Promise<InviteRow> {
-  const caller = await getCallerSupabaseClient();
+export async function adminRotateInviteToken(
+  args: { id: string },
+  client?: DbClient,
+): Promise<InviteRow> {
+  const caller = client ?? (await getCallerSupabaseClient());
   const { data, error } = await caller.rpc("admin_rotate_invite", {
     p_invite_id: args.id,
   } as never);
@@ -149,8 +155,11 @@ export async function adminRotateInviteToken(args: { id: string }): Promise<Invi
   return data as unknown as InviteRow;
 }
 
-export async function adminDeleteInvite(args: { id: string }) {
-  const caller = await getCallerSupabaseClient();
+export async function adminDeleteInvite(
+  args: { id: string },
+  client?: DbClient,
+) {
+  const caller = client ?? (await getCallerSupabaseClient());
   const { error } = await caller.rpc("admin_delete_invite", {
     p_invite_id: args.id,
   } as never);
