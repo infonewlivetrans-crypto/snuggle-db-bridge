@@ -182,20 +182,24 @@ function findValueByLabel(grid: Aoa, label: string): string | null {
 function findHeaderRowIndex(grid: Aoa): number {
   for (let r = 0; r < Math.min(grid.length, 30); r++) {
     const row = grid[r] ?? [];
-    const labels = row.map((c) => norm(c));
-    const has = (k: string) => labels.some((l) => l === k || l.includes(k));
-    if (has("реализация товаров услуг") && has("покупатель") && has("адрес доставки")) {
+    const cols = buildColumnMap(row);
+    if (cols.sale !== undefined && cols.customer !== undefined && cols.address !== undefined) {
       return r;
     }
   }
   return -1;
 }
 
+function canonicalHeaderKey(cell: unknown): string | undefined {
+  const n = norm(cell);
+  return HEADER_ALIASES[n] ?? HEADER_ALIASES[n.replace(/\s+и\s+/g, " ")];
+}
+
 /** Сопоставляем колонки заголовка с каноническими ключами. */
 function buildColumnMap(headerRow: unknown[]): Record<string, number> {
   const map: Record<string, number> = {};
   headerRow.forEach((cell, idx) => {
-    const key = HEADER_ALIASES[norm(cell)];
+    const key = canonicalHeaderKey(cell);
     if (key && map[key] === undefined) map[key] = idx;
   });
   return map;
