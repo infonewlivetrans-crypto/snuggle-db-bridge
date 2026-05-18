@@ -66,14 +66,14 @@ export function RequestLoadingListBlock({
     queryKey: ["loading-list-items", requestId, orderIds.join(",")],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select(
-          "id, order_id, product_id, nomenclature, unit, qty, weight_kg, volume_m3",
-        )
-        .in("order_id", orderIds);
-      if (error) throw error;
-      return (data ?? []) as Item[];
+      const { rows } = await fetchListViaApi<Item>("/api/order-items", {
+        limit: 2000,
+        extra: {
+          order_id: orderIds.join(","),
+          fields: "id,order_id,product_id,nomenclature,unit,qty,weight_kg,volume_m3",
+        },
+      });
+      return rows;
     },
   });
 
