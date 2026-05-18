@@ -85,13 +85,9 @@ export function TransportRequestStatusBlock(props: Props) {
   const { data: history } = useQuery({
     queryKey: ["transport-request-status-history", props.requestId],
     queryFn: async (): Promise<HistoryRow[]> => {
-      const { data, error } = await supabase
-        .from("transport_request_status_history")
-        .select("id, from_status, to_status, changed_by, changed_at, comment")
-        .eq("route_id", props.requestId)
-        .order("changed_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as HistoryRow[];
+      return await apiGetAuth<HistoryRow[]>(
+        `/api/transport-request-status-history?route_id=${encodeURIComponent(props.requestId)}`,
+      );
     },
   });
 
