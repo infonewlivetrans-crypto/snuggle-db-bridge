@@ -52,13 +52,12 @@ export function RouteDeviationBlock({
   const { data: thresholdSetting } = useQuery({
     queryKey: ["setting", "gps_deviation_threshold_m"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("system_settings")
-        .select("id, setting_value")
-        .eq("setting_key", "gps_deviation_threshold_m")
-        .maybeSingle();
-      if (error) throw error;
-      return data as { id: string; setting_value: unknown } | null;
+      const all = await fetchSystemSettingsViaApi<{
+        id: string;
+        setting_key: string;
+        setting_value: unknown;
+      }>();
+      return all.find((s) => s.setting_key === "gps_deviation_threshold_m") ?? null;
     },
   });
 
@@ -71,20 +70,17 @@ export function RouteDeviationBlock({
   const saveThreshold = useMutation({
     mutationFn: async (value: number) => {
       if (thresholdSetting?.id) {
-        const { error } = await supabase
-          .from("system_settings")
-          .update({ setting_value: value as never })
-          .eq("id", thresholdSetting.id);
-        if (error) throw error;
+        await apiPatch(`/api/system-settings/${thresholdSetting.id}`, {
+          setting_value: value,
+        });
       } else {
-        const { error } = await supabase.from("system_settings").insert({
+        await apiPost("/api/system-settings", {
           setting_key: "gps_deviation_threshold_m",
-          setting_value: value as never,
+          setting_value: value,
           description: "Порог отклонения водителя от ближайшей точки маршрута (метры)",
           category: "gps",
           is_public: true,
         });
-        if (error) throw error;
       }
     },
     onSuccess: () => {
