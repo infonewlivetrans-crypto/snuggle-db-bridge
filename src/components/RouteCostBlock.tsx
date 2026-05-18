@@ -177,14 +177,7 @@ export function RouteCostBlock({
   const { data: history = [] } = useQuery({
     queryKey: ["route-cost-history", routeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_cost_history")
-        .select("id, old_cost, new_cost, old_method, new_method, changed_by, comment, created_at")
-        .eq("route_id", routeId)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data ?? []) as Array<{
+      const rows = await apiGetAuth<Array<{
         id: string;
         old_cost: number;
         new_cost: number;
@@ -193,7 +186,8 @@ export function RouteCostBlock({
         changed_by: string | null;
         comment: string | null;
         created_at: string;
-      }>;
+      }>>(`/api/route-cost-history?route_id=${encodeURIComponent(routeId)}&limit=50`);
+      return rows ?? [];
     },
   });
 
@@ -216,13 +210,12 @@ export function RouteCostBlock({
           manualOrders.trim() === "" ? null : Number(manualOrders) || 0,
         delivery_percent_target: Number(percentTarget) || 0,
       };
-      const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${routeId}`, payload);
 
       const fullComment = [reason.trim(), comment.trim()].filter(Boolean).join(" — ");
       const changed = oldCost !== newCost || oldMethod !== newMethod || fullComment.length > 0;
       if (changed) {
-        await supabase.from("route_cost_history").insert({
+        await apiPost("/api/route-cost-history", {
           route_id: routeId,
           old_cost: oldCost,
           new_cost: newCost,
@@ -233,6 +226,7 @@ export function RouteCostBlock({
         });
       }
     },
+
     onSuccess: () => {
       toast.success("Стоимость доставки сохранена");
       setComment("");
