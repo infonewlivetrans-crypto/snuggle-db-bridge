@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { apiGetAuth } from "@/lib/api-client";
+import { apiGetAuth, apiPost, apiDelete } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, Trash2, AlertCircle, CloudOff, Loader2, CheckCircle2, RotateCw } from "lucide-react";
 import { toast } from "sonner";
