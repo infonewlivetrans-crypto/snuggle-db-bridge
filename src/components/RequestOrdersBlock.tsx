@@ -288,28 +288,22 @@ function ManualPointDialog({
     setBusy(true);
     try {
       const orderNumber = `MAN-${Date.now().toString().slice(-7)}`;
-      const { data: ord, error: ordErr } = await supabase
-        .from("orders")
-        .insert({
-          order_number: orderNumber,
-          contact_name: contact.trim() || null,
-          contact_phone: phone.trim() || null,
-          delivery_address: address.trim(),
-          total_weight_kg: weight ? Number(weight.replace(",", ".")) : null,
-          comment: [goods.trim(), comment.trim()].filter(Boolean).join(" · ") || null,
-          payment_type: "cash",
-          delivery_cost: 0,
-          source: "manual",
-        } as never)
-        .select("id")
-        .single();
-      if (ordErr || !ord) throw ordErr ?? new Error("Не удалось создать заказ");
-      const { error: rpErr } = await supabase.from("route_points").insert({
+      const ord = await apiPost<{ id: string }>("/api/orders", {
+        order_number: orderNumber,
+        contact_name: contact.trim() || null,
+        contact_phone: phone.trim() || null,
+        delivery_address: address.trim(),
+        total_weight_kg: weight ? Number(weight.replace(",", ".")) : null,
+        comment: [goods.trim(), comment.trim()].filter(Boolean).join(" · ") || null,
+        payment_type: "cash",
+        delivery_cost: 0,
+        source: "manual",
+      });
+      if (!ord?.id) throw new Error("Не удалось создать заказ");
+      await apiPost("/api/route-points/append", {
         route_id: requestId,
-        order_id: (ord as { id: string }).id,
-        point_number: nextPointNumber,
-      } as never);
-      if (rpErr) throw rpErr;
+        order_ids: [ord.id],
+      });
       toast.success("Точка добавлена");
       onSaved();
       onOpenChange(false);
