@@ -459,14 +459,14 @@ function OrdersPage() {
                           <TableCell className="font-mono text-xs">
                             <div className="flex items-center gap-1.5">
                               {isDemo ? (
-                                <span className="font-semibold">{r.order_number}</span>
+                                <span className="font-semibold">{displayOrderNumber(r.order_number)}</span>
                               ) : (
                                 <Link
                                   to="/"
                                   search={{ orderId: r.id }}
                                   className="font-semibold text-primary hover:underline"
                                 >
-                                  {r.order_number}
+                                  {displayOrderNumber(r.order_number)}
                                 </Link>
                               )}
                               {(() => {
