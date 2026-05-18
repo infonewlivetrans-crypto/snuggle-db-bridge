@@ -75,8 +75,7 @@ export function CarrierPaymentBlock({ routeId }: { routeId: string }) {
       if (status === "approved" || status === "to_pay") {
         patch.carrier_cost_approved_at = new Date().toISOString();
       }
-      const { error } = await supabase.from("routes").update(patch).eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${routeId}`, patch);
     },
     onSuccess: () => {
       toast.success("Статус расчёта обновлён");
