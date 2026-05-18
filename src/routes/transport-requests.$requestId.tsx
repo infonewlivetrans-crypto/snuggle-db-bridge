@@ -170,15 +170,13 @@ function TransportRequestDetailPage() {
   const { data: totals } = useQuery({
     queryKey: ["request-totals", requestId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("order:order_id(total_weight_kg, total_volume_m3)")
-        .eq("route_id", requestId);
-      if (error) throw error;
+      const rows = await apiGetAuth<Array<{ order: { total_weight_kg: number | null; total_volume_m3: number | null } | null }>>(
+        `/api/route-points?route_id=${requestId}&fields=${encodeURIComponent("order:order_id(total_weight_kg,total_volume_m3)")}`,
+      );
       let weight = 0;
       let volume = 0;
       let count = 0;
-      for (const r of (data ?? []) as any[]) {
+      for (const r of rows ?? []) {
         if (!r.order) continue;
         count++;
         weight += Number(r.order.total_weight_kg ?? 0);

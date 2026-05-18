@@ -8,13 +8,14 @@ import {
 } from "@/server/api-helpers.server";
 
 const Schema = z.object({
-  route_number: z.string().min(1).max(64),
+  route_number: z.string().max(64).optional(),
   route_date: z.string().min(1).max(32),
   assigned_driver: z.string().max(255).nullable().optional(),
   assigned_vehicle: z.string().max(255).nullable().optional(),
   driver_id: z.string().uuid().nullable().optional(),
   carrier_id: z.string().uuid().nullable().optional(),
   source_request_id: z.string().uuid(),
+  source_warehouse_id: z.string().uuid().nullable().optional(),
   status: z.string().max(32).optional(),
   comment: z.string().max(2000).nullable().optional(),
 });
@@ -49,6 +50,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
         const routeDate = url.searchParams.get("route_date");
         const status = url.searchParams.get("status");
         const carrierId = url.searchParams.get("carrier_id");
+        const sourceRequestId = url.searchParams.get("source_request_id");
         const order = url.searchParams.get("order") ?? "route_date.desc";
         const [orderCol, orderDirRaw] = order.split(".");
         const ascending = (orderDirRaw ?? "desc").toLowerCase() !== "desc";
@@ -65,6 +67,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
           else if (statuses.length === 1) q = q.eq("status", statuses[0] as never);
         }
         if (carrierId) q = q.eq("carrier_id", carrierId);
+        if (sourceRequestId) q = q.eq("source_request_id", sourceRequestId);
         q = q.order(orderCol || "route_date", { ascending });
 
         const useLimit = Math.min(Math.max(limit, 1), 500);
@@ -129,7 +132,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
         const { data, error } = await auth.client
           .from("delivery_routes")
           .insert(parsed.data as never)
-          .select("id")
+          .select("id, route_number")
           .single();
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse(data);
