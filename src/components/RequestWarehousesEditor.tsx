@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, fetchListViaApi } from "@/lib/api-client";
 import {
   Select,
   SelectContent,
@@ -48,13 +48,11 @@ export function RequestWarehousesEditor({
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-active"],
     queryFn: async (): Promise<WarehouseRow[]> => {
-      const { data, error } = await supabase
-        .from("warehouses")
-        .select("id, name, city")
-        .eq("is_active", true)
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as WarehouseRow[];
+      const { rows } = await fetchListViaApi<WarehouseRow>("/api/warehouses", {
+        limit: 100,
+        extra: { activeOnly: "1" },
+      });
+      return rows;
     },
   });
 
@@ -69,8 +67,7 @@ export function RequestWarehousesEditor({
         warehouse_id: source === NONE_VALUE || source === FACTORY_VALUE ? null : source,
         destination_warehouse_id: destination === NONE_VALUE ? null : destination,
       };
-      const { error } = await supabase.from("routes").update(payload).eq("id", requestId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${encodeURIComponent(requestId)}`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transport-request", requestId] });

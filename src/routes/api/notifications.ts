@@ -34,6 +34,21 @@ export const Route = createFileRoute("/api/notifications")({
           { headers: cacheHeaders(30) },
         );
       },
+      // Создание уведомления (например, риск опоздания к клиенту).
+      POST: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        let body: Record<string, unknown> = {};
+        try { body = (await request.json()) as Record<string, unknown>; }
+        catch { return jsonResponse({ error: "Некорректный JSON" }, { status: 400 }); }
+        if (typeof body.kind !== "string" || !body.kind.trim())
+          return jsonResponse({ error: "kind required" }, { status: 400 });
+        const { error } = await auth.client
+          .from("notifications")
+          .insert(body as never);
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ ok: true });
+      },
       // Bulk mark-read: { ids?: string[], kind?: string, is_read: true }
       PATCH: async ({ request }) => {
         const auth = await requireAuth(request);

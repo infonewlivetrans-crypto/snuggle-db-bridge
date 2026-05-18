@@ -109,6 +109,7 @@ import { Route as ApiRouteOffersRouteImport } from './routes/api/route-offers'
 import { Route as ApiRouteManifestRouteImport } from './routes/api/route-manifest'
 import { Route as ApiRouteImportRouteImport } from './routes/api/route-import'
 import { Route as ApiRouteExclusionsRouteImport } from './routes/api/route-exclusions'
+import { Route as ApiRouteCostHistoryRouteImport } from './routes/api/route-cost-history'
 import { Route as ApiRouteCarrierHistoryRouteImport } from './routes/api/route-carrier-history'
 import { Route as ApiRouteCarrierDocumentsRouteImport } from './routes/api/route-carrier-documents'
 import { Route as ApiRolesRouteImport } from './routes/api/roles'
@@ -731,6 +732,11 @@ const ApiRouteImportRoute = ApiRouteImportRouteImport.update({
 const ApiRouteExclusionsRoute = ApiRouteExclusionsRouteImport.update({
   id: '/api/route-exclusions',
   path: '/api/route-exclusions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRouteCostHistoryRoute = ApiRouteCostHistoryRouteImport.update({
+  id: '/api/route-cost-history',
+  path: '/api/route-cost-history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRouteCarrierHistoryRoute = ApiRouteCarrierHistoryRouteImport.update({
@@ -1433,6 +1439,7 @@ export interface FileRoutesByFullPath {
   '/api/roles': typeof ApiRolesRoute
   '/api/route-carrier-documents': typeof ApiRouteCarrierDocumentsRouteWithChildren
   '/api/route-carrier-history': typeof ApiRouteCarrierHistoryRoute
+  '/api/route-cost-history': typeof ApiRouteCostHistoryRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
@@ -1654,6 +1661,7 @@ export interface FileRoutesByTo {
   '/api/roles': typeof ApiRolesRoute
   '/api/route-carrier-documents': typeof ApiRouteCarrierDocumentsRouteWithChildren
   '/api/route-carrier-history': typeof ApiRouteCarrierHistoryRoute
+  '/api/route-cost-history': typeof ApiRouteCostHistoryRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
@@ -1876,6 +1884,7 @@ export interface FileRoutesById {
   '/api/roles': typeof ApiRolesRoute
   '/api/route-carrier-documents': typeof ApiRouteCarrierDocumentsRouteWithChildren
   '/api/route-carrier-history': typeof ApiRouteCarrierHistoryRoute
+  '/api/route-cost-history': typeof ApiRouteCostHistoryRoute
   '/api/route-exclusions': typeof ApiRouteExclusionsRoute
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
@@ -2099,6 +2108,7 @@ export interface FileRouteTypes {
     | '/api/roles'
     | '/api/route-carrier-documents'
     | '/api/route-carrier-history'
+    | '/api/route-cost-history'
     | '/api/route-exclusions'
     | '/api/route-import'
     | '/api/route-manifest'
@@ -2320,6 +2330,7 @@ export interface FileRouteTypes {
     | '/api/roles'
     | '/api/route-carrier-documents'
     | '/api/route-carrier-history'
+    | '/api/route-cost-history'
     | '/api/route-exclusions'
     | '/api/route-import'
     | '/api/route-manifest'
@@ -2541,6 +2552,7 @@ export interface FileRouteTypes {
     | '/api/roles'
     | '/api/route-carrier-documents'
     | '/api/route-carrier-history'
+    | '/api/route-cost-history'
     | '/api/route-exclusions'
     | '/api/route-import'
     | '/api/route-manifest'
@@ -2763,6 +2775,7 @@ export interface RootRouteChildren {
   ApiRolesRoute: typeof ApiRolesRoute
   ApiRouteCarrierDocumentsRoute: typeof ApiRouteCarrierDocumentsRouteWithChildren
   ApiRouteCarrierHistoryRoute: typeof ApiRouteCarrierHistoryRoute
+  ApiRouteCostHistoryRoute: typeof ApiRouteCostHistoryRoute
   ApiRouteExclusionsRoute: typeof ApiRouteExclusionsRoute
   ApiRouteImportRoute: typeof ApiRouteImportRoute
   ApiRouteManifestRoute: typeof ApiRouteManifestRoute
@@ -3547,6 +3560,13 @@ declare module '@tanstack/react-router' {
       path: '/api/route-exclusions'
       fullPath: '/api/route-exclusions'
       preLoaderRoute: typeof ApiRouteExclusionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/route-cost-history': {
+      id: '/api/route-cost-history'
+      path: '/api/route-cost-history'
+      fullPath: '/api/route-cost-history'
+      preLoaderRoute: typeof ApiRouteCostHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/route-carrier-history': {
@@ -4970,6 +4990,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRolesRoute: ApiRolesRoute,
   ApiRouteCarrierDocumentsRoute: ApiRouteCarrierDocumentsRouteWithChildren,
   ApiRouteCarrierHistoryRoute: ApiRouteCarrierHistoryRoute,
+  ApiRouteCostHistoryRoute: ApiRouteCostHistoryRoute,
   ApiRouteExclusionsRoute: ApiRouteExclusionsRoute,
   ApiRouteImportRoute: ApiRouteImportRoute,
   ApiRouteManifestRoute: ApiRouteManifestRoute,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,15 +39,11 @@ export function RequestSchedulingBlock({
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("routes")
-        .update({
-          route_date: date || undefined,
-          departure_time: time ? `${time}:00` : null,
-          request_priority: pr,
-        })
-        .eq("id", requestId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${encodeURIComponent(requestId)}`, {
+        route_date: date || undefined,
+        departure_time: time ? `${time}:00` : null,
+        request_priority: pr,
+      });
     },
     onSuccess: () => {
       toast.success("План отправки сохранён");
