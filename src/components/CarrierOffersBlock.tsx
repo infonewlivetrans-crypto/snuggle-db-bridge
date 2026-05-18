@@ -173,7 +173,8 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
 
     return list.map((v) => {
       const reasons: string[] = [];
-      const busyUntil = busyMap?.[v.id] ?? null;
+      const busyRaw = busyMap?.[v.id] ?? null;
+      const busyUntil = busyRaw ? new Date(busyRaw) : null;
 
       let availability: VehicleAvailabilityStatus = "free";
       if (busyUntil) {
