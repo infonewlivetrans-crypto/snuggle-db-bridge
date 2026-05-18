@@ -63,11 +63,9 @@ export function StockAvailabilityCheckBlock({
   const { data: pts = [] } = useQuery({
     queryKey: ["stock-check-points", requestId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", requestId);
-      if (error) throw error;
+      const data = await apiGetAuth<Pt[]>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=order_id`,
+      );
       return (data ?? []) as Pt[];
     },
   });
