@@ -142,6 +142,7 @@ import { Route as ApiImportLogsRouteImport } from './routes/api/import-logs'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
+import { Route as ApiDriverLocationsRouteImport } from './routes/api/driver-locations'
 import { Route as ApiDockLoadedItemsRouteImport } from './routes/api/dock-loaded-items'
 import { Route as ApiDemoModeRouteImport } from './routes/api/demo-mode'
 import { Route as ApiDeliveryTariffsRouteImport } from './routes/api/delivery-tariffs'
@@ -907,6 +908,11 @@ const ApiDriversRoute = ApiDriversRouteImport.update({
   path: '/api/drivers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDriverLocationsRoute = ApiDriverLocationsRouteImport.update({
+  id: '/api/driver-locations',
+  path: '/api/driver-locations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDockLoadedItemsRoute = ApiDockLoadedItemsRouteImport.update({
   id: '/api/dock-loaded-items',
   path: '/api/dock-loaded-items',
@@ -1436,6 +1442,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
+  '/api/driver-locations': typeof ApiDriverLocationsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
@@ -1662,6 +1669,7 @@ export interface FileRoutesByTo {
   '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
+  '/api/driver-locations': typeof ApiDriverLocationsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
@@ -1889,6 +1897,7 @@ export interface FileRoutesById {
   '/api/delivery-tariffs': typeof ApiDeliveryTariffsRouteWithChildren
   '/api/demo-mode': typeof ApiDemoModeRoute
   '/api/dock-loaded-items': typeof ApiDockLoadedItemsRoute
+  '/api/driver-locations': typeof ApiDriverLocationsRoute
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
@@ -2117,6 +2126,7 @@ export interface FileRouteTypes {
     | '/api/delivery-tariffs'
     | '/api/demo-mode'
     | '/api/dock-loaded-items'
+    | '/api/driver-locations'
     | '/api/drivers'
     | '/api/feedback'
     | '/api/geo'
@@ -2343,6 +2353,7 @@ export interface FileRouteTypes {
     | '/api/delivery-tariffs'
     | '/api/demo-mode'
     | '/api/dock-loaded-items'
+    | '/api/driver-locations'
     | '/api/drivers'
     | '/api/feedback'
     | '/api/geo'
@@ -2569,6 +2580,7 @@ export interface FileRouteTypes {
     | '/api/delivery-tariffs'
     | '/api/demo-mode'
     | '/api/dock-loaded-items'
+    | '/api/driver-locations'
     | '/api/drivers'
     | '/api/feedback'
     | '/api/geo'
@@ -2796,6 +2808,7 @@ export interface RootRouteChildren {
   ApiDeliveryTariffsRoute: typeof ApiDeliveryTariffsRouteWithChildren
   ApiDemoModeRoute: typeof ApiDemoModeRoute
   ApiDockLoadedItemsRoute: typeof ApiDockLoadedItemsRoute
+  ApiDriverLocationsRoute: typeof ApiDriverLocationsRoute
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
@@ -3844,6 +3857,13 @@ declare module '@tanstack/react-router' {
       path: '/api/drivers'
       fullPath: '/api/drivers'
       preLoaderRoute: typeof ApiDriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/driver-locations': {
+      id: '/api/driver-locations'
+      path: '/api/driver-locations'
+      fullPath: '/api/driver-locations'
+      preLoaderRoute: typeof ApiDriverLocationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dock-loaded-items': {
@@ -5043,6 +5063,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDeliveryTariffsRoute: ApiDeliveryTariffsRouteWithChildren,
   ApiDemoModeRoute: ApiDemoModeRoute,
   ApiDockLoadedItemsRoute: ApiDockLoadedItemsRoute,
+  ApiDriverLocationsRoute: ApiDriverLocationsRoute,
   ApiDriversRoute: ApiDriversRouteWithChildren,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
