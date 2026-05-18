@@ -213,7 +213,9 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           tr?.loadingDate ||
           tr?.requestDate ||
           null;
-        const mergedOrganization = payload.organization ?? tr?.organization ?? null;
+        const mergedOrganization =
+          sanitizeOrganizationValue(payload.organization) ??
+          sanitizeOrganizationValue(tr?.organization ?? null);
         const mergedCarrier = payload.carrier ?? tr?.carrier ?? null;
         const mergedDriverName = payload.driverName ?? tr?.driverName ?? null;
         const mergedDriverPhone = payload.driverPhone ?? tr?.driverPhone ?? null;
