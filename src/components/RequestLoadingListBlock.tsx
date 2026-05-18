@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { apiGetAuth } from "@/lib/api-client";
-import { db } from "@/lib/db";
+import { apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 import {
   Table,
   TableBody,
