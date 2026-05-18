@@ -57,29 +57,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     gcTime: GC_TIME,
   });
 
-  // Realtime: одна подписка на провайдер, инвалидируем кэш при любых изменениях.
+  // Realtime отключён намеренно: production backend на radius-track.ru не
+  // отдаёт WebSocket-канал Supabase, и попытка прямого подключения из
+  // браузера к wss://*.supabase.co/realtime/* приводила к
+  // ERR_CONNECTION_REFUSED и каскадным ошибкам в консоли на каждой странице.
+  // Актуальность system_settings/app_versions поддерживается обычными
+  // react-query refetch'ами (staleTime/refetchOnWindowFocus).
   useEffect(() => {
-    const channel = supabase
-      .channel("system-settings-sync")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "system_settings" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: SETTINGS_QUERY_KEY });
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "app_versions" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: VERSION_QUERY_KEY });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return;
   }, [queryClient]);
 
   const value = useMemo<SettingsContextValue>(() => {
