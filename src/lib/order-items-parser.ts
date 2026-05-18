@@ -212,11 +212,121 @@ function parseBlockLines(lines: string[], startSourceLine: number): ParsedItem[]
   return items;
 }
 
+/**
+ * Попытка разобрать «табличную» строку, вставленную из 1С/Excel:
+ *   12␉A02. Арочная … 20*20/0,8мм␉Новый␉шт␉60␉5,000␉Заказ покупателя КП_КРА01938 от 14.05.2026 12:51:56
+ * Разделители — табы или 2+ пробела. Маркер заказа может быть в конце той же
+ * строки или отсутствовать (тогда берётся текущий контекст).
+ */
+function tryParseTableRow(
+  line: string,
+): { item: ParsedItem; orderNumber: string | null } | null {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  const parts = trimmed
+    .split(/\t+|\s{2,}/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (parts.length < 5) return null;
+  if (!/^\d{1,4}$/.test(parts[0])) return null;
+
+  // Маркер заказа в одном из последних полей
+  let orderNumber: string | null = null;
+  const working = [...parts];
+  for (let i = working.length - 1; i >= 1; i--) {
+    const m = working[i].match(ORDER_MARKER);
+    if (m) {
+      orderNumber = normalizeOrderNumber(m[1]);
+      working.splice(i, 1);
+      break;
+    }
+  }
+
+  // Ищем единицу измерения
+  const unitIdx = working.findIndex((p, i) => i >= 1 && UNIT_RE.test(p));
+  if (unitIdx < 1) return null;
+  const unit = working[unitIdx].toLowerCase();
+
+  // Качество — между наименованием и единицей
+  let quality: string | null = null;
+  let qualityIdx = -1;
+  for (let i = unitIdx - 1; i >= 1; i--) {
+    if (QUALITY_RE.test(working[i])) {
+      quality = working[i];
+      qualityIdx = i;
+      break;
+    }
+  }
+
+  const nameEnd = qualityIdx > 0 ? qualityIdx : unitIdx;
+  const name = working.slice(1, nameEnd).join(" ").trim();
+  if (!name) return null;
+
+  // Числа после единицы
+  const nums: number[] = [];
+  for (let i = unitIdx + 1; i < working.length; i++) {
+    const n = num(working[i]);
+    if (n != null) nums.push(n);
+  }
+  if (nums.length === 0) return null;
+
+  const qty = nums[nums.length - 1];
+  const weight = nums.length > 1 ? nums[nums.length - 2] : null;
+  const volume = nums.length > 2 ? nums[0] : null;
+  const lineNumber = parseInt(parts[0], 10);
+
+  return {
+    orderNumber,
+    item: {
+      sourceLine: 0,
+      lineNumber: Number.isFinite(lineNumber) ? lineNumber : null,
+      nomenclature: name,
+      characteristic: null,
+      quality,
+      unit,
+      qty,
+      weight_kg: weight,
+      volume_m3: volume,
+      comment: null,
+      raw_text: line,
+      needsReview: false,
+    },
+  };
+}
+
 /** Парсинг свободного текста. */
 export function parseOrderItemsText(text: string): OrderItemsParseResult {
   const byOrderNumber: Record<string, ParsedItem[]> = {};
   const warnings: string[] = [];
-  const lines = text.replace(/\r\n?/g, "\n").split("\n");
+  const rawLines = text.replace(/\r\n?/g, "\n").split("\n");
+
+  // === Пред-проход: вытаскиваем «табличные» строки из 1С/Excel ===
+  // Маркер заказа может быть на отдельной строке выше или в той же строке.
+  let currentOrder: string | null = null;
+  const lines: string[] = [];
+  for (let i = 0; i < rawLines.length; i++) {
+    const line = rawLines[i];
+    const tab = tryParseTableRow(line);
+    if (tab) {
+      if (tab.orderNumber) currentOrder = tab.orderNumber;
+      const orderKey = currentOrder;
+      if (orderKey) {
+        tab.item.sourceLine = i + 1;
+        if (!byOrderNumber[orderKey]) byOrderNumber[orderKey] = [];
+        byOrderNumber[orderKey].push(tab.item);
+        lines.push(""); // строка «израсходована»
+        continue;
+      }
+      // нет контекста заказа — отдадим вертикальному парсеру как есть
+    }
+    // Если строка содержит маркер — запоминаем контекст
+    const mk = line.match(ORDER_MARKER);
+    if (mk) {
+      const n = normalizeOrderNumber(mk[1]);
+      if (n) currentOrder = n;
+    }
+    lines.push(line);
+  }
 
   // Находим все индексы маркеров «Заказ покупателя …»
   const markers: { index: number; orderNumber: string }[] = [];
