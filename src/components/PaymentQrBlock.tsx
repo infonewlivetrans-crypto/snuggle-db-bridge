@@ -72,21 +72,8 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
         "point_payment_update",
         { routePointId, orderId: order.id, orderUpdate, pointUpdate },
         async () => {
-          const { error: e1 } = await supabase
-            .from("orders")
-            .update(orderUpdate)
-            .eq("id", order.id);
-          if (e1) throw e1;
-          const { error: e2 } = await (
-            supabase.from("route_points") as unknown as {
-              update: (p: Record<string, unknown>) => {
-                eq: (c: string, v: string) => Promise<{ error: Error | null }>;
-              };
-            }
-          )
-            .update(pointUpdate)
-            .eq("id", routePointId);
-          if (e2) throw e2;
+          await apiPatch(`/api/orders/${order.id}`, orderUpdate);
+          await apiPatch(`/api/route-points/${routePointId}`, pointUpdate);
         },
       );
     },
