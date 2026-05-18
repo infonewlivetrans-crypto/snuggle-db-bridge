@@ -126,6 +126,7 @@ import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
 import { Route as ApiOrderReturnInfoRouteImport } from './routes/api/order-return-info'
+import { Route as ApiOrderProblemReportsRouteImport } from './routes/api/order-problem-reports'
 import { Route as ApiOrderItemsRouteImport } from './routes/api/order-items'
 import { Route as ApiOrderHistoryRouteImport } from './routes/api/order-history'
 import { Route as ApiOrderDeliveryResultRouteImport } from './routes/api/order-delivery-result'
@@ -827,6 +828,11 @@ const ApiOrderReturnInfoRoute = ApiOrderReturnInfoRouteImport.update({
   path: '/api/order-return-info',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrderProblemReportsRoute = ApiOrderProblemReportsRouteImport.update({
+  id: '/api/order-problem-reports',
+  path: '/api/order-problem-reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOrderItemsRoute = ApiOrderItemsRouteImport.update({
   id: '/api/order-items',
   path: '/api/order-items',
@@ -1459,6 +1465,7 @@ export interface FileRoutesByFullPath {
   '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-history': typeof ApiOrderHistoryRoute
   '/api/order-items': typeof ApiOrderItemsRoute
+  '/api/order-problem-reports': typeof ApiOrderProblemReportsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
@@ -1686,6 +1693,7 @@ export interface FileRoutesByTo {
   '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-history': typeof ApiOrderHistoryRoute
   '/api/order-items': typeof ApiOrderItemsRoute
+  '/api/order-problem-reports': typeof ApiOrderProblemReportsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
@@ -1914,6 +1922,7 @@ export interface FileRoutesById {
   '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-history': typeof ApiOrderHistoryRoute
   '/api/order-items': typeof ApiOrderItemsRoute
+  '/api/order-problem-reports': typeof ApiOrderProblemReportsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
@@ -2143,6 +2152,7 @@ export interface FileRouteTypes {
     | '/api/order-delivery-result'
     | '/api/order-history'
     | '/api/order-items'
+    | '/api/order-problem-reports'
     | '/api/order-return-info'
     | '/api/order-statuses'
     | '/api/orders'
@@ -2370,6 +2380,7 @@ export interface FileRouteTypes {
     | '/api/order-delivery-result'
     | '/api/order-history'
     | '/api/order-items'
+    | '/api/order-problem-reports'
     | '/api/order-return-info'
     | '/api/order-statuses'
     | '/api/orders'
@@ -2597,6 +2608,7 @@ export interface FileRouteTypes {
     | '/api/order-delivery-result'
     | '/api/order-history'
     | '/api/order-items'
+    | '/api/order-problem-reports'
     | '/api/order-return-info'
     | '/api/order-statuses'
     | '/api/orders'
@@ -2825,6 +2837,7 @@ export interface RootRouteChildren {
   ApiOrderDeliveryResultRoute: typeof ApiOrderDeliveryResultRoute
   ApiOrderHistoryRoute: typeof ApiOrderHistoryRoute
   ApiOrderItemsRoute: typeof ApiOrderItemsRoute
+  ApiOrderProblemReportsRoute: typeof ApiOrderProblemReportsRoute
   ApiOrderReturnInfoRoute: typeof ApiOrderReturnInfoRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
@@ -3745,6 +3758,13 @@ declare module '@tanstack/react-router' {
       path: '/api/order-return-info'
       fullPath: '/api/order-return-info'
       preLoaderRoute: typeof ApiOrderReturnInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/order-problem-reports': {
+      id: '/api/order-problem-reports'
+      path: '/api/order-problem-reports'
+      fullPath: '/api/order-problem-reports'
+      preLoaderRoute: typeof ApiOrderProblemReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/order-items': {
@@ -5080,6 +5100,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiOrderDeliveryResultRoute: ApiOrderDeliveryResultRoute,
   ApiOrderHistoryRoute: ApiOrderHistoryRoute,
   ApiOrderItemsRoute: ApiOrderItemsRoute,
+  ApiOrderProblemReportsRoute: ApiOrderProblemReportsRoute,
   ApiOrderReturnInfoRoute: ApiOrderReturnInfoRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
