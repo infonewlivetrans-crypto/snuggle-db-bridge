@@ -50,16 +50,12 @@ export function ManualDeliveryCostDialog({ order, open, onOpenChange }: Props) {
       if (!author.trim()) throw new Error("Укажите, кто меняет стоимость");
       if (typeof window !== "undefined") localStorage.setItem("rt_author", author.trim());
 
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          delivery_cost: numCost,
-          delivery_cost_source: "manual",
-          manual_cost_reason: reason.trim(),
-          manual_cost_set_by: author.trim(),
-        })
-        .eq("id", order.id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${order.id}`, {
+        delivery_cost: numCost,
+        delivery_cost_source: "manual",
+        manual_cost_reason: reason.trim(),
+        manual_cost_set_by: author.trim(),
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["orders"] });
