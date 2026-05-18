@@ -118,13 +118,8 @@ export function CarrierPayoutBlock({ routeId }: { routeId: string }) {
         patch.carrier_payout_paid_amount = 0;
         patch.carrier_payout_paid_at = null;
       }
-      const { error } = await supabase
-        .from("routes")
-        .update(patch as never)
-        .eq("id", routeId);
-      if (error) throw error;
-
-      await supabase.from("route_carrier_history").insert({
+      await apiPatch(`/api/routes/${routeId}`, patch);
+      await apiPost(`/api/route-carrier-history`, {
         route_id: routeId,
         carrier_id: row?.carrier_id ?? null,
         action: ACTION_BY_STATUS[status],
