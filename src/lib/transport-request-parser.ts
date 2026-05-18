@@ -233,7 +233,7 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
   const driverPhone = pick("driverPhone").value;
   const vehiclePlate = pick("vehiclePlate").value;
   const comment = pick("comment").value;
-  const organization = pick("organization").value;
+  const organization = sanitizeOrganization(pick("organization").value);
 
   // КП_...  по всему файлу
   const orderSet = new Set<string>();
