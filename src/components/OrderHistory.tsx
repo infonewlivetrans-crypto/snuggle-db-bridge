@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { History } from "lucide-react";
 
 type OrderHistoryRow = {
@@ -33,14 +33,10 @@ export function OrderHistory({ orderId }: { orderId: string }) {
     queryKey: ["order_history", orderId],
     enabled: !!orderId,
     queryFn: async (): Promise<OrderHistoryRow[]> => {
-      const { data, error } = await supabase
-        .from("order_history" as never)
-        .select("*")
-        .eq("order_id", orderId)
-        .order("changed_at", { ascending: false })
-        .limit(100);
-      if (error) throw error;
-      return (data ?? []) as unknown as OrderHistoryRow[];
+      const rows = await apiGetAuth<OrderHistoryRow[]>(
+        `/api/order-history?order_id=${encodeURIComponent(orderId)}`,
+      );
+      return rows ?? [];
     },
   });
 

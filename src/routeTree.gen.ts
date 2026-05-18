@@ -77,6 +77,7 @@ import { Route as CarriersVerificationRouteImport } from './routes/carriers.veri
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
+import { Route as ApiWarehouseStatusAlertsRouteImport } from './routes/api/warehouse-status-alerts'
 import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
 import { Route as ApiWarehouseReturnsRouteImport } from './routes/api/warehouse-returns'
 import { Route as ApiWarehouseReportRouteImport } from './routes/api/warehouse-report'
@@ -96,6 +97,7 @@ import { Route as ApiSupplyRequestsRouteImport } from './routes/api/supply-reque
 import { Route as ApiSupplyRequestStatusHistoryRouteImport } from './routes/api/supply-request-status-history'
 import { Route as ApiSupplyNotificationsRouteImport } from './routes/api/supply-notifications'
 import { Route as ApiSupplyInTransitRouteImport } from './routes/api/supply-in-transit'
+import { Route as ApiSupplyAlertsRouteImport } from './routes/api/supply-alerts'
 import { Route as ApiStockTransfersRouteImport } from './routes/api/stock-transfers'
 import { Route as ApiStockReservationsRouteImport } from './routes/api/stock-reservations'
 import { Route as ApiStockMovementsRouteImport } from './routes/api/stock-movements'
@@ -105,6 +107,7 @@ import { Route as ApiRoutesRouteImport } from './routes/api/routes'
 import { Route as ApiRouteStatusesRouteImport } from './routes/api/route-statuses'
 import { Route as ApiRoutePointsRouteImport } from './routes/api/route-points'
 import { Route as ApiRoutePointPhotosRouteImport } from './routes/api/route-point-photos'
+import { Route as ApiRoutePointActionsRouteImport } from './routes/api/route-point-actions'
 import { Route as ApiRouteOffersRouteImport } from './routes/api/route-offers'
 import { Route as ApiRouteManifestRouteImport } from './routes/api/route-manifest'
 import { Route as ApiRouteImportRouteImport } from './routes/api/route-import'
@@ -124,6 +127,7 @@ import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
 import { Route as ApiOrderReturnInfoRouteImport } from './routes/api/order-return-info'
 import { Route as ApiOrderItemsRouteImport } from './routes/api/order-items'
+import { Route as ApiOrderHistoryRouteImport } from './routes/api/order-history'
 import { Route as ApiOrderDeliveryResultRouteImport } from './routes/api/order-delivery-result'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
@@ -572,6 +576,12 @@ const ApiWarehousesRoute = ApiWarehousesRouteImport.update({
   path: '/api/warehouses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWarehouseStatusAlertsRoute =
+  ApiWarehouseStatusAlertsRouteImport.update({
+    id: '/api/warehouse-status-alerts',
+    path: '/api/warehouse-status-alerts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiWarehouseScheduleRoute = ApiWarehouseScheduleRouteImport.update({
   id: '/api/warehouse-schedule',
   path: '/api/warehouse-schedule',
@@ -669,6 +679,11 @@ const ApiSupplyInTransitRoute = ApiSupplyInTransitRouteImport.update({
   path: '/api/supply-in-transit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSupplyAlertsRoute = ApiSupplyAlertsRouteImport.update({
+  id: '/api/supply-alerts',
+  path: '/api/supply-alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStockTransfersRoute = ApiStockTransfersRouteImport.update({
   id: '/api/stock-transfers',
   path: '/api/stock-transfers',
@@ -712,6 +727,11 @@ const ApiRoutePointsRoute = ApiRoutePointsRouteImport.update({
 const ApiRoutePointPhotosRoute = ApiRoutePointPhotosRouteImport.update({
   id: '/api/route-point-photos',
   path: '/api/route-point-photos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRoutePointActionsRoute = ApiRoutePointActionsRouteImport.update({
+  id: '/api/route-point-actions',
+  path: '/api/route-point-actions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRouteOffersRoute = ApiRouteOffersRouteImport.update({
@@ -809,6 +829,11 @@ const ApiOrderReturnInfoRoute = ApiOrderReturnInfoRouteImport.update({
 const ApiOrderItemsRoute = ApiOrderItemsRouteImport.update({
   id: '/api/order-items',
   path: '/api/order-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrderHistoryRoute = ApiOrderHistoryRouteImport.update({
+  id: '/api/order-history',
+  path: '/api/order-history',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOrderDeliveryResultRoute = ApiOrderDeliveryResultRouteImport.update({
@@ -1425,6 +1450,7 @@ export interface FileRoutesByFullPath {
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
+  '/api/order-history': typeof ApiOrderHistoryRoute
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -1444,6 +1470,7 @@ export interface FileRoutesByFullPath {
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
+  '/api/route-point-actions': typeof ApiRoutePointActionsRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
@@ -1453,6 +1480,7 @@ export interface FileRoutesByFullPath {
   '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
+  '/api/supply-alerts': typeof ApiSupplyAlertsRoute
   '/api/supply-in-transit': typeof ApiSupplyInTransitRouteWithChildren
   '/api/supply-notifications': typeof ApiSupplyNotificationsRoute
   '/api/supply-request-status-history': typeof ApiSupplyRequestStatusHistoryRoute
@@ -1472,6 +1500,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
+  '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -1647,6 +1676,7 @@ export interface FileRoutesByTo {
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
+  '/api/order-history': typeof ApiOrderHistoryRoute
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -1666,6 +1696,7 @@ export interface FileRoutesByTo {
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
+  '/api/route-point-actions': typeof ApiRoutePointActionsRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
@@ -1675,6 +1706,7 @@ export interface FileRoutesByTo {
   '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
+  '/api/supply-alerts': typeof ApiSupplyAlertsRoute
   '/api/supply-in-transit': typeof ApiSupplyInTransitRouteWithChildren
   '/api/supply-notifications': typeof ApiSupplyNotificationsRoute
   '/api/supply-request-status-history': typeof ApiSupplyRequestStatusHistoryRoute
@@ -1694,6 +1726,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
+  '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -1870,6 +1903,7 @@ export interface FileRoutesById {
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
   '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
+  '/api/order-history': typeof ApiOrderHistoryRoute
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -1889,6 +1923,7 @@ export interface FileRoutesById {
   '/api/route-import': typeof ApiRouteImportRoute
   '/api/route-manifest': typeof ApiRouteManifestRoute
   '/api/route-offers': typeof ApiRouteOffersRoute
+  '/api/route-point-actions': typeof ApiRoutePointActionsRoute
   '/api/route-point-photos': typeof ApiRoutePointPhotosRouteWithChildren
   '/api/route-points': typeof ApiRoutePointsRouteWithChildren
   '/api/route-statuses': typeof ApiRouteStatusesRoute
@@ -1898,6 +1933,7 @@ export interface FileRoutesById {
   '/api/stock-movements': typeof ApiStockMovementsRoute
   '/api/stock-reservations': typeof ApiStockReservationsRouteWithChildren
   '/api/stock-transfers': typeof ApiStockTransfersRouteWithChildren
+  '/api/supply-alerts': typeof ApiSupplyAlertsRoute
   '/api/supply-in-transit': typeof ApiSupplyInTransitRouteWithChildren
   '/api/supply-notifications': typeof ApiSupplyNotificationsRoute
   '/api/supply-request-status-history': typeof ApiSupplyRequestStatusHistoryRoute
@@ -1917,6 +1953,7 @@ export interface FileRoutesById {
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
+  '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -2094,6 +2131,7 @@ export interface FileRouteTypes {
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-delivery-result'
+    | '/api/order-history'
     | '/api/order-items'
     | '/api/order-return-info'
     | '/api/order-statuses'
@@ -2113,6 +2151,7 @@ export interface FileRouteTypes {
     | '/api/route-import'
     | '/api/route-manifest'
     | '/api/route-offers'
+    | '/api/route-point-actions'
     | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
@@ -2122,6 +2161,7 @@ export interface FileRouteTypes {
     | '/api/stock-movements'
     | '/api/stock-reservations'
     | '/api/stock-transfers'
+    | '/api/supply-alerts'
     | '/api/supply-in-transit'
     | '/api/supply-notifications'
     | '/api/supply-request-status-history'
@@ -2141,6 +2181,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
+    | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
     | '/carriers/$carrierId'
@@ -2316,6 +2357,7 @@ export interface FileRouteTypes {
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-delivery-result'
+    | '/api/order-history'
     | '/api/order-items'
     | '/api/order-return-info'
     | '/api/order-statuses'
@@ -2335,6 +2377,7 @@ export interface FileRouteTypes {
     | '/api/route-import'
     | '/api/route-manifest'
     | '/api/route-offers'
+    | '/api/route-point-actions'
     | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
@@ -2344,6 +2387,7 @@ export interface FileRouteTypes {
     | '/api/stock-movements'
     | '/api/stock-reservations'
     | '/api/stock-transfers'
+    | '/api/supply-alerts'
     | '/api/supply-in-transit'
     | '/api/supply-notifications'
     | '/api/supply-request-status-history'
@@ -2363,6 +2407,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
+    | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
     | '/carriers/$carrierId'
@@ -2538,6 +2583,7 @@ export interface FileRouteTypes {
     | '/api/modules'
     | '/api/notifications'
     | '/api/order-delivery-result'
+    | '/api/order-history'
     | '/api/order-items'
     | '/api/order-return-info'
     | '/api/order-statuses'
@@ -2557,6 +2603,7 @@ export interface FileRouteTypes {
     | '/api/route-import'
     | '/api/route-manifest'
     | '/api/route-offers'
+    | '/api/route-point-actions'
     | '/api/route-point-photos'
     | '/api/route-points'
     | '/api/route-statuses'
@@ -2566,6 +2613,7 @@ export interface FileRouteTypes {
     | '/api/stock-movements'
     | '/api/stock-reservations'
     | '/api/stock-transfers'
+    | '/api/supply-alerts'
     | '/api/supply-in-transit'
     | '/api/supply-notifications'
     | '/api/supply-request-status-history'
@@ -2585,6 +2633,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
+    | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
     | '/carriers/$carrierId'
@@ -2761,6 +2810,7 @@ export interface RootRouteChildren {
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRouteWithChildren
   ApiOrderDeliveryResultRoute: typeof ApiOrderDeliveryResultRoute
+  ApiOrderHistoryRoute: typeof ApiOrderHistoryRoute
   ApiOrderItemsRoute: typeof ApiOrderItemsRoute
   ApiOrderReturnInfoRoute: typeof ApiOrderReturnInfoRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
@@ -2780,6 +2830,7 @@ export interface RootRouteChildren {
   ApiRouteImportRoute: typeof ApiRouteImportRoute
   ApiRouteManifestRoute: typeof ApiRouteManifestRoute
   ApiRouteOffersRoute: typeof ApiRouteOffersRoute
+  ApiRoutePointActionsRoute: typeof ApiRoutePointActionsRoute
   ApiRoutePointPhotosRoute: typeof ApiRoutePointPhotosRouteWithChildren
   ApiRoutePointsRoute: typeof ApiRoutePointsRouteWithChildren
   ApiRouteStatusesRoute: typeof ApiRouteStatusesRoute
@@ -2789,6 +2840,7 @@ export interface RootRouteChildren {
   ApiStockMovementsRoute: typeof ApiStockMovementsRoute
   ApiStockReservationsRoute: typeof ApiStockReservationsRouteWithChildren
   ApiStockTransfersRoute: typeof ApiStockTransfersRouteWithChildren
+  ApiSupplyAlertsRoute: typeof ApiSupplyAlertsRoute
   ApiSupplyInTransitRoute: typeof ApiSupplyInTransitRouteWithChildren
   ApiSupplyNotificationsRoute: typeof ApiSupplyNotificationsRoute
   ApiSupplyRequestStatusHistoryRoute: typeof ApiSupplyRequestStatusHistoryRoute
@@ -2808,6 +2860,7 @@ export interface RootRouteChildren {
   ApiWarehouseReportRoute: typeof ApiWarehouseReportRoute
   ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
+  ApiWarehouseStatusAlertsRoute: typeof ApiWarehouseStatusAlertsRoute
   ApiWarehousesRoute: typeof ApiWarehousesRouteWithChildren
   CTokenRoute: typeof CTokenRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
@@ -3338,6 +3391,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWarehousesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/warehouse-status-alerts': {
+      id: '/api/warehouse-status-alerts'
+      path: '/api/warehouse-status-alerts'
+      fullPath: '/api/warehouse-status-alerts'
+      preLoaderRoute: typeof ApiWarehouseStatusAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/warehouse-schedule': {
       id: '/api/warehouse-schedule'
       path: '/api/warehouse-schedule'
@@ -3471,6 +3531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSupplyInTransitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/supply-alerts': {
+      id: '/api/supply-alerts'
+      path: '/api/supply-alerts'
+      fullPath: '/api/supply-alerts'
+      preLoaderRoute: typeof ApiSupplyAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stock-transfers': {
       id: '/api/stock-transfers'
       path: '/api/stock-transfers'
@@ -3532,6 +3599,13 @@ declare module '@tanstack/react-router' {
       path: '/api/route-point-photos'
       fullPath: '/api/route-point-photos'
       preLoaderRoute: typeof ApiRoutePointPhotosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/route-point-actions': {
+      id: '/api/route-point-actions'
+      path: '/api/route-point-actions'
+      fullPath: '/api/route-point-actions'
+      preLoaderRoute: typeof ApiRoutePointActionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/route-offers': {
@@ -3665,6 +3739,13 @@ declare module '@tanstack/react-router' {
       path: '/api/order-items'
       fullPath: '/api/order-items'
       preLoaderRoute: typeof ApiOrderItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/order-history': {
+      id: '/api/order-history'
+      path: '/api/order-history'
+      fullPath: '/api/order-history'
+      preLoaderRoute: typeof ApiOrderHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/order-delivery-result': {
@@ -4976,6 +5057,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRouteWithChildren,
   ApiOrderDeliveryResultRoute: ApiOrderDeliveryResultRoute,
+  ApiOrderHistoryRoute: ApiOrderHistoryRoute,
   ApiOrderItemsRoute: ApiOrderItemsRoute,
   ApiOrderReturnInfoRoute: ApiOrderReturnInfoRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
@@ -4995,6 +5077,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRouteImportRoute: ApiRouteImportRoute,
   ApiRouteManifestRoute: ApiRouteManifestRoute,
   ApiRouteOffersRoute: ApiRouteOffersRoute,
+  ApiRoutePointActionsRoute: ApiRoutePointActionsRoute,
   ApiRoutePointPhotosRoute: ApiRoutePointPhotosRouteWithChildren,
   ApiRoutePointsRoute: ApiRoutePointsRouteWithChildren,
   ApiRouteStatusesRoute: ApiRouteStatusesRoute,
@@ -5004,6 +5087,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStockMovementsRoute: ApiStockMovementsRoute,
   ApiStockReservationsRoute: ApiStockReservationsRouteWithChildren,
   ApiStockTransfersRoute: ApiStockTransfersRouteWithChildren,
+  ApiSupplyAlertsRoute: ApiSupplyAlertsRoute,
   ApiSupplyInTransitRoute: ApiSupplyInTransitRouteWithChildren,
   ApiSupplyNotificationsRoute: ApiSupplyNotificationsRoute,
   ApiSupplyRequestStatusHistoryRoute: ApiSupplyRequestStatusHistoryRoute,
@@ -5023,6 +5107,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWarehouseReportRoute: ApiWarehouseReportRoute,
   ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
+  ApiWarehouseStatusAlertsRoute: ApiWarehouseStatusAlertsRoute,
   ApiWarehousesRoute: ApiWarehousesRouteWithChildren,
   CTokenRoute: CTokenRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,

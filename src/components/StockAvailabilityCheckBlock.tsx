@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGetAuth } from "@/lib/api-client";
-import { db } from "@/lib/db";
+import { apiGetAuth, apiPost, fetchListViaApi } from "@/lib/api-client";
 import {
   Table,
   TableBody,
@@ -80,12 +79,14 @@ export function StockAvailabilityCheckBlock({
     queryKey: ["stock-check-items", requestId, orderIds.join(",")],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select("id, order_id, product_id, nomenclature, unit, qty")
-        .in("order_id", orderIds);
-      if (error) throw error;
-      return (data ?? []) as Item[];
+      const { rows } = await fetchListViaApi<Item>("/api/order-items", {
+        limit: 2000,
+        extra: {
+          order_id: orderIds.join(","),
+          fields: "id,order_id,product_id,nomenclature,unit,qty",
+        },
+      });
+      return rows;
     },
   });
 
@@ -129,13 +130,14 @@ export function StockAvailabilityCheckBlock({
     queryKey: ["stock-check-bal", warehouseId, productIds.join(",")],
     enabled: !!warehouseId && productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("product_id, available")
-        .eq("warehouse_id", warehouseId)
-        .in("product_id", productIds);
-      if (error) throw error;
-      return (data ?? []) as Bal[];
+      const { rows } = await fetchListViaApi<Bal>("/api/stock-balances", {
+        limit: 1000,
+        extra: {
+          warehouse_id: warehouseId ?? "",
+          product_id: productIds.join(","),
+        },
+      });
+      return rows;
     },
   });
 
@@ -203,12 +205,13 @@ export function StockAvailabilityCheckBlock({
     );
     if (shortageRows.length === 0) return;
     (async () => {
-      const { data: wh } = await db
-        .from("warehouses")
-        .select("name")
-        .eq("id", warehouseId)
-        .maybeSingle();
-      const whName = (wh as { name?: string } | null)?.name ?? null;
+      let whName: string | null = null;
+      try {
+        const wh = await apiGetAuth<{ name?: string } | null>(
+          `/api/warehouses/${encodeURIComponent(warehouseId)}`,
+        );
+        whName = wh?.name ?? null;
+      } catch { /* noop */ }
       for (const r of shortageRows) {
         await notifyShortageForRequest({
           transportRequestId: requestId,
@@ -236,9 +239,9 @@ export function StockAvailabilityCheckBlock({
       const reason = routeNumber
         ? `Нехватка товара под отгрузку (заявка ${routeNumber})`
         : "Нехватка товара под отгрузку";
-      const { data: inserted, error } = await db
-        .from("supply_requests")
-        .insert({
+      const inserted = await apiPost<{ row: { id: string; request_number: string } }>(
+        "/api/supply-requests",
+        {
           source_type: "factory",
           source_name: null,
           destination_warehouse_id: warehouseId,
@@ -248,22 +251,22 @@ export function StockAvailabilityCheckBlock({
           status: "draft",
           comment: `${reason}. Товар: ${args.nomenclature}. Дефицит: ${fmt(args.qty)}.`,
           created_by: "Логист",
-        })
-        .select("id, request_number")
-        .single();
-      if (error) throw error;
+        },
+      );
+      const insertedRow = inserted.row;
       // Уведомление снабжению
-      const { data: wh } = await db
-        .from("warehouses")
-        .select("name")
-        .eq("id", warehouseId)
-        .maybeSingle();
-      const whName = (wh as { name?: string } | null)?.name ?? null;
+      let whName2: string | null = null;
+      try {
+        const wh = await apiGetAuth<{ name?: string } | null>(
+          `/api/warehouses/${encodeURIComponent(warehouseId)}`,
+        );
+        whName2 = wh?.name ?? null;
+      } catch { /* noop */ }
       await notifySupplyRequestCreated({
-        supplyRequestId: (inserted as { id: string }).id,
-        requestNumber: (inserted as { request_number: string }).request_number,
+        supplyRequestId: insertedRow.id,
+        requestNumber: insertedRow.request_number,
         warehouseId,
-        warehouseName: whName,
+        warehouseName: whName2,
         productId: args.product_id,
         productName: args.nomenclature,
         qty: args.qty,

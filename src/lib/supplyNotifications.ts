@@ -1,32 +1,27 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 
 /**
  * Внутренние уведомления для отдела снабжения.
- * Дедупликация — через таблицу supply_notification_log с уникальными индексами.
- * При нарушении уникальности (код 23505) считаем, что уведомление уже было.
+ * Дедупликация и вставка делаются на сервере (/api/supply-alerts),
+ * чтобы убрать direct browser→Supabase REST.
  */
 
-const KIND = "supply_alert";
-
-async function logOnce(args: {
+async function send(payload: {
   event_type: "low_stock" | "shortage" | "supply_request_created";
   warehouse_id?: string | null;
   product_id?: string | null;
   transport_request_id?: string | null;
   supply_request_id?: string | null;
-}): Promise<boolean> {
-  const { error } = await supabase.from("supply_notification_log").insert({
-    event_type: args.event_type,
-    warehouse_id: args.warehouse_id ?? null,
-    product_id: args.product_id ?? null,
-    transport_request_id: args.transport_request_id ?? null,
-    supply_request_id: args.supply_request_id ?? null,
-  });
-  if (error) {
-    if ((error as { code?: string }).code === "23505") return false;
-    return false;
+  title: string;
+  body: string;
+  payload: Record<string, unknown>;
+  route_id?: string | null;
+}) {
+  try {
+    await apiPost("/api/supply-alerts", payload);
+  } catch {
+    // не блокируем UX
   }
-  return true;
 }
 
 /** 1. Остаток на складе ниже минимального */
@@ -39,21 +34,13 @@ export async function notifyLowStock(args: {
   minStock: number;
   unit?: string | null;
 }) {
-  const created = await logOnce({
+  const unit = args.unit ?? "";
+  await send({
     event_type: "low_stock",
     warehouse_id: args.warehouseId,
     product_id: args.productId,
-  });
-  if (!created) return;
-
-  const unit = args.unit ?? "";
-  const title = `На складе ${args.warehouseName} заканчивается товар: ${args.productName}`;
-  const body = `Доступно: ${args.available} ${unit}. Минимальный остаток: ${args.minStock} ${unit}.`;
-
-  await supabase.from("notifications").insert({
-    kind: KIND,
-    title,
-    body,
+    title: `На складе ${args.warehouseName} заканчивается товар: ${args.productName}`,
+    body: `Доступно: ${args.available} ${unit}. Минимальный остаток: ${args.minStock} ${unit}.`,
     payload: {
       reason: "low_stock",
       warehouse_id: args.warehouseId,
@@ -79,23 +66,15 @@ export async function notifyShortageForRequest(args: {
   deficit: number;
   unit?: string | null;
 }) {
-  const created = await logOnce({
+  const unit = args.unit ?? "";
+  await send({
     event_type: "shortage",
     transport_request_id: args.transportRequestId,
     product_id: args.productId,
     warehouse_id: args.warehouseId,
-  });
-  if (!created) return;
-
-  const unit = args.unit ?? "";
-  const title = `Не хватает товара под заявку № ${args.routeNumber}`;
-  const body = `Товар: ${args.productName}. Дефицит: ${args.deficit} ${unit}.`;
-
-  await supabase.from("notifications").insert({
-    kind: KIND,
-    title,
-    body,
     route_id: args.transportRequestId,
+    title: `Не хватает товара под заявку № ${args.routeNumber}`,
+    body: `Товар: ${args.productName}. Дефицит: ${args.deficit} ${unit}.`,
     payload: {
       reason: "shortage",
       transport_request_id: args.transportRequestId,
@@ -124,28 +103,22 @@ export async function notifySupplyRequestCreated(args: {
   transportRequestId?: string | null;
   routeNumber?: string | null;
 }) {
-  const created = await logOnce({
-    event_type: "supply_request_created",
-    supply_request_id: args.supplyRequestId,
-    warehouse_id: args.warehouseId,
-    product_id: args.productId,
-    transport_request_id: args.transportRequestId ?? null,
-  });
-  if (!created) return;
-
-  const title = `Создана заявка на пополнение № ${args.requestNumber}`;
   const parts = [
     args.warehouseName ? `Склад: ${args.warehouseName}` : null,
     args.productName ? `Товар: ${args.productName}` : null,
     `Количество: ${args.qty} ${args.unit ?? ""}`,
     args.routeNumber ? `Связанная заявка: № ${args.routeNumber}` : null,
-  ].filter(Boolean);
+  ].filter(Boolean) as string[];
 
-  await supabase.from("notifications").insert({
-    kind: KIND,
-    title,
-    body: parts.join(". "),
+  await send({
+    event_type: "supply_request_created",
+    supply_request_id: args.supplyRequestId,
+    warehouse_id: args.warehouseId,
+    product_id: args.productId,
+    transport_request_id: args.transportRequestId ?? null,
     route_id: args.transportRequestId ?? null,
+    title: `Создана заявка на пополнение № ${args.requestNumber}`,
+    body: parts.join(". "),
     payload: {
       reason: "supply_request_created",
       supply_request_id: args.supplyRequestId,

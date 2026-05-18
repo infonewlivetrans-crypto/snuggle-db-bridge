@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { db } from "@/lib/db";
+import { fetchListViaApi } from "@/lib/api-client";
 import {
   Table,
   TableBody,
@@ -40,13 +40,11 @@ export function OrderItemsBlock({ orderId }: { orderId: string }) {
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["order-items", orderId],
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select("*")
-        .eq("order_id", orderId)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as OrderItem[];
+      const { rows } = await fetchListViaApi<OrderItem>("/api/order-items", {
+        limit: 500,
+        extra: { order_id: orderId },
+      });
+      return rows;
     },
   });
 

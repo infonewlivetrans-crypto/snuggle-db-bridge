@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { apiGetAuth } from "@/lib/api-client";
-import { db } from "@/lib/db";
+import { apiGetAuth, fetchListViaApi } from "@/lib/api-client";
 import {
   Table,
   TableBody,
@@ -47,12 +46,11 @@ export function RequestOrderItemsBlock({ requestId }: { requestId: string }) {
         new Set((pts ?? []).map((p) => p.order_id).filter(Boolean)),
       );
       if (ids.length === 0) return [] as OrderRow[];
-      const { data, error } = await db
-        .from("orders")
-        .select("id, order_number, onec_order_number")
-        .in("id", ids);
-      if (error) throw error;
-      return (data ?? []) as OrderRow[];
+      const { rows } = await fetchListViaApi<OrderRow>("/api/orders", {
+        limit: 500,
+        extra: { ids: ids.join(",") },
+      });
+      return rows;
     },
   });
 
@@ -62,13 +60,11 @@ export function RequestOrderItemsBlock({ requestId }: { requestId: string }) {
     queryKey: ["request-order-items", requestId, orderIds.join(",")],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select("*")
-        .in("order_id", orderIds)
-        .order("order_id", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as ItemRow[];
+      const { rows } = await fetchListViaApi<ItemRow>("/api/order-items", {
+        limit: 2000,
+        extra: { order_id: orderIds.join(",") },
+      });
+      return rows;
     },
   });
 
