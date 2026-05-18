@@ -61,14 +61,24 @@ const ALLOWED = new Set([
   "delivery_percent_target",
 ]);
 
-// delivery_route_status, при которых рейс уже не черновик — удаление
-// исходной транспортной заявки запрещено.
-const NON_DRAFT_DELIVERY_STATUSES = new Set<string>([
-  "formed",
-  "issued",
-  "in_progress",
-  "completed",
-]);
+type DeleteRouteResult = {
+  ok?: boolean;
+  code?: string;
+  message?: string;
+  error?: string;
+  route_number?: string;
+  status?: string;
+  request_status?: string;
+};
+
+const DELETE_STATUS_BY_CODE: Record<string, number> = {
+  unauthorized: 401,
+  forbidden: 403,
+  not_found: 404,
+  not_deletable_status: 409,
+  has_active_delivery_routes: 409,
+};
+
 
 function logAdminDeleteError(marker: string, id: string, error: unknown) {
   console.error(marker, {
