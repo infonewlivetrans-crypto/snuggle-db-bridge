@@ -173,6 +173,7 @@ import { Route as ApiRoutingDirectionsRouteImport } from './routes/api/routing.d
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
+import { Route as ApiRoutePointsAppendRouteImport } from './routes/api/route-points.append'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiRouteCarrierDocumentsIdRouteImport } from './routes/api/route-carrier-documents.$id'
@@ -1057,6 +1058,11 @@ const ApiRoutePointsReorderRoute = ApiRoutePointsReorderRouteImport.update({
   path: '/reorder',
   getParentRoute: () => ApiRoutePointsRoute,
 } as any)
+const ApiRoutePointsAppendRoute = ApiRoutePointsAppendRouteImport.update({
+  id: '/append',
+  path: '/append',
+  getParentRoute: () => ApiRoutePointsRoute,
+} as any)
 const ApiRoutePointsIdRoute = ApiRoutePointsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1521,6 +1527,7 @@ export interface FileRoutesByFullPath {
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
@@ -1740,6 +1747,7 @@ export interface FileRoutesByTo {
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
@@ -1960,6 +1968,7 @@ export interface FileRoutesById {
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
@@ -2181,6 +2190,7 @@ export interface FileRouteTypes {
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
+    | '/api/route-points/append'
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
@@ -2400,6 +2410,7 @@ export interface FileRouteTypes {
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
+    | '/api/route-points/append'
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
@@ -2619,6 +2630,7 @@ export interface FileRouteTypes {
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
+    | '/api/route-points/append'
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
@@ -3972,6 +3984,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRoutePointsReorderRouteImport
       parentRoute: typeof ApiRoutePointsRoute
     }
+    '/api/route-points/append': {
+      id: '/api/route-points/append'
+      path: '/append'
+      fullPath: '/api/route-points/append'
+      preLoaderRoute: typeof ApiRoutePointsAppendRouteImport
+      parentRoute: typeof ApiRoutePointsRoute
+    }
     '/api/route-points/$id': {
       id: '/api/route-points/$id'
       path: '/$id'
@@ -4655,12 +4674,14 @@ const ApiRoutePointPhotosRouteWithChildren =
 
 interface ApiRoutePointsRouteChildren {
   ApiRoutePointsIdRoute: typeof ApiRoutePointsIdRoute
+  ApiRoutePointsAppendRoute: typeof ApiRoutePointsAppendRoute
   ApiRoutePointsReorderRoute: typeof ApiRoutePointsReorderRoute
   ApiRoutePointsSwapRoute: typeof ApiRoutePointsSwapRoute
 }
 
 const ApiRoutePointsRouteChildren: ApiRoutePointsRouteChildren = {
   ApiRoutePointsIdRoute: ApiRoutePointsIdRoute,
+  ApiRoutePointsAppendRoute: ApiRoutePointsAppendRoute,
   ApiRoutePointsReorderRoute: ApiRoutePointsReorderRoute,
   ApiRoutePointsSwapRoute: ApiRoutePointsSwapRoute,
 }

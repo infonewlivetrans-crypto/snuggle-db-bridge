@@ -94,6 +94,23 @@ export const Route = createFileRoute("/api/route-points")({
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse({ ok: true });
       },
+
+      DELETE: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const url = new URL(request.url);
+        const routeId = url.searchParams.get("route_id");
+        const orderId = url.searchParams.get("order_id");
+        if (!routeId || !orderId)
+          return jsonResponse({ error: "route_id и order_id обязательны" }, { status: 400 });
+        const { error } = await auth.client
+          .from("route_points")
+          .delete()
+          .eq("route_id", routeId)
+          .eq("order_id", orderId);
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ ok: true });
+      },
     },
   },
 });
