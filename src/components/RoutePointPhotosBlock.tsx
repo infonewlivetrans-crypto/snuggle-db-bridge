@@ -283,11 +283,7 @@ function PhotoKindRow({
 
   const remove = useMutation({
     mutationFn: async (photo: Photo) => {
-      if (photo.storage_path) {
-        await supabase.storage.from(ROUTE_POINT_PHOTOS_BUCKET).remove([photo.storage_path]);
-      }
-      const { error } = await supabase.from("route_point_photos").delete().eq("id", photo.id);
-      if (error) throw error;
+      await apiDelete(`/api/route-point-photos?id=${encodeURIComponent(photo.id)}`);
     },
     onSuccess: () => {
       toast.success("Удалено");
