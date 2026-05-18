@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { ShieldCheck, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 
 export function TransportCapacityCheck({
@@ -14,14 +14,17 @@ export function TransportCapacityCheck({
   const { data, isLoading } = useQuery({
     queryKey: ["request-totals", requestId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("order:order_id(total_weight_kg, total_volume_m3)")
-        .eq("route_id", requestId);
-      if (error) throw error;
+      type Row = { order: { total_weight_kg: number | null; total_volume_m3: number | null } | null };
+      const { rows } = await fetchListViaApi<Row>("/api/route-points", {
+        limit: 2000,
+        extra: {
+          route_id: requestId,
+          fields: "order:order_id(total_weight_kg, total_volume_m3)",
+        },
+      });
       let weight = 0;
       let volume = 0;
-      for (const r of (data ?? []) as any[]) {
+      for (const r of rows) {
         if (!r.order) continue;
         weight += Number(r.order.total_weight_kg ?? 0);
         volume += Number(r.order.total_volume_m3 ?? 0);

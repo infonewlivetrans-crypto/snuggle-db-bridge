@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { QrCode, CheckCircle2, AlertCircle, Calendar, User, Route as RouteIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
