@@ -3,7 +3,7 @@ import { cacheHeaders, jsonResponse, requireAuth } from "@/server/api-helpers.se
 
 /**
  * Серверная сборка маршрутного листа для печати.
- * Заменяет прямые browser-вызовы supabase.from("delivery_routes"/"warehouses"/"route_points").
+ * Заменяет прямые browser-вызовы к таблицам delivery_routes/warehouses/route_points.
  */
 export const Route = createFileRoute("/api/route-manifest")({
   server: {
