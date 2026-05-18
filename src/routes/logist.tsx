@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { RouteSheetImportWizard } from "@/components/RouteSheetImportWizard";
 import { Upload } from "lucide-react";
@@ -124,19 +124,15 @@ function LogistPage() {
   const { data: routes = [], isLoading: routesLoading, refetch: refetchRoutes } = useQuery({
     queryKey: ["logist-routes", showHistory ? "all" : "active"],
     queryFn: async (): Promise<RouteRow[]> => {
-      let q = supabase
-        .from("delivery_routes")
-        .select("id, route_number, route_date, status, assigned_driver, assigned_vehicle")
-        .order("route_date", { ascending: false });
-      if (!showHistory) {
-        // По умолчанию — только активные рейсы, без истории
-        q = q.in("status", ["draft", "formed", "issued", "in_progress"]).limit(20);
-      } else {
-        q = q.limit(100);
-      }
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as RouteRow[];
+      const { rows } = await fetchListViaApi<RouteRow>("/api/delivery-routes", {
+        limit: showHistory ? 100 : 20,
+        extra: {
+          fields: "id, route_number, route_date, status, assigned_driver, assigned_vehicle",
+          order: "route_date.desc",
+          ...(showHistory ? {} : { status: "draft,formed,issued,in_progress" }),
+        },
+      });
+      return rows;
     },
     staleTime: 2 * 60_000,
     placeholderData: (prev) => prev,
@@ -148,13 +144,14 @@ function LogistPage() {
     enabled: routeIds.length > 0,
     queryKey: ["logist-route-points-summary", routeIds.join(",")],
     queryFn: async (): Promise<PointRow[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("route_id, dp_status")
-        .in("route_id", routeIds)
-        .limit(2000);
-      if (error) throw error;
-      return (data ?? []) as PointRow[];
+      const { rows } = await fetchListViaApi<PointRow>("/api/route-points", {
+        limit: 2000,
+        extra: {
+          route_ids: routeIds.join(","),
+          fields: "route_id, dp_status",
+        },
+      });
+      return rows;
     },
     staleTime: 2 * 60_000,
   });
