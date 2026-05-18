@@ -94,33 +94,80 @@ export const Route = createFileRoute("/api/orders")({
         if (includeRoutes && rows.length > 0) {
           const ids = (rows as { id: string }[]).map((r) => r.id).filter(Boolean);
           if (ids.length > 0) {
+            // Avoid PostgREST embedded joins (route_points -> routes -> warehouses/...)
+            // because the schema cache for those relationships has been unreliable in
+            // production (PGRST200). Resolve everything via plain selects + server-side merge.
             const { data: pts, error: ptsErr } = await auth.client
               .from("route_points")
-              .select(
-                `order_id,
-                 route:route_id (
-                   id, route_number, route_date, driver_name, status, organization, transport_kind,
-                   warehouse:warehouse_id ( id, name, city ),
-                   carrier:carrier_id ( id, company_name ),
-                   driver:driver_id ( id, full_name, phone ),
-                   vehicle:vehicle_id ( id, plate_number, brand, model )
-                 )`,
-              )
+              .select("order_id, route_id")
               .in("order_id", ids);
             if (ptsErr) {
-              console.error("/api/orders includeRoutes error:", ptsErr.message);
+              console.error("/api/orders includeRoutes route_points error:", ptsErr.message);
             }
-            const map = new Map<string, unknown>();
-            for (const p of pts ?? []) {
-              const pp = p as { order_id: string | null; route: unknown };
-              if (pp?.order_id && pp.route && !map.has(pp.order_id)) {
-                map.set(pp.order_id, pp.route);
+            const orderToRouteId = new Map<string, string>();
+            const routeIdSet = new Set<string>();
+            for (const p of (pts ?? []) as Array<{ order_id: string | null; route_id: string | null }>) {
+              if (p?.order_id && p.route_id && !orderToRouteId.has(p.order_id)) {
+                orderToRouteId.set(p.order_id, p.route_id);
+                routeIdSet.add(p.route_id);
               }
             }
-            rows = (rows as { id: string }[]).map((r) => ({
-              ...r,
-              route: map.get(r.id) ?? null,
-            }));
+            const routeIds = Array.from(routeIdSet);
+            const routesRes = routeIds.length > 0
+              ? await auth.client
+                  .from("routes")
+                  .select(
+                    "id, route_number, route_date, driver_name, status, organization, transport_kind, warehouse_id, carrier_id, driver_id, vehicle_id",
+                  )
+                  .in("id", routeIds)
+              : { data: [] as Array<Record<string, unknown>>, error: null };
+            if (routesRes.error) {
+              console.error("/api/orders includeRoutes routes error:", routesRes.error.message);
+            }
+            const routesArr = (routesRes.data ?? []) as Array<{
+              id: string;
+              warehouse_id: string | null;
+              carrier_id: string | null;
+              driver_id: string | null;
+              vehicle_id: string | null;
+              [k: string]: unknown;
+            }>;
+            const warehouseIds = Array.from(new Set(routesArr.map((r) => r.warehouse_id).filter((v): v is string => !!v)));
+            const carrierIds = Array.from(new Set(routesArr.map((r) => r.carrier_id).filter((v): v is string => !!v)));
+            const driverIds = Array.from(new Set(routesArr.map((r) => r.driver_id).filter((v): v is string => !!v)));
+            const vehicleIds = Array.from(new Set(routesArr.map((r) => r.vehicle_id).filter((v): v is string => !!v)));
+            const [whRes, carRes, drvRes, vehRes] = await Promise.all([
+              warehouseIds.length
+                ? auth.client.from("warehouses").select("id, name, city").in("id", warehouseIds)
+                : Promise.resolve({ data: [] as Array<{ id: string; name: string | null; city: string | null }>, error: null }),
+              carrierIds.length
+                ? auth.client.from("carriers").select("id, company_name").in("id", carrierIds)
+                : Promise.resolve({ data: [] as Array<{ id: string; company_name: string | null }>, error: null }),
+              driverIds.length
+                ? auth.client.from("drivers").select("id, full_name, phone").in("id", driverIds)
+                : Promise.resolve({ data: [] as Array<{ id: string; full_name: string | null; phone: string | null }>, error: null }),
+              vehicleIds.length
+                ? auth.client.from("vehicles").select("id, plate_number, brand, model").in("id", vehicleIds)
+                : Promise.resolve({ data: [] as Array<{ id: string; plate_number: string | null; brand: string | null; model: string | null }>, error: null }),
+            ]);
+            const whMap = new Map((whRes.data ?? []).map((w) => [w.id, w]));
+            const carMap = new Map((carRes.data ?? []).map((c) => [c.id, c]));
+            const drvMap = new Map((drvRes.data ?? []).map((d) => [d.id, d]));
+            const vehMap = new Map((vehRes.data ?? []).map((v) => [v.id, v]));
+            const routeMap = new Map<string, unknown>();
+            for (const r of routesArr) {
+              routeMap.set(r.id, {
+                ...r,
+                warehouse: r.warehouse_id ? whMap.get(r.warehouse_id) ?? null : null,
+                carrier: r.carrier_id ? carMap.get(r.carrier_id) ?? null : null,
+                driver: r.driver_id ? drvMap.get(r.driver_id) ?? null : null,
+                vehicle: r.vehicle_id ? vehMap.get(r.vehicle_id) ?? null : null,
+              });
+            }
+            rows = (rows as { id: string }[]).map((r) => {
+              const rid = orderToRouteId.get(r.id);
+              return { ...r, route: rid ? routeMap.get(rid) ?? null : null };
+            });
           } else {
             rows = (rows as { id: string }[]).map((r) => ({ ...r, route: null }));
           }
