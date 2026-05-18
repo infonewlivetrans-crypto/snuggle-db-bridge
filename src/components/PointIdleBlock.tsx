@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -76,16 +76,7 @@ export function PointIdleBlock({ routePointId, data }: Props) {
 
   const update = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => {
-      const { error } = await (
-        supabase.from("route_points") as unknown as {
-          update: (p: Record<string, unknown>) => {
-            eq: (c: string, v: string) => Promise<{ error: Error | null }>;
-          };
-        }
-      )
-        .update(payload)
-        .eq("id", routePointId);
-      if (error) throw error;
+      await apiPatch(`/api/route-points/${routePointId}`, payload);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
