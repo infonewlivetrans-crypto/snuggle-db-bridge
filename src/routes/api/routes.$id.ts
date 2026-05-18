@@ -41,7 +41,6 @@ const ALLOWED = new Set([
   "warehouse_id",
   "destination_warehouse_id",
   // scheduling
-  // scheduling
   "route_date",
   "departure_time",
   "request_priority",
