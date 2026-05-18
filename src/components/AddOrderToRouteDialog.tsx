@@ -17,8 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
 import {
@@ -38,33 +37,42 @@ export function AddOrderToRouteDialog({ order, open, onOpenChange }: Props) {
   const qc = useQueryClient();
   const [routeId, setRouteId] = useState<string>("");
 
-  // Маршруты, в которые ещё имеет смысл добавлять (planned / in_progress), от свежих к старым
+  // Маршруты, в которые ещё имеет смысл добавлять (planned / in_progress)
   const { data: routes } = useQuery({
     queryKey: ["routes", "addable"],
     enabled: open,
     queryFn: async (): Promise<DeliveryRoute[]> => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("*")
-        .in("status", ["planned", "in_progress"])
-        .order("route_date", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data ?? []) as DeliveryRoute[];
+      // /api/routes принимает один status; берём активные и planned по очереди
+      const [planned, active] = await Promise.all([
+        apiGetAuth<DeliveryRoute[]>(
+          "/api/routes?status=planned&limit=50",
+        ).catch(() => [] as DeliveryRoute[]),
+        apiGetAuth<DeliveryRoute[]>(
+          "/api/routes?status=in_progress&limit=50",
+        ).catch(() => [] as DeliveryRoute[]),
+      ]);
+      const merged = [...(planned ?? []), ...(active ?? [])];
+      // сортируем по route_date desc, затем по created_at desc
+      merged.sort((a, b) => {
+        const ad = a.route_date ?? "";
+        const bd = b.route_date ?? "";
+        if (ad !== bd) return ad < bd ? 1 : -1;
+        const ac = (a as { created_at?: string }).created_at ?? "";
+        const bc = (b as { created_at?: string }).created_at ?? "";
+        return ac < bc ? 1 : -1;
+      });
+      return merged.slice(0, 50);
     },
   });
 
-  // Проверяем, в каких маршрутах заказ уже есть, чтобы их подсветить
+  // Проверяем, в каких маршрутах заказ уже есть
   const { data: existingPoints } = useQuery({
     queryKey: ["route-points", "for-order", order.id],
     enabled: open,
     queryFn: async (): Promise<{ route_id: string }[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select("route_id")
-        .eq("order_id", order.id);
-      if (error) throw error;
+      const data = await apiGetAuth<{ route_id: string }[]>(
+        `/api/route-points?order_id_in=${encodeURIComponent(order.id)}&fields=${encodeURIComponent("route_id")}`,
+      );
       return data ?? [];
     },
   });
@@ -75,25 +83,10 @@ export function AddOrderToRouteDialog({ order, open, onOpenChange }: Props) {
     mutationFn: async () => {
       if (!routeId) throw new Error("Выберите маршрут");
       if (usedRouteIds.has(routeId)) throw new Error("Заказ уже есть в этом маршруте");
-
-      // Берём максимальный point_number в маршруте
-      const { data: maxRow, error: maxErr } = await supabase
-        .from("route_points")
-        .select("point_number")
-        .eq("route_id", routeId)
-        .order("point_number", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (maxErr) throw maxErr;
-      const next = (maxRow?.point_number ?? 0) + 1;
-
-      const { error } = await db.from("route_points").insert({
+      await apiPost("/api/route-points/append", {
         route_id: routeId,
-        order_id: order.id,
-        point_number: next,
-        status: "pending",
+        order_ids: [order.id],
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["routes"] });

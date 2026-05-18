@@ -8,10 +8,10 @@ import {
 } from "@/server/api-helpers.server";
 
 const SELECT = `
-  id, order_number, status, payment_status, payment_type, requires_qr,
+  id, order_number, onec_order_number, status, payment_status, payment_type, requires_qr,
   amount_due, delivery_cost, goods_amount,
-  total_weight_kg, total_volume_m3, destination_city, delivery_address,
-  contact_name, contact_phone, created_at, updated_at, client_id,
+  total_weight_kg, total_volume_m3, destination_city, delivery_address, delivery_zone,
+  contact_name, contact_phone, created_at, updated_at, client_id, source,
   manager_comment, recipient_contact_time, recipient_work_hours,
   recipient_delivery_comment, recipient_access_comment, recipient_extra_note
 `;

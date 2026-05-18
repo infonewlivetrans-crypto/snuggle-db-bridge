@@ -1,8 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { apiGetAuth, apiPost, apiDelete } from "@/lib/api-client";
 import { AppHeader } from "@/components/AppHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,49 +128,25 @@ function OrderPickerPage() {
   const { data: warehouses = [] } = useQuery({
     queryKey: ["warehouses-min"],
     queryFn: async () => {
-      const { data, error } = await db.from("warehouses").select("id, name").eq("is_active", true).order("name");
-      if (error) throw error;
-      return (data ?? []) as Warehouse[];
+      const res = await apiGetAuth<{ rows: Warehouse[]; total: number }>(
+        "/api/warehouses?activeOnly=1&limit=500",
+      );
+      return (res?.rows ?? []) as Warehouse[];
     },
   });
 
-  const { data: orders = [], isLoading: ordersLoading, refetch: refetchOrders } = useQuery({
+  const { data: orders = [], isLoading: ordersLoading, refetch: refetchOrders } = useQuery<OrderRow[]>({
     queryKey: ["picker-orders"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select(
-          "id, order_number, status, delivery_address, contact_name, total_weight_kg, total_volume_m3, goods_amount, amount_due, created_at, source",
-        )
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      const ids = (data ?? []).map((o) => o.id);
-      let extras: Array<{
-        id: string;
-        onec_order_number: string | null;
-        delivery_zone: string | null;
-        destination_city: string | null;
-        contact_phone: string | null;
-      }> = [];
-      if (ids.length) {
-        const { data: ex } = await db
-          .from("orders")
-          .select("id, onec_order_number, delivery_zone, destination_city, contact_phone")
-          .in("id", ids);
-        extras = ex ?? [];
-      }
-      const exMap = new Map(extras.map((e) => [e.id, e]));
-      return (data ?? []).map((o) => {
-        const e = exMap.get(o.id);
-        return {
-          ...o,
-          onec_order_number: e?.onec_order_number ?? null,
-          delivery_zone: e?.delivery_zone ?? null,
-          destination_city: e?.destination_city ?? null,
-          contact_phone: e?.contact_phone ?? null,
-        } as OrderRow;
-      });
+      // /api/orders уже включает onec_order_number, delivery_zone, source и т.п.
+      const data = await apiGetAuth<OrderRow[]>("/api/orders?limit=500");
+      return (data ?? []).map((o) => ({
+        ...o,
+        onec_order_number: o.onec_order_number ?? null,
+        delivery_zone: o.delivery_zone ?? null,
+        destination_city: o.destination_city ?? null,
+        contact_phone: o.contact_phone ?? null,
+      }));
     },
   });
 
@@ -179,28 +154,19 @@ function OrderPickerPage() {
     queryKey: ["picker-request", requestId],
     enabled: !!requestId,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("routes")
-        .select(
-          "id, route_number, route_date, status, warehouse_id, destination_warehouse_id, unloading_zone, organization, total_weight_kg, total_volume_m3, total_orders_amount",
-        )
-        .eq("id", requestId!)
-        .single();
-      if (error) throw error;
-      return data as RequestRow;
+      const data = await apiGetAuth<RequestRow>(`/api/routes/${requestId!}`);
+      return data;
     },
   });
 
-  const { data: pickedOrderIds = [], refetch: refetchPicked } = useQuery({
+  const { data: pickedOrderIds = [], refetch: refetchPicked } = useQuery<string[]>({
     queryKey: ["picker-request-points", requestId],
     enabled: !!requestId,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", requestId!);
-      if (error) throw error;
-      return ((data ?? []) as { order_id: string }[]).map((p) => p.order_id);
+      const data = await apiGetAuth<{ order_id: string }[]>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId!)}&fields=${encodeURIComponent("order_id")}`,
+      );
+      return (data ?? []).map((p) => p.order_id);
     },
   });
 
@@ -280,21 +246,10 @@ function OrderPickerPage() {
       return;
     }
     try {
-      const { data: pts } = await db
-        .from("route_points")
-        .select("point_number")
-        .eq("route_id", requestId);
-      const next = ((pts ?? []) as { point_number: number }[]).reduce(
-        (m, p) => Math.max(m, Number(p.point_number) || 0),
-        0,
-      ) + 1;
-
-      const { error } = await db.from("route_points").insert({
+      await apiPost("/api/route-points/append", {
         route_id: requestId,
-        order_id: orderId,
-        point_number: next,
+        order_ids: [orderId],
       });
-      if (error) throw error;
       toast.success("Заказ добавлен в заявку");
       refresh();
     } catch (e: unknown) {
@@ -306,12 +261,9 @@ function OrderPickerPage() {
   const removeOrder = async (orderId: string) => {
     if (!requestId) return;
     try {
-      const { error } = await db
-        .from("route_points")
-        .delete()
-        .eq("route_id", requestId)
-        .eq("order_id", orderId);
-      if (error) throw error;
+      await apiDelete(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&order_id=${encodeURIComponent(orderId)}`,
+      );
       toast.success("Заказ убран из заявки");
       refresh();
     } catch (e: unknown) {
@@ -331,9 +283,9 @@ function OrderPickerPage() {
     setCreating(true);
     try {
       const number = generateRequestNumber();
-      const { data, error } = await db
-        .from("routes")
-        .insert({
+      const data = await apiPost<{ id: string; route_number: string }>(
+        "/api/routes",
+        {
           route_number: number,
           route_date: newReqDate,
           warehouse_id: newReqWh || null,
@@ -342,10 +294,8 @@ function OrderPickerPage() {
           request_status: "draft",
           request_type: "client_delivery",
           source: "manual",
-        })
-        .select()
-        .single();
-      if (error) throw error;
+        },
+      );
       setRequestId(data.id);
       navigate({
         to: "/transport-requests/picker",

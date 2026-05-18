@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPost, apiPatch, apiDelete } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -48,15 +48,12 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
   const { data: items, isLoading } = useQuery({
     queryKey: ["request-orders", requestId],
     queryFn: async (): Promise<RequestOrder[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, order_id, point_number, order:order_id(id, order_number, status, delivery_address, contact_name, amount_due, delivery_cost)",
-        )
-        .eq("route_id", requestId)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as unknown as RequestOrder[];
+      const fields =
+        "id, order_id, point_number, order:order_id(id, order_number, status, delivery_address, contact_name, amount_due, delivery_cost)";
+      const data = await apiGetAuth<RequestOrder[]>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 
@@ -70,8 +67,7 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
 
   const removeMutation = useMutation({
     mutationFn: async (pointId: string) => {
-      const { error } = await supabase.from("route_points").delete().eq("id", pointId);
-      if (error) throw error;
+      await apiDelete(`/api/route-points/${pointId}`);
     },
     onSuccess: () => {
       invalidate();
@@ -87,23 +83,12 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
       if (j < 0 || j >= list.length) return;
       const a = list[index];
       const b = list[j];
-      // swap point_number through a temporary value to avoid unique conflicts
-      const tmp = -Math.floor(Math.random() * 1_000_000) - 1;
-      const { error: e1 } = await supabase
-        .from("route_points")
-        .update({ point_number: tmp })
-        .eq("id", a.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase
-        .from("route_points")
-        .update({ point_number: a.point_number })
-        .eq("id", b.id);
-      if (e2) throw e2;
-      const { error: e3 } = await supabase
-        .from("route_points")
-        .update({ point_number: b.point_number })
-        .eq("id", a.id);
-      if (e3) throw e3;
+      await apiPost("/api/route-points/swap", {
+        a_id: a.id,
+        a_number: a.point_number,
+        b_id: b.id,
+        b_number: b.point_number,
+      });
     },
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message),
@@ -303,28 +288,22 @@ function ManualPointDialog({
     setBusy(true);
     try {
       const orderNumber = `MAN-${Date.now().toString().slice(-7)}`;
-      const { data: ord, error: ordErr } = await supabase
-        .from("orders")
-        .insert({
-          order_number: orderNumber,
-          contact_name: contact.trim() || null,
-          contact_phone: phone.trim() || null,
-          delivery_address: address.trim(),
-          total_weight_kg: weight ? Number(weight.replace(",", ".")) : null,
-          comment: [goods.trim(), comment.trim()].filter(Boolean).join(" · ") || null,
-          payment_type: "cash",
-          delivery_cost: 0,
-          source: "manual",
-        } as never)
-        .select("id")
-        .single();
-      if (ordErr || !ord) throw ordErr ?? new Error("Не удалось создать заказ");
-      const { error: rpErr } = await supabase.from("route_points").insert({
+      const ord = await apiPost<{ id: string }>("/api/orders", {
+        order_number: orderNumber,
+        contact_name: contact.trim() || null,
+        contact_phone: phone.trim() || null,
+        delivery_address: address.trim(),
+        total_weight_kg: weight ? Number(weight.replace(",", ".")) : null,
+        comment: [goods.trim(), comment.trim()].filter(Boolean).join(" · ") || null,
+        payment_type: "cash",
+        delivery_cost: 0,
+        source: "manual",
+      });
+      if (!ord?.id) throw new Error("Не удалось создать заказ");
+      await apiPost("/api/route-points/append", {
         route_id: requestId,
-        order_id: (ord as { id: string }).id,
-        point_number: nextPointNumber,
-      } as never);
-      if (rpErr) throw rpErr;
+        order_ids: [ord.id],
+      });
       toast.success("Точка добавлена");
       onSaved();
       onOpenChange(false);
@@ -404,14 +383,10 @@ function EditPointDialog({
   const submit = async () => {
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("orders")
-        .update({
-          delivery_address: address.trim() || null,
-          contact_name: contact.trim() || null,
-        })
-        .eq("id", point.order_id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${point.order_id}`, {
+        delivery_address: address.trim() || null,
+        contact_name: contact.trim() || null,
+      });
       toast.success("Сохранено");
       onSaved();
       onOpenChange(false);
@@ -473,13 +448,10 @@ function AddOrdersDialog({
     queryKey: ["available-orders-for-request"],
     enabled: open,
     queryFn: async (): Promise<Order[]> => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .in("status", ELIGIBLE_STATUSES)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Order[];
+      const data = await apiGetAuth<Order[]>("/api/orders?limit=500");
+      return ((data ?? []) as Order[]).filter((o) =>
+        ELIGIBLE_STATUSES.includes(o.status as OrderStatus),
+      );
     },
   });
 
@@ -497,13 +469,10 @@ function AddOrdersDialog({
   const addMutation = useMutation({
     mutationFn: async () => {
       if (selected.size === 0) return;
-      const rows = Array.from(selected).map((order_id, idx) => ({
+      await apiPost("/api/route-points/append", {
         route_id: requestId,
-        order_id,
-        point_number: nextPointNumber + idx,
-      }));
-      const { error } = await supabase.from("route_points").insert(rows);
-      if (error) throw error;
+        order_ids: Array.from(selected),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["request-orders", requestId] });
