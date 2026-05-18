@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,13 +84,11 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
   const { data: warehouses } = useQuery({
     queryKey: ["warehouses-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("warehouses")
-        .select("id, name, city")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data ?? [];
+      const { rows } = await fetchListViaApi<{ id: string; name: string; city: string | null }>(
+        "/api/warehouses",
+        { limit: 500, extra: { activeOnly: 1 } },
+      );
+      return rows;
     },
   });
 
@@ -192,12 +190,10 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
       let parentRouteId: string | null = routeId ?? null;
       if (isOnline()) {
         try {
-          const { data: rp } = await supabase
-            .from("route_points")
-            .select("route_id")
-            .eq("id", routePointId)
-            .maybeSingle();
-          const rid = (rp as { route_id?: string } | null)?.route_id ?? null;
+          const rp = await apiGetAuth<{ route_id?: string } | null>(
+            `/api/route-points/${routePointId}?fields=route_id`,
+          );
+          const rid = rp?.route_id ?? null;
           if (rid) parentRouteId = rid;
         } catch { /* not critical */ }
       }
@@ -206,16 +202,14 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
         "point_status_update",
         { routePointId, patch: payload, parentRouteId },
         async () => {
-          const { error } = await (supabase.from("route_points") as unknown as {
-            update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
-          }).update(payload).eq("id", routePointId);
-          if (error) throw error;
+          await apiPatch(`/api/route-points/${routePointId}`, payload);
           if (parentRouteId) {
-            await supabase
-              .from("delivery_routes")
-              .update({ status: "in_progress" })
-              .eq("id", parentRouteId)
-              .eq("status", "issued");
+            try {
+              await apiPatch(
+                `/api/delivery-routes/${parentRouteId}?if_status=issued`,
+                { status: "in_progress" },
+              );
+            } catch { /* not critical */ }
           }
         },
       );
