@@ -1062,6 +1062,94 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           /* не критично */
         }
 
+        // 6c. Автопередача водителю: если при импорте однозначно распознаны
+        // водитель и ТС и в маршруте есть точки — создаём delivery_route
+        // в статусе "issued", чтобы заявка сразу появилась в /driver.
+        // Идемпотентно: пропускаем, если delivery_route уже создан вручную.
+        let deliveryRouteIssued: { id: string; routeNumber: string | null } | null = null;
+        if (driverId && inserted > 0) {
+          try {
+            const { data: existingDr } = await sb
+              .from("delivery_routes")
+              .select("id, route_number, status, driver_id")
+              .eq("source_request_id", routeId)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            const existing = existingDr as
+              | { id: string; route_number: string | null; status: string; driver_id: string | null }
+              | null;
+            if (!existing) {
+              const { data: createdDr, error: drErr } = await sb
+                .from("delivery_routes")
+                .insert({
+                  route_date: routeDate,
+                  source_request_id: routeId,
+                  source_warehouse_id: warehouseId,
+                  carrier_id: carrierId,
+                  driver_id: driverId,
+                  assigned_driver: payload.driverName ?? null,
+                  assigned_vehicle: payload.vehiclePlate ?? null,
+                  status: "issued",
+                } as never)
+                .select("id, route_number")
+                .single();
+              if (drErr) {
+                console.error(
+                  "[import-route-sheet] delivery_routes auto-issue failed:",
+                  drErr,
+                );
+                warnings.push(
+                  `Автопередача водителю не выполнена: ${drErr.message}. Создайте маршрут вручную из заявки.`,
+                );
+              } else if (createdDr) {
+                const dr = createdDr as { id: string; route_number: string | null };
+                deliveryRouteIssued = { id: dr.id, routeNumber: dr.route_number };
+                try {
+                  await sb
+                    .from("routes")
+                    .update({
+                      request_status: "in_progress",
+                      request_status_changed_at: new Date().toISOString(),
+                      request_status_comment: `Маршрут ${dr.route_number ?? ""} автоматически передан водителю при импорте`.trim(),
+                    } as never)
+                    .eq("id", routeId);
+                } catch {
+                  /* не критично */
+                }
+              }
+            } else {
+              // Если уже есть delivery_route, но без driver_id — допишем driver_id,
+              // чтобы маршрут появился у водителя.
+              if (!existing.driver_id) {
+                await sb
+                  .from("delivery_routes")
+                  .update({
+                    driver_id: driverId,
+                    assigned_driver: payload.driverName ?? null,
+                    assigned_vehicle: payload.vehiclePlate ?? null,
+                    ...(existing.status === "draft" || existing.status === "formed"
+                      ? { status: "issued" }
+                      : {}),
+                  } as never)
+                  .eq("id", existing.id);
+              }
+              deliveryRouteIssued = { id: existing.id, routeNumber: existing.route_number };
+            }
+          } catch (e) {
+            console.error("[import-route-sheet] auto-issue exception:", e);
+            warnings.push(
+              `Автопередача водителю не выполнена: ${e instanceof Error ? e.message : "ошибка"}.`,
+            );
+          }
+        } else if (!driverId && inserted > 0) {
+          warnings.push(
+            "Водитель не распознан — маршрут не передан в исполнение автоматически.",
+          );
+        }
+
+
+
         return jsonResponse({
           ok: true,
           routeId,
@@ -1070,6 +1158,8 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           inserted,
           total: payload.orders.length,
           pointsCreated: inserted,
+          deliveryRouteIssued,
+
           itemsCreated,
           itemsUnmatched,
           ordersWithoutItems,
