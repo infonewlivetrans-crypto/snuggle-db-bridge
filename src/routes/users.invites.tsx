@@ -376,16 +376,28 @@ function InvitesPage() {
                           : "не использовалась"}
                       </TableCell>
                       <TableCell className="space-x-1 text-right">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-1"
-                          onClick={() => rotateMut.mutate(r.id)}
-                          disabled={rotateMut.isPending}
-                          title="Перевыпустить ссылку"
-                        >
-                          <RefreshCcw className="h-3.5 w-3.5" />
-                        </Button>
+                        {r.activated_at ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            disabled
+                            title="Инвайт уже активирован. Используйте сброс пароля."
+                          >
+                            <RefreshCcw className="h-3.5 w-3.5 opacity-50" />
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => rotateMut.mutate(r.id)}
+                            disabled={rotateMut.isPending}
+                            title="Перевыпустить ссылку"
+                          >
+                            <RefreshCcw className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
