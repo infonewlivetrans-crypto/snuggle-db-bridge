@@ -331,7 +331,7 @@ export async function parseTransportRequestXlsx(file: File): Promise<ParsedTrans
     vehiclePlate,
     comment,
     organization,
-    orderNumbers: Array.from(orderSet),
+    orderNumbers: orderNumbersOrdered,
     raw,
     warnings,
   };
