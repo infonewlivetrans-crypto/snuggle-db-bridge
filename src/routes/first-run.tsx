@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2, PlayCircle, PartyPopper, RotateCcw } from "lucide-react";
 
