@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/api-client";
 import { AlertTriangle, QrCode, Banknote, ShoppingBag, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
