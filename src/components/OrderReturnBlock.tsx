@@ -70,18 +70,13 @@ export function OrderReturnBlock({ order }: Props) {
 
   if (!isReturnFlow) return null;
 
-  const driver =
-    point?.routes?.drivers?.full_name ?? point?.routes?.driver_name ?? "—";
-  const vehicle = point?.routes?.vehicles
-    ? [
-        point.routes.vehicles.brand,
-        point.routes.vehicles.model,
-        point.routes.vehicles.plate_number,
-      ]
+  const driver = point?.driver_full_name ?? point?.driver_name ?? "—";
+  const vehicle = point?.vehicle
+    ? [point.vehicle.brand, point.vehicle.model, point.vehicle.plate_number]
         .filter(Boolean)
         .join(" ")
     : "—";
-  const warehouseName = point?.warehouses?.name ?? "—";
+  const warehouseName = point?.warehouse_name ?? "—";
   const reason = point?.dp_undelivered_reason
     ? REASON_LABELS[point.dp_undelivered_reason] ?? point.dp_undelivered_reason
     : "—";
