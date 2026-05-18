@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import {
   Dialog,
   DialogContent,
@@ -172,36 +172,29 @@ export function RequestImportWizard({
           }
         }
 
-        const { data: ord, error: ordErr } = await supabase
-          .from("orders")
-          .insert(payload as never)
-          .select("id")
-          .single();
-        if (ordErr || !ord) {
-          console.error("[RequestImport] order insert failed (full error):", {
-            row: i + 2,
-            payload,
-            error: ordErr,
-          });
-          const { formatSupabaseError } = await import("@/lib/supabaseError");
-          errors.push(`Строка ${i + 2}: ${formatSupabaseError(ordErr)}`);
+        let newOrderId: string;
+        try {
+          const resp = await apiPost<{ id: string }>("/api/orders", payload);
+          newOrderId = resp.id;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[RequestImport] order insert failed:", { row: i + 2, payload, msg });
+          errors.push(`Строка ${i + 2}: ${msg}`);
           continue;
         }
 
-        const { error: rpErr } = await supabase.from("route_points").insert({
-          route_id: requestId,
-          order_id: (ord as { id: string }).id,
-          point_number: pointNum,
-        } as never);
-        if (rpErr) {
-          console.error("[RequestImport] route_points insert failed (full error):", {
-            row: i + 2,
-            requestId,
-            orderId: (ord as { id: string }).id,
-            error: rpErr,
+        try {
+          await apiPost("/api/route-points", {
+            points: [{
+              route_id: requestId,
+              order_id: newOrderId,
+              point_number: pointNum,
+            }],
           });
-          const { formatSupabaseError } = await import("@/lib/supabaseError");
-          errors.push(`Строка ${i + 2}: ${formatSupabaseError(rpErr)}`);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[RequestImport] route_points insert failed:", { row: i + 2, requestId, orderId: newOrderId, msg });
+          errors.push(`Строка ${i + 2}: ${msg}`);
           continue;
         }
         pointNum++;

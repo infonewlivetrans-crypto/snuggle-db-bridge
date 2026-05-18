@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { toast } from "sonner";
 import { AlertTriangle, Camera, Loader2 } from "lucide-react";
 
@@ -96,19 +96,18 @@ export function ReportProblemDialog({
       let photo_url: string | null = null;
       if (photoFile) {
         setUploading(true);
-        const ext = photoFile.name.split(".").pop() || "jpg";
-        const path = `problem-reports/${orderId}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from(ROUTE_POINT_PHOTOS_BUCKET)
-          .upload(path, photoFile, { upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage
-          .from(ROUTE_POINT_PHOTOS_BUCKET)
-          .getPublicUrl(path);
-        photo_url = pub.publicUrl;
+        const fd = new FormData();
+        fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
+        fd.set("file", photoFile);
+        const up = await apiPost<{ path: string; public_url: string }>(
+          "/api/storage/upload",
+          fd,
+          60000,
+        );
+        photo_url = up.public_url;
         setUploading(false);
       }
-      const { error } = await supabase.from("order_problem_reports").insert({
+      await apiPost("/api/order-problem-reports", {
         order_id: orderId,
         route_point_id: routePointId ?? null,
         route_id: routeId ?? null,
@@ -120,7 +119,6 @@ export function ReportProblemDialog({
         manager_name: managerName ?? null,
         manager_phone: managerPhone ?? null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Проблема отправлена менеджеру.");

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost, apiPatch, apiDelete, apiGetAuth } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,19 +88,13 @@ function SystemIssuesPage() {
   const { data: issues = [], isLoading } = useQuery({
     queryKey: ["system_issues"],
     queryFn: async (): Promise<Issue[]> => {
-      const { data, error } = await supabase
-        .from("system_issues")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Issue[];
+      return await apiGetAuth<Issue[]>("/api/system-issues?fields=*&limit=500");
     },
   });
 
   const updateMut = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Partial<Issue> }) => {
-      const { error } = await supabase.from("system_issues").update(patch).eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/system-issues?id=${encodeURIComponent(id)}`, patch);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["system_issues"] }),
     onError: (e: Error) => toast.error(e.message),
@@ -108,8 +102,7 @@ function SystemIssuesPage() {
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("system_issues").delete().eq("id", id);
-      if (error) throw error;
+      await apiDelete(`/api/system-issues?id=${encodeURIComponent(id)}`);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["system_issues"] });
@@ -329,7 +322,7 @@ function CreateIssueDialog({ onCreated }: { onCreated: () => void }) {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("system_issues").insert({
+      await apiPost("/api/system-issues", {
         title: title.trim(),
         description: description.trim() || null,
         location: location.trim() || null,
@@ -338,7 +331,6 @@ function CreateIssueDialog({ onCreated }: { onCreated: () => void }) {
         status,
         comment: comment.trim() || null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["system_issues"] });
