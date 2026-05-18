@@ -182,49 +182,9 @@ function WarehouseDetailPage() {
     },
   });
 
-  // Realtime — слоты обновляются автоматически
-  useEffect(() => {
-    const channel = supabase
-      .channel(`dock-slots-${warehouseId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "warehouse_dock_slots",
-          filter: `warehouse_id=eq.${warehouseId}`,
-        },
-        () => {
-          qc.invalidateQueries({ queryKey: ["dock_slots", warehouseId] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [warehouseId, qc]);
-
-  // Realtime — сотрудники склада обновляются автоматически (актуальность подсказок)
-  useEffect(() => {
-    const channel = supabase
-      .channel(`warehouse-staff-${warehouseId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "warehouse_staff",
-          filter: `warehouse_id=eq.${warehouseId}`,
-        },
-        () => {
-          qc.invalidateQueries({ queryKey: ["warehouse_staff", warehouseId] });
-        },
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [warehouseId, qc]);
+  // Realtime отключён: production backend не отдаёт WebSocket-канал Supabase,
+  // прямое подключение из браузера приводило к ERR_CONNECTION_REFUSED.
+  // Актуальность данных — через обычные refetch'и react-query.
 
   if (isLoading || !warehouse) {
     return (
