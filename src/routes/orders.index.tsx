@@ -311,11 +311,112 @@ function OrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // --- Admin bulk delete (выбор заказов чекбоксами) ---
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+
+  const filteredIdsKey = useMemo(
+    () => (isDemo ? "" : filtered.map((r) => r.id).join(",")),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isDemo, filtered],
+  );
+
+  // Сброс выбора при фильтрах / демо.
+  useMemo(() => {
+    if (isDemo) {
+      if (selectedIds.size > 0) setSelectedIds(new Set());
+      return;
+    }
+    if (selectedIds.size === 0) return;
+    const visible = new Set(filtered.map((r) => r.id));
+    let changed = false;
+    const next = new Set<string>();
+    selectedIds.forEach((id) => {
+      if (visible.has(id)) next.add(id);
+      else changed = true;
+    });
+    if (changed) setSelectedIds(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredIdsKey, isDemo]);
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+  const someFilteredSelected =
+    !allFilteredSelected && filtered.some((r) => selectedIds.has(r.id));
+
+  function toggleOne(id: string, on: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+  function toggleAllVisible(on: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (on) filtered.forEach((r) => next.add(r.id));
+      else filtered.forEach((r) => next.delete(r.id));
+      return next;
+    });
+  }
+
+  const bulkDelete = useMutation({
+    mutationFn: async (ids: string[]) => {
+      return await apiPost<{
+        ok: true;
+        deletedOrders: Array<{ id: string; orderNumber: string | null }>;
+        errors: Array<{ id: string; orderNumber: string | null; reason: string }>;
+        deletedRoutes: Array<{ id: string; routeNumber: string | null }>;
+        deletedDeliveryRoutes: Array<{ id: string; routeNumber: string | null }>;
+        blockedRoutes: Array<{ routeId: string; routeNumber: string | null; reason: string }>;
+      }>("/api/orders/bulk-delete", { ids });
+    },
+    onSuccess: (res) => {
+      const delCount = res.deletedOrders.length;
+      if (delCount > 0) {
+        const routeMsg =
+          res.deletedRoutes.length > 0
+            ? " · Импортированная заявка очищена, файл можно загрузить повторно"
+            : "";
+        toast.success(`Удалено заказов: ${delCount}${routeMsg}`);
+      } else {
+        toast.warning("Ни один заказ не был удалён");
+      }
+      if (res.errors.length > 0) {
+        const lines = res.errors
+          .slice(0, 5)
+          .map((e) => `${e.orderNumber ?? e.id}: ${e.reason}`)
+          .join("\n");
+        toast.warning(
+          `Пропущено: ${res.errors.length}\n${lines}${res.errors.length > 5 ? "\n…" : ""}`,
+        );
+      }
+      if (res.blockedRoutes.length > 0) {
+        const lines = res.blockedRoutes
+          .slice(0, 5)
+          .map((b) => `${b.routeNumber ?? b.routeId}: ${b.reason}`)
+          .join("\n");
+        toast.warning(`Заявки не удалены:\n${lines}`);
+      }
+      setSelectedIds(new Set());
+      setBulkConfirmOpen(false);
+      qc.invalidateQueries({ queryKey: ["orders-overview"] });
+      qc.invalidateQueries({ queryKey: ["delivery-routes"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      void refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const totalAmount = filtered.reduce((s, r) => s + Number(r.amount_due ?? r.goods_amount ?? 0), 0);
   const paidCount = filtered.filter((r) => r.payment_status === "paid").length;
   const inDeliveryCount = filtered.filter(
     (r) => r.status === "delivering" || r.status === "in_progress",
   ).length;
+
 
   return (
     <div className="min-h-screen bg-background">
