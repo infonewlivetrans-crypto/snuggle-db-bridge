@@ -38,6 +38,28 @@ const ALLOWED = new Set([
   "carrier_docs_accepted_at",
   "carrier_docs_accepted_by",
   "carrier_docs_fix_reason",
+  // warehouses
+  "warehouse_id",
+  "destination_warehouse_id",
+  // scheduling
+  "route_date",
+  "departure_time",
+  "request_priority",
+  // timing / eta
+  "avg_speed_kmh",
+  "default_service_minutes",
+  "planned_departure_at",
+  // cost / tariff
+  "cost_method",
+  "cost_per_km",
+  "cost_per_point",
+  "fixed_cost",
+  "delivery_cost",
+  "manual_cost",
+  "applied_tariff_id",
+  "manual_cost_reason",
+  "manual_orders_amount",
+  "delivery_percent_target",
 ]);
 
 // delivery_route_status, при которых рейс уже не черновик — удаление

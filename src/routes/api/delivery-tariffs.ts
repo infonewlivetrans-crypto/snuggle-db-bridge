@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { cacheHeaders, jsonResponse, requireAdmin } from "@/server/api-helpers.server";
+import { cacheHeaders, jsonResponse, requireAdmin, requireAuth } from "@/server/api-helpers.server";
 
 export const Route = createFileRoute("/api/delivery-tariffs")({
   server: {
     handlers: {
+      // GET доступен всем авторизованным — тарифы нужны логисту в карточке маршрута.
       GET: async ({ request }) => {
-        const auth = await requireAdmin(request);
+        const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
         const url = new URL(request.url);
         const warehouseId = url.searchParams.get("warehouse_id");

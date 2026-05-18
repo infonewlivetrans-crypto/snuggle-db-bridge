@@ -4,6 +4,18 @@ import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 export const Route = createFileRoute("/api/warehouses/$id")({
   server: {
     handlers: {
+      GET: async ({ request, params }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const { data, error } = await auth.client
+          .from("warehouses")
+          .select("*")
+          .eq("id", params.id)
+          .maybeSingle();
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        if (!data) return jsonResponse({ error: "not_found" }, { status: 404 });
+        return jsonResponse(data);
+      },
       PATCH: async ({ request, params }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
