@@ -1,0 +1,1 @@
+UPDATE public.warehouses SET is_active = true, updated_at = now() WHERE id = '1a8c32b1-f0d8-45cd-a739-50d5105b7d15';
