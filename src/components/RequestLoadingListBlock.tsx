@@ -126,13 +126,14 @@ export function RequestLoadingListBlock({
     queryKey: ["loading-list-stock", warehouseId, productIds.join(",")],
     enabled: !!warehouseId && productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("product_id, available, warehouse_id")
-        .eq("warehouse_id", warehouseId)
-        .in("product_id", productIds);
-      if (error) throw error;
-      return (data ?? []) as StockBal[];
+      const { rows } = await fetchListViaApi<StockBal>("/api/stock-balances", {
+        limit: 1000,
+        extra: {
+          warehouse_id: warehouseId ?? "",
+          product_id: productIds.join(","),
+        },
+      });
+      return rows;
     },
   });
 
