@@ -255,17 +255,18 @@ export function StockAvailabilityCheckBlock({
       );
       const insertedRow = inserted.row;
       // Уведомление снабжению
-      const { data: wh } = await db
-        .from("warehouses")
-        .select("name")
-        .eq("id", warehouseId)
-        .maybeSingle();
-      const whName = (wh as { name?: string } | null)?.name ?? null;
+      let whName2: string | null = null;
+      try {
+        const wh = await apiGetAuth<{ name?: string } | null>(
+          `/api/warehouses/${encodeURIComponent(warehouseId)}`,
+        );
+        whName2 = wh?.name ?? null;
+      } catch { /* noop */ }
       await notifySupplyRequestCreated({
-        supplyRequestId: (inserted as { id: string }).id,
-        requestNumber: (inserted as { request_number: string }).request_number,
+        supplyRequestId: insertedRow.id,
+        requestNumber: insertedRow.request_number,
         warehouseId,
-        warehouseName: whName,
+        warehouseName: whName2,
         productId: args.product_id,
         productName: args.nomenclature,
         qty: args.qty,
