@@ -36,6 +36,13 @@ export const Route = createFileRoute("/api/invites/$id")({
           return jsonResponse({ error: "Нет изменений" }, { status: 400 });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
+          // Ожидаемый бизнес-кейс: инвайт уже активирован — это не 500.
+          if (/already activated/i.test(msg)) {
+            return jsonResponse(
+              { error: "Инвайт уже активирован. Используйте сброс пароля." },
+              { status: 409 },
+            );
+          }
           console.error("[api/invites/:id PATCH] failed", { id: params.id, body, msg, error: e });
           return jsonResponse({ error: msg || "invite update failed" }, { status: 500 });
         }
