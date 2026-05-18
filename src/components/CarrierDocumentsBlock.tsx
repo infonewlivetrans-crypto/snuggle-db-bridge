@@ -110,7 +110,7 @@ export function CarrierDocumentsBlock({
       const url = await uploadPublicFile("carrier-documents", file, routeId);
       const label =
         profile?.full_name ?? user?.email ?? null;
-      const { error: insErr } = await supabase.from("route_carrier_documents").insert({
+      await apiPost(`/api/route-carrier-documents`, {
         route_id: routeId,
         carrier_id: route.carrier_id,
         kind: uploadKind,
@@ -118,20 +118,16 @@ export function CarrierDocumentsBlock({
         uploaded_by: user?.id ?? null,
         uploaded_by_label: label,
       });
-      if (insErr) throw insErr;
 
       // Move route status to uploaded if currently awaiting/needs_fix
       if (status === "awaiting" || status === "needs_fix") {
-        await supabase
-          .from("routes")
-          .update({
-            carrier_docs_status: "uploaded",
-            carrier_docs_uploaded_at: new Date().toISOString(),
-            carrier_docs_uploaded_by: user?.id ?? null,
-          })
-          .eq("id", routeId);
+        await apiPatch(`/api/routes/${routeId}`, {
+          carrier_docs_status: "uploaded",
+          carrier_docs_uploaded_at: new Date().toISOString(),
+          carrier_docs_uploaded_by: user?.id ?? null,
+        });
 
-        await supabase.from("route_carrier_history").insert({
+        await apiPost(`/api/route-carrier-history`, {
           route_id: routeId,
           carrier_id: route.carrier_id,
           action: "documents_uploaded",
