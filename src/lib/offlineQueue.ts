@@ -1,8 +1,7 @@
 // Простая офлайн-очередь действий водителя.
 // Хранение: localStorage (per-browser). Отправка — при появлении сети.
 
-import { apiPost } from "@/lib/api-client";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost, apiPatch } from "@/lib/api-client";
 import type { TripStage } from "@/lib/tripStage";
 
 const STORAGE_KEY = "driver-offline-queue:v2";
