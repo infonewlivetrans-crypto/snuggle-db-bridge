@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { MapPin, AlertTriangle } from "lucide-react";
 
 /**
