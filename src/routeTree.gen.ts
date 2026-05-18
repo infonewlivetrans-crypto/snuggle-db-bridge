@@ -77,6 +77,7 @@ import { Route as CarriersVerificationRouteImport } from './routes/carriers.veri
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
+import { Route as ApiWarehouseStatusAlertsRouteImport } from './routes/api/warehouse-status-alerts'
 import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
 import { Route as ApiWarehouseReturnsRouteImport } from './routes/api/warehouse-returns'
 import { Route as ApiWarehouseReportRouteImport } from './routes/api/warehouse-report'
@@ -575,6 +576,12 @@ const ApiWarehousesRoute = ApiWarehousesRouteImport.update({
   path: '/api/warehouses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWarehouseStatusAlertsRoute =
+  ApiWarehouseStatusAlertsRouteImport.update({
+    id: '/api/warehouse-status-alerts',
+    path: '/api/warehouse-status-alerts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiWarehouseScheduleRoute = ApiWarehouseScheduleRouteImport.update({
   id: '/api/warehouse-schedule',
   path: '/api/warehouse-schedule',
@@ -1493,6 +1500,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
+  '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -1718,6 +1726,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
+  '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -1944,6 +1953,7 @@ export interface FileRoutesById {
   '/api/warehouse-report': typeof ApiWarehouseReportRoute
   '/api/warehouse-returns': typeof ApiWarehouseReturnsRoute
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
+  '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -2171,6 +2181,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
+    | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
     | '/carriers/$carrierId'
@@ -2396,6 +2407,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
+    | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
     | '/carriers/$carrierId'
@@ -2621,6 +2633,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-report'
     | '/api/warehouse-returns'
     | '/api/warehouse-schedule'
+    | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
     | '/carriers/$carrierId'
@@ -2847,6 +2860,7 @@ export interface RootRouteChildren {
   ApiWarehouseReportRoute: typeof ApiWarehouseReportRoute
   ApiWarehouseReturnsRoute: typeof ApiWarehouseReturnsRoute
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
+  ApiWarehouseStatusAlertsRoute: typeof ApiWarehouseStatusAlertsRoute
   ApiWarehousesRoute: typeof ApiWarehousesRouteWithChildren
   CTokenRoute: typeof CTokenRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
@@ -3375,6 +3389,13 @@ declare module '@tanstack/react-router' {
       path: '/api/warehouses'
       fullPath: '/api/warehouses'
       preLoaderRoute: typeof ApiWarehousesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/warehouse-status-alerts': {
+      id: '/api/warehouse-status-alerts'
+      path: '/api/warehouse-status-alerts'
+      fullPath: '/api/warehouse-status-alerts'
+      preLoaderRoute: typeof ApiWarehouseStatusAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/warehouse-schedule': {
@@ -5086,6 +5107,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWarehouseReportRoute: ApiWarehouseReportRoute,
   ApiWarehouseReturnsRoute: ApiWarehouseReturnsRoute,
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
+  ApiWarehouseStatusAlertsRoute: ApiWarehouseStatusAlertsRoute,
   ApiWarehousesRoute: ApiWarehousesRouteWithChildren,
   CTokenRoute: CTokenRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
