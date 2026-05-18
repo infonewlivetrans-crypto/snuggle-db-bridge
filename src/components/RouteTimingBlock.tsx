@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,15 +61,11 @@ export function RouteTimingBlock(props: Props) {
       const sv = Number(service);
       if (!Number.isFinite(sp) || sp <= 0) throw new Error("Скорость должна быть > 0");
       if (!Number.isFinite(sv) || sv < 0) throw new Error("Время разгрузки должно быть ≥ 0");
-      const { error } = await supabase
-        .from("routes")
-        .update({
-          avg_speed_kmh: sp,
-          default_service_minutes: sv,
-          planned_departure_at: departure ? new Date(departure).toISOString() : null,
-        })
-        .eq("id", props.routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${encodeURIComponent(props.routeId)}`, {
+        avg_speed_kmh: sp,
+        default_service_minutes: sv,
+        planned_departure_at: departure ? new Date(departure).toISOString() : null,
+      });
     },
     onSuccess: () => {
       toast.success("Параметры маршрута обновлены, время пересчитано");
