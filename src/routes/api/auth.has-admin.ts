@@ -11,8 +11,14 @@ export const Route = createFileRoute("/api/auth/has-admin")({
         try {
           return jsonResponse({ has_admin: await hasAnyAdmin() });
         } catch (e) {
+          // Не возвращаем 500 на этом маленьком публичном эндпоинте — он
+          // вызывается на каждой странице (AuthGate/FirstRun) и не должен
+          // ронять основной UI, если backend временно недоступен или env
+          // не сконфигурирован на VPS. Возвращаем безопасный дефолт
+          // (has_admin: true → не показывать экран первой настройки).
           const message = e instanceof Error ? e.message : "internal error";
-          return jsonResponse({ error: message, has_admin: true }, { status: 500 });
+          console.error("/api/auth/has-admin error:", message);
+          return jsonResponse({ has_admin: true, degraded: true, error: message });
         }
       },
     },
