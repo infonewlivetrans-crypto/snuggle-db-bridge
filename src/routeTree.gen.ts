@@ -144,6 +144,7 @@ import { Route as ApiDeliveryReportsRouteImport } from './routes/api/delivery-re
 import { Route as ApiDeliveryPhotosRouteImport } from './routes/api/delivery-photos'
 import { Route as ApiDeliveryDocumentsRouteImport } from './routes/api/delivery-documents'
 import { Route as ApiDataImportRouteImport } from './routes/api/data-import'
+import { Route as ApiDashboardCountsRouteImport } from './routes/api/dashboard-counts'
 import { Route as ApiClientsRouteImport } from './routes/api/clients'
 import { Route as ApiCarriersRouteImport } from './routes/api/carriers'
 import { Route as ApiBackupsRouteImport } from './routes/api/backups'
@@ -172,6 +173,7 @@ import { Route as ApiRoutingDirectionsRouteImport } from './routes/api/routing.d
 import { Route as ApiRoutesIdRouteImport } from './routes/api/routes.$id'
 import { Route as ApiRoutePointsSwapRouteImport } from './routes/api/route-points.swap'
 import { Route as ApiRoutePointsReorderRouteImport } from './routes/api/route-points.reorder'
+import { Route as ApiRoutePointsAppendRouteImport } from './routes/api/route-points.append'
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiRouteCarrierDocumentsIdRouteImport } from './routes/api/route-carrier-documents.$id'
@@ -206,6 +208,7 @@ import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
 import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
+import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
@@ -907,6 +910,11 @@ const ApiDataImportRoute = ApiDataImportRouteImport.update({
   path: '/api/data-import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDashboardCountsRoute = ApiDashboardCountsRouteImport.update({
+  id: '/api/dashboard-counts',
+  path: '/api/dashboard-counts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiClientsRoute = ApiClientsRouteImport.update({
   id: '/api/clients',
   path: '/api/clients',
@@ -1048,6 +1056,11 @@ const ApiRoutePointsSwapRoute = ApiRoutePointsSwapRouteImport.update({
 const ApiRoutePointsReorderRoute = ApiRoutePointsReorderRouteImport.update({
   id: '/reorder',
   path: '/reorder',
+  getParentRoute: () => ApiRoutePointsRoute,
+} as any)
+const ApiRoutePointsAppendRoute = ApiRoutePointsAppendRouteImport.update({
+  id: '/append',
+  path: '/append',
   getParentRoute: () => ApiRoutePointsRoute,
 } as any)
 const ApiRoutePointsIdRoute = ApiRoutePointsIdRouteImport.update({
@@ -1225,6 +1238,12 @@ const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   path: '/api/admin/reset-owner',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDriverAccessResolveRoute =
+  ApiPublicDriverAccessResolveRouteImport.update({
+    id: '/api/public/driver-access/resolve',
+    path: '/api/public/driver-access/resolve',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicClientPortalTokenRoute =
   ApiPublicClientPortalTokenRouteImport.update({
     id: '/api/public/client-portal/$token',
@@ -1371,6 +1390,7 @@ export interface FileRoutesByFullPath {
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
   '/api/clients': typeof ApiClientsRouteWithChildren
+  '/api/dashboard-counts': typeof ApiDashboardCountsRoute
   '/api/data-import': typeof ApiDataImportRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
@@ -1507,6 +1527,7 @@ export interface FileRoutesByFullPath {
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
@@ -1539,6 +1560,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -1588,6 +1610,7 @@ export interface FileRoutesByTo {
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
   '/api/clients': typeof ApiClientsRouteWithChildren
+  '/api/dashboard-counts': typeof ApiDashboardCountsRoute
   '/api/data-import': typeof ApiDataImportRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
@@ -1724,6 +1747,7 @@ export interface FileRoutesByTo {
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
@@ -1756,6 +1780,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -1806,6 +1831,7 @@ export interface FileRoutesById {
   '/api/backups': typeof ApiBackupsRouteWithChildren
   '/api/carriers': typeof ApiCarriersRouteWithChildren
   '/api/clients': typeof ApiClientsRouteWithChildren
+  '/api/dashboard-counts': typeof ApiDashboardCountsRoute
   '/api/data-import': typeof ApiDataImportRoute
   '/api/delivery-documents': typeof ApiDeliveryDocumentsRoute
   '/api/delivery-photos': typeof ApiDeliveryPhotosRoute
@@ -1942,6 +1968,7 @@ export interface FileRoutesById {
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
+  '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
   '/api/routes/$id': typeof ApiRoutesIdRoute
@@ -1974,6 +2001,7 @@ export interface FileRoutesById {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -2025,6 +2053,7 @@ export interface FileRouteTypes {
     | '/api/backups'
     | '/api/carriers'
     | '/api/clients'
+    | '/api/dashboard-counts'
     | '/api/data-import'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
@@ -2161,6 +2190,7 @@ export interface FileRouteTypes {
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
+    | '/api/route-points/append'
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
@@ -2193,6 +2223,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/driver-access/resolve'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2242,6 +2273,7 @@ export interface FileRouteTypes {
     | '/api/backups'
     | '/api/carriers'
     | '/api/clients'
+    | '/api/dashboard-counts'
     | '/api/data-import'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
@@ -2378,6 +2410,7 @@ export interface FileRouteTypes {
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
+    | '/api/route-points/append'
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
@@ -2410,6 +2443,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/driver-access/resolve'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2459,6 +2493,7 @@ export interface FileRouteTypes {
     | '/api/backups'
     | '/api/carriers'
     | '/api/clients'
+    | '/api/dashboard-counts'
     | '/api/data-import'
     | '/api/delivery-documents'
     | '/api/delivery-photos'
@@ -2595,6 +2630,7 @@ export interface FileRouteTypes {
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
+    | '/api/route-points/append'
     | '/api/route-points/reorder'
     | '/api/route-points/swap'
     | '/api/routes/$id'
@@ -2627,6 +2663,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/driver-access/resolve'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2677,6 +2714,7 @@ export interface RootRouteChildren {
   ApiBackupsRoute: typeof ApiBackupsRouteWithChildren
   ApiCarriersRoute: typeof ApiCarriersRouteWithChildren
   ApiClientsRoute: typeof ApiClientsRouteWithChildren
+  ApiDashboardCountsRoute: typeof ApiDashboardCountsRoute
   ApiDataImportRoute: typeof ApiDataImportRoute
   ApiDeliveryDocumentsRoute: typeof ApiDeliveryDocumentsRoute
   ApiDeliveryPhotosRoute: typeof ApiDeliveryPhotosRoute
@@ -2793,6 +2831,7 @@ export interface RootRouteChildren {
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
+  ApiPublicDriverAccessResolveRoute: typeof ApiPublicDriverAccessResolveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -3742,6 +3781,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDataImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dashboard-counts': {
+      id: '/api/dashboard-counts'
+      path: '/api/dashboard-counts'
+      fullPath: '/api/dashboard-counts'
+      preLoaderRoute: typeof ApiDashboardCountsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/clients': {
       id: '/api/clients'
       path: '/api/clients'
@@ -3936,6 +3982,13 @@ declare module '@tanstack/react-router' {
       path: '/reorder'
       fullPath: '/api/route-points/reorder'
       preLoaderRoute: typeof ApiRoutePointsReorderRouteImport
+      parentRoute: typeof ApiRoutePointsRoute
+    }
+    '/api/route-points/append': {
+      id: '/api/route-points/append'
+      path: '/append'
+      fullPath: '/api/route-points/append'
+      preLoaderRoute: typeof ApiRoutePointsAppendRouteImport
       parentRoute: typeof ApiRoutePointsRoute
     }
     '/api/route-points/$id': {
@@ -4174,6 +4227,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/reset-owner'
       fullPath: '/api/admin/reset-owner'
       preLoaderRoute: typeof ApiAdminResetOwnerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/driver-access/resolve': {
+      id: '/api/public/driver-access/resolve'
+      path: '/api/public/driver-access/resolve'
+      fullPath: '/api/public/driver-access/resolve'
+      preLoaderRoute: typeof ApiPublicDriverAccessResolveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/client-portal/$token': {
@@ -4614,12 +4674,14 @@ const ApiRoutePointPhotosRouteWithChildren =
 
 interface ApiRoutePointsRouteChildren {
   ApiRoutePointsIdRoute: typeof ApiRoutePointsIdRoute
+  ApiRoutePointsAppendRoute: typeof ApiRoutePointsAppendRoute
   ApiRoutePointsReorderRoute: typeof ApiRoutePointsReorderRoute
   ApiRoutePointsSwapRoute: typeof ApiRoutePointsSwapRoute
 }
 
 const ApiRoutePointsRouteChildren: ApiRoutePointsRouteChildren = {
   ApiRoutePointsIdRoute: ApiRoutePointsIdRoute,
+  ApiRoutePointsAppendRoute: ApiRoutePointsAppendRoute,
   ApiRoutePointsReorderRoute: ApiRoutePointsReorderRoute,
   ApiRoutePointsSwapRoute: ApiRoutePointsSwapRoute,
 }
@@ -4851,6 +4913,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBackupsRoute: ApiBackupsRouteWithChildren,
   ApiCarriersRoute: ApiCarriersRouteWithChildren,
   ApiClientsRoute: ApiClientsRouteWithChildren,
+  ApiDashboardCountsRoute: ApiDashboardCountsRoute,
   ApiDataImportRoute: ApiDataImportRoute,
   ApiDeliveryDocumentsRoute: ApiDeliveryDocumentsRoute,
   ApiDeliveryPhotosRoute: ApiDeliveryPhotosRoute,
@@ -4967,6 +5030,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
+  ApiPublicDriverAccessResolveRoute: ApiPublicDriverAccessResolveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
