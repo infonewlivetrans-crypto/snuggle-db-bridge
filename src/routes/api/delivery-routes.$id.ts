@@ -1,7 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 
-const ALLOWED = new Set(["status", "comment"]);
+const ALLOWED = new Set([
+  "status",
+  "comment",
+  "assigned_driver",
+  "assigned_vehicle",
+  "driver_id",
+  "carrier_id",
+  "driver_access_token",
+  "driver_access_created_at",
+  "driver_access_created_by",
+  "driver_access_enabled",
+]);
 
 type DeleteDeliveryRouteResult = {
   ok?: boolean;
