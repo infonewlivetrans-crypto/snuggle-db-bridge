@@ -50,6 +50,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
         const routeDate = url.searchParams.get("route_date");
         const status = url.searchParams.get("status");
         const carrierId = url.searchParams.get("carrier_id");
+        const sourceRequestId = url.searchParams.get("source_request_id");
         const order = url.searchParams.get("order") ?? "route_date.desc";
         const [orderCol, orderDirRaw] = order.split(".");
         const ascending = (orderDirRaw ?? "desc").toLowerCase() !== "desc";
@@ -66,6 +67,7 @@ export const Route = createFileRoute("/api/delivery-routes")({
           else if (statuses.length === 1) q = q.eq("status", statuses[0] as never);
         }
         if (carrierId) q = q.eq("carrier_id", carrierId);
+        if (sourceRequestId) q = q.eq("source_request_id", sourceRequestId);
         q = q.order(orderCol || "route_date", { ascending });
 
         const useLimit = Math.min(Math.max(limit, 1), 500);
