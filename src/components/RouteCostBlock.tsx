@@ -117,17 +117,16 @@ export function RouteCostBlock({
   const { data: tariffs = [] } = useQuery({
     queryKey: ["delivery-tariffs-for-route", warehouseId ?? "any"],
     queryFn: async () => {
-      let q = supabase
-        .from("delivery_tariffs")
-        .select("id, warehouse_id, name, kind, city, zone, destination_city, fixed_price, price_per_km, price_per_point, base_price, is_active, comment")
-        .eq("is_active", true)
-        .order("priority", { ascending: true });
-      if (warehouseId) q = q.eq("warehouse_id", warehouseId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as TariffRow[];
+      const params = new URLSearchParams({ activeOnly: "1", limit: "500" });
+      if (warehouseId) params.set("warehouse_id", warehouseId);
+      const rows = await apiGetAuth<TariffRow[] | { rows: TariffRow[] }>(
+        `/api/delivery-tariffs?${params.toString()}`,
+      );
+      const list = Array.isArray(rows) ? rows : (rows.rows ?? []);
+      return list as TariffRow[];
     },
   });
+
 
   const applyTariff = (id: string) => {
     setTariffId(id);
