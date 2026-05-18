@@ -105,8 +105,8 @@ export function TransportRequirementsBlock({
         requires_straps: needStraps,
         transport_comment: comment.trim() === "" ? null : comment.trim(),
       };
-      const { error } = await supabase.from("routes").update(payload).eq("id", requestId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${requestId}`, payload);
+
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transport-request", requestId] });
