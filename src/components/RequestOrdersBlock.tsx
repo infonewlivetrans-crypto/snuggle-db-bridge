@@ -48,15 +48,12 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
   const { data: items, isLoading } = useQuery({
     queryKey: ["request-orders", requestId],
     queryFn: async (): Promise<RequestOrder[]> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, order_id, point_number, order:order_id(id, order_number, status, delivery_address, contact_name, amount_due, delivery_cost)",
-        )
-        .eq("route_id", requestId)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as unknown as RequestOrder[];
+      const fields =
+        "id, order_id, point_number, order:order_id(id, order_number, status, delivery_address, contact_name, amount_due, delivery_cost)";
+      const data = await apiGetAuth<RequestOrder[]>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 
@@ -70,8 +67,7 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
 
   const removeMutation = useMutation({
     mutationFn: async (pointId: string) => {
-      const { error } = await supabase.from("route_points").delete().eq("id", pointId);
-      if (error) throw error;
+      await apiDelete(`/api/route-points/${pointId}`);
     },
     onSuccess: () => {
       invalidate();
@@ -87,23 +83,12 @@ export function RequestOrdersBlock({ requestId }: { requestId: string }) {
       if (j < 0 || j >= list.length) return;
       const a = list[index];
       const b = list[j];
-      // swap point_number through a temporary value to avoid unique conflicts
-      const tmp = -Math.floor(Math.random() * 1_000_000) - 1;
-      const { error: e1 } = await supabase
-        .from("route_points")
-        .update({ point_number: tmp })
-        .eq("id", a.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase
-        .from("route_points")
-        .update({ point_number: a.point_number })
-        .eq("id", b.id);
-      if (e2) throw e2;
-      const { error: e3 } = await supabase
-        .from("route_points")
-        .update({ point_number: b.point_number })
-        .eq("id", a.id);
-      if (e3) throw e3;
+      await apiPost("/api/route-points/swap", {
+        a_id: a.id,
+        a_number: a.point_number,
+        b_id: b.id,
+        b_number: b.point_number,
+      });
     },
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message),
