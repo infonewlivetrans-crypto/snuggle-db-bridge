@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiGetAuth } from "@/lib/api-client";
 import { db } from "@/lib/db";
 import {
   Table,
