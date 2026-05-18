@@ -205,12 +205,13 @@ export function StockAvailabilityCheckBlock({
     );
     if (shortageRows.length === 0) return;
     (async () => {
-      const { data: wh } = await db
-        .from("warehouses")
-        .select("name")
-        .eq("id", warehouseId)
-        .maybeSingle();
-      const whName = (wh as { name?: string } | null)?.name ?? null;
+      let whName: string | null = null;
+      try {
+        const wh = await apiGetAuth<{ name?: string } | null>(
+          `/api/warehouses/${encodeURIComponent(warehouseId)}`,
+        );
+        whName = wh?.name ?? null;
+      } catch { /* noop */ }
       for (const r of shortageRows) {
         await notifyShortageForRequest({
           transportRequestId: requestId,
