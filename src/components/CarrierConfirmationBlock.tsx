@@ -24,9 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth/auth-context";
-import { apiPost } from "@/lib/api-client";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 
 type Props = { routeId: string };
 
