@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 
-const ALLOWED_BUCKETS = new Set(["delivery-photos"]);
+const ALLOWED_BUCKETS = new Set(["delivery-photos", "route-point-photos"]);
 
 export const Route = createFileRoute("/api/storage/upload")({
   server: {
