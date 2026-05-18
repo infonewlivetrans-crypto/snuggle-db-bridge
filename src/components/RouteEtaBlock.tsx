@@ -46,18 +46,14 @@ export function RouteEtaBlock({
     enabled: !!sourceRouteId,
     queryKey: ["route-eta-settings", sourceRouteId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("avg_speed_kmh, default_service_minutes, planned_departure_at")
-        .eq("id", sourceRouteId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as {
+      const data = await apiGetAuth<{
         avg_speed_kmh: number | null;
         default_service_minutes: number | null;
         planned_departure_at: string | null;
-      } | null;
+      } | null>(`/api/routes/${sourceRouteId}`);
+      return data;
     },
+
   });
 
   const eta = useMemo(() => {
