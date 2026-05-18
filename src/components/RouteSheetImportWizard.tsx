@@ -502,10 +502,11 @@ export function RouteSheetImportWizard({
 
       if (!res.ok || !json.ok || !json.routeId) {
         // Штатный сценарий: маршрут с таким номером уже импортирован.
-        // Сервер отвечает 409 + code: "route_already_imported".
+        // Сервер отвечает 409 + code: "route_already_imported" или "transport_request_already_imported".
         // Не показываем технический дамп и не логируем как ошибку.
-        if (res.status === 409 && json.code === "route_already_imported") {
-          const friendly = `Заявка по маршрутному листу №${json.routeNumber ?? parsed?.routeNumber ?? ""} уже создана`;
+        const ALREADY_CODES = new Set(["route_already_imported", "transport_request_already_imported"]);
+        if (res.status === 409 && json.code && ALREADY_CODES.has(json.code)) {
+          const friendly = `Заявка №${json.routeNumber ?? parsed?.routeNumber ?? ""} уже создана`;
           setErrorMsg(friendly);
           setErrorDetails(null);
           toast.info(friendly);
