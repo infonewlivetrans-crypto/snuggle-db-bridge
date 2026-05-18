@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Send, Truck, Clock, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
-import { db } from "@/lib/db";
-import { apiPost } from "@/lib/api-client";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import {
   BODY_TYPE_LABELS,
   type BodyType,
