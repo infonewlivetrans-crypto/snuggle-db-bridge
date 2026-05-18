@@ -122,6 +122,7 @@ import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
 import { Route as ApiOrderReturnInfoRouteImport } from './routes/api/order-return-info'
 import { Route as ApiOrderItemsRouteImport } from './routes/api/order-items'
+import { Route as ApiOrderDeliveryResultRouteImport } from './routes/api/order-delivery-result'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
 import { Route as ApiManagersRouteImport } from './routes/api/managers'
@@ -795,6 +796,11 @@ const ApiOrderItemsRoute = ApiOrderItemsRouteImport.update({
   path: '/api/order-items',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrderDeliveryResultRoute = ApiOrderDeliveryResultRouteImport.update({
+  id: '/api/order-delivery-result',
+  path: '/api/order-delivery-result',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
   id: '/api/notifications',
   path: '/api/notifications',
@@ -1386,6 +1392,7 @@ export interface FileRoutesByFullPath {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
+  '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -1602,6 +1609,7 @@ export interface FileRoutesByTo {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
+  '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -1819,6 +1827,7 @@ export interface FileRoutesById {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
+  '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-items': typeof ApiOrderItemsRoute
   '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
@@ -2037,6 +2046,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-delivery-result'
     | '/api/order-items'
     | '/api/order-return-info'
     | '/api/order-statuses'
@@ -2253,6 +2263,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-delivery-result'
     | '/api/order-items'
     | '/api/order-return-info'
     | '/api/order-statuses'
@@ -2469,6 +2480,7 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-delivery-result'
     | '/api/order-items'
     | '/api/order-return-info'
     | '/api/order-statuses'
@@ -2686,6 +2698,7 @@ export interface RootRouteChildren {
   ApiManagersRoute: typeof ApiManagersRouteWithChildren
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRouteWithChildren
+  ApiOrderDeliveryResultRoute: typeof ApiOrderDeliveryResultRoute
   ApiOrderItemsRoute: typeof ApiOrderItemsRoute
   ApiOrderReturnInfoRoute: typeof ApiOrderReturnInfoRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
@@ -3573,6 +3586,13 @@ declare module '@tanstack/react-router' {
       path: '/api/order-items'
       fullPath: '/api/order-items'
       preLoaderRoute: typeof ApiOrderItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/order-delivery-result': {
+      id: '/api/order-delivery-result'
+      path: '/api/order-delivery-result'
+      fullPath: '/api/order-delivery-result'
+      preLoaderRoute: typeof ApiOrderDeliveryResultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/notifications': {
@@ -4852,6 +4872,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManagersRoute: ApiManagersRouteWithChildren,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRouteWithChildren,
+  ApiOrderDeliveryResultRoute: ApiOrderDeliveryResultRoute,
   ApiOrderItemsRoute: ApiOrderItemsRoute,
   ApiOrderReturnInfoRoute: ApiOrderReturnInfoRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
