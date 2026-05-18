@@ -281,11 +281,7 @@ export async function exportDriversReport(format: "xlsx" | "docx") {
 // ---------- 4. Отчёт по заявкам на транспорт ----------
 
 export async function exportTransportRequestsReport(format: "xlsx" | "docx") {
-  const { data, error } = await supabase
-    .from("routes")
-    .select("*")
-    .order("route_date", { ascending: false });
-  if (error) throw error;
+  const data = await fetchAllPaged<RouteRow>("/api/routes");
 
   const TYPE_LABELS: Record<string, string> = {
     client_delivery: "Доставка клиентам",
@@ -294,7 +290,7 @@ export async function exportTransportRequestsReport(format: "xlsx" | "docx") {
   };
 
   const headers = ["№ заявки", "Дата", "Тип", "Водитель", "Точек", "Вес, кг", "Объём, м³", "Статус"];
-  const rowsArr = (data ?? []).map((r) => [
+  const rowsArr = data.map((r) => [
     r.route_number,
     r.route_date,
     TYPE_LABELS[r.request_type] ?? r.request_type,
