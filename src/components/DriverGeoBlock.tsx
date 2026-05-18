@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth } from "@/lib/api-client";
 import { MapPin, Clock, AlertTriangle, Wifi, WifiOff } from "lucide-react";
 import { yandexMapsUrl, formatCoords } from "@/lib/geo";
 
@@ -21,13 +21,10 @@ export function DriverGeoBlock({ deliveryRouteId }: { deliveryRouteId: string })
     queryKey: ["driver-geo", deliveryRouteId],
     refetchInterval: 30_000,
     queryFn: async (): Promise<Row | null> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select("last_driver_lat, last_driver_lng, last_driver_location_at")
-        .eq("id", deliveryRouteId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as unknown as Row | null;
+      const fields = encodeURIComponent("last_driver_lat, last_driver_lng, last_driver_location_at");
+      return apiGetAuth<Row | null>(
+        `/api/delivery-routes/${deliveryRouteId}?fields=${fields}`,
+      );
     },
   });
 
