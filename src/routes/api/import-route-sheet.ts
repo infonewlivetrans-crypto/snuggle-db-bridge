@@ -586,7 +586,7 @@ export const Route = createFileRoute("/api/import-route-sheet")({
               total_weight_kg: initWeight,
               total_volume_m3: initVolume,
               transport_comment: transportCommentText || headerNote,
-              comment: auditCommentText || null,
+              comment: userCommentText,
               request_status_comment: headerNote,
             } as never)
             .select("id")
