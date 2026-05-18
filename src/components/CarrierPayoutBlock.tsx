@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,15 +75,8 @@ export function CarrierPayoutBlock({ routeId }: { routeId: string }) {
   const { data: row } = useQuery({
     queryKey: ["carrier-payout", routeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "carrier_cost,carrier_payment_status,carrier_payout_status,carrier_payout_scheduled_date,carrier_payout_paid_amount,carrier_payout_paid_at,carrier_payout_comment,carrier_payout_changed_at,carrier_id",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Row | null;
+      const r = await apiGetAuth<Row & Record<string, unknown>>(`/api/routes/${routeId}`);
+      return (r ?? null) as Row | null;
     },
   });
 
@@ -125,13 +118,8 @@ export function CarrierPayoutBlock({ routeId }: { routeId: string }) {
         patch.carrier_payout_paid_amount = 0;
         patch.carrier_payout_paid_at = null;
       }
-      const { error } = await supabase
-        .from("routes")
-        .update(patch as never)
-        .eq("id", routeId);
-      if (error) throw error;
-
-      await supabase.from("route_carrier_history").insert({
+      await apiPatch(`/api/routes/${routeId}`, patch);
+      await apiPost(`/api/route-carrier-history`, {
         route_id: routeId,
         carrier_id: row?.carrier_id ?? null,
         action: ACTION_BY_STATUS[status],

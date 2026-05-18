@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import {
   Select,
   SelectContent,
@@ -85,13 +85,9 @@ export function TransportRequestStatusBlock(props: Props) {
   const { data: history } = useQuery({
     queryKey: ["transport-request-status-history", props.requestId],
     queryFn: async (): Promise<HistoryRow[]> => {
-      const { data, error } = await supabase
-        .from("transport_request_status_history")
-        .select("id, from_status, to_status, changed_by, changed_at, comment")
-        .eq("route_id", props.requestId)
-        .order("changed_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as HistoryRow[];
+      return await apiGetAuth<HistoryRow[]>(
+        `/api/transport-request-status-history?route_id=${encodeURIComponent(props.requestId)}`,
+      );
     },
   });
 
@@ -132,27 +128,19 @@ export function TransportRequestStatusBlock(props: Props) {
         throw new Error("Укажите, кто изменяет статус");
       }
       const now = new Date().toISOString();
-      const { error: upErr } = await supabase
-        .from("routes")
-        .update({
-          request_status: target,
-          request_status_changed_by: user.trim(),
-          request_status_changed_at: now,
-          request_status_comment: comment.trim() || null,
-        })
-        .eq("id", props.requestId);
-      if (upErr) throw upErr;
-
-      const { error: histErr } = await supabase
-        .from("transport_request_status_history")
-        .insert({
-          route_id: props.requestId,
-          from_status: props.current,
-          to_status: target,
-          changed_by: user.trim(),
-          comment: comment.trim() || null,
-        });
-      if (histErr) throw histErr;
+      await apiPatch(`/api/routes/${props.requestId}`, {
+        request_status: target,
+        request_status_changed_by: user.trim(),
+        request_status_changed_at: now,
+        request_status_comment: comment.trim() || null,
+      });
+      await apiPost(`/api/transport-request-status-history`, {
+        route_id: props.requestId,
+        from_status: props.current,
+        to_status: target,
+        changed_by: user.trim(),
+        comment: comment.trim() || null,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transport-request", props.requestId] });

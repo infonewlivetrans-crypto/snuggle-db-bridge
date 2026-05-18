@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiDelete, apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -82,28 +82,17 @@ export function CarrierDocumentsBlock({
   const { data: route } = useQuery({
     queryKey: ["carrier-docs-route", routeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "id,status,carrier_id,carrier_docs_status,carrier_docs_comment,carrier_docs_uploaded_at,carrier_docs_uploaded_by,carrier_docs_accepted_at,carrier_docs_accepted_by,carrier_docs_fix_reason",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as RouteRow | null;
+      const r = await apiGetAuth<RouteRow & Record<string, unknown>>(`/api/routes/${routeId}`);
+      return (r ?? null) as RouteRow | null;
     },
   });
 
   const { data: docs = [] } = useQuery({
     queryKey: ["carrier-docs-list", routeId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_carrier_documents")
-        .select("*")
-        .eq("route_id", routeId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as Doc[];
+    queryFn: async (): Promise<Doc[]> => {
+      return await apiGetAuth<Doc[]>(
+        `/api/route-carrier-documents?route_id=${encodeURIComponent(routeId)}`,
+      );
     },
   });
 
@@ -121,7 +110,7 @@ export function CarrierDocumentsBlock({
       const url = await uploadPublicFile("carrier-documents", file, routeId);
       const label =
         profile?.full_name ?? user?.email ?? null;
-      const { error: insErr } = await supabase.from("route_carrier_documents").insert({
+      await apiPost(`/api/route-carrier-documents`, {
         route_id: routeId,
         carrier_id: route.carrier_id,
         kind: uploadKind,
@@ -129,20 +118,16 @@ export function CarrierDocumentsBlock({
         uploaded_by: user?.id ?? null,
         uploaded_by_label: label,
       });
-      if (insErr) throw insErr;
 
       // Move route status to uploaded if currently awaiting/needs_fix
       if (status === "awaiting" || status === "needs_fix") {
-        await supabase
-          .from("routes")
-          .update({
-            carrier_docs_status: "uploaded",
-            carrier_docs_uploaded_at: new Date().toISOString(),
-            carrier_docs_uploaded_by: user?.id ?? null,
-          })
-          .eq("id", routeId);
+        await apiPatch(`/api/routes/${routeId}`, {
+          carrier_docs_status: "uploaded",
+          carrier_docs_uploaded_at: new Date().toISOString(),
+          carrier_docs_uploaded_by: user?.id ?? null,
+        });
 
-        await supabase.from("route_carrier_history").insert({
+        await apiPost(`/api/route-carrier-history`, {
           route_id: routeId,
           carrier_id: route.carrier_id,
           action: "documents_uploaded",
@@ -163,8 +148,7 @@ export function CarrierDocumentsBlock({
 
   const deleteDoc = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("route_carrier_documents").delete().eq("id", id);
-      if (error) throw error;
+      await apiDelete(`/api/route-carrier-documents/${id}`);
     },
     onSuccess: () => {
       toast.success("Удалено");
@@ -175,11 +159,7 @@ export function CarrierDocumentsBlock({
 
   const saveComment = useMutation({
     mutationFn: async (text: string) => {
-      const { error } = await supabase
-        .from("routes")
-        .update({ carrier_docs_comment: text })
-        .eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${routeId}`, { carrier_docs_comment: text });
     },
     onSuccess: () => {
       toast.success("Комментарий сохранён");
@@ -191,17 +171,13 @@ export function CarrierDocumentsBlock({
   const acceptDocs = useMutation({
     mutationFn: async () => {
       const label = profile?.full_name ?? user?.email ?? null;
-      const { error } = await supabase
-        .from("routes")
-        .update({
-          carrier_docs_status: "accepted",
-          carrier_docs_accepted_at: new Date().toISOString(),
-          carrier_docs_accepted_by: user?.id ?? null,
-          carrier_docs_fix_reason: null,
-        })
-        .eq("id", routeId);
-      if (error) throw error;
-      await supabase.from("route_carrier_history").insert({
+      await apiPatch(`/api/routes/${routeId}`, {
+        carrier_docs_status: "accepted",
+        carrier_docs_accepted_at: new Date().toISOString(),
+        carrier_docs_accepted_by: user?.id ?? null,
+        carrier_docs_fix_reason: null,
+      });
+      await apiPost(`/api/route-carrier-history`, {
         route_id: routeId,
         carrier_id: route?.carrier_id ?? null,
         action: "documents_accepted",
@@ -220,15 +196,11 @@ export function CarrierDocumentsBlock({
     mutationFn: async () => {
       if (!fixReason.trim()) throw new Error("Укажите причину");
       const label = profile?.full_name ?? user?.email ?? null;
-      const { error } = await supabase
-        .from("routes")
-        .update({
-          carrier_docs_status: "needs_fix",
-          carrier_docs_fix_reason: fixReason.trim(),
-        })
-        .eq("id", routeId);
-      if (error) throw error;
-      await supabase.from("route_carrier_history").insert({
+      await apiPatch(`/api/routes/${routeId}`, {
+        carrier_docs_status: "needs_fix",
+        carrier_docs_fix_reason: fixReason.trim(),
+      });
+      await apiPost(`/api/route-carrier-history`, {
         route_id: routeId,
         carrier_id: route?.carrier_id ?? null,
         action: "documents_rejected",

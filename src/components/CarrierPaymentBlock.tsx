@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,15 +57,8 @@ export function CarrierPaymentBlock({ routeId }: { routeId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["route-carrier-payment", routeId],
     queryFn: async (): Promise<Row | null> => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select(
-          "carrier_cost, carrier_payment_status, carrier_cost_comment, carrier_cost_approved_at, carrier_id, cost_method, fixed_cost, cost_per_km, cost_per_point, total_distance_km, points_count",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as Row | null;
+      const r = await apiGetAuth<Row & Record<string, unknown>>(`/api/routes/${routeId}`);
+      return r ?? null;
     },
   });
 
@@ -82,8 +75,7 @@ export function CarrierPaymentBlock({ routeId }: { routeId: string }) {
       if (status === "approved" || status === "to_pay") {
         patch.carrier_cost_approved_at = new Date().toISOString();
       }
-      const { error } = await supabase.from("routes").update(patch).eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${routeId}`, patch);
     },
     onSuccess: () => {
       toast.success("Статус расчёта обновлён");

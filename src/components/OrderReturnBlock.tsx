@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -25,12 +25,10 @@ type ReturnPoint = {
   dp_expected_return_at: string | null;
   dp_status_changed_at: string | null;
   route_id: string;
-  routes: {
-    driver_name: string | null;
-    drivers: { full_name: string | null } | null;
-    vehicles: { plate_number: string | null; brand: string | null; model: string | null } | null;
-  } | null;
-  warehouses: { name: string | null } | null;
+  driver_full_name: string | null;
+  driver_name: string | null;
+  vehicle: { plate_number: string | null; brand: string | null; model: string | null } | null;
+  warehouse_name: string | null;
 };
 
 type Photo = { id: string; file_url: string; kind: string };
@@ -46,73 +44,39 @@ export function OrderReturnBlock({ order }: Props) {
     order.status === "return_accepted" ||
     order.status === "awaiting_resend";
 
-  const { data: point } = useQuery({
-    queryKey: ["return-point", order.id],
+  const { data } = useQuery({
+    queryKey: ["return-info", order.id],
     enabled: isReturnFlow,
-    queryFn: async (): Promise<ReturnPoint | null> => {
-      const { data, error } = await supabase
-        .from("route_points")
-        .select(
-          `id, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment,
-           dp_expected_return_at, dp_status_changed_at, route_id,
-           routes:route_id(driver_name, drivers:driver_id(full_name),
-             vehicles:vehicle_id(plate_number, brand, model)),
-           warehouses:dp_return_warehouse_id(name)`,
-        )
-        .eq("order_id", order.id)
-        .eq("dp_status", "returned_to_warehouse")
-        .order("dp_status_changed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return (data ?? null) as unknown as ReturnPoint | null;
+    queryFn: async () => {
+      return await apiGetAuth<{ point: ReturnPoint | null; photos: Photo[] }>(
+        `/api/order-return-info?order_id=${encodeURIComponent(order.id)}`,
+      );
     },
   });
-
-  const { data: photos = [] } = useQuery({
-    queryKey: ["return-point-photos", point?.id],
-    enabled: !!point?.id,
-    queryFn: async (): Promise<Photo[]> => {
-      const { data, error } = await supabase
-        .from("route_point_photos")
-        .select("id, file_url, kind")
-        .eq("route_point_id", point!.id)
-        .eq("kind", "problem");
-      if (error) throw error;
-      return (data ?? []) as Photo[];
-    },
-  });
+  const point = data?.point ?? null;
+  const photos = data?.photos ?? [];
 
   const accept = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: "return_accepted" })
-        .eq("id", order.id);
-      if (error) throw error;
+      await apiPatch(`/api/orders/${order.id}`, { status: "return_accepted" });
     },
     onSuccess: () => {
       toast.success("Возврат принят складом");
       qc.invalidateQueries({ queryKey: ["orders"] });
-      qc.invalidateQueries({ queryKey: ["return-point", order.id] });
+      qc.invalidateQueries({ queryKey: ["return-info", order.id] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   if (!isReturnFlow) return null;
 
-  const driver =
-    point?.routes?.drivers?.full_name ?? point?.routes?.driver_name ?? "—";
-  const vehicle = point?.routes?.vehicles
-    ? [
-        point.routes.vehicles.brand,
-        point.routes.vehicles.model,
-        point.routes.vehicles.plate_number,
-      ]
+  const driver = point?.driver_full_name ?? point?.driver_name ?? "—";
+  const vehicle = point?.vehicle
+    ? [point.vehicle.brand, point.vehicle.model, point.vehicle.plate_number]
         .filter(Boolean)
         .join(" ")
     : "—";
-  const warehouseName = point?.warehouses?.name ?? "—";
+  const warehouseName = point?.warehouse_name ?? "—";
   const reason = point?.dp_undelivered_reason
     ? REASON_LABELS[point.dp_undelivered_reason] ?? point.dp_undelivered_reason
     : "—";

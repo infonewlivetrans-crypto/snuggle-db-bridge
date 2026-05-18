@@ -120,7 +120,9 @@ import { Route as ApiPilotTasksRouteImport } from './routes/api/pilot-tasks'
 import { Route as ApiPaymentsRouteImport } from './routes/api/payments'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiOrderStatusesRouteImport } from './routes/api/order-statuses'
+import { Route as ApiOrderReturnInfoRouteImport } from './routes/api/order-return-info'
 import { Route as ApiOrderItemsRouteImport } from './routes/api/order-items'
+import { Route as ApiOrderDeliveryResultRouteImport } from './routes/api/order-delivery-result'
 import { Route as ApiNotificationsRouteImport } from './routes/api/notifications'
 import { Route as ApiModulesRouteImport } from './routes/api/modules'
 import { Route as ApiManagersRouteImport } from './routes/api/managers'
@@ -784,9 +786,19 @@ const ApiOrderStatusesRoute = ApiOrderStatusesRouteImport.update({
   path: '/api/order-statuses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOrderReturnInfoRoute = ApiOrderReturnInfoRouteImport.update({
+  id: '/api/order-return-info',
+  path: '/api/order-return-info',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOrderItemsRoute = ApiOrderItemsRouteImport.update({
   id: '/api/order-items',
   path: '/api/order-items',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOrderDeliveryResultRoute = ApiOrderDeliveryResultRouteImport.update({
+  id: '/api/order-delivery-result',
+  path: '/api/order-delivery-result',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiNotificationsRoute = ApiNotificationsRouteImport.update({
@@ -1380,7 +1392,9 @@ export interface FileRoutesByFullPath {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
+  '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-items': typeof ApiOrderItemsRoute
+  '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1595,7 +1609,9 @@ export interface FileRoutesByTo {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
+  '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-items': typeof ApiOrderItemsRoute
+  '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -1811,7 +1827,9 @@ export interface FileRoutesById {
   '/api/managers': typeof ApiManagersRouteWithChildren
   '/api/modules': typeof ApiModulesRoute
   '/api/notifications': typeof ApiNotificationsRouteWithChildren
+  '/api/order-delivery-result': typeof ApiOrderDeliveryResultRoute
   '/api/order-items': typeof ApiOrderItemsRoute
+  '/api/order-return-info': typeof ApiOrderReturnInfoRoute
   '/api/order-statuses': typeof ApiOrderStatusesRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/payments': typeof ApiPaymentsRoute
@@ -2028,7 +2046,9 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-delivery-result'
     | '/api/order-items'
+    | '/api/order-return-info'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -2243,7 +2263,9 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-delivery-result'
     | '/api/order-items'
+    | '/api/order-return-info'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -2458,7 +2480,9 @@ export interface FileRouteTypes {
     | '/api/managers'
     | '/api/modules'
     | '/api/notifications'
+    | '/api/order-delivery-result'
     | '/api/order-items'
+    | '/api/order-return-info'
     | '/api/order-statuses'
     | '/api/orders'
     | '/api/payments'
@@ -2674,7 +2698,9 @@ export interface RootRouteChildren {
   ApiManagersRoute: typeof ApiManagersRouteWithChildren
   ApiModulesRoute: typeof ApiModulesRoute
   ApiNotificationsRoute: typeof ApiNotificationsRouteWithChildren
+  ApiOrderDeliveryResultRoute: typeof ApiOrderDeliveryResultRoute
   ApiOrderItemsRoute: typeof ApiOrderItemsRoute
+  ApiOrderReturnInfoRoute: typeof ApiOrderReturnInfoRoute
   ApiOrderStatusesRoute: typeof ApiOrderStatusesRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPaymentsRoute: typeof ApiPaymentsRoute
@@ -3548,11 +3574,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrderStatusesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/order-return-info': {
+      id: '/api/order-return-info'
+      path: '/api/order-return-info'
+      fullPath: '/api/order-return-info'
+      preLoaderRoute: typeof ApiOrderReturnInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/order-items': {
       id: '/api/order-items'
       path: '/api/order-items'
       fullPath: '/api/order-items'
       preLoaderRoute: typeof ApiOrderItemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/order-delivery-result': {
+      id: '/api/order-delivery-result'
+      path: '/api/order-delivery-result'
+      fullPath: '/api/order-delivery-result'
+      preLoaderRoute: typeof ApiOrderDeliveryResultRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/notifications': {
@@ -4832,7 +4872,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManagersRoute: ApiManagersRouteWithChildren,
   ApiModulesRoute: ApiModulesRoute,
   ApiNotificationsRoute: ApiNotificationsRouteWithChildren,
+  ApiOrderDeliveryResultRoute: ApiOrderDeliveryResultRoute,
   ApiOrderItemsRoute: ApiOrderItemsRoute,
+  ApiOrderReturnInfoRoute: ApiOrderReturnInfoRoute,
   ApiOrderStatusesRoute: ApiOrderStatusesRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPaymentsRoute: ApiPaymentsRoute,
