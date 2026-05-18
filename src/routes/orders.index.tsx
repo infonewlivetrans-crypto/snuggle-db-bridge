@@ -123,6 +123,18 @@ function fmtMoney(v: number | null | undefined) {
   return `${Number(v).toLocaleString("ru-RU")} ₽`;
 }
 
+/**
+ * Внутренние идентификаторы заказа (RL-… генерируется серверным импортом,
+ * ML-… — устаревший формат прежнего фикса) не должны показываться пользователю
+ * как реальный номер заказа из 1С. Возвращаем «Требует заполнения», чтобы
+ * списки и карточки заказов отражали отсутствие номера реализации.
+ */
+const INTERNAL_ORDER_NUMBER_RE = /^(RL|ML)-/i;
+function displayOrderNumber(n: string | null | undefined): string {
+  if (!n) return "Требует заполнения";
+  return INTERNAL_ORDER_NUMBER_RE.test(n) ? "Требует заполнения" : n;
+}
+
 const DEMO_ROWS: OrderRow[] = [
   demo("RT-D001", "ready_for_delivery", "ООО «Маркет Плюс»", "Москва → Казань", "Сергей Воронов", "А101АА77", 182000, "not_paid", 5800),
   demo("RT-D002", "delivering", "ТД «Дон-Опт»", "Краснодар → Ростов-на-Дону", "Олег Тарасов", "Р701РР23", 225000, "paid", 9200),
