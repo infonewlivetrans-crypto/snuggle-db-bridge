@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { QrCode, CheckCircle2, AlertCircle, Calendar, User, Route as RouteIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,20 +25,29 @@ export function MarketplaceQrBlock({
     queryKey: ["order-qr-route", orderId],
     enabled: !!qrPhotoUrl,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("route_points")
-        .select("route_id, routes:route_id(route_number, driver_name, driver_id, drivers:driver_id(full_name))")
-        .eq("order_id", orderId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const r = (data as unknown as {
+      type Row = {
         route_id: string | null;
-        routes: { route_number: string | null; driver_name: string | null; drivers: { full_name: string | null } | null } | null;
-      } | null);
+        created_at: string | null;
+        routes: {
+          route_number: string | null;
+          driver_name: string | null;
+          drivers: { full_name: string | null } | null;
+        } | null;
+      };
+      const { rows } = await fetchListViaApi<Row>("/api/route-points", {
+        limit: 50,
+        extra: {
+          order_id_in: orderId,
+          fields:
+            "route_id, created_at, routes:route_id(route_number, driver_name, drivers:driver_id(full_name))",
+        },
+      });
+      const latest = rows
+        .slice()
+        .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""))[0] ?? null;
       return {
-        routeNumber: r?.routes?.route_number ?? null,
-        driverName: r?.routes?.drivers?.full_name ?? r?.routes?.driver_name ?? null,
+        routeNumber: latest?.routes?.route_number ?? null,
+        driverName: latest?.routes?.drivers?.full_name ?? latest?.routes?.driver_name ?? null,
       };
     },
   });

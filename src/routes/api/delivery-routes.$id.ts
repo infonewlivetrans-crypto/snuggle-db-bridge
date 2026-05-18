@@ -68,10 +68,14 @@ export const Route = createFileRoute("/api/delivery-routes/$id")({
         if (Object.keys(updates).length === 0) {
           return jsonResponse({ error: "Нет допустимых полей" }, { status: 400 });
         }
-        const { error } = await auth.client
+        const url = new URL(request.url);
+        const ifStatus = url.searchParams.get("if_status");
+        let q = auth.client
           .from("delivery_routes")
           .update(updates as never)
           .eq("id", params.id);
+        if (ifStatus) q = q.eq("status", ifStatus as never);
+        const { error } = await q;
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse({ ok: true });
       },
