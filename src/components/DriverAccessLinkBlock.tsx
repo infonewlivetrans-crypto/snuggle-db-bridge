@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link2, Copy, Plus, Power, PowerOff, Calendar } from "lucide-react";
@@ -26,15 +26,12 @@ export function DriverAccessLinkBlock({ deliveryRouteId }: { deliveryRouteId: st
   const { data, isLoading } = useQuery({
     queryKey: ["driver-access-link", deliveryRouteId],
     queryFn: async (): Promise<Row | null> => {
-      const { data, error } = await (supabase
-        .from("delivery_routes")
-        .select(
-          "driver_access_token, driver_access_created_at, driver_access_created_by, driver_access_enabled",
-        )
-        .eq("id", deliveryRouteId)
-        .maybeSingle() as unknown as Promise<{ data: Row | null; error: Error | null }>);
-      if (error) throw error;
-      return data;
+      const fields = encodeURIComponent(
+        "driver_access_token, driver_access_created_at, driver_access_created_by, driver_access_enabled",
+      );
+      return apiGetAuth<Row | null>(
+        `/api/delivery-routes/${deliveryRouteId}?fields=${fields}`,
+      );
     },
   });
 
@@ -47,16 +44,12 @@ export function DriverAccessLinkBlock({ deliveryRouteId }: { deliveryRouteId: st
   const create = useMutation({
     mutationFn: async () => {
       const token = generateToken();
-      const { error } = await (supabase
-        .from("delivery_routes")
-        .update({
-          driver_access_token: token,
-          driver_access_created_at: new Date().toISOString(),
-          driver_access_created_by: "Менеджер",
-          driver_access_enabled: true,
-        })
-        .eq("id", deliveryRouteId) as unknown as Promise<{ error: Error | null }>);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${deliveryRouteId}`, {
+        driver_access_token: token,
+        driver_access_created_at: new Date().toISOString(),
+        driver_access_created_by: "Менеджер",
+        driver_access_enabled: true,
+      });
     },
     onSuccess: () => {
       toast.success("Ссылка для водителя создана");
@@ -67,11 +60,9 @@ export function DriverAccessLinkBlock({ deliveryRouteId }: { deliveryRouteId: st
 
   const toggle = useMutation({
     mutationFn: async (enabled: boolean) => {
-      const { error } = await (supabase
-        .from("delivery_routes")
-        .update({ driver_access_enabled: enabled })
-        .eq("id", deliveryRouteId) as unknown as Promise<{ error: Error | null }>);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${deliveryRouteId}`, {
+        driver_access_enabled: enabled,
+      });
     },
     onSuccess: (_d, enabled) => {
       toast.success(enabled ? "Доступ открыт" : "Доступ к маршруту закрыт");
