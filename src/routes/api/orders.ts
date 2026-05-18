@@ -40,7 +40,12 @@ const CreateOrderSchema = z.object({
   status: z.string().max(32).optional(),
   source: z.string().max(32).optional(),
   client_id: z.string().uuid().nullable().optional(),
-}).passthrough();
+  marketplace: z.string().max(64).nullable().optional(),
+  client_works_weekends: z.boolean().nullable().optional(),
+  delivery_window_from: z.string().nullable().optional(),
+  delivery_window_to: z.string().nullable().optional(),
+  goods: z.string().max(4000).nullable().optional(),
+});
 
 export const Route = createFileRoute("/api/orders")({
   server: {
