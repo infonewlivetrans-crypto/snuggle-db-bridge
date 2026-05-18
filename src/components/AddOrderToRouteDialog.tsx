@@ -17,8 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { db } from "@/lib/db";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import { toast } from "sonner";
 import type { Order } from "@/lib/orders";
 import {
