@@ -120,13 +120,21 @@ function buildTransportComment(
   return lines.join("\n");
 }
 
-function buildAuditComment(tr: IncomingTransportRequest): string {
-  const entries = Object.entries(tr.raw ?? {}).slice(0, 50);
-  if (entries.length === 0) return "";
-  return [
-    "Импорт из файла «Заявка на транспорт». Исходные поля:",
-    ...entries.map(([k, v]) => `• ${k}: ${v}`),
-  ].join("\n");
+/**
+ * Защитная нормализация значения организации: отсеивает фрагменты
+ * договорных условий/штрафов, которые иногда попадают в это поле
+ * при импорте из 1С.
+ */
+function sanitizeOrganizationValue(v: string | null | undefined): string | null {
+  if (!v) return null;
+  const s = String(v).replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  if (s.length > 160) return null;
+  const banned = /(штраф|сутки|просто[яй]|уплачив|обязуется|неустойк|пеня|пени|ответствен|сверхнормат|претензи|расторж|настоящ(его|ему)|договор|услов|порядок|оплат[аы]|тариф|нормат)/i;
+  if (banned.test(s)) return null;
+  if (/[.!?]\s+[А-ЯЁA-Z]/.test(s)) return null;
+  if (s.split(/\s+/).length > 10) return null;
+  return s;
 }
 
 function paymentToDb(
