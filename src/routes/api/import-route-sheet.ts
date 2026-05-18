@@ -287,6 +287,24 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           }
         }
 
+        // Если есть И маршрутный лист, И заявка на транспорт — у заказов
+        // в МЛ колонка «Реализация товаров услуг» может быть пустой
+        // (в 1С это нормальная ситуация). При этом реальные номера заказов
+        // (КП_...) находятся в верхней таблице файла «Заявка на транспорт»,
+        // колонка «Номер». Подставляем их по позиции строки: i-й заказ
+        // маршрутного листа получает i-й КП_... из заявки.
+        if (hasRsOrders && hasTr && tr!.orderNumbers.length > 0) {
+          for (let i = 0; i < rsOrdersIn.length; i++) {
+            const cur = rsOrdersIn[i];
+            if (!cur.orderNumber || !cur.orderNumber.trim()) {
+              const fromTr = tr!.orderNumbers[i];
+              if (fromTr && fromTr.trim()) {
+                cur.orderNumber = fromTr.trim();
+              }
+            }
+          }
+        }
+
         // Перетягиваем именованные алиасы старой логики — она ниже читает payload.*
         payload.routeNumber = effective.routeNumber;
         payload.routeDate = effective.routeDate;
