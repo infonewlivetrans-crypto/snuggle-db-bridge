@@ -60,23 +60,18 @@ function FirstRunPage() {
   const readiness = useQuery({
     queryKey: ["first-run-readiness"],
     queryFn: async (): Promise<Record<ReadinessKey, boolean>> => {
-      const [routes, tokens, photos, qrPhotos, cashPay, reports, notifs] = await Promise.all([
-        supabase.from("delivery_routes").select("id", { count: "exact", head: true }),
-        supabase.from("delivery_routes").select("id", { count: "exact", head: true }).not("driver_access_token" as never, "is", null),
-        supabase.from("route_point_photos").select("id", { count: "exact", head: true }),
-        supabase.from("route_point_photos").select("id", { count: "exact", head: true }).eq("kind" as never, "qr"),
-        supabase.from("route_points").select("id", { count: "exact", head: true }).gt("dp_amount_received" as never, 0),
-        supabase.from("delivery_reports").select("id", { count: "exact", head: true }),
-        supabase.from("notifications").select("id", { count: "exact", head: true }),
-      ]);
+      const res = await apiGetAuth<{ counts: Record<string, number> }>(
+        "/api/dashboard-counts?include=routes,driverLink,photos,qr,cash,managerReport,notifications",
+      );
+      const c = res.counts ?? {};
       return {
-        routes: (routes.count ?? 0) > 0,
-        driverLink: (tokens.count ?? 0) > 0,
-        photos: (photos.count ?? 0) > 0,
-        qr: (qrPhotos.count ?? 0) > 0,
-        cash: (cashPay.count ?? 0) > 0,
-        managerReport: (reports.count ?? 0) > 0,
-        notifications: (notifs.count ?? 0) > 0,
+        routes: (c.routes ?? 0) > 0,
+        driverLink: (c.driverLink ?? 0) > 0,
+        photos: (c.photos ?? 0) > 0,
+        qr: (c.qr ?? 0) > 0,
+        cash: (c.cash ?? 0) > 0,
+        managerReport: (c.managerReport ?? 0) > 0,
+        notifications: (c.notifications ?? 0) > 0,
       };
     },
     refetchInterval: 5000,
