@@ -178,15 +178,12 @@ function DriverRoutePage() {
     enabled: !!data?.source_request_id,
     queryKey: ["delivery-route-points", data?.source_request_id],
     queryFn: async (): Promise<PointRow[]> => {
-      const { data: pts, error } = await supabase
-        .from("route_points")
-        .select(
-          "id, point_number, order_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, payment_status, cash_received, qr_received, map_link, latitude, longitude)",
-        )
-        .eq("route_id", data!.source_request_id)
-        .order("point_number", { ascending: true });
-      if (error) throw error;
-      return (pts ?? []) as unknown as PointRow[];
+      const fields =
+        "id, point_number, order_id, dp_status, dp_undelivered_reason, dp_return_warehouse_id, dp_return_comment, dp_expected_return_at, dp_amount_received, dp_payment_comment, order:order_id(id, order_number, contact_name, contact_phone, delivery_address, comment, payment_type, amount_due, requires_qr, marketplace, payment_status, cash_received, qr_received, map_link, latitude, longitude)";
+      const pts = await apiGetAuth<PointRow[]>(
+        `/api/route-points?route_id=${encodeURIComponent(data!.source_request_id)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return (pts ?? []) as PointRow[];
     },
   });
 
@@ -195,13 +192,11 @@ function DriverRoutePage() {
     enabled: pointIds.length > 0,
     queryKey: ["route-point-photos-kinds", pointIds.join(",")],
     queryFn: async (): Promise<Record<string, Set<string>>> => {
-      const { data: rows, error } = await supabase
-        .from("route_point_photos")
-        .select("route_point_id, kind")
-        .in("route_point_id", pointIds);
-      if (error) throw error;
+      const rows = await apiGetAuth<Array<{ route_point_id: string; kind: string }>>(
+        `/api/route-point-photos?point_ids=${encodeURIComponent(pointIds.join(","))}&fields=route_point_id,kind`,
+      );
       const map: Record<string, Set<string>> = {};
-      for (const r of (rows ?? []) as Array<{ route_point_id: string; kind: string }>) {
+      for (const r of rows ?? []) {
         if (!map[r.route_point_id]) map[r.route_point_id] = new Set();
         map[r.route_point_id].add(r.kind);
       }
@@ -244,11 +239,8 @@ function DriverRoutePage() {
         "route_finish",
         { deliveryRouteId },
         async () => {
-          const { error } = await supabase
-            .from("delivery_routes")
-            .update({ status: "completed" as DeliveryRouteStatus })
-            .eq("id", deliveryRouteId);
-          if (error) throw error;
+          const { apiPatch } = await import("@/lib/api-client");
+          await apiPatch(`/api/delivery-routes/${deliveryRouteId}`, { status: "completed" });
           if (lastPoint) {
             await logPointAction({
               routePointId: lastPoint.id,
@@ -941,13 +933,26 @@ function ManagerInfoAndActions({
     enabled: !!contactName,
     queryKey: ["client-manager", contactName],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("manager_name, manager_phone")
-        .eq("name", contactName!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as { manager_name: string | null; manager_phone: string | null } | null;
+      const res = await fetch(
+        `/api/clients?name=${encodeURIComponent(contactName!)}&fields=manager_name,manager_phone&limit=1`,
+        {
+          credentials: "same-origin",
+          headers: {
+            accept: "application/json",
+            ...((): Record<string, string> => {
+              try {
+                const t = window.localStorage.getItem("rt-access-token");
+                return t ? { authorization: `Bearer ${t}` } : {};
+              } catch {
+                return {};
+              }
+            })(),
+          },
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json()) as { rows?: Array<{ manager_name: string | null; manager_phone: string | null }> };
+      return (body.rows?.[0] ?? null) as { manager_name: string | null; manager_phone: string | null } | null;
     },
   });
 

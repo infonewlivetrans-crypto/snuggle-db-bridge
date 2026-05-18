@@ -34,6 +34,8 @@ export const Route = createFileRoute("/api/clients")({
           "updated_at",
           "comment",
           "contact_person",
+          "manager_name",
+          "manager_phone",
         ]);
         let select = "*";
         if (fieldsParam && fieldsParam.trim().length > 0) {
