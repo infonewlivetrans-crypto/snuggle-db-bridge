@@ -55,6 +55,7 @@ type InviteRow = {
   comment: string | null;
   is_active: boolean;
   last_used_at: string | null;
+  activated_at: string | null;
 };
 
 export const Route = createFileRoute("/users/invites")({
