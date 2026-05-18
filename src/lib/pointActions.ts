@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 
 export type PointActionKind =
   | "point_opened"
@@ -47,11 +47,7 @@ export async function logPointAction(args: {
   comment?: string | null;
 }) {
   try {
-    const { error } = await (
-      supabase.from("route_point_actions" as never) as unknown as {
-        insert: (p: Record<string, unknown>) => Promise<{ error: Error | null }>;
-      }
-    ).insert({
+    await apiPost("/api/route-point-actions", {
       route_point_id: args.routePointId,
       order_id: args.orderId ?? null,
       route_id: args.routeId ?? null,
@@ -60,11 +56,8 @@ export async function logPointAction(args: {
       details: args.details ?? {},
       comment: args.comment ?? null,
     });
-    if (error) {
-      // не блокируем UI — только лог
-      console.warn("logPointAction failed:", error.message);
-    }
   } catch (e) {
+    // не блокируем UI — только лог
     console.warn("logPointAction error:", (e as Error).message);
   }
 }

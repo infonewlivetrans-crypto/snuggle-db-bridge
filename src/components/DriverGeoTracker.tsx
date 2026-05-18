@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { MapPin, AlertTriangle } from "lucide-react";
 
 /**
@@ -67,15 +67,19 @@ export function DriverGeoTracker({
       if (!c || sendingRef.current) return;
       sendingRef.current = true;
       try {
-        const { error } = await supabase.from("driver_locations").insert({
-          delivery_route_id: deliveryRouteId,
-          driver_name: driverName,
-          latitude: c.lat,
-          longitude: c.lng,
-          accuracy: c.acc ?? null,
-          captured_at: new Date().toISOString(),
-        });
-        if (!error) setLastSentAt(new Date());
+        try {
+          await apiPost("/api/driver-locations", {
+            delivery_route_id: deliveryRouteId,
+            driver_name: driverName,
+            latitude: c.lat,
+            longitude: c.lng,
+            accuracy: c.acc ?? null,
+            captured_at: new Date().toISOString(),
+          });
+          setLastSentAt(new Date());
+        } catch {
+          // не блокируем — просто не обновляем lastSentAt
+        }
       } finally {
         sendingRef.current = false;
       }

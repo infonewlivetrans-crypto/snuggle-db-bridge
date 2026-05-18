@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import { Clock, Timer, AlertTriangle, CheckCircle2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -46,18 +46,14 @@ export function RouteEtaBlock({
     enabled: !!sourceRouteId,
     queryKey: ["route-eta-settings", sourceRouteId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routes")
-        .select("avg_speed_kmh, default_service_minutes, planned_departure_at")
-        .eq("id", sourceRouteId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as {
+      const data = await apiGetAuth<{
         avg_speed_kmh: number | null;
         default_service_minutes: number | null;
         planned_departure_at: string | null;
-      } | null;
+      } | null>(`/api/routes/${sourceRouteId}`);
+      return data;
     },
+
   });
 
   const eta = useMemo(() => {
@@ -89,7 +85,7 @@ export function RouteEtaBlock({
       if (now - (lastNotifiedRef.current[key] ?? 0) < NOTIFY_COOLDOWN_MS) continue;
       lastNotifiedRef.current[key] = now;
 
-      void supabase.from("notifications").insert({
+      void apiPost("/api/notifications", {
         kind: "order_eta_late_risk",
         title: "Риск опоздания к клиенту",
         body: `По заказу №${meta.order_number} есть риск опоздания (≈ ${e.delay_minutes} мин).`,
@@ -105,7 +101,7 @@ export function RouteEtaBlock({
           recipients: ["manager", "logistician"],
           occurred_at: new Date().toISOString(),
         },
-      });
+      }).catch(() => { /* лог уведомления — не блокируем UI */ });
     }
   }, [eta, points, deliveryRouteId, routeNumber]);
 

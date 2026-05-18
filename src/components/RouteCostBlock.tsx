@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Wallet, Save, History, Pencil, AlertTriangle, Percent } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/integrations/supabase/client";
+import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,17 +117,16 @@ export function RouteCostBlock({
   const { data: tariffs = [] } = useQuery({
     queryKey: ["delivery-tariffs-for-route", warehouseId ?? "any"],
     queryFn: async () => {
-      let q = supabase
-        .from("delivery_tariffs")
-        .select("id, warehouse_id, name, kind, city, zone, destination_city, fixed_price, price_per_km, price_per_point, base_price, is_active, comment")
-        .eq("is_active", true)
-        .order("priority", { ascending: true });
-      if (warehouseId) q = q.eq("warehouse_id", warehouseId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as TariffRow[];
+      const params = new URLSearchParams({ activeOnly: "1", limit: "500" });
+      if (warehouseId) params.set("warehouse_id", warehouseId);
+      const rows = await apiGetAuth<TariffRow[] | { rows: TariffRow[] }>(
+        `/api/delivery-tariffs?${params.toString()}`,
+      );
+      const list = Array.isArray(rows) ? rows : (rows.rows ?? []);
+      return list as TariffRow[];
     },
   });
+
 
   const applyTariff = (id: string) => {
     setTariffId(id);
@@ -178,14 +177,7 @@ export function RouteCostBlock({
   const { data: history = [] } = useQuery({
     queryKey: ["route-cost-history", routeId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("route_cost_history")
-        .select("id, old_cost, new_cost, old_method, new_method, changed_by, comment, created_at")
-        .eq("route_id", routeId)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data ?? []) as Array<{
+      const rows = await apiGetAuth<Array<{
         id: string;
         old_cost: number;
         new_cost: number;
@@ -194,7 +186,8 @@ export function RouteCostBlock({
         changed_by: string | null;
         comment: string | null;
         created_at: string;
-      }>;
+      }>>(`/api/route-cost-history?route_id=${encodeURIComponent(routeId)}&limit=50`);
+      return rows ?? [];
     },
   });
 
@@ -217,13 +210,12 @@ export function RouteCostBlock({
           manualOrders.trim() === "" ? null : Number(manualOrders) || 0,
         delivery_percent_target: Number(percentTarget) || 0,
       };
-      const { error } = await supabase.from("routes").update(payload).eq("id", routeId);
-      if (error) throw error;
+      await apiPatch(`/api/routes/${routeId}`, payload);
 
       const fullComment = [reason.trim(), comment.trim()].filter(Boolean).join(" — ");
       const changed = oldCost !== newCost || oldMethod !== newMethod || fullComment.length > 0;
       if (changed) {
-        await supabase.from("route_cost_history").insert({
+        await apiPost("/api/route-cost-history", {
           route_id: routeId,
           old_cost: oldCost,
           new_cost: newCost,
@@ -234,6 +226,7 @@ export function RouteCostBlock({
         });
       }
     },
+
     onSuccess: () => {
       toast.success("Стоимость доставки сохранена");
       setComment("");

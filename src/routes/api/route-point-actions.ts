@@ -43,6 +43,23 @@ export const Route = createFileRoute("/api/route-point-actions")({
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse(data ?? [], { headers: cacheHeaders(10) });
       },
+      POST: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        let body: Record<string, unknown> = {};
+        try { body = (await request.json()) as Record<string, unknown>; }
+        catch { return jsonResponse({ error: "Некорректный JSON" }, { status: 400 }); }
+        if (typeof body.route_point_id !== "string" || typeof body.action !== "string")
+          return jsonResponse({ error: "route_point_id and action required" }, { status: 400 });
+        const { error } = await (
+          auth.client.from("route_point_actions" as never) as unknown as {
+            insert: (p: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+          }
+        ).insert(body);
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ ok: true });
+      },
     },
   },
 });
+
