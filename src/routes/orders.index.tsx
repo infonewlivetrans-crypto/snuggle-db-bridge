@@ -525,12 +525,61 @@ function OrdersPage() {
           </CardContent>
         </Card>
 
+        {isAdmin && !isDemo && selectedIds.size > 0 && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-2">
+            <div className="text-sm text-foreground">
+              Выбрано заказов: <span className="font-semibold">{selectedIds.size}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+                disabled={bulkDelete.isPending}
+              >
+                Сбросить
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setBulkConfirmOpen(true)}
+                disabled={bulkDelete.isPending}
+                className="gap-1.5"
+              >
+                {bulkDelete.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                Удалить выбранные
+              </Button>
+            </div>
+          </div>
+        )}
+
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {isAdmin && !isDemo && (
+                      <TableHead className="w-[40px]">
+                        <Checkbox
+                          aria-label="Выбрать все на странице"
+                          checked={
+                            allFilteredSelected
+                              ? true
+                              : someFilteredSelected
+                                ? "indeterminate"
+                                : false
+                          }
+                          onCheckedChange={(v) => toggleAllVisible(v === true)}
+                        />
+                      </TableHead>
+                    )}
                     <TableHead className="w-[110px]">№ заказа</TableHead>
                     <TableHead>Клиент / контакт</TableHead>
                     <TableHead>Маршрут</TableHead>
@@ -547,13 +596,13 @@ function OrdersPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="py-6">
+                      <TableCell colSpan={isAdmin && !isDemo ? 12 : 11} className="py-6">
                         <LoadingFallback onRefresh={() => refetch()} />
                       </TableCell>
                     </TableRow>
                   ) : filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={isAdmin && !isDemo ? 12 : 11} className="py-10 text-center text-sm text-muted-foreground">
                         Нет заказов под фильтры
                       </TableCell>
                     </TableRow>
@@ -571,8 +620,18 @@ function OrdersPage() {
                             : undefined;
                       return (
                         <TableRow key={r.id} className={rowHighlight}>
+                          {isAdmin && !isDemo && (
+                            <TableCell className="w-[40px]">
+                              <Checkbox
+                                aria-label={`Выбрать заказ ${r.order_number}`}
+                                checked={selectedIds.has(r.id)}
+                                onCheckedChange={(v) => toggleOne(r.id, v === true)}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell className="font-mono text-xs">
                             <div className="flex items-center gap-1.5">
+
                               {isDemo ? (
                                 <span className="font-semibold">{displayOrderNumber(r.order_number)}</span>
                               ) : (
