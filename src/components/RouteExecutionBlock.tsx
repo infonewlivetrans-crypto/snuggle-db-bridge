@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { apiFetch } from "@/lib/apiFetch";
 import {
   Select,
   SelectContent,
@@ -38,14 +38,15 @@ export function RouteExecutionBlock({
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({
+      const res = await apiFetch(`/api/delivery-routes/${deliveryRouteId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           assigned_driver: d || null,
           assigned_vehicle: v || null,
-        })
-        .eq("id", deliveryRouteId);
-      if (error) throw error;
+        }),
+      });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Не удалось сохранить");
     },
     onSuccess: () => {
       toast.success("Назначение сохранено");
