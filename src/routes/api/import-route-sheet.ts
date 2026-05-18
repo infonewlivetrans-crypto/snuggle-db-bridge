@@ -469,7 +469,10 @@ export const Route = createFileRoute("/api/import-route-sheet")({
         const transportCommentText = hasTr
           ? buildTransportComment(tr!, trUnrecognized)
           : null;
-        const auditCommentText = hasTr ? buildAuditComment(tr!) : null;
+        // Пользовательский комментарий из исходной заявки (если в TR есть
+        // поле «Комментарий/Примечание»). НЕ дамп всех распознанных полей —
+        // дамп оставляем только в transport_comment в человекочитаемом виде.
+        const userCommentText = hasTr ? (tr!.comment?.trim() || null) : null;
         const headerNoteParts = [
           headerMissing.length
             ? `Требует заполнения: ${headerMissing.join(", ")}`
