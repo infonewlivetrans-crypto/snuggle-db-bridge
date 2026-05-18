@@ -158,36 +158,23 @@ async function executeAction(action: QueuedAction): Promise<void> {
       return;
     case "point_status_update": {
       const { routePointId, patch, parentRouteId } = action.payload;
-      const { error } = await (supabase.from("route_points") as unknown as {
-        update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
-      }).update(patch).eq("id", routePointId);
-      if (error) throw error;
+      await apiPatch(`/api/route-points/${routePointId}`, patch);
       if (parentRouteId) {
-        await supabase
-          .from("delivery_routes")
-          .update({ status: "in_progress" })
-          .eq("id", parentRouteId)
-          .eq("status", "issued");
+        await apiPatch(`/api/delivery-routes/${parentRouteId}`, { status: "in_progress" }).catch(() => undefined);
       }
       return;
     }
     case "point_payment_update": {
       const { routePointId, orderId, orderUpdate, pointUpdate } = action.payload;
       if (Object.keys(orderUpdate).length > 0) {
-        const { error: e1 } = await supabase.from("orders").update(orderUpdate).eq("id", orderId);
-        if (e1) throw e1;
+        await apiPatch(`/api/orders/${orderId}`, orderUpdate);
       }
-      const { error: e2 } = await (supabase.from("route_points") as unknown as {
-        update: (p: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: Error | null }> };
-      }).update(pointUpdate).eq("id", routePointId);
-      if (e2) throw e2;
+      await apiPatch(`/api/route-points/${routePointId}`, pointUpdate);
       return;
     }
     case "log_point_action": {
       const p = action.payload;
-      const { error } = await (supabase.from("route_point_actions" as never) as unknown as {
-        insert: (p: Record<string, unknown>) => Promise<{ error: Error | null }>;
-      }).insert({
+      await apiPost("/api/route-point-actions", {
         route_point_id: p.routePointId,
         order_id: p.orderId ?? null,
         route_id: p.routeId ?? null,
@@ -196,15 +183,10 @@ async function executeAction(action: QueuedAction): Promise<void> {
         details: p.details ?? {},
         comment: p.comment ?? null,
       });
-      if (error) throw error;
       return;
     }
     case "route_finish": {
-      const { error } = await supabase
-        .from("delivery_routes")
-        .update({ status: "completed" })
-        .eq("id", action.payload.deliveryRouteId);
-      if (error) throw error;
+      await apiPatch(`/api/delivery-routes/${action.payload.deliveryRouteId}`, { status: "completed" });
       return;
     }
   }
