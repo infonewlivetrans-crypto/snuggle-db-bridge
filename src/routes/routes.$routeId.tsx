@@ -453,7 +453,16 @@ function RouteDetailPage() {
                 confirmationCode={route.route_number}
                 deleteUrl={`/api/routes/${route.id}`}
                 description="Заявка не должна быть в работе/завершена, и по ней не должно быть активных (не-черновых) рейсов доставки."
-                onDeleted={() => router.navigate({ to: "/routes" })}
+                onDeleted={async () => {
+                  // Останавливаем все запросы по удалённой заявке, чтобы
+                  // detail-query не сделал повторный GET /api/routes/:id → 404.
+                  await queryClient.cancelQueries({ queryKey: ["route", routeId] });
+                  queryClient.removeQueries({ queryKey: ["route", routeId] });
+                  await queryClient.cancelQueries({ queryKey: ["route-points", routeId] });
+                  queryClient.removeQueries({ queryKey: ["route-points", routeId] });
+                  queryClient.invalidateQueries({ queryKey: ["routes"] });
+                  router.navigate({ to: "/routes", replace: true });
+                }}
               />
             </div>
           </div>
