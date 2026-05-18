@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiGetAuth } from "@/lib/api-client";
 import { db } from "@/lib/db";
 import {
   Table,
