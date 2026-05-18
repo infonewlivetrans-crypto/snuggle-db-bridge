@@ -492,17 +492,7 @@ function ProblemDialog({
   const save = useMutation({
     mutationFn: async () => {
       if (!problem) return;
-      const patch = {
-        resolution_status: status,
-        logist_comment: comment.trim() || null,
-        resolved_by: status === "resolved" ? "Логист" : null,
-        resolved_at: status === "resolved" ? new Date().toISOString() : null,
-      };
-      const { error } = await supabase
-        .from("order_problem_reports")
-        .update(patch)
-        .eq("id", problem.id);
-      if (error) throw error;
+      throw new Error("Редактирование проблемных доставок временно отключено до перевода на внутренний API");
     },
     onSuccess: () => {
       toast.success("Сохранено");
