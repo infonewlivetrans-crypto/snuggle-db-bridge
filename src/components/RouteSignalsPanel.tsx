@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { db } from "@/lib/db";
+import { apiGetAuth } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 import {
