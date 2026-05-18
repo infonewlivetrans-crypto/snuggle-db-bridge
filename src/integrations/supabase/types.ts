@@ -4418,6 +4418,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_bulk_delete_orders: {
+        Args: { p_order_ids: string[] }
+        Returns: Json
+      }
       admin_delete_delivery_route: {
         Args: { p_route_id: string }
         Returns: Json

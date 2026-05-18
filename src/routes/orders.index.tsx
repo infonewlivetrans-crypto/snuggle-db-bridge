@@ -1,13 +1,25 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchListViaApi, apiPatch, apiGetAuth } from "@/lib/api-client";
+import { fetchListViaApi, apiPatch, apiGetAuth, apiPost } from "@/lib/api-client";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -34,10 +46,12 @@ import {
   type PaymentStatus,
   type PaymentType,
 } from "@/lib/orders";
-import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare } from "lucide-react";
+import { Search, Sparkles, FileText, AlertTriangle, Package, MessageSquare, Trash2, Loader2 } from "lucide-react";
 import { detectCargoFeatures } from "@/lib/cargo-features";
 import { toast } from "sonner";
 import { AdminDeleteButton } from "@/components/AdminDeleteButton";
+import { useAuth } from "@/lib/auth/auth-context";
+
 
 export const Route = createFileRoute("/orders/")({
   head: () => ({
@@ -297,11 +311,112 @@ function OrdersPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // --- Admin bulk delete (выбор заказов чекбоксами) ---
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+
+  const filteredIdsKey = useMemo(
+    () => (isDemo ? "" : filtered.map((r) => r.id).join(",")),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isDemo, filtered],
+  );
+
+  // Сброс выбора при фильтрах / демо.
+  useMemo(() => {
+    if (isDemo) {
+      if (selectedIds.size > 0) setSelectedIds(new Set());
+      return;
+    }
+    if (selectedIds.size === 0) return;
+    const visible = new Set(filtered.map((r) => r.id));
+    let changed = false;
+    const next = new Set<string>();
+    selectedIds.forEach((id) => {
+      if (visible.has(id)) next.add(id);
+      else changed = true;
+    });
+    if (changed) setSelectedIds(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredIdsKey, isDemo]);
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+  const someFilteredSelected =
+    !allFilteredSelected && filtered.some((r) => selectedIds.has(r.id));
+
+  function toggleOne(id: string, on: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+  function toggleAllVisible(on: boolean) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (on) filtered.forEach((r) => next.add(r.id));
+      else filtered.forEach((r) => next.delete(r.id));
+      return next;
+    });
+  }
+
+  const bulkDelete = useMutation({
+    mutationFn: async (ids: string[]) => {
+      return await apiPost<{
+        ok: true;
+        deletedOrders: Array<{ id: string; orderNumber: string | null }>;
+        errors: Array<{ id: string; orderNumber: string | null; reason: string }>;
+        deletedRoutes: Array<{ id: string; routeNumber: string | null }>;
+        deletedDeliveryRoutes: Array<{ id: string; routeNumber: string | null }>;
+        blockedRoutes: Array<{ routeId: string; routeNumber: string | null; reason: string }>;
+      }>("/api/orders/bulk-delete", { ids });
+    },
+    onSuccess: (res) => {
+      const delCount = res.deletedOrders.length;
+      if (delCount > 0) {
+        const routeMsg =
+          res.deletedRoutes.length > 0
+            ? " · Импортированная заявка очищена, файл можно загрузить повторно"
+            : "";
+        toast.success(`Удалено заказов: ${delCount}${routeMsg}`);
+      } else {
+        toast.warning("Ни один заказ не был удалён");
+      }
+      if (res.errors.length > 0) {
+        const lines = res.errors
+          .slice(0, 5)
+          .map((e) => `${e.orderNumber ?? e.id}: ${e.reason}`)
+          .join("\n");
+        toast.warning(
+          `Пропущено: ${res.errors.length}\n${lines}${res.errors.length > 5 ? "\n…" : ""}`,
+        );
+      }
+      if (res.blockedRoutes.length > 0) {
+        const lines = res.blockedRoutes
+          .slice(0, 5)
+          .map((b) => `${b.routeNumber ?? b.routeId}: ${b.reason}`)
+          .join("\n");
+        toast.warning(`Заявки не удалены:\n${lines}`);
+      }
+      setSelectedIds(new Set());
+      setBulkConfirmOpen(false);
+      qc.invalidateQueries({ queryKey: ["orders-overview"] });
+      qc.invalidateQueries({ queryKey: ["delivery-routes"] });
+      qc.invalidateQueries({ queryKey: ["routes"] });
+      void refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const totalAmount = filtered.reduce((s, r) => s + Number(r.amount_due ?? r.goods_amount ?? 0), 0);
   const paidCount = filtered.filter((r) => r.payment_status === "paid").length;
   const inDeliveryCount = filtered.filter(
     (r) => r.status === "delivering" || r.status === "in_progress",
   ).length;
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -410,12 +525,61 @@ function OrdersPage() {
           </CardContent>
         </Card>
 
+        {isAdmin && !isDemo && selectedIds.size > 0 && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-2">
+            <div className="text-sm text-foreground">
+              Выбрано заказов: <span className="font-semibold">{selectedIds.size}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedIds(new Set())}
+                disabled={bulkDelete.isPending}
+              >
+                Сбросить
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => setBulkConfirmOpen(true)}
+                disabled={bulkDelete.isPending}
+                className="gap-1.5"
+              >
+                {bulkDelete.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                Удалить выбранные
+              </Button>
+            </div>
+          </div>
+        )}
+
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {isAdmin && !isDemo && (
+                      <TableHead className="w-[40px]">
+                        <Checkbox
+                          aria-label="Выбрать все на странице"
+                          checked={
+                            allFilteredSelected
+                              ? true
+                              : someFilteredSelected
+                                ? "indeterminate"
+                                : false
+                          }
+                          onCheckedChange={(v) => toggleAllVisible(v === true)}
+                        />
+                      </TableHead>
+                    )}
                     <TableHead className="w-[110px]">№ заказа</TableHead>
                     <TableHead>Клиент / контакт</TableHead>
                     <TableHead>Маршрут</TableHead>
@@ -432,13 +596,13 @@ function OrdersPage() {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="py-6">
+                      <TableCell colSpan={isAdmin && !isDemo ? 12 : 11} className="py-6">
                         <LoadingFallback onRefresh={() => refetch()} />
                       </TableCell>
                     </TableRow>
                   ) : filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={11} className="py-10 text-center text-sm text-muted-foreground">
+                      <TableCell colSpan={isAdmin && !isDemo ? 12 : 11} className="py-10 text-center text-sm text-muted-foreground">
                         Нет заказов под фильтры
                       </TableCell>
                     </TableRow>
@@ -456,8 +620,18 @@ function OrdersPage() {
                             : undefined;
                       return (
                         <TableRow key={r.id} className={rowHighlight}>
+                          {isAdmin && !isDemo && (
+                            <TableCell className="w-[40px]">
+                              <Checkbox
+                                aria-label={`Выбрать заказ ${r.order_number}`}
+                                checked={selectedIds.has(r.id)}
+                                onCheckedChange={(v) => toggleOne(r.id, v === true)}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell className="font-mono text-xs">
                             <div className="flex items-center gap-1.5">
+
                               {isDemo ? (
                                 <span className="font-semibold">{displayOrderNumber(r.order_number)}</span>
                               ) : (
@@ -652,6 +826,43 @@ function OrdersPage() {
             )}
           </CardContent>
         </Card>
+
+        <AlertDialog
+          open={bulkConfirmOpen}
+          onOpenChange={(o) => {
+            if (!bulkDelete.isPending) setBulkConfirmOpen(o);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Удалить выбранные заказы?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Будет удалено заказов: {selectedIds.size}. Действие нельзя отменить.
+                Заказы с полученной оплатой или в работе будут пропущены. Если у
+                импортированной заявки маршрута не останется ни одной точки, она
+                и связанный с ней черновой рейс также будут удалены.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={bulkDelete.isPending}>
+                Отмена
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={bulkDelete.isPending}
+                onClick={(e) => {
+                  e.preventDefault();
+                  bulkDelete.mutate(Array.from(selectedIds));
+                }}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {bulkDelete.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Удалить
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
