@@ -48,7 +48,7 @@ export function RequestOrderItemsBlock({ requestId }: { requestId: string }) {
       if (ids.length === 0) return [] as OrderRow[];
       const { rows } = await fetchListViaApi<OrderRow>("/api/orders", {
         limit: 500,
-        extra: { id_in: ids.join(","), fields: "id,order_number,onec_order_number" },
+        extra: { ids: ids.join(",") },
       });
       return rows;
     },
