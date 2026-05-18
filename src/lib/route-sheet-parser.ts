@@ -146,10 +146,11 @@ function extractOrderNumberAndDate(saleDoc: string | null): {
   return { number: null, date: null };
 }
 
-function syntheticOrderNumber(routeNumber: string | null, lineNumber: number | null): string | null {
-  if (!routeNumber || lineNumber == null) return null;
-  return `ML-${routeNumber}-${String(lineNumber).padStart(3, "0")}`;
-}
+// Намеренно НЕ синтезируем «ML-…» как видимый номер заказа.
+// Если в маршрутном листе колонка «Реализация товаров услуг» пустая —
+// orderNumber остаётся null, а серверный импорт сам присвоит внутренний
+// уникальный идентификатор для БД, при этом onec_order_number будет null
+// и UI покажет состояние «Требует заполнения».
 
 function extractRouteNumberAndDate(s: string | null): {
   number: string | null;
@@ -271,7 +272,7 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
         typeof row[cols.n] === "number"
           ? (row[cols.n] as number)
           : parseInt(String(row[cols.n] ?? ""), 10) || null;
-      const finalOrderNumber = orderNumber ?? syntheticOrderNumber(routeNumber, lineNumber);
+      const finalOrderNumber = orderNumber;
       const paymentRaw = str(row[cols.payment]);
       const { kind, requiresQr } = detectPayment(paymentRaw);
       const amount = parseAmount(row[cols.amount]);
