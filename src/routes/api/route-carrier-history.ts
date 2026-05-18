@@ -15,6 +15,25 @@ const Schema = z.object({
 export const Route = createFileRoute("/api/route-carrier-history")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        const url = new URL(request.url);
+        const routeId = url.searchParams.get("route_id");
+        const fields = url.searchParams.get("fields") || "*";
+        const limit = Math.min(Math.max(1, Number(url.searchParams.get("limit")) || 200), 500);
+        if (!routeId) return jsonResponse({ error: "route_id" }, { status: 400 });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const supa = auth.client as unknown as { from: (t: string) => any };
+        const { data, error } = await supa
+          .from("route_carrier_history")
+          .select(fields)
+          .eq("route_id", routeId)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse(data ?? []);
+      },
       POST: async ({ request }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;

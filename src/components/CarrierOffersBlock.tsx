@@ -6,8 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Send, Truck, Clock, MapPin, AlertCircle, CheckCircle2 } from "lucide-react";
-import { db } from "@/lib/db";
-import { apiPost } from "@/lib/api-client";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 import {
   BODY_TYPE_LABELS,
   type BodyType,
@@ -95,12 +94,11 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
   const { data: vehicles } = useQuery({
     queryKey: ["route-offers", "vehicles"],
     queryFn: async (): Promise<VehicleRow[]> => {
-      const { data, error } = await db
-        .from("vehicles")
-        .select("*, carriers:carrier_id(id, company_name, city)")
-        .eq("is_active", true);
-      if (error) throw error;
-      return (data ?? []) as VehicleRow[];
+      const fields = "*,carriers:carrier_id(id,company_name,city)";
+      const data = await apiGetAuth<VehicleRow[]>(
+        `/api/vehicles?activeOnly=1&limit=500&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 
@@ -108,17 +106,16 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
   const { data: busyMap } = useQuery({
     queryKey: ["route-offers", "busy"],
     queryFn: async (): Promise<Record<string, Date>> => {
-      const { data, error } = await db
-        .from("routes")
-        .select("vehicle_id, planned_departure_at, route_date, status")
-        .in("status", ["planned", "in_progress"]);
-      if (error) throw error;
-      const map: Record<string, Date> = {};
-      for (const r of (data ?? []) as Array<{
+      const fields = "vehicle_id,planned_departure_at,route_date,status";
+      const data = await apiGetAuth<Array<{
         vehicle_id: string | null;
         planned_departure_at: string | null;
         route_date: string | null;
-      }>) {
+      }>>(
+        `/api/routes?activeOnly=1&limit=500&fields=${encodeURIComponent(fields)}`,
+      );
+      const map: Record<string, Date> = {};
+      for (const r of data ?? []) {
         if (!r.vehicle_id) continue;
         const baseRaw = r.planned_departure_at ?? (r.route_date ? `${r.route_date}T00:00:00` : null);
         if (!baseRaw) continue;
@@ -136,12 +133,8 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
   const { data: drivers } = useQuery({
     queryKey: ["route-offers", "drivers"],
     queryFn: async (): Promise<Driver[]> => {
-      const { data, error } = await db
-        .from("drivers")
-        .select("*")
-        .eq("is_active", true);
-      if (error) throw error;
-      return (data ?? []) as Driver[];
+      const data = await apiGetAuth<Driver[]>(`/api/drivers?activeOnly=1&limit=500`);
+      return data ?? [];
     },
   });
 
@@ -150,12 +143,13 @@ export function CarrierOffersBlock({ routeId, transportRequestId, requirements }
   const { data: offers } = useQuery({
     queryKey: offersKey,
     queryFn: async (): Promise<OfferRow[]> => {
-      let q = db.from("route_offers").select("*").order("sent_at", { ascending: false });
-      if (routeId) q = q.eq("route_id", routeId);
-      else if (transportRequestId) q = q.eq("transport_request_id", transportRequestId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as OfferRow[];
+      const params = new URLSearchParams();
+      if (routeId) params.set("route_id", routeId);
+      else if (transportRequestId) params.set("transport_request_id", transportRequestId);
+      const data = await apiGetAuth<OfferRow[]>(
+        `/api/route-offers?${params.toString()}`,
+      );
+      return data ?? [];
     },
   });
 
@@ -488,16 +482,11 @@ export function CarrierOffersBlockForRoute({ routeId }: { routeId: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["route-offers-requirements", routeId],
     queryFn: async (): Promise<OfferRequirements | null> => {
-      const { data, error } = await db
-        .from("routes")
-        .select(
-          "required_body_type, required_capacity_kg, required_volume_m3, required_body_length_m, requires_tent, requires_manipulator, requires_straps, planned_departure_at, warehouse:warehouse_id(city)",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
+      const data = await apiGetAuth<Record<string, unknown> | null>(
+        `/api/routes/${routeId}`,
+      );
       if (!data) return null;
-      const r = data as Record<string, unknown>;
+      const r = data;
       const wh = r.warehouse as { city?: string | null } | null;
       return {
         required_body_type: (r.required_body_type as BodyType) ?? null,

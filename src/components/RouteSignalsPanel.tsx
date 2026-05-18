@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { db } from "@/lib/db";
+import { apiGetAuth } from "@/lib/api-client";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
 import {
@@ -183,15 +183,12 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
   const { data: offers, isLoading: loadingOffers } = useQuery({
     queryKey: ["route-signals", "offers", routeId],
     queryFn: async (): Promise<OfferRow[]> => {
-      const { data, error } = await db
-        .from("route_offers")
-        .select(
-          "id, route_id, carrier_id, vehicle_id, driver_id, status, sent_at, viewed_at, responded_at, expires_at, decline_reason, comment",
-        )
-        .eq("route_id", routeId)
-        .order("sent_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as OfferRow[];
+      const fields =
+        "id,route_id,carrier_id,vehicle_id,driver_id,status,sent_at,viewed_at,responded_at,expires_at,decline_reason,comment";
+      const data = await apiGetAuth<OfferRow[]>(
+        `/api/route-offers?route_id=${encodeURIComponent(routeId)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
     refetchInterval: 15_000,
   });
@@ -199,13 +196,11 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
   const { data: history } = useQuery({
     queryKey: ["route-signals", "history", routeId],
     queryFn: async (): Promise<HistoryRow[]> => {
-      const { data, error } = await db
-        .from("route_carrier_history")
-        .select("id, action, reason, comment, carrier_id, vehicle_id, driver_id, created_at")
-        .eq("route_id", routeId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as HistoryRow[];
+      const fields = "id,action,reason,comment,carrier_id,vehicle_id,driver_id,created_at";
+      const data = await apiGetAuth<HistoryRow[]>(
+        `/api/route-carrier-history?route_id=${encodeURIComponent(routeId)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
     refetchInterval: 30_000,
   });
@@ -233,12 +228,11 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryKey: ["route-signals", "carriers", carrierIds.join(",")],
     enabled: carrierIds.length > 0,
     queryFn: async (): Promise<CarrierLite[]> => {
-      const { data, error } = await db
-        .from("carriers")
-        .select("id, company_name, phone, email, city, contact_person")
-        .in("id", carrierIds);
-      if (error) throw error;
-      return (data ?? []) as CarrierLite[];
+      const fields = "id,company_name,phone,email,city,contact_person";
+      const data = await apiGetAuth<CarrierLite[]>(
+        `/api/carriers?ids=${encodeURIComponent(carrierIds.join(","))}&limit=500&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 
@@ -246,12 +240,12 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryKey: ["route-signals", "vehicles", vehicleIds.join(",")],
     enabled: vehicleIds.length > 0,
     queryFn: async (): Promise<VehicleLite[]> => {
-      const { data, error } = await db
-        .from("vehicles")
-        .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3, body_length_m, body_width_m, body_height_m, has_tent, has_manipulator, has_straps, comment")
-        .in("id", vehicleIds);
-      if (error) throw error;
-      return (data ?? []) as VehicleLite[];
+      const fields =
+        "id,plate_number,brand,model,body_type,capacity_kg,volume_m3,body_length_m,body_width_m,body_height_m,has_tent,has_manipulator,has_straps,comment";
+      const data = await apiGetAuth<VehicleLite[]>(
+        `/api/vehicles?ids=${encodeURIComponent(vehicleIds.join(","))}&limit=500&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 
@@ -259,12 +253,11 @@ export function RouteSignalsPanel({ routeId, requirements }: Props) {
     queryKey: ["route-signals", "drivers", driverIds.join(",")],
     enabled: driverIds.length > 0,
     queryFn: async (): Promise<DriverLite[]> => {
-      const { data, error } = await db
-        .from("drivers")
-        .select("id, full_name, phone, license_number, license_categories")
-        .in("id", driverIds);
-      if (error) throw error;
-      return (data ?? []) as DriverLite[];
+      const fields = "id,full_name,phone,license_number,license_categories";
+      const data = await apiGetAuth<DriverLite[]>(
+        `/api/drivers?ids=${encodeURIComponent(driverIds.join(","))}&limit=500&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 

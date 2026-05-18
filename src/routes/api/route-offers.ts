@@ -27,11 +27,21 @@ export const Route = createFileRoute("/api/route-offers")({
         const url = new URL(request.url);
         const carrierId = url.searchParams.get("carrier_id");
         const status = url.searchParams.get("status");
+        const routeId = url.searchParams.get("route_id");
+        const transportRequestId = url.searchParams.get("transport_request_id");
+        const id = url.searchParams.get("id");
         const fields = url.searchParams.get("fields") || "*";
         const limit = Math.min(Math.max(1, Number(url.searchParams.get("limit")) || 200), 500);
+        if (id) {
+          const { data, error } = await supa.from("route_offers").select(fields).eq("id", id).maybeSingle();
+          if (error) return jsonResponse({ error: error.message }, { status: 500 });
+          return jsonResponse(data ?? null);
+        }
         let q = supa.from("route_offers").select(fields).order("sent_at", { ascending: false }).limit(limit);
         if (carrierId) q = q.eq("carrier_id", carrierId);
         if (status) q = q.eq("status", status);
+        if (routeId) q = q.eq("route_id", routeId);
+        if (transportRequestId) q = q.eq("transport_request_id", transportRequestId);
         const { data, error } = await q;
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse(data ?? []);

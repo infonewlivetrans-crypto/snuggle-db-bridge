@@ -18,10 +18,12 @@ export const Route = createFileRoute("/api/carriers")({
           const { limit, offset, search, url } = parseListParams(request);
           const status = url.searchParams.get("status");
           const statuses = url.searchParams.get("statuses");
+          const idsParam = url.searchParams.get("ids");
+          const fields = url.searchParams.get("fields") || "*";
 
           let q = auth.client
             .from("carriers")
-            .select("*", { count: "exact" })
+            .select(fields, { count: "exact" })
             .order("created_at", { ascending: false });
           if (status && status !== "all") q = q.eq("verification_status", status as never);
           if (statuses) {
@@ -30,6 +32,11 @@ export const Route = createFileRoute("/api/carriers")({
               .map((s) => s.trim())
               .filter(Boolean);
             if (arr.length) q = q.in("verification_status", arr as never[]);
+          }
+          if (idsParam) {
+            const ids = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+            if (ids.length === 0) return jsonResponse([], { headers: { "X-Total-Count": "0" } });
+            q = q.in("id", ids);
           }
           if (search) {
             q = q.or(

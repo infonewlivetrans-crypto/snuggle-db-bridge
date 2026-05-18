@@ -24,9 +24,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { db } from "@/lib/db";
 import { useAuth } from "@/lib/auth/auth-context";
-import { apiPost } from "@/lib/api-client";
+import { apiGetAuth, apiPost } from "@/lib/api-client";
 
 type Props = { routeId: string };
 
@@ -118,15 +117,10 @@ export function CarrierConfirmationBlock({ routeId }: Props) {
   const routeQ = useQuery({
     queryKey: ["carrier-confirmation", "route", routeId],
     queryFn: async (): Promise<RouteRow | null> => {
-      const { data, error } = await db
-        .from("routes")
-        .select(
-          "id, route_number, carrier_assignment_status, carrier_id, pending_offer_id, carrier_assigned_at, carrier:carrier_id(company_name)",
-        )
-        .eq("id", routeId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as RouteRow | null;
+      const data = await apiGetAuth<RouteRow & { carrier?: { company_name: string | null } | null } | null>(
+        `/api/routes/${routeId}`,
+      );
+      return data ?? null;
     },
   });
 
@@ -137,30 +131,24 @@ export function CarrierConfirmationBlock({ routeId }: Props) {
     queryKey: ["carrier-confirmation", "pending-offer", pendingOfferId],
     enabled: !!pendingOfferId,
     queryFn: async (): Promise<OfferRow | null> => {
-      const { data, error } = await db
-        .from("route_offers")
-        .select(
-          "id, carrier_id, vehicle_id, driver_id, responded_at, comment, carriers:carrier_id(company_name), vehicles:vehicle_id(plate_number, brand, model), drivers:driver_id(full_name, phone)",
-        )
-        .eq("id", pendingOfferId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as OfferRow | null;
+      const fields =
+        "id,carrier_id,vehicle_id,driver_id,responded_at,comment,carriers:carrier_id(company_name),vehicles:vehicle_id(plate_number,brand,model),drivers:driver_id(full_name,phone)";
+      const data = await apiGetAuth<OfferRow | null>(
+        `/api/route-offers?id=${encodeURIComponent(pendingOfferId!)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? null;
     },
   });
 
   const historyQ = useQuery({
     queryKey: ["carrier-confirmation", "history", routeId],
     queryFn: async (): Promise<HistoryRow[]> => {
-      const { data, error } = await db
-        .from("route_carrier_history")
-        .select(
-          "id, action, carrier_id, comment, reason, actor_user_id, created_at, carriers:carrier_id(company_name)",
-        )
-        .eq("route_id", routeId)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as HistoryRow[];
+      const fields =
+        "id,action,carrier_id,comment,reason,actor_user_id,created_at,carriers:carrier_id(company_name)";
+      const data = await apiGetAuth<HistoryRow[]>(
+        `/api/route-carrier-history?route_id=${encodeURIComponent(routeId)}&fields=${encodeURIComponent(fields)}`,
+      );
+      return data ?? [];
     },
   });
 
