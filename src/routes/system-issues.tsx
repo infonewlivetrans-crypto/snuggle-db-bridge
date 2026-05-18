@@ -322,7 +322,7 @@ function CreateIssueDialog({ onCreated }: { onCreated: () => void }) {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("system_issues").insert({
+      await apiPost("/api/system-issues", {
         title: title.trim(),
         description: description.trim() || null,
         location: location.trim() || null,
@@ -331,7 +331,6 @@ function CreateIssueDialog({ onCreated }: { onCreated: () => void }) {
         status,
         comment: comment.trim() || null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["system_issues"] });
