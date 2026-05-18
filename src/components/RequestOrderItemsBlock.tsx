@@ -40,13 +40,11 @@ export function RequestOrderItemsBlock({ requestId }: { requestId: string }) {
   const { data: orders = [] } = useQuery({
     queryKey: ["request-orders-min", requestId],
     queryFn: async () => {
-      const { data: pts, error: ptsErr } = await db
-        .from("route_points")
-        .select("order_id")
-        .eq("route_id", requestId);
-      if (ptsErr) throw ptsErr;
+      const pts = await apiGetAuth<Array<{ order_id: string }>>(
+        `/api/route-points?route_id=${encodeURIComponent(requestId)}&fields=order_id`,
+      );
       const ids = Array.from(
-        new Set((pts ?? []).map((p: { order_id: string }) => p.order_id).filter(Boolean)),
+        new Set((pts ?? []).map((p) => p.order_id).filter(Boolean)),
       );
       if (ids.length === 0) return [] as OrderRow[];
       const { data, error } = await db
