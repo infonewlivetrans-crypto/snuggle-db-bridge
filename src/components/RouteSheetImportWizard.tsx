@@ -401,9 +401,9 @@ export function RouteSheetImportWizard({
           throw new Error("Поддерживаются только Excel-файлы (.xlsx, .xls).");
         }
         data = await parseRouteSheetXlsx(file);
-        if (data.orders.length === 0 && !trParsed) {
+        if (data.orders.length === 0) {
           throw new Error(
-            "Не удалось распознать заказы. Загрузите также «Заявку на транспорт» или другой маршрутный лист.",
+            "Не удалось распознать заказы в маршрутном листе. Проверьте, что вы загрузили именно маршрутный лист, а не «Заявку на транспорт» — для заявки используйте отдельное поле ниже.",
           );
         }
       } else {
@@ -642,8 +642,35 @@ export function RouteSheetImportWizard({
         {step === "upload" && (
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="rs-file">
+                Файл маршрутного листа (основной)
+              </Label>
+              <Input
+                id="rs-file"
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => {
+                  setFile(e.target.files?.[0] ?? null);
+                  setErrorMsg(null);
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Например: «Маршрутный лист № 000003408.xlsx». Содержит таблицу заказов
+                (Реализация, Покупатель, Адрес доставки и т.д.).
+              </p>
+            </div>
+            {file && (
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
+                <div className="font-medium">{file.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {(file.size / 1024).toFixed(1)} КБ
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
               <Label htmlFor="tr-file">
-                Файл «Заявка на транспорт» (опционально)
+                Файл «Заявка на транспорт» (опционально, только если есть отдельный файл заявки)
               </Label>
               <Input
                 id="tr-file"
@@ -675,33 +702,10 @@ export function RouteSheetImportWizard({
                   погрузка: {trParsed.loadingDate ?? "—"}
                 </div>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="rs-file">
-                Файл маршрутного листа (опционально, если есть заявка)
-              </Label>
-              <Input
-                id="rs-file"
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={(e) => {
-                  setFile(e.target.files?.[0] ?? null);
-                  setErrorMsg(null);
-                }}
-              />
               <p className="text-xs text-muted-foreground">
-                Заявка + маршрутный лист + товарный состав = одна заявка/рейс.
+                Не загружайте сюда маршрутный лист — для него отдельное поле выше.
               </p>
             </div>
-            {file && (
-              <div className="rounded-md border bg-secondary/30 p-3 text-sm">
-                <div className="font-medium">{file.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {(file.size / 1024).toFixed(1)} КБ
-                </div>
-              </div>
-            )}
             {errorMsg && (
               <ErrorDetailsPanel
                 title="Не удалось обработать файл"
