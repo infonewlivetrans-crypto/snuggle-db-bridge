@@ -146,10 +146,11 @@ function extractOrderNumberAndDate(saleDoc: string | null): {
   return { number: null, date: null };
 }
 
-function syntheticOrderNumber(routeNumber: string | null, lineNumber: number | null): string | null {
-  if (!routeNumber || lineNumber == null) return null;
-  return `ML-${routeNumber}-${String(lineNumber).padStart(3, "0")}`;
-}
+// Намеренно НЕ синтезируем «ML-…» как видимый номер заказа.
+// Если в маршрутном листе колонка «Реализация товаров услуг» пустая —
+// orderNumber остаётся null, а серверный импорт сам присвоит внутренний
+// уникальный идентификатор для БД, при этом onec_order_number будет null
+// и UI покажет состояние «Требует заполнения».
 
 function extractRouteNumberAndDate(s: string | null): {
   number: string | null;
