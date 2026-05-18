@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,16 +45,14 @@ function CarrierRoutesPage() {
     enabled: !!carrierId,
     queryKey: ["carrier-routes", carrierId],
     queryFn: async (): Promise<Row[]> => {
-      const { data, error } = await supabase
-        .from("delivery_routes")
-        .select(
+      const { rows } = await fetchListViaApi<Row>("/api/delivery-routes", {
+        select:
           "id, route_number, route_date, status, assigned_driver, assigned_vehicle, source_request_id, carrier_id",
-        )
-        .eq("carrier_id", carrierId!)
-        .order("route_date", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return (data ?? []) as unknown as Row[];
+        filters: { carrier_id: carrierId! },
+        order: "route_date.desc",
+        limit: 200,
+      });
+      return rows;
     },
   });
 
