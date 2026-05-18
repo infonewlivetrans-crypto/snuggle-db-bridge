@@ -130,13 +130,14 @@ export function StockAvailabilityCheckBlock({
     queryKey: ["stock-check-bal", warehouseId, productIds.join(",")],
     enabled: !!warehouseId && productIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("stock_balances")
-        .select("product_id, available")
-        .eq("warehouse_id", warehouseId)
-        .in("product_id", productIds);
-      if (error) throw error;
-      return (data ?? []) as Bal[];
+      const { rows } = await fetchListViaApi<Bal>("/api/stock-balances", {
+        limit: 1000,
+        extra: {
+          warehouse_id: warehouseId ?? "",
+          product_id: productIds.join(","),
+        },
+      });
+      return rows;
     },
   });
 
