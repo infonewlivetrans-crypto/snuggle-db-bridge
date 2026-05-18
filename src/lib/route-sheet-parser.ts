@@ -267,6 +267,10 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
       if (!isOrderRow(row, cols)) continue;
       const saleDoc = str(row[cols.sale]);
       const { number: orderNumber, date: orderDate } = extractOrderNumberAndDate(saleDoc);
+      const lineNumber =
+        typeof row[cols.n] === "number"
+          ? (row[cols.n] as number)
+          : parseInt(String(row[cols.n] ?? ""), 10) || null;
       const paymentRaw = str(row[cols.payment]);
       const { kind, requiresQr } = detectPayment(paymentRaw);
       const amount = parseAmount(row[cols.amount]);
@@ -282,12 +286,9 @@ export async function parseRouteSheetXlsx(file: File): Promise<ParsedRouteSheet>
 
       orders.push({
         rowIndex: r + 1,
-        lineNumber:
-          typeof row[cols.n] === "number"
-            ? (row[cols.n] as number)
-            : parseInt(String(row[cols.n] ?? ""), 10) || null,
+        lineNumber,
         saleDoc,
-        orderNumber,
+        orderNumber: orderNumber ?? syntheticOrderNumber(routeNumber, lineNumber),
         orderDate,
         customer,
         deliveryAddress: address,
