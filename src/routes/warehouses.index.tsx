@@ -76,7 +76,12 @@ const EMPTY_FORM: WarehouseForm = {
 function WarehousesPage() {
   const qc = useQueryClient();
   const { roles } = useAuth();
-  const isAdmin = roles.includes("admin");
+  // Auth-зависимый UI рендерим только после монтирования, иначе SSR
+  // (без сессии) и клиент (с сессией) дают разный HTML и React падает
+  // с hydration mismatch (#418).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isAdmin = mounted && roles.includes("admin");
 
   const [editing, setEditing] = useState<Warehouse | null>(null);
   const [open, setOpen] = useState(false);
