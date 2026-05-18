@@ -79,12 +79,14 @@ export function StockAvailabilityCheckBlock({
     queryKey: ["stock-check-items", requestId, orderIds.join(",")],
     enabled: orderIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await db
-        .from("order_items")
-        .select("id, order_id, product_id, nomenclature, unit, qty")
-        .in("order_id", orderIds);
-      if (error) throw error;
-      return (data ?? []) as Item[];
+      const { rows } = await fetchListViaApi<Item>("/api/order-items", {
+        limit: 2000,
+        extra: {
+          order_id: orderIds.join(","),
+          fields: "id,order_id,product_id,nomenclature,unit,qty",
+        },
+      });
+      return rows;
     },
   });
 
