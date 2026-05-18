@@ -933,13 +933,26 @@ function ManagerInfoAndActions({
     enabled: !!contactName,
     queryKey: ["client-manager", contactName],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("clients")
-        .select("manager_name, manager_phone")
-        .eq("name", contactName!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as { manager_name: string | null; manager_phone: string | null } | null;
+      const res = await fetch(
+        `/api/clients?name=${encodeURIComponent(contactName!)}&fields=manager_name,manager_phone&limit=1`,
+        {
+          credentials: "same-origin",
+          headers: {
+            accept: "application/json",
+            ...((): Record<string, string> => {
+              try {
+                const t = window.localStorage.getItem("rt-access-token");
+                return t ? { authorization: `Bearer ${t}` } : {};
+              } catch {
+                return {};
+              }
+            })(),
+          },
+        },
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = (await res.json()) as { rows?: Array<{ manager_name: string | null; manager_phone: string | null }> };
+      return (body.rows?.[0] ?? null) as { manager_name: string | null; manager_phone: string | null } | null;
     },
   });
 
