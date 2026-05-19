@@ -22,7 +22,9 @@ import {
   ArrowUp,
   ArrowDown,
   MessageSquare,
+  Navigation,
 } from "lucide-react";
+import { yandexNavigatorRouteUrl, yandexMapsRouteUrl, yandexNavigatorUrl } from "@/lib/geo";
 import { apiGetAuth } from "@/lib/api-client";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
@@ -296,6 +298,25 @@ function DriverRoutePage() {
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
   const isCompleted = data?.status === "completed";
 
+  // Индекс первой невыполненной точки в рекомендованном порядке.
+  // Если водитель работает с точкой ПОСЛЕ этого индекса — это "не по порядку".
+  const firstPendingIndex = list.findIndex((p) => !FINAL.includes(p.dp_status));
+
+  // Ссылки в Я.Навигатор: маршрут по всем невыполненным точкам с координатами
+  // и быстрая ссылка на следующую рекомендованную точку.
+  const pendingWithCoords = list
+    .filter((p) => !FINAL.includes(p.dp_status))
+    .map((p) => p.order)
+    .filter(
+      (o): o is NonNullable<typeof o> =>
+        !!o && typeof o.latitude === "number" && typeof o.longitude === "number",
+    )
+    .map((o) => ({ lat: o.latitude as number, lng: o.longitude as number }));
+  const naviRouteUrl = yandexNavigatorRouteUrl(pendingWithCoords);
+  const naviWebRouteUrl = yandexMapsRouteUrl(pendingWithCoords);
+  const nextPoint = pendingWithCoords[0] ?? null;
+  const naviNextUrl = nextPoint ? yandexNavigatorUrl(nextPoint.lat, nextPoint.lng) : null;
+
   // Блокировка перехода к следующей точке: если у текущей открытой точки
   // требуется QR-код, а он не загружен/не подтверждён — следующие точки
   // показываем как заблокированные.
@@ -469,6 +490,51 @@ function DriverRoutePage() {
               active={data.status !== "completed"}
             />
 
+            {/* Кнопки запуска маршрута в Я.Навигаторе */}
+            {!isCompleted && pendingWithCoords.length > 0 && (
+              <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Navigation className="h-4 w-4 text-primary" />
+                  Навигация
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {naviRouteUrl && (
+                    <Button asChild size="sm" className="w-full gap-1.5">
+                      <a href={naviRouteUrl} rel="noreferrer">
+                        <Navigation className="h-4 w-4" />
+                        Открыть маршрут в Я.Навигаторе
+                      </a>
+                    </Button>
+                  )}
+                  {naviNextUrl && (
+                    <Button asChild size="sm" variant="outline" className="w-full gap-1.5">
+                      <a href={naviNextUrl} rel="noreferrer">
+                        <MapPin className="h-4 w-4" />
+                        Следующая точка
+                      </a>
+                    </Button>
+                  )}
+                </div>
+                {naviWebRouteUrl && (
+                  <a
+                    href={naviWebRouteUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block text-xs text-muted-foreground underline-offset-2 hover:underline"
+                  >
+                    Открыть на Я.Картах (если Навигатор не установлен)
+                  </a>
+                )}
+                {pendingWithCoords.length < pendingCount && (
+                  <div className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-800 dark:text-amber-200">
+                    У некоторых точек нет координат — они не вошли в маршрут навигатора.
+                  </div>
+                )}
+              </div>
+            )}
+
+
+
             {/* Этапы рейса — пошаговая работа водителя */}
             <TripStageBlock
               deliveryRouteId={deliveryRouteId}
@@ -533,6 +599,11 @@ function DriverRoutePage() {
                         idx >= blockedFromIndex && blockingPointNumber != null
                           ? `Сначала загрузите/подтвердите QR по точке №${blockingPointNumber}, затем переходите к следующей разгрузке.`
                           : null
+                      }
+                      outOfOrder={
+                        firstPendingIndex >= 0 &&
+                        idx > firstPendingIndex &&
+                        !FINAL.includes(p.dp_status)
                       }
                     />
                   ))}
@@ -632,6 +703,7 @@ function DriverPointCard({
   reordering,
   locked,
   blockedReason,
+  outOfOrder = false,
 }: {
   p: PointRow;
   index: number;
@@ -644,6 +716,7 @@ function DriverPointCard({
   reordering: boolean;
   locked: boolean;
   blockedReason?: string | null;
+  outOfOrder?: boolean;
 }) {
   const o = p.order;
 
@@ -694,6 +767,15 @@ function DriverPointCard({
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      {outOfOrder && !locked && (
+        <div className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-900 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Точка выполняется не по рекомендованному порядку маршрута. Действие
+            разрешено, но обратите внимание на оптимальный порядок выше.
+          </span>
+        </div>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">

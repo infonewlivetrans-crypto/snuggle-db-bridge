@@ -7,6 +7,7 @@ import {
 } from "@/server/managers-resolve.server";
 import { ensureDefaultCarrierId } from "@/server/carriers.server";
 import { geocodeOrderRow } from "@/server/order-geocode.server";
+import { optimizeRoutePoints } from "@/server/route-optimize.server";
 type PaymentKind = "cash" | "qr" | "paid" | "bank" | "unknown";
 
 type IncomingOrder = {
@@ -1080,6 +1081,24 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           /* не критично */
         }
 
+        // 6b.1. Оптимизация порядка точек (nearest-neighbour по координатам).
+        // Записывает результат в route_points.point_number, чтобы у логиста
+        // карта и список и у водителя порядок сразу шли по оптимальному пути.
+        let optimization: { reordered: number; withoutCoords: number } | null = null;
+        if (inserted > 1) {
+          try {
+            optimization = await optimizeRoutePoints(sb, routeId);
+            if (optimization && optimization.withoutCoords > 0) {
+              warnings.push(
+                `Оптимизация маршрута: ${optimization.withoutCoords} точек без координат — требует уточнения адреса.`,
+              );
+            }
+          } catch (e) {
+            console.error("[import-route-sheet] optimize failed:", e);
+          }
+        }
+
+
         // 6c. Автопередача водителю: если при импорте однозначно распознаны
         // водитель и ТС и в маршруте есть точки — создаём delivery_route
         // в статусе "issued", чтобы заявка сразу появилась в /driver.
@@ -1177,6 +1196,9 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           total: payload.orders.length,
           pointsCreated: inserted,
           deliveryRouteIssued,
+          optimization,
+
+
 
           itemsCreated,
           itemsUnmatched,
