@@ -129,7 +129,7 @@ function InviteLoginPage() {
     setLoginError(null);
     setLoginBusy(true);
     try {
-      const result = await diagnoseSignIn(loginEmail.trim(), loginPassword);
+      const result = await diagnoseSignIn(loginEmail.trim(), loginPassword, () => {});
       const target = landingPathForRoles(result.roles);
       navigate({
         to: target,
