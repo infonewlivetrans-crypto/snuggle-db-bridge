@@ -7,8 +7,8 @@ const BUCKET = "route-point-photos";
 const InsertSchema = z.object({
   route_point_id: z.string().uuid(),
   order_id: z.string().uuid().nullable().optional(),
-  kind: z.string().min(1).max(64),
-  file_url: z.string().min(1).max(2000),
+  kind: z.enum(["qr", "signed_docs", "payment", "problem", "unloading_place"]),
+  file_url: z.string().min(1).max(2000).optional(),
   storage_path: z.string().min(1).max(2000),
 });
 
@@ -38,11 +38,12 @@ export const Route = createFileRoute("/api/route-point-photos")({
         try { body = await request.json(); } catch { return jsonResponse({ error: "Некорректный JSON" }, { status: 400 }); }
         const parsed = InsertSchema.safeParse(body);
         if (!parsed.success) return jsonResponse({ error: parsed.error.message }, { status: 400 });
+        const fileUrl = `/api/storage-file?bucket=${encodeURIComponent(BUCKET)}&path=${encodeURIComponent(parsed.data.storage_path)}`;
         const { error } = await (
           auth.client.from("route_point_photos") as unknown as {
             insert: (p: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
           }
-        ).insert({ ...parsed.data, uploaded_by: auth.userId ?? null });
+        ).insert({ ...parsed.data, file_url: parsed.data.file_url ?? fileUrl, uploaded_by: auth.userId ?? null });
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse({ ok: true });
       },
