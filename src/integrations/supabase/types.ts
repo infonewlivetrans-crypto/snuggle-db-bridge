@@ -2691,14 +2691,18 @@ export type Database = {
       route_point_photo_uploads: {
         Row: {
           actor: string | null
+          bucket: string
           client_upload_id: string
           created_at: string
           device_created_at: string | null
           error: string | null
+          file_name: string | null
           file_url: string | null
           id: string
           kind: string
+          mime_type: string | null
           order_id: string | null
+          path: string | null
           route_point_id: string
           status: string
           storage_path: string | null
@@ -2706,14 +2710,18 @@ export type Database = {
         }
         Insert: {
           actor?: string | null
+          bucket?: string
           client_upload_id: string
           created_at?: string
           device_created_at?: string | null
           error?: string | null
+          file_name?: string | null
           file_url?: string | null
           id?: string
           kind: string
+          mime_type?: string | null
           order_id?: string | null
+          path?: string | null
           route_point_id: string
           status?: string
           storage_path?: string | null
@@ -2721,14 +2729,18 @@ export type Database = {
         }
         Update: {
           actor?: string | null
+          bucket?: string
           client_upload_id?: string
           created_at?: string
           device_created_at?: string | null
           error?: string | null
+          file_name?: string | null
           file_url?: string | null
           id?: string
           kind?: string
+          mime_type?: string | null
           order_id?: string | null
+          path?: string | null
           route_point_id?: string
           status?: string
           storage_path?: string | null
@@ -2738,37 +2750,49 @@ export type Database = {
       }
       route_point_photos: {
         Row: {
+          bucket: string
           comment: string | null
           company_id: string | null
           created_at: string
+          file_name: string | null
           file_url: string
           id: string
           kind: Database["public"]["Enums"]["route_point_photo_kind"]
+          mime_type: string | null
           order_id: string | null
+          path: string | null
           route_point_id: string
           storage_path: string | null
           uploaded_by: string | null
         }
         Insert: {
+          bucket?: string
           comment?: string | null
           company_id?: string | null
           created_at?: string
+          file_name?: string | null
           file_url: string
           id?: string
           kind: Database["public"]["Enums"]["route_point_photo_kind"]
+          mime_type?: string | null
           order_id?: string | null
+          path?: string | null
           route_point_id: string
           storage_path?: string | null
           uploaded_by?: string | null
         }
         Update: {
+          bucket?: string
           comment?: string | null
           company_id?: string | null
           created_at?: string
+          file_name?: string | null
           file_url?: string
           id?: string
           kind?: Database["public"]["Enums"]["route_point_photo_kind"]
+          mime_type?: string | null
           order_id?: string | null
+          path?: string | null
           route_point_id?: string
           storage_path?: string | null
           uploaded_by?: string | null
