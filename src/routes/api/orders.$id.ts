@@ -106,7 +106,47 @@ export const Route = createFileRoute("/api/orders/$id")({
         if (Object.keys(updates).length === 0) {
           return jsonResponse({ error: "Нет допустимых полей для обновления" }, { status: 400 });
         }
-        const { error } = await auth.client
+        // RLS на orders разрешает UPDATE только admin/logist/manager. Водитель
+        // через свой клиент попадёт в "0 rows updated" без ошибки — оплата
+        // не сохраняется. Если все поля апдейта входят в whitelist оплаты и
+        // пользователь — водитель, прикреплённый к маршруту этого заказа,
+        // выполняем апдейт через admin-клиент.
+        const onlyPaymentFields = Object.keys(updates).every((k) => DRIVER_PAYMENT_FIELDS.has(k));
+        let client = auth.client;
+        if (onlyPaymentFields) {
+          const isPrivileged = await hasAnyRole(auth.client, auth.userId, ["admin", "logist", "manager"]);
+          if (!isPrivileged) {
+            const isDriver = await hasAnyRole(auth.client, auth.userId, ["driver"]);
+            if (isDriver) {
+              const admin = makeAdminClient();
+              const { data: drv } = await admin
+                .from("drivers")
+                .select("id")
+                .eq("user_id", auth.userId)
+                .maybeSingle();
+              const driverId = (drv as { id: string } | null)?.id ?? null;
+              if (!driverId) {
+                return jsonResponse({ error: "forbidden" }, { status: 403 });
+              }
+              const { data: rp } = await admin
+                .from("route_points")
+                .select("route_id, delivery_routes!inner(driver_id)")
+                .eq("order_id", params.id);
+              const rows = (rp ?? []) as Array<{ delivery_routes: { driver_id: string | null } | { driver_id: string | null }[] | null }>;
+              const allowed = rows.some((r) => {
+                const dr = r.delivery_routes;
+                if (!dr) return false;
+                const arr = Array.isArray(dr) ? dr : [dr];
+                return arr.some((d) => d.driver_id === driverId);
+              });
+              if (!allowed) {
+                return jsonResponse({ error: "forbidden" }, { status: 403 });
+              }
+              client = admin;
+            }
+          }
+        }
+        const { error } = await client
           .from("orders")
           .update(updates as never)
           .eq("id", params.id);
