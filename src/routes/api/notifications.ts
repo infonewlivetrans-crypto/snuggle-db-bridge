@@ -6,6 +6,11 @@ import {
   requireAuth,
 } from "@/server/api-helpers.server";
 
+// Лёгкий набор полей по умолчанию — чтобы GET /api/notifications не
+// тащил тяжёлые join/payload и не подвешивал воркер до nginx 504.
+const DEFAULT_FIELDS =
+  "id, kind, title, body, order_id, payload, is_read, created_at";
+
 export const Route = createFileRoute("/api/notifications")({
   server: {
     handlers: {
@@ -13,26 +18,45 @@ export const Route = createFileRoute("/api/notifications")({
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
 
-        const { limit, offset, url } = parseListParams(request);
+        const { limit: rawLimit, offset, url } = parseListParams(request);
+        // Жёсткий cap: даже если клиент попросил больше — возвращаем максимум 50.
+        const limit = Math.min(Math.max(1, rawLimit), 50);
         const orderId = url.searchParams.get("order_id");
         const kind = url.searchParams.get("kind");
-        const fields =
-          url.searchParams.get("fields") ||
-          "id, kind, title, body, order_id, payload, is_read, created_at";
+        const fields = url.searchParams.get("fields") || DEFAULT_FIELDS;
 
-        let q = auth.client
-          .from("notifications")
-          .select(fields, { count: "exact" })
-          .order("created_at", { ascending: false });
-        if (orderId) q = q.eq("order_id", orderId);
-        if (kind) q = q.eq("kind", kind);
+        try {
+          // ВАЖНО: НЕ используем count:"exact" — на больших таблицах он
+          // выполняет полный COUNT(*) и легко уходит в 504 за nginx.
+          let q = auth.client
+            .from("notifications")
+            .select(fields)
+            .order("created_at", { ascending: false });
+          if (orderId) q = q.eq("order_id", orderId);
+          if (kind) q = q.eq("kind", kind);
 
-        const { data, error, count } = await q.range(offset, offset + limit - 1);
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse(
-          { rows: data ?? [], total: count ?? 0 },
-          { headers: cacheHeaders(30) },
-        );
+          const { data, error } = await q.range(offset, offset + limit - 1);
+          if (error) {
+            console.error("[/api/notifications] db error:", error.message);
+            // Не валим UI: возвращаем пустой список, чтобы NotificationsBell
+            // не сыпал красным и не уходил в бесконечный refetch.
+            return jsonResponse(
+              { rows: [], total: 0, error: error.message },
+              { status: 200 },
+            );
+          }
+          const rows = data ?? [];
+          return jsonResponse(
+            { rows, total: rows.length },
+            { headers: cacheHeaders(30) },
+          );
+        } catch (e) {
+          console.error(
+            "[/api/notifications] unexpected error:",
+            e instanceof Error ? e.message : String(e),
+          );
+          return jsonResponse({ rows: [], total: 0 }, { status: 200 });
+        }
       },
       // Создание уведомления (например, риск опоздания к клиенту).
       POST: async ({ request }) => {
