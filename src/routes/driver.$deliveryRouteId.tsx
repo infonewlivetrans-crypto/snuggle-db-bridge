@@ -1018,7 +1018,7 @@ function DriverPointCard({
         driverName={driverName}
         hasQrPhoto={!!photoKinds?.has("qr")}
         hasProblemPhoto={!!photoKinds?.has("problem")}
-        hasDocumentsPhoto={!!photoKinds?.has("documents")}
+        hasDocumentsPhoto={!!photoKinds?.has("signed_docs")}
       />
 
       {/* История действий водителя по точке — с GPS-координатами */}
