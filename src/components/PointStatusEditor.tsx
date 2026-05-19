@@ -319,11 +319,18 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
           </div>
           <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
             {order?.requires_qr && <li>Загрузите фото QR-кода</li>}
-            {order?.payment_type === "cash" && order?.payment_status !== "paid" && (
+            {order && !isOnlinePayment(order.payment_type) && order.payment_status !== "paid" && (
               <li>Укажите фактически полученную сумму и подтвердите оплату</li>
             )}
-            <li>Загрузите фото документов</li>
+            {order && isOnlinePayment(order.payment_type) && (
+              <li>Оплата онлайн — деньги от клиента получать не нужно</li>
+            )}
+            {docsRequiredSetting && <li>Загрузите фото документов</li>}
+            {photosRequiredSetting && !docsRequiredSetting && (
+              <li>Загрузите фото доставки</li>
+            )}
           </ul>
+
           <div>
             <div className="mb-1 text-xs text-muted-foreground">
               Комментарий {(() => {
