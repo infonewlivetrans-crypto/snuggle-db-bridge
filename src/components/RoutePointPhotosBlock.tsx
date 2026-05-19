@@ -175,6 +175,7 @@ function PhotoKindRow({
   orderId: string | null;
   onChange: () => void;
 }) {
+  const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -248,12 +249,13 @@ function PhotoKindRow({
       }
       setUploading(true);
       try {
+        const optimisticId = `local-${newClientUploadId()}`;
         const fd = new FormData();
         fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
         fd.set("file", file);
-        let uploadResp: { path: string; public_url: string };
+        let uploadResp: { path: string; public_url?: string; file_url?: string };
         try {
-          uploadResp = await apiPost<{ path: string; public_url: string }>(
+          uploadResp = await apiPost<{ path: string; public_url?: string; file_url?: string }>(
             "/api/storage/upload",
             fd,
             60000,
@@ -267,13 +269,25 @@ function PhotoKindRow({
             route_point_id: routePointId,
             order_id: orderId,
             kind,
-            file_url: uploadResp.public_url,
+            file_url: uploadResp.file_url ?? uploadResp.public_url ?? "stored",
             storage_path: uploadResp.path,
           });
         } catch (e) {
           await saveOffline(e instanceof Error ? e.message : String(e));
           return;
         }
+        qc.setQueryData<Photo[]>(["route-point-photos", routePointId], (old) => [
+          ...(old ?? []),
+          {
+            id: optimisticId,
+            route_point_id: routePointId,
+            order_id: orderId,
+            kind,
+            file_url: uploadResp.file_url ?? uploadResp.public_url ?? "stored",
+            storage_path: uploadResp.path,
+            created_at: new Date().toISOString(),
+          },
+        ]);
         toast.success("Фото загружено");
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);

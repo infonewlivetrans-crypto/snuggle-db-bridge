@@ -9,6 +9,13 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { runWithOfflineFallback, flushQueue } from "@/lib/offlineQueue";
 
+function parseMoneyInput(value: string): number | null {
+  const normalized = value.replace(/\s+/g, "").replace(",", ".").trim();
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 const PAYMENT_TYPE_LABELS: Record<string, string> = {
   cash: "Наличные",
   card: "Карта",
@@ -57,7 +64,7 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
   const isCash = order.payment_type === "cash";
   const isMarketplace = !!order.marketplace && order.marketplace.trim().length > 0;
 
-  const amountNum = amountReceived === "" ? null : Number(amountReceived);
+  const amountNum = parseMoneyInput(amountReceived);
   const hasMismatch =
     order.amount_due != null && amountNum != null && !Number.isNaN(amountNum) && amountNum !== order.amount_due;
 
@@ -79,6 +86,24 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
     },
     onSuccess: (res) => {
       toast.success(res?.queued ? "Сохранено на устройстве. Уйдёт при связи." : "Оплата и QR сохранены");
+      const orderPatch = { cash_received: cashReceived, qr_received: qrReceived };
+      const pointPatch = {
+        dp_amount_received: amountNum,
+        dp_payment_comment: paymentComment || null,
+      };
+      qc.setQueriesData({ queryKey: ["delivery-route-points"] }, (old: unknown) => {
+        if (!Array.isArray(old)) return old;
+        return old.map((p) => {
+          if (!p || typeof p !== "object" || (p as { id?: unknown }).id !== routePointId) return p;
+          const point = p as Record<string, unknown>;
+          const orderRow = point.order && typeof point.order === "object" ? point.order as Record<string, unknown> : null;
+          return {
+            ...point,
+            ...pointPatch,
+            order: orderRow ? { ...orderRow, ...orderPatch } : point.order,
+          };
+        });
+      });
       qc.invalidateQueries({ queryKey: ["delivery-route-points"] });
       void flushQueue().then(() => qc.invalidateQueries({ queryKey: ["delivery-route-points"] }));
     },
@@ -135,7 +160,7 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
         <div>
           <div className="mb-1 text-xs text-muted-foreground">Сумма фактически получена</div>
           <Input
-            type="number"
+            type="text"
             step="0.01"
             inputMode="decimal"
             value={amountReceived}

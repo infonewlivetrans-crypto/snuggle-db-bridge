@@ -33,7 +33,7 @@ export const Route = createFileRoute("/api/delivery-photos")({
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse(
           { rows: data ?? [] },
-          { headers: cacheHeaders(180) },
+          { headers: cacheHeaders(0) },
         );
       },
     },
