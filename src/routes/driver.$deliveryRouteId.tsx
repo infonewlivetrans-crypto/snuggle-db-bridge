@@ -357,19 +357,25 @@ function DriverRoutePage() {
       const num = p.order?.order_number ?? `точка №${p.point_number}`;
       const kinds = photoKindsByPoint?.[p.id];
       if (p.dp_status === "delivered") {
+        // QR обязателен только для QR-заказов
         if (p.order?.requires_qr) {
           const hasQrPhoto = !!kinds?.has("qr");
           if (!p.order.qr_received || !hasQrPhoto) {
             errs.push(`По заказу №${num} не загружен QR-код / не подтверждён QR.`);
           }
         }
+        // Наличные требуем только если payment_type=cash и не оплачено заранее
         const isPrepaid = p.order?.payment_status === "paid";
-        if (p.order?.payment_type === "cash" && !isPrepaid) {
+        if (p.order && !isOnlinePayment(p.order.payment_type) && !isPrepaid) {
           if (p.dp_amount_received == null || Number(p.dp_amount_received) <= 0) {
             errs.push(`По заказу №${num} не сдана сумма наличных.`);
           }
         }
-      } else if (p.dp_status === "not_delivered") {
+        // Документы — только если включена настройка
+        if (docsRequiredSetting && !kinds?.has("documents")) {
+          errs.push(`По заказу №${num} не загружено фото документов.`);
+        }
+      }
         if (!p.dp_undelivered_reason) {
           errs.push(`По заказу №${num} не указана причина недоставки.`);
         }
