@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
+import { hasAnyRole, jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 import { writeAudit } from "@/server/audit.server";
+
+// Поля, которые водителю разрешено менять у заказа в рамках своей точки маршрута
+// (оплата получена / тип оплаты и т.п.). RLS на orders запрещает водителю
+// прямой UPDATE, поэтому для этих полей мы используем admin client после
+// проверки, что заказ реально привязан к маршруту этого водителя.
+const DRIVER_PAYMENT_FIELDS = new Set<string>([
+  "cash_received",
+  "qr_received",
+  "payment_status",
+]);
 
 const ALLOWED_FIELDS = new Set<string>([
   "status",
