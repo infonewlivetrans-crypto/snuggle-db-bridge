@@ -287,6 +287,32 @@ function RouteDetailPage() {
     onError: (e: Error) => toast.error(e.message ?? "Не удалось сохранить порядок"),
   });
 
+  const optimizeRoute = useMutation({
+    mutationFn: async () => {
+      return await apiPost<{
+        success: boolean;
+        optimizedCount: number;
+        skippedNoCoords: number;
+        warnings: string[];
+      }>(`/api/routes/${encodeURIComponent(routeId)}/optimize`, {});
+    },
+    onSuccess: (res) => {
+      const warns = res.warnings ?? [];
+      if (warns.length > 0) {
+        toast.warning("Маршрут оптимизирован", {
+          description: warns.slice(0, 3).join("; "),
+        });
+      } else {
+        toast.success("Маршрут оптимизирован");
+      }
+      queryClient.invalidateQueries({ queryKey: ["route", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["delivery-route", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["driver-route", routeId] });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Не удалось оптимизировать маршрут"),
+  });
+
   // ========= Drag & Drop (нативный HTML5) =========
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
