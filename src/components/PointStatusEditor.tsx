@@ -109,20 +109,23 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
   const save = useMutation({
     mutationFn: async () => {
       if (status === "delivered" && order) {
-        // 1) QR обязателен
+        // 1) QR — обязателен ТОЛЬКО если заказ его реально требует
         if (order.requires_qr && (!order.qr_received || !hasQrPhoto)) {
           throw new Error("Нельзя завершить доставку без QR-кода.");
         }
-        // 2) Наличные + не оплачено заранее → подтверждение оплаты
+        // 2) Оплата:
+        //    cash + не оплачено заранее → требуется подтверждение оплаты
+        //    online/card/qr/bank_transfer → водитель деньги не принимает,
+        //    блокировать «Доставлено» по cash_received нельзя.
         const isPrepaid = order.payment_status === "paid";
-        if (order.payment_type === "cash" && !isPrepaid) {
+        if (!isOnlinePayment(order.payment_type) && !isPrepaid) {
           const amountReceived = initial.dp_amount_received;
           if (!order.cash_received || amountReceived == null || Number(amountReceived) <= 0) {
             throw new Error("Нельзя завершить доставку без подтверждения оплаты.");
           }
         }
-        // 3) Фото документов обязательно
-        if (!hasDocumentsPhoto) {
+        // 3) Документы — только если включена соответствующая настройка
+        if (docsRequiredSetting && !hasDocumentsPhoto) {
           throw new Error("Нельзя завершить доставку без фото документов.");
         }
         // Комментарий обязателен, если есть расхождение по оплате
@@ -132,6 +135,7 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
           throw new Error("Укажите комментарий: есть расхождение по оплате.");
         }
       }
+
       if (status === "not_delivered") {
         if (!reason) {
           throw new Error("Укажите причину недоставки.");
