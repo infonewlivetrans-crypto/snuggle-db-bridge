@@ -299,26 +299,49 @@ function PhotoKindRow({
 
   return (
     <div className="rounded-md border border-border bg-card p-2.5">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs font-medium">
           {ROUTE_POINT_PHOTO_KIND_LABELS[kind]}
           {required && <span className="text-red-500">*</span>}
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 gap-1 text-xs"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="h-3 w-3" />
-          {uploading ? "..." : "Загрузить"}
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 text-xs"
+            disabled={uploading}
+            onClick={() => cameraInputRef.current?.click()}
+          >
+            <Camera className="h-3 w-3" />
+            {uploading ? "..." : "Сделать фото"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 text-xs"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="h-3 w-3" />
+            Загрузить файл
+          </Button>
+        </div>
         <input
-          ref={inputRef}
+          ref={cameraInputRef}
           type="file"
           accept="image/*"
           capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) upload.mutate(f);
+            e.target.value = "";
+          }}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={acceptFile}
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -333,23 +356,7 @@ function PhotoKindRow({
       ) : (
         <div className="flex flex-wrap gap-2">
           {photos.map((p) => (
-            <div key={p.id} className="group relative">
-              <a href={p.file_url} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={p.file_url}
-                  alt=""
-                  className="h-16 w-16 rounded border border-border object-cover"
-                />
-              </a>
-              <button
-                type="button"
-                aria-label="Удалить фото"
-                onClick={() => remove.mutate(p)}
-                className="absolute -right-1.5 -top-1.5 rounded-full bg-red-600 p-0.5 text-white opacity-0 shadow group-hover:opacity-100"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </div>
+            <PhotoTile key={p.id} photo={p} onRemove={() => remove.mutate(p)} />
           ))}
           {offlinePhotos.map((p) => (
             <OfflinePhotoTile key={p.client_upload_id} rec={p} />
