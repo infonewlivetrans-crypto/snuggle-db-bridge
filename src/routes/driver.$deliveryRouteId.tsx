@@ -139,6 +139,8 @@ const STATUS_LABELS: Record<DeliveryPointStatus, string> = {
 function DriverRoutePage() {
   const { deliveryRouteId } = Route.useParams();
   const qc = useQueryClient();
+  const docsRequiredSetting = useSetting<boolean>("driver_document_photos_enabled", false);
+
 
   const { data, isLoading, error: detailError } = useQuery({
     queryKey: ["driver-route", deliveryRouteId],
