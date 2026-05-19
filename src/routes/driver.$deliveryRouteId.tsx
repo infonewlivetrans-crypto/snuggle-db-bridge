@@ -64,6 +64,12 @@ function isOnlinePayment(paymentType: string | null | undefined): boolean {
   return String(paymentType).toLowerCase() !== "cash";
 }
 
+function hasPhotoKind(value: unknown, kind: string): boolean {
+  if (value instanceof Set) return value.has(kind);
+  if (Array.isArray(value)) return value.includes(kind);
+  return false;
+}
+
 export const Route = createFileRoute("/driver/$deliveryRouteId")({
   head: () => ({
     meta: [
@@ -335,7 +341,7 @@ function DriverRoutePage() {
     const pt = list[i];
     if (FINAL.includes(pt.dp_status)) continue;
     if (pt.order?.requires_qr) {
-      const hasQrPhoto = !!photoKindsByPoint?.[pt.id]?.has("qr");
+      const hasQrPhoto = hasPhotoKind(photoKindsByPoint?.[pt.id], "qr");
       if (!pt.order.qr_received || !hasQrPhoto) {
         blockedFromIndex = i + 1;
         blockingPointNumber = pt.point_number;
@@ -359,7 +365,7 @@ function DriverRoutePage() {
       if (p.dp_status === "delivered") {
         // QR обязателен только для QR-заказов
         if (p.order?.requires_qr) {
-          const hasQrPhoto = !!kinds?.has("qr");
+          const hasQrPhoto = hasPhotoKind(kinds, "qr");
           if (!p.order.qr_received || !hasQrPhoto) {
             errs.push(`По заказу №${num} не загружен QR-код / не подтверждён QR.`);
           }
@@ -372,7 +378,7 @@ function DriverRoutePage() {
           }
         }
         // Документы — только если включена настройка
-        if (docsRequiredSetting && !kinds?.has("documents")) {
+        if (docsRequiredSetting && !hasPhotoKind(kinds, "signed_docs")) {
           errs.push(`По заказу №${num} не загружено фото документов.`);
         }
       } else if (p.dp_status === "not_delivered") {
