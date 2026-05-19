@@ -65,8 +65,12 @@ function isOnlinePayment(paymentType: string | null | undefined): boolean {
 }
 
 function hasPhotoKind(value: unknown, kind: string): boolean {
-  if (value instanceof Set) return value.has(kind);
-  if (Array.isArray(value)) return value.includes(kind);
+  if (value instanceof Set) {
+    return value.has(kind);
+  }
+  if (Array.isArray(value)) {
+    return value.includes(kind);
+  }
   return false;
 }
 
