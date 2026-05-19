@@ -733,7 +733,7 @@ function DriverPointCard({
   total: number;
   routeId: string;
   driverName: string | null;
-  photoKinds: Set<string> | undefined;
+  photoKinds: unknown;
   unreadCount: number;
   onReorder: (dir: -1 | 1) => void;
   reordering: boolean;
@@ -1022,9 +1022,9 @@ function DriverPointCard({
         orderId={p.order_id}
         routeId={routeId}
         driverName={driverName}
-        hasQrPhoto={!!photoKinds?.has("qr")}
-        hasProblemPhoto={!!photoKinds?.has("problem")}
-        hasDocumentsPhoto={!!photoKinds?.has("signed_docs")}
+        hasQrPhoto={hasPhotoKind(photoKinds, "qr")}
+        hasProblemPhoto={hasPhotoKind(photoKinds, "problem")}
+        hasDocumentsPhoto={hasPhotoKind(photoKinds, "signed_docs")}
       />
 
       {/* История действий водителя по точке — с GPS-координатами */}
