@@ -21,9 +21,22 @@ function isForbidden(err: unknown): boolean {
   return err instanceof Error && /HTTP 403\b/.test(err.message);
 }
 
-export function RecipientMessageForDriverBlock({ orderId }: { orderId: string }) {
+export function RecipientMessageForDriverBlock({
+  orderId,
+  unreadCount = 0,
+}: {
+  orderId: string;
+  /**
+   * Сколько непрочитанных сообщений по этому заказу — берём из агрегированного
+   * `/api/driver/unread-client-messages`. Если 0 — детальный запрос не делаем,
+   * чтобы не получать 403 по чужим/переназначенным заказам и не плодить
+   * лишние сетевые запросы по каждой точке маршрута.
+   */
+  unreadCount?: number;
+}) {
   const qc = useQueryClient();
   const q = useQuery({
+    enabled: unreadCount > 0,
     queryKey: ["driver-client-messages", orderId],
     queryFn: async () => {
       try {
