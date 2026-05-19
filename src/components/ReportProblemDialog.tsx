@@ -99,12 +99,12 @@ export function ReportProblemDialog({
         const fd = new FormData();
         fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
         fd.set("file", photoFile);
-        const up = await apiPost<{ path: string; public_url: string }>(
+        const up = await apiPost<{ apiUrl: string; file_url: string }>(
           "/api/storage/upload",
           fd,
           60000,
         );
-        photo_url = up.public_url;
+        photo_url = up.apiUrl ?? up.file_url;
         setUploading(false);
       }
       await apiPost("/api/order-problem-reports", {
