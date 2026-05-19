@@ -130,15 +130,27 @@ export const Route = createFileRoute("/api/orders/$id")({
               }
               const { data: rp } = await admin
                 .from("route_points")
-                .select("route_id, delivery_routes!inner(driver_id)")
+                .select("route_id")
                 .eq("order_id", params.id);
-              const rows = (rp ?? []) as Array<{ delivery_routes: { driver_id: string | null } | { driver_id: string | null }[] | null }>;
-              const allowed = rows.some((r) => {
-                const dr = r.delivery_routes;
-                if (!dr) return false;
-                const arr = Array.isArray(dr) ? dr : [dr];
-                return arr.some((d) => d.driver_id === driverId);
-              });
+              const routeIds = Array.from(
+                new Set(((rp ?? []) as Array<{ route_id: string | null }>).map((r) => r.route_id).filter((x): x is string => !!x)),
+              );
+              let allowed = false;
+              if (routeIds.length > 0) {
+                const { data: drs } = await admin
+                  .from("delivery_routes")
+                  .select("id, driver_id")
+                  .in("source_request_id", routeIds);
+                allowed = ((drs ?? []) as Array<{ driver_id: string | null }>).some((d) => d.driver_id === driverId);
+                if (!allowed) {
+                  // fallback: delivery_routes.id напрямую равен route_id (на случай иной модели связи)
+                  const { data: drs2 } = await admin
+                    .from("delivery_routes")
+                    .select("id, driver_id")
+                    .in("id", routeIds);
+                  allowed = ((drs2 ?? []) as Array<{ driver_id: string | null }>).some((d) => d.driver_id === driverId);
+                }
+              }
               if (!allowed) {
                 return jsonResponse({ error: "forbidden" }, { status: 403 });
               }
