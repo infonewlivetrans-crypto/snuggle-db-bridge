@@ -8,6 +8,10 @@ import { frontendStorageUrl } from "@/lib/storageUrls";
 
 const ROUTE_POINT_PHOTOS_BUCKET = "route-point-photos";
 
+type PhotoQuery = {
+  eq: (field: string, value: string) => PhotoQuery;
+} & PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>;
+
 export const Route = createFileRoute("/api/delivery-photos")({
   server: {
     handlers: {
@@ -35,9 +39,7 @@ export const Route = createFileRoute("/api/delivery-photos")({
         )
           .select(fields)
           .order("created_at", { ascending: true })
-          .limit(200) as {
-          eq: (field: string, value: string) => typeof q;
-        } & PromiseLike<{ data: unknown[] | null; error: { message: string } | null }>;
+          .limit(200) as PhotoQuery;
         if (routePointId) q = q.eq("route_point_id", routePointId);
         if (orderId) q = q.eq("order_id", orderId);
 
