@@ -1023,6 +1023,8 @@ function DriverPointCard({
 
       {/* История действий водителя по точке — с GPS-координатами */}
       <PointActionsHistory routePointId={p.id} title="История действий по точке" maxHeight="max-h-56" />
+        </>
+      )}
     </div>
   );
 }
