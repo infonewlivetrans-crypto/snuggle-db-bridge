@@ -130,3 +130,160 @@ export async function optimizeRoutePoints(
 
   return { reordered: ordered.length, withoutCoords };
 }
+
+// =============================================================================
+// Optimization with time windows (используется на странице /routes/:id логиста).
+// =============================================================================
+
+export type TwOptimizePoint = {
+  id: string;
+  lat: number | null;
+  lng: number | null;
+  windowFromMs: number | null;
+  windowToMs: number | null;
+  serviceMinutes: number;
+};
+
+export type TwOptimizeResult = {
+  ordered: string[];
+  skippedNoCoords: number;
+  warnings: string[];
+};
+
+function haversineKmTW(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6371;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
+
+/**
+ * Nearest-neighbour с штрафами за нарушение клиентского окна доставки.
+ * score = distanceKm + latePenalty + earlyPenalty.
+ * latePenalty значительно больше — система избегает опоздания к клиенту.
+ */
+export function nearestNeighbourWithTimeWindows(args: {
+  points: TwOptimizePoint[];
+  start: { lat: number; lng: number } | null;
+  startTimeMs: number;
+  avgSpeedKmh: number;
+  defaultServiceMinutes: number;
+}): TwOptimizeResult {
+  const { points, start, startTimeMs, avgSpeedKmh, defaultServiceMinutes } = args;
+  const warnings: string[] = [];
+  const withCoords = points.filter(
+    (p): p is TwOptimizePoint & { lat: number; lng: number } =>
+      typeof p.lat === "number" && typeof p.lng === "number",
+  );
+  const withoutCoords = points.filter(
+    (p) => typeof p.lat !== "number" || typeof p.lng !== "number",
+  );
+
+  if (withCoords.length === 0) {
+    return {
+      ordered: withoutCoords.map((p) => p.id),
+      skippedNoCoords: withoutCoords.length,
+      warnings,
+    };
+  }
+
+  const speed = Math.max(1, avgSpeedKmh || 40);
+  const remaining = new Map(withCoords.map((p) => [p.id, p]));
+  const ordered: string[] = [];
+
+  let current: { lat: number; lng: number } =
+    start ?? { lat: withCoords[0].lat, lng: withCoords[0].lng };
+  let currentTimeMs = startTimeMs;
+
+  // Если нет склада/стартовой точки — берём первую с координатами как старт.
+  if (!start) {
+    const seed = withCoords[0];
+    ordered.push(seed.id);
+    remaining.delete(seed.id);
+    current = { lat: seed.lat, lng: seed.lng };
+    const svc = (seed.serviceMinutes || defaultServiceMinutes) * 60_000;
+    currentTimeMs += svc;
+  }
+
+  while (remaining.size > 0) {
+    let bestId: string | null = null;
+    let bestScore = Infinity;
+    let bestArrivalMs = currentTimeMs;
+    let bestOutOfWindow = false;
+
+    for (const p of remaining.values()) {
+      const distanceKm = haversineKmTW(current, p);
+      const travelMs = (distanceKm / speed) * 3_600_000;
+      const arrivalMs = currentTimeMs + travelMs;
+
+      let latePenalty = 0;
+      let earlyPenalty = 0;
+      let outOfWindow = false;
+      if (p.windowToMs != null && arrivalMs > p.windowToMs) {
+        const lateMin = (arrivalMs - p.windowToMs) / 60_000;
+        latePenalty = 1000 + lateMin * 5; // большой штраф за опоздание
+        outOfWindow = true;
+      }
+      if (p.windowFromMs != null && arrivalMs < p.windowFromMs) {
+        const earlyMin = (p.windowFromMs - arrivalMs) / 60_000;
+        earlyPenalty = earlyMin * 0.1; // мягкий штраф за ранний приезд
+      }
+      const score = distanceKm + latePenalty + earlyPenalty;
+      if (score < bestScore) {
+        bestScore = score;
+        bestId = p.id;
+        bestArrivalMs = arrivalMs;
+        bestOutOfWindow = outOfWindow;
+      }
+    }
+    if (!bestId) break;
+    const next = remaining.get(bestId)!;
+    ordered.push(bestId);
+    remaining.delete(bestId);
+    if (bestOutOfWindow) {
+      warnings.push(`Точка ${bestId} — вне окна клиента`);
+    }
+    current = { lat: next.lat, lng: next.lng };
+    const svc = (next.serviceMinutes || defaultServiceMinutes) * 60_000;
+    // Если приехали раньше окна — ждём до начала окна перед сервисом.
+    const effectiveStart =
+      next.windowFromMs != null && bestArrivalMs < next.windowFromMs
+        ? next.windowFromMs
+        : bestArrivalMs;
+    currentTimeMs = effectiveStart + svc;
+  }
+
+  return {
+    ordered: [...ordered, ...withoutCoords.map((p) => p.id)],
+    skippedNoCoords: withoutCoords.length,
+    warnings,
+  };
+}
+
+/** Двухфазный безопасный апдейт point_number, чтобы не конфликтовать с UNIQUE. */
+export async function applyRoutePointsOrder(
+  sb: import("@supabase/supabase-js").SupabaseClient<
+    import("@/integrations/supabase/types").Database
+  >,
+  orderedIds: string[],
+): Promise<void> {
+  for (let i = 0; i < orderedIds.length; i++) {
+    await sb
+      .from("route_points")
+      .update({ point_number: -(i + 1) } as never)
+      .eq("id", orderedIds[i]);
+  }
+  for (let i = 0; i < orderedIds.length; i++) {
+    await sb
+      .from("route_points")
+      .update({ point_number: i + 1 } as never)
+      .eq("id", orderedIds[i]);
+  }
+}
