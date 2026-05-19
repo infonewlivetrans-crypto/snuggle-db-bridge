@@ -56,6 +56,13 @@ import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
 import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
 import { RecipientMessageForDriverBlock } from "@/components/RecipientMessageForDriverBlock";
 import { runWithOfflineFallback, hasPendingForRoute, subscribeQueue, flushQueue } from "@/lib/offlineQueue";
+import { useSetting } from "@/lib/settings-provider";
+
+/** Тип оплаты, при котором водитель НЕ принимает наличные. */
+function isOnlinePayment(paymentType: string | null | undefined): boolean {
+  if (!paymentType) return false;
+  return String(paymentType).toLowerCase() !== "cash";
+}
 
 export const Route = createFileRoute("/driver/$deliveryRouteId")({
   head: () => ({
