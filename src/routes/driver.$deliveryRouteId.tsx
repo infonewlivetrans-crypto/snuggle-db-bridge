@@ -720,6 +720,7 @@ function DriverPointCard({
   locked,
   blockedReason,
   outOfOrder = false,
+  isActive = false,
 }: {
   p: PointRow;
   index: number;
@@ -733,11 +734,23 @@ function DriverPointCard({
   locked: boolean;
   blockedReason?: string | null;
   outOfOrder?: boolean;
+  isActive?: boolean;
 }) {
   const o = p.order;
 
-  // Лог: водитель открыл карточку точки (с GPS)
+  // Авто-раскрытие:
+  //  - текущая активная точка маршрута;
+  //  - после прибытия / на разгрузке.
+  const autoExpanded =
+    isActive ||
+    p.dp_status === "arrived" ||
+    p.dp_status === "unloading";
+  const [manualOpen, setManualOpen] = useState<boolean | null>(null);
+  const expanded = manualOpen ?? autoExpanded;
+
+  // Лог: водитель открыл карточку точки (только при реальном раскрытии)
   useEffect(() => {
+    if (!expanded) return;
     (async () => {
       const gps = await getCurrentCoords();
       logPointAction({
@@ -750,7 +763,8 @@ function DriverPointCard({
       });
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.id]);
+  }, [p.id, expanded]);
+
 
   if (blockedReason) {
     return (
