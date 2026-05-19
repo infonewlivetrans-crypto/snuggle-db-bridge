@@ -703,6 +703,7 @@ function DriverPointCard({
   reordering,
   locked,
   blockedReason,
+  outOfOrder = false,
 }: {
   p: PointRow;
   index: number;
@@ -715,6 +716,7 @@ function DriverPointCard({
   reordering: boolean;
   locked: boolean;
   blockedReason?: string | null;
+  outOfOrder?: boolean;
 }) {
   const o = p.order;
 
