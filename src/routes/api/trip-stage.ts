@@ -27,7 +27,8 @@ export const Route = createFileRoute("/api/trip-stage")({
           const kind = url.searchParams.get("kind") ?? "events";
           if (!drId)
             return jsonResponse({ error: "deliveryRouteId обязателен" }, { status: 400 });
-          // RLS-клиент пользователя — без service_role.
+          // Чтение выполняется только через JWT-клиент текущего пользователя.
+          // Не импортировать сюда legacy helpers из trip-stage.server: они используют admin/service role.
           if (kind === "returns") {
             const { data, error } = await auth.client
               .from("route_returns")
