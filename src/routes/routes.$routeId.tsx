@@ -73,7 +73,9 @@ import {
   Save,
   RotateCcw,
   History,
+  Sparkles,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
 import { QrCapture } from "@/components/QrCapture";
 import {
   ETA_RISK_LABELS,
@@ -140,6 +142,8 @@ function RouteDetailPage() {
   const { routeId } = Route.useParams();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { roles } = useAuth();
+  const canOptimize = roles.some((r) => r === "admin" || r === "logist" || r === "manager");
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
@@ -281,6 +285,32 @@ function RouteDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["route", routeId] });
     },
     onError: (e: Error) => toast.error(e.message ?? "Не удалось сохранить порядок"),
+  });
+
+  const optimizeRoute = useMutation({
+    mutationFn: async () => {
+      return await apiPost<{
+        success: boolean;
+        optimizedCount: number;
+        skippedNoCoords: number;
+        warnings: string[];
+      }>(`/api/routes/${encodeURIComponent(routeId)}/optimize`, {});
+    },
+    onSuccess: (res) => {
+      const warns = res.warnings ?? [];
+      if (warns.length > 0) {
+        toast.warning("Маршрут оптимизирован", {
+          description: warns.slice(0, 3).join("; "),
+        });
+      } else {
+        toast.success("Маршрут оптимизирован");
+      }
+      queryClient.invalidateQueries({ queryKey: ["route", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["route-points", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["delivery-route", routeId] });
+      queryClient.invalidateQueries({ queryKey: ["driver-route", routeId] });
+    },
+    onError: (e: Error) => toast.error(e.message ?? "Не удалось оптимизировать маршрут"),
   });
 
   // ========= Drag & Drop (нативный HTML5) =========
@@ -642,6 +672,18 @@ function RouteDetailPage() {
           <h2 className="text-lg font-semibold text-foreground">Точки доставки</h2>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-muted-foreground">{totalCount} точек</span>
+            {canOptimize && totalCount > 1 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => optimizeRoute.mutate()}
+                disabled={optimizeRoute.isPending || saveOrder.isPending}
+                className="gap-1.5"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {optimizeRoute.isPending ? "Оптимизация…" : "Оптимизировать маршрут"}
+              </Button>
+            )}
             {orderChanged && (
               <Button
                 size="sm"
