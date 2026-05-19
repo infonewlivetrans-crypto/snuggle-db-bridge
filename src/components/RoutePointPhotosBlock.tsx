@@ -175,8 +175,10 @@ function PhotoKindRow({
   orderId: string | null;
   onChange: () => void;
 }) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  const acceptFile = kind === "signed_docs" ? "image/*,.pdf,application/pdf" : "image/*";
 
   const upload = useMutation({
     mutationFn: async (rawFile: File) => {
