@@ -346,8 +346,8 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
           <div>
             <div className="mb-1 text-xs text-muted-foreground">
               Комментарий {(() => {
-                const due = Number(order?.amount_due ?? 0);
-                const got = Number(initial.dp_amount_received ?? 0);
+                const due = toMoney(order?.amount_due) ?? 0;
+                const got = toMoney(initial.dp_amount_received) ?? 0;
                 return due > 0 && got > 0 && got !== due ? "(обязателен — есть расхождение по оплате)" : "";
               })()}
             </div>
