@@ -1012,35 +1012,11 @@ function ManagerInfoAndActions({
 }) {
   const [problemOpen, setProblemOpen] = useState(false);
 
-  const { data: manager } = useQuery({
-    enabled: !!contactName,
-    queryKey: ["client-manager", contactName],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/clients?name=${encodeURIComponent(contactName!)}&fields=manager_name,manager_phone&limit=1`,
-        {
-          credentials: "same-origin",
-          headers: {
-            accept: "application/json",
-            ...((): Record<string, string> => {
-              try {
-                const t = window.localStorage.getItem("rt-access-token");
-                return t ? { authorization: `Bearer ${t}` } : {};
-              } catch {
-                return {};
-              }
-            })(),
-          },
-        },
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const body = (await res.json()) as { rows?: Array<{ manager_name: string | null; manager_phone: string | null }> };
-      return (body.rows?.[0] ?? null) as { manager_name: string | null; manager_phone: string | null } | null;
-    },
-  });
-
-  const managerName = manager?.manager_name ?? null;
-  const managerPhone = manager?.manager_phone ?? null;
+  // Водитель не имеет доступа к /api/clients (RLS). Имя/телефон менеджера
+  // получаем только из snapshot заказа (если он есть в route_points payload).
+  // Здесь оставляем null — UI покажет "не назначен".
+  const managerName: string | null = null;
+  const managerPhone: string | null = null;
 
   const log = (
     action:
