@@ -225,7 +225,9 @@ function DeliveryRoutePage() {
 
   const { data: driverGeo } = useQuery({
     queryKey: ["driver-geo-map", deliveryRouteId],
-    refetchInterval: 30_000,
+    retry: false,
+    refetchInterval: (q) => (q.state.error ? false : 30_000),
+    refetchOnWindowFocus: false,
     queryFn: async () => {
       return await apiGetAuth<{
         last_driver_lat: number | null;
