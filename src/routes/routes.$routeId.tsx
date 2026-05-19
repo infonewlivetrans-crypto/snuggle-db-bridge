@@ -672,6 +672,18 @@ function RouteDetailPage() {
           <h2 className="text-lg font-semibold text-foreground">Точки доставки</h2>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-muted-foreground">{totalCount} точек</span>
+            {canOptimize && totalCount > 1 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => optimizeRoute.mutate()}
+                disabled={optimizeRoute.isPending || saveOrder.isPending}
+                className="gap-1.5"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {optimizeRoute.isPending ? "Оптимизация…" : "Оптимизировать маршрут"}
+              </Button>
+            )}
             {orderChanged && (
               <Button
                 size="sm"
