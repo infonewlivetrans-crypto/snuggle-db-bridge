@@ -375,7 +375,7 @@ function DriverRoutePage() {
         if (docsRequiredSetting && !kinds?.has("documents")) {
           errs.push(`По заказу №${num} не загружено фото документов.`);
         }
-      }
+      } else if (p.dp_status === "not_delivered") {
         if (!p.dp_undelivered_reason) {
           errs.push(`По заказу №${num} не указана причина недоставки.`);
         }
