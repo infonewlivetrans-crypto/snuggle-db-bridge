@@ -142,6 +142,8 @@ function RouteDetailPage() {
   const { routeId } = Route.useParams();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const { roles } = useAuth();
+  const canOptimize = roles.some((r) => r === "admin" || r === "logist" || r === "manager");
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
