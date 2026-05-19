@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireCookieAuth } from "@/server/auth-middleware";
+import { insertNotification } from "@/server/notifications.server";
 
 type AnyClient = { from: (t: string) => any };
 
@@ -40,22 +41,18 @@ export const sendRouteOffer = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Бросаем уведомление в общую таблицу notifications (если есть route_id)
-    try {
-      await supa.from("notifications").insert({
-        kind: "carrier_offer",
-        title: "Новое предложение рейса",
-        body: data.comment ?? "Вам предложен рейс. Откройте предложение в кабинете перевозчика.",
-        route_id: inserted?.route_id ?? null,
-        payload: {
-          offer_id: inserted?.id,
-          carrier_id: data.carrierId,
-          vehicle_id: data.vehicleId ?? null,
-          expires_at: expiresAt,
-        },
-      });
-    } catch {
-      // не блокируем создание предложения, если уведомления недоступны
-    }
+    await insertNotification({
+      kind: "carrier_offer",
+      title: "Новое предложение рейса",
+      body: data.comment ?? "Вам предложен рейс. Откройте предложение в кабинете перевозчика.",
+      route_id: inserted?.route_id ?? null,
+      payload: {
+        offer_id: inserted?.id,
+        carrier_id: data.carrierId,
+        vehicle_id: data.vehicleId ?? null,
+        expires_at: expiresAt,
+      },
+    });
 
     return { offerId: inserted?.id };
   });
@@ -165,22 +162,18 @@ export const respondToOffer = createServerFn({ method: "POST" })
         ? `${carrierName} принял предложение. Подтвердите назначение в карточке рейса.`
         : `${carrierName} отклонил предложение. Причина: ${patch.decline_reason as string}`;
 
-    try {
-      await supa.from("notifications").insert({
-        kind: data.action === "accept" ? "carrier_offer_accepted" : "carrier_offer_declined",
-        title,
-        body,
-        route_id: offer.route_id ?? null,
-        payload: {
-          offer_id: offer.id,
-          carrier_id: offer.carrier_id,
-          action: data.action,
-          decline_reason: patch.decline_reason ?? null,
-        },
-      });
-    } catch {
-      // не блокируем ответ перевозчика
-    }
+    await insertNotification({
+      kind: data.action === "accept" ? "carrier_offer_accepted" : "carrier_offer_declined",
+      title,
+      body,
+      route_id: offer.route_id ?? null,
+      payload: {
+        offer_id: offer.id,
+        carrier_id: offer.carrier_id,
+        action: data.action,
+        decline_reason: patch.decline_reason ?? null,
+      },
+    });
 
     return { ok: true, status: patch.status as string };
   });
@@ -263,24 +256,20 @@ export const confirmCarrierForRoute = createServerFn({ method: "POST" })
 
     // 6) уведомление перевозчику
     const routeLabel = route.route_number ? `№${route.route_number}` : "(без номера)";
-    try {
-      await supa.from("notifications").insert({
-        kind: "carrier_assigned",
-        title: `Вы назначены на рейс ${routeLabel}`,
-        body:
-          data.comment ??
-          "Логист подтвердил ваше назначение. Водитель получает доступ к маршруту.",
-        route_id: data.routeId,
-        payload: {
-          offer_id: offer.id,
-          carrier_id: offer.carrier_id,
-          vehicle_id: offer.vehicle_id,
-          driver_id: offer.driver_id,
-        },
-      });
-    } catch {
-      // не блокируем подтверждение
-    }
+    await insertNotification({
+      kind: "carrier_assigned",
+      title: `Вы назначены на рейс ${routeLabel}`,
+      body:
+        data.comment ??
+        "Логист подтвердил ваше назначение. Водитель получает доступ к маршруту.",
+      route_id: data.routeId,
+      payload: {
+        offer_id: offer.id,
+        carrier_id: offer.carrier_id,
+        vehicle_id: offer.vehicle_id,
+        driver_id: offer.driver_id,
+      },
+    });
 
     return { ok: true };
   });
@@ -352,21 +341,17 @@ export const rejectCarrierForRoute = createServerFn({ method: "POST" })
 
       // 4) Уведомление перевозчику
       const routeLabel = route.route_number ? `№${route.route_number}` : "(без номера)";
-      try {
-        await supa.from("notifications").insert({
-          kind: "carrier_offer_rejected_by_logist",
-          title: `Логист отклонил вашу заявку на рейс ${routeLabel}`,
-          body: `Причина: ${reason}`,
-          route_id: data.routeId,
-          payload: {
-            offer_id: offer.id,
-            carrier_id: offer.carrier_id,
-            reason,
-          },
-        });
-      } catch {
-        // не блокируем
-      }
+      await insertNotification({
+        kind: "carrier_offer_rejected_by_logist",
+        title: `Логист отклонил вашу заявку на рейс ${routeLabel}`,
+        body: `Причина: ${reason}`,
+        route_id: data.routeId,
+        payload: {
+          offer_id: offer.id,
+          carrier_id: offer.carrier_id,
+          reason,
+        },
+      });
     }
 
     // Сразу после отказа — рейс снова доступен для предложений другим перевозчикам.
