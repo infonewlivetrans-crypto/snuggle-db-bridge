@@ -207,7 +207,7 @@ function ManagersPage() {
 
   const rotateMut = useMutation({
     mutationFn: async (id: string) =>
-      apiPost<InviteRow>(`/api/invites/${id}`, { action: "rotate" }),
+      apiPatch<InviteRow>(`/api/invites/${id}`, { rotate: true }),
     onSuccess: (inv) => {
       qc.invalidateQueries({ queryKey: ["invites-admin"] });
       void copyToClipboard(inviteUrl(inv.token)).then((ok) =>
