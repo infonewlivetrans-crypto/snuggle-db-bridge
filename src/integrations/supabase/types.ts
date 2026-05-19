@@ -4551,10 +4551,10 @@ export type Database = {
       }
       driver_update_order_payment: {
         Args: {
-          p_cash_received: boolean
+          p_cash_received?: boolean
           p_order_id: string
-          p_payment_status: string
-          p_qr_received: boolean
+          p_payment_status?: string
+          p_qr_received?: boolean
         }
         Returns: {
           cash_received: boolean
