@@ -147,6 +147,9 @@ export function RoutePointPhotosBlock({
             orderId={orderId}
             onChange={() => {
               qc.invalidateQueries({ queryKey: ["route-point-photos", routePointId] });
+              qc.invalidateQueries({ queryKey: ["route-point-photos-kinds"] });
+              qc.invalidateQueries({ queryKey: ["route-points"] });
+              qc.invalidateQueries({ queryKey: ["driver-route"] });
             }}
           />
         ))}
@@ -172,8 +175,10 @@ function PhotoKindRow({
   orderId: string | null;
   onChange: () => void;
 }) {
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
+  const acceptFile = kind === "signed_docs" ? "image/*,.pdf,application/pdf" : "image/*";
 
   const upload = useMutation({
     mutationFn: async (rawFile: File) => {
@@ -294,26 +299,49 @@ function PhotoKindRow({
 
   return (
     <div className="rounded-md border border-border bg-card p-2.5">
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs font-medium">
           {ROUTE_POINT_PHOTO_KIND_LABELS[kind]}
           {required && <span className="text-red-500">*</span>}
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 gap-1 text-xs"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-        >
-          <Upload className="h-3 w-3" />
-          {uploading ? "..." : "Загрузить"}
-        </Button>
+        <div className="flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 text-xs"
+            disabled={uploading}
+            onClick={() => cameraInputRef.current?.click()}
+          >
+            <Camera className="h-3 w-3" />
+            {uploading ? "..." : "Сделать фото"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-7 gap-1 text-xs"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload className="h-3 w-3" />
+            Загрузить файл
+          </Button>
+        </div>
         <input
-          ref={inputRef}
+          ref={cameraInputRef}
           type="file"
           accept="image/*"
           capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) upload.mutate(f);
+            e.target.value = "";
+          }}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={acceptFile}
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -328,29 +356,46 @@ function PhotoKindRow({
       ) : (
         <div className="flex flex-wrap gap-2">
           {photos.map((p) => (
-            <div key={p.id} className="group relative">
-              <a href={p.file_url} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={p.file_url}
-                  alt=""
-                  className="h-16 w-16 rounded border border-border object-cover"
-                />
-              </a>
-              <button
-                type="button"
-                aria-label="Удалить фото"
-                onClick={() => remove.mutate(p)}
-                className="absolute -right-1.5 -top-1.5 rounded-full bg-red-600 p-0.5 text-white opacity-0 shadow group-hover:opacity-100"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
-            </div>
+            <PhotoTile key={p.id} photo={p} onRemove={() => remove.mutate(p)} />
           ))}
           {offlinePhotos.map((p) => (
             <OfflinePhotoTile key={p.client_upload_id} rec={p} />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function PhotoTile({ photo, onRemove }: { photo: Photo; onRemove: () => void }) {
+  const [broken, setBroken] = useState(false);
+  const isPdf =
+    /\.pdf($|\?)/i.test(photo.file_url) ||
+    /\.pdf$/i.test(photo.storage_path ?? "");
+  return (
+    <div className="group relative">
+      <a href={photo.file_url} target="_blank" rel="noopener noreferrer">
+        {isPdf || broken ? (
+          <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-border bg-muted text-[10px] text-muted-foreground">
+            {isPdf ? "PDF" : "Нет файла"}
+          </div>
+        ) : (
+          <img
+            src={photo.file_url}
+            alt=""
+            className="h-16 w-16 rounded border border-border object-cover"
+            onError={() => setBroken(true)}
+          />
+        )}
+      </a>
+      <button
+        type="button"
+        aria-label="Удалить фото"
+        onClick={onRemove}
+        className="absolute -right-1.5 -top-1.5 rounded-full bg-red-600 p-0.5 text-white opacity-0 shadow group-hover:opacity-100"
+      >
+        <Trash2 className="h-3 w-3" />
+      </button>
     </div>
   );
 }
