@@ -4549,6 +4549,20 @@ export type Database = {
         }
         Returns: Json
       }
+      driver_update_order_payment: {
+        Args: {
+          p_cash_received?: boolean
+          p_order_id: string
+          p_payment_status?: string
+          p_qr_received?: boolean
+        }
+        Returns: {
+          cash_received: boolean
+          id: string
+          payment_status: string
+          qr_received: boolean
+        }[]
+      }
       generate_delivery_route_number: { Args: never; Returns: string }
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
