@@ -107,58 +107,45 @@ export const Route = createFileRoute("/api/orders/$id")({
           return jsonResponse({ error: "Нет допустимых полей для обновления" }, { status: 400 });
         }
         // RLS на orders разрешает UPDATE только admin/logist/manager. Водитель
-        // через свой клиент попадёт в "0 rows updated" без ошибки — оплата
-        // не сохраняется. Если все поля апдейта входят в whitelist оплаты и
-        // пользователь — водитель, прикреплённый к маршруту этого заказа,
-        // выполняем апдейт через admin-клиент.
+        // через свой клиент молча получает "0 rows updated" — оплата не
+        // сохраняется. Если апдейт содержит только поля оплаты и пользователь
+        // не привилегирован, перенаправляем апдейт в SECURITY DEFINER RPC
+        // driver_update_order_payment, которая сама проверяет, что водитель
+        // привязан к маршруту этого заказа.
         const onlyPaymentFields = Object.keys(updates).every((k) => DRIVER_PAYMENT_FIELDS.has(k));
-        let client = auth.client;
         if (onlyPaymentFields) {
           const isPrivileged = await hasAnyRole(auth.client, auth.userId, ["admin", "logist", "manager"]);
           if (!isPrivileged) {
-            const isDriver = await hasAnyRole(auth.client, auth.userId, ["driver"]);
-            if (isDriver) {
-              const admin = makeAdminClient();
-              const { data: drv } = await admin
-                .from("drivers")
-                .select("id")
-                .eq("user_id", auth.userId)
-                .maybeSingle();
-              const driverId = (drv as { id: string } | null)?.id ?? null;
-              if (!driverId) {
-                return jsonResponse({ error: "forbidden" }, { status: 403 });
-              }
-              const { data: rp } = await admin
-                .from("route_points")
-                .select("route_id")
-                .eq("order_id", params.id);
-              const routeIds = Array.from(
-                new Set(((rp ?? []) as Array<{ route_id: string | null }>).map((r) => r.route_id).filter((x): x is string => !!x)),
+            const cashVal = "cash_received" in updates ? (updates.cash_received as boolean | null) : null;
+            const qrVal = "qr_received" in updates ? (updates.qr_received as boolean | null) : null;
+            const psVal = "payment_status" in updates ? (updates.payment_status as string | null) : null;
+            const { data: rpcData, error: rpcError } = await auth.client.rpc(
+              "driver_update_order_payment" as never,
+              {
+                p_order_id: params.id,
+                p_cash_received: cashVal,
+                p_qr_received: qrVal,
+                p_payment_status: psVal,
+              } as never,
+            );
+            if (rpcError) {
+              const msg = rpcError.message || "";
+              const isForbidden = /forbidden|unauthorized|permission/i.test(msg);
+              return jsonResponse(
+                { error: isForbidden ? "forbidden" : msg },
+                { status: isForbidden ? 403 : 500 },
               );
-              let allowed = false;
-              if (routeIds.length > 0) {
-                const { data: drs } = await admin
-                  .from("delivery_routes")
-                  .select("id, driver_id")
-                  .in("source_request_id", routeIds);
-                allowed = ((drs ?? []) as Array<{ driver_id: string | null }>).some((d) => d.driver_id === driverId);
-                if (!allowed) {
-                  // fallback: delivery_routes.id напрямую равен route_id (на случай иной модели связи)
-                  const { data: drs2 } = await admin
-                    .from("delivery_routes")
-                    .select("id, driver_id")
-                    .in("id", routeIds);
-                  allowed = ((drs2 ?? []) as Array<{ driver_id: string | null }>).some((d) => d.driver_id === driverId);
-                }
-              }
-              if (!allowed) {
-                return jsonResponse({ error: "forbidden" }, { status: 403 });
-              }
-              client = admin;
             }
+            const rows = (rpcData ?? []) as Array<{
+              id: string;
+              cash_received: boolean;
+              qr_received: boolean;
+              payment_status: string;
+            }>;
+            return jsonResponse({ ok: true, order: rows[0] ?? null });
           }
         }
-        const { error } = await client
+        const { error } = await auth.client
           .from("orders")
           .update(updates as never)
           .eq("id", params.id);
