@@ -73,7 +73,9 @@ import {
   Save,
   RotateCcw,
   History,
+  Sparkles,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
 import { QrCapture } from "@/components/QrCapture";
 import {
   ETA_RISK_LABELS,
