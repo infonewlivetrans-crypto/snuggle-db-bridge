@@ -175,6 +175,7 @@ function PhotoKindRow({
   orderId: string | null;
   onChange: () => void;
 }) {
+  const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -249,11 +250,10 @@ function PhotoKindRow({
       setUploading(true);
       try {
         const optimisticId = `local-${newClientUploadId()}`;
-        const optimisticUrl = URL.createObjectURL(file);
         const fd = new FormData();
         fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
         fd.set("file", file);
-        let uploadResp: { path: string; public_url: string };
+        let uploadResp: { path: string; public_url?: string; file_url?: string };
         try {
           uploadResp = await apiPost<{ path: string; public_url: string }>(
             "/api/storage/upload",
@@ -273,7 +273,6 @@ function PhotoKindRow({
             storage_path: uploadResp.path,
           });
         } catch (e) {
-          URL.revokeObjectURL(optimisticUrl);
           await saveOffline(e instanceof Error ? e.message : String(e));
           return;
         }
@@ -284,7 +283,7 @@ function PhotoKindRow({
             route_point_id: routePointId,
             order_id: orderId,
             kind,
-            file_url: optimisticUrl,
+            file_url: uploadResp.file_url ?? uploadResp.public_url ?? "stored",
             storage_path: uploadResp.path,
             created_at: new Date().toISOString(),
           },
