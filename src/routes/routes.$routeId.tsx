@@ -143,12 +143,22 @@ function RouteDetailPage() {
 
   const { data: route, isLoading: routeLoading } = useQuery({
     queryKey: ["route", routeId],
+    enabled: !!routeId,
+    // 404 не имеет смысла ретраить — это не сеть, а удалённая/несуществующая
+    // заявка. Без этого default retry: 1 даёт двойной GET в Console.
+    retry: false,
     queryFn: async (): Promise<RouteWithRefs | null> => {
       try {
         return await apiGetAuth<RouteWithRefs>(`/api/routes/${encodeURIComponent(routeId)}`);
       } catch (e) {
         const msg = e instanceof Error ? e.message : "";
-        if (msg.includes("404") || /not_found/i.test(msg)) return null;
+        if (msg.includes("404") || /not_found/i.test(msg)) {
+          // Выгружаем подвисший cache, чтобы при возврате с другой страницы
+          // или из persistQueryClient запрос не запускался повторно.
+          queryClient.removeQueries({ queryKey: ["route", routeId] });
+          queryClient.removeQueries({ queryKey: ["route-points", routeId] });
+          return null;
+        }
         throw e;
       }
     },
@@ -156,6 +166,8 @@ function RouteDetailPage() {
 
   const { data: points, isLoading: pointsLoading } = useQuery({
     queryKey: ["route-points", routeId],
+    enabled: !!routeId && route !== null,
+    retry: false,
     queryFn: async (): Promise<RoutePointWithOrder[]> => {
       return await apiGetAuth<RoutePointWithOrder[]>(
         `/api/route-points?route_id=${encodeURIComponent(routeId)}&withOrders=1`,
