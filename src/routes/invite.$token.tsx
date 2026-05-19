@@ -1,11 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SplashScreen } from "@/components/SplashScreen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { landingPathForRoles, ROLE_LABELS, type AppRole } from "@/lib/auth/roles";
 import { AuthLayout, GlassCard } from "@/components/auth/AuthLayout";
 import { BrandLogo } from "@/components/BrandLogo";
@@ -21,9 +21,11 @@ type InviteInfo = { full_name: string; role: AppRole; already_activated: boolean
 function InviteLoginPage() {
   const { token } = Route.useParams();
   const navigate = useNavigate();
-  const { refresh } = useAuth();
+  const { refresh, diagnoseSignIn } = useAuth();
   const [info, setInfo] = useState<InviteInfo | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Поля регистрации (первая активация)
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
@@ -31,6 +33,13 @@ function InviteLoginPage() {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Поля входа (когда invite уже использован)
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -41,7 +50,6 @@ function InviteLoginPage() {
           throw new Error((body as { error?: string })?.error || "Ссылка недействительна");
         }
         setInfo(body);
-        // Prefill ФИО для менеджера — он может уточнить/исправить.
         if (body.role === "manager" && body.full_name) {
           setFullName(body.full_name);
         }
@@ -51,7 +59,7 @@ function InviteLoginPage() {
     })();
   }, [token]);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleRegister(e: FormEvent) {
     e.preventDefault();
     playAuthSignal();
     setSubmitError(null);
@@ -92,7 +100,16 @@ function InviteLoginPage() {
         | { ok?: boolean; role?: AppRole; error?: string }
         | null;
       if (!res.ok || !body?.ok) {
-        throw new Error(body?.error || "Не удалось активировать ссылку");
+        const msg = body?.error || "Не удалось активировать ссылку";
+        // Если оказалось, что invite уже использован, или email/phone заняты —
+        // переключаемся на форму входа.
+        if (/уже использовалась|уже занят|already|exists|registered/i.test(msg)) {
+          setInfo((prev) => (prev ? { ...prev, already_activated: true } : prev));
+          setLoginEmail(emailTrim);
+          setSubmitError(null);
+          return;
+        }
+        throw new Error(msg);
       }
       await refresh();
       const role = (body.role ?? info?.role ?? "driver") as AppRole;
@@ -106,6 +123,31 @@ function InviteLoginPage() {
     }
   }
 
+  async function handleSignIn(e: FormEvent) {
+    e.preventDefault();
+    playAuthSignal();
+    setLoginError(null);
+    setLoginBusy(true);
+    try {
+      const result = await diagnoseSignIn(loginEmail.trim(), loginPassword, () => {});
+      const target = landingPathForRoles(result.roles);
+      navigate({
+        to: target,
+        replace: true,
+        search: target === "/" ? { orderId: undefined } : (undefined as never),
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Ошибка входа";
+      setLoginError(
+        msg.toLowerCase().includes("invalid")
+          ? "Неверный email или пароль"
+          : msg,
+      );
+    } finally {
+      setLoginBusy(false);
+    }
+  }
+
   if (loadError) {
     return (
       <AuthLayout align="center">
@@ -116,8 +158,14 @@ function InviteLoginPage() {
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">{loadError}</p>
           <p className="mt-2 text-xs text-muted-foreground">
-            Попросите администратора перевыпустить ссылку или проверьте, что ссылка скопирована полностью.
+            Попросите администратора перевыпустить ссылку или проверьте, что
+            ссылка скопирована полностью.
           </p>
+          <div className="mt-4">
+            <Link to="/" className="text-sm font-medium text-primary hover:underline">
+              Перейти на страницу входа
+            </Link>
+          </div>
         </GlassCard>
       </AuthLayout>
     );
@@ -125,10 +173,88 @@ function InviteLoginPage() {
 
   if (!info) return <SplashScreen />;
 
+  // === Аккаунт уже создан — показываем форму входа ===
+  if (info.already_activated) {
+    return (
+      <AuthLayout align="center">
+        <GlassCard>
+          <div className="flex flex-col items-center text-center">
+            <BrandLogo size={56} />
+            <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              Вход в кабинет
+            </div>
+            <h1 className="mt-1 text-xl font-semibold text-foreground">
+              Аккаунт уже создан
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {info.full_name
+                ? `${info.full_name}, войдите по логину и паролю.`
+                : "Войдите по логину и паролю."}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Роль: {ROLE_LABELS[info.role] ?? info.role}
+            </p>
+          </div>
+          <form className="mt-5 space-y-4" onSubmit={handleSignIn}>
+            <div className="space-y-1.5">
+              <Label htmlFor="login-email">Email</Label>
+              <Input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                required
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="bg-white/90"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="login-password">Пароль</Label>
+              <div className="relative">
+                <Input
+                  id="login-password"
+                  type={showLoginPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  className="bg-white/90 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword((v) => !v)}
+                  aria-label={showLoginPassword ? "Скрыть пароль" : "Показать пароль"}
+                  tabIndex={-1}
+                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            {loginError && (
+              <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {loginError}
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={loginBusy}>
+              {loginBusy ? "Входим…" : "Войти"}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Забыли пароль? Обратитесь к администратору для сброса.
+            </p>
+          </form>
+        </GlassCard>
+      </AuthLayout>
+    );
+  }
+
+  // === Первая активация — регистрация ===
   return (
     <AuthLayout align="left">
       <GlassCard>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleRegister} className="space-y-4">
           <div className="flex flex-col items-center text-center">
             <BrandLogo size={56} />
             <div className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -141,11 +267,6 @@ function InviteLoginPage() {
             <p className="text-xs text-muted-foreground">
               Роль: {ROLE_LABELS[info.role] ?? info.role}
             </p>
-            {info.already_activated && (
-              <p className="mt-2 text-xs text-amber-600">
-                Эта ссылка уже использовалась. Вы можете задать новый email и пароль.
-              </p>
-            )}
           </div>
 
           {info.role === "manager" && (
@@ -228,7 +349,8 @@ function InviteLoginPage() {
             {submitting ? "Активация…" : "Войти"}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            После входа email и пароль сохранятся — в дальнейшем вы сможете входить с обычной страницы входа.
+            После входа email и пароль сохранятся — в дальнейшем вы сможете
+            входить с обычной страницы входа.
           </p>
         </form>
       </GlassCard>
