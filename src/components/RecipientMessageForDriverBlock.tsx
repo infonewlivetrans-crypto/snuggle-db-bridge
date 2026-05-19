@@ -12,20 +12,57 @@ type Msg = {
   read_by_driver_at: string | null;
 };
 
-export function RecipientMessageForDriverBlock({ orderId }: { orderId: string }) {
+/**
+ * 403 от backend для водителя — штатное «нет доступа к этому заказу» (например,
+ * заказ был переназначен). Обрабатываем как пустой список, без красной ошибки
+ * в Console и без throw, чтобы UI водителя оставался чистым.
+ */
+function isForbidden(err: unknown): boolean {
+  return err instanceof Error && /HTTP 403\b/.test(err.message);
+}
+
+export function RecipientMessageForDriverBlock({
+  orderId,
+  unreadCount = 0,
+}: {
+  orderId: string;
+  /**
+   * Сколько непрочитанных сообщений по этому заказу — берём из агрегированного
+   * `/api/driver/unread-client-messages`. Если 0 — детальный запрос не делаем,
+   * чтобы не получать 403 по чужим/переназначенным заказам и не плодить
+   * лишние сетевые запросы по каждой точке маршрута.
+   */
+  unreadCount?: number;
+}) {
   const qc = useQueryClient();
   const q = useQuery({
+    enabled: unreadCount > 0,
     queryKey: ["driver-client-messages", orderId],
-    queryFn: () =>
-      apiGetAuth<{ messages: Msg[] }>(`/api/orders/${orderId}/driver-client-messages`),
+    queryFn: async () => {
+      try {
+        return await apiGetAuth<{ messages: Msg[] }>(
+          `/api/orders/${orderId}/driver-client-messages`,
+        );
+      } catch (err) {
+        if (isForbidden(err)) return { messages: [] as Msg[] };
+        throw err;
+      }
+    },
+    retry: (count, err) => !isForbidden(err) && count < 1,
     refetchOnWindowFocus: false,
   });
 
   const markRead = useMutation({
-    mutationFn: () =>
-      apiPatch<{ updated: number }>(
-        `/api/orders/${orderId}/driver-client-messages/mark-read`,
-      ),
+    mutationFn: async () => {
+      try {
+        return await apiPatch<{ updated: number }>(
+          `/api/orders/${orderId}/driver-client-messages/mark-read`,
+        );
+      } catch (err) {
+        if (isForbidden(err)) return { updated: 0 };
+        throw err;
+      }
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["driver-client-messages", orderId] });
       qc.invalidateQueries({ queryKey: ["driver-unread-client-msgs"] });
