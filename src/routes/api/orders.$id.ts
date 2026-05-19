@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
+import { hasAnyRole, jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 import { writeAudit } from "@/server/audit.server";
+
+// Поля, которые водителю разрешено менять у заказа в рамках своей точки маршрута
+// (оплата получена / тип оплаты и т.п.). RLS на orders запрещает водителю
+// прямой UPDATE, поэтому для этих полей мы используем admin client после
+// проверки, что заказ реально привязан к маршруту этого водителя.
+const DRIVER_PAYMENT_FIELDS = new Set<string>([
+  "cash_received",
+  "qr_received",
+  "payment_status",
+]);
 
 const ALLOWED_FIELDS = new Set<string>([
   "status",
@@ -96,7 +106,59 @@ export const Route = createFileRoute("/api/orders/$id")({
         if (Object.keys(updates).length === 0) {
           return jsonResponse({ error: "Нет допустимых полей для обновления" }, { status: 400 });
         }
-        const { error } = await auth.client
+        // RLS на orders разрешает UPDATE только admin/logist/manager. Водитель
+        // через свой клиент попадёт в "0 rows updated" без ошибки — оплата
+        // не сохраняется. Если все поля апдейта входят в whitelist оплаты и
+        // пользователь — водитель, прикреплённый к маршруту этого заказа,
+        // выполняем апдейт через admin-клиент.
+        const onlyPaymentFields = Object.keys(updates).every((k) => DRIVER_PAYMENT_FIELDS.has(k));
+        let client = auth.client;
+        if (onlyPaymentFields) {
+          const isPrivileged = await hasAnyRole(auth.client, auth.userId, ["admin", "logist", "manager"]);
+          if (!isPrivileged) {
+            const isDriver = await hasAnyRole(auth.client, auth.userId, ["driver"]);
+            if (isDriver) {
+              const admin = makeAdminClient();
+              const { data: drv } = await admin
+                .from("drivers")
+                .select("id")
+                .eq("user_id", auth.userId)
+                .maybeSingle();
+              const driverId = (drv as { id: string } | null)?.id ?? null;
+              if (!driverId) {
+                return jsonResponse({ error: "forbidden" }, { status: 403 });
+              }
+              const { data: rp } = await admin
+                .from("route_points")
+                .select("route_id")
+                .eq("order_id", params.id);
+              const routeIds = Array.from(
+                new Set(((rp ?? []) as Array<{ route_id: string | null }>).map((r) => r.route_id).filter((x): x is string => !!x)),
+              );
+              let allowed = false;
+              if (routeIds.length > 0) {
+                const { data: drs } = await admin
+                  .from("delivery_routes")
+                  .select("id, driver_id")
+                  .in("source_request_id", routeIds);
+                allowed = ((drs ?? []) as Array<{ driver_id: string | null }>).some((d) => d.driver_id === driverId);
+                if (!allowed) {
+                  // fallback: delivery_routes.id напрямую равен route_id (на случай иной модели связи)
+                  const { data: drs2 } = await admin
+                    .from("delivery_routes")
+                    .select("id, driver_id")
+                    .in("id", routeIds);
+                  allowed = ((drs2 ?? []) as Array<{ driver_id: string | null }>).some((d) => d.driver_id === driverId);
+                }
+              }
+              if (!allowed) {
+                return jsonResponse({ error: "forbidden" }, { status: 403 });
+              }
+              client = admin;
+            }
+          }
+        }
+        const { error } = await client
           .from("orders")
           .update(updates as never)
           .eq("id", params.id);
