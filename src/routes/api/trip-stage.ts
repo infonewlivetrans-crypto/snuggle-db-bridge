@@ -2,8 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 import { tripStageStatusFor } from "@/server/trip-stage-error.server";
 import {
-  listRouteReturns,
-  listStageEvents,
   recordRouteReturn,
   recordStageEvent,
 } from "@/server/trip-stage.server";
@@ -24,10 +22,31 @@ export const Route = createFileRoute("/api/trip-stage")({
           const drId = url.searchParams.get("deliveryRouteId");
           const kind = url.searchParams.get("kind") ?? "events";
           if (!drId) return jsonResponse({ error: "deliveryRouteId обязателен" }, { status: 400 });
+          // Используем RLS-клиент пользователя (а не admin), чтобы GET не падал
+          // 500 на окружениях без SUPABASE_SERVICE_ROLE_KEY. Чтения route_stage_events
+          // / route_returns разрешены любому authenticated.
           if (kind === "returns") {
-            return jsonResponse(await listRouteReturns(drId));
+            const { data, error } = await auth.client
+              .from("route_returns")
+              .select("*")
+              .eq("delivery_route_id", drId)
+              .order("occurred_at", { ascending: false });
+            if (error) {
+              console.error("/api/trip-stage GET returns error:", error.message);
+              return jsonResponse([]);
+            }
+            return jsonResponse(data ?? []);
           }
-          return jsonResponse(await listStageEvents(drId));
+          const { data, error } = await auth.client
+            .from("route_stage_events")
+            .select("*")
+            .eq("delivery_route_id", drId)
+            .order("occurred_at", { ascending: true });
+          if (error) {
+            console.error("/api/trip-stage GET events error:", error.message);
+            return jsonResponse([]);
+          }
+          return jsonResponse(data ?? []);
         } catch (e) {
           const status = tripStageStatusFor(e);
           if (status >= 500) console.error("/api/trip-stage GET error:", e);
