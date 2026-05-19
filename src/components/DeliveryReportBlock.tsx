@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchListViaApi } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList, AlertTriangle } from "lucide-react";
 
