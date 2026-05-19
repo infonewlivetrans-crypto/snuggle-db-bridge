@@ -853,7 +853,8 @@ function DriverPointCard({
       />
 
       {/* Сообщение от получателя (target_role='driver') */}
-      <RecipientMessageForDriverBlock orderId={p.order_id} />
+      <RecipientMessageForDriverBlock orderId={p.order_id} unreadCount={unreadCount} />
+
 
       {/* Краткая сводка по оплате/QR */}
       <div className="flex flex-wrap gap-1.5 text-xs">
