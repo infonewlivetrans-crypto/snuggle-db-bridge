@@ -490,6 +490,51 @@ function DriverRoutePage() {
               active={data.status !== "completed"}
             />
 
+            {/* Кнопки запуска маршрута в Я.Навигаторе */}
+            {!isCompleted && pendingWithCoords.length > 0 && (
+              <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Navigation className="h-4 w-4 text-primary" />
+                  Навигация
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {naviRouteUrl && (
+                    <Button asChild size="sm" className="w-full gap-1.5">
+                      <a href={naviRouteUrl} rel="noreferrer">
+                        <Navigation className="h-4 w-4" />
+                        Открыть маршрут в Я.Навигаторе
+                      </a>
+                    </Button>
+                  )}
+                  {naviNextUrl && (
+                    <Button asChild size="sm" variant="outline" className="w-full gap-1.5">
+                      <a href={naviNextUrl} rel="noreferrer">
+                        <MapPin className="h-4 w-4" />
+                        Следующая точка
+                      </a>
+                    </Button>
+                  )}
+                </div>
+                {naviWebRouteUrl && (
+                  <a
+                    href={naviWebRouteUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block text-xs text-muted-foreground underline-offset-2 hover:underline"
+                  >
+                    Открыть на Я.Картах (если Навигатор не установлен)
+                  </a>
+                )}
+                {pendingWithCoords.length < pendingCount && (
+                  <div className="rounded border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-800 dark:text-amber-200">
+                    У некоторых точек нет координат — они не вошли в маршрут навигатора.
+                  </div>
+                )}
+              </div>
+            )}
+
+
+
             {/* Этапы рейса — пошаговая работа водителя */}
             <TripStageBlock
               deliveryRouteId={deliveryRouteId}
