@@ -4,6 +4,9 @@ import {
   jsonResponse,
   requireAuth,
 } from "@/server/api-helpers.server";
+import { frontendStorageUrl } from "@/lib/storageUrls";
+
+const ROUTE_POINT_PHOTOS_BUCKET = "route-point-photos";
 
 export const Route = createFileRoute("/api/delivery-photos")({
   server: {
@@ -19,7 +22,7 @@ export const Route = createFileRoute("/api/delivery-photos")({
 
         const fields = preview
           ? "id, route_point_id, order_id, kind, created_at"
-          : "id, route_point_id, order_id, kind, file_url, storage_path, created_at";
+          : "id, route_point_id, order_id, kind, file_url, bucket, path, storage_path, file_name, mime_type, created_at";
 
         let q = auth.client
           .from("route_point_photos")
@@ -31,8 +34,16 @@ export const Route = createFileRoute("/api/delivery-photos")({
 
         const { data, error } = await q;
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        const rows = preview
+          ? data ?? []
+          : ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
+              ...row,
+              file_url:
+                frontendStorageUrl(row, ROUTE_POINT_PHOTOS_BUCKET) ??
+                (typeof row.file_url === "string" ? row.file_url : null),
+            }));
         return jsonResponse(
-          { rows: data ?? [] },
+          { rows },
           { headers: cacheHeaders(0) },
         );
       },
