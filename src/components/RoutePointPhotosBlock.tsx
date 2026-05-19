@@ -255,7 +255,7 @@ function PhotoKindRow({
         fd.set("file", file);
         let uploadResp: { path: string; public_url?: string; file_url?: string };
         try {
-          uploadResp = await apiPost<{ path: string; public_url: string }>(
+          uploadResp = await apiPost<{ path: string; public_url?: string; file_url?: string }>(
             "/api/storage/upload",
             fd,
             60000,
