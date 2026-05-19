@@ -107,14 +107,14 @@ export function CarrierDocumentsBlock({
     if (!file || !route) return;
     setUploading(true);
     try {
-      const url = await uploadPublicFile("carrier-documents", file, routeId);
+      const uploaded = await uploadPublicFile("carrier-documents", file, routeId);
       const label =
         profile?.full_name ?? user?.email ?? null;
       await apiPost(`/api/route-carrier-documents`, {
         route_id: routeId,
         carrier_id: route.carrier_id,
         kind: uploadKind,
-        file_url: url,
+        file_url: uploaded.apiUrl,
         uploaded_by: user?.id ?? null,
         uploaded_by_label: label,
       });

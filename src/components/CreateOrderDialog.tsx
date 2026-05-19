@@ -131,8 +131,8 @@ export function CreateOrderDialog({ open, onOpenChange }: CreateOrderDialogProps
       const fd = new FormData();
       fd.append("bucket", "delivery-photos");
       fd.append("file", file);
-      const res = await apiPost<{ public_url: string }>("/api/storage/upload", fd, 30000);
-      setPhotoUrl(res.public_url);
+      const res = await apiPost<{ apiUrl: string; file_url: string }>("/api/storage/upload", fd, 30000);
+      setPhotoUrl(res.apiUrl ?? res.file_url);
       toast.success("Фото загружено");
     } catch (e) {
       toast.error((e as Error).message);

@@ -573,8 +573,8 @@ function DocsUploader({
     if (!f) return;
     setUploading(true);
     try {
-      const url = await uploadPublicFile(INBOUND_BUCKET, f, `inbound/${shipmentId}`);
-      const next = [...urls, url];
+      const uploaded = await uploadPublicFile(INBOUND_BUCKET, f, `inbound/${shipmentId}`);
+      const next = [...urls, uploaded.apiUrl];
       await apiPatch(`/api/inbound-shipments/${shipmentId}`, { docs_photo_urls: next });
       onChanged();
       toast.success("Документ загружен");
@@ -856,8 +856,8 @@ function ProblemDialog({
     const f = e.target.files?.[0];
     if (!f || !shipmentId) return;
     try {
-      const url = await uploadPublicFile(INBOUND_BUCKET, f, `inbound/${shipmentId}/problem`);
-      setPhotoUrl(url);
+      const uploaded = await uploadPublicFile(INBOUND_BUCKET, f, `inbound/${shipmentId}/problem`);
+      setPhotoUrl(uploaded.apiUrl);
     } catch (err: any) {
       toast.error(err.message ?? "Ошибка загрузки");
     } finally {

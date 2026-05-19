@@ -253,9 +253,17 @@ function PhotoKindRow({
         const fd = new FormData();
         fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
         fd.set("file", file);
-        let uploadResp: { path: string; public_url?: string; file_url?: string };
+        let uploadResp: {
+          bucket: string;
+          path: string;
+          storage_path: string;
+          file_name: string;
+          mime_type: string;
+          apiUrl: string;
+          file_url: string;
+        };
         try {
-          uploadResp = await apiPost<{ path: string; public_url?: string; file_url?: string }>(
+          uploadResp = await apiPost<typeof uploadResp>(
             "/api/storage/upload",
             fd,
             60000,
@@ -269,7 +277,11 @@ function PhotoKindRow({
             route_point_id: routePointId,
             order_id: orderId,
             kind,
-            file_url: uploadResp.file_url ?? uploadResp.public_url ?? "stored",
+            bucket: uploadResp.bucket,
+            path: uploadResp.path,
+            file_name: uploadResp.file_name,
+            mime_type: uploadResp.mime_type,
+            file_url: uploadResp.file_url,
             storage_path: uploadResp.path,
           });
         } catch (e) {
@@ -283,7 +295,7 @@ function PhotoKindRow({
             route_point_id: routePointId,
             order_id: orderId,
             kind,
-            file_url: uploadResp.file_url ?? uploadResp.public_url ?? "stored",
+            file_url: uploadResp.file_url,
             storage_path: uploadResp.path,
             created_at: new Date().toISOString(),
           },

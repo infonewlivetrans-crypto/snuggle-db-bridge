@@ -72,8 +72,8 @@ export function QrCapture({
     }
     setUploading(true);
     try {
-      const url = await uploadPublicFile("qr-photos", file, orderId);
-      await save.mutateAsync(url);
+      const uploaded = await uploadPublicFile("qr-photos", file, orderId);
+      await save.mutateAsync(uploaded.apiUrl);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {

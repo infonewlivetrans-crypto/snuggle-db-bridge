@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
+import { storageFileApiUrl } from "@/lib/storageUrls";
 
 const ALLOWED_BUCKETS = new Set(["delivery-photos", "route-point-photos"]);
 
@@ -18,12 +19,21 @@ export const Route = createFileRoute("/api/storage/upload")({
         if (file.size > 20 * 1024 * 1024) return jsonResponse({ error: "Файл слишком большой (макс 20МБ)" }, { status: 400 });
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase().slice(0, 8);
         const path = `${crypto.randomUUID()}.${ext}`;
+        const mimeType = file.type || "application/octet-stream";
         const { error: upErr } = await auth.client.storage
           .from(bucket)
-          .upload(path, file, { upsert: false, contentType: file.type || "application/octet-stream" });
+          .upload(path, file, { upsert: false, contentType: mimeType });
         if (upErr) return jsonResponse({ error: upErr.message }, { status: 500 });
-        const fileUrl = `/api/storage-file?bucket=${encodeURIComponent(bucket)}&path=${encodeURIComponent(path)}`;
-        return jsonResponse({ path, file_url: fileUrl, public_url: fileUrl });
+        const apiUrl = storageFileApiUrl(bucket, path);
+        return jsonResponse({
+          bucket,
+          path,
+          storage_path: path,
+          file_name: file.name || path,
+          mime_type: mimeType,
+          apiUrl,
+          file_url: apiUrl,
+        });
       },
     },
   },
