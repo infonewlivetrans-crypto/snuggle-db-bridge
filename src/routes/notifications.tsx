@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { fetchListViaApi } from "@/lib/api-client";
+import { apiPatch, fetchListViaApi } from "@/lib/api-client";
 import { CACHE_TIMES } from "@/lib/queryCache";
 import { AppHeader } from "@/components/AppHeader";
 import { LoadingFallback } from "@/components/LoadingFallback";
@@ -118,11 +117,9 @@ function NotificationsPage() {
 
   const markAll = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("is_read", false);
-      if (error) throw error;
+      const ids = items.filter((i) => !i.is_read).map((i) => i.id);
+      if (ids.length === 0) return;
+      await apiPatch("/api/notifications", { ids, is_read: true });
     },
     onSuccess: () => {
       toast.success("Все уведомления отмечены как прочитанные");
@@ -133,11 +130,7 @@ function NotificationsPage() {
 
   const toggleRead = useMutation({
     mutationFn: async ({ id, read }: { id: string; read: boolean }) => {
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: read, read_at: read ? new Date().toISOString() : null })
-        .eq("id", id);
-      if (error) throw error;
+      await apiPatch(`/api/notifications/${id}`, { is_read: read });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
     onError: (e: Error) => toast.error(e.message),
