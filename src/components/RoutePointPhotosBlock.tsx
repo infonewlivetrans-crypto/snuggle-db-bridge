@@ -248,6 +248,8 @@ function PhotoKindRow({
       }
       setUploading(true);
       try {
+        const optimisticId = `local-${newClientUploadId()}`;
+        const optimisticUrl = URL.createObjectURL(file);
         const fd = new FormData();
         fd.set("bucket", ROUTE_POINT_PHOTOS_BUCKET);
         fd.set("file", file);
@@ -267,13 +269,26 @@ function PhotoKindRow({
             route_point_id: routePointId,
             order_id: orderId,
             kind,
-            file_url: uploadResp.public_url,
+            file_url: uploadResp.file_url ?? uploadResp.public_url ?? "stored",
             storage_path: uploadResp.path,
           });
         } catch (e) {
+          URL.revokeObjectURL(optimisticUrl);
           await saveOffline(e instanceof Error ? e.message : String(e));
           return;
         }
+        qc.setQueryData<Photo[]>(["route-point-photos", routePointId], (old) => [
+          ...(old ?? []),
+          {
+            id: optimisticId,
+            route_point_id: routePointId,
+            order_id: orderId,
+            kind,
+            file_url: optimisticUrl,
+            storage_path: uploadResp.path,
+            created_at: new Date().toISOString(),
+          },
+        ]);
         toast.success("Фото загружено");
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
