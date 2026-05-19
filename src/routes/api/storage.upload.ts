@@ -22,10 +22,8 @@ export const Route = createFileRoute("/api/storage/upload")({
           .from(bucket)
           .upload(path, file, { upsert: false, contentType: file.type || "application/octet-stream" });
         if (upErr) return jsonResponse({ error: upErr.message }, { status: 500 });
-        return jsonResponse({
-          path,
-          file_url: `/api/storage-file?bucket=${encodeURIComponent(bucket)}&path=${encodeURIComponent(path)}`,
-        });
+        const fileUrl = `/api/storage-file?bucket=${encodeURIComponent(bucket)}&path=${encodeURIComponent(path)}`;
+        return jsonResponse({ path, file_url: fileUrl, public_url: fileUrl });
       },
     },
   },
