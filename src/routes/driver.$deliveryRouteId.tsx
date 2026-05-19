@@ -600,6 +600,11 @@ function DriverRoutePage() {
                           ? `Сначала загрузите/подтвердите QR по точке №${blockingPointNumber}, затем переходите к следующей разгрузке.`
                           : null
                       }
+                      outOfOrder={
+                        firstPendingIndex >= 0 &&
+                        idx > firstPendingIndex &&
+                        !FINAL.includes(p.dp_status)
+                      }
                     />
                   ))}
                 </div>
