@@ -4408,6 +4408,10 @@ export type Database = {
         Returns: boolean
       }
       _gen_invite_token: { Args: never; Returns: string }
+      _trip_stage_can_write: {
+        Args: { _delivery_route_id: string; _user_id: string }
+        Returns: boolean
+      }
       admin_bind_invite_to_user: {
         Args: {
           p_email: string
@@ -4500,6 +4504,27 @@ export type Database = {
         Returns: number
       }
       default_company_id: { Args: { _user_id: string }; Returns: string }
+      driver_record_route_return: {
+        Args: {
+          p_actor_name?: string
+          p_comment?: string
+          p_delivery_route_id: string
+          p_order_id: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      driver_record_stage_event: {
+        Args: {
+          p_actor_name?: string
+          p_comment?: string
+          p_delivery_route_id: string
+          p_gps_lat?: number
+          p_gps_lng?: number
+          p_stage: Database["public"]["Enums"]["trip_stage"]
+        }
+        Returns: Json
+      }
       generate_delivery_route_number: { Args: never; Returns: string }
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
