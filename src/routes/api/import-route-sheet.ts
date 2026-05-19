@@ -1196,6 +1196,9 @@ export const Route = createFileRoute("/api/import-route-sheet")({
           total: payload.orders.length,
           pointsCreated: inserted,
           deliveryRouteIssued,
+          optimization,
+
+
 
           itemsCreated,
           itemsUnmatched,
