@@ -367,27 +367,60 @@ function PhotoKindRow({
   );
 }
 
+/**
+ * Извлекает путь файла внутри bucket из storage_path или старого публичного
+ * supabase URL. Возвращает null, если ничего вытащить не удалось.
+ */
+function extractStoragePath(photo: Photo): string | null {
+  if (photo.storage_path) return photo.storage_path;
+  const m = photo.file_url?.match(
+    /\/storage\/v1\/object\/(?:public|sign)\/[^/]+\/(.+?)(?:\?|$)/,
+  );
+  if (m && m[1]) {
+    try {
+      return decodeURIComponent(m[1]);
+    } catch {
+      return m[1];
+    }
+  }
+  return null;
+}
+
+function buildProxiedUrl(path: string): string {
+  return `/api/storage-file?bucket=${encodeURIComponent(
+    ROUTE_POINT_PHOTOS_BUCKET,
+  )}&path=${encodeURIComponent(path)}`;
+}
+
 function PhotoTile({ photo, onRemove }: { photo: Photo; onRemove: () => void }) {
   const [broken, setBroken] = useState(false);
+  const path = extractStoragePath(photo);
+  const proxied = path ? buildProxiedUrl(path) : null;
   const isPdf =
-    /\.pdf($|\?)/i.test(photo.file_url) ||
+    /\.pdf($|\?)/i.test(photo.file_url ?? "") ||
     /\.pdf$/i.test(photo.storage_path ?? "");
   return (
     <div className="group relative">
-      <a href={photo.file_url} target="_blank" rel="noopener noreferrer">
-        {isPdf || broken ? (
-          <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-border bg-muted text-[10px] text-muted-foreground">
-            {isPdf ? "PDF" : "Нет файла"}
-          </div>
-        ) : (
-          <img
-            src={photo.file_url}
-            alt=""
-            className="h-16 w-16 rounded border border-border object-cover"
-            onError={() => setBroken(true)}
-          />
-        )}
-      </a>
+      {proxied ? (
+        <a href={proxied} target="_blank" rel="noopener noreferrer">
+          {isPdf || broken ? (
+            <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-border bg-muted text-[10px] text-muted-foreground">
+              {isPdf ? "PDF" : "Нет файла"}
+            </div>
+          ) : (
+            <img
+              src={proxied}
+              alt=""
+              className="h-16 w-16 rounded border border-border object-cover"
+              onError={() => setBroken(true)}
+            />
+          )}
+        </a>
+      ) : (
+        <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-border bg-muted text-[10px] text-muted-foreground">
+          Файл недоступен
+        </div>
+      )}
       <button
         type="button"
         aria-label="Удалить фото"
