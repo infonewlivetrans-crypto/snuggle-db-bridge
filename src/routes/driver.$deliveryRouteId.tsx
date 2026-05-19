@@ -796,8 +796,16 @@ function DriverPointCard({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-      {outOfOrder && !locked && (
+    <div
+      className={
+        "rounded-lg border bg-card " +
+        (isActive
+          ? "border-primary/60 ring-1 ring-primary/30 "
+          : "border-border ") +
+        (expanded ? "p-4 space-y-3" : "p-3")
+      }
+    >
+      {outOfOrder && !locked && expanded && (
         <div className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-900 dark:text-amber-200">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
@@ -807,22 +815,22 @@ function DriverPointCard({
         </div>
       )}
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-muted px-1.5 text-xs font-semibold">
               {p.point_number}
             </span>
-            <span className="font-semibold">{o?.order_number ?? "—"}</span>
+            <span className="font-semibold truncate">{o?.order_number ?? "—"}</span>
             {unreadCount > 0 && (
               <span
                 className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
                 title="Новое сообщение от получателя"
               >
                 <MessageSquare className="h-3 w-3" />
-                Сообщение: {unreadCount > 99 ? "99+" : unreadCount}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
-            {!locked && (
+            {!locked && expanded && (
               <div className="ml-1 flex gap-0.5">
                 <Button
                   variant="ghost"
@@ -847,13 +855,29 @@ function DriverPointCard({
               </div>
             )}
           </div>
-          <div className="mt-1 text-sm font-medium">{o?.contact_name ?? "—"}</div>
+          <div className="mt-0.5 flex items-start gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="truncate">{o?.delivery_address ?? "—"}</span>
+          </div>
         </div>
-        <Badge variant="outline" className={STATUS_TONES[p.dp_status]}>
-          {STATUS_LABELS[p.dp_status]}
-        </Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge variant="outline" className={STATUS_TONES[p.dp_status]}>
+            {STATUS_LABELS[p.dp_status]}
+          </Badge>
+          <Button
+            type="button"
+            size="sm"
+            variant={expanded ? "ghost" : "outline"}
+            className="h-7 px-2 text-xs"
+            onClick={() => setManualOpen(!expanded)}
+          >
+            {expanded ? "Свернуть" : "Открыть"}
+          </Button>
+        </div>
       </div>
 
+      {!expanded ? null : (
+        <>
       <div className="space-y-1 text-sm">
         <div className="flex items-start gap-1.5 text-muted-foreground">
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -869,6 +893,7 @@ function DriverPointCard({
           </a>
         )}
       </div>
+
 
       {/* Менеджер по заказу */}
       <ManagerInfoAndActions
