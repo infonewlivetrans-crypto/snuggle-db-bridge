@@ -28,6 +28,14 @@ import {
 import { logPointAction, type PointActionKind } from "@/lib/pointActions";
 import { getCurrentCoords, distanceMeters, NEAR_POINT_THRESHOLD_METERS } from "@/lib/gps";
 import { runWithOfflineFallback, enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
+import { useSetting } from "@/lib/settings-provider";
+
+/** Тип оплаты, при котором водитель НЕ должен принимать наличные. */
+function isOnlinePayment(paymentType: string | null | undefined): boolean {
+  if (!paymentType) return false;
+  const v = String(paymentType).toLowerCase();
+  return v !== "cash"; // card / online / qr / bank_transfer / предоплата и т.д.
+}
 
 type Props = {
   routePointId: string;
