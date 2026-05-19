@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse } from "@/server/api-helpers.server";
 import { makeAdminClient } from "@/server/api-helpers.server";
+import { frontendStorageUrl, storageFileApiUrl } from "@/lib/storageUrls";
 const supabaseAdmin = makeAdminClient();
 const BUCKET = "route-point-photos";
 const ALLOWED_KINDS = new Set(["qr", "signed_docs", "payment", "problem", "unloading_place"]);
@@ -49,15 +50,21 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
         // Идемпотентность: если уже принято — вернуть предыдущий результат.
         const { data: existing } = await supabaseAdmin
           .from("route_point_photo_uploads")
-          .select("id, status, storage_path, file_url, error")
+          .select("id, status, bucket, path, storage_path, file_url, file_name, mime_type, error")
           .eq("client_upload_id", clientUploadId)
           .maybeSingle();
         if (existing && existing.status === "uploaded") {
+          const apiUrl = frontendStorageUrl(existing, BUCKET);
           return jsonResponse({
             ok: true,
             duplicate: true,
-            file_url: existing.file_url,
+            bucket: existing.bucket ?? BUCKET,
+            path: existing.path ?? existing.storage_path,
             storage_path: existing.storage_path,
+            file_name: existing.file_name,
+            mime_type: existing.mime_type,
+            apiUrl,
+            file_url: apiUrl,
           });
         }
 
@@ -71,6 +78,8 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
 
         const ext = (file.name.split(".").pop() || "jpg").toLowerCase().slice(0, 8).replace(/[^a-z0-9]/g, "") || "jpg";
         const path = `${routePointId}/${kind}/offline-${clientUploadId}.${ext}`;
+        const mimeType = file.type || "image/jpeg";
+        const fileName = file.name || `${kind}.${ext}`;
 
         // Зарегистрировать попытку (pending) — если ещё нет записи.
         if (!existing) {
@@ -82,6 +91,11 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
             status: "pending",
             actor,
             device_created_at: deviceCreatedAt,
+            bucket: BUCKET,
+            path,
+            storage_path: path,
+            file_name: fileName,
+            mime_type: mimeType,
           });
           if (insErr && !/duplicate key/i.test(insErr.message)) {
             return jsonResponse({ error: insErr.message }, { status: 500 });
@@ -93,7 +107,7 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
           .from(BUCKET)
           .upload(path, file, {
             upsert: true,
-            contentType: file.type || "image/jpeg",
+            contentType: mimeType,
           });
         if (upErr) {
           await supabaseAdmin
@@ -103,8 +117,7 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
           return jsonResponse({ error: upErr.message }, { status: 500 });
         }
 
-        const { data: pub } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
-        const fileUrl = pub.publicUrl;
+        const fileUrl = storageFileApiUrl(BUCKET, path);
 
         // Запись в основную таблицу route_point_photos. Дубль допускаем — проверим по storage_path.
         const { data: existingPhoto } = await supabaseAdmin
@@ -117,14 +130,18 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
             route_point_id: routePointId,
             order_id: orderId,
             kind: kind as never,
+            bucket: BUCKET,
+            path,
             file_url: fileUrl,
             storage_path: path,
+            file_name: fileName,
+            mime_type: mimeType,
             uploaded_by: userData.user.id,
           });
           if (insPhotoErr) {
             await supabaseAdmin
               .from("route_point_photo_uploads")
-              .update({ status: "failed", error: insPhotoErr.message, file_url: fileUrl, storage_path: path })
+              .update({ status: "failed", error: insPhotoErr.message, file_url: fileUrl, bucket: BUCKET, path, storage_path: path, file_name: fileName, mime_type: mimeType })
               .eq("client_upload_id", clientUploadId);
             return jsonResponse({ error: insPhotoErr.message }, { status: 500 });
           }
@@ -132,10 +149,10 @@ export const Route = createFileRoute("/api/route-point-photos/offline-upload")({
 
         await supabaseAdmin
           .from("route_point_photo_uploads")
-          .update({ status: "uploaded", file_url: fileUrl, storage_path: path, error: null })
+          .update({ status: "uploaded", file_url: fileUrl, bucket: BUCKET, path, storage_path: path, file_name: fileName, mime_type: mimeType, error: null })
           .eq("client_upload_id", clientUploadId);
 
-        return jsonResponse({ ok: true, file_url: fileUrl, storage_path: path });
+        return jsonResponse({ ok: true, bucket: BUCKET, path, storage_path: path, file_name: fileName, mime_type: mimeType, apiUrl: fileUrl, file_url: fileUrl });
       },
     },
   },
