@@ -596,7 +596,7 @@ function DriverRoutePage() {
                   В маршруте нет точек
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {list.map((p, idx) => (
                     <DriverPointCard
                       key={p.id}
@@ -610,6 +610,7 @@ function DriverRoutePage() {
                       onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
                       reordering={reorderPoints.isPending}
                       locked={isCompleted}
+                      isActive={idx === firstPendingIndex}
                       blockedReason={
                         idx >= blockedFromIndex && blockingPointNumber != null
                           ? `Сначала загрузите/подтвердите QR по точке №${blockingPointNumber}, затем переходите к следующей разгрузке.`
