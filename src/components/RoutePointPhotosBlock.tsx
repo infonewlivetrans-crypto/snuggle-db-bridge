@@ -147,6 +147,9 @@ export function RoutePointPhotosBlock({
             orderId={orderId}
             onChange={() => {
               qc.invalidateQueries({ queryKey: ["route-point-photos", routePointId] });
+              qc.invalidateQueries({ queryKey: ["route-point-photos-kinds"] });
+              qc.invalidateQueries({ queryKey: ["route-points"] });
+              qc.invalidateQueries({ queryKey: ["driver-route"] });
             }}
           />
         ))}
