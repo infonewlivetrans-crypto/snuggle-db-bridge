@@ -367,6 +367,39 @@ function PhotoKindRow({
   );
 }
 
+function PhotoTile({ photo, onRemove }: { photo: Photo; onRemove: () => void }) {
+  const [broken, setBroken] = useState(false);
+  const isPdf =
+    /\.pdf($|\?)/i.test(photo.file_url) ||
+    /\.pdf$/i.test(photo.storage_path ?? "");
+  return (
+    <div className="group relative">
+      <a href={photo.file_url} target="_blank" rel="noopener noreferrer">
+        {isPdf || broken ? (
+          <div className="flex h-16 w-16 flex-col items-center justify-center rounded border border-border bg-muted text-[10px] text-muted-foreground">
+            {isPdf ? "PDF" : "Нет файла"}
+          </div>
+        ) : (
+          <img
+            src={photo.file_url}
+            alt=""
+            className="h-16 w-16 rounded border border-border object-cover"
+            onError={() => setBroken(true)}
+          />
+        )}
+      </a>
+      <button
+        type="button"
+        aria-label="Удалить фото"
+        onClick={onRemove}
+        className="absolute -right-1.5 -top-1.5 rounded-full bg-red-600 p-0.5 text-white opacity-0 shadow group-hover:opacity-100"
+      >
+        <Trash2 className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 function OfflinePhotoTile({ rec }: { rec: OfflinePhotoRecord }) {
   const [url, setUrl] = useState<string>("");
   useEffect(() => {
