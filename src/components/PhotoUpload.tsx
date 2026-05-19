@@ -32,8 +32,8 @@ export function PhotoUpload({
     }
     setUploading(true);
     try {
-      const url = await uploadPublicFile(bucket, file, prefix);
-      onChange(url);
+      const uploaded = await uploadPublicFile(bucket, file, prefix);
+      onChange(uploaded.apiUrl);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
