@@ -767,6 +767,15 @@ function DriverPointCard({
 
   return (
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      {outOfOrder && !locked && (
+        <div className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-900 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Точка выполняется не по рекомендованному порядку маршрута. Действие
+            разрешено, но обратите внимание на оптимальный порядок выше.
+          </span>
+        </div>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
