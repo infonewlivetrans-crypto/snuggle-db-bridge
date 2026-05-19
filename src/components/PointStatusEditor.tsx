@@ -30,6 +30,15 @@ import { getCurrentCoords, distanceMeters, NEAR_POINT_THRESHOLD_METERS } from "@
 import { runWithOfflineFallback, enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
 import { useSetting } from "@/lib/settings-provider";
 
+function toMoney(value: unknown): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(/\s+/g, "").replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
 /** Тип оплаты, при котором водитель НЕ должен принимать наличные. */
 function isOnlinePayment(paymentType: string | null | undefined): boolean {
   if (!paymentType) return false;
@@ -119,9 +128,12 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
         //    блокировать «Доставлено» по cash_received нельзя.
         const isPrepaid = order.payment_status === "paid";
         if (!isOnlinePayment(order.payment_type) && !isPrepaid) {
-          const amountReceived = initial.dp_amount_received;
-          if (!order.cash_received || amountReceived == null || Number(amountReceived) <= 0) {
-            throw new Error("Нельзя завершить доставку без подтверждения оплаты.");
+          const amountReceived = toMoney(initial.dp_amount_received);
+          if (amountReceived == null || amountReceived <= 0) {
+            throw new Error("Укажите фактически полученную сумму.");
+          }
+          if (!order.cash_received) {
+            throw new Error("Сначала сохраните оплату.");
           }
         }
         // 3) Документы — только если включена соответствующая настройка
@@ -129,8 +141,8 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
           throw new Error("Нельзя завершить доставку без фото документов.");
         }
         // Комментарий обязателен, если есть расхождение по оплате
-        const due = Number(order.amount_due ?? 0);
-        const got = Number(initial.dp_amount_received ?? 0);
+        const due = toMoney(order.amount_due) ?? 0;
+        const got = toMoney(initial.dp_amount_received) ?? 0;
         if (due > 0 && got > 0 && got !== due && !deliveredComment.trim()) {
           throw new Error("Укажите комментарий: есть расхождение по оплате.");
         }
