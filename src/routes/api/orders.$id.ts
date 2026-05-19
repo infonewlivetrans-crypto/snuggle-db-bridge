@@ -2,10 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { hasAnyRole, jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 import { writeAudit } from "@/server/audit.server";
 
-// Поля, которые водителю разрешено менять у заказа в рамках своей точки маршрута
-// (оплата получена / тип оплаты и т.п.). RLS на orders запрещает водителю
-// прямой UPDATE, поэтому для этих полей мы используем admin client после
-// проверки, что заказ реально привязан к маршруту этого водителя.
+// Поля, которые водителю разрешено менять у заказа в рамках своей точки маршрута.
+// Сохранение этих полей идёт через SECURITY DEFINER RPC с проверкой водителя в БД.
 const DRIVER_PAYMENT_FIELDS = new Set<string>([
   "cash_received",
   "qr_received",
@@ -106,16 +104,15 @@ export const Route = createFileRoute("/api/orders/$id")({
         if (Object.keys(updates).length === 0) {
           return jsonResponse({ error: "Нет допустимых полей для обновления" }, { status: 400 });
         }
-        // RLS на orders разрешает UPDATE только admin/logist/manager. Водитель
-        // через свой клиент молча получает "0 rows updated" — оплата не
-        // сохраняется. Если апдейт содержит только поля оплаты и пользователь
-        // не привилегирован, перенаправляем апдейт в SECURITY DEFINER RPC
-        // driver_update_order_payment, которая сама проверяет, что водитель
-        // привязан к маршруту этого заказа.
+        // RLS на orders разрешает UPDATE только admin/logist/manager. Для driver-only
+        // payment update используем SECURITY DEFINER RPC: она сама проверяет, что
+        // auth.uid() — водитель маршрута, где находится этот заказ.
         const onlyPaymentFields = Object.keys(updates).every((k) => DRIVER_PAYMENT_FIELDS.has(k));
         if (onlyPaymentFields) {
           const isPrivileged = await hasAnyRole(auth.client, auth.userId, ["admin", "logist", "manager"]);
           if (!isPrivileged) {
+            const isDriver = await hasAnyRole(auth.client, auth.userId, ["driver"]);
+            if (!isDriver) return jsonResponse({ error: "forbidden" }, { status: 403 });
             const cashVal = "cash_received" in updates ? (updates.cash_received as boolean | null) : null;
             const qrVal = "qr_received" in updates ? (updates.qr_received as boolean | null) : null;
             const psVal = "payment_status" in updates ? (updates.payment_status as string | null) : null;
