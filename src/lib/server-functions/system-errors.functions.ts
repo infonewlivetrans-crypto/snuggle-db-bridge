@@ -5,6 +5,7 @@ import { requireCookieAuth } from "@/server/auth-middleware";
 import { makeAdminClient } from "@/server/api-helpers.server";
 const supabaseAdmin = makeAdminClient();
 import { listErrors, recordError, updateErrorStatus } from "../../server/system-errors.server";
+import { insertNotification } from "../../server/notifications.server";
 
 async function userInfo(userId: string) {
   const [{ data: prof }, { data: roles }] = await Promise.all([
@@ -131,9 +132,7 @@ export const notifyAdminAboutErrorFn = createServerFn({ method: "POST" })
       `${data.title}` +
       (data.message ? `\n${data.message}` : "") +
       (data.url ? `\nСтраница: ${data.url}` : "");
-    await (supabaseAdmin.from("notifications") as unknown as {
-      insert: (row: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
-    }).insert({
+    await insertNotification({
       kind: "system_error_report",
       title: `Сообщение об ошибке: ${data.title}`.slice(0, 255),
       body,
