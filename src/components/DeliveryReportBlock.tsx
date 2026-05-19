@@ -82,9 +82,11 @@ export function DeliveryReportBlock({ orderId }: { orderId: string }) {
     queryFn: async () => {
       const { rows } = await fetchListViaApi<Row>("/api/notifications", {
         limit: 10,
-        order_id: orderId,
-        kind: "delivery_report",
-        fields: "id, created_at, is_read, payload",
+        extra: {
+          order_id: orderId,
+          kind: "delivery_report",
+          fields: "id, created_at, is_read, payload",
+        },
       });
       return rows;
     },
