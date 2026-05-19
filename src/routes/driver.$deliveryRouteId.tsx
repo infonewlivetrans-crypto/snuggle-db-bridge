@@ -22,7 +22,9 @@ import {
   ArrowUp,
   ArrowDown,
   MessageSquare,
+  Navigation,
 } from "lucide-react";
+import { yandexNavigatorRouteUrl, yandexMapsRouteUrl, yandexNavigatorUrl } from "@/lib/geo";
 import { apiGetAuth } from "@/lib/api-client";
 import { ReportProblemDialog } from "@/components/ReportProblemDialog";
 import { useRealtimeInvalidate } from "@/hooks/use-realtime-invalidate";
