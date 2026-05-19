@@ -217,6 +217,7 @@ import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
 import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
+import { Route as ApiRoutesIdOptimizeRouteImport } from './routes/api/routes.$id.optimize'
 import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
@@ -1293,6 +1294,11 @@ const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   path: '/api/admin/reset-owner',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRoutesIdOptimizeRoute = ApiRoutesIdOptimizeRouteImport.update({
+  id: '/optimize',
+  path: '/optimize',
+  getParentRoute: () => ApiRoutesIdRoute,
+} as any)
 const ApiPublicDriverAccessResolveRoute =
   ApiPublicDriverAccessResolveRouteImport.update({
     id: '/api/public/driver-access/resolve',
@@ -1594,7 +1600,7 @@ export interface FileRoutesByFullPath {
   '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
-  '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routes/$id': typeof ApiRoutesIdRouteWithChildren
   '/api/routing/directions': typeof ApiRoutingDirectionsRoute
   '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
@@ -1625,6 +1631,7 @@ export interface FileRoutesByFullPath {
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
+  '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -1823,7 +1830,7 @@ export interface FileRoutesByTo {
   '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
-  '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routes/$id': typeof ApiRoutesIdRouteWithChildren
   '/api/routing/directions': typeof ApiRoutingDirectionsRoute
   '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
@@ -1854,6 +1861,7 @@ export interface FileRoutesByTo {
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
+  '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -2053,7 +2061,7 @@ export interface FileRoutesById {
   '/api/route-points/append': typeof ApiRoutePointsAppendRoute
   '/api/route-points/reorder': typeof ApiRoutePointsReorderRoute
   '/api/route-points/swap': typeof ApiRoutePointsSwapRoute
-  '/api/routes/$id': typeof ApiRoutesIdRoute
+  '/api/routes/$id': typeof ApiRoutesIdRouteWithChildren
   '/api/routing/directions': typeof ApiRoutingDirectionsRoute
   '/api/routing/matrix': typeof ApiRoutingMatrixRoute
   '/api/stock-reservations/$id': typeof ApiStockReservationsIdRoute
@@ -2084,6 +2092,7 @@ export interface FileRoutesById {
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
+  '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -2315,6 +2324,7 @@ export interface FileRouteTypes {
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
     | '/api/public/driver-access/resolve'
+    | '/api/routes/$id/optimize'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2544,6 +2554,7 @@ export interface FileRouteTypes {
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
     | '/api/public/driver-access/resolve'
+    | '/api/routes/$id/optimize'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2773,6 +2784,7 @@ export interface FileRouteTypes {
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
     | '/api/public/driver-access/resolve'
+    | '/api/routes/$id/optimize'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -4409,6 +4421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminResetOwnerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/routes/$id/optimize': {
+      id: '/api/routes/$id/optimize'
+      path: '/optimize'
+      fullPath: '/api/routes/$id/optimize'
+      preLoaderRoute: typeof ApiRoutesIdOptimizeRouteImport
+      parentRoute: typeof ApiRoutesIdRoute
+    }
     '/api/public/driver-access/resolve': {
       id: '/api/public/driver-access/resolve'
       path: '/api/public/driver-access/resolve'
@@ -4872,12 +4891,24 @@ const ApiRoutePointsRouteWithChildren = ApiRoutePointsRoute._addFileChildren(
   ApiRoutePointsRouteChildren,
 )
 
+interface ApiRoutesIdRouteChildren {
+  ApiRoutesIdOptimizeRoute: typeof ApiRoutesIdOptimizeRoute
+}
+
+const ApiRoutesIdRouteChildren: ApiRoutesIdRouteChildren = {
+  ApiRoutesIdOptimizeRoute: ApiRoutesIdOptimizeRoute,
+}
+
+const ApiRoutesIdRouteWithChildren = ApiRoutesIdRoute._addFileChildren(
+  ApiRoutesIdRouteChildren,
+)
+
 interface ApiRoutesRouteChildren {
-  ApiRoutesIdRoute: typeof ApiRoutesIdRoute
+  ApiRoutesIdRoute: typeof ApiRoutesIdRouteWithChildren
 }
 
 const ApiRoutesRouteChildren: ApiRoutesRouteChildren = {
-  ApiRoutesIdRoute: ApiRoutesIdRoute,
+  ApiRoutesIdRoute: ApiRoutesIdRouteWithChildren,
 }
 
 const ApiRoutesRouteWithChildren = ApiRoutesRoute._addFileChildren(
@@ -5225,13 +5256,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
