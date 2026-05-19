@@ -19,7 +19,9 @@ type Row = {
 export function DriverGeoBlock({ deliveryRouteId }: { deliveryRouteId: string }) {
   const { data } = useQuery({
     queryKey: ["driver-geo", deliveryRouteId],
-    refetchInterval: 30_000,
+    retry: false,
+    refetchInterval: (q) => (q.state.error ? false : 30_000),
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<Row | null> => {
       const fields = encodeURIComponent("last_driver_lat, last_driver_lng, last_driver_location_at");
       return apiGetAuth<Row | null>(

@@ -68,7 +68,13 @@ export function NotificationsBell() {
       return rows;
     },
     staleTime: 30_000,
-    refetchInterval: 60_000,
+    // Не спамим retry при 504/сетевых ошибках — endpoint и так сам деградирует
+    // до пустого списка; лишние ретраи только усугубляют нагрузку.
+    retry: false,
+    // Если последний запрос упал — приостанавливаем polling, чтобы не
+    // забивать консоль и не валить backend повторно.
+    refetchInterval: (q) => (q.state.error ? false : 60_000),
+    refetchOnWindowFocus: false,
   });
 
   const unreadCount = useMemo(() => items.filter((i) => !i.is_read).length, [items]);
