@@ -86,6 +86,11 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
     },
     onSuccess: (res) => {
       toast.success(res?.queued ? "Сохранено на устройстве. Уйдёт при связи." : "Оплата и QR сохранены");
+      const orderPatch = { cash_received: cashReceived, qr_received: qrReceived };
+      const pointPatch = {
+        dp_amount_received: amountNum,
+        dp_payment_comment: paymentComment || null,
+      };
       qc.setQueriesData({ queryKey: ["delivery-route-points"] }, (old: unknown) => {
         if (!Array.isArray(old)) return old;
         return old.map((p) => {
@@ -94,8 +99,8 @@ export function PaymentQrBlock({ routePointId, order, point }: Props) {
           const orderRow = point.order && typeof point.order === "object" ? point.order as Record<string, unknown> : null;
           return {
             ...point,
-            ...pointUpdate,
-            order: orderRow ? { ...orderRow, ...orderUpdate } : point.order,
+            ...pointPatch,
+            order: orderRow ? { ...orderRow, ...orderPatch } : point.order,
           };
         });
       });
