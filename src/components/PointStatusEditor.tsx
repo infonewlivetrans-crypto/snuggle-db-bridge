@@ -71,6 +71,11 @@ type Props = {
 
 export function PointStatusEditor({ routePointId, initial, order, orderId, routeId, driverName, hasQrPhoto, hasProblemPhoto, hasDocumentsPhoto, onSaved }: Props) {
   const qc = useQueryClient();
+  const docsRequiredSetting = useSetting<boolean>("driver_document_photos_enabled", false);
+  const photosRequiredSetting = useSetting<boolean>(
+    "driver_delivery_photos_enabled",
+    docsRequiredSetting,
+  );
   const [status, setStatus] = useState<DeliveryPointStatus>(initial.dp_status);
   const [reason, setReason] = useState<DeliveryPointUndeliveredReason | "">(
     initial.dp_undelivered_reason ?? "",
@@ -83,6 +88,7 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
     initial.dp_expected_return_at ? toLocalDT(initial.dp_expected_return_at) : "",
   );
   const [farFromPointWarning, setFarFromPointWarning] = useState<string | null>(null);
+
 
   useEffect(() => {
     setDeliveredComment(initial.dp_payment_comment ?? "");
