@@ -298,6 +298,25 @@ function DriverRoutePage() {
   const pendingCount = list.filter((p) => !FINAL.includes(p.dp_status)).length;
   const isCompleted = data?.status === "completed";
 
+  // Индекс первой невыполненной точки в рекомендованном порядке.
+  // Если водитель работает с точкой ПОСЛЕ этого индекса — это "не по порядку".
+  const firstPendingIndex = list.findIndex((p) => !FINAL.includes(p.dp_status));
+
+  // Ссылки в Я.Навигатор: маршрут по всем невыполненным точкам с координатами
+  // и быстрая ссылка на следующую рекомендованную точку.
+  const pendingWithCoords = list
+    .filter((p) => !FINAL.includes(p.dp_status))
+    .map((p) => p.order)
+    .filter(
+      (o): o is NonNullable<typeof o> =>
+        !!o && typeof o.latitude === "number" && typeof o.longitude === "number",
+    )
+    .map((o) => ({ lat: o.latitude as number, lng: o.longitude as number }));
+  const naviRouteUrl = yandexNavigatorRouteUrl(pendingWithCoords);
+  const naviWebRouteUrl = yandexMapsRouteUrl(pendingWithCoords);
+  const nextPoint = pendingWithCoords[0] ?? null;
+  const naviNextUrl = nextPoint ? yandexNavigatorUrl(nextPoint.lat, nextPoint.lng) : null;
+
   // Блокировка перехода к следующей точке: если у текущей открытой точки
   // требуется QR-код, а он не загружен/не подтверждён — следующие точки
   // показываем как заблокированные.
