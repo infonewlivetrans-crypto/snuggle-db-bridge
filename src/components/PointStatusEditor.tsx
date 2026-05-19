@@ -28,6 +28,14 @@ import {
 import { logPointAction, type PointActionKind } from "@/lib/pointActions";
 import { getCurrentCoords, distanceMeters, NEAR_POINT_THRESHOLD_METERS } from "@/lib/gps";
 import { runWithOfflineFallback, enqueueAction, isOnline, flushQueue } from "@/lib/offlineQueue";
+import { useSetting } from "@/lib/settings-provider";
+
+/** Тип оплаты, при котором водитель НЕ должен принимать наличные. */
+function isOnlinePayment(paymentType: string | null | undefined): boolean {
+  if (!paymentType) return false;
+  const v = String(paymentType).toLowerCase();
+  return v !== "cash"; // card / online / qr / bank_transfer / предоплата и т.д.
+}
 
 type Props = {
   routePointId: string;
@@ -63,6 +71,11 @@ type Props = {
 
 export function PointStatusEditor({ routePointId, initial, order, orderId, routeId, driverName, hasQrPhoto, hasProblemPhoto, hasDocumentsPhoto, onSaved }: Props) {
   const qc = useQueryClient();
+  const docsRequiredSetting = useSetting<boolean>("driver_document_photos_enabled", false);
+  const photosRequiredSetting = useSetting<boolean>(
+    "driver_delivery_photos_enabled",
+    docsRequiredSetting,
+  );
   const [status, setStatus] = useState<DeliveryPointStatus>(initial.dp_status);
   const [reason, setReason] = useState<DeliveryPointUndeliveredReason | "">(
     initial.dp_undelivered_reason ?? "",
@@ -75,6 +88,7 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
     initial.dp_expected_return_at ? toLocalDT(initial.dp_expected_return_at) : "",
   );
   const [farFromPointWarning, setFarFromPointWarning] = useState<string | null>(null);
+
 
   useEffect(() => {
     setDeliveredComment(initial.dp_payment_comment ?? "");
@@ -95,20 +109,23 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
   const save = useMutation({
     mutationFn: async () => {
       if (status === "delivered" && order) {
-        // 1) QR обязателен
+        // 1) QR — обязателен ТОЛЬКО если заказ его реально требует
         if (order.requires_qr && (!order.qr_received || !hasQrPhoto)) {
           throw new Error("Нельзя завершить доставку без QR-кода.");
         }
-        // 2) Наличные + не оплачено заранее → подтверждение оплаты
+        // 2) Оплата:
+        //    cash + не оплачено заранее → требуется подтверждение оплаты
+        //    online/card/qr/bank_transfer → водитель деньги не принимает,
+        //    блокировать «Доставлено» по cash_received нельзя.
         const isPrepaid = order.payment_status === "paid";
-        if (order.payment_type === "cash" && !isPrepaid) {
+        if (!isOnlinePayment(order.payment_type) && !isPrepaid) {
           const amountReceived = initial.dp_amount_received;
           if (!order.cash_received || amountReceived == null || Number(amountReceived) <= 0) {
             throw new Error("Нельзя завершить доставку без подтверждения оплаты.");
           }
         }
-        // 3) Фото документов обязательно
-        if (!hasDocumentsPhoto) {
+        // 3) Документы — только если включена соответствующая настройка
+        if (docsRequiredSetting && !hasDocumentsPhoto) {
           throw new Error("Нельзя завершить доставку без фото документов.");
         }
         // Комментарий обязателен, если есть расхождение по оплате
@@ -118,6 +135,7 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
           throw new Error("Укажите комментарий: есть расхождение по оплате.");
         }
       }
+
       if (status === "not_delivered") {
         if (!reason) {
           throw new Error("Укажите причину недоставки.");
@@ -301,11 +319,18 @@ export function PointStatusEditor({ routePointId, initial, order, orderId, route
           </div>
           <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
             {order?.requires_qr && <li>Загрузите фото QR-кода</li>}
-            {order?.payment_type === "cash" && order?.payment_status !== "paid" && (
+            {order && !isOnlinePayment(order.payment_type) && order.payment_status !== "paid" && (
               <li>Укажите фактически полученную сумму и подтвердите оплату</li>
             )}
-            <li>Загрузите фото документов</li>
+            {order && isOnlinePayment(order.payment_type) && (
+              <li>Оплата онлайн — деньги от клиента получать не нужно</li>
+            )}
+            {docsRequiredSetting && <li>Загрузите фото документов</li>}
+            {photosRequiredSetting && !docsRequiredSetting && (
+              <li>Загрузите фото доставки</li>
+            )}
           </ul>
+
           <div>
             <div className="mb-1 text-xs text-muted-foreground">
               Комментарий {(() => {

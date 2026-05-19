@@ -56,6 +56,13 @@ import { PAYMENT_LABELS, type PaymentType } from "@/lib/orders";
 import { OfflineQueueIndicator } from "@/components/OfflineQueueIndicator";
 import { RecipientMessageForDriverBlock } from "@/components/RecipientMessageForDriverBlock";
 import { runWithOfflineFallback, hasPendingForRoute, subscribeQueue, flushQueue } from "@/lib/offlineQueue";
+import { useSetting } from "@/lib/settings-provider";
+
+/** Тип оплаты, при котором водитель НЕ принимает наличные. */
+function isOnlinePayment(paymentType: string | null | undefined): boolean {
+  if (!paymentType) return false;
+  return String(paymentType).toLowerCase() !== "cash";
+}
 
 export const Route = createFileRoute("/driver/$deliveryRouteId")({
   head: () => ({
@@ -132,6 +139,8 @@ const STATUS_LABELS: Record<DeliveryPointStatus, string> = {
 function DriverRoutePage() {
   const { deliveryRouteId } = Route.useParams();
   const qc = useQueryClient();
+  const docsRequiredSetting = useSetting<boolean>("driver_document_photos_enabled", false);
+
 
   const { data, isLoading, error: detailError } = useQuery({
     queryKey: ["driver-route", deliveryRouteId],
@@ -348,17 +357,23 @@ function DriverRoutePage() {
       const num = p.order?.order_number ?? `точка №${p.point_number}`;
       const kinds = photoKindsByPoint?.[p.id];
       if (p.dp_status === "delivered") {
+        // QR обязателен только для QR-заказов
         if (p.order?.requires_qr) {
           const hasQrPhoto = !!kinds?.has("qr");
           if (!p.order.qr_received || !hasQrPhoto) {
             errs.push(`По заказу №${num} не загружен QR-код / не подтверждён QR.`);
           }
         }
+        // Наличные требуем только если payment_type=cash и не оплачено заранее
         const isPrepaid = p.order?.payment_status === "paid";
-        if (p.order?.payment_type === "cash" && !isPrepaid) {
+        if (p.order && !isOnlinePayment(p.order.payment_type) && !isPrepaid) {
           if (p.dp_amount_received == null || Number(p.dp_amount_received) <= 0) {
             errs.push(`По заказу №${num} не сдана сумма наличных.`);
           }
+        }
+        // Документы — только если включена настройка
+        if (docsRequiredSetting && !kinds?.has("documents")) {
+          errs.push(`По заказу №${num} не загружено фото документов.`);
         }
       } else if (p.dp_status === "not_delivered") {
         if (!p.dp_undelivered_reason) {
@@ -581,7 +596,7 @@ function DriverRoutePage() {
                   В маршруте нет точек
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {list.map((p, idx) => (
                     <DriverPointCard
                       key={p.id}
@@ -595,6 +610,7 @@ function DriverRoutePage() {
                       onReorder={(dir) => reorderPoints.mutate({ index: idx, dir })}
                       reordering={reorderPoints.isPending}
                       locked={isCompleted}
+                      isActive={idx === firstPendingIndex}
                       blockedReason={
                         idx >= blockedFromIndex && blockingPointNumber != null
                           ? `Сначала загрузите/подтвердите QR по точке №${blockingPointNumber}, затем переходите к следующей разгрузке.`
@@ -704,6 +720,7 @@ function DriverPointCard({
   locked,
   blockedReason,
   outOfOrder = false,
+  isActive = false,
 }: {
   p: PointRow;
   index: number;
@@ -717,11 +734,23 @@ function DriverPointCard({
   locked: boolean;
   blockedReason?: string | null;
   outOfOrder?: boolean;
+  isActive?: boolean;
 }) {
   const o = p.order;
 
-  // Лог: водитель открыл карточку точки (с GPS)
+  // Авто-раскрытие:
+  //  - текущая активная точка маршрута;
+  //  - после прибытия / на разгрузке.
+  const autoExpanded =
+    isActive ||
+    p.dp_status === "arrived" ||
+    p.dp_status === "unloading";
+  const [manualOpen, setManualOpen] = useState<boolean | null>(null);
+  const expanded = manualOpen ?? autoExpanded;
+
+  // Лог: водитель открыл карточку точки (только при реальном раскрытии)
   useEffect(() => {
+    if (!expanded) return;
     (async () => {
       const gps = await getCurrentCoords();
       logPointAction({
@@ -734,7 +763,8 @@ function DriverPointCard({
       });
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.id]);
+  }, [p.id, expanded]);
+
 
   if (blockedReason) {
     return (
@@ -766,8 +796,16 @@ function DriverPointCard({
   }
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-      {outOfOrder && !locked && (
+    <div
+      className={
+        "rounded-lg border bg-card " +
+        (isActive
+          ? "border-primary/60 ring-1 ring-primary/30 "
+          : "border-border ") +
+        (expanded ? "p-4 space-y-3" : "p-3")
+      }
+    >
+      {outOfOrder && !locked && expanded && (
         <div className="flex items-start gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-xs text-amber-900 dark:text-amber-200">
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
@@ -777,22 +815,22 @@ function DriverPointCard({
         </div>
       )}
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded bg-muted px-1.5 text-xs font-semibold">
               {p.point_number}
             </span>
-            <span className="font-semibold">{o?.order_number ?? "—"}</span>
+            <span className="font-semibold truncate">{o?.order_number ?? "—"}</span>
             {unreadCount > 0 && (
               <span
                 className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
                 title="Новое сообщение от получателя"
               >
                 <MessageSquare className="h-3 w-3" />
-                Сообщение: {unreadCount > 99 ? "99+" : unreadCount}
+                {unreadCount > 99 ? "99+" : unreadCount}
               </span>
             )}
-            {!locked && (
+            {!locked && expanded && (
               <div className="ml-1 flex gap-0.5">
                 <Button
                   variant="ghost"
@@ -817,13 +855,29 @@ function DriverPointCard({
               </div>
             )}
           </div>
-          <div className="mt-1 text-sm font-medium">{o?.contact_name ?? "—"}</div>
+          <div className="mt-0.5 flex items-start gap-1.5 text-xs text-muted-foreground">
+            <MapPin className="mt-0.5 h-3 w-3 shrink-0" />
+            <span className="truncate">{o?.delivery_address ?? "—"}</span>
+          </div>
         </div>
-        <Badge variant="outline" className={STATUS_TONES[p.dp_status]}>
-          {STATUS_LABELS[p.dp_status]}
-        </Badge>
+        <div className="flex items-center gap-2 shrink-0">
+          <Badge variant="outline" className={STATUS_TONES[p.dp_status]}>
+            {STATUS_LABELS[p.dp_status]}
+          </Badge>
+          <Button
+            type="button"
+            size="sm"
+            variant={expanded ? "ghost" : "outline"}
+            className="h-7 px-2 text-xs"
+            onClick={() => setManualOpen(!expanded)}
+          >
+            {expanded ? "Свернуть" : "Открыть"}
+          </Button>
+        </div>
       </div>
 
+      {!expanded ? null : (
+        <>
       <div className="space-y-1 text-sm">
         <div className="flex items-start gap-1.5 text-muted-foreground">
           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -839,6 +893,7 @@ function DriverPointCard({
           </a>
         )}
       </div>
+
 
       {/* Менеджер по заказу */}
       <ManagerInfoAndActions
@@ -968,6 +1023,8 @@ function DriverPointCard({
 
       {/* История действий водителя по точке — с GPS-координатами */}
       <PointActionsHistory routePointId={p.id} title="История действий по точке" maxHeight="max-h-56" />
+        </>
+      )}
     </div>
   );
 }

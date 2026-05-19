@@ -69,7 +69,16 @@ export function PaymentSummaryBlock({
         <div className="mt-3 flex items-start gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-2 text-xs text-emerald-800 dark:text-emerald-200">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span className="font-medium">
-            Клиент уже оплатил. Деньги не забирать.
+            {isCash ? "Клиент уже оплатил. Деньги не забирать." : "Оплачено онлайн."}
+          </span>
+        </div>
+      )}
+
+      {!isPrepaid && !isCash && (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-sky-500/30 bg-sky-500/10 px-2.5 py-2 text-xs text-sky-800 dark:text-sky-200">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+          <span className="font-medium">
+            Онлайн / оплата не требуется от водителя.
           </span>
         </div>
       )}
