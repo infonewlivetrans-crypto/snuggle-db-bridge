@@ -43,6 +43,12 @@ export const Route = createFileRoute("/api/invites/$id")({
               { status: 409 },
             );
           }
+          if (/not found|does not exist/i.test(msg)) {
+            return jsonResponse({ error: "Инвайт не найден" }, { status: 404 });
+          }
+          if (/disabled|blocked/i.test(msg)) {
+            return jsonResponse({ error: "Инвайт отключён" }, { status: 409 });
+          }
           console.error("[api/invites/:id PATCH] failed", { id: params.id, body, msg, error: e });
           return jsonResponse({ error: msg || "invite update failed" }, { status: 500 });
         }
