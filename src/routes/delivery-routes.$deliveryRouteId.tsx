@@ -862,7 +862,14 @@ function DeliveryRoutePage() {
                 const r = m % 60;
                 return h > 0 ? `${h} ч ${r} мин` : `${r} мин`;
               };
-              const fmtMoney = (n: number) => n.toLocaleString("ru-RU");
+              const fmtMoney = (n: number) => {
+    const raw = Number.isFinite(n) ? String(n) : "0";
+    const [intPart, fracPart] = raw.split(".");
+    const sign = intPart.startsWith("-") ? "-" : "";
+    const digits = sign ? intPart.slice(1) : intPart;
+    const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return fracPart ? `${sign}${grouped},${fracPart}` : `${sign}${grouped}`;
+  };
 
               return (
                 <div className="rounded-lg border border-border p-4">

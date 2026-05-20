@@ -62,6 +62,14 @@ import {
 import type { BodyType } from "@/lib/carriers";
 import { cn } from "@/lib/utils";
 
+
+function formatStableDateRu(value: string | null | undefined): string {
+  if (!value) return "—";
+  const raw = String(value).slice(0, 10);
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : raw || "—";
+}
+
 export const Route = createFileRoute("/transport-requests/$requestId")({
   head: () => ({
     meta: [
@@ -255,7 +263,7 @@ function TransportRequestDetailPage() {
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {new Date(data.created_at).toLocaleDateString("ru-RU")}
+                    {formatStableDateRu(data.created_at)}
                   </span>
                 </div>
               </div>
@@ -276,7 +284,7 @@ function TransportRequestDetailPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-medium">План отправки:</span>
                 {data.route_date ? (
-                  <span>{new Date(data.route_date).toLocaleDateString("ru-RU")}</span>
+                  <span>{formatStableDateRu(data.route_date)}</span>
                 ) : (
                   <span className="italic text-muted-foreground">дата не указана</span>
                 )}
@@ -308,7 +316,7 @@ function TransportRequestDetailPage() {
                 <Field label="Номер заявки" value={data.route_number} mono />
                 <Field
                   label="Дата"
-                  value={new Date(data.route_date).toLocaleDateString("ru-RU")}
+                  value={formatStableDateRu(data.route_date)}
                 />
                 <Field
                   label="Вид заявки"

@@ -105,26 +105,25 @@ export function triggerNewOfferSignal() {
 
 function fmtDateTime(s: string | null | undefined): string {
   if (!s) return "—";
-  try {
-    return new Date(s).toLocaleString("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "—";
-  }
+  const raw = String(s);
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+  if (!m) return raw;
+  const day = m[3];
+  const month = m[2];
+  const hour = m[4] ?? "00";
+  const minute = m[5] ?? "00";
+  return `${day}.${month} ${hour}:${minute}`;
 }
 
 function useCountdown(expiresAt: string | null | undefined): string | null {
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     if (!expiresAt) return;
+    setNow(Date.now());
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, [expiresAt]);
-  if (!expiresAt) return null;
+  if (!expiresAt || now === null) return null;
   const ms = new Date(expiresAt).getTime() - now;
   if (!Number.isFinite(ms)) return null;
   if (ms <= 0) return "истекло";

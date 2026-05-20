@@ -54,6 +54,27 @@ const KIND_COLOR: Record<NotificationKind, string> = {
   client_message_received: "text-primary",
 };
 
+
+function formatStableDayMonthTimeRu(value: string | null | undefined): string {
+  if (!value) return "—";
+  const raw = String(value);
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+  if (!m) return raw;
+  const day = m[3];
+  const month = m[2];
+  const hour = m[4] ?? "00";
+  const minute = m[5] ?? "00";
+  return `${day}.${month} ${hour}:${minute}`;
+}
+
+function formatStableTimeRu(value: string | null | undefined): string {
+  if (!value) return "—";
+  const raw = String(value);
+  const m = raw.match(/(?:T|\s)(\d{2}):(\d{2})/);
+  if (!m) return raw;
+  return `${m[1]}:${m[2]}`;
+}
+
 export function NotificationsBell() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -164,12 +185,7 @@ export function NotificationsBell() {
             </div>
             {lowStockSummary.lastAt && (
               <span className="shrink-0 text-orange-700">
-                {new Date(lowStockSummary.lastAt).toLocaleString("ru-RU", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatStableDayMonthTimeRu(lowStockSummary.lastAt)}
               </span>
             )}
           </a>
@@ -208,10 +224,7 @@ export function NotificationsBell() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="text-sm font-medium text-foreground">{n.title}</div>
                         <span className="shrink-0 text-[11px] text-muted-foreground">
-                          {new Date(n.created_at).toLocaleTimeString("ru-RU", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                          {formatStableTimeRu(n.created_at)}
                         </span>
                       </div>
                       {n.body && (

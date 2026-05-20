@@ -13,7 +13,7 @@ import { ErrorState } from "@/components/ErrorState";
 import { useEffect } from "react";
 import { reportError } from "@/lib/errorReporter";
 
-import appCss from "../styles.css?url";
+import "../styles.css";
 import faviconUrl from "@/assets/brand-logo.jpeg?url";
 
 function NotFoundComponent() {
@@ -68,17 +68,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/jpeg", href: faviconUrl },
       { rel: "shortcut icon", type: "image/jpeg", href: faviconUrl },
       { rel: "apple-touch-icon", href: faviconUrl },
-      // Прогрев соединения с бэкендом — первый запрос данных стартует раньше.
-      ...(SUPABASE_ORIGIN
-        ? [
-            { rel: "preconnect", href: SUPABASE_ORIGIN, crossOrigin: "anonymous" as const },
-            { rel: "dns-prefetch", href: SUPABASE_ORIGIN },
-          ]
-        : []),
     ],
   }),
   shellComponent: RootShell,
@@ -127,6 +119,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>

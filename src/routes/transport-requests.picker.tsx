@@ -90,7 +90,9 @@ function fmt(n: number | null | undefined, d = 2) {
 }
 
 function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("ru-RU");
+  const raw = String(iso ?? "").slice(0, 10);
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : raw || "—";
 }
 
 const ORDER_STATUS_LABEL: Record<string, string> = {
