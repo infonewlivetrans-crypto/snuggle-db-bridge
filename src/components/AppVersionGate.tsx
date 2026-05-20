@@ -21,10 +21,14 @@ export function AppVersionGate() {
   const { data: version } = useQuery({
     queryKey: ["app-version", APP_CLIENT_PLATFORM],
     queryFn: () => fetchAppVersion(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-    refetchInterval: 5 * 60 * 1000, // подстраховка, если realtime недоступен
-    refetchOnWindowFocus: true,
+    // Версия приложения меняется только при релизах — держим долго в кэше,
+    // чтобы переходы между разделами не дёргали /api/app-versions.
+    staleTime: 15 * 60 * 1000,
+    gcTime: 60 * 60 * 1000,
+    refetchInterval: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const result = checkVersion(version ?? null);
