@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiGetAuth } from "@/lib/api-client";
+import { useSetting } from "@/lib/settings-provider";
+import { CACHE_TIMES } from "@/lib/queryCache";
 
 export type ModuleKey =
   | "warehouse"
