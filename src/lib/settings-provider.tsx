@@ -12,9 +12,10 @@ import { fetchSystemSettingsViaApi } from "@/lib/api-client";
 const SETTINGS_QUERY_KEY = ["system-settings"] as const;
 const VERSION_QUERY_KEY = ["app-version", APP_CLIENT_PLATFORM] as const;
 
-// system_settings — кэш 10 минут (через сервер), realtime инвалидирует раньше.
-const STALE_TIME = 10 * 60 * 1000;
-const GC_TIME = 30 * 60 * 1000;
+// system_settings — кэш 30 минут (через сервер): меняются редко,
+// дёргать на каждом переходе по разделам не нужно.
+const STALE_TIME = 30 * 60 * 1000;
+const GC_TIME = 60 * 60 * 1000;
 
 const DEFAULT_SETTINGS: SystemSetting[] = [];
 
@@ -46,6 +47,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     },
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
     retry: 1,
   });
 
@@ -55,6 +59,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     queryFn: () => fetchAppVersion(),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   // Realtime отключён намеренно: production backend на radius-track.ru не
