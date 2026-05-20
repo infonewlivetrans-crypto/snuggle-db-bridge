@@ -47,6 +47,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     },
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
     retry: 1,
   });
 
@@ -56,6 +59,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     queryFn: () => fetchAppVersion(),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   // Realtime отключён намеренно: production backend на radius-track.ru не
