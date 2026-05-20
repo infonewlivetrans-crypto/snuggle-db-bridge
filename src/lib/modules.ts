@@ -133,26 +133,16 @@ export function isPathVisibleInLaunchMode(path: string, mode: LaunchMode): boole
   );
 }
 
-/** Чтение режима запуска. */
+/**
+ * Чтение режима запуска.
+ *
+ * Читаем настройку из единого SettingsProvider-кеша (он сам грузит
+ * /api/system-settings один раз), чтобы не делать отдельный запрос
+ * /api/system-settings на каждом переходе по разделам.
+ */
 export function useLaunchMode(): LaunchMode {
-  const { data } = useQuery({
-    queryKey: ["launch.mode"],
-    staleTime: 60_000,
-    queryFn: async (): Promise<LaunchMode> => {
-      try {
-        const { fetchSystemSettingsViaApi } = await import("@/lib/api-client");
-        const all = await fetchSystemSettingsViaApi<{
-          setting_key: string;
-          setting_value: unknown;
-        }>();
-        const row = all.find((s) => s.setting_key === "launch.mode");
-        return row?.setting_value === "minimal" ? "minimal" : "full";
-      } catch {
-        return "full";
-      }
-    },
-  });
-  return data ?? "full";
+  const value = useSetting<unknown>("launch.mode", "full");
+  return value === "minimal" ? "minimal" : "full";
 }
 
 export const LAUNCH_MODE_LABELS: Record<LaunchMode, string> = {
