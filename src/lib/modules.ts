@@ -44,7 +44,12 @@ export const MODULE_DESCRIPTIONS: Record<ModuleKey, string> = {
 export function useEnabledModules(): EnabledModules {
   const { data } = useQuery({
     queryKey: ["modules.enabled"],
-    staleTime: 5 * 60_000,
+    // Список включённых модулей меняется крайне редко: держим долго в кэше,
+    // чтобы переходы между разделами не дёргали /api/modules.
+    staleTime: CACHE_TIMES.REFERENCE_LONG,
+    gcTime: CACHE_TIMES.REFERENCE_LONG * 2,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     queryFn: async (): Promise<EnabledModules> => {
       try {
         const { modules } = await apiGetAuth<{ modules: Partial<EnabledModules> | null }>(
