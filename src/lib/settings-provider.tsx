@@ -12,9 +12,10 @@ import { fetchSystemSettingsViaApi } from "@/lib/api-client";
 const SETTINGS_QUERY_KEY = ["system-settings"] as const;
 const VERSION_QUERY_KEY = ["app-version", APP_CLIENT_PLATFORM] as const;
 
-// system_settings — кэш 10 минут (через сервер), realtime инвалидирует раньше.
-const STALE_TIME = 10 * 60 * 1000;
-const GC_TIME = 30 * 60 * 1000;
+// system_settings — кэш 30 минут (через сервер): меняются редко,
+// дёргать на каждом переходе по разделам не нужно.
+const STALE_TIME = 30 * 60 * 1000;
+const GC_TIME = 60 * 60 * 1000;
 
 const DEFAULT_SETTINGS: SystemSetting[] = [];
 
