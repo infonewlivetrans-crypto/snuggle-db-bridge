@@ -7,8 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
-import { db } from "@/lib/db";
-import { apiPost } from "@/lib/api-client";
+import { apiGet, apiPost } from "@/lib/api-client";
 import type { BodyType } from "@/lib/carriers";
 
 export type SignalRequirements = {
@@ -101,38 +100,37 @@ export function BroadcastSignalButton({
   const { data: vehicles } = useQuery({
     queryKey: ["broadcast-signal", "vehicles"],
     queryFn: async (): Promise<VehicleRow[]> => {
-      const { data, error } = await db
-        .from("vehicles")
-        .select(
-          "id, carrier_id, body_type, capacity_kg, volume_m3, body_length_m, has_tent, has_straps, has_manipulator, is_active, carriers:carrier_id(id, company_name, city)",
-        )
-        .eq("is_active", true);
-      if (error) throw error;
-      return (data ?? []) as unknown as VehicleRow[];
+      const params = new URLSearchParams({
+        activeOnly: "1",
+        limit: "500",
+        fields:
+          "id,carrier_id,body_type,capacity_kg,volume_m3,body_length_m,has_tent,has_straps,has_manipulator,is_active,carriers:carrier_id(id,company_name,city)",
+      });
+      return apiGet<VehicleRow[]>(`/api/vehicles?${params.toString()}`);
     },
   });
 
   const { data: drivers } = useQuery({
     queryKey: ["broadcast-signal", "drivers"],
     queryFn: async (): Promise<DriverRow[]> => {
-      const { data, error } = await db
-        .from("drivers")
-        .select("id, carrier_id, is_active")
-        .eq("is_active", true);
-      if (error) throw error;
-      return (data ?? []) as DriverRow[];
+      const params = new URLSearchParams({
+        activeOnly: "1",
+        limit: "500",
+        fields: "id,carrier_id,is_active",
+      });
+      return apiGet<DriverRow[]>(`/api/drivers?${params.toString()}`);
     },
   });
 
   const { data: busyRoutes } = useQuery({
     queryKey: ["broadcast-signal", "busy"],
     queryFn: async (): Promise<BusyRoute[]> => {
-      const { data, error } = await db
-        .from("routes")
-        .select("vehicle_id, planned_departure_at, route_date, status")
-        .in("status", ["planned", "in_progress"]);
-      if (error) throw error;
-      return (data ?? []) as BusyRoute[];
+      const params = new URLSearchParams({
+        activeOnly: "1",
+        limit: "500",
+        fields: "vehicle_id,planned_departure_at,route_date,status",
+      });
+      return apiGet<BusyRoute[]>(`/api/routes?${params.toString()}`);
     },
   });
 
@@ -141,12 +139,14 @@ export function BroadcastSignalButton({
     queryKey: offersKey,
     enabled: !!(routeId || transportRequestId),
     queryFn: async (): Promise<OfferLite[]> => {
-      let q = db.from("route_offers").select("vehicle_id, status");
-      if (routeId) q = q.eq("route_id", routeId);
-      else if (transportRequestId) q = q.eq("transport_request_id", transportRequestId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as OfferLite[];
+      const params = new URLSearchParams({
+        limit: "500",
+        fields: "vehicle_id,status",
+      });
+      if (routeId) params.set("route_id", routeId);
+      else if (transportRequestId) params.set("transport_request_id", transportRequestId);
+
+      return apiGet<OfferLite[]>(`/api/route-offers?${params.toString()}`);
     },
   });
 

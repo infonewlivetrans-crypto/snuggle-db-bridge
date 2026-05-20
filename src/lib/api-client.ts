@@ -82,7 +82,7 @@ async function apiFetch(
   return res;
 }
 
-async function apiGet<T>(
+export async function apiGet<T>(
   path: string,
   opts: { auth?: boolean; timeoutMs?: number } = {},
 ): Promise<T> {

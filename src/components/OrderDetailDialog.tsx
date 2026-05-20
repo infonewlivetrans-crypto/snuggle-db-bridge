@@ -115,8 +115,8 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   useStateSync(orderId, () => {
     if (order) {
       setStatus(order.status);
-      setCashReceived(order.cash_received);
-      setQrReceived(order.qr_received);
+      setCashReceived(order.cash_received ?? false);
+      setQrReceived(order.qr_received ?? false);
       setPaymentStatus(order.payment_status ?? "not_paid");
       setAmountDue(order.amount_due != null ? String(order.amount_due) : "");
       setMarketplace(order.marketplace ?? "");
@@ -149,7 +149,7 @@ export function OrderDetailDialog({ order, open, onOpenChange }: OrderDetailDial
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
     if (!order) return;
-    setQrReceived(order.qr_received);
+    setQrReceived(order.qr_received ?? false);
     setStatus(order.status);
   }, [order?.qr_received, order?.qr_photo_url, order?.status]);
 

@@ -32,6 +32,15 @@ import {
 } from "@/lib/requestPriority";
 import { RequestWarehouseStatusBadge } from "@/components/RequestWarehouseStatusBadge";
 
+
+function formatRouteDateRu(value: string | null | undefined): string {
+  if (!value) return "—";
+  const date = String(value).slice(0, 10);
+  const m = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return date;
+  return `${m[3]}.${m[2]}.${m[1]}`;
+}
+
 export const Route = createFileRoute("/transport-requests/")({
   head: () => ({
     meta: [
@@ -208,7 +217,7 @@ function TransportRequestsPage() {
                     value={
                       <>
                         {r.route_date
-                          ? new Date(r.route_date).toLocaleDateString("ru-RU")
+                          ? formatRouteDateRu(r.route_date)
                           : "—"}
                         {r.departure_time ? (
                           <span className="ml-1 font-mono">
@@ -350,7 +359,7 @@ function TransportRequestsPage() {
                     </TableCell>
                     <TableCell className="text-sm">
                       {r.route_date ? (
-                        new Date(r.route_date).toLocaleDateString("ru-RU")
+                        formatRouteDateRu(r.route_date)
                       ) : (
                         <span className="text-muted-foreground">—</span>
                       )}

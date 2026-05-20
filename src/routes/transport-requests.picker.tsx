@@ -290,7 +290,7 @@ function OrderPickerPage() {
           route_date: newReqDate,
           warehouse_id: newReqWh || null,
           unloading_zone: newReqZone || null,
-          status: "draft",
+          status: "planned",
           request_status: "draft",
           request_type: "client_delivery",
           source: "manual",
