@@ -4455,6 +4455,7 @@ export type Database = {
         Returns: Json
       }
       admin_delete_invite: { Args: { p_invite_id: string }; Returns: undefined }
+      admin_delete_order: { Args: { p_order_id: string }; Returns: Json }
       admin_delete_route: { Args: { p_route_id: string }; Returns: Json }
       admin_issue_invite: {
         Args: {
