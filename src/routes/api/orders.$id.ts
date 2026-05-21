@@ -151,112 +151,48 @@ export const Route = createFileRoute("/api/orders/$id")({
       },
 
       DELETE: async ({ request, params }) => {
-        const id = params.id;
-        try {
         const auth = await requireAdmin(request);
         if (auth instanceof Response) return auth;
-        const admin = makeAdminClient();
-
-        // 1. Загружаем заказ, чтобы проверить статус/оплату и иметь label
-        // для аудита.
-        const { data: order, error: loadErr } = await admin
-          .from("orders")
-          .select(
-            "id, order_number, status, payment_status, cash_received, qr_received",
-          )
-          .eq("id", id)
-          .maybeSingle();
-        if (loadErr) {
-          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, loadErr);
-          return jsonResponse({ error: loadErr.message }, { status: 500 });
-        }
-        if (!order) return jsonResponse({ error: "Заказ не найден" }, { status: 404 });
-
-        const o = order as {
-          id: string;
-          order_number: string;
-          status: string;
-          payment_status: string | null;
-          cash_received: boolean;
-          qr_received: boolean;
-        };
-
-        // 2. Блокирующие проверки.
-        const paymentReceived =
-          o.cash_received || o.qr_received || o.payment_status === "paid" || o.payment_status === "partial";
-        if (paymentReceived) {
-          return jsonResponse(
-            { error: "Нельзя удалить заказ: по нему уже получена оплата." },
-            { status: 409 },
-          );
-        }
-        if (!ORDER_DELETABLE_STATUSES.has(o.status)) {
-          return jsonResponse(
-            {
-              error:
-                "Нельзя удалить заказ: он уже в работе или доставке. Сначала отмените заказ.",
-            },
-            { status: 409 },
-          );
-        }
-
-        // 3. Ручная очистка order_items (FK к orders отсутствует).
-        const { error: itemsErr } = await admin
-          .from("order_items")
-          .delete()
-          .eq("order_id", id);
-        if (itemsErr) {
-          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, itemsErr);
-          return jsonResponse(
-            { error: `Не удалось удалить позиции заказа: ${itemsErr.message}` },
-            { status: 500 },
-          );
-        }
-
-        // 4. Удаление заказа (остальные связанные таблицы — route_points,
-        // client_order_messages, route_order_exclusions, notifications —
-        // имеют FK ON DELETE CASCADE; route_returns.order_id — ON DELETE SET NULL).
-        const { error: delErr } = await admin
-          .from("orders")
-          .delete()
-          .eq("id", id);
-        if (delErr) {
-          logAdminDeleteError("[admin-delete][orders DELETE] failed", id, delErr);
-          return jsonResponse(
-            { error: `Не удалось удалить заказ: ${delErr.message}` },
-            { status: 500 },
-          );
-        }
-
-        // 5. Аудит. Не валим операцию, если запись в audit_log упала.
+        const id = params.id;
         try {
-          const { data: prof } = await admin
-            .from("profiles")
-            .select("full_name")
-            .eq("user_id", auth.userId)
-            .maybeSingle();
-          await writeAudit({
-            userId: auth.userId,
-            userName: (prof as { full_name?: string | null } | null)?.full_name ?? null,
-            userRole: "admin",
-            section: "orders",
-            action: "delete",
-            objectType: "order",
-            objectId: o.id,
-            objectLabel: o.order_number,
-            oldValue: {
-              status: o.status,
-              payment_status: o.payment_status,
-              cash_received: o.cash_received,
-              qr_received: o.qr_received,
-            },
-          });
-        } catch (error) {
-          logAdminDeleteError("[admin-delete][orders DELETE][audit] failed", id, error);
-          // ignore
-        }
+          const { data, error } = await auth.client.rpc(
+            "admin_delete_order" as never,
+            { p_order_id: id } as never,
+          );
+          if (error) {
+            logAdminDeleteError("[admin-delete][orders DELETE] RPC failed", id, error);
+            const msg = error.message || String(error);
+            const isForbidden = /forbidden|unauthorized|permission/i.test(msg);
+            const isConflict = /нельзя|оплат|работ|достав|status|conflict|не найден/i.test(msg);
+            return jsonResponse(
+              { error: msg },
+              { status: isForbidden ? 403 : isConflict ? 409 : 500 },
+            );
+          }
 
-        return jsonResponse({ ok: true });
+          // Best-effort аудит — не валим операцию, если запись упала.
+          try {
+            const result = (data ?? {}) as { order_number?: string | null };
+            const { data: prof } = await auth.client
+              .from("profiles")
+              .select("full_name")
+              .eq("user_id", auth.userId)
+              .maybeSingle();
+            await writeAudit({
+              userId: auth.userId,
+              userName: (prof as { full_name?: string | null } | null)?.full_name ?? null,
+              userRole: "admin",
+              section: "orders",
+              action: "delete",
+              objectType: "order",
+              objectId: id,
+              objectLabel: result.order_number ?? id,
+            });
+          } catch (auditError) {
+            logAdminDeleteError("[admin-delete][orders DELETE][audit] failed", id, auditError);
+          }
+
+          return jsonResponse({ ok: true, result: data });
         } catch (error) {
           logAdminDeleteError("[admin-delete][orders DELETE] failed", id, error);
           return jsonResponse(
