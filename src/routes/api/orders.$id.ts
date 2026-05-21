@@ -51,14 +51,6 @@ const TEXT_FIELDS_MAX_2000 = new Set<string>([
   "recipient_extra_note",
 ]);
 
-// Статусы, при которых заказ считается уже в работе / доставке /
-// завершён — удаление запрещено. Только "новый", "отменён" и
-// "исключён из маршрута" допускают админ-удаление.
-const ORDER_DELETABLE_STATUSES = new Set<string>([
-  "new",
-  "cancelled",
-  "excluded_from_route",
-]);
 
 function logAdminDeleteError(marker: string, id: string, error: unknown) {
   console.error(marker, {
