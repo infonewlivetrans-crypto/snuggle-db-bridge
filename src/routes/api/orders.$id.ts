@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { hasAnyRole, jsonResponse, makeAdminClient, requireAuth, requireAdmin } from "@/server/api-helpers.server";
+import { hasAnyRole, jsonResponse, requireAuth, requireAdmin } from "@/server/api-helpers.server";
 import { writeAudit } from "@/server/audit.server";
 
 // Поля, которые водителю разрешено менять у заказа в рамках своей точки маршрута.
