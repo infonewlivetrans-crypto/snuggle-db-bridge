@@ -17,6 +17,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierForm } from "@/components/dispatcher/CarrierForm";
+import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
@@ -179,6 +180,7 @@ function CarriersPage() {
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }} title="Редактировать">
                     <Pencil className="h-4 w-4" />
                   </Button>
+                  <InviteLinkButton entityType="carrier" entityId={r.id} inviteType="carrier_registration" />
                   <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать">
                     <Archive className="h-4 w-4" />
                   </Button>

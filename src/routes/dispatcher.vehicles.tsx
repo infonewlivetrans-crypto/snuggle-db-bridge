@@ -13,6 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Archive, Eye } from "lucide-react";
+import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { VehicleForm } from "@/components/dispatcher/VehicleForm";
@@ -231,6 +232,7 @@ function VehiclesPage() {
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <Button size="icon" variant="ghost" onClick={() => setViewing(r)}><Eye className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+                  <InviteLinkButton entityType="vehicle" entityId={r.id} inviteType="vehicle_registration" />
                   <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)}><Archive className="h-4 w-4" /></Button>
                 </TableCell>
               </TableRow>
