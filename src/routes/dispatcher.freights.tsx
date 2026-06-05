@@ -268,6 +268,7 @@ function FreightsPage() {
             <DialogTitle>
               Подбор машин — {matching ? `${matching.loading_city ?? "—"} → ${matching.unloading_city ?? "—"}` : ""}
             </DialogTitle>
+            <DialogDescription>Результаты подбора подходящих транспортных средств.</DialogDescription>
           </DialogHeader>
           <FreightMatchResults rows={matchRows} loading={matchLoading} />
         </DialogContent>
