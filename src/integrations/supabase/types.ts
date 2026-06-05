@@ -901,70 +901,103 @@ export type Database = {
         Row: {
           addon_freight_ids: string[]
           carrier_id: string | null
+          carrier_payment_received_at: string | null
           comment: string | null
           commission_amount: number | null
+          commission_paid_at: string | null
           commission_rate: number
           commission_status: string
           created_at: string
           created_by: string | null
+          deal_number: string | null
           deal_status: string
           driver_id: string | null
+          expected_payment_date: string | null
           id: string
+          loading_date: string | null
           main_freight_id: string | null
+          payment_delay_days: number | null
           payment_due: string | null
+          payment_status: string
+          payment_type: string | null
+          route_from: string | null
+          route_to: string | null
           total_rate: number
+          unloading_date: string | null
           updated_at: string
           vehicle_id: string | null
         }
         Insert: {
           addon_freight_ids?: string[]
           carrier_id?: string | null
+          carrier_payment_received_at?: string | null
           comment?: string | null
           commission_amount?: number | null
+          commission_paid_at?: string | null
           commission_rate?: number
           commission_status?: string
           created_at?: string
           created_by?: string | null
+          deal_number?: string | null
           deal_status?: string
           driver_id?: string | null
+          expected_payment_date?: string | null
           id?: string
+          loading_date?: string | null
           main_freight_id?: string | null
+          payment_delay_days?: number | null
           payment_due?: string | null
+          payment_status?: string
+          payment_type?: string | null
+          route_from?: string | null
+          route_to?: string | null
           total_rate?: number
+          unloading_date?: string | null
           updated_at?: string
           vehicle_id?: string | null
         }
         Update: {
           addon_freight_ids?: string[]
           carrier_id?: string | null
+          carrier_payment_received_at?: string | null
           comment?: string | null
           commission_amount?: number | null
+          commission_paid_at?: string | null
           commission_rate?: number
           commission_status?: string
           created_at?: string
           created_by?: string | null
+          deal_number?: string | null
           deal_status?: string
           driver_id?: string | null
+          expected_payment_date?: string | null
           id?: string
+          loading_date?: string | null
           main_freight_id?: string | null
+          payment_delay_days?: number | null
           payment_due?: string | null
+          payment_status?: string
+          payment_type?: string | null
+          route_from?: string | null
+          route_to?: string | null
           total_rate?: number
+          unloading_date?: string | null
           updated_at?: string
           vehicle_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "dispatcher_deals_carrier_id_fkey"
+            foreignKeyName: "dispatcher_deals_carrier_ext_fkey"
             columns: ["carrier_id"]
             isOneToOne: false
-            referencedRelation: "carriers"
+            referencedRelation: "dispatcher_carrier_ext"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dispatcher_deals_driver_id_fkey"
+            foreignKeyName: "dispatcher_deals_driver_ext_fkey"
             columns: ["driver_id"]
             isOneToOne: false
-            referencedRelation: "drivers"
+            referencedRelation: "dispatcher_driver_ext"
             referencedColumns: ["id"]
           },
           {
@@ -975,10 +1008,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dispatcher_deals_vehicle_id_fkey"
+            foreignKeyName: "dispatcher_deals_vehicle_ext_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
-            referencedRelation: "vehicles"
+            referencedRelation: "dispatcher_vehicle_ext"
             referencedColumns: ["id"]
           },
         ]
