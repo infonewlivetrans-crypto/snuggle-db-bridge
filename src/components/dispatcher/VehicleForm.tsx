@@ -76,7 +76,11 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
       setReadyDate(initial.ready_date ? String(initial.ready_date).slice(0, 10) : "");
       setDriverId(initial.dispatcher_driver_ext_id ?? "none");
       setCarrierId(initial.dispatcher_carrier_ext_id ?? "none");
-      setStatus((initial.dispatcher_status as VehicleStatus) ?? "new");
+      setStatus(
+        (VEHICLE_STATUSES as readonly string[]).includes(initial.dispatcher_status ?? "")
+          ? (initial.dispatcher_status as VehicleStatus)
+          : "new",
+      );
       setMinTrip(numStr(initial.minimum_trip_rate));
       setMinKm(numStr(initial.minimum_km_rate));
       setCityRate(numStr(initial.city_rate));
@@ -110,7 +114,7 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
       ready_date: readyDate || null,
       dispatcher_driver_ext_id: driverId === "none" ? null : driverId,
       dispatcher_carrier_ext_id: carrierId === "none" ? null : carrierId,
-      dispatcher_status: status,
+      dispatcher_status: (VEHICLE_STATUSES as readonly string[]).includes(status) ? status : "new",
       minimum_trip_rate: toNum(minTrip),
       minimum_km_rate: toNum(minKm),
       city_rate: toNum(cityRate),
