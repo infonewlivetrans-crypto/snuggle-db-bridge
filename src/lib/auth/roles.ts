@@ -8,6 +8,7 @@ export const APP_ROLES = [
   "supply",
   "driver",
   "carrier",
+  "dispatcher",
 ] as const;
 
 export type AppRole = (typeof APP_ROLES)[number];
@@ -21,6 +22,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   supply: "Снабжение",
   driver: "Водитель",
   carrier: "Перевозчик",
+  dispatcher: "Диспетчер",
 };
 
 // Куда отправлять пользователя после входа (по приоритету)
@@ -78,6 +80,8 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/workspace"), roles: [] },
   { test: (p) => p.startsWith("/feedback"), roles: [] },
   { test: (p) => p.startsWith("/pilot-tasks"), roles: ["admin", "director"] },
+  // Режим AI-диспетчера — admin и dispatcher
+  { test: (p) => p.startsWith("/dispatcher"), roles: ["admin", "dispatcher"] },
 ];
 
 export function canAccess(path: string, roles: AppRole[]): boolean {
