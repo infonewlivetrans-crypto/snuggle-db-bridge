@@ -4,10 +4,19 @@ import type {
   CarrierUpdateInput,
   DriverCreateInput,
   DriverUpdateInput,
+  FreightCreateInput,
+  FreightUpdateInput,
   VehicleCreateInput,
   VehicleUpdateInput,
 } from "./schemas";
-import type { CarrierDTO, DriverDTO, ListResponse, VehicleDTO } from "./types";
+import type {
+  CarrierDTO,
+  DriverDTO,
+  FreightDTO,
+  ListResponse,
+  MatchResult,
+  VehicleDTO,
+} from "./types";
 
 function qs(params: Record<string, unknown>): string {
   const q = new URLSearchParams();
@@ -52,5 +61,19 @@ export const vehiclesApi = {
   archive: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/vehicles/${id}`),
 };
 
-// Подавляем «неиспользуемый» предупреждение, если authHeaders понадобится снаружи.
+// ========== freights ==========
+export const freightsApi = {
+  list: (params: Record<string, unknown> = {}) =>
+    apiGet<ListResponse<FreightDTO>>(`/api/dispatcher/freights${qs(params)}`, { auth: true }),
+  get: (id: string) => apiGet<{ row: FreightDTO }>(`/api/dispatcher/freights/${id}`, { auth: true }),
+  create: (body: FreightCreateInput) => apiPost<{ row: FreightDTO }>("/api/dispatcher/freights", body),
+  update: (id: string, body: FreightUpdateInput) =>
+    apiPatch<{ row: FreightDTO }>(`/api/dispatcher/freights/${id}`, body),
+  archive: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/freights/${id}`),
+  matchVehicles: (id: string) =>
+    apiPost<{ rows: MatchResult[]; total: number }>(
+      `/api/dispatcher/freights/${id}/match-vehicles`,
+    ),
+};
+
 export { authHeaders };

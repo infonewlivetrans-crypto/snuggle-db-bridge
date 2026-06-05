@@ -1,4 +1,4 @@
-// DTO для UI/API. Поля совпадают с колонками dispatcher_*_ext.
+// DTO для UI/API. Поля совпадают с колонками dispatcher_*_ext / dispatcher_freights.
 
 export interface CarrierDTO {
   id: string;
@@ -69,6 +69,58 @@ export interface VehicleDTO {
   production_vehicle_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface FreightDTO {
+  id: string;
+  title: string | null;
+  loading_city: string | null;
+  unloading_city: string | null;
+  loading_date: string | null;
+  unloading_date: string | null;
+  cargo_name: string | null;
+  weight_kg: number | null;
+  volume_m3: number | null;
+  body_type: string | null;
+  load_methods: string[] | null;
+  rate: number | null;
+  payment_type: string | null;
+  payment_delay_days: number | null;
+  source: string | null;
+  source_url: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  contact_whatsapp: string | null;
+  contact_telegram: string | null;
+  contact_max_messenger: string | null;
+  comment: string | null;
+  dispatcher_status: string;
+  freight_kind: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MatchVerdict = "fit" | "partial" | "no_fit";
+
+export interface MatchResult {
+  vehicle_id: string;
+  vehicle_kind: string | null;
+  body_type: string | null;
+  payload_kg: number | null;
+  volume_m3: number | null;
+  home_city: string | null;
+  ready_date: string | null;
+  dispatcher_status: string;
+  driver_id: string | null;
+  driver_name: string | null;
+  carrier_id: string | null;
+  carrier_name: string | null;
+  minimum_trip_rate: number | null;
+  minimum_km_rate: number | null;
+  freight_rate: number | null;
+  commission: number | null;
+  verdict: MatchVerdict;
+  reasons: string[];
 }
 
 export interface ListResponse<T> {
