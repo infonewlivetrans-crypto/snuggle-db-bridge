@@ -5197,6 +5197,7 @@ export type Database = {
         Args: { p_data: Json; p_token: string }
         Returns: Json
       }
+      dispatcher_join_submit: { Args: { p_payload: Json }; Returns: Json }
       driver_record_route_return: {
         Args: {
           p_actor_name?: string

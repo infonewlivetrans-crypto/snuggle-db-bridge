@@ -71,6 +71,7 @@ import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DispatcherVehiclesRouteImport } from './routes/dispatcher.vehicles'
 import { Route as DispatcherTasksRouteImport } from './routes/dispatcher.tasks'
+import { Route as DispatcherJoinRouteImport } from './routes/dispatcher.join'
 import { Route as DispatcherFreightsRouteImport } from './routes/dispatcher.freights'
 import { Route as DispatcherDriversRouteImport } from './routes/dispatcher.drivers'
 import { Route as DispatcherDealsRouteImport } from './routes/dispatcher.deals'
@@ -196,6 +197,7 @@ import { Route as ApiRoutePointsAppendRouteImport } from './routes/api/route-poi
 import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.$id'
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiRouteCarrierDocumentsIdRouteImport } from './routes/api/route-carrier-documents.$id'
+import { Route as ApiPublicDispatcherJoinRouteImport } from './routes/api/public/dispatcher-join'
 import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
 import { Route as ApiOrdersGeocodeBatchRouteImport } from './routes/api/orders.geocode-batch'
 import { Route as ApiOrdersBulkDeleteRouteImport } from './routes/api/orders.bulk-delete'
@@ -579,6 +581,11 @@ const DispatcherVehiclesRoute = DispatcherVehiclesRouteImport.update({
 const DispatcherTasksRoute = DispatcherTasksRouteImport.update({
   id: '/dispatcher/tasks',
   path: '/dispatcher/tasks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DispatcherJoinRoute = DispatcherJoinRouteImport.update({
+  id: '/dispatcher/join',
+  path: '/dispatcher/join',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DispatcherFreightsRoute = DispatcherFreightsRouteImport.update({
@@ -1218,6 +1225,11 @@ const ApiRouteCarrierDocumentsIdRoute =
     path: '/$id',
     getParentRoute: () => ApiRouteCarrierDocumentsRoute,
   } as any)
+const ApiPublicDispatcherJoinRoute = ApiPublicDispatcherJoinRouteImport.update({
+  id: '/api/public/dispatcher-join',
+  path: '/api/public/dispatcher-join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOrdersUnreadClientMessagesRoute =
   ApiOrdersUnreadClientMessagesRouteImport.update({
     id: '/unread-client-messages',
@@ -1742,6 +1754,7 @@ export interface FileRoutesByFullPath {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
+  '/dispatcher/join': typeof DispatcherJoinRoute
   '/dispatcher/tasks': typeof DispatcherTasksRoute
   '/dispatcher/vehicles': typeof DispatcherVehiclesRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
@@ -1811,6 +1824,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/public/dispatcher-join': typeof ApiPublicDispatcherJoinRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -2004,6 +2018,7 @@ export interface FileRoutesByTo {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
+  '/dispatcher/join': typeof DispatcherJoinRoute
   '/dispatcher/tasks': typeof DispatcherTasksRoute
   '/dispatcher/vehicles': typeof DispatcherVehiclesRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
@@ -2073,6 +2088,7 @@ export interface FileRoutesByTo {
   '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/public/dispatcher-join': typeof ApiPublicDispatcherJoinRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -2267,6 +2283,7 @@ export interface FileRoutesById {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
+  '/dispatcher/join': typeof DispatcherJoinRoute
   '/dispatcher/tasks': typeof DispatcherTasksRoute
   '/dispatcher/vehicles': typeof DispatcherVehiclesRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
@@ -2336,6 +2353,7 @@ export interface FileRoutesById {
   '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/public/dispatcher-join': typeof ApiPublicDispatcherJoinRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
   '/api/route-points/$id': typeof ApiRoutePointsIdRoute
@@ -2531,6 +2549,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/drivers'
     | '/dispatcher/freights'
+    | '/dispatcher/join'
     | '/dispatcher/tasks'
     | '/dispatcher/vehicles'
     | '/driver/$deliveryRouteId'
@@ -2600,6 +2619,7 @@ export interface FileRouteTypes {
     | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/public/dispatcher-join'
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -2793,6 +2813,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/drivers'
     | '/dispatcher/freights'
+    | '/dispatcher/join'
     | '/dispatcher/tasks'
     | '/dispatcher/vehicles'
     | '/driver/$deliveryRouteId'
@@ -2862,6 +2883,7 @@ export interface FileRouteTypes {
     | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/public/dispatcher-join'
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -3055,6 +3077,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/drivers'
     | '/dispatcher/freights'
+    | '/dispatcher/join'
     | '/dispatcher/tasks'
     | '/dispatcher/vehicles'
     | '/driver/$deliveryRouteId'
@@ -3124,6 +3147,7 @@ export interface FileRouteTypes {
     | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/public/dispatcher-join'
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
     | '/api/route-points/$id'
@@ -3317,6 +3341,7 @@ export interface RootRouteChildren {
   DispatcherDealsRoute: typeof DispatcherDealsRoute
   DispatcherDriversRoute: typeof DispatcherDriversRoute
   DispatcherFreightsRoute: typeof DispatcherFreightsRoute
+  DispatcherJoinRoute: typeof DispatcherJoinRoute
   DispatcherTasksRoute: typeof DispatcherTasksRoute
   DispatcherVehiclesRoute: typeof DispatcherVehiclesRoute
   DriverDeliveryRouteIdRoute: typeof DriverDeliveryRouteIdRoute
@@ -3364,6 +3389,7 @@ export interface RootRouteChildren {
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
+  ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   DispatcherRegisterTokenRoute: typeof DispatcherRegisterTokenRoute
@@ -3808,6 +3834,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/tasks'
       fullPath: '/dispatcher/tasks'
       preLoaderRoute: typeof DispatcherTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/join': {
+      id: '/dispatcher/join'
+      path: '/dispatcher/join'
+      fullPath: '/dispatcher/join'
+      preLoaderRoute: typeof DispatcherJoinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dispatcher/freights': {
@@ -4684,6 +4717,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/route-carrier-documents/$id'
       preLoaderRoute: typeof ApiRouteCarrierDocumentsIdRouteImport
       parentRoute: typeof ApiRouteCarrierDocumentsRoute
+    }
+    '/api/public/dispatcher-join': {
+      id: '/api/public/dispatcher-join'
+      path: '/api/public/dispatcher-join'
+      fullPath: '/api/public/dispatcher-join'
+      preLoaderRoute: typeof ApiPublicDispatcherJoinRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/orders/unread-client-messages': {
       id: '/api/orders/unread-client-messages'
@@ -5980,6 +6020,7 @@ const rootRouteChildren: RootRouteChildren = {
   DispatcherDealsRoute: DispatcherDealsRoute,
   DispatcherDriversRoute: DispatcherDriversRoute,
   DispatcherFreightsRoute: DispatcherFreightsRoute,
+  DispatcherJoinRoute: DispatcherJoinRoute,
   DispatcherTasksRoute: DispatcherTasksRoute,
   DispatcherVehiclesRoute: DispatcherVehiclesRoute,
   DriverDeliveryRouteIdRoute: DriverDeliveryRouteIdRoute,
@@ -6027,6 +6068,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
+  ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   DispatcherRegisterTokenRoute: DispatcherRegisterTokenRoute,
