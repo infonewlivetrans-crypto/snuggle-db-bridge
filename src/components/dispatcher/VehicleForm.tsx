@@ -73,7 +73,7 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
       setLoadMethods((initial.load_methods as LoadMethod[]) ?? []);
       setHomeCity(empty(initial.home_city));
       setReadyTo((initial.ready_to_cities ?? []).join(", "));
-      setReadyDate(empty(initial.ready_date));
+      setReadyDate(initial.ready_date ? String(initial.ready_date).slice(0, 10) : "");
       setDriverId(initial.dispatcher_driver_ext_id ?? "none");
       setCarrierId(initial.dispatcher_carrier_ext_id ?? "none");
       setStatus((initial.dispatcher_status as VehicleStatus) ?? "new");
