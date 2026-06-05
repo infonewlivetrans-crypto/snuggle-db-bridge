@@ -259,6 +259,7 @@ import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.ur
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
 import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
+import { Route as ApiPublicDispatcherInviteTokenCompleteRouteImport } from './routes/api/public/dispatcher-invite.$token.complete'
 import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
 import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
 import { Route as ApiDispatcherTasksIdCompleteRouteImport } from './routes/api/dispatcher/tasks.$id.complete'
@@ -1545,6 +1546,12 @@ const ApiDriverRouteIdRoute = ApiDriverRouteIdRouteImport.update({
   path: '/api/driver/route/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDispatcherInviteTokenCompleteRoute =
+  ApiPublicDispatcherInviteTokenCompleteRouteImport.update({
+    id: '/complete',
+    path: '/complete',
+    getParentRoute: () => ApiPublicDispatcherInviteTokenRoute,
+  } as any)
 const ApiOrdersIdDriverClientMessagesMarkReadRoute =
   ApiOrdersIdDriverClientMessagesMarkReadRouteImport.update({
     id: '/mark-read',
@@ -1842,7 +1849,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
-  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRoute
+  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -1850,6 +1857,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2102,7 +2110,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
-  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRoute
+  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2110,6 +2118,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2363,7 +2372,7 @@ export interface FileRoutesById {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
-  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRoute
+  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2371,6 +2380,7 @@ export interface FileRoutesById {
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2633,6 +2643,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/tasks/$id/complete'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
+    | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -2893,6 +2904,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/tasks/$id/complete'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
+    | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -3153,6 +3165,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/tasks/$id/complete'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
+    | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -3344,7 +3357,7 @@ export interface RootRouteChildren {
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
-  ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRoute
+  ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   ApiPublicDriverAccessResolveRoute: typeof ApiPublicDriverAccessResolveRoute
 }
 
@@ -5100,6 +5113,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriverRouteIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/dispatcher-invite/$token/complete': {
+      id: '/api/public/dispatcher-invite/$token/complete'
+      path: '/complete'
+      fullPath: '/api/public/dispatcher-invite/$token/complete'
+      preLoaderRoute: typeof ApiPublicDispatcherInviteTokenCompleteRouteImport
+      parentRoute: typeof ApiPublicDispatcherInviteTokenRoute
+    }
     '/api/orders/$id/driver-client-messages/mark-read': {
       id: '/api/orders/$id/driver-client-messages/mark-read'
       path: '/mark-read'
@@ -5791,6 +5811,21 @@ const ApiPublicClientPortalTokenRouteWithChildren =
     ApiPublicClientPortalTokenRouteChildren,
   )
 
+interface ApiPublicDispatcherInviteTokenRouteChildren {
+  ApiPublicDispatcherInviteTokenCompleteRoute: typeof ApiPublicDispatcherInviteTokenCompleteRoute
+}
+
+const ApiPublicDispatcherInviteTokenRouteChildren: ApiPublicDispatcherInviteTokenRouteChildren =
+  {
+    ApiPublicDispatcherInviteTokenCompleteRoute:
+      ApiPublicDispatcherInviteTokenCompleteRoute,
+  }
+
+const ApiPublicDispatcherInviteTokenRouteWithChildren =
+  ApiPublicDispatcherInviteTokenRoute._addFileChildren(
+    ApiPublicDispatcherInviteTokenRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
@@ -5977,7 +6012,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
-  ApiPublicDispatcherInviteTokenRoute: ApiPublicDispatcherInviteTokenRoute,
+  ApiPublicDispatcherInviteTokenRoute:
+    ApiPublicDispatcherInviteTokenRouteWithChildren,
   ApiPublicDriverAccessResolveRoute: ApiPublicDriverAccessResolveRoute,
 }
 export const routeTree = rootRouteImport
