@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -241,7 +241,10 @@ function VehiclesPage() {
 
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditing(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Редактировать транспорт" : "Новый транспорт"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Редактировать транспорт" : "Новый транспорт"}</DialogTitle>
+            <DialogDescription>Заполните данные транспорта и сохраните.</DialogDescription>
+          </DialogHeader>
           <VehicleForm initial={editing} carriers={carriers} drivers={drivers} submitting={submitting}
             onCancel={() => { setDialogOpen(false); setEditing(null); }}
             onSubmit={handleSubmit}
@@ -251,7 +254,10 @@ function VehiclesPage() {
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Транспорт</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Транспорт</DialogTitle>
+            <DialogDescription>Карточка транспортного средства.</DialogDescription>
+          </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
               <Row label="Тип" value={viewing.vehicle_kind ?? "—"} />
