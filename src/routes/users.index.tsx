@@ -30,6 +30,7 @@ import { Plus, ShieldOff, ShieldCheck, Link2, UserCog, Settings2, Copy, Upload, 
 import { Textarea } from "@/components/ui/textarea";
 import { formatRuPhone } from "@/lib/phone";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useAppMode } from "@/lib/app-mode";
 import { useEffect } from "react";
 export const Route = createFileRoute("/users/")({
   head: () => ({ meta: [{ title: "Пользователи — Радиус Трек" }] }),
@@ -65,6 +66,8 @@ function UsersPage() {
   const qc = useQueryClient();
   const { loading: authLoading, user, startImpersonation, roles: myRoles } = useAuth();
   const isAdmin = myRoles.includes("admin");
+  const appMode = useAppMode();
+  const canDeleteUsers = appMode !== "ai_dispatcher";
   const { data: rawData, isLoading } = useQuery({
     queryKey: ["users-admin", user?.id ?? null],
     queryFn: async () => {
@@ -483,23 +486,25 @@ function UsersPage() {
                               Открыть как
                             </Button>
                           )}
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="gap-1"
-                            disabled={u.user_id === user?.id || deleteMut.isPending}
-                            title={u.user_id === user?.id ? "Нельзя удалить самого себя" : "Удалить пользователя"}
-                            onClick={() => {
-                              if (u.user_id === user?.id) return;
-                              const name = u.full_name ?? u.email ?? "пользователя";
-                              if (confirm(`Удалить ${name}? Действие необратимо.`)) {
-                                deleteMut.mutate(u.user_id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Удалить
-                          </Button>
+                          {canDeleteUsers && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="gap-1"
+                              disabled={u.user_id === user?.id || deleteMut.isPending}
+                              title={u.user_id === user?.id ? "Нельзя удалить самого себя" : "Удалить пользователя"}
+                              onClick={() => {
+                                if (u.user_id === user?.id) return;
+                                const name = u.full_name ?? u.email ?? "пользователя";
+                                if (confirm(`Удалить ${name}? Действие необратимо.`)) {
+                                  deleteMut.mutate(u.user_id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Удалить
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
