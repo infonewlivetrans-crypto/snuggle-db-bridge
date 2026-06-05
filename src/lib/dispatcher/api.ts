@@ -9,6 +9,8 @@ import type {
   DriverUpdateInput,
   FreightCreateInput,
   FreightUpdateInput,
+  TaskCreateInput,
+  TaskUpdateInput,
   VehicleCreateInput,
   VehicleUpdateInput,
 } from "./schemas";
@@ -19,6 +21,7 @@ import type {
   FreightDTO,
   ListResponse,
   MatchResult,
+  TaskDTO,
   VehicleDTO,
 } from "./types";
 
