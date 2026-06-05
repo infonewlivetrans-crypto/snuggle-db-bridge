@@ -1,9 +1,14 @@
+import { useState } from "react";
+import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { dealsApi } from "@/lib/dispatcher/api";
 import type { MatchResult } from "@/lib/dispatcher/types";
 
 interface Props {
   rows: MatchResult[];
   loading?: boolean;
+  freightId?: string | null;
 }
 
 const VERDICT_LABEL: Record<MatchResult["verdict"], string> = {
