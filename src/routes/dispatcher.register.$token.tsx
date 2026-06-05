@@ -8,6 +8,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/dispatcher/register/$token")({
+  // Страница полностью клиентская: грузит данные по токену через fetch в useEffect.
+  // Отключаем SSR, чтобы исключить падение воркера на этом маршруте.
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "Регистрация — AI-диспетчер" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: RegisterPage,
 });
 
