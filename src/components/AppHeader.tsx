@@ -75,6 +75,8 @@ import {
   useLaunchMode,
   isPathVisibleInLaunchMode,
 } from "@/lib/modules";
+import { useAppMode, isPathVisibleInAppMode } from "@/lib/app-mode";
+import { Sparkles, Briefcase, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Icon = React.ComponentType<{ className?: string }>;
