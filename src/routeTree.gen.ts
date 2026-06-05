@@ -237,6 +237,7 @@ import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
 import { Route as ApiRoutesIdOptimizeRouteImport } from './routes/api/routes.$id.optimize'
 import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
+import { Route as ApiPublicDispatcherInviteTokenRouteImport } from './routes/api/public/dispatcher-invite.$token'
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
@@ -1424,6 +1425,12 @@ const ApiPublicDriverAccessResolveRoute =
     path: '/api/public/driver-access/resolve',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDispatcherInviteTokenRoute =
+  ApiPublicDispatcherInviteTokenRouteImport.update({
+    id: '/api/public/dispatcher-invite/$token',
+    path: '/api/public/dispatcher-invite/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicClientPortalTokenRoute =
   ApiPublicClientPortalTokenRouteImport.update({
     id: '/api/public/client-portal/$token',
@@ -1835,6 +1842,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRoute
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2094,6 +2102,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRoute
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2354,6 +2363,7 @@ export interface FileRoutesById {
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
+  '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRoute
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2615,6 +2625,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
     | '/api/routes/$id/optimize'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -2874,6 +2885,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
     | '/api/routes/$id/optimize'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -3133,6 +3145,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
     | '/api/public/client-portal/$token'
+    | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
     | '/api/routes/$id/optimize'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -3331,6 +3344,7 @@ export interface RootRouteChildren {
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
+  ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRoute
   ApiPublicDriverAccessResolveRoute: typeof ApiPublicDriverAccessResolveRoute
 }
 
@@ -4932,6 +4946,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDriverAccessResolveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/dispatcher-invite/$token': {
+      id: '/api/public/dispatcher-invite/$token'
+      path: '/api/public/dispatcher-invite/$token'
+      fullPath: '/api/public/dispatcher-invite/$token'
+      preLoaderRoute: typeof ApiPublicDispatcherInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/client-portal/$token': {
       id: '/api/public/client-portal/$token'
       path: '/api/public/client-portal/$token'
@@ -5956,6 +5977,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
+  ApiPublicDispatcherInviteTokenRoute: ApiPublicDispatcherInviteTokenRoute,
   ApiPublicDriverAccessResolveRoute: ApiPublicDriverAccessResolveRoute,
 }
 export const routeTree = rootRouteImport
