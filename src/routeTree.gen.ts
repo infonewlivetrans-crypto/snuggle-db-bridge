@@ -172,6 +172,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiWarehouseDockEventsIdRouteImport } from './routes/api/warehouse-dock-events.$id'
@@ -1092,6 +1093,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DispatcherRegisterTokenRoute = DispatcherRegisterTokenRouteImport.update({
+  id: '/dispatcher/register/$token',
+  path: '/dispatcher/register/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
   id: '/api/workspace/summary',
   path: '/api/workspace/summary',
@@ -1828,6 +1834,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -2089,6 +2096,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -2351,6 +2359,7 @@ export interface FileRoutesById {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -2614,6 +2623,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/dispatcher/register/$token'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -2875,6 +2885,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/dispatcher/register/$token'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -3136,6 +3147,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/dispatcher/register/$token'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -3354,6 +3366,7 @@ export interface RootRouteChildren {
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
+  DispatcherRegisterTokenRoute: typeof DispatcherRegisterTokenRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
@@ -4502,6 +4515,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/impersonate'
       fullPath: '/admin/impersonate'
       preLoaderRoute: typeof AdminImpersonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/register/$token': {
+      id: '/dispatcher/register/$token'
+      path: '/dispatcher/register/$token'
+      fullPath: '/dispatcher/register/$token'
+      preLoaderRoute: typeof DispatcherRegisterTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/workspace/summary': {
@@ -6009,6 +6029,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
+  DispatcherRegisterTokenRoute: DispatcherRegisterTokenRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,

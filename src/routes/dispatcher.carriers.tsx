@@ -17,6 +17,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierForm } from "@/components/dispatcher/CarrierForm";
+import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
