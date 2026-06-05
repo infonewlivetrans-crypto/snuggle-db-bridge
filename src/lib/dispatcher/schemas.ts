@@ -221,3 +221,30 @@ export const dealFromMatchSchema = z.object({
   vehicle_id: z.string().uuid(),
 });
 export type DealFromMatchInput = z.infer<typeof dealFromMatchSchema>;
+
+// =================== Tasks ===================
+export const taskCreateSchema = z.object({
+  task_type: z.enum(TASK_TYPES).optional().default("custom"),
+  title: z.string().trim().min(1, "Название обязательно").max(255),
+  description: nullableText(2000),
+  priority: z.enum(TASK_PRIORITIES).optional().default("normal"),
+  task_status: z.enum(TASK_STATUSES).optional().default("open"),
+  due_date: optionalDate,
+  due_at: optionalDate,
+  related_entity_type: z
+    .enum(RELATED_ENTITY_TYPES)
+    .optional()
+    .nullable()
+    .transform((v) => v ?? null),
+  related_entity_id: optionalUuid,
+  dispatcher_carrier_ext_id: optionalUuid,
+  dispatcher_driver_ext_id: optionalUuid,
+  dispatcher_vehicle_ext_id: optionalUuid,
+  dispatcher_freight_id: optionalUuid,
+  dispatcher_deal_id: optionalUuid,
+  action_url: nullableText(1024),
+});
+export type TaskCreateInput = z.infer<typeof taskCreateSchema>;
+
+export const taskUpdateSchema = taskCreateSchema.partial();
+export type TaskUpdateInput = z.infer<typeof taskUpdateSchema>;
