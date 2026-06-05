@@ -28,6 +28,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 // Куда отправлять пользователя после входа (по приоритету)
 export function landingPathForRoles(roles: AppRole[]): string {
   if (roles.includes("admin")) return "/";
+  if (roles.includes("dispatcher")) return "/dispatcher";
   if (roles.includes("director")) return "/director";
   if (roles.includes("logist")) return "/logist";
   if (roles.includes("manager")) return "/route-reports";
