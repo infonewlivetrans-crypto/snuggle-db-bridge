@@ -206,7 +206,10 @@ function FreightsPage() {
       {/* Форма */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditing(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Редактировать груз" : "Новый груз"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Редактировать груз" : "Новый груз"}</DialogTitle>
+            <DialogDescription>Заполните данные груза и сохраните.</DialogDescription>
+          </DialogHeader>
           <FreightForm initial={editing} submitting={submitting}
             onCancel={() => { setDialogOpen(false); setEditing(null); }}
             onSubmit={handleSubmit} />
