@@ -97,6 +97,9 @@ function DispatcherHome() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button asChild variant="default" size="sm">
+              <Link to="/dispatcher/tasks">Все задачи</Link>
+            </Button>
             <Button asChild variant="outline" size="sm">
               <Link to="/dispatcher/vehicles">Все машины</Link>
             </Button>
