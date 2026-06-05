@@ -19,12 +19,10 @@ const nullableText = (max = 255) =>
     .nullable()
     .transform((v) => (v == null || v === "" ? null : v));
 
-const optionalUuid = z
-  .string()
-  .uuid()
-  .optional()
-  .nullable()
-  .transform((v) => v ?? null);
+const optionalUuid = z.preprocess(
+  (v) => (v === "" || v === "none" || v == null ? null : v),
+  z.string().uuid().nullable(),
+);
 
 const optionalNumber = z
   .union([z.number(), z.string()])
