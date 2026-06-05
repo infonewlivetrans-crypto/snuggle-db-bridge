@@ -26,6 +26,7 @@ import { formatRuPhone } from "@/lib/phone";
 import { toast } from "sonner";
 import { inviteUrl, isPreviewHost } from "@/lib/invite-url";
 import { Copy, Link2, Plus, RefreshCcw, ShieldCheck, ShieldOff, Trash2, Upload, Users } from "lucide-react";
+import { useAppMode } from "@/lib/app-mode";
 
 
 export const Route = createFileRoute("/users/managers")({
@@ -92,6 +93,8 @@ function ManagersPage() {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
+  const appMode = useAppMode();
+  const canDeleteManagers = appMode !== "ai_dispatcher";
 
   const managersQuery = useQuery({
     queryKey: ["managers"],
@@ -408,16 +411,18 @@ function ManagersPage() {
                             <ShieldCheck className="h-3.5 w-3.5" />
                           )}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="text-destructive"
-                          onClick={() => {
-                            if (confirm(`Удалить «${m.full_name}»?`)) deleteMut.mutate(m.id);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        {canDeleteManagers && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive"
+                            onClick={() => {
+                              if (confirm(`Удалить «${m.full_name}»?`)) deleteMut.mutate(m.id);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
