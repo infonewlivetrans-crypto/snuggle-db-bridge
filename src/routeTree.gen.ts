@@ -239,6 +239,7 @@ import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$i
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
 import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
 import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
+import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
 import { Route as ApiDispatcherCarriersIdRouteImport } from './routes/api/dispatcher/carriers.$id'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
@@ -251,6 +252,7 @@ import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.use
 import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
 import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
 import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
+import { Route as ApiDispatcherFreightsIdMatchVehiclesRouteImport } from './routes/api/dispatcher/freights.$id.match-vehicles'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
@@ -1426,6 +1428,11 @@ const ApiDispatcherVehiclesIdRoute = ApiDispatcherVehiclesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherVehiclesRoute,
 } as any)
+const ApiDispatcherFreightsIdRoute = ApiDispatcherFreightsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDispatcherFreightsRoute,
+} as any)
 const ApiDispatcherDriversIdRoute = ApiDispatcherDriversIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1490,6 +1497,12 @@ const ApiOrdersIdClientMessagesMarkReadRoute =
     id: '/mark-read',
     path: '/mark-read',
     getParentRoute: () => ApiOrdersIdClientMessagesRoute,
+  } as any)
+const ApiDispatcherFreightsIdMatchVehiclesRoute =
+  ApiDispatcherFreightsIdMatchVehiclesRouteImport.update({
+    id: '/match-vehicles',
+    path: '/match-vehicles',
+    getParentRoute: () => ApiDispatcherFreightsIdRoute,
   } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
@@ -1689,7 +1702,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
-  '/api/dispatcher/freights': typeof ApiDispatcherFreightsRoute
+  '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -1743,6 +1756,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -1751,6 +1765,7 @@ export interface FileRoutesByFullPath {
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -1936,7 +1951,7 @@ export interface FileRoutesByTo {
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
-  '/api/dispatcher/freights': typeof ApiDispatcherFreightsRoute
+  '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -1990,6 +2005,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -1998,6 +2014,7 @@ export interface FileRoutesByTo {
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -2184,7 +2201,7 @@ export interface FileRoutesById {
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
   '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
-  '/api/dispatcher/freights': typeof ApiDispatcherFreightsRoute
+  '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -2238,6 +2255,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -2246,6 +2264,7 @@ export interface FileRoutesById {
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -2487,6 +2506,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -2495,6 +2515,7 @@ export interface FileRouteTypes {
     | '/api/public/client-portal/$token'
     | '/api/public/driver-access/resolve'
     | '/api/routes/$id/optimize'
+    | '/api/dispatcher/freights/$id/match-vehicles'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2734,6 +2755,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -2742,6 +2764,7 @@ export interface FileRouteTypes {
     | '/api/public/client-portal/$token'
     | '/api/public/driver-access/resolve'
     | '/api/routes/$id/optimize'
+    | '/api/dispatcher/freights/$id/match-vehicles'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -2981,6 +3004,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -2989,6 +3013,7 @@ export interface FileRouteTypes {
     | '/api/public/client-portal/$token'
     | '/api/public/driver-access/resolve'
     | '/api/routes/$id/optimize'
+    | '/api/dispatcher/freights/$id/match-vehicles'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -3168,7 +3193,7 @@ export interface RootRouteChildren {
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
   ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
   ApiDispatcherDriversRoute: typeof ApiDispatcherDriversRouteWithChildren
-  ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRoute
+  ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRouteWithChildren
   ApiDispatcherVehiclesRoute: typeof ApiDispatcherVehiclesRouteWithChildren
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
@@ -4793,6 +4818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherVehiclesIdRouteImport
       parentRoute: typeof ApiDispatcherVehiclesRoute
     }
+    '/api/dispatcher/freights/$id': {
+      id: '/api/dispatcher/freights/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/freights/$id'
+      preLoaderRoute: typeof ApiDispatcherFreightsIdRouteImport
+      parentRoute: typeof ApiDispatcherFreightsRoute
+    }
     '/api/dispatcher/drivers/$id': {
       id: '/api/dispatcher/drivers/$id'
       path: '/$id'
@@ -4876,6 +4908,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/$id/client-messages/mark-read'
       preLoaderRoute: typeof ApiOrdersIdClientMessagesMarkReadRouteImport
       parentRoute: typeof ApiOrdersIdClientMessagesRoute
+    }
+    '/api/dispatcher/freights/$id/match-vehicles': {
+      id: '/api/dispatcher/freights/$id/match-vehicles'
+      path: '/match-vehicles'
+      fullPath: '/api/dispatcher/freights/$id/match-vehicles'
+      preLoaderRoute: typeof ApiDispatcherFreightsIdMatchVehiclesRouteImport
+      parentRoute: typeof ApiDispatcherFreightsIdRoute
     }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
@@ -5411,6 +5450,34 @@ const ApiDispatcherDriversRouteChildren: ApiDispatcherDriversRouteChildren = {
 const ApiDispatcherDriversRouteWithChildren =
   ApiDispatcherDriversRoute._addFileChildren(ApiDispatcherDriversRouteChildren)
 
+interface ApiDispatcherFreightsIdRouteChildren {
+  ApiDispatcherFreightsIdMatchVehiclesRoute: typeof ApiDispatcherFreightsIdMatchVehiclesRoute
+}
+
+const ApiDispatcherFreightsIdRouteChildren: ApiDispatcherFreightsIdRouteChildren =
+  {
+    ApiDispatcherFreightsIdMatchVehiclesRoute:
+      ApiDispatcherFreightsIdMatchVehiclesRoute,
+  }
+
+const ApiDispatcherFreightsIdRouteWithChildren =
+  ApiDispatcherFreightsIdRoute._addFileChildren(
+    ApiDispatcherFreightsIdRouteChildren,
+  )
+
+interface ApiDispatcherFreightsRouteChildren {
+  ApiDispatcherFreightsIdRoute: typeof ApiDispatcherFreightsIdRouteWithChildren
+}
+
+const ApiDispatcherFreightsRouteChildren: ApiDispatcherFreightsRouteChildren = {
+  ApiDispatcherFreightsIdRoute: ApiDispatcherFreightsIdRouteWithChildren,
+}
+
+const ApiDispatcherFreightsRouteWithChildren =
+  ApiDispatcherFreightsRoute._addFileChildren(
+    ApiDispatcherFreightsRouteChildren,
+  )
+
 interface ApiDispatcherVehiclesRouteChildren {
   ApiDispatcherVehiclesIdRoute: typeof ApiDispatcherVehiclesIdRoute
 }
@@ -5629,7 +5696,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSessionRoute: ApiAuthSessionRoute,
   ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
   ApiDispatcherDriversRoute: ApiDispatcherDriversRouteWithChildren,
-  ApiDispatcherFreightsRoute: ApiDispatcherFreightsRoute,
+  ApiDispatcherFreightsRoute: ApiDispatcherFreightsRouteWithChildren,
   ApiDispatcherVehiclesRoute: ApiDispatcherVehiclesRouteWithChildren,
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
