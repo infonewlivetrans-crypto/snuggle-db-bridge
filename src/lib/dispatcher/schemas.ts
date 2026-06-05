@@ -244,7 +244,7 @@ export const taskCreateSchema = z.object({
   dispatcher_deal_id: optionalUuid,
   action_url: nullableText(1024),
 });
-export type TaskCreateInput = z.infer<typeof taskCreateSchema>;
+export type TaskCreateInput = z.input<typeof taskCreateSchema>;
 
 export const taskUpdateSchema = taskCreateSchema.partial();
-export type TaskUpdateInput = z.infer<typeof taskUpdateSchema>;
+export type TaskUpdateInput = z.input<typeof taskUpdateSchema>;
