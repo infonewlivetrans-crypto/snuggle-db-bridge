@@ -241,6 +241,26 @@ const GROUPS: readonly NavGroup[] = [
   },
 ];
 
+// Группа AI-диспетчера. Показывается, когда APP_MODE = "ai_dispatcher"
+// ИЛИ когда обычный пользователь хочет вручную зайти в раздел.
+const DISPATCHER_GROUP: NavGroup = {
+  id: "dispatcher",
+  label: "AI-диспетчер",
+  icon: Sparkles,
+  match: (p) => p.startsWith("/dispatcher"),
+  items: [
+    { to: "/dispatcher", label: "Обзор", icon: LayoutDashboard },
+    { to: "/dispatcher/freights", label: "Найденные грузы", icon: PackageSearch },
+    { to: "/dispatcher/deals", label: "Рейсы / сделки", icon: Briefcase },
+    { to: "/dispatcher/commissions", label: "Комиссии", icon: Wallet },
+    { to: "/dispatcher/tasks", label: "Задачи на сегодня", icon: ListChecks },
+    { to: "/dispatcher/carriers", label: "Перевозчики", icon: Building2 },
+    { to: "/dispatcher/drivers", label: "Водители", icon: User },
+    { to: "/dispatcher/vehicles", label: "Транспорт", icon: Truck },
+    { to: "/dispatcher/ai-analyze", label: "ИИ-анализ груза", icon: Sparkles },
+  ],
+};
+
 // Главные пункты в центре. Админка уходит в «Ещё» / меню пользователя.
 const PRIMARY_IDS = new Set([
   "workspace",
@@ -249,6 +269,7 @@ const PRIMARY_IDS = new Set([
   "orders",
   "finance",
   "reports",
+  "dispatcher",
 ]);
 
 function GroupButton({
