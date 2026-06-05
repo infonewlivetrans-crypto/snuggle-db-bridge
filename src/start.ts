@@ -3,6 +3,7 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 // SUPABASE_URL) before any server function constructs supabaseAdmin.
 import "@/server/env-bootstrap.server";
 import { supabase } from "@/integrations/supabase/client";
+import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
 // Inject Supabase access token into every server function call so that
 // `requireSupabaseAuth` middleware can authenticate the request.
@@ -23,5 +24,5 @@ const supabaseAuthHeader = createMiddleware({ type: "function" }).client(
 );
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [supabaseAuthHeader],
+  functionMiddleware: [attachSupabaseAuth, supabaseAuthHeader],
 }));
