@@ -208,6 +208,7 @@ function CarriersPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{viewing?.name ?? "Перевозчик"}</DialogTitle>
+            <DialogDescription>Карточка перевозчика.</DialogDescription>
           </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
