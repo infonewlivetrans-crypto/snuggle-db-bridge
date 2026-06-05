@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -206,7 +206,10 @@ function FreightsPage() {
       {/* Форма */}
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditing(null); }}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Редактировать груз" : "Новый груз"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Редактировать груз" : "Новый груз"}</DialogTitle>
+            <DialogDescription>Заполните данные груза и сохраните.</DialogDescription>
+          </DialogHeader>
           <FreightForm initial={editing} submitting={submitting}
             onCancel={() => { setDialogOpen(false); setEditing(null); }}
             onSubmit={handleSubmit} />
@@ -216,7 +219,10 @@ function FreightsPage() {
       {/* Карточка просмотра */}
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Груз</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Груз</DialogTitle>
+            <DialogDescription>Карточка груза.</DialogDescription>
+          </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
               <Row label="Название" value={viewing.title ?? "—"} />
@@ -262,6 +268,7 @@ function FreightsPage() {
             <DialogTitle>
               Подбор машин — {matching ? `${matching.loading_city ?? "—"} → ${matching.unloading_city ?? "—"}` : ""}
             </DialogTitle>
+            <DialogDescription>Результаты подбора подходящих транспортных средств.</DialogDescription>
           </DialogHeader>
           <FreightMatchResults rows={matchRows} loading={matchLoading} />
         </DialogContent>

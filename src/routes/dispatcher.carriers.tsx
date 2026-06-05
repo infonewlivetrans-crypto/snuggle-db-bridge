@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -193,6 +193,7 @@ function CarriersPage() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Редактировать перевозчика" : "Новый перевозчик"}</DialogTitle>
+            <DialogDescription>Заполните данные перевозчика и сохраните.</DialogDescription>
           </DialogHeader>
           <CarrierForm
             initial={editing}
@@ -207,6 +208,7 @@ function CarriersPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{viewing?.name ?? "Перевозчик"}</DialogTitle>
+            <DialogDescription>Карточка перевозчика.</DialogDescription>
           </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">

@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -191,7 +191,10 @@ function DriversPage() {
 
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditing(null); }}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editing ? "Редактировать водителя" : "Новый водитель"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editing ? "Редактировать водителя" : "Новый водитель"}</DialogTitle>
+            <DialogDescription>Заполните данные водителя и сохраните.</DialogDescription>
+          </DialogHeader>
           <DriverForm initial={editing} carriers={carriers} submitting={submitting}
             onCancel={() => { setDialogOpen(false); setEditing(null); }}
             onSubmit={handleSubmit}
@@ -201,7 +204,10 @@ function DriversPage() {
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
         <DialogContent className="max-w-xl">
-          <DialogHeader><DialogTitle>{viewing?.full_name ?? "Водитель"}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{viewing?.full_name ?? "Водитель"}</DialogTitle>
+            <DialogDescription>Карточка водителя.</DialogDescription>
+          </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
               <Row label="Перевозчик" value={carrierName(viewing.dispatcher_carrier_ext_id)} />
