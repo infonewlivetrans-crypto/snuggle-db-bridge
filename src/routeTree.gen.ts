@@ -242,6 +242,7 @@ import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$i
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
 import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
 import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
+import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
 import { Route as ApiDispatcherDealsFromMatchRouteImport } from './routes/api/dispatcher/deals.from-match'
@@ -1448,6 +1449,11 @@ const ApiDispatcherVehiclesIdRoute = ApiDispatcherVehiclesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherVehiclesRoute,
 } as any)
+const ApiDispatcherTasksIdRoute = ApiDispatcherTasksIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDispatcherTasksRoute,
+} as any)
 const ApiDispatcherFreightsIdRoute = ApiDispatcherFreightsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -1736,7 +1742,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/deals': typeof ApiDispatcherDealsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
-  '/api/dispatcher/tasks': typeof ApiDispatcherTasksRoute
+  '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -1793,6 +1799,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
+  '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -1990,7 +1997,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/deals': typeof ApiDispatcherDealsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
-  '/api/dispatcher/tasks': typeof ApiDispatcherTasksRoute
+  '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -2047,6 +2054,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
+  '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -2245,7 +2253,7 @@ export interface FileRoutesById {
   '/api/dispatcher/deals': typeof ApiDispatcherDealsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
-  '/api/dispatcher/tasks': typeof ApiDispatcherTasksRoute
+  '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -2302,6 +2310,7 @@ export interface FileRoutesById {
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
+  '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -2558,6 +2567,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/from-match'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
+    | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -2812,6 +2822,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/from-match'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
+    | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -3066,6 +3077,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/from-match'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
+    | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -3257,7 +3269,7 @@ export interface RootRouteChildren {
   ApiDispatcherDealsRoute: typeof ApiDispatcherDealsRouteWithChildren
   ApiDispatcherDriversRoute: typeof ApiDispatcherDriversRouteWithChildren
   ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRouteWithChildren
-  ApiDispatcherTasksRoute: typeof ApiDispatcherTasksRoute
+  ApiDispatcherTasksRoute: typeof ApiDispatcherTasksRouteWithChildren
   ApiDispatcherVehiclesRoute: typeof ApiDispatcherVehiclesRouteWithChildren
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
@@ -4903,6 +4915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherVehiclesIdRouteImport
       parentRoute: typeof ApiDispatcherVehiclesRoute
     }
+    '/api/dispatcher/tasks/$id': {
+      id: '/api/dispatcher/tasks/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/tasks/$id'
+      preLoaderRoute: typeof ApiDispatcherTasksIdRouteImport
+      parentRoute: typeof ApiDispatcherTasksRoute
+    }
     '/api/dispatcher/freights/$id': {
       id: '/api/dispatcher/freights/$id'
       path: '/$id'
@@ -5590,6 +5609,17 @@ const ApiDispatcherFreightsRouteWithChildren =
     ApiDispatcherFreightsRouteChildren,
   )
 
+interface ApiDispatcherTasksRouteChildren {
+  ApiDispatcherTasksIdRoute: typeof ApiDispatcherTasksIdRoute
+}
+
+const ApiDispatcherTasksRouteChildren: ApiDispatcherTasksRouteChildren = {
+  ApiDispatcherTasksIdRoute: ApiDispatcherTasksIdRoute,
+}
+
+const ApiDispatcherTasksRouteWithChildren =
+  ApiDispatcherTasksRoute._addFileChildren(ApiDispatcherTasksRouteChildren)
+
 interface ApiDispatcherVehiclesRouteChildren {
   ApiDispatcherVehiclesIdRoute: typeof ApiDispatcherVehiclesIdRoute
 }
@@ -5811,7 +5841,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherDealsRoute: ApiDispatcherDealsRouteWithChildren,
   ApiDispatcherDriversRoute: ApiDispatcherDriversRouteWithChildren,
   ApiDispatcherFreightsRoute: ApiDispatcherFreightsRouteWithChildren,
-  ApiDispatcherTasksRoute: ApiDispatcherTasksRoute,
+  ApiDispatcherTasksRoute: ApiDispatcherTasksRouteWithChildren,
   ApiDispatcherVehiclesRoute: ApiDispatcherVehiclesRouteWithChildren,
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
