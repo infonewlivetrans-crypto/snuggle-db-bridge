@@ -4830,6 +4830,7 @@ export type Database = {
         | "supply"
         | "driver"
         | "carrier"
+        | "dispatcher"
       body_type:
         | "tent"
         | "isotherm"
@@ -5126,6 +5127,7 @@ export const Constants = {
         "supply",
         "driver",
         "carrier",
+        "dispatcher",
       ],
       body_type: [
         "tent",
