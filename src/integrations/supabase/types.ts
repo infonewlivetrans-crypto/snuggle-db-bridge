@@ -808,6 +808,359 @@ export type Database = {
           },
         ]
       }
+      dispatcher_carrier_ext: {
+        Row: {
+          carrier_id: string
+          commission_agreed: boolean
+          created_at: string
+          dispatcher_comment: string | null
+          payment_method: string | null
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          carrier_id: string
+          commission_agreed?: boolean
+          created_at?: string
+          dispatcher_comment?: string | null
+          payment_method?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          carrier_id?: string
+          commission_agreed?: boolean
+          created_at?: string
+          dispatcher_comment?: string | null
+          payment_method?: string | null
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_carrier_ext_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: true
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_deals: {
+        Row: {
+          addon_freight_ids: string[]
+          carrier_id: string | null
+          comment: string | null
+          commission_amount: number | null
+          commission_rate: number
+          commission_status: string
+          created_at: string
+          created_by: string | null
+          deal_status: string
+          driver_id: string | null
+          id: string
+          main_freight_id: string | null
+          payment_due: string | null
+          total_rate: number
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          addon_freight_ids?: string[]
+          carrier_id?: string | null
+          comment?: string | null
+          commission_amount?: number | null
+          commission_rate?: number
+          commission_status?: string
+          created_at?: string
+          created_by?: string | null
+          deal_status?: string
+          driver_id?: string | null
+          id?: string
+          main_freight_id?: string | null
+          payment_due?: string | null
+          total_rate?: number
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          addon_freight_ids?: string[]
+          carrier_id?: string | null
+          comment?: string | null
+          commission_amount?: number | null
+          commission_rate?: number
+          commission_status?: string
+          created_at?: string
+          created_by?: string | null
+          deal_status?: string
+          driver_id?: string | null
+          id?: string
+          main_freight_id?: string | null
+          payment_due?: string | null
+          total_rate?: number
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_deals_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_deals_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_deals_main_freight_id_fkey"
+            columns: ["main_freight_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_freights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_deals_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_driver_ext: {
+        Row: {
+          city: string | null
+          created_at: string
+          dispatcher_comment: string | null
+          dispatcher_status: string
+          driver_id: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          dispatcher_comment?: string | null
+          dispatcher_status?: string
+          driver_id: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          dispatcher_comment?: string | null
+          dispatcher_status?: string
+          driver_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_driver_ext_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_freights: {
+        Row: {
+          body_type: string | null
+          comment: string | null
+          contact: string | null
+          created_at: string
+          created_by: string | null
+          from_city: string | null
+          id: string
+          is_addon: boolean
+          load_date: string | null
+          loading_method: string | null
+          payment_term: string | null
+          rate: number | null
+          source: string | null
+          status: string
+          to_city: string | null
+          unload_date: string | null
+          updated_at: string
+          volume_m3: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          body_type?: string | null
+          comment?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          from_city?: string | null
+          id?: string
+          is_addon?: boolean
+          load_date?: string | null
+          loading_method?: string | null
+          payment_term?: string | null
+          rate?: number | null
+          source?: string | null
+          status?: string
+          to_city?: string | null
+          unload_date?: string | null
+          updated_at?: string
+          volume_m3?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          body_type?: string | null
+          comment?: string | null
+          contact?: string | null
+          created_at?: string
+          created_by?: string | null
+          from_city?: string | null
+          id?: string
+          is_addon?: boolean
+          load_date?: string | null
+          loading_method?: string | null
+          payment_term?: string | null
+          rate?: number | null
+          source?: string | null
+          status?: string
+          to_city?: string | null
+          unload_date?: string | null
+          updated_at?: string
+          volume_m3?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      dispatcher_tasks: {
+        Row: {
+          carrier_id: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          driver_id: string | null
+          due_date: string | null
+          freight_id: string | null
+          id: string
+          priority: string
+          status: string
+          type: string
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          carrier_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          driver_id?: string | null
+          due_date?: string | null
+          freight_id?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          type: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          carrier_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          driver_id?: string | null
+          due_date?: string | null
+          freight_id?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          type?: string
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_tasks_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_tasks_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_tasks_freight_id_fkey"
+            columns: ["freight_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_freights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_tasks_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_vehicle_ext: {
+        Row: {
+          created_at: string
+          dispatcher_comment: string | null
+          dispatcher_status: string
+          min_rate: number | null
+          ready_city: string | null
+          ready_date: string | null
+          updated_at: string
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          dispatcher_comment?: string | null
+          dispatcher_status?: string
+          min_rate?: number | null
+          ready_city?: string | null
+          ready_date?: string | null
+          updated_at?: string
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          dispatcher_comment?: string | null
+          dispatcher_status?: string
+          min_rate?: number | null
+          ready_city?: string | null
+          ready_date?: string | null
+          updated_at?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_vehicle_ext_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: true
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dock_loaded_items: {
         Row: {
           comment: string | null
@@ -4830,6 +5183,7 @@ export type Database = {
         | "supply"
         | "driver"
         | "carrier"
+        | "dispatcher"
       body_type:
         | "tent"
         | "isotherm"
@@ -5126,6 +5480,7 @@ export const Constants = {
         "supply",
         "driver",
         "carrier",
+        "dispatcher",
       ],
       body_type: [
         "tent",

@@ -75,6 +75,8 @@ import {
   useLaunchMode,
   isPathVisibleInLaunchMode,
 } from "@/lib/modules";
+import { useAppMode, isPathVisibleInAppMode } from "@/lib/app-mode";
+import { Sparkles, Briefcase, ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Icon = React.ComponentType<{ className?: string }>;
@@ -239,6 +241,26 @@ const GROUPS: readonly NavGroup[] = [
   },
 ];
 
+// Группа AI-диспетчера. Показывается, когда APP_MODE = "ai_dispatcher"
+// ИЛИ когда обычный пользователь хочет вручную зайти в раздел.
+const DISPATCHER_GROUP: NavGroup = {
+  id: "dispatcher",
+  label: "AI-диспетчер",
+  icon: Sparkles,
+  match: (p) => p.startsWith("/dispatcher"),
+  items: [
+    { to: "/dispatcher", label: "Обзор", icon: LayoutDashboard },
+    { to: "/dispatcher/freights", label: "Найденные грузы", icon: PackageSearch },
+    { to: "/dispatcher/deals", label: "Рейсы / сделки", icon: Briefcase },
+    { to: "/dispatcher/commissions", label: "Комиссии", icon: Wallet },
+    { to: "/dispatcher/tasks", label: "Задачи на сегодня", icon: ListChecks },
+    { to: "/dispatcher/carriers", label: "Перевозчики", icon: Building2 },
+    { to: "/dispatcher/drivers", label: "Водители", icon: User },
+    { to: "/dispatcher/vehicles", label: "Транспорт", icon: Truck },
+    { to: "/dispatcher/ai-analyze", label: "ИИ-анализ груза", icon: Sparkles },
+  ],
+};
+
 // Главные пункты в центре. Админка уходит в «Ещё» / меню пользователя.
 const PRIMARY_IDS = new Set([
   "workspace",
@@ -247,6 +269,7 @@ const PRIMARY_IDS = new Set([
   "orders",
   "finance",
   "reports",
+  "dispatcher",
 ]);
 
 function GroupButton({
@@ -318,13 +341,17 @@ export function AppHeader() {
 
   const enabledModules = useEnabledModules();
   const launchMode = useLaunchMode();
+  const appMode = useAppMode();
 
   const isItemVisible = (to: string) =>
     canAccess(to, roles) &&
     isPathEnabled(to, enabledModules) &&
-    isPathVisibleInLaunchMode(to, launchMode);
+    isPathVisibleInLaunchMode(to, launchMode) &&
+    isPathVisibleInAppMode(to, appMode);
 
   const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver");
+  const isDispatcherOnly =
+    roles.length > 0 && roles.every((r) => r === "dispatcher");
 
   const visibleGroups = useMemo<NavGroup[]>(() => {
     if (isDriverOnly) {
@@ -343,12 +370,28 @@ export function AppHeader() {
         },
       ];
     }
-    return GROUPS.map((g) => ({
-      ...g,
-      items: g.items.filter((it) => isItemVisible(it.to)),
-    })).filter((g) => g.items.length > 0);
+    if (appMode === "ai_dispatcher" || isDispatcherOnly) {
+      return [DISPATCHER_GROUP];
+    }
+    const groupsWithDispatcher = [...GROUPS];
+    if (canAccess("/dispatcher", roles)) {
+      groupsWithDispatcher.push(DISPATCHER_GROUP);
+    }
+    return groupsWithDispatcher
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((it) => isItemVisible(it.to)),
+      }))
+      .filter((g) => g.items.length > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles.join("|"), JSON.stringify(enabledModules), launchMode, isDriverOnly]);
+  }, [
+    roles.join("|"),
+    JSON.stringify(enabledModules),
+    launchMode,
+    appMode,
+    isDriverOnly,
+    isDispatcherOnly,
+  ]);
 
   const activeGroup =
     visibleGroups.find((g) => g.match(path)) ?? null;
