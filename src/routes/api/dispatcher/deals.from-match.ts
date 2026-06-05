@@ -47,6 +47,23 @@ export const Route = createFileRoute("/api/dispatcher/deals/from-match")({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const client: any = auth.client;
 
+        // Duplicate guard: if a non-archived deal already exists for this pair, return it.
+        const dupRes = await client
+          .from("dispatcher_deals" as never)
+          .select(SELECT)
+          .eq("main_freight_id", freight_id)
+          .eq("vehicle_id", vehicle_id)
+          .neq("deal_status", "archived")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (dupRes.error)
+          return jsonResponse({ error: dupRes.error.message }, { status: 500 });
+        if (dupRes.data) {
+          const [enriched] = await enrichDeals(client, [dupRes.data as Record<string, unknown>]);
+          return jsonResponse({ row: enriched, already_exists: true }, { status: 200 });
+        }
+
         const freightRes = await client
           .from("dispatcher_freights" as never)
           .select(
