@@ -81,3 +81,16 @@ export const freightsApi = {
 };
 
 export { authHeaders };
+
+// ========== deals ==========
+export const dealsApi = {
+  list: (params: Record<string, unknown> = {}) =>
+    apiGet<ListResponse<DealDTO>>(`/api/dispatcher/deals${qs(params)}`, { auth: true }),
+  get: (id: string) => apiGet<{ row: DealDTO }>(`/api/dispatcher/deals/${id}`, { auth: true }),
+  create: (body: DealCreateInput) => apiPost<{ row: DealDTO }>("/api/dispatcher/deals", body),
+  update: (id: string, body: DealUpdateInput) =>
+    apiPatch<{ row: DealDTO }>(`/api/dispatcher/deals/${id}`, body),
+  archive: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/deals/${id}`),
+  fromMatch: (body: DealFromMatchInput) =>
+    apiPost<{ row: DealDTO }>("/api/dispatcher/deals/from-match", body),
+};
