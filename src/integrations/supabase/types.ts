@@ -1051,63 +1051,114 @@ export type Database = {
       dispatcher_freights: {
         Row: {
           body_type: string | null
+          cargo_name: string | null
           comment: string | null
           contact: string | null
+          contact_max_messenger: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          contact_telegram: string | null
+          contact_whatsapp: string | null
           created_at: string
           created_by: string | null
+          dispatcher_status: string
+          freight_kind: string
           from_city: string | null
           id: string
           is_addon: boolean
           load_date: string | null
+          load_methods: string[] | null
+          loading_city: string | null
+          loading_date: string | null
           loading_method: string | null
+          payment_delay_days: number | null
           payment_term: string | null
+          payment_type: string | null
           rate: number | null
           source: string | null
+          source_url: string | null
           status: string
+          title: string | null
           to_city: string | null
           unload_date: string | null
+          unloading_city: string | null
+          unloading_date: string | null
           updated_at: string
           volume_m3: number | null
           weight_kg: number | null
         }
         Insert: {
           body_type?: string | null
+          cargo_name?: string | null
           comment?: string | null
           contact?: string | null
+          contact_max_messenger?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_telegram?: string | null
+          contact_whatsapp?: string | null
           created_at?: string
           created_by?: string | null
+          dispatcher_status?: string
+          freight_kind?: string
           from_city?: string | null
           id?: string
           is_addon?: boolean
           load_date?: string | null
+          load_methods?: string[] | null
+          loading_city?: string | null
+          loading_date?: string | null
           loading_method?: string | null
+          payment_delay_days?: number | null
           payment_term?: string | null
+          payment_type?: string | null
           rate?: number | null
           source?: string | null
+          source_url?: string | null
           status?: string
+          title?: string | null
           to_city?: string | null
           unload_date?: string | null
+          unloading_city?: string | null
+          unloading_date?: string | null
           updated_at?: string
           volume_m3?: number | null
           weight_kg?: number | null
         }
         Update: {
           body_type?: string | null
+          cargo_name?: string | null
           comment?: string | null
           contact?: string | null
+          contact_max_messenger?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          contact_telegram?: string | null
+          contact_whatsapp?: string | null
           created_at?: string
           created_by?: string | null
+          dispatcher_status?: string
+          freight_kind?: string
           from_city?: string | null
           id?: string
           is_addon?: boolean
           load_date?: string | null
+          load_methods?: string[] | null
+          loading_city?: string | null
+          loading_date?: string | null
           loading_method?: string | null
+          payment_delay_days?: number | null
           payment_term?: string | null
+          payment_type?: string | null
           rate?: number | null
           source?: string | null
+          source_url?: string | null
           status?: string
+          title?: string | null
           to_city?: string | null
           unload_date?: string | null
+          unloading_city?: string | null
+          unloading_date?: string | null
           updated_at?: string
           volume_m3?: number | null
           weight_kg?: number | null

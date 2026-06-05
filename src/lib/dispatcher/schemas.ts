@@ -3,11 +3,12 @@ import {
   CARRIER_KINDS,
   CARRIER_STATUSES,
   DRIVER_STATUSES,
+  FREIGHT_KINDS,
+  FREIGHT_STATUSES,
   LOAD_METHODS,
+  PAYMENT_TYPES,
   VEHICLE_STATUSES,
 } from "./statuses";
-
-// Поля общие для обоих направлений (client + server).
 
 const nullableText = (max = 255) =>
   z
@@ -33,6 +34,16 @@ const optionalNumber = z
     if (v == null || v === "") return null;
     const n = typeof v === "string" ? Number(v) : v;
     return Number.isFinite(n) ? n : null;
+  });
+
+const optionalInt = z
+  .union([z.number(), z.string()])
+  .optional()
+  .nullable()
+  .transform((v) => {
+    if (v == null || v === "") return null;
+    const n = typeof v === "string" ? Number(v) : v;
+    return Number.isFinite(n) ? Math.trunc(n) : null;
   });
 
 const optionalDate = z
@@ -124,3 +135,38 @@ export type VehicleCreateInput = z.infer<typeof vehicleCreateSchema>;
 
 export const vehicleUpdateSchema = vehicleCreateSchema.partial();
 export type VehicleUpdateInput = z.infer<typeof vehicleUpdateSchema>;
+
+// =================== Freight ===================
+export const freightCreateSchema = z.object({
+  title: nullableText(255),
+  loading_city: nullableText(100),
+  unloading_city: nullableText(100),
+  loading_date: optionalDate,
+  unloading_date: optionalDate,
+  cargo_name: nullableText(255),
+  weight_kg: optionalNumber,
+  volume_m3: optionalNumber,
+  body_type: nullableText(100),
+  load_methods: z.array(z.enum(LOAD_METHODS)).optional().default([]),
+  rate: optionalNumber,
+  payment_type: z
+    .enum(PAYMENT_TYPES)
+    .optional()
+    .nullable()
+    .transform((v) => v ?? null),
+  payment_delay_days: optionalInt,
+  source: nullableText(255),
+  source_url: nullableText(1024),
+  contact_name: nullableText(255),
+  contact_phone: nullableText(50),
+  contact_whatsapp: nullableText(100),
+  contact_telegram: nullableText(100),
+  contact_max_messenger: nullableText(255),
+  comment: nullableText(2000),
+  dispatcher_status: z.enum(FREIGHT_STATUSES).optional().default("new"),
+  freight_kind: z.enum(FREIGHT_KINDS).optional().default("main"),
+});
+export type FreightCreateInput = z.infer<typeof freightCreateSchema>;
+
+export const freightUpdateSchema = freightCreateSchema.partial();
+export type FreightUpdateInput = z.infer<typeof freightUpdateSchema>;
