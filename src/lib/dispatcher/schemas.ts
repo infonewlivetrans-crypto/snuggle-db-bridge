@@ -111,7 +111,10 @@ export const vehicleCreateSchema = z.object({
   length_m: optionalNumber,
   width_m: optionalNumber,
   height_m: optionalNumber,
-  load_methods: z.array(z.enum(LOAD_METHODS)).optional().default([]),
+  load_methods: z
+    .array(z.string().trim().min(1))
+    .optional()
+    .default([]),
   home_city: nullableText(100),
   ready_to_cities: z
     .array(z.string().trim().min(1).max(100))
