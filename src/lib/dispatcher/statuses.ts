@@ -262,3 +262,126 @@ export const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
   deferred: "С отсрочкой",
   other: "Другое",
 };
+
+// =============== Tasks ===============
+export const TASK_TYPES = [
+  "check_documents",
+  "find_freight",
+  "check_freight_matches",
+  "create_deal",
+  "call_driver",
+  "call_carrier",
+  "check_loading",
+  "check_unloading",
+  "check_customer_payment",
+  "remind_commission",
+  "overdue_commission",
+  "close_deal",
+  "custom",
+] as const;
+export type TaskType = (typeof TASK_TYPES)[number];
+
+export const TASK_TYPE_LABELS: Record<TaskType, string> = {
+  check_documents: "Проверить документы",
+  find_freight: "Найти груз",
+  check_freight_matches: "Проверить машины под груз",
+  create_deal: "Создать сделку",
+  call_driver: "Позвонить водителю",
+  call_carrier: "Позвонить перевозчику",
+  check_loading: "Проверить загрузку",
+  check_unloading: "Проверить выгрузку",
+  check_customer_payment: "Проверить оплату",
+  remind_commission: "Напомнить про комиссию",
+  overdue_commission: "Просроченная комиссия",
+  close_deal: "Закрыть сделку",
+  custom: "Произвольная",
+};
+
+export const TASK_STATUSES = ["open", "in_progress", "done", "cancelled"] as const;
+export type TaskStatus = (typeof TASK_STATUSES)[number];
+
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
+  open: "Открыта",
+  in_progress: "В работе",
+  done: "Выполнена",
+  cancelled: "Отменена",
+};
+
+export const TASK_PRIORITIES = ["low", "normal", "high", "urgent"] as const;
+export type TaskPriority = (typeof TASK_PRIORITIES)[number];
+
+export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
+  low: "Низкий",
+  normal: "Обычный",
+  high: "Высокий",
+  urgent: "Срочно",
+};
+
+export const RELATED_ENTITY_TYPES = [
+  "carrier",
+  "driver",
+  "vehicle",
+  "freight",
+  "deal",
+  "commission",
+  "none",
+] as const;
+export type RelatedEntityType = (typeof RELATED_ENTITY_TYPES)[number];
+
+export const RELATED_ENTITY_LABELS: Record<RelatedEntityType, string> = {
+  carrier: "Перевозчик",
+  driver: "Водитель",
+  vehicle: "Машина",
+  freight: "Груз",
+  deal: "Сделка",
+  commission: "Комиссия",
+  none: "—",
+};
+
+export function relatedEntityRoute(t: RelatedEntityType | string | null | undefined): string {
+  switch (t) {
+    case "vehicle":
+      return "/dispatcher/vehicles";
+    case "freight":
+      return "/dispatcher/freights";
+    case "deal":
+      return "/dispatcher/deals";
+    case "commission":
+      return "/dispatcher/commissions";
+    case "driver":
+      return "/dispatcher/drivers";
+    case "carrier":
+      return "/dispatcher/carriers";
+    default:
+      return "/dispatcher";
+  }
+}
+
+export function taskPriorityBadgeClass(p: string): string {
+  switch (p) {
+    case "urgent":
+      return "bg-red-100 text-red-900 border-red-300 dark:bg-red-950 dark:text-red-200 dark:border-red-800";
+    case "high":
+      return "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800";
+    case "low":
+      return "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-700";
+    case "normal":
+    default:
+      return "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-800";
+  }
+}
+
+export function taskStatusBadgeClass(s: string): string {
+  switch (s) {
+    case "done":
+      return "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800";
+    case "in_progress":
+      return "bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800";
+    case "cancelled":
+      return "bg-zinc-100 text-zinc-700 border-zinc-300 dark:bg-zinc-900 dark:text-zinc-200 dark:border-zinc-700";
+    case "open":
+    default:
+      return "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800";
+  }
+}
+
