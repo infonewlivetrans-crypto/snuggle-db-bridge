@@ -79,6 +79,7 @@ export const carrierCreateSchema = z.object({
     .transform((v) => (v == null || v === "" ? 0.05 : Number(v)))
     .refine((n) => Number.isFinite(n) && n >= 0 && n <= 1, "0..1"),
   payment_method: nullableText(100),
+  commission_payment_method: nullableText(100),
   commission_agreed: z.boolean().optional().default(false),
   verification_status: z.enum(CARRIER_STATUSES).optional().default("new"),
   dispatcher_comment: nullableText(2000),

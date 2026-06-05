@@ -19,6 +19,10 @@ export interface CarrierDTO {
   commission_rate: number;
   payment_method: string | null;
   commission_agreed: boolean;
+  commission_agreed_at: string | null;
+  commission_agreed_by: string | null;
+  commission_agreement_text: string | null;
+  commission_payment_method: string | null;
   verification_status: string;
   dispatcher_comment: string | null;
   production_carrier_id: string | null;

@@ -93,6 +93,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
     onSubmit({
       name: name.trim(),
       carrier_kind: kind,
+      commission_payment_method: null,
       inn: blank(inn),
       ogrn: blank(ogrn),
       phone: blank(phone),
