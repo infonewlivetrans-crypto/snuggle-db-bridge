@@ -219,7 +219,10 @@ function FreightsPage() {
       {/* Карточка просмотра */}
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>Груз</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Груз</DialogTitle>
+            <DialogDescription>Карточка груза.</DialogDescription>
+          </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
               <Row label="Название" value={viewing.title ?? "—"} />
