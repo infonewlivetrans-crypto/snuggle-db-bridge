@@ -1,9 +1,14 @@
+import { useState } from "react";
+import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { dealsApi } from "@/lib/dispatcher/api";
 import type { MatchResult } from "@/lib/dispatcher/types";
 
 interface Props {
   rows: MatchResult[];
   loading?: boolean;
+  freightId?: string | null;
 }
 
 const VERDICT_LABEL: Record<MatchResult["verdict"], string> = {
@@ -19,7 +24,26 @@ const VERDICT_CLASS: Record<MatchResult["verdict"], string> = {
 
 const fmtMoney = (n: number | null) => (n == null ? "—" : `${n.toLocaleString("ru-RU")} ₽`);
 
-export function FreightMatchResults({ rows, loading }: Props) {
+export function FreightMatchResults({ rows, loading, freightId }: Props) {
+  const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [createdId, setCreatedId] = useState<string | null>(null);
+
+  const handleCreateDeal = async (vehicleId: string) => {
+    if (!freightId) return;
+    setCreatingId(vehicleId);
+    try {
+      const res = await dealsApi.fromMatch({ freight_id: freightId, vehicle_id: vehicleId });
+      setCreatedId(res.row.id);
+      toast.success("Сделка создана", {
+        action: { label: "Открыть сделку", onClick: () => { window.location.href = "/dispatcher/deals"; } },
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка создания сделки");
+    } finally {
+      setCreatingId(null);
+    }
+  };
+
   if (loading) return <div className="text-sm text-muted-foreground py-4">Подбор машин...</div>;
   if (!rows.length) return <div className="text-sm text-muted-foreground py-4">Подходящих машин не найдено.</div>;
 
@@ -35,6 +59,7 @@ export function FreightMatchResults({ rows, loading }: Props) {
             <TableHead>Водитель / перевозчик</TableHead>
             <TableHead>Ставки</TableHead>
             <TableHead>Причины</TableHead>
+            <TableHead className="text-right">Действия</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,6 +97,18 @@ export function FreightMatchResults({ rows, loading }: Props) {
                   {r.reasons.map((rs, i) => <li key={i}>{rs}</li>)}
                 </ul>
               </TableCell>
+              <TableCell className="text-right whitespace-nowrap">
+                {freightId && r.verdict !== "no_fit" && (
+                  <Button
+                    size="sm"
+                    variant={createdId ? "outline" : "default"}
+                    disabled={creatingId === r.vehicle_id}
+                    onClick={() => handleCreateDeal(r.vehicle_id)}
+                  >
+                    {creatingId === r.vehicle_id ? "Создание…" : "Создать сделку"}
+                  </Button>
+                )}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -79,3 +116,4 @@ export function FreightMatchResults({ rows, loading }: Props) {
     </div>
   );
 }
+

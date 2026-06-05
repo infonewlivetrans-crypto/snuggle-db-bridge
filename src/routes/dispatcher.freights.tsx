@@ -270,7 +270,7 @@ function FreightsPage() {
             </DialogTitle>
             <DialogDescription>Результаты подбора подходящих транспортных средств.</DialogDescription>
           </DialogHeader>
-          <FreightMatchResults rows={matchRows} loading={matchLoading} />
+          <FreightMatchResults rows={matchRows} loading={matchLoading} freightId={matching?.id ?? null} />
         </DialogContent>
       </Dialog>
     </EntityTableLayout>

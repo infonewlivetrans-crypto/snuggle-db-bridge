@@ -2,10 +2,13 @@ import { z } from "zod";
 import {
   CARRIER_KINDS,
   CARRIER_STATUSES,
+  COMMISSION_STATUSES,
+  DEAL_STATUSES,
   DRIVER_STATUSES,
   FREIGHT_KINDS,
   FREIGHT_STATUSES,
   LOAD_METHODS,
+  PAYMENT_STATUSES,
   PAYMENT_TYPES,
   VEHICLE_STATUSES,
 } from "./statuses";
@@ -171,3 +174,46 @@ export type FreightCreateInput = z.infer<typeof freightCreateSchema>;
 
 export const freightUpdateSchema = freightCreateSchema.partial();
 export type FreightUpdateInput = z.infer<typeof freightUpdateSchema>;
+
+// =================== Deal ===================
+export const dealCreateSchema = z.object({
+  main_freight_id: optionalUuid,
+  carrier_id: optionalUuid,
+  driver_id: optionalUuid,
+  vehicle_id: optionalUuid,
+  deal_number: nullableText(64),
+  route_from: nullableText(255),
+  route_to: nullableText(255),
+  loading_date: optionalDate,
+  unloading_date: optionalDate,
+  total_rate: optionalNumber,
+  commission_rate: z
+    .union([z.number(), z.string()])
+    .optional()
+    .transform((v) => (v == null || v === "" ? 0.05 : Number(v)))
+    .refine((n) => Number.isFinite(n) && n >= 0 && n <= 1, "0..1"),
+  payment_type: z
+    .enum(PAYMENT_TYPES)
+    .optional()
+    .nullable()
+    .transform((v) => v ?? null),
+  payment_delay_days: optionalInt,
+  expected_payment_date: optionalDate,
+  payment_due: optionalDate,
+  carrier_payment_received_at: optionalDate,
+  commission_paid_at: optionalDate,
+  deal_status: z.enum(DEAL_STATUSES).optional().default("draft"),
+  payment_status: z.enum(PAYMENT_STATUSES).optional().default("waiting_customer_payment"),
+  commission_status: z.enum(COMMISSION_STATUSES).optional().default("accrued"),
+  comment: nullableText(2000),
+});
+export type DealCreateInput = z.infer<typeof dealCreateSchema>;
+
+export const dealUpdateSchema = dealCreateSchema.partial();
+export type DealUpdateInput = z.infer<typeof dealUpdateSchema>;
+
+export const dealFromMatchSchema = z.object({
+  freight_id: z.string().uuid(),
+  vehicle_id: z.string().uuid(),
+});
+export type DealFromMatchInput = z.infer<typeof dealFromMatchSchema>;
