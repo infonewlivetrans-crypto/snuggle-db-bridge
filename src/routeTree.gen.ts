@@ -214,7 +214,10 @@ import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverUnreadClientMessagesRouteImport } from './routes/api/driver.unread-client-messages'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
+import { Route as ApiDispatcherVehiclesRouteImport } from './routes/api/dispatcher/vehicles'
 import { Route as ApiDispatcherFreightsRouteImport } from './routes/api/dispatcher/freights'
+import { Route as ApiDispatcherDriversRouteImport } from './routes/api/dispatcher/drivers'
+import { Route as ApiDispatcherCarriersRouteImport } from './routes/api/dispatcher/carriers'
 import { Route as ApiDeliveryTariffsIdRouteImport } from './routes/api/delivery-tariffs.$id'
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
@@ -235,6 +238,9 @@ import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pi
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
 import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
+import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
+import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
+import { Route as ApiDispatcherCarriersIdRouteImport } from './routes/api/dispatcher/carriers.$id'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -1290,9 +1296,24 @@ const ApiDockLoadingConfirmRoute = ApiDockLoadingConfirmRouteImport.update({
   path: '/api/dock-loading/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDispatcherVehiclesRoute = ApiDispatcherVehiclesRouteImport.update({
+  id: '/api/dispatcher/vehicles',
+  path: '/api/dispatcher/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDispatcherFreightsRoute = ApiDispatcherFreightsRouteImport.update({
   id: '/api/dispatcher/freights',
   path: '/api/dispatcher/freights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDispatcherDriversRoute = ApiDispatcherDriversRouteImport.update({
+  id: '/api/dispatcher/drivers',
+  path: '/api/dispatcher/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDispatcherCarriersRoute = ApiDispatcherCarriersRouteImport.update({
+  id: '/api/dispatcher/carriers',
+  path: '/api/dispatcher/carriers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiDeliveryTariffsIdRoute = ApiDeliveryTariffsIdRouteImport.update({
@@ -1400,6 +1421,21 @@ const ApiOrdersIdClientMessagesRoute =
     path: '/client-messages',
     getParentRoute: () => ApiOrdersIdRoute,
   } as any)
+const ApiDispatcherVehiclesIdRoute = ApiDispatcherVehiclesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDispatcherVehiclesRoute,
+} as any)
+const ApiDispatcherDriversIdRoute = ApiDispatcherDriversIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDispatcherDriversRoute,
+} as any)
+const ApiDispatcherCarriersIdRoute = ApiDispatcherCarriersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiDispatcherCarriersRoute,
+} as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -1651,7 +1687,10 @@ export interface FileRoutesByFullPath {
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
+  '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
+  '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRoute
+  '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
@@ -1702,6 +1741,9 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
+  '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -1892,7 +1934,10 @@ export interface FileRoutesByTo {
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
+  '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
+  '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRoute
+  '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
@@ -1943,6 +1988,9 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
+  '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -2134,7 +2182,10 @@ export interface FileRoutesById {
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
   '/api/delivery-tariffs/$id': typeof ApiDeliveryTariffsIdRoute
+  '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
+  '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRoute
+  '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
@@ -2185,6 +2236,9 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
+  '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -2377,7 +2431,10 @@ export interface FileRouteTypes {
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/delivery-tariffs/$id'
+    | '/api/dispatcher/carriers'
+    | '/api/dispatcher/drivers'
     | '/api/dispatcher/freights'
+    | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/driver/unread-client-messages'
@@ -2428,6 +2485,9 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/carriers/$id'
+    | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
@@ -2618,7 +2678,10 @@ export interface FileRouteTypes {
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/delivery-tariffs/$id'
+    | '/api/dispatcher/carriers'
+    | '/api/dispatcher/drivers'
     | '/api/dispatcher/freights'
+    | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/driver/unread-client-messages'
@@ -2669,6 +2732,9 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/carriers/$id'
+    | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
@@ -2859,7 +2925,10 @@ export interface FileRouteTypes {
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
     | '/api/delivery-tariffs/$id'
+    | '/api/dispatcher/carriers'
+    | '/api/dispatcher/drivers'
     | '/api/dispatcher/freights'
+    | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/driver/unread-client-messages'
@@ -2910,6 +2979,9 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/carriers/$id'
+    | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/vehicles/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
@@ -3094,7 +3166,10 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
+  ApiDispatcherDriversRoute: typeof ApiDispatcherDriversRouteWithChildren
   ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRoute
+  ApiDispatcherVehiclesRoute: typeof ApiDispatcherVehiclesRouteWithChildren
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
@@ -4543,11 +4618,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDockLoadingConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/vehicles': {
+      id: '/api/dispatcher/vehicles'
+      path: '/api/dispatcher/vehicles'
+      fullPath: '/api/dispatcher/vehicles'
+      preLoaderRoute: typeof ApiDispatcherVehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/freights': {
       id: '/api/dispatcher/freights'
       path: '/api/dispatcher/freights'
       fullPath: '/api/dispatcher/freights'
       preLoaderRoute: typeof ApiDispatcherFreightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dispatcher/drivers': {
+      id: '/api/dispatcher/drivers'
+      path: '/api/dispatcher/drivers'
+      fullPath: '/api/dispatcher/drivers'
+      preLoaderRoute: typeof ApiDispatcherDriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dispatcher/carriers': {
+      id: '/api/dispatcher/carriers'
+      path: '/api/dispatcher/carriers'
+      fullPath: '/api/dispatcher/carriers'
+      preLoaderRoute: typeof ApiDispatcherCarriersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/delivery-tariffs/$id': {
@@ -4689,6 +4785,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/$id/client-messages'
       preLoaderRoute: typeof ApiOrdersIdClientMessagesRouteImport
       parentRoute: typeof ApiOrdersIdRoute
+    }
+    '/api/dispatcher/vehicles/$id': {
+      id: '/api/dispatcher/vehicles/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/vehicles/$id'
+      preLoaderRoute: typeof ApiDispatcherVehiclesIdRouteImport
+      parentRoute: typeof ApiDispatcherVehiclesRoute
+    }
+    '/api/dispatcher/drivers/$id': {
+      id: '/api/dispatcher/drivers/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/drivers/$id'
+      preLoaderRoute: typeof ApiDispatcherDriversIdRouteImport
+      parentRoute: typeof ApiDispatcherDriversRoute
+    }
+    '/api/dispatcher/carriers/$id': {
+      id: '/api/dispatcher/carriers/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/carriers/$id'
+      preLoaderRoute: typeof ApiDispatcherCarriersIdRouteImport
+      parentRoute: typeof ApiDispatcherCarriersRoute
     }
     '/api/delivery-routes/$id/driver-geo': {
       id: '/api/delivery-routes/$id/driver-geo'
@@ -5270,6 +5387,43 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface ApiDispatcherCarriersRouteChildren {
+  ApiDispatcherCarriersIdRoute: typeof ApiDispatcherCarriersIdRoute
+}
+
+const ApiDispatcherCarriersRouteChildren: ApiDispatcherCarriersRouteChildren = {
+  ApiDispatcherCarriersIdRoute: ApiDispatcherCarriersIdRoute,
+}
+
+const ApiDispatcherCarriersRouteWithChildren =
+  ApiDispatcherCarriersRoute._addFileChildren(
+    ApiDispatcherCarriersRouteChildren,
+  )
+
+interface ApiDispatcherDriversRouteChildren {
+  ApiDispatcherDriversIdRoute: typeof ApiDispatcherDriversIdRoute
+}
+
+const ApiDispatcherDriversRouteChildren: ApiDispatcherDriversRouteChildren = {
+  ApiDispatcherDriversIdRoute: ApiDispatcherDriversIdRoute,
+}
+
+const ApiDispatcherDriversRouteWithChildren =
+  ApiDispatcherDriversRoute._addFileChildren(ApiDispatcherDriversRouteChildren)
+
+interface ApiDispatcherVehiclesRouteChildren {
+  ApiDispatcherVehiclesIdRoute: typeof ApiDispatcherVehiclesIdRoute
+}
+
+const ApiDispatcherVehiclesRouteChildren: ApiDispatcherVehiclesRouteChildren = {
+  ApiDispatcherVehiclesIdRoute: ApiDispatcherVehiclesIdRoute,
+}
+
+const ApiDispatcherVehiclesRouteWithChildren =
+  ApiDispatcherVehiclesRoute._addFileChildren(
+    ApiDispatcherVehiclesRouteChildren,
+  )
+
 interface ApiPublicClientPortalTokenOrdersOrderIdRouteChildren {
   ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -5473,7 +5627,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
+  ApiDispatcherDriversRoute: ApiDispatcherDriversRouteWithChildren,
   ApiDispatcherFreightsRoute: ApiDispatcherFreightsRoute,
+  ApiDispatcherVehiclesRoute: ApiDispatcherVehiclesRouteWithChildren,
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,

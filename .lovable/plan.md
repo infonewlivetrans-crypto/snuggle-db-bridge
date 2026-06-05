@@ -1,96 +1,237 @@
-ns
-# План: упрощённый режим «AI-диспетчер» поверх Радиус Трек
+# Этап 2 — CRUD Перевозчики / Водители / Транспорт (AI-диспетчер) — v3
 
-Цель — добавить отдельный режим работы платформы для подбора грузов, не ломая текущий production: новые таблицы, новые серверные API под `/api/dispatcher/*`, новые маршруты UI под `/dispatcher/*`, переключатель режима в `system_settings`. Старые разделы только скрываются меню-фильтром, ничего не удаляется.
+## Изменения относительно v2
 
-Объём большой. Делаю **в 4 этапа**, каждый — отдельным сообщением и проверяемой поставкой. Сейчас прошу подтвердить план целиком и согласие на этап 1.
+1. Миграция безопасна для существующих строк: новые «обязательные» поля добавляются как nullable; обязательность гарантируется Zod-валидацией на API.
+2. В `dispatcher_vehicle_ext` добавляется `ready_date date` для фильтра «Готовы сегодня» и сортировки.
+3. Статус `archive` добавлен в водителей и транспорт (DELETE = soft-delete во всех трёх сущностях).
 
----
-
-## Архитектурные правила (соблюдаются на всех этапах)
-
-- Новые таблицы — отдельным namespace `dispatcher_*`. Существующие production-таблицы (`orders`, `routes`, `delivery_routes`, `carriers`, `drivers`, `vehicles`, `route_points`, ...) **не трогаем**.
-   - Исключение: `carriers/drivers/vehicles` уже есть и подходят — используем их **только на чтение** из dispatcher; всё новое (статус для диспетчера, согласие на комиссию, минимальная ставка под режим и т.п.) — в `dispatcher_*_ext` таблицах со связью `1:1` по id. Так старый продукт не ломается.
-- Все привилегированные операции — через `SECURITY DEFINER` RPC + проверка роли через `has_role()`. Никакого `makeAdminClient()` в новых API.
-- Фронт ходит **только** через `apiGet/apiPost/apiPatch/apiDelete` в `/api/dispatcher/*`. Никакого прямого Supabase из браузера.
-- AI вызывается **только** из `/api/dispatcher/ai-analyze-freight` через Lovable AI Gateway (`LOVABLE_API_KEY`), модель `google/gemini-2.5-flash`.
-- Новая роль `dispatcher` добавляется в `app_role` enum + `user_roles`. `admin` видит всё. `carrier/driver` — без изменений.
-- Режим хранится в `system_settings` ключом `app.mode` со значениями `"radius_track"` (по умолчанию) или `"ai_dispatcher"`. Меняется в `/admin/settings` (есть). Меню в режиме `ai_dispatcher` показывает только dispatcher-разделы; в обычном — как сейчас.
+Остальная архитектура из v2 не меняется.
 
 ---
 
-## Этап 1 — Фундамент (миграции + режим + меню + пустые страницы)
+## 1. Миграция — безопасный ALTER `dispatcher_*_ext`
 
-**Миграции (одной транзакцией):**
-- `ALTER TYPE app_role ADD VALUE 'dispatcher'` (если ещё нет).
-- `dispatcher_carrier_ext(carrier_id pk fk carriers, payment_method text, commission_agreed boolean default false, verification_status text default 'new', dispatcher_comment text, timestamps)`.
-- `dispatcher_driver_ext(driver_id pk fk drivers, city text, dispatcher_status text default 'free', dispatcher_comment text, timestamps)` — статус `free|on_trip|inactive`.
-- `dispatcher_vehicle_ext(vehicle_id pk fk vehicles, ready_city text, ready_date date, min_rate numeric, dispatcher_status text default 'available', dispatcher_comment text, timestamps)`.
-- `dispatcher_freights(id, from_city, to_city, load_date, unload_date, weight_kg, volume_m3, body_type, loading_method, rate numeric, source text, contact text, payment_term text, is_addon bool, status text, comment, created_by uuid, timestamps)`.
-- `dispatcher_deals(id, carrier_id, driver_id, vehicle_id, main_freight_id fk dispatcher_freights, addon_freight_ids uuid[], total_rate numeric, commission_rate numeric default 0.05, commission_amount numeric generated always as (total_rate*commission_rate) stored, payment_due date, deal_status text, commission_status text, comment, timestamps)`.
-- `dispatcher_tasks(id, type text, carrier_id, driver_id, vehicle_id, freight_id, deal_id, due_date, status text, priority text, comment, created_by, timestamps)`.
-- RLS: все `dispatcher_*` доступны только `admin` и `dispatcher` (через `has_role`). Полные GRANT для `authenticated` + `service_role`.
-- SECURITY DEFINER RPC: `dispatcher_upsert_freight`, `dispatcher_upsert_deal`, `dispatcher_complete_task`, и т.д. (вызываются API-ручками).
+Все новые колонки добавляются **nullable**. Существующие строки не ломаются. Обязательность для новых записей проверяет Zod в `/api/dispatcher/*` POST/PATCH.
 
-**Системная настройка:**
-- Дефолт `app.mode = "radius_track"`. Тогглер уже работает через существующий `system_settings` UI; добавлю явный селектор в `admin.settings.tsx` без слома существующих опций.
+### `dispatcher_carrier_ext`
+```
+ADD COLUMN name              text          -- название/ФИО  (Zod: required)
+ADD COLUMN carrier_kind      text          -- ИП/ООО/самозанятый/физлицо (Zod: required, enum)
+ADD COLUMN inn               text
+ADD COLUMN ogrn              text
+ADD COLUMN phone             text
+ADD COLUMN email             text
+ADD COLUMN city              text
+ADD COLUMN whatsapp          text
+ADD COLUMN telegram          text
+ADD COLUMN max_messenger     text
+ADD COLUMN bank_name         text
+ADD COLUMN bank_account      text
+ADD COLUMN bank_bik          text
+ADD COLUMN bank_corr_account text
+ADD COLUMN commission_rate   numeric NOT NULL DEFAULT 0.05
+ADD COLUMN production_carrier_id uuid     -- опциональная ссылка, без FK
+ALTER COLUMN carrier_id DROP NOT NULL     -- старая жёсткая 1:1 убирается
+```
 
-**Меню/навигация:**
-- Новый утиль `src/lib/app-mode.ts` (`useAppMode()`, читает из `SettingsProvider`).
-- В рендерере основного меню: если `app.mode === "ai_dispatcher"`, показываем **только** dispatcher-пункты + базовые служебные (Настройки, Выход, Уведомления, Профиль). Старая логика модулей/launch-mode сохраняется как есть; AI-mode — внешний фильтр поверх.
+### `dispatcher_driver_ext`
+```
+ADD COLUMN full_name        text           -- ФИО (Zod: required)
+ADD COLUMN phone            text
+ADD COLUMN email            text
+ADD COLUMN whatsapp         text
+ADD COLUMN telegram         text
+ADD COLUMN max_messenger    text
+ADD COLUMN dispatcher_carrier_ext_id uuid
+ADD COLUMN docs_verified    boolean NOT NULL DEFAULT false
+ADD COLUMN production_driver_id uuid
+ALTER COLUMN driver_id DROP NOT NULL
+```
 
-**Маршруты-заглушки (создаём пустые страницы, чтобы fileTree встал):**
-- `/dispatcher` (dashboard со списком задач на сегодня)
-- `/dispatcher/carriers`, `/dispatcher/drivers`, `/dispatcher/vehicles`
-- `/dispatcher/freights`, `/dispatcher/deals`, `/dispatcher/commissions`
-- `/dispatcher/tasks`, `/dispatcher/ai-analyze`
-- Каждая защищена `has_role(admin|dispatcher)` на уровне API; на UI — гейт через `useUserRoles()`.
+### `dispatcher_vehicle_ext`
+```
+-- технические поля
+ADD COLUMN vehicle_kind     text
+ADD COLUMN body_type        text
+ADD COLUMN payload_kg       numeric
+ADD COLUMN volume_m3        numeric
+ADD COLUMN length_m         numeric
+ADD COLUMN width_m          numeric
+ADD COLUMN height_m         numeric
+ADD COLUMN load_methods     text[]        -- back / side / top / tail_lift
+ADD COLUMN home_city        text
+ADD COLUMN ready_to_cities  text[]
+ADD COLUMN ready_date       date          -- ← НОВОЕ (для фильтра «Готовы сегодня»)
 
-**API-каркас (заглушки, возвращают пустые списки):**
-- `src/routes/api/dispatcher/carriers.ts`, `drivers.ts`, `vehicles.ts`, `freights.ts`, `freights.$id.ts`, `deals.ts`, `deals.$id.ts`, `commissions.ts`, `tasks.ts`, `tasks.$id.ts`, `ai-analyze-freight.ts`.
-- Все используют `requireCookieAuth` + проверку роли. Никакого admin client.
+-- связи
+ADD COLUMN dispatcher_driver_ext_id  uuid
+ADD COLUMN dispatcher_carrier_ext_id uuid
+ADD COLUMN production_vehicle_id     uuid
 
-После этапа 1 уже можно: переключить режим в админке, увидеть новое меню, открыть все страницы (пустые), убедиться что старый продукт работает.
+-- ставки (экономика рейса)
+ADD COLUMN minimum_trip_rate numeric
+ADD COLUMN minimum_km_rate   numeric
+ADD COLUMN city_rate         numeric
+ADD COLUMN point_rate        numeric
+ADD COLUMN rate_comment      text
+
+ALTER COLUMN vehicle_id DROP NOT NULL
+```
+
+### Безопасность миграции
+- Все `ADD COLUMN` — nullable (кроме `commission_rate`/`docs_verified` с дефолтами — безопасны для существующих строк).
+- `DROP NOT NULL` существующих колонок безопасен.
+- Нет `UPDATE` существующих строк, нет backfill.
+- RLS, GRANT-ы, политики уже есть из Этапа 1 — не трогаем.
+- На production-таблицах никаких операций.
 
 ---
 
-## Этап 2 — CRUD: Перевозчики, Водители, Транспорт
+## 2. Статусы (валидируем Zod на сервере)
 
-- Полные list/create/update/delete API через серверный RPC (читаем `carriers/drivers/vehicles` + `dispatcher_*_ext` join).
-- UI с таблицами, фильтрами, карточками, диалогами добавления/редактирования (на `shadcn`).
-- Привязка водитель↔перевозчик, транспорт↔водитель/перевозчик.
+- **carrier**: `new | on_check | ready_to_work | missing_docs | blocked | archive`
+- **driver**: `new | docs_unchecked | ready_to_work | free | on_trip | resting | inactive | blocked | archive`
+- **vehicle**: `new | docs_unchecked | available | waiting_freight | offered | on_trip | unloading | resting | inactive | blocked | archive`
 
-## Этап 3 — Грузы, Сделки, Комиссии, Задачи
+Дефолты в БД: `dispatcher_carrier_ext.verification_status='new'`, `dispatcher_driver_ext.dispatcher_status='free'`, `dispatcher_vehicle_ext.dispatcher_status='available'` (уже стоят, не меняем).
 
-- CRUD грузов (ручное добавление).
-- Сделки с авто-комиссией 5% (generated column).
-- Комиссии — отдельный view-список с фильтрами по статусу и просрочке, кнопка «напомнить» создаёт задачу.
-- Задачи на сегодня — список + быстрые действия из карточек.
-
-## Этап 4 — ИИ-анализ груза
-
-- `POST /api/dispatcher/ai-analyze-freight` — вход `{ text }`, выход — структура полей + confidence + risks.
-- Используем Lovable AI Gateway, `google/gemini-2.5-flash`, structured output через JSON schema (поля из ТЗ).
-- На сервере же подбираем подходящий транспорт из `dispatcher_vehicle_ext` (фильтры по городу, типу кузова, грузоподъёмности, дате, статусу) и возвращаем список с причинами/рисками + сумма комиссии 5%.
-- UI: textarea → «Разобрать» → preview-форма с подсветкой полей низкой уверенности → подтверждение → создание `dispatcher_freight` через существующий API.
-- AI ничего не создаёт автоматически.
+`DELETE /api/dispatcher/{entity}/$id` → soft-delete → `status='archive'`. Никаких реальных `DELETE` к строкам.
 
 ---
 
-## Что НЕ меняется
+## 3. API endpoints
 
-- `src/integrations/supabase/client.ts`, `client.server.ts`, `auth-middleware.ts`, `types.ts`, `.env`, `supabase/config.toml` (кроме автогена).
-- Текущие маршруты `/api/orders/*`, `/api/routes/*`, водительский контур, storage proxy, offline queue, RPC `admin_delete_order`, `driver_update_order_payment` и т.п.
-- Все существующие production-фиксы.
+Все под `/api/dispatcher/*`, `requireAnyRole(["admin","dispatcher"])`, user-client с RLS. Zod-валидация входа.
 
-## Технические заметки
+```
+GET    /api/dispatcher/carriers              ?limit&offset&search&status&city
+POST   /api/dispatcher/carriers
+GET    /api/dispatcher/carriers/$id
+PATCH  /api/dispatcher/carriers/$id
+DELETE /api/dispatcher/carriers/$id          → status='archive'
 
-- Новая роль в enum — миграция отдельным statement (нельзя в одной транзакции с использованием значения, поэтому делю на две миграции: 1) добавить значение enum, 2) всё остальное).
-- `commission_amount` — generated stored column, чтобы фронт никогда не считал сам.
-- Для AI: секрет уже есть (`LOVABLE_API_KEY` в Cloud), отдельный запрос секрета не нужен.
+GET    /api/dispatcher/drivers               ?limit&offset&search&status&city&carrier_id
+POST   /api/dispatcher/drivers
+GET    /api/dispatcher/drivers/$id
+PATCH  /api/dispatcher/drivers/$id
+DELETE /api/dispatcher/drivers/$id           → status='archive'
+
+GET    /api/dispatcher/vehicles              ?limit&offset&search&status&city
+                                             &body_type&carrier_id&driver_id&ready_today
+                                             &sort=km_rate|trip_rate|ready_date|city
+                                             &order=asc|desc
+POST   /api/dispatcher/vehicles
+GET    /api/dispatcher/vehicles/$id
+PATCH  /api/dispatcher/vehicles/$id
+DELETE /api/dispatcher/vehicles/$id          → status='archive'
+```
+
+Фильтр `ready_today=true` → `ready_date <= today AND status IN ('available','waiting_freight')`.
 
 ---
 
-## Подтверждение
+## 4. UI
 
-Если план ок — начинаю с **Этапа 1** (миграции + режим + меню + страницы-заглушки + API-каркас). Этапы 2–4 — следующими сообщениями, чтобы каждый можно было ревьюить отдельно.
+```
+/dispatcher/carriers
+/dispatcher/drivers
+/dispatcher/vehicles
+```
+
+Каждая страница:
+- Заголовок + кнопка «Добавить» (Sheet с формой).
+- Панель фильтров: статус, город, поиск (телефон/ФИО/название).
+- Preset-чипы: «Все», «Готовы к работе», «Свободные», «Архив».
+- Таблица + статус-бейдж + действия (карточка / редактировать / dropdown смены статуса).
+- Карточка просмотра (Sheet): все поля + кликабельные контакты (`tel:`, `wa.me`, `t.me`, `max.ru/...`).
+
+### Дополнительно `/dispatcher/vehicles`
+- Колонки: тип кузова, грузоподъёмность, город, «готов с» (`ready_date`), мин. ставка/рейс, мин. ставка/км, статус.
+- Сортировка: `minimum_km_rate`, `minimum_trip_rate`, `home_city`, `ready_date`, `dispatcher_status`.
+- Preset-фильтры: «Свободны», «Ждут груз», «Готовы сегодня».
+- Форма редактирования: 5 полей ставок + `rate_comment` + `ready_date`.
+
+---
+
+## 5. Технические детали
+
+- `react-hook-form` + `zod` (уже в зависимостях).
+- React Query: `useQuery`/`useMutation` + invalidate ключей `["dispatcher","carriers"|"drivers"|"vehicles",filters]`.
+- Max Messenger: текст; рендер ссылки — если начинается с `http` → как есть, иначе `https://max.ru/{value}`.
+- Контакт-ссылки в `src/lib/dispatcher/contacts.ts` (нормализация телефона, `wa.me`, `t.me`, `max.ru`).
+- `production_*_id` — обычная uuid-колонка без FK, в UI Этапа 2 не выбирается (UI-выбор production-сущности придёт в Этапе 3 при создании сделки).
+- Компоненты shadcn уже есть: Table, Sheet, Select, Input, Textarea, Badge, Tabs, DropdownMenu. Новых npm-зависимостей не добавляем.
+
+---
+
+## 6. Структура файлов
+
+```
+supabase/migrations/<timestamp>_dispatcher_ext_standalone.sql
+
+src/routes/api/dispatcher/
+   carriers.ts          GET / POST
+   carriers.$id.ts      GET / PATCH / DELETE (soft)
+   drivers.ts
+   drivers.$id.ts
+   vehicles.ts
+   vehicles.$id.ts
+
+src/routes/
+   dispatcher.carriers.tsx       переписать с placeholder
+   dispatcher.drivers.tsx        переписать
+   dispatcher.vehicles.tsx       переписать
+
+src/components/dispatcher/
+   ContactLinks.tsx
+   StatusBadge.tsx
+   CarrierForm.tsx
+   DriverForm.tsx
+   VehicleForm.tsx
+   EntityTableLayout.tsx
+
+src/lib/dispatcher/
+   contacts.ts          утилиты tel:/wa.me/t.me/max.ru
+   statuses.ts          словари + цвета
+   schemas.ts           zod-схемы (общие client + server)
+   api.ts               typed-обёртки apiGet/apiPost/apiPatch/apiDelete
+```
+
+---
+
+## 7. Что НЕ трогается
+
+- production-таблицы `carriers`, `drivers`, `vehicles`, `orders`, `routes`, `route_points`, `delivery_routes` — никаких INSERT/UPDATE/DELETE/TRIGGER/ALTER
+- `src/integrations/supabase/client.ts`, `client.server.ts`, `auth-middleware.ts`, `auth-attacher.ts`
+- `/api/orders/*`, `/api/routes/*`, `/api/drivers` (старый), storage proxy, водительский контур
+- RPC `admin_delete_order`, `driver_update_order_payment` и другие прошлые фиксы
+- nginx, PM2, DNS, vite.config, package.json (никаких новых deps)
+- `env-bootstrap`, `src/start.ts` (Этап 1)
+- `dispatcher_freights`, `dispatcher_deals`, `dispatcher_tasks` — Этап 3
+- `styles.css` — side-effect импорт
+
+---
+
+## 8. Проверка вручную
+
+1. До миграции и после: `SELECT count(*) FROM carriers` / `drivers` / `vehicles` — числа идентичны.
+2. `/dispatcher/carriers` → создать ИП с Telegram + Max → таблица содержит запись → клик по Telegram открывает `t.me/...`.
+3. Смена статуса «новый» → «готов к работе» → бейдж обновился.
+4. Удаление → запись пропала из «активных», вкладка «Архив» её показывает; БД — статус `archive`.
+5. `/dispatcher/drivers` → создать водителя с привязкой к перевозчику AI-диспетчера → фильтр по перевозчику работает.
+6. `/dispatcher/vehicles` → машина: тент, 5 т, мин. ставка 60 ₽/км и 30 000 ₽/рейс, Москва, `ready_date = today` → фильтр «Готовы сегодня» оставляет строку → сортировка «по ставке за км» меняет порядок.
+7. Carrier/driver/manager под обычной учёткой → `/dispatcher/*` отдаёт 403.
+8. Network: только `/api/dispatcher/*`, никаких прямых обращений к Supabase REST из браузера.
+9. Режим `radius_track`: меню AI-диспетчера скрыто, прямой URL admin-у доступен (Этап 1, как и задумано).
+
+---
+
+## 9. Объём правок
+
+- 1 миграция: только `ADD COLUMN` (nullable) и `DROP NOT NULL` в трёх `dispatcher_*_ext`.
+- 6 API роутов.
+- 3 страницы (переписать с placeholder).
+- 5 переиспользуемых компонентов.
+- 4 утилитарных модуля.
+- 0 изменений в production-таблицах, 0 в client.ts/client.server.ts, 0 новых npm-зависимостей.
