@@ -2,6 +2,9 @@ import { apiDelete, apiGet, apiPatch, apiPost, authHeaders } from "@/lib/api-cli
 import type {
   CarrierCreateInput,
   CarrierUpdateInput,
+  DealCreateInput,
+  DealFromMatchInput,
+  DealUpdateInput,
   DriverCreateInput,
   DriverUpdateInput,
   FreightCreateInput,
@@ -11,6 +14,7 @@ import type {
 } from "./schemas";
 import type {
   CarrierDTO,
+  DealDTO,
   DriverDTO,
   FreightDTO,
   ListResponse,
