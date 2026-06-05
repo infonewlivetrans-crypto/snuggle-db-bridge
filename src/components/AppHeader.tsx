@@ -341,13 +341,17 @@ export function AppHeader() {
 
   const enabledModules = useEnabledModules();
   const launchMode = useLaunchMode();
+  const appMode = useAppMode();
 
   const isItemVisible = (to: string) =>
     canAccess(to, roles) &&
     isPathEnabled(to, enabledModules) &&
-    isPathVisibleInLaunchMode(to, launchMode);
+    isPathVisibleInLaunchMode(to, launchMode) &&
+    isPathVisibleInAppMode(to, appMode);
 
   const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver");
+  const isDispatcherOnly =
+    roles.length > 0 && roles.every((r) => r === "dispatcher");
 
   const visibleGroups = useMemo<NavGroup[]>(() => {
     if (isDriverOnly) {
@@ -366,12 +370,28 @@ export function AppHeader() {
         },
       ];
     }
-    return GROUPS.map((g) => ({
-      ...g,
-      items: g.items.filter((it) => isItemVisible(it.to)),
-    })).filter((g) => g.items.length > 0);
+    if (appMode === "ai_dispatcher" || isDispatcherOnly) {
+      return [DISPATCHER_GROUP];
+    }
+    const groupsWithDispatcher = [...GROUPS];
+    if (canAccess("/dispatcher", roles)) {
+      groupsWithDispatcher.push(DISPATCHER_GROUP);
+    }
+    return groupsWithDispatcher
+      .map((g) => ({
+        ...g,
+        items: g.items.filter((it) => isItemVisible(it.to)),
+      }))
+      .filter((g) => g.items.length > 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roles.join("|"), JSON.stringify(enabledModules), launchMode, isDriverOnly]);
+  }, [
+    roles.join("|"),
+    JSON.stringify(enabledModules),
+    launchMode,
+    appMode,
+    isDriverOnly,
+    isDispatcherOnly,
+  ]);
 
   const activeGroup =
     visibleGroups.find((g) => g.match(path)) ?? null;
