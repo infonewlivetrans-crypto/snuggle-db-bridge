@@ -127,3 +127,45 @@ export interface ListResponse<T> {
   rows: T[];
   total: number;
 }
+
+export interface DealDTO {
+  id: string;
+  deal_number: string | null;
+  main_freight_id: string | null;
+  carrier_id: string | null;
+  driver_id: string | null;
+  vehicle_id: string | null;
+  route_from: string | null;
+  route_to: string | null;
+  loading_date: string | null;
+  unloading_date: string | null;
+  total_rate: number;
+  commission_rate: number;
+  commission_amount: number | null;
+  payment_type: string | null;
+  payment_delay_days: number | null;
+  expected_payment_date: string | null;
+  payment_due: string | null;
+  carrier_payment_received_at: string | null;
+  commission_paid_at: string | null;
+  deal_status: string;
+  payment_status: string;
+  commission_status: string;
+  comment: string | null;
+  created_at: string;
+  updated_at: string;
+  // joined display fields
+  carrier_name?: string | null;
+  carrier_phone?: string | null;
+  carrier_max_messenger?: string | null;
+  carrier_whatsapp?: string | null;
+  carrier_telegram?: string | null;
+  driver_name?: string | null;
+  driver_phone?: string | null;
+  driver_max_messenger?: string | null;
+  driver_whatsapp?: string | null;
+  driver_telegram?: string | null;
+  vehicle_kind?: string | null;
+  vehicle_body_type?: string | null;
+  freight_title?: string | null;
+}
