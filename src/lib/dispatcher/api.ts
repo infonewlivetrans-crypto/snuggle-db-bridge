@@ -92,5 +92,5 @@ export const dealsApi = {
     apiPatch<{ row: DealDTO }>(`/api/dispatcher/deals/${id}`, body),
   archive: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/deals/${id}`),
   fromMatch: (body: DealFromMatchInput) =>
-    apiPost<{ row: DealDTO }>("/api/dispatcher/deals/from-match", body),
+    apiPost<{ row: DealDTO; already_exists?: boolean }>("/api/dispatcher/deals/from-match", body),
 };

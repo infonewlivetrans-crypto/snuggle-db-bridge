@@ -26,17 +26,25 @@ const fmtMoney = (n: number | null) => (n == null ? "—" : `${n.toLocaleString(
 
 export function FreightMatchResults({ rows, loading, freightId }: Props) {
   const [creatingId, setCreatingId] = useState<string | null>(null);
-  const [createdId, setCreatedId] = useState<string | null>(null);
+  const [createdMap, setCreatedMap] = useState<Record<string, string>>({});
 
   const handleCreateDeal = async (vehicleId: string) => {
     if (!freightId) return;
+    if (creatingId) return;
+    if (createdMap[vehicleId]) return;
     setCreatingId(vehicleId);
     try {
       const res = await dealsApi.fromMatch({ freight_id: freightId, vehicle_id: vehicleId });
-      setCreatedId(res.row.id);
-      toast.success("Сделка создана", {
-        action: { label: "Открыть сделку", onClick: () => { window.location.href = "/dispatcher/deals"; } },
-      });
+      setCreatedMap((m) => ({ ...m, [vehicleId]: res.row.id }));
+      if (res.already_exists) {
+        toast.info("Сделка уже существует", {
+          action: { label: "Открыть сделки", onClick: () => { window.location.href = "/dispatcher/deals"; } },
+        });
+      } else {
+        toast.success("Сделка создана", {
+          action: { label: "Открыть сделки", onClick: () => { window.location.href = "/dispatcher/deals"; } },
+        });
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка создания сделки");
     } finally {
@@ -99,14 +107,24 @@ export function FreightMatchResults({ rows, loading, freightId }: Props) {
               </TableCell>
               <TableCell className="text-right whitespace-nowrap">
                 {freightId && r.verdict !== "no_fit" && (
-                  <Button
-                    size="sm"
-                    variant={createdId ? "outline" : "default"}
-                    disabled={creatingId === r.vehicle_id}
-                    onClick={() => handleCreateDeal(r.vehicle_id)}
-                  >
-                    {creatingId === r.vehicle_id ? "Создание…" : "Создать сделку"}
-                  </Button>
+                  createdMap[r.vehicle_id] ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { window.location.href = "/dispatcher/deals"; }}
+                    >
+                      Открыть сделку
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      disabled={creatingId === r.vehicle_id || !!creatingId}
+                      onClick={() => handleCreateDeal(r.vehicle_id)}
+                    >
+                      {creatingId === r.vehicle_id ? "Создаём…" : "Создать сделку"}
+                    </Button>
+                  )
                 )}
               </TableCell>
             </TableRow>
