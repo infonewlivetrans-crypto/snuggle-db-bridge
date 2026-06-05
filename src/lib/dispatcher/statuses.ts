@@ -166,6 +166,82 @@ export const LOAD_METHOD_LABELS: Record<LoadMethod, string> = {
   tail_lift: "Гидроборт",
 };
 
+// =============== Deals ===============
+export const DEAL_STATUSES = [
+  "draft",
+  "offered",
+  "agreed",
+  "documents_sent",
+  "loading",
+  "in_transit",
+  "unloading",
+  "delivered",
+  "waiting_payment",
+  "closed",
+  "cancelled",
+  "problem",
+  "archived",
+] as const;
+export type DealStatus = (typeof DEAL_STATUSES)[number];
+
+export const DEAL_STATUS_LABELS: Record<DealStatus, string> = {
+  draft: "Черновик",
+  offered: "Предложено",
+  agreed: "Согласовано",
+  documents_sent: "Документы отправлены",
+  loading: "Загрузка",
+  in_transit: "В рейсе",
+  unloading: "Выгрузка",
+  delivered: "Выгрузился",
+  waiting_payment: "Ждём оплату",
+  closed: "Закрыта",
+  cancelled: "Отменена",
+  problem: "Проблема",
+  archived: "Архив",
+};
+
+export const PAYMENT_STATUSES = [
+  "not_expected",
+  "waiting_customer_payment",
+  "customer_paid_carrier",
+  "overdue",
+  "dispute",
+  "closed",
+] as const;
+export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  not_expected: "Не ожидается",
+  waiting_customer_payment: "Ждём оплату заказчика",
+  customer_paid_carrier: "Перевозчик получил оплату",
+  overdue: "Просрочено",
+  dispute: "Спор",
+  closed: "Закрыто",
+};
+
+export const COMMISSION_STATUSES = [
+  "not_accrued",
+  "accrued",
+  "waiting_customer_payment",
+  "waiting_commission",
+  "commission_paid",
+  "overdue",
+  "dispute",
+  "closed",
+] as const;
+export type CommissionStatus = (typeof COMMISSION_STATUSES)[number];
+
+export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
+  not_accrued: "Не начислена",
+  accrued: "Начислена",
+  waiting_customer_payment: "Ждём оплату заказчика",
+  waiting_commission: "Ждём комиссию",
+  commission_paid: "Комиссия получена",
+  overdue: "Просрочено",
+  dispute: "Спор",
+  closed: "Закрыто",
+};
+
 export const PAYMENT_TYPES = [
   "cash",
   "card",
