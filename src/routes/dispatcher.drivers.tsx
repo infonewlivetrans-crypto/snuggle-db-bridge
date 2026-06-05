@@ -182,6 +182,7 @@ function DriversPage() {
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                   <Button size="icon" variant="ghost" onClick={() => setViewing(r)}><Eye className="h-4 w-4" /></Button>
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+                  <InviteLinkButton entityType="driver" entityId={r.id} inviteType="driver_registration" />
                   <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)}><Archive className="h-4 w-4" /></Button>
                 </TableCell>
               </TableRow>
