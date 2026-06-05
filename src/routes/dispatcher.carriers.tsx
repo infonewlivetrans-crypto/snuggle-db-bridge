@@ -193,6 +193,7 @@ function CarriersPage() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Редактировать перевозчика" : "Новый перевозчик"}</DialogTitle>
+            <DialogDescription>Заполните данные перевозчика и сохраните.</DialogDescription>
           </DialogHeader>
           <CarrierForm
             initial={editing}
