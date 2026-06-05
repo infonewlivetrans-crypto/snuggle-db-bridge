@@ -1200,87 +1200,105 @@ export type Database = {
       }
       dispatcher_tasks: {
         Row: {
-          carrier_id: string | null
-          comment: string | null
+          action_url: string | null
+          completed_at: string | null
           created_at: string
           created_by: string | null
-          deal_id: string | null
-          driver_id: string | null
+          description: string | null
+          dispatcher_carrier_ext_id: string | null
+          dispatcher_deal_id: string | null
+          dispatcher_driver_ext_id: string | null
+          dispatcher_freight_id: string | null
+          dispatcher_vehicle_ext_id: string | null
+          due_at: string | null
           due_date: string | null
-          freight_id: string | null
           id: string
           priority: string
-          status: string
-          type: string
+          related_entity_id: string | null
+          related_entity_type: string | null
+          task_status: string
+          task_type: string
+          title: string
           updated_at: string
-          vehicle_id: string | null
         }
         Insert: {
-          carrier_id?: string | null
-          comment?: string | null
+          action_url?: string | null
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
-          deal_id?: string | null
-          driver_id?: string | null
+          description?: string | null
+          dispatcher_carrier_ext_id?: string | null
+          dispatcher_deal_id?: string | null
+          dispatcher_driver_ext_id?: string | null
+          dispatcher_freight_id?: string | null
+          dispatcher_vehicle_ext_id?: string | null
+          due_at?: string | null
           due_date?: string | null
-          freight_id?: string | null
           id?: string
           priority?: string
-          status?: string
-          type: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          task_status?: string
+          task_type: string
+          title: string
           updated_at?: string
-          vehicle_id?: string | null
         }
         Update: {
-          carrier_id?: string | null
-          comment?: string | null
+          action_url?: string | null
+          completed_at?: string | null
           created_at?: string
           created_by?: string | null
-          deal_id?: string | null
-          driver_id?: string | null
+          description?: string | null
+          dispatcher_carrier_ext_id?: string | null
+          dispatcher_deal_id?: string | null
+          dispatcher_driver_ext_id?: string | null
+          dispatcher_freight_id?: string | null
+          dispatcher_vehicle_ext_id?: string | null
+          due_at?: string | null
           due_date?: string | null
-          freight_id?: string | null
           id?: string
           priority?: string
-          status?: string
-          type?: string
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          task_status?: string
+          task_type?: string
+          title?: string
           updated_at?: string
-          vehicle_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "dispatcher_tasks_carrier_id_fkey"
-            columns: ["carrier_id"]
+            foreignKeyName: "dispatcher_tasks_carrier_ext_fk"
+            columns: ["dispatcher_carrier_ext_id"]
             isOneToOne: false
-            referencedRelation: "carriers"
+            referencedRelation: "dispatcher_carrier_ext"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dispatcher_tasks_deal_id_fkey"
-            columns: ["deal_id"]
+            foreignKeyName: "dispatcher_tasks_deal_fk"
+            columns: ["dispatcher_deal_id"]
             isOneToOne: false
             referencedRelation: "dispatcher_deals"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dispatcher_tasks_driver_id_fkey"
-            columns: ["driver_id"]
+            foreignKeyName: "dispatcher_tasks_driver_ext_fk"
+            columns: ["dispatcher_driver_ext_id"]
             isOneToOne: false
-            referencedRelation: "drivers"
+            referencedRelation: "dispatcher_driver_ext"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dispatcher_tasks_freight_id_fkey"
-            columns: ["freight_id"]
+            foreignKeyName: "dispatcher_tasks_freight_fk"
+            columns: ["dispatcher_freight_id"]
             isOneToOne: false
             referencedRelation: "dispatcher_freights"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "dispatcher_tasks_vehicle_id_fkey"
-            columns: ["vehicle_id"]
+            foreignKeyName: "dispatcher_tasks_vehicle_ext_fk"
+            columns: ["dispatcher_vehicle_ext_id"]
             isOneToOne: false
-            referencedRelation: "vehicles"
+            referencedRelation: "dispatcher_vehicle_ext"
             referencedColumns: ["id"]
           },
         ]

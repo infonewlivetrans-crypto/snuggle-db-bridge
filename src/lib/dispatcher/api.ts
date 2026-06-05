@@ -9,6 +9,8 @@ import type {
   DriverUpdateInput,
   FreightCreateInput,
   FreightUpdateInput,
+  TaskCreateInput,
+  TaskUpdateInput,
   VehicleCreateInput,
   VehicleUpdateInput,
 } from "./schemas";
@@ -19,6 +21,7 @@ import type {
   FreightDTO,
   ListResponse,
   MatchResult,
+  TaskDTO,
   VehicleDTO,
 } from "./types";
 
@@ -128,5 +131,21 @@ export interface DashboardResponse {
 }
 export const dashboardApi = {
   get: () => apiGet<DashboardResponse>("/api/dispatcher/dashboard", { auth: true }),
+};
+
+// ========== tasks ==========
+export const tasksApi = {
+  list: (params: Record<string, unknown> = {}) =>
+    apiGet<ListResponse<TaskDTO>>(`/api/dispatcher/tasks${qs(params)}`, { auth: true }),
+  get: (id: string) => apiGet<{ row: TaskDTO }>(`/api/dispatcher/tasks/${id}`, { auth: true }),
+  create: (body: TaskCreateInput) => apiPost<{ row: TaskDTO }>("/api/dispatcher/tasks", body),
+  update: (id: string, body: TaskUpdateInput) =>
+    apiPatch<{ row: TaskDTO }>(`/api/dispatcher/tasks/${id}`, body),
+  remove: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/tasks/${id}`),
+  complete: (id: string) => apiPost<{ row: TaskDTO }>(`/api/dispatcher/tasks/${id}/complete`),
+  generateDaily: () =>
+    apiPost<{ created: number; total: number; today: string }>(
+      "/api/dispatcher/tasks/generate-daily",
+    ),
 };
 
