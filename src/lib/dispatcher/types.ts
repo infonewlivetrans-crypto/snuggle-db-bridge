@@ -169,3 +169,27 @@ export interface DealDTO {
   vehicle_body_type?: string | null;
   freight_title?: string | null;
 }
+
+export interface TaskDTO {
+  id: string;
+  task_type: string;
+  title: string;
+  description: string | null;
+  priority: string;
+  task_status: string;
+  due_date: string | null;
+  due_at: string | null;
+  related_entity_type: string | null;
+  related_entity_id: string | null;
+  dispatcher_carrier_ext_id: string | null;
+  dispatcher_driver_ext_id: string | null;
+  dispatcher_vehicle_ext_id: string | null;
+  dispatcher_freight_id: string | null;
+  dispatcher_deal_id: string | null;
+  action_url: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // joined display
+  related_label?: string | null;
+}
