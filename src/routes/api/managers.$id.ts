@@ -25,7 +25,15 @@ export const Route = createFileRoute("/api/managers/$id")({
           await deleteManager(params.id);
           return jsonResponse({ ok: true });
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[api/managers/:id DELETE] failed", { id: params.id, msg });
+          if (/invalid api key|service[_ -]?role|JWT|unauthorized/i.test(msg)) {
+            return jsonResponse(
+              { error: "Удаление менеджера в этом режиме недоступно. Отключите менеджера вместо удаления." },
+              { status: 501 },
+            );
+          }
+          return jsonResponse({ error: "Не удалось удалить менеджера" }, { status: 500 });
         }
       },
     },

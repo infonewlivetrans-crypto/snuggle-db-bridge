@@ -85,7 +85,15 @@ export const Route = createFileRoute("/api/users/$id")({
 
           return jsonResponse({ ok: true });
         } catch (e) {
-          return jsonResponse({ error: (e as Error).message }, { status: 500 });
+          const msg = e instanceof Error ? e.message : String(e);
+          console.error("[api/users/:id DELETE] failed", { id: userId, msg });
+          if (/invalid api key|service[_ -]?role|JWT|unauthorized/i.test(msg)) {
+            return jsonResponse(
+              { error: "Удаление пользователя в этом режиме недоступно. Заблокируйте пользователя вместо удаления." },
+              { status: 501 },
+            );
+          }
+          return jsonResponse({ error: "Не удалось удалить пользователя" }, { status: 500 });
         }
       },
     },
