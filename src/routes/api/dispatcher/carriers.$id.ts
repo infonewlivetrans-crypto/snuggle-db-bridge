@@ -40,8 +40,19 @@ export const Route = createFileRoute("/api/dispatcher/carriers/$id")({
         }
         const parsed = carrierUpdateSchema.safeParse(body);
         if (!parsed.success) {
+          const src = (body ?? {}) as Record<string, unknown>;
+          const details = parsed.error.issues.map((i) => ({
+            path: i.path.join("."),
+            message: i.message,
+            code: i.code,
+            received: i.path.length > 0 ? src[i.path[0] as string] : undefined,
+          }));
+          console.error("[api/dispatcher/carriers/:id PATCH] validation_failed", {
+            id: params.id,
+            details,
+          });
           return jsonResponse(
-            { error: "validation_failed", issues: parsed.error.issues },
+            { error: "validation_failed", issues: parsed.error.issues, details },
             { status: 400 },
           );
         }

@@ -64,6 +64,18 @@ export const Route = createFileRoute("/api/invites/$id")({
           return jsonResponse({ ok: true });
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);
+          if (/already activated/i.test(msg)) {
+            return jsonResponse(
+              {
+                error:
+                  "Приглашение уже активировано. Чтобы закрыть доступ, отключите пользователя.",
+              },
+              { status: 409 },
+            );
+          }
+          if (/not found|does not exist/i.test(msg)) {
+            return jsonResponse({ error: "Инвайт не найден" }, { status: 404 });
+          }
           console.error("[api/invites/:id DELETE] failed", { id: params.id, msg, error: e });
           return jsonResponse({ error: msg || "invite delete failed" }, { status: 500 });
         }
