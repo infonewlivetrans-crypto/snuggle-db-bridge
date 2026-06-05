@@ -107,14 +107,24 @@ export function FreightMatchResults({ rows, loading, freightId }: Props) {
               </TableCell>
               <TableCell className="text-right whitespace-nowrap">
                 {freightId && r.verdict !== "no_fit" && (
-                  <Button
-                    size="sm"
-                    variant={createdId ? "outline" : "default"}
-                    disabled={creatingId === r.vehicle_id}
-                    onClick={() => handleCreateDeal(r.vehicle_id)}
-                  >
-                    {creatingId === r.vehicle_id ? "Создание…" : "Создать сделку"}
-                  </Button>
+                  createdMap[r.vehicle_id] ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => { window.location.href = "/dispatcher/deals"; }}
+                    >
+                      Открыть сделку
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="default"
+                      disabled={creatingId === r.vehicle_id || !!creatingId}
+                      onClick={() => handleCreateDeal(r.vehicle_id)}
+                    >
+                      {creatingId === r.vehicle_id ? "Создаём…" : "Создать сделку"}
+                    </Button>
+                  )
                 )}
               </TableCell>
             </TableRow>
