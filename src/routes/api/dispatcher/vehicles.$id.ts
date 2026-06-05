@@ -41,8 +41,10 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id")({
         }
         const parsed = vehicleUpdateSchema.safeParse(body);
         if (!parsed.success) {
+          const first = parsed.error.issues[0];
+          const where = first?.path?.join(".") || "?";
           return jsonResponse(
-            { error: "validation_failed", issues: parsed.error.issues },
+            { error: `validation_failed: ${where} — ${first?.message ?? ""}`, issues: parsed.error.issues },
             { status: 400 },
           );
         }
