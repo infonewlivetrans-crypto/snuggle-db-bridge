@@ -54,7 +54,7 @@ async function enrichVehicles(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   client: any,
   rows: Array<Record<string, unknown>>,
-) {
+): Promise<Array<Record<string, unknown>>> {
   if (!rows.length) return rows;
   const driverIds = uniq(rows.map((r) => r.dispatcher_driver_ext_id as string | null));
   const carrierIds = uniq(rows.map((r) => r.dispatcher_carrier_ext_id as string | null));
@@ -77,13 +77,14 @@ async function enrichVehicles(
   return rows.map((r) => {
     const d = r.dispatcher_driver_ext_id ? dMap[r.dispatcher_driver_ext_id as string] : null;
     const c = r.dispatcher_carrier_ext_id ? cMap[r.dispatcher_carrier_ext_id as string] : null;
-    return {
+    const out: Record<string, unknown> = {
       ...r,
       driver_name: (d?.full_name as string | undefined) ?? null,
       driver_phone: (d?.phone as string | undefined) ?? null,
       carrier_name: (c?.name as string | undefined) ?? null,
       carrier_phone: (c?.phone as string | undefined) ?? null,
     };
+    return out;
   });
 }
 
