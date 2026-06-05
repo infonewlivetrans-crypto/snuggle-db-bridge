@@ -818,6 +818,10 @@ export type Database = {
           carrier_kind: string | null
           city: string | null
           commission_agreed: boolean
+          commission_agreed_at: string | null
+          commission_agreed_by: string | null
+          commission_agreement_text: string | null
+          commission_payment_method: string | null
           commission_rate: number
           created_at: string
           dispatcher_comment: string | null
@@ -844,6 +848,10 @@ export type Database = {
           carrier_kind?: string | null
           city?: string | null
           commission_agreed?: boolean
+          commission_agreed_at?: string | null
+          commission_agreed_by?: string | null
+          commission_agreement_text?: string | null
+          commission_payment_method?: string | null
           commission_rate?: number
           created_at?: string
           dispatcher_comment?: string | null
@@ -870,6 +878,10 @@ export type Database = {
           carrier_kind?: string | null
           city?: string | null
           commission_agreed?: boolean
+          commission_agreed_at?: string | null
+          commission_agreed_by?: string | null
+          commission_agreement_text?: string | null
+          commission_payment_method?: string | null
           commission_rate?: number
           created_at?: string
           dispatcher_comment?: string | null
@@ -1023,6 +1035,8 @@ export type Database = {
           dispatcher_carrier_ext_id: string | null
           dispatcher_comment: string | null
           dispatcher_status: string
+          docs_comment: string | null
+          docs_status: string
           docs_verified: boolean
           driver_id: string | null
           email: string | null
@@ -1041,6 +1055,8 @@ export type Database = {
           dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_status?: string
+          docs_comment?: string | null
+          docs_status?: string
           docs_verified?: boolean
           driver_id?: string | null
           email?: string | null
@@ -1059,6 +1075,8 @@ export type Database = {
           dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_status?: string
+          docs_comment?: string | null
+          docs_status?: string
           docs_verified?: boolean
           driver_id?: string | null
           email?: string | null
@@ -1198,6 +1216,48 @@ export type Database = {
         }
         Relationships: []
       }
+      dispatcher_invite_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          invite_type: string
+          related_entity_id: string
+          related_entity_type: string
+          revoked_at: string | null
+          token: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          invite_type: string
+          related_entity_id: string
+          related_entity_type: string
+          revoked_at?: string | null
+          token: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          invite_type?: string
+          related_entity_id?: string
+          related_entity_type?: string
+          revoked_at?: string | null
+          token?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       dispatcher_tasks: {
         Row: {
           action_url: string | null
@@ -1312,6 +1372,8 @@ export type Database = {
           dispatcher_comment: string | null
           dispatcher_driver_ext_id: string | null
           dispatcher_status: string
+          docs_comment: string | null
+          docs_status: string
           height_m: number | null
           home_city: string | null
           id: string
@@ -1341,6 +1403,8 @@ export type Database = {
           dispatcher_comment?: string | null
           dispatcher_driver_ext_id?: string | null
           dispatcher_status?: string
+          docs_comment?: string | null
+          docs_status?: string
           height_m?: number | null
           home_city?: string | null
           id?: string
@@ -1370,6 +1434,8 @@ export type Database = {
           dispatcher_comment?: string | null
           dispatcher_driver_ext_id?: string | null
           dispatcher_status?: string
+          docs_comment?: string | null
+          docs_status?: string
           height_m?: number | null
           home_city?: string | null
           id?: string
@@ -5122,6 +5188,15 @@ export type Database = {
         Returns: number
       }
       default_company_id: { Args: { _user_id: string }; Returns: string }
+      dispatcher_invite_complete: {
+        Args: { p_consent: Json; p_token: string }
+        Returns: Json
+      }
+      dispatcher_invite_resolve: { Args: { p_token: string }; Returns: Json }
+      dispatcher_invite_save: {
+        Args: { p_data: Json; p_token: string }
+        Returns: Json
+      }
       driver_record_route_return: {
         Args: {
           p_actor_name?: string
