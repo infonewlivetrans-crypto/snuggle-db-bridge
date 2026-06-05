@@ -86,26 +86,30 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setError("Комиссия должна быть числом 0..1");
       return;
     }
+    const blank = (v: string) => {
+      const t = v.trim();
+      return t === "" ? null : t;
+    };
     onSubmit({
       name: name.trim(),
       carrier_kind: kind,
-      inn: inn || null,
-      ogrn: ogrn || null,
-      phone: phone || null,
-      email: email || null,
-      city: city || null,
-      whatsapp: whatsapp || null,
-      telegram: telegram || null,
-      max_messenger: maxId || null,
-      bank_name: bankName || null,
-      bank_account: bankAccount || null,
-      bank_bik: bankBik || null,
-      bank_corr_account: bankCorr || null,
+      inn: blank(inn),
+      ogrn: blank(ogrn),
+      phone: blank(phone),
+      email: blank(email),
+      city: blank(city),
+      whatsapp: blank(whatsapp),
+      telegram: blank(telegram),
+      max_messenger: blank(maxId),
+      bank_name: blank(bankName),
+      bank_account: blank(bankAccount),
+      bank_bik: blank(bankBik),
+      bank_corr_account: blank(bankCorr),
       commission_rate: rate,
-      payment_method: paymentMethod || null,
+      payment_method: blank(paymentMethod),
       commission_agreed: false,
       verification_status: status,
-      dispatcher_comment: comment || null,
+      dispatcher_comment: blank(comment),
       production_carrier_id: initial?.production_carrier_id ?? null,
     });
   };
