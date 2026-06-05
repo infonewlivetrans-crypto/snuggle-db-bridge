@@ -116,8 +116,4 @@ export function FreightMatchResults({ rows, loading, freightId }: Props) {
     </div>
   );
 }
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
+
