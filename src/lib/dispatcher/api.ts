@@ -94,3 +94,39 @@ export const dealsApi = {
   fromMatch: (body: DealFromMatchInput) =>
     apiPost<{ row: DealDTO; already_exists?: boolean }>("/api/dispatcher/deals/from-match", body),
 };
+
+// ========== dashboard ==========
+export interface DashboardKpis {
+  available_vehicles_count: number;
+  active_freights_count: number;
+  active_deals_count: number;
+  commissions_to_receive_sum: number;
+  overdue_sum: number;
+  received_month_sum: number;
+}
+export interface DashboardTask {
+  id: string;
+  type: string;
+  title: string;
+  target_kind: string;
+  target_id: string | null;
+  target_label: string | null;
+  action_label: string;
+  action_href: string;
+}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface DashboardResponse {
+  kpis: DashboardKpis;
+  availableVehicles: Array<Record<string, unknown>>;
+  activeFreights: Array<Record<string, unknown>>;
+  activeDeals: DealDTO[];
+  waitingPayments: DealDTO[];
+  waitingCommissions: DealDTO[];
+  overdueCommissions: DealDTO[];
+  todayTasks: DashboardTask[];
+  today: string;
+}
+export const dashboardApi = {
+  get: () => apiGet<DashboardResponse>("/api/dispatcher/dashboard", { auth: true }),
+};
+
