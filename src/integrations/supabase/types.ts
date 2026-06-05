@@ -810,37 +810,88 @@ export type Database = {
       }
       dispatcher_carrier_ext: {
         Row: {
-          carrier_id: string
+          bank_account: string | null
+          bank_bik: string | null
+          bank_corr_account: string | null
+          bank_name: string | null
+          carrier_id: string | null
+          carrier_kind: string | null
+          city: string | null
           commission_agreed: boolean
+          commission_rate: number
           created_at: string
           dispatcher_comment: string | null
+          email: string | null
+          id: string
+          inn: string | null
+          max_messenger: string | null
+          name: string | null
+          ogrn: string | null
           payment_method: string | null
+          phone: string | null
+          production_carrier_id: string | null
+          telegram: string | null
           updated_at: string
           verification_status: string
+          whatsapp: string | null
         }
         Insert: {
-          carrier_id: string
+          bank_account?: string | null
+          bank_bik?: string | null
+          bank_corr_account?: string | null
+          bank_name?: string | null
+          carrier_id?: string | null
+          carrier_kind?: string | null
+          city?: string | null
           commission_agreed?: boolean
+          commission_rate?: number
           created_at?: string
           dispatcher_comment?: string | null
+          email?: string | null
+          id?: string
+          inn?: string | null
+          max_messenger?: string | null
+          name?: string | null
+          ogrn?: string | null
           payment_method?: string | null
+          phone?: string | null
+          production_carrier_id?: string | null
+          telegram?: string | null
           updated_at?: string
           verification_status?: string
+          whatsapp?: string | null
         }
         Update: {
-          carrier_id?: string
+          bank_account?: string | null
+          bank_bik?: string | null
+          bank_corr_account?: string | null
+          bank_name?: string | null
+          carrier_id?: string | null
+          carrier_kind?: string | null
+          city?: string | null
           commission_agreed?: boolean
+          commission_rate?: number
           created_at?: string
           dispatcher_comment?: string | null
+          email?: string | null
+          id?: string
+          inn?: string | null
+          max_messenger?: string | null
+          name?: string | null
+          ogrn?: string | null
           payment_method?: string | null
+          phone?: string | null
+          production_carrier_id?: string | null
+          telegram?: string | null
           updated_at?: string
           verification_status?: string
+          whatsapp?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "dispatcher_carrier_ext_carrier_id_fkey"
             columns: ["carrier_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "carriers"
             referencedColumns: ["id"]
           },
@@ -936,32 +987,62 @@ export type Database = {
         Row: {
           city: string | null
           created_at: string
+          dispatcher_carrier_ext_id: string | null
           dispatcher_comment: string | null
           dispatcher_status: string
-          driver_id: string
+          docs_verified: boolean
+          driver_id: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          max_messenger: string | null
+          phone: string | null
+          production_driver_id: string | null
+          telegram: string | null
           updated_at: string
+          whatsapp: string | null
         }
         Insert: {
           city?: string | null
           created_at?: string
+          dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_status?: string
-          driver_id: string
+          docs_verified?: boolean
+          driver_id?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          max_messenger?: string | null
+          phone?: string | null
+          production_driver_id?: string | null
+          telegram?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
           city?: string | null
           created_at?: string
+          dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_status?: string
-          driver_id?: string
+          docs_verified?: boolean
+          driver_id?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          max_messenger?: string | null
+          phone?: string | null
+          production_driver_id?: string | null
+          telegram?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "dispatcher_driver_ext_driver_id_fkey"
             columns: ["driver_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
@@ -1122,40 +1203,97 @@ export type Database = {
       }
       dispatcher_vehicle_ext: {
         Row: {
+          body_type: string | null
+          city_rate: number | null
           created_at: string
+          dispatcher_carrier_ext_id: string | null
           dispatcher_comment: string | null
+          dispatcher_driver_ext_id: string | null
           dispatcher_status: string
+          height_m: number | null
+          home_city: string | null
+          id: string
+          length_m: number | null
+          load_methods: string[] | null
           min_rate: number | null
+          minimum_km_rate: number | null
+          minimum_trip_rate: number | null
+          payload_kg: number | null
+          point_rate: number | null
+          production_vehicle_id: string | null
+          rate_comment: string | null
           ready_city: string | null
           ready_date: string | null
+          ready_to_cities: string[] | null
           updated_at: string
-          vehicle_id: string
+          vehicle_id: string | null
+          vehicle_kind: string | null
+          volume_m3: number | null
+          width_m: number | null
         }
         Insert: {
+          body_type?: string | null
+          city_rate?: number | null
           created_at?: string
+          dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
+          dispatcher_driver_ext_id?: string | null
           dispatcher_status?: string
+          height_m?: number | null
+          home_city?: string | null
+          id?: string
+          length_m?: number | null
+          load_methods?: string[] | null
           min_rate?: number | null
+          minimum_km_rate?: number | null
+          minimum_trip_rate?: number | null
+          payload_kg?: number | null
+          point_rate?: number | null
+          production_vehicle_id?: string | null
+          rate_comment?: string | null
           ready_city?: string | null
           ready_date?: string | null
+          ready_to_cities?: string[] | null
           updated_at?: string
-          vehicle_id: string
+          vehicle_id?: string | null
+          vehicle_kind?: string | null
+          volume_m3?: number | null
+          width_m?: number | null
         }
         Update: {
+          body_type?: string | null
+          city_rate?: number | null
           created_at?: string
+          dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
+          dispatcher_driver_ext_id?: string | null
           dispatcher_status?: string
+          height_m?: number | null
+          home_city?: string | null
+          id?: string
+          length_m?: number | null
+          load_methods?: string[] | null
           min_rate?: number | null
+          minimum_km_rate?: number | null
+          minimum_trip_rate?: number | null
+          payload_kg?: number | null
+          point_rate?: number | null
+          production_vehicle_id?: string | null
+          rate_comment?: string | null
           ready_city?: string | null
           ready_date?: string | null
+          ready_to_cities?: string[] | null
           updated_at?: string
-          vehicle_id?: string
+          vehicle_id?: string | null
+          vehicle_kind?: string | null
+          volume_m3?: number | null
+          width_m?: number | null
         }
         Relationships: [
           {
             foreignKeyName: "dispatcher_vehicle_ext_vehicle_id_fkey"
             columns: ["vehicle_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
