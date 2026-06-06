@@ -38,7 +38,7 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
   const [loadingDate, setLoadingDate] = useState("");
   const [unloadingDate, setUnloadingDate] = useState("");
   const [totalRate, setTotalRate] = useState("");
-  const [commissionRate, setCommissionRate] = useState("0.05");
+  const [commissionRate, setCommissionRate] = useState("5");
   const [paymentType, setPaymentType] = useState<string>("none");
   const [paymentDelay, setPaymentDelay] = useState("");
   const [expectedPaymentDate, setExpectedPaymentDate] = useState("");
