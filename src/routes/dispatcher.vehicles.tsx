@@ -17,6 +17,7 @@ import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { VehicleForm } from "@/components/dispatcher/VehicleForm";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { vehiclesApi, driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { VehicleCreateInput } from "@/lib/dispatcher/schemas";
@@ -280,6 +281,7 @@ function VehiclesPage() {
               <Row label="Комментарий по ставке" value={viewing.rate_comment ?? "—"} />
               <Row label="Статус" value={<StatusBadge status={viewing.dispatcher_status} label={VEHICLE_STATUS_LABELS[viewing.dispatcher_status as keyof typeof VEHICLE_STATUS_LABELS] ?? viewing.dispatcher_status} />} />
               <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
+              <DispatcherDocumentsBlock ownerType="vehicle" ownerId={viewing.id} />
             </div>
           )}
         </DialogContent>

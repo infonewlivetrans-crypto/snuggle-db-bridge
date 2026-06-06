@@ -1028,6 +1028,69 @@ export type Database = {
           },
         ]
       }
+      dispatcher_documents: {
+        Row: {
+          checked_at: string | null
+          checked_by: string | null
+          comment: string | null
+          created_at: string
+          document_status: string
+          document_type: string
+          file_mime: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size: number | null
+          id: string
+          owner_id: string
+          owner_type: string
+          title: string | null
+          updated_at: string
+          uploaded_at: string
+          uploaded_by: string | null
+          uploaded_by_type: string | null
+        }
+        Insert: {
+          checked_at?: string | null
+          checked_by?: string | null
+          comment?: string | null
+          created_at?: string
+          document_status?: string
+          document_type: string
+          file_mime?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          owner_id: string
+          owner_type: string
+          title?: string | null
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          uploaded_by_type?: string | null
+        }
+        Update: {
+          checked_at?: string | null
+          checked_by?: string | null
+          comment?: string | null
+          created_at?: string
+          document_status?: string
+          document_type?: string
+          file_mime?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          owner_id?: string
+          owner_type?: string
+          title?: string | null
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          uploaded_by_type?: string | null
+        }
+        Relationships: []
+      }
       dispatcher_driver_ext: {
         Row: {
           city: string | null

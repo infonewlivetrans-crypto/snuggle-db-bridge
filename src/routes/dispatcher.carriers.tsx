@@ -21,6 +21,7 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierForm } from "@/components/dispatcher/CarrierForm";
 import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistrationBlock";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
@@ -334,6 +335,11 @@ function CarrierViewBody({
           <Row label="Текст согласия" value={<span className="text-xs text-muted-foreground">{row.commission_agreement_text}</span>} />
         )}
       </div>
+
+      {/* Документы */}
+      <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
+
+
 
       {/* Проверка перевозчика */}
       <div className="rounded-md border p-3 space-y-2">

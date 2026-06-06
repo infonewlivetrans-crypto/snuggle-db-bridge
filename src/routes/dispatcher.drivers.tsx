@@ -18,6 +18,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { DriverForm } from "@/components/dispatcher/DriverForm";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO } from "@/lib/dispatcher/types";
 import type { DriverCreateInput } from "@/lib/dispatcher/schemas";
@@ -205,7 +206,7 @@ function DriversPage() {
       </Dialog>
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewing?.full_name ?? "Водитель"}</DialogTitle>
             <DialogDescription>Карточка водителя.</DialogDescription>
@@ -222,6 +223,7 @@ function DriversPage() {
               <Row label="Статус" value={<StatusBadge status={viewing.dispatcher_status} label={DRIVER_STATUS_LABELS[viewing.dispatcher_status as keyof typeof DRIVER_STATUS_LABELS] ?? viewing.dispatcher_status} />} />
               <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
               <div className="pt-3"><ContactLinks phone={viewing.phone} whatsapp={viewing.whatsapp} telegram={viewing.telegram} max_messenger={viewing.max_messenger} email={viewing.email} /></div>
+              <DispatcherDocumentsBlock ownerType="driver" ownerId={viewing.id} />
             </div>
           )}
         </DialogContent>
