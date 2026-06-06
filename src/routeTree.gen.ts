@@ -252,6 +252,7 @@ import { Route as ApiDispatcherTasksGenerateDailyRouteImport } from './routes/ap
 import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
+import { Route as ApiDispatcherDocumentsIdRouteImport } from './routes/api/dispatcher/documents.$id'
 import { Route as ApiDispatcherDealsFromMatchRouteImport } from './routes/api/dispatcher/deals.from-match'
 import { Route as ApiDispatcherDealsIdRouteImport } from './routes/api/dispatcher/deals.$id'
 import { Route as ApiDispatcherCarriersIdRouteImport } from './routes/api/dispatcher/carriers.$id'
@@ -1511,6 +1512,12 @@ const ApiDispatcherDriversIdRoute = ApiDispatcherDriversIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherDriversRoute,
 } as any)
+const ApiDispatcherDocumentsIdRoute =
+  ApiDispatcherDocumentsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiDispatcherDocumentsRoute,
+  } as any)
 const ApiDispatcherDealsFromMatchRoute =
   ApiDispatcherDealsFromMatchRouteImport.update({
     id: '/from-match',
@@ -1806,7 +1813,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
   '/api/dispatcher/dashboard': typeof ApiDispatcherDashboardRoute
   '/api/dispatcher/deals': typeof ApiDispatcherDealsRouteWithChildren
-  '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRoute
+  '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
@@ -1867,6 +1874,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
+  '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2071,7 +2079,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
   '/api/dispatcher/dashboard': typeof ApiDispatcherDashboardRoute
   '/api/dispatcher/deals': typeof ApiDispatcherDealsRouteWithChildren
-  '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRoute
+  '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
@@ -2132,6 +2140,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
+  '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2337,7 +2346,7 @@ export interface FileRoutesById {
   '/api/dispatcher/carriers': typeof ApiDispatcherCarriersRouteWithChildren
   '/api/dispatcher/dashboard': typeof ApiDispatcherDashboardRoute
   '/api/dispatcher/deals': typeof ApiDispatcherDealsRouteWithChildren
-  '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRoute
+  '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
@@ -2398,6 +2407,7 @@ export interface FileRoutesById {
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
+  '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2665,6 +2675,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
+    | '/api/dispatcher/documents/$id'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/tasks/$id'
@@ -2930,6 +2941,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
+    | '/api/dispatcher/documents/$id'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/tasks/$id'
@@ -3195,6 +3207,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
+    | '/api/dispatcher/documents/$id'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/tasks/$id'
@@ -3393,7 +3406,7 @@ export interface RootRouteChildren {
   ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
   ApiDispatcherDashboardRoute: typeof ApiDispatcherDashboardRoute
   ApiDispatcherDealsRoute: typeof ApiDispatcherDealsRouteWithChildren
-  ApiDispatcherDocumentsRoute: typeof ApiDispatcherDocumentsRoute
+  ApiDispatcherDocumentsRoute: typeof ApiDispatcherDocumentsRouteWithChildren
   ApiDispatcherDriversRoute: typeof ApiDispatcherDriversRouteWithChildren
   ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRouteWithChildren
   ApiDispatcherInvitesRoute: typeof ApiDispatcherInvitesRouteWithChildren
@@ -5116,6 +5129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherDriversIdRouteImport
       parentRoute: typeof ApiDispatcherDriversRoute
     }
+    '/api/dispatcher/documents/$id': {
+      id: '/api/dispatcher/documents/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/documents/$id'
+      preLoaderRoute: typeof ApiDispatcherDocumentsIdRouteImport
+      parentRoute: typeof ApiDispatcherDocumentsRoute
+    }
     '/api/dispatcher/deals/from-match': {
       id: '/api/dispatcher/deals/from-match'
       path: '/from-match'
@@ -5771,6 +5791,20 @@ const ApiDispatcherDealsRouteChildren: ApiDispatcherDealsRouteChildren = {
 const ApiDispatcherDealsRouteWithChildren =
   ApiDispatcherDealsRoute._addFileChildren(ApiDispatcherDealsRouteChildren)
 
+interface ApiDispatcherDocumentsRouteChildren {
+  ApiDispatcherDocumentsIdRoute: typeof ApiDispatcherDocumentsIdRoute
+}
+
+const ApiDispatcherDocumentsRouteChildren: ApiDispatcherDocumentsRouteChildren =
+  {
+    ApiDispatcherDocumentsIdRoute: ApiDispatcherDocumentsIdRoute,
+  }
+
+const ApiDispatcherDocumentsRouteWithChildren =
+  ApiDispatcherDocumentsRoute._addFileChildren(
+    ApiDispatcherDocumentsRouteChildren,
+  )
+
 interface ApiDispatcherDriversRouteChildren {
   ApiDispatcherDriversIdRoute: typeof ApiDispatcherDriversIdRoute
 }
@@ -6080,7 +6114,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
   ApiDispatcherDashboardRoute: ApiDispatcherDashboardRoute,
   ApiDispatcherDealsRoute: ApiDispatcherDealsRouteWithChildren,
-  ApiDispatcherDocumentsRoute: ApiDispatcherDocumentsRoute,
+  ApiDispatcherDocumentsRoute: ApiDispatcherDocumentsRouteWithChildren,
   ApiDispatcherDriversRoute: ApiDispatcherDriversRouteWithChildren,
   ApiDispatcherFreightsRoute: ApiDispatcherFreightsRouteWithChildren,
   ApiDispatcherInvitesRoute: ApiDispatcherInvitesRouteWithChildren,
