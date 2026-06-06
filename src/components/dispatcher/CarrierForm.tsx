@@ -54,7 +54,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
   useEffect(() => {
     if (initial) {
       setName(empty(initial.name));
-      setKind((initial.carrier_kind as CarrierKind) ?? "individual_entrepreneur");
+      setKind((initial.carrier_kind as CarrierKind) || "individual_entrepreneur");
       setInn(empty(initial.inn));
       setOgrn(empty(initial.ogrn));
       setPhone(empty(initial.phone));
@@ -69,7 +69,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setBankCorr(empty(initial.bank_corr_account));
       setCommissionRate(String(Math.round(((initial.commission_rate ?? 0.05) * 100) * 100) / 100));
       setPaymentMethod(empty(initial.payment_method));
-      setStatus((initial.verification_status as CarrierStatus) ?? "new");
+      setStatus((initial.verification_status as CarrierStatus) || "new");
       setComment(empty(initial.dispatcher_comment));
     }
   }, [initial]);
