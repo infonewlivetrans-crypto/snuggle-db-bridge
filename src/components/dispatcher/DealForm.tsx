@@ -137,9 +137,11 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
           <Input value={totalRate} onChange={(e) => setTotalRate(e.target.value)} inputMode="decimal" />
         </div>
         <div>
-          <Label>Комиссия (0..1)</Label>
-          <Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" />
-          <div className="text-xs text-muted-foreground mt-1">Расчёт: {calc.toLocaleString("ru-RU")} ₽</div>
+          <Label>Комиссия Радиус Трек (%)</Label>
+          <Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" placeholder="например, 5" />
+          <div className="text-xs text-muted-foreground mt-1">
+            Комиссия: {calc.toLocaleString("ru-RU")} ₽ · Перевозчику: {carrierGet.toLocaleString("ru-RU")} ₽
+          </div>
         </div>
         <div>
           <Label>Тип оплаты</Label>
