@@ -54,7 +54,10 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
     setLoadingDate(dateStr(initial.loading_date));
     setUnloadingDate(dateStr(initial.unloading_date));
     setTotalRate(numStr(initial.total_rate));
-    setCommissionRate(numStr(initial.commission_rate) || "0.05");
+    {
+      const dec = toNum(numStr(initial.commission_rate));
+      setCommissionRate(dec != null ? String(Math.round(dec * 100 * 100) / 100) : "5");
+    }
     setPaymentType(initial.payment_type ?? "none");
     setPaymentDelay(numStr(initial.payment_delay_days));
     setExpectedPaymentDate(dateStr(initial.expected_payment_date));
