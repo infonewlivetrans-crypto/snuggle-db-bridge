@@ -153,7 +153,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
         <div><Label>WhatsApp</Label><Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="номер или ссылка" /></div>
         <div><Label>Telegram</Label><Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@username" /></div>
         <div><Label>Max Messenger</Label><Input value={maxId} onChange={(e) => setMaxId(e.target.value)} placeholder="Max ID или ссылка" /></div>
-        <div><Label>Комиссия (0..1)</Label><Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} /></div>
+        <div><Label>Комиссия Радиус Трек (%)</Label><Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" placeholder="например, 5" /></div>
         <div><Label>Способ оплаты</Label><Input value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} /></div>
         <div><Label>Банк</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
         <div><Label>Расч. счёт</Label><Input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} /></div>
