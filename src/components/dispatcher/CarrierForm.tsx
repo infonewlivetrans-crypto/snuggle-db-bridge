@@ -30,6 +30,12 @@ interface Props {
 
 const empty = (v: string | null | undefined): string => (v == null ? "" : v);
 
+const isCarrierKind = (value: unknown): value is CarrierKind =>
+  typeof value === "string" && CARRIER_KINDS.includes(value as CarrierKind);
+
+const isCarrierStatus = (value: unknown): value is CarrierStatus =>
+  typeof value === "string" && CARRIER_STATUSES.includes(value as CarrierStatus);
+
 export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<CarrierKind>("individual_entrepreneur");
@@ -91,9 +97,19 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       const t = v.trim();
       return t === "" ? null : t;
     };
+    const safeCarrierKind: CarrierKind = isCarrierKind(kind)
+      ? kind
+      : isCarrierKind(initial?.carrier_kind)
+        ? initial.carrier_kind
+        : "individual_entrepreneur";
+    const safeVerificationStatus: CarrierStatus = isCarrierStatus(status)
+      ? status
+      : isCarrierStatus(initial?.verification_status)
+        ? initial.verification_status
+        : "new";
     onSubmit({
       name: name.trim(),
-      carrier_kind: kind,
+      carrier_kind: safeCarrierKind,
       commission_payment_method: null,
       inn: blank(inn),
       ogrn: blank(ogrn),
@@ -110,7 +126,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       commission_rate: rate,
       payment_method: blank(paymentMethod),
       commission_agreed: false,
-      verification_status: status,
+      verification_status: safeVerificationStatus,
       dispatcher_comment: blank(comment),
       production_carrier_id: initial?.production_carrier_id ?? null,
     });
