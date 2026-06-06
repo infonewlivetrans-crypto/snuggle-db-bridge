@@ -92,7 +92,7 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
       loading_date: loadingDate || null,
       unloading_date: unloadingDate || null,
       total_rate: toNum(totalRate),
-      commission_rate: toNum(commissionRate) ?? 0.05,
+      commission_rate: ((toNum(commissionRate) ?? 5) / 100),
       payment_type: paymentType === "none" ? null : (paymentType as PaymentType),
       payment_delay_days: toNum(paymentDelay),
       expected_payment_date: expectedPaymentDate || null,
