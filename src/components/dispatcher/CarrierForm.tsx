@@ -45,7 +45,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
   const [bankAccount, setBankAccount] = useState("");
   const [bankBik, setBankBik] = useState("");
   const [bankCorr, setBankCorr] = useState("");
-  const [commissionRate, setCommissionRate] = useState("0.05");
+  const [commissionRate, setCommissionRate] = useState("5");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [status, setStatus] = useState<CarrierStatus>("new");
   const [comment, setComment] = useState("");
@@ -67,7 +67,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setBankAccount(empty(initial.bank_account));
       setBankBik(empty(initial.bank_bik));
       setBankCorr(empty(initial.bank_corr_account));
-      setCommissionRate(String(initial.commission_rate ?? 0.05));
+      setCommissionRate(String(Math.round(((initial.commission_rate ?? 0.05) * 100) * 100) / 100));
       setPaymentMethod(empty(initial.payment_method));
       setStatus((initial.verification_status as CarrierStatus) ?? "new");
       setComment(empty(initial.dispatcher_comment));
@@ -81,11 +81,12 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setError("Название обязательно");
       return;
     }
-    const rate = Number(commissionRate);
-    if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
-      setError("Комиссия должна быть числом 0..1");
+    const percent = Number(commissionRate);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      setError("Комиссия должна быть числом 0..100 (%)");
       return;
     }
+    const rate = percent / 100;
     const blank = (v: string) => {
       const t = v.trim();
       return t === "" ? null : t;
@@ -152,7 +153,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
         <div><Label>WhatsApp</Label><Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="номер или ссылка" /></div>
         <div><Label>Telegram</Label><Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@username" /></div>
         <div><Label>Max Messenger</Label><Input value={maxId} onChange={(e) => setMaxId(e.target.value)} placeholder="Max ID или ссылка" /></div>
-        <div><Label>Комиссия (0..1)</Label><Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} /></div>
+        <div><Label>Комиссия Радиус Трек (%)</Label><Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" placeholder="например, 5" /></div>
         <div><Label>Способ оплаты</Label><Input value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} /></div>
         <div><Label>Банк</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
         <div><Label>Расч. счёт</Label><Input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} /></div>

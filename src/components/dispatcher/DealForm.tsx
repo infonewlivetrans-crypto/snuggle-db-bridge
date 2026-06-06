@@ -38,7 +38,7 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
   const [loadingDate, setLoadingDate] = useState("");
   const [unloadingDate, setUnloadingDate] = useState("");
   const [totalRate, setTotalRate] = useState("");
-  const [commissionRate, setCommissionRate] = useState("0.05");
+  const [commissionRate, setCommissionRate] = useState("5");
   const [paymentType, setPaymentType] = useState<string>("none");
   const [paymentDelay, setPaymentDelay] = useState("");
   const [expectedPaymentDate, setExpectedPaymentDate] = useState("");
@@ -54,7 +54,10 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
     setLoadingDate(dateStr(initial.loading_date));
     setUnloadingDate(dateStr(initial.unloading_date));
     setTotalRate(numStr(initial.total_rate));
-    setCommissionRate(numStr(initial.commission_rate) || "0.05");
+    {
+      const dec = toNum(numStr(initial.commission_rate));
+      setCommissionRate(dec != null ? String(Math.round(dec * 100 * 100) / 100) : "5");
+    }
     setPaymentType(initial.payment_type ?? "none");
     setPaymentDelay(numStr(initial.payment_delay_days));
     setExpectedPaymentDate(dateStr(initial.expected_payment_date));
@@ -89,7 +92,7 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
       loading_date: loadingDate || null,
       unloading_date: unloadingDate || null,
       total_rate: toNum(totalRate),
-      commission_rate: toNum(commissionRate) ?? 0.05,
+      commission_rate: ((toNum(commissionRate) ?? 5) / 100),
       payment_type: paymentType === "none" ? null : (paymentType as PaymentType),
       payment_delay_days: toNum(paymentDelay),
       expected_payment_date: expectedPaymentDate || null,
@@ -105,8 +108,10 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
   };
 
   const rate = toNum(totalRate) ?? 0;
-  const cRate = toNum(commissionRate) ?? 0.05;
+  const cPercent = toNum(commissionRate) ?? 5;
+  const cRate = cPercent / 100;
   const calc = Math.round(rate * cRate * 100) / 100;
+  const carrierGet = Math.round((rate - calc) * 100) / 100;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,9 +137,11 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
           <Input value={totalRate} onChange={(e) => setTotalRate(e.target.value)} inputMode="decimal" />
         </div>
         <div>
-          <Label>Комиссия (0..1)</Label>
-          <Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" />
-          <div className="text-xs text-muted-foreground mt-1">Расчёт: {calc.toLocaleString("ru-RU")} ₽</div>
+          <Label>Комиссия Радиус Трек (%)</Label>
+          <Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" placeholder="например, 5" />
+          <div className="text-xs text-muted-foreground mt-1">
+            Комиссия: {calc.toLocaleString("ru-RU")} ₽ · Перевозчику: {carrierGet.toLocaleString("ru-RU")} ₽
+          </div>
         </div>
         <div>
           <Label>Тип оплаты</Label>
