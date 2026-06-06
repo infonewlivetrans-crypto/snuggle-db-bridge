@@ -252,6 +252,7 @@ import { Route as ApiDispatcherTasksGenerateDailyRouteImport } from './routes/ap
 import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
+import { Route as ApiDispatcherDocumentsUploadRouteImport } from './routes/api/dispatcher/documents.upload'
 import { Route as ApiDispatcherDocumentsIdRouteImport } from './routes/api/dispatcher/documents.$id'
 import { Route as ApiDispatcherDealsFromMatchRouteImport } from './routes/api/dispatcher/deals.from-match'
 import { Route as ApiDispatcherDealsIdRouteImport } from './routes/api/dispatcher/deals.$id'
@@ -1513,6 +1514,12 @@ const ApiDispatcherDriversIdRoute = ApiDispatcherDriversIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherDriversRoute,
 } as any)
+const ApiDispatcherDocumentsUploadRoute =
+  ApiDispatcherDocumentsUploadRouteImport.update({
+    id: '/upload',
+    path: '/upload',
+    getParentRoute: () => ApiDispatcherDocumentsRoute,
+  } as any)
 const ApiDispatcherDocumentsIdRoute =
   ApiDispatcherDocumentsIdRouteImport.update({
     id: '/$id',
@@ -1882,6 +1889,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
+  '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2149,6 +2157,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
+  '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2417,6 +2426,7 @@ export interface FileRoutesById {
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
+  '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2686,6 +2696,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
     | '/api/dispatcher/documents/$id'
+    | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/tasks/$id'
@@ -2953,6 +2964,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
     | '/api/dispatcher/documents/$id'
+    | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/tasks/$id'
@@ -3220,6 +3232,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
     | '/api/dispatcher/documents/$id'
+    | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/tasks/$id'
@@ -5142,6 +5155,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherDriversIdRouteImport
       parentRoute: typeof ApiDispatcherDriversRoute
     }
+    '/api/dispatcher/documents/upload': {
+      id: '/api/dispatcher/documents/upload'
+      path: '/upload'
+      fullPath: '/api/dispatcher/documents/upload'
+      preLoaderRoute: typeof ApiDispatcherDocumentsUploadRouteImport
+      parentRoute: typeof ApiDispatcherDocumentsRoute
+    }
     '/api/dispatcher/documents/$id': {
       id: '/api/dispatcher/documents/$id'
       path: '/$id'
@@ -5828,11 +5848,13 @@ const ApiDispatcherDocumentsIdRouteWithChildren =
 
 interface ApiDispatcherDocumentsRouteChildren {
   ApiDispatcherDocumentsIdRoute: typeof ApiDispatcherDocumentsIdRouteWithChildren
+  ApiDispatcherDocumentsUploadRoute: typeof ApiDispatcherDocumentsUploadRoute
 }
 
 const ApiDispatcherDocumentsRouteChildren: ApiDispatcherDocumentsRouteChildren =
   {
     ApiDispatcherDocumentsIdRoute: ApiDispatcherDocumentsIdRouteWithChildren,
+    ApiDispatcherDocumentsUploadRoute: ApiDispatcherDocumentsUploadRoute,
   }
 
 const ApiDispatcherDocumentsRouteWithChildren =
