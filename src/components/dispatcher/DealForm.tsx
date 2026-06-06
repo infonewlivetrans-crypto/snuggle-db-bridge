@@ -108,8 +108,10 @@ export function DealForm({ initial, submitting, onCancel, onSubmit }: Props) {
   };
 
   const rate = toNum(totalRate) ?? 0;
-  const cRate = toNum(commissionRate) ?? 0.05;
+  const cPercent = toNum(commissionRate) ?? 5;
+  const cRate = cPercent / 100;
   const calc = Math.round(rate * cRate * 100) / 100;
+  const carrierGet = Math.round((rate - calc) * 100) / 100;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
