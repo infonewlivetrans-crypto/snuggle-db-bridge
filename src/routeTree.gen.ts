@@ -179,6 +179,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as DriverRegisterTokenRouteImport } from './routes/driver.register.$token'
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
@@ -237,7 +238,10 @@ import { Route as ApiDeliveryTariffsIdRouteImport } from './routes/api/delivery-
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
+import { Route as ApiCarrierVehiclesRouteImport } from './routes/api/carrier/vehicles'
 import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
+import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
+import { Route as ApiCarrierDriverInvitesRouteImport } from './routes/api/carrier/driver-invites'
 import { Route as ApiBackupsCreateRouteImport } from './routes/api/backups.create'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -248,6 +252,7 @@ import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.boo
 import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
 import { Route as ApiRoutesIdOptimizeRouteImport } from './routes/api/routes.$id.optimize'
+import { Route as ApiPublicDriverInviteTokenRouteImport } from './routes/api/public/driver-invite.$token'
 import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
 import { Route as ApiPublicDispatcherInviteTokenRouteImport } from './routes/api/public/dispatcher-invite.$token'
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
@@ -269,10 +274,12 @@ import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/d
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
+import { Route as ApiCarrierVehiclesIdRouteImport } from './routes/api/carrier/vehicles.$id'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
 import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
+import { Route as ApiPublicDriverInviteTokenRegisterRouteImport } from './routes/api/public/driver-invite.$token.register'
 import { Route as ApiPublicDispatcherInviteTokenCompleteRouteImport } from './routes/api/public/dispatcher-invite.$token.complete'
 import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
 import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
@@ -1142,6 +1149,11 @@ const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   path: '/admin/impersonate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DriverRegisterTokenRoute = DriverRegisterTokenRouteImport.update({
+  id: '/driver/register/$token',
+  path: '/driver/register/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DispatcherRegisterTokenRoute = DispatcherRegisterTokenRouteImport.update({
   id: '/dispatcher/register/$token',
   path: '/dispatcher/register/$token',
@@ -1441,9 +1453,24 @@ const ApiCarriersIdRoute = ApiCarriersIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCarriersRoute,
 } as any)
+const ApiCarrierVehiclesRoute = ApiCarrierVehiclesRouteImport.update({
+  id: '/api/carrier/vehicles',
+  path: '/api/carrier/vehicles',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCarrierMeRoute = ApiCarrierMeRouteImport.update({
   id: '/api/carrier/me',
   path: '/api/carrier/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCarrierDriversRoute = ApiCarrierDriversRouteImport.update({
+  id: '/api/carrier/drivers',
+  path: '/api/carrier/drivers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCarrierDriverInvitesRoute = ApiCarrierDriverInvitesRouteImport.update({
+  id: '/api/carrier/driver-invites',
+  path: '/api/carrier/driver-invites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBackupsCreateRoute = ApiBackupsCreateRouteImport.update({
@@ -1496,6 +1523,12 @@ const ApiRoutesIdOptimizeRoute = ApiRoutesIdOptimizeRouteImport.update({
   path: '/optimize',
   getParentRoute: () => ApiRoutesIdRoute,
 } as any)
+const ApiPublicDriverInviteTokenRoute =
+  ApiPublicDriverInviteTokenRouteImport.update({
+    id: '/api/public/driver-invite/$token',
+    path: '/api/public/driver-invite/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicDriverAccessResolveRoute =
   ApiPublicDriverAccessResolveRouteImport.update({
     id: '/api/public/driver-access/resolve',
@@ -1614,6 +1647,11 @@ const ApiClientsIdPortalLinkRoute = ApiClientsIdPortalLinkRouteImport.update({
   path: '/$id/portal-link',
   getParentRoute: () => ApiClientsRoute,
 } as any)
+const ApiCarrierVehiclesIdRoute = ApiCarrierVehiclesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCarrierVehiclesRoute,
+} as any)
 const ApiBackupsIdUrlRoute = ApiBackupsIdUrlRouteImport.update({
   id: '/$id/url',
   path: '/$id/url',
@@ -1634,6 +1672,12 @@ const ApiDriverRouteIdRoute = ApiDriverRouteIdRouteImport.update({
   path: '/api/driver/route/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDriverInviteTokenRegisterRoute =
+  ApiPublicDriverInviteTokenRegisterRouteImport.update({
+    id: '/register',
+    path: '/register',
+    getParentRoute: () => ApiPublicDriverInviteTokenRoute,
+  } as any)
 const ApiPublicDispatcherInviteTokenCompleteRoute =
   ApiPublicDispatcherInviteTokenCompleteRouteImport.update({
     id: '/complete',
@@ -1875,7 +1919,10 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
+  '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
+  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -1934,10 +1981,12 @@ export interface FileRoutesByFullPath {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
+  '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -1959,6 +2008,7 @@ export interface FileRoutesByFullPath {
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
+  '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -1967,6 +2017,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
+  '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2150,7 +2201,10 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
+  '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
+  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2209,10 +2263,12 @@ export interface FileRoutesByTo {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
+  '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2234,6 +2290,7 @@ export interface FileRoutesByTo {
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
+  '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2242,6 +2299,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
+  '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2427,7 +2485,10 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
+  '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
+  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2486,10 +2547,12 @@ export interface FileRoutesById {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
+  '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2511,6 +2574,7 @@ export interface FileRoutesById {
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
+  '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -2519,6 +2583,7 @@ export interface FileRoutesById {
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
+  '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2705,7 +2770,10 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/driver-invites'
+    | '/api/carrier/drivers'
     | '/api/carrier/me'
+    | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
@@ -2764,10 +2832,12 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/dispatcher/register/$token'
+    | '/driver/register/$token'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -2789,6 +2859,7 @@ export interface FileRouteTypes {
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
+    | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -2797,6 +2868,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
+    | '/api/public/driver-invite/$token/register'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -2980,7 +3052,10 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/driver-invites'
+    | '/api/carrier/drivers'
     | '/api/carrier/me'
+    | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
@@ -3039,10 +3114,12 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/dispatcher/register/$token'
+    | '/driver/register/$token'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3064,6 +3141,7 @@ export interface FileRouteTypes {
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
+    | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -3072,6 +3150,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
+    | '/api/public/driver-invite/$token/register'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -3256,7 +3335,10 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/driver-invites'
+    | '/api/carrier/drivers'
     | '/api/carrier/me'
+    | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
@@ -3315,10 +3397,12 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/dispatcher/register/$token'
+    | '/driver/register/$token'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3340,6 +3424,7 @@ export interface FileRouteTypes {
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
+    | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -3348,6 +3433,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
+    | '/api/public/driver-invite/$token/register'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -3525,7 +3611,10 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
+  ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
+  ApiCarrierVehiclesRoute: typeof ApiCarrierVehiclesRouteWithChildren
   ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
   ApiDispatcherDashboardRoute: typeof ApiDispatcherDashboardRoute
   ApiDispatcherDealsRoute: typeof ApiDispatcherDealsRouteWithChildren
@@ -3543,11 +3632,13 @@ export interface RootRouteChildren {
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
   DispatcherRegisterTokenRoute: typeof DispatcherRegisterTokenRoute
+  DriverRegisterTokenRoute: typeof DriverRegisterTokenRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   ApiPublicDriverAccessResolveRoute: typeof ApiPublicDriverAccessResolveRoute
+  ApiPublicDriverInviteTokenRoute: typeof ApiPublicDriverInviteTokenRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -4742,6 +4833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminImpersonateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/driver/register/$token': {
+      id: '/driver/register/$token'
+      path: '/driver/register/$token'
+      fullPath: '/driver/register/$token'
+      preLoaderRoute: typeof DriverRegisterTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dispatcher/register/$token': {
       id: '/dispatcher/register/$token'
       path: '/dispatcher/register/$token'
@@ -5148,11 +5246,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarriersIdRouteImport
       parentRoute: typeof ApiCarriersRoute
     }
+    '/api/carrier/vehicles': {
+      id: '/api/carrier/vehicles'
+      path: '/api/carrier/vehicles'
+      fullPath: '/api/carrier/vehicles'
+      preLoaderRoute: typeof ApiCarrierVehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/me': {
       id: '/api/carrier/me'
       path: '/api/carrier/me'
       fullPath: '/api/carrier/me'
       preLoaderRoute: typeof ApiCarrierMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/carrier/drivers': {
+      id: '/api/carrier/drivers'
+      path: '/api/carrier/drivers'
+      fullPath: '/api/carrier/drivers'
+      preLoaderRoute: typeof ApiCarrierDriversRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/carrier/driver-invites': {
+      id: '/api/carrier/driver-invites'
+      path: '/api/carrier/driver-invites'
+      fullPath: '/api/carrier/driver-invites'
+      preLoaderRoute: typeof ApiCarrierDriverInvitesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/backups/create': {
@@ -5224,6 +5343,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/routes/$id/optimize'
       preLoaderRoute: typeof ApiRoutesIdOptimizeRouteImport
       parentRoute: typeof ApiRoutesIdRoute
+    }
+    '/api/public/driver-invite/$token': {
+      id: '/api/public/driver-invite/$token'
+      path: '/api/public/driver-invite/$token'
+      fullPath: '/api/public/driver-invite/$token'
+      preLoaderRoute: typeof ApiPublicDriverInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/driver-access/resolve': {
       id: '/api/public/driver-access/resolve'
@@ -5372,6 +5498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiClientsIdPortalLinkRouteImport
       parentRoute: typeof ApiClientsRoute
     }
+    '/api/carrier/vehicles/$id': {
+      id: '/api/carrier/vehicles/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/vehicles/$id'
+      preLoaderRoute: typeof ApiCarrierVehiclesIdRouteImport
+      parentRoute: typeof ApiCarrierVehiclesRoute
+    }
     '/api/backups/$id/url': {
       id: '/api/backups/$id/url'
       path: '/$id/url'
@@ -5399,6 +5532,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/driver/route/$id'
       preLoaderRoute: typeof ApiDriverRouteIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/driver-invite/$token/register': {
+      id: '/api/public/driver-invite/$token/register'
+      path: '/register'
+      fullPath: '/api/public/driver-invite/$token/register'
+      preLoaderRoute: typeof ApiPublicDriverInviteTokenRegisterRouteImport
+      parentRoute: typeof ApiPublicDriverInviteTokenRoute
     }
     '/api/public/dispatcher-invite/$token/complete': {
       id: '/api/public/dispatcher-invite/$token/complete'
@@ -5978,6 +6118,17 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface ApiCarrierVehiclesRouteChildren {
+  ApiCarrierVehiclesIdRoute: typeof ApiCarrierVehiclesIdRoute
+}
+
+const ApiCarrierVehiclesRouteChildren: ApiCarrierVehiclesRouteChildren = {
+  ApiCarrierVehiclesIdRoute: ApiCarrierVehiclesIdRoute,
+}
+
+const ApiCarrierVehiclesRouteWithChildren =
+  ApiCarrierVehiclesRoute._addFileChildren(ApiCarrierVehiclesRouteChildren)
+
 interface ApiDispatcherCarriersRouteChildren {
   ApiDispatcherCarriersIdRoute: typeof ApiDispatcherCarriersIdRoute
 }
@@ -6170,6 +6321,21 @@ const ApiPublicDispatcherInviteTokenRouteWithChildren =
     ApiPublicDispatcherInviteTokenRouteChildren,
   )
 
+interface ApiPublicDriverInviteTokenRouteChildren {
+  ApiPublicDriverInviteTokenRegisterRoute: typeof ApiPublicDriverInviteTokenRegisterRoute
+}
+
+const ApiPublicDriverInviteTokenRouteChildren: ApiPublicDriverInviteTokenRouteChildren =
+  {
+    ApiPublicDriverInviteTokenRegisterRoute:
+      ApiPublicDriverInviteTokenRegisterRoute,
+  }
+
+const ApiPublicDriverInviteTokenRouteWithChildren =
+  ApiPublicDriverInviteTokenRoute._addFileChildren(
+    ApiPublicDriverInviteTokenRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
@@ -6342,7 +6508,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
+  ApiCarrierDriversRoute: ApiCarrierDriversRoute,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
+  ApiCarrierVehiclesRoute: ApiCarrierVehiclesRouteWithChildren,
   ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
   ApiDispatcherDashboardRoute: ApiDispatcherDashboardRoute,
   ApiDispatcherDealsRoute: ApiDispatcherDealsRouteWithChildren,
@@ -6360,12 +6529,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
   DispatcherRegisterTokenRoute: DispatcherRegisterTokenRoute,
+  DriverRegisterTokenRoute: DriverRegisterTokenRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:
     ApiPublicDispatcherInviteTokenRouteWithChildren,
   ApiPublicDriverAccessResolveRoute: ApiPublicDriverAccessResolveRoute,
+  ApiPublicDriverInviteTokenRoute: ApiPublicDriverInviteTokenRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
