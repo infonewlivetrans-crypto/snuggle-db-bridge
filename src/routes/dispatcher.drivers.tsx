@@ -18,6 +18,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { DriverForm } from "@/components/dispatcher/DriverForm";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO } from "@/lib/dispatcher/types";
 import type { DriverCreateInput } from "@/lib/dispatcher/schemas";
