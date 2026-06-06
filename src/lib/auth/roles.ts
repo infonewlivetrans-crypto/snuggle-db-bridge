@@ -70,6 +70,8 @@ const RULES: Array<{ test: (p: string) => boolean; roles: AppRole[] }> = [
   { test: (p) => p.startsWith("/carriers") || p.startsWith("/drivers") || p.startsWith("/vehicles"), roles: ["admin", "logist", "director"] },
 
   { test: (p) => p.startsWith("/driver") && !p.startsWith("/drivers"), roles: ["admin", "driver", "carrier"] },
+  // Личный кабинет перевозчика (этап 9). Точное совпадение или поддиректория, чтобы не пересекаться с /carrier-offers и /carriers.
+  { test: (p) => p === "/carrier" || p.startsWith("/carrier/"), roles: ["admin", "carrier"] },
   { test: (p) => p.startsWith("/carrier-offers"), roles: ["admin", "logist", "carrier"] },
   { test: (p) => p.startsWith("/carrier-routes"), roles: ["admin", "logist", "carrier"] },
   { test: (p) => p.startsWith("/carrier-payments"), roles: ["admin", "logist", "director"] },

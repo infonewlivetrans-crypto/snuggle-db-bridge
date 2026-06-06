@@ -39,6 +39,7 @@ import { Route as DataImportRouteImport } from './routes/data-import'
 import { Route as CarrierRoutesRouteImport } from './routes/carrier-routes'
 import { Route as CarrierPaymentsRouteImport } from './routes/carrier-payments'
 import { Route as CarrierOffersRouteImport } from './routes/carrier-offers'
+import { Route as CarrierRouteImport } from './routes/carrier'
 import { Route as BackupsRouteImport } from './routes/backups'
 import { Route as AuditLogRouteImport } from './routes/audit-log'
 import { Route as IndexRouteImport } from './routes/index'
@@ -54,6 +55,7 @@ import { Route as DriverIndexRouteImport } from './routes/driver.index'
 import { Route as DispatcherIndexRouteImport } from './routes/dispatcher.index'
 import { Route as DeliveryRoutesIndexRouteImport } from './routes/delivery-routes.index'
 import { Route as CarriersIndexRouteImport } from './routes/carriers.index'
+import { Route as CarrierIndexRouteImport } from './routes/carrier.index'
 import { Route as WarehousesWarehouseIdRouteImport } from './routes/warehouses.$warehouseId'
 import { Route as VehiclesVehicleIdRouteImport } from './routes/vehicles.$vehicleId'
 import { Route as UsersManagersRouteImport } from './routes/users.managers'
@@ -85,6 +87,10 @@ import { Route as ClientsNewRouteImport } from './routes/clients.new'
 import { Route as ClientsClientIdRouteImport } from './routes/clients.$clientId'
 import { Route as CarriersVerificationRouteImport } from './routes/carriers.verification'
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
+import { Route as CarrierVehiclesRouteImport } from './routes/carrier.vehicles'
+import { Route as CarrierTripsRouteImport } from './routes/carrier.trips'
+import { Route as CarrierRegisterRouteImport } from './routes/carrier.register'
+import { Route as CarrierDriversRouteImport } from './routes/carrier.drivers'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
 import { Route as ApiWarehouseStatusAlertsRouteImport } from './routes/api/warehouse-status-alerts'
@@ -198,6 +204,7 @@ import { Route as ApiRoutePointsIdRouteImport } from './routes/api/route-points.
 import { Route as ApiRoutePointPhotosOfflineUploadRouteImport } from './routes/api/route-point-photos.offline-upload'
 import { Route as ApiRouteCarrierDocumentsIdRouteImport } from './routes/api/route-carrier-documents.$id'
 import { Route as ApiPublicDispatcherJoinRouteImport } from './routes/api/public/dispatcher-join'
+import { Route as ApiPublicCarrierRegisterRouteImport } from './routes/api/public/carrier-register'
 import { Route as ApiOrdersUnreadClientMessagesRouteImport } from './routes/api/orders.unread-client-messages'
 import { Route as ApiOrdersGeocodeBatchRouteImport } from './routes/api/orders.geocode-batch'
 import { Route as ApiOrdersBulkDeleteRouteImport } from './routes/api/orders.bulk-delete'
@@ -230,6 +237,7 @@ import { Route as ApiDeliveryTariffsIdRouteImport } from './routes/api/delivery-
 import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-routes.$id'
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
+import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
 import { Route as ApiBackupsCreateRouteImport } from './routes/api/backups.create'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -426,6 +434,11 @@ const CarrierOffersRoute = CarrierOffersRouteImport.update({
   path: '/carrier-offers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarrierRoute = CarrierRouteImport.update({
+  id: '/carrier',
+  path: '/carrier',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BackupsRoute = BackupsRouteImport.update({
   id: '/backups',
   path: '/backups',
@@ -500,6 +513,11 @@ const CarriersIndexRoute = CarriersIndexRouteImport.update({
   id: '/carriers/',
   path: '/carriers/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CarrierIndexRoute = CarrierIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CarrierRoute,
 } as any)
 const WarehousesWarehouseIdRoute = WarehousesWarehouseIdRouteImport.update({
   id: '/warehouses/$warehouseId',
@@ -657,6 +675,26 @@ const CarriersCarrierIdRoute = CarriersCarrierIdRouteImport.update({
   id: '/carriers/$carrierId',
   path: '/carriers/$carrierId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CarrierVehiclesRoute = CarrierVehiclesRouteImport.update({
+  id: '/vehicles',
+  path: '/vehicles',
+  getParentRoute: () => CarrierRoute,
+} as any)
+const CarrierTripsRoute = CarrierTripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => CarrierRoute,
+} as any)
+const CarrierRegisterRoute = CarrierRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => CarrierRoute,
+} as any)
+const CarrierDriversRoute = CarrierDriversRouteImport.update({
+  id: '/drivers',
+  path: '/drivers',
+  getParentRoute: () => CarrierRoute,
 } as any)
 const CTokenRoute = CTokenRouteImport.update({
   id: '/c/$token',
@@ -1234,6 +1272,12 @@ const ApiPublicDispatcherJoinRoute = ApiPublicDispatcherJoinRouteImport.update({
   path: '/api/public/dispatcher-join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCarrierRegisterRoute =
+  ApiPublicCarrierRegisterRouteImport.update({
+    id: '/api/public/carrier-register',
+    path: '/api/public/carrier-register',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOrdersUnreadClientMessagesRoute =
   ApiOrdersUnreadClientMessagesRouteImport.update({
     id: '/unread-client-messages',
@@ -1396,6 +1440,11 @@ const ApiCarriersIdRoute = ApiCarriersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiCarriersRoute,
+} as any)
+const ApiCarrierMeRoute = ApiCarrierMeRouteImport.update({
+  id: '/api/carrier/me',
+  path: '/api/carrier/me',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBackupsCreateRoute = ApiBackupsCreateRouteImport.update({
   id: '/create',
@@ -1650,6 +1699,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
+  '/carrier': typeof CarrierRouteWithChildren
   '/carrier-offers': typeof CarrierOffersRoute
   '/carrier-payments': typeof CarrierPaymentsRoute
   '/carrier-routes': typeof CarrierRoutesRoute
@@ -1768,6 +1818,10 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
+  '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/register': typeof CarrierRegisterRoute
+  '/carrier/trips': typeof CarrierTripsRoute
+  '/carrier/vehicles': typeof CarrierVehiclesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -1799,6 +1853,7 @@ export interface FileRoutesByFullPath {
   '/users/managers': typeof UsersManagersRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
+  '/carrier/': typeof CarrierIndexRoute
   '/carriers/': typeof CarriersIndexRoute
   '/delivery-routes/': typeof DeliveryRoutesIndexRoute
   '/dispatcher/': typeof DispatcherIndexRoute
@@ -1820,6 +1875,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -1852,6 +1908,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/public/carrier-register': typeof ApiPublicCarrierRegisterRoute
   '/api/public/dispatcher-join': typeof ApiPublicDispatcherJoinRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
@@ -2036,6 +2093,10 @@ export interface FileRoutesByTo {
   '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
+  '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/register': typeof CarrierRegisterRoute
+  '/carrier/trips': typeof CarrierTripsRoute
+  '/carrier/vehicles': typeof CarrierVehiclesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -2067,6 +2128,7 @@ export interface FileRoutesByTo {
   '/users/managers': typeof UsersManagersRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
+  '/carrier': typeof CarrierIndexRoute
   '/carriers': typeof CarriersIndexRoute
   '/delivery-routes': typeof DeliveryRoutesIndexRoute
   '/dispatcher': typeof DispatcherIndexRoute
@@ -2088,6 +2150,7 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2120,6 +2183,7 @@ export interface FileRoutesByTo {
   '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/public/carrier-register': typeof ApiPublicCarrierRegisterRoute
   '/api/public/dispatcher-join': typeof ApiPublicDispatcherJoinRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
@@ -2187,6 +2251,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit-log': typeof AuditLogRoute
   '/backups': typeof BackupsRoute
+  '/carrier': typeof CarrierRouteWithChildren
   '/carrier-offers': typeof CarrierOffersRoute
   '/carrier-payments': typeof CarrierPaymentsRoute
   '/carrier-routes': typeof CarrierRoutesRoute
@@ -2305,6 +2370,10 @@ export interface FileRoutesById {
   '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
+  '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/register': typeof CarrierRegisterRoute
+  '/carrier/trips': typeof CarrierTripsRoute
+  '/carrier/vehicles': typeof CarrierVehiclesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
   '/carriers/verification': typeof CarriersVerificationRoute
   '/clients/$clientId': typeof ClientsClientIdRoute
@@ -2336,6 +2405,7 @@ export interface FileRoutesById {
   '/users/managers': typeof UsersManagersRoute
   '/vehicles/$vehicleId': typeof VehiclesVehicleIdRoute
   '/warehouses/$warehouseId': typeof WarehousesWarehouseIdRoute
+  '/carrier/': typeof CarrierIndexRoute
   '/carriers/': typeof CarriersIndexRoute
   '/delivery-routes/': typeof DeliveryRoutesIndexRoute
   '/dispatcher/': typeof DispatcherIndexRoute
@@ -2357,6 +2427,7 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2389,6 +2460,7 @@ export interface FileRoutesById {
   '/api/orders/bulk-delete': typeof ApiOrdersBulkDeleteRoute
   '/api/orders/geocode-batch': typeof ApiOrdersGeocodeBatchRoute
   '/api/orders/unread-client-messages': typeof ApiOrdersUnreadClientMessagesRoute
+  '/api/public/carrier-register': typeof ApiPublicCarrierRegisterRoute
   '/api/public/dispatcher-join': typeof ApiPublicDispatcherJoinRoute
   '/api/route-carrier-documents/$id': typeof ApiRouteCarrierDocumentsIdRoute
   '/api/route-point-photos/offline-upload': typeof ApiRoutePointPhotosOfflineUploadRoute
@@ -2457,6 +2529,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit-log'
     | '/backups'
+    | '/carrier'
     | '/carrier-offers'
     | '/carrier-payments'
     | '/carrier-routes'
@@ -2575,6 +2648,10 @@ export interface FileRouteTypes {
     | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
+    | '/carrier/drivers'
+    | '/carrier/register'
+    | '/carrier/trips'
+    | '/carrier/vehicles'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/clients/$clientId'
@@ -2606,6 +2683,7 @@ export interface FileRouteTypes {
     | '/users/managers'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
+    | '/carrier/'
     | '/carriers/'
     | '/delivery-routes/'
     | '/dispatcher/'
@@ -2627,6 +2705,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/me'
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
@@ -2659,6 +2738,7 @@ export interface FileRouteTypes {
     | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/public/carrier-register'
     | '/api/public/dispatcher-join'
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
@@ -2843,6 +2923,10 @@ export interface FileRouteTypes {
     | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
+    | '/carrier/drivers'
+    | '/carrier/register'
+    | '/carrier/trips'
+    | '/carrier/vehicles'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/clients/$clientId'
@@ -2874,6 +2958,7 @@ export interface FileRouteTypes {
     | '/users/managers'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
+    | '/carrier'
     | '/carriers'
     | '/delivery-routes'
     | '/dispatcher'
@@ -2895,6 +2980,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/me'
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
@@ -2927,6 +3013,7 @@ export interface FileRouteTypes {
     | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/public/carrier-register'
     | '/api/public/dispatcher-join'
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
@@ -2993,6 +3080,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit-log'
     | '/backups'
+    | '/carrier'
     | '/carrier-offers'
     | '/carrier-payments'
     | '/carrier-routes'
@@ -3111,6 +3199,10 @@ export interface FileRouteTypes {
     | '/api/warehouse-status-alerts'
     | '/api/warehouses'
     | '/c/$token'
+    | '/carrier/drivers'
+    | '/carrier/register'
+    | '/carrier/trips'
+    | '/carrier/vehicles'
     | '/carriers/$carrierId'
     | '/carriers/verification'
     | '/clients/$clientId'
@@ -3142,6 +3234,7 @@ export interface FileRouteTypes {
     | '/users/managers'
     | '/vehicles/$vehicleId'
     | '/warehouses/$warehouseId'
+    | '/carrier/'
     | '/carriers/'
     | '/delivery-routes/'
     | '/dispatcher/'
@@ -3163,6 +3256,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/me'
     | '/api/carriers/$id'
     | '/api/carriers/import'
     | '/api/delivery-routes/$id'
@@ -3195,6 +3289,7 @@ export interface FileRouteTypes {
     | '/api/orders/bulk-delete'
     | '/api/orders/geocode-batch'
     | '/api/orders/unread-client-messages'
+    | '/api/public/carrier-register'
     | '/api/public/dispatcher-join'
     | '/api/route-carrier-documents/$id'
     | '/api/route-point-photos/offline-upload'
@@ -3262,6 +3357,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditLogRoute: typeof AuditLogRoute
   BackupsRoute: typeof BackupsRoute
+  CarrierRoute: typeof CarrierRouteWithChildren
   CarrierOffersRoute: typeof CarrierOffersRoute
   CarrierPaymentsRoute: typeof CarrierPaymentsRoute
   CarrierRoutesRoute: typeof CarrierRoutesRoute
@@ -3429,6 +3525,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiCarrierMeRoute: typeof ApiCarrierMeRoute
   ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
   ApiDispatcherDashboardRoute: typeof ApiDispatcherDashboardRoute
   ApiDispatcherDealsRoute: typeof ApiDispatcherDealsRouteWithChildren
@@ -3441,6 +3538,7 @@ export interface RootRouteChildren {
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
+  ApiPublicCarrierRegisterRoute: typeof ApiPublicCarrierRegisterRoute
   ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
@@ -3664,6 +3762,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarrierOffersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carrier': {
+      id: '/carrier'
+      path: '/carrier'
+      fullPath: '/carrier'
+      preLoaderRoute: typeof CarrierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/backups': {
       id: '/backups'
       path: '/backups'
@@ -3768,6 +3873,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/carriers/'
       preLoaderRoute: typeof CarriersIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/carrier/': {
+      id: '/carrier/'
+      path: '/'
+      fullPath: '/carrier/'
+      preLoaderRoute: typeof CarrierIndexRouteImport
+      parentRoute: typeof CarrierRoute
     }
     '/warehouses/$warehouseId': {
       id: '/warehouses/$warehouseId'
@@ -3985,6 +4097,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/carriers/$carrierId'
       preLoaderRoute: typeof CarriersCarrierIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/carrier/vehicles': {
+      id: '/carrier/vehicles'
+      path: '/vehicles'
+      fullPath: '/carrier/vehicles'
+      preLoaderRoute: typeof CarrierVehiclesRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/trips': {
+      id: '/carrier/trips'
+      path: '/trips'
+      fullPath: '/carrier/trips'
+      preLoaderRoute: typeof CarrierTripsRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/register': {
+      id: '/carrier/register'
+      path: '/register'
+      fullPath: '/carrier/register'
+      preLoaderRoute: typeof CarrierRegisterRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/drivers': {
+      id: '/carrier/drivers'
+      path: '/drivers'
+      fullPath: '/carrier/drivers'
+      preLoaderRoute: typeof CarrierDriversRouteImport
+      parentRoute: typeof CarrierRoute
     }
     '/c/$token': {
       id: '/c/$token'
@@ -4777,6 +4917,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDispatcherJoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/carrier-register': {
+      id: '/api/public/carrier-register'
+      path: '/api/public/carrier-register'
+      fullPath: '/api/public/carrier-register'
+      preLoaderRoute: typeof ApiPublicCarrierRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/orders/unread-client-messages': {
       id: '/api/orders/unread-client-messages'
       path: '/unread-client-messages'
@@ -5000,6 +5147,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/carriers/$id'
       preLoaderRoute: typeof ApiCarriersIdRouteImport
       parentRoute: typeof ApiCarriersRoute
+    }
+    '/api/carrier/me': {
+      id: '/api/carrier/me'
+      path: '/api/carrier/me'
+      fullPath: '/api/carrier/me'
+      preLoaderRoute: typeof ApiCarrierMeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/backups/create': {
       id: '/api/backups/create'
@@ -5318,6 +5472,25 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface CarrierRouteChildren {
+  CarrierDriversRoute: typeof CarrierDriversRoute
+  CarrierRegisterRoute: typeof CarrierRegisterRoute
+  CarrierTripsRoute: typeof CarrierTripsRoute
+  CarrierVehiclesRoute: typeof CarrierVehiclesRoute
+  CarrierIndexRoute: typeof CarrierIndexRoute
+}
+
+const CarrierRouteChildren: CarrierRouteChildren = {
+  CarrierDriversRoute: CarrierDriversRoute,
+  CarrierRegisterRoute: CarrierRegisterRoute,
+  CarrierTripsRoute: CarrierTripsRoute,
+  CarrierVehiclesRoute: CarrierVehiclesRoute,
+  CarrierIndexRoute: CarrierIndexRoute,
+}
+
+const CarrierRouteWithChildren =
+  CarrierRoute._addFileChildren(CarrierRouteChildren)
 
 interface DataImportRouteChildren {
   DataImportHistoryRoute: typeof DataImportHistoryRoute
@@ -6001,6 +6174,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditLogRoute: AuditLogRoute,
   BackupsRoute: BackupsRoute,
+  CarrierRoute: CarrierRouteWithChildren,
   CarrierOffersRoute: CarrierOffersRoute,
   CarrierPaymentsRoute: CarrierPaymentsRoute,
   CarrierRoutesRoute: CarrierRoutesRoute,
@@ -6168,6 +6342,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiCarrierMeRoute: ApiCarrierMeRoute,
   ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
   ApiDispatcherDashboardRoute: ApiDispatcherDashboardRoute,
   ApiDispatcherDealsRoute: ApiDispatcherDealsRouteWithChildren,
@@ -6180,6 +6355,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
+  ApiPublicCarrierRegisterRoute: ApiPublicCarrierRegisterRoute,
   ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
@@ -6194,13 +6370,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
