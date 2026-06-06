@@ -97,15 +97,17 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       const t = v.trim();
       return t === "" ? null : t;
     };
+    const initialCarrierKind = initial?.carrier_kind;
+    const initialVerificationStatus = initial?.verification_status;
     const safeCarrierKind: CarrierKind = isCarrierKind(kind)
       ? kind
-      : isCarrierKind(initial?.carrier_kind)
-        ? initial.carrier_kind
+      : isCarrierKind(initialCarrierKind)
+        ? initialCarrierKind
         : "individual_entrepreneur";
     const safeVerificationStatus: CarrierStatus = isCarrierStatus(status)
       ? status
-      : isCarrierStatus(initial?.verification_status)
-        ? initial.verification_status
+      : isCarrierStatus(initialVerificationStatus)
+        ? initialVerificationStatus
         : "new";
     onSubmit({
       name: name.trim(),
