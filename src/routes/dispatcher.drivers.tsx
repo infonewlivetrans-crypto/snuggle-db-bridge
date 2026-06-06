@@ -206,7 +206,7 @@ function DriversPage() {
       </Dialog>
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewing?.full_name ?? "Водитель"}</DialogTitle>
             <DialogDescription>Карточка водителя.</DialogDescription>
