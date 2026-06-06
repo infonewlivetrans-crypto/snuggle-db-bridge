@@ -81,11 +81,12 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setError("Название обязательно");
       return;
     }
-    const rate = Number(commissionRate);
-    if (!Number.isFinite(rate) || rate < 0 || rate > 1) {
-      setError("Комиссия должна быть числом 0..1");
+    const percent = Number(commissionRate);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      setError("Комиссия должна быть числом 0..100 (%)");
       return;
     }
+    const rate = percent / 100;
     const blank = (v: string) => {
       const t = v.trim();
       return t === "" ? null : t;
