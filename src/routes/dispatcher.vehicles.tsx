@@ -281,6 +281,7 @@ function VehiclesPage() {
               <Row label="Комментарий по ставке" value={viewing.rate_comment ?? "—"} />
               <Row label="Статус" value={<StatusBadge status={viewing.dispatcher_status} label={VEHICLE_STATUS_LABELS[viewing.dispatcher_status as keyof typeof VEHICLE_STATUS_LABELS] ?? viewing.dispatcher_status} />} />
               <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
+              <DispatcherDocumentsBlock ownerType="vehicle" ownerId={viewing.id} />
             </div>
           )}
         </DialogContent>
