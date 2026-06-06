@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { landingPathForRoles } from "@/lib/auth/roles";
@@ -111,6 +111,12 @@ export function LoginPage() {
           <Button type="submit" className="w-full" disabled={busy}>
             {busy ? "Входим…" : "Войти"}
           </Button>
+          <div className="text-center text-sm text-muted-foreground">
+            Перевозчик?{" "}
+            <Link to="/carrier/register" className="font-medium text-foreground underline-offset-2 hover:underline">
+              Зарегистрироваться
+            </Link>
+          </div>
           <div
             className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
             aria-live="polite"
