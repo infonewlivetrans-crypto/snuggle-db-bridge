@@ -223,7 +223,6 @@ function DriversPage() {
               <Row label="Статус" value={<StatusBadge status={viewing.dispatcher_status} label={DRIVER_STATUS_LABELS[viewing.dispatcher_status as keyof typeof DRIVER_STATUS_LABELS] ?? viewing.dispatcher_status} />} />
               <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
               <div className="pt-3"><ContactLinks phone={viewing.phone} whatsapp={viewing.whatsapp} telegram={viewing.telegram} max_messenger={viewing.max_messenger} email={viewing.email} /></div>
-              <div className="pt-3"><ContactLinks phone={viewing.phone} whatsapp={viewing.whatsapp} telegram={viewing.telegram} max_messenger={viewing.max_messenger} email={viewing.email} /></div>
               <DispatcherDocumentsBlock ownerType="driver" ownerId={viewing.id} />
             </div>
           )}
