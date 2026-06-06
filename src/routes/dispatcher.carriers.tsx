@@ -21,6 +21,7 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierForm } from "@/components/dispatcher/CarrierForm";
 import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistrationBlock";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
