@@ -67,7 +67,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setBankAccount(empty(initial.bank_account));
       setBankBik(empty(initial.bank_bik));
       setBankCorr(empty(initial.bank_corr_account));
-      setCommissionRate(String(initial.commission_rate ?? 0.05));
+      setCommissionRate(String(Math.round(((initial.commission_rate ?? 0.05) * 100) * 100) / 100));
       setPaymentMethod(empty(initial.payment_method));
       setStatus((initial.verification_status as CarrierStatus) ?? "new");
       setComment(empty(initial.dispatcher_comment));
