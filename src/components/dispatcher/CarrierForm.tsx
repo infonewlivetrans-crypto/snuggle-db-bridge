@@ -45,7 +45,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
   const [bankAccount, setBankAccount] = useState("");
   const [bankBik, setBankBik] = useState("");
   const [bankCorr, setBankCorr] = useState("");
-  const [commissionRate, setCommissionRate] = useState("0.05");
+  const [commissionRate, setCommissionRate] = useState("5");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [status, setStatus] = useState<CarrierStatus>("new");
   const [comment, setComment] = useState("");
