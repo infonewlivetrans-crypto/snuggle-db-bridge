@@ -17,6 +17,7 @@ import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { VehicleForm } from "@/components/dispatcher/VehicleForm";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { vehiclesApi, driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { VehicleCreateInput } from "@/lib/dispatcher/schemas";
