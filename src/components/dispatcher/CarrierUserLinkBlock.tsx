@@ -34,6 +34,7 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
   const [loading, setLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [invitesOpen, setInvitesOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
