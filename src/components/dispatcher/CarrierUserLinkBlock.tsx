@@ -516,16 +516,17 @@ function InviteLinksDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Ссылки для регистрации перевозчика</DialogTitle>
+          <DialogTitle>Ссылка перевозчику — активация кабинета</DialogTitle>
           <DialogDescription>
-            Создайте одноразовую ссылку и передайте перевозчику. Он сам введёт email и пароль —
-            сервисный ключ не используется.
+            Отправьте эту ссылку перевозчику. Он создаст логин и пароль для входа в кабинет.
+            Это ссылка на /carrier/activate/… — не путайте со ссылкой водителю
+            (/driver/register/…), которую создаёт сам перевозчик в своём кабинете.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <Button size="sm" onClick={createOne} disabled={creating}>
             {creating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Mail className="mr-1 h-4 w-4" />}
-            Создать новую ссылку (14 дней)
+            Создать ссылку для кабинета перевозчика (14 дней)
           </Button>
           <div className="max-h-80 space-y-2 overflow-y-auto">
             {loading && (
