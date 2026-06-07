@@ -909,6 +909,44 @@ export type Database = {
           },
         ]
       }
+      dispatcher_carrier_users: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dispatcher_carrier_ext_id: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dispatcher_carrier_ext_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dispatcher_carrier_ext_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_carrier_users_dispatcher_carrier_ext_id_fkey"
+            columns: ["dispatcher_carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_deals: {
         Row: {
           addon_freight_ids: string[]
