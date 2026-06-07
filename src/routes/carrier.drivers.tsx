@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, UserPlus, Users } from "lucide-react";
+import { AlertCircle, Loader2, UserPlus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,14 +28,53 @@ type DriverRow = {
   vehicles: Array<{ id: string; vehicle_kind: string | null }>;
 };
 
+type Me = { ok: boolean; reason?: string; error?: string };
+
 function CarrierDriversPage() {
   const [inviteOpen, setInviteOpen] = useState(false);
+
+  const meQ = useQuery({
+    queryKey: ["carrier", "me"],
+    queryFn: () => apiGetAuth<Me>("/api/carrier/me", 10000),
+    retry: false,
+  });
+
+  const notLinked =
+    meQ.data &&
+    !meQ.data.ok &&
+    (meQ.data.reason === "no_carrier_linked" || meQ.data.error === "no_carrier_linked");
 
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "drivers"],
     queryFn: () => apiGetAuth<{ rows: DriverRow[] }>("/api/carrier/drivers", 10000),
+    enabled: meQ.data?.ok === true,
   });
   const drivers = data?.rows ?? [];
+
+  if (meQ.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-10 text-muted-foreground">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+      </div>
+    );
+  }
+
+  if (notLinked) {
+    return (
+      <Card>
+        <CardContent className="space-y-2 py-10 text-center text-sm">
+          <div className="flex items-center justify-center text-amber-600">
+            <AlertCircle className="mr-2 h-5 w-5" />
+            <span className="font-medium">Кабинет перевозчика ещё не активирован</span>
+          </div>
+          <p className="text-muted-foreground">
+            Сначала создайте ссылку активации в карточке перевозчика у диспетчера.
+            После того как перевозчик войдёт по ссылке, здесь можно будет приглашать водителей.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -56,8 +95,8 @@ function CarrierDriversPage() {
             <Users className="h-8 w-8" />
             <div>Пока нет привязанных водителей.</div>
             <div>
-              Нажмите «Пригласить водителя» — получите ссылку и отправьте её водителю.
-              По ссылке он сможет зарегистрироваться и автоматически попасть в ваш список.
+              Нажмите «Пригласить водителя» — получите <strong>ссылку водителю</strong> и
+              отправьте её. По ссылке он сам зарегистрируется и попадёт в ваш список.
             </div>
           </CardContent>
         </Card>
