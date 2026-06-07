@@ -109,13 +109,13 @@ function CarrierOverviewPage() {
             <AlertCircle className="mr-2 h-5 w-5" />
             <span className="font-medium">
               {isNotLinked
-                ? "Кабинет перевозчика не связан с карточкой"
+                ? "Кабинет перевозчика ещё не активирован"
                 : "Не удалось загрузить данные перевозчика"}
             </span>
           </div>
           <p className="text-muted-foreground">
             {isNotLinked
-              ? "Ваша учётная запись пока не связана с карточкой перевозчика. Обратитесь к администратору."
+              ? "Этот пользователь ещё не связан с карточкой перевозчика. Попросите диспетчера отправить ссылку активации кабинета перевозчика (/carrier/activate/…)."
               : "Попробуйте обновить страницу или зайдите позже."}
           </p>
           {isAdmin && (data?.user_id || data?.profile_carrier_id !== undefined) && (
