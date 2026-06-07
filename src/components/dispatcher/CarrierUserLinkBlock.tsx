@@ -33,6 +33,7 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
   const [info, setInfo] = useState<LinkInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
