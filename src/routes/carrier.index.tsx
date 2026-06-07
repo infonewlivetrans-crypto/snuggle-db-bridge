@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+
+const PENDING_KEY = "rt-carrier-activate-token";
 
 export const Route = createFileRoute("/carrier/")({
   head: () => ({ meta: [{ title: "Мои данные — кабинет перевозчика" }] }),
