@@ -97,9 +97,14 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
           <p className="text-muted-foreground">
             Кабинет перевозчика заработает только после привязки пользователя с ролью «Перевозчик».
           </p>
-          <Button size="sm" onClick={() => setPickerOpen(true)}>
-            <Link2 className="mr-1 h-4 w-4" /> Связать пользователя
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => setPickerOpen(true)}>
+              <Link2 className="mr-1 h-4 w-4" /> Связать пользователя
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
+              <UserPlus className="mr-1 h-4 w-4" /> Создать пользователя перевозчика
+            </Button>
+          </div>
         </div>
       )}
 
@@ -120,6 +125,13 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
           />
         </DialogContent>
       </Dialog>
+
+      <CreateCarrierUserDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        extId={carrierExtId}
+        onCreated={load}
+      />
     </div>
   );
 }
