@@ -181,6 +181,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
 import { Route as DriverRegisterTokenRouteImport } from './routes/driver.register.$token'
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
+import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiWarehouseDockEventsIdRouteImport } from './routes/api/warehouse-dock-events.$id'
@@ -1163,6 +1164,11 @@ const DispatcherRegisterTokenRoute = DispatcherRegisterTokenRouteImport.update({
   path: '/dispatcher/register/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarrierActivateTokenRoute = CarrierActivateTokenRouteImport.update({
+  id: '/activate/$token',
+  path: '/activate/$token',
+  getParentRoute: () => CarrierRoute,
+} as any)
 const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
   id: '/api/workspace/summary',
   path: '/api/workspace/summary',
@@ -2009,6 +2015,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2295,6 +2302,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2583,6 +2591,7 @@ export interface FileRoutesById {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2872,6 +2881,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/carrier/activate/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -3158,6 +3168,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/carrier/activate/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -3445,6 +3456,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/carrier/activate/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -4900,6 +4912,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DispatcherRegisterTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carrier/activate/$token': {
+      id: '/carrier/activate/$token'
+      path: '/activate/$token'
+      fullPath: '/carrier/activate/$token'
+      preLoaderRoute: typeof CarrierActivateTokenRouteImport
+      parentRoute: typeof CarrierRoute
+    }
     '/api/workspace/summary': {
       id: '/api/workspace/summary'
       path: '/api/workspace/summary'
@@ -5700,6 +5719,7 @@ interface CarrierRouteChildren {
   CarrierTripsRoute: typeof CarrierTripsRoute
   CarrierVehiclesRoute: typeof CarrierVehiclesRoute
   CarrierIndexRoute: typeof CarrierIndexRoute
+  CarrierActivateTokenRoute: typeof CarrierActivateTokenRoute
 }
 
 const CarrierRouteChildren: CarrierRouteChildren = {
@@ -5708,6 +5728,7 @@ const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierTripsRoute: CarrierTripsRoute,
   CarrierVehiclesRoute: CarrierVehiclesRoute,
   CarrierIndexRoute: CarrierIndexRoute,
+  CarrierActivateTokenRoute: CarrierActivateTokenRoute,
 }
 
 const CarrierRouteWithChildren =
