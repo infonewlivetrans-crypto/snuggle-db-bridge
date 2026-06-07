@@ -432,3 +432,144 @@ function CreateCarrierUserDialog({
   );
 }
 
+
+type InviteRow = {
+  id: string;
+  token: string;
+  expires_at: string;
+  used_at: string | null;
+  used_by: string | null;
+  revoked_at: string | null;
+  created_at: string;
+};
+
+function buildActivateUrl(token: string): string {
+  const base =
+    (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/+$/, "") ||
+    (typeof window !== "undefined" ? window.location.origin : "");
+  return `${base}/carrier/activate/${token}`;
+}
+
+function InviteLinksDialog({
+  open, onOpenChange, extId, onClaimed,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  extId: string;
+  onClaimed: () => void | Promise<void>;
+}) {
+  const [rows, setRows] = useState<InviteRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await apiGetAuth<{ rows: InviteRow[] }>(
+        `/api/dispatcher/carrier-link/invites?ext_id=${encodeURIComponent(extId)}`,
+        10000,
+      );
+      setRows(r.rows ?? []);
+      // если кто-то уже активировал ссылку — обновим карточку
+      if ((r.rows ?? []).some((x) => x.used_at)) await onClaimed();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось загрузить ссылки");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { if (open) void load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [open, extId]);
+
+  const createOne = async () => {
+    setCreating(true);
+    try {
+      await apiPost("/api/dispatcher/carrier-link/invites", { ext_id: extId, ttl_days: 14 }, 15000);
+      await load();
+      toast.success("Ссылка создана");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось создать ссылку");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const revoke = async (id: string) => {
+    if (!confirm("Отозвать ссылку?")) return;
+    try {
+      await apiDelete(`/api/dispatcher/carrier-link/invites?id=${encodeURIComponent(id)}`);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
+
+  const copy = async (url: string) => {
+    try { await navigator.clipboard.writeText(url); toast.success("Ссылка скопирована"); }
+    catch { toast.error("Не удалось скопировать"); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>Ссылки для регистрации перевозчика</DialogTitle>
+          <DialogDescription>
+            Создайте одноразовую ссылку и передайте перевозчику. Он сам введёт email и пароль —
+            сервисный ключ не используется.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <Button size="sm" onClick={createOne} disabled={creating}>
+            {creating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Mail className="mr-1 h-4 w-4" />}
+            Создать новую ссылку (14 дней)
+          </Button>
+          <div className="max-h-80 space-y-2 overflow-y-auto">
+            {loading && (
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+              </div>
+            )}
+            {!loading && rows.length === 0 && (
+              <div className="text-sm text-muted-foreground">
+                Пока нет ссылок. Создайте первую.
+              </div>
+            )}
+            {rows.map((r) => {
+              const url = buildActivateUrl(r.token);
+              const expired = new Date(r.expires_at) < new Date();
+              const status =
+                r.revoked_at ? { label: "Отозвана", tone: "outline" as const }
+                : r.used_at ? { label: "Активирована", tone: "default" as const }
+                : expired ? { label: "Истекла", tone: "outline" as const }
+                : { label: "Активна", tone: "secondary" as const };
+              return (
+                <div key={r.id} className="space-y-1 rounded-md border p-2 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge variant={status.tone}>{status.label}</Badge>
+                    <span className="text-xs text-muted-foreground">
+                      до {new Date(r.expires_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input value={url} readOnly className="font-mono text-xs" />
+                    <Button size="sm" variant="outline" onClick={() => copy(url)}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    {!r.used_at && !r.revoked_at && (
+                      <Button size="sm" variant="outline" onClick={() => revoke(r.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Закрыть</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
