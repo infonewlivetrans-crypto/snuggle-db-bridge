@@ -67,13 +67,13 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
   return (
     <div className="rounded-md border p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="font-medium">Пользователь кабинета перевозчика</span>
+        <span className="font-medium">Кабинет перевозчика</span>
         {info?.link ? (
           <Badge variant="default" className="gap-1">
-            <UserCheck className="h-3 w-3" /> Связан
+            <UserCheck className="h-3 w-3" /> Активирован
           </Badge>
         ) : (
-          <Badge variant="outline">Не связан</Badge>
+          <Badge variant="outline">Не активирован</Badge>
         )}
       </div>
 
@@ -96,12 +96,16 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
       ) : (
         <div className="space-y-2 text-sm">
           <p className="text-muted-foreground">
-            Кабинет перевозчика заработает только после привязки пользователя с ролью «Перевозчик».
-            Рекомендованный способ — создать ссылку для регистрации, перевозчик сам заведёт логин и пароль.
+            Создайте ссылку для активации кабинета и отправьте её перевозчику.
+            Он сам создаст логин и пароль для входа в кабинет.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Это <strong>ссылка перевозчику</strong> (/carrier/activate/…). Не путать со
+            ссылкой водителю (/driver/register/…) — её создаёт сам перевозчик в своём кабинете.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => setInvitesOpen(true)}>
-              <Mail className="mr-1 h-4 w-4" /> Создать ссылку для входа перевозчика
+              <Mail className="mr-1 h-4 w-4" /> Создать ссылку для кабинета перевозчика
             </Button>
             <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
               <Link2 className="mr-1 h-4 w-4" /> Связать существующего
@@ -512,16 +516,17 @@ function InviteLinksDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle>Ссылки для регистрации перевозчика</DialogTitle>
+          <DialogTitle>Ссылка перевозчику — активация кабинета</DialogTitle>
           <DialogDescription>
-            Создайте одноразовую ссылку и передайте перевозчику. Он сам введёт email и пароль —
-            сервисный ключ не используется.
+            Отправьте эту ссылку перевозчику. Он создаст логин и пароль для входа в кабинет.
+            Это ссылка на /carrier/activate/… — не путайте со ссылкой водителю
+            (/driver/register/…), которую создаёт сам перевозчик в своём кабинете.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <Button size="sm" onClick={createOne} disabled={creating}>
             {creating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Mail className="mr-1 h-4 w-4" />}
-            Создать новую ссылку (14 дней)
+            Создать ссылку для кабинета перевозчика (14 дней)
           </Button>
           <div className="max-h-80 space-y-2 overflow-y-auto">
             {loading && (
