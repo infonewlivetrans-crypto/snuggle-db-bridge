@@ -74,10 +74,11 @@ export function InviteDriverDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Пригласить водителя</DialogTitle>
+          <DialogTitle>Ссылка водителю — пригласить в кабинет</DialogTitle>
           <DialogDescription>
-            Создайте ссылку и отправьте водителю любым удобным способом. Ссылку можно
-            открывать с любого устройства и пересылать повторно, пока не истёк срок действия.
+            Создайте ссылку (/driver/register/…) и отправьте водителю любым удобным способом.
+            По этой ссылке он зарегистрируется и автоматически попадёт в ваш список.
+            Это <strong>ссылка водителю</strong> — не та же, что ссылка перевозчику.
           </DialogDescription>
         </DialogHeader>
 
