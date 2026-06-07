@@ -272,6 +272,7 @@ import { Route as ApiDispatcherDealsFromMatchRouteImport } from './routes/api/di
 import { Route as ApiDispatcherDealsIdRouteImport } from './routes/api/dispatcher/deals.$id'
 import { Route as ApiDispatcherCarriersIdRouteImport } from './routes/api/dispatcher/carriers.$id'
 import { Route as ApiDispatcherCarrierLinkUsersRouteImport } from './routes/api/dispatcher/carrier-link.users'
+import { Route as ApiDispatcherCarrierLinkCreateUserRouteImport } from './routes/api/dispatcher/carrier-link.create-user'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -1638,6 +1639,12 @@ const ApiDispatcherCarrierLinkUsersRoute =
     path: '/users',
     getParentRoute: () => ApiDispatcherCarrierLinkRoute,
   } as any)
+const ApiDispatcherCarrierLinkCreateUserRoute =
+  ApiDispatcherCarrierLinkCreateUserRouteImport.update({
+    id: '/create-user',
+    path: '/create-user',
+    getParentRoute: () => ApiDispatcherCarrierLinkRoute,
+  } as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -2006,6 +2013,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
@@ -2290,6 +2298,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
@@ -2576,6 +2585,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
@@ -2863,6 +2873,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/users'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
@@ -3147,6 +3158,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/users'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
@@ -3432,6 +3444,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/users'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
@@ -5511,6 +5524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCarrierLinkUsersRouteImport
       parentRoute: typeof ApiDispatcherCarrierLinkRoute
     }
+    '/api/dispatcher/carrier-link/create-user': {
+      id: '/api/dispatcher/carrier-link/create-user'
+      path: '/create-user'
+      fullPath: '/api/dispatcher/carrier-link/create-user'
+      preLoaderRoute: typeof ApiDispatcherCarrierLinkCreateUserRouteImport
+      parentRoute: typeof ApiDispatcherCarrierLinkRoute
+    }
     '/api/delivery-routes/$id/driver-geo': {
       id: '/api/delivery-routes/$id/driver-geo'
       path: '/driver-geo'
@@ -6171,11 +6191,14 @@ const ApiCarrierVehiclesRouteWithChildren =
   ApiCarrierVehiclesRoute._addFileChildren(ApiCarrierVehiclesRouteChildren)
 
 interface ApiDispatcherCarrierLinkRouteChildren {
+  ApiDispatcherCarrierLinkCreateUserRoute: typeof ApiDispatcherCarrierLinkCreateUserRoute
   ApiDispatcherCarrierLinkUsersRoute: typeof ApiDispatcherCarrierLinkUsersRoute
 }
 
 const ApiDispatcherCarrierLinkRouteChildren: ApiDispatcherCarrierLinkRouteChildren =
   {
+    ApiDispatcherCarrierLinkCreateUserRoute:
+      ApiDispatcherCarrierLinkCreateUserRoute,
     ApiDispatcherCarrierLinkUsersRoute: ApiDispatcherCarrierLinkUsersRoute,
   }
 
