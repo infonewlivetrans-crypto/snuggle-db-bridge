@@ -336,7 +336,14 @@ function CreateCarrierUserDialog({
       toast.success("Пользователь создан");
       await onCreated();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Не удалось создать пользователя");
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/admin_unavailable|503|invalid api key/i.test(msg)) {
+        toast.error(
+          "На этом сервере создание пользователя администратором недоступно. Создайте ссылку для регистрации перевозчика.",
+        );
+      } else {
+        toast.error(msg || "Не удалось создать пользователя");
+      }
     } finally {
       setSubmitting(false);
     }
