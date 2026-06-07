@@ -583,17 +583,27 @@ function InviteLinksDialog({
                       до {new Date(r.expires_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Input value={url} readOnly className="font-mono text-xs" />
-                    <Button size="sm" variant="outline" onClick={() => copy(url)}>
+                    <Button size="sm" variant="outline" onClick={() => copy(url)} title="Скопировать">
                       <Copy className="h-4 w-4" />
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => checkLink(r.token)}
+                      disabled={checking === r.token}
+                      title="Проверить ссылку"
+                    >
+                      {checking === r.token ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                    </Button>
                     {!r.used_at && !r.revoked_at && (
-                      <Button size="sm" variant="outline" onClick={() => revoke(r.id)}>
+                      <Button size="sm" variant="outline" onClick={() => revoke(r.id)} title="Отозвать">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
+
                 </div>
               );
             })}
