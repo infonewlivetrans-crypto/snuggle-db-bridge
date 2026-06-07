@@ -67,13 +67,13 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
   return (
     <div className="rounded-md border p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="font-medium">Пользователь кабинета перевозчика</span>
+        <span className="font-medium">Кабинет перевозчика</span>
         {info?.link ? (
           <Badge variant="default" className="gap-1">
-            <UserCheck className="h-3 w-3" /> Связан
+            <UserCheck className="h-3 w-3" /> Активирован
           </Badge>
         ) : (
-          <Badge variant="outline">Не связан</Badge>
+          <Badge variant="outline">Не активирован</Badge>
         )}
       </div>
 
@@ -96,12 +96,16 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
       ) : (
         <div className="space-y-2 text-sm">
           <p className="text-muted-foreground">
-            Кабинет перевозчика заработает только после привязки пользователя с ролью «Перевозчик».
-            Рекомендованный способ — создать ссылку для регистрации, перевозчик сам заведёт логин и пароль.
+            Создайте ссылку для активации кабинета и отправьте её перевозчику.
+            Он сам создаст логин и пароль для входа в кабинет.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Это <strong>ссылка перевозчику</strong> (/carrier/activate/…). Не путать со
+            ссылкой водителю (/driver/register/…) — её создаёт сам перевозчик в своём кабинете.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={() => setInvitesOpen(true)}>
-              <Mail className="mr-1 h-4 w-4" /> Создать ссылку для входа перевозчика
+              <Mail className="mr-1 h-4 w-4" /> Создать ссылку для кабинета перевозчика
             </Button>
             <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
               <Link2 className="mr-1 h-4 w-4" /> Связать существующего
