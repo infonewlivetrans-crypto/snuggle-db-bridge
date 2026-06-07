@@ -27,21 +27,16 @@ export const Route = createFileRoute("/api/carrier/me")({
         const profileCarrierId =
           (profile as { carrier_id: string | null } | null)?.carrier_id ?? null;
 
-        if (!profileCarrierId) {
-          return jsonResponse(
-            {
-              ok: false,
-              error: "no_carrier_linked",
-              reason: "no_carrier_linked",
-              user_id: auth.userId,
-              profile_carrier_id: null,
-              profile,
-            },
-            { status: 404 },
-          );
-        }
+        // (1) Связь через dispatcher_carrier_users.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const link = await (admin.from("dispatcher_carrier_users" as never) as any)
+          .select("dispatcher_carrier_ext_id")
+          .eq("user_id", auth.userId)
+          .eq("status", "active")
+          .maybeSingle();
+        const linkExtId = link?.data?.dispatcher_carrier_ext_id as string | undefined;
 
-        // Ищем ext-запись всеми возможными способами.
+        // (2) Поиск ext-записи.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tryFind = async (column: string, value: string) =>
           (admin.from("dispatcher_carrier_ext") as any)
@@ -49,13 +44,33 @@ export const Route = createFileRoute("/api/carrier/me")({
             .eq(column, value)
             .maybeSingle();
 
-        let extResult = await tryFind("id", profileCarrierId);
-        if (!extResult.data) extResult = await tryFind("carrier_id", profileCarrierId);
-        if (!extResult.data) extResult = await tryFind("production_carrier_id", profileCarrierId);
+        let extResult: { data: Record<string, unknown> | null } = { data: null };
+        if (linkExtId) extResult = await tryFind("id", linkExtId);
+        if (!extResult.data && profileCarrierId) {
+          extResult = await tryFind("id", profileCarrierId);
+          if (!extResult.data) extResult = await tryFind("carrier_id", profileCarrierId);
+          if (!extResult.data) extResult = await tryFind("production_carrier_id", profileCarrierId);
+        }
 
-        const ext = extResult.data as Record<string, unknown> | null;
+        if (!extResult.data) {
+          return jsonResponse(
+            {
+              ok: false,
+              error: "no_carrier_linked",
+              reason: "no_carrier_linked",
+              user_id: auth.userId,
+              profile_carrier_id: profileCarrierId,
+              profile,
+            },
+            { status: 404 },
+          );
+        }
+
+        const ext = extResult.data as Record<string, unknown>;
         const carrierId =
-          (ext?.carrier_id as string | undefined) ?? profileCarrierId;
+          ((ext?.carrier_id as string | undefined) ??
+            profileCarrierId ??
+            linkExtId) as string;
 
         const { data: carrier } = await admin
           .from("carriers")
