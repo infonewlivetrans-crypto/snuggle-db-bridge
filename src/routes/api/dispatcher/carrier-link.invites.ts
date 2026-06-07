@@ -2,20 +2,24 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   jsonResponse,
-  makeAdminClient,
   requireAnyRole,
 } from "@/server/api-helpers.server";
 
 // Управление ссылками для регистрации кабинета перевозчика
-// (carrier_account_links). Использует service_role для записи токена,
-// но НЕ создаёт auth-пользователя. Сам аккаунт создаёт перевозчик
-// публично через supabase.auth.signUp, а связь оформляется SECURITY DEFINER
-// RPC claim_carrier_account_link(token) уже от имени нового пользователя.
+// (carrier_account_links).
+//
+// Использует user-scoped supabase client (НЕ service_role) — RLS на таблице
+// разрешает admin/dispatcher делать всё. Это критично: на VPS service_role
+// может быть невалиден, а этот flow обязан работать.
+//
+// Сам аккаунт перевозчика создаёт пользователь публично через
+// supabase.auth.signUp, а связь оформляется SECURITY DEFINER RPC
+// claim_carrier_account_link(token) уже от имени нового пользователя.
 //
 // Методы:
 //   GET    ?ext_id=...           → список ссылок для карточки
 //   POST   { ext_id, ttl_days? } → создать новую ссылку
-//   DELETE ?id=...               → отозвать ссылку (revoked_at = now())
+//   DELETE ?id=...               → отозвать ссылку
 
 const PostSchema = z.object({
   ext_id: z.string().uuid(),
@@ -33,7 +37,6 @@ type LinkRow = {
 };
 
 function randomToken(): string {
-  // 32 hex chars; криптостойко на VPS (Node crypto) и в воркере.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c: Crypto | undefined = (globalThis as any).crypto;
   if (c?.getRandomValues) {
@@ -56,9 +59,8 @@ export const Route = createFileRoute("/api/dispatcher/carrier-link/invites")({
         const extId = url.searchParams.get("ext_id");
         if (!extId) return jsonResponse({ error: "ext_id required" }, { status: 400 });
 
-        const admin = makeAdminClient();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (admin.from("carrier_account_links" as never) as any)
+        const { data, error } = await (auth.client.from("carrier_account_links" as never) as any)
           .select("id, token, expires_at, used_at, used_by, revoked_at, created_at")
           .eq("dispatcher_carrier_ext_id", extId)
           .order("created_at", { ascending: false });
@@ -80,17 +82,16 @@ export const Route = createFileRoute("/api/dispatcher/carrier-link/invites")({
           );
         }
         const { ext_id, ttl_days } = parsed.data;
-        const admin = makeAdminClient();
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ext = await (admin.from("dispatcher_carrier_ext") as any)
+        const ext = await (auth.client.from("dispatcher_carrier_ext") as any)
           .select("id").eq("id", ext_id).maybeSingle();
         if (!ext.data) return jsonResponse({ error: "ext_not_found" }, { status: 404 });
 
         const token = randomToken();
         const expires = new Date(Date.now() + ttl_days * 86400_000).toISOString();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const ins = await (admin.from("carrier_account_links" as never) as any)
+        const ins = await (auth.client.from("carrier_account_links" as never) as any)
           .insert({
             token,
             dispatcher_carrier_ext_id: ext_id,
@@ -109,9 +110,8 @@ export const Route = createFileRoute("/api/dispatcher/carrier-link/invites")({
         const url = new URL(request.url);
         const id = url.searchParams.get("id");
         if (!id) return jsonResponse({ error: "id required" }, { status: 400 });
-        const admin = makeAdminClient();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error } = await (admin.from("carrier_account_links" as never) as any)
+        const { error } = await (auth.client.from("carrier_account_links" as never) as any)
           .update({ revoked_at: new Date().toISOString() })
           .eq("id", id);
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
