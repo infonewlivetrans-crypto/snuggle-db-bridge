@@ -158,6 +158,50 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_account_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dispatcher_carrier_ext_id: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dispatcher_carrier_ext_id: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          token: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dispatcher_carrier_ext_id?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_account_links_dispatcher_carrier_ext_id_fkey"
+            columns: ["dispatcher_carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_documents: {
         Row: {
           carrier_id: string | null
@@ -5288,6 +5332,7 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: number
       }
+      claim_carrier_account_link: { Args: { _token: string }; Returns: Json }
       default_company_id: { Args: { _user_id: string }; Returns: string }
       dispatcher_invite_complete: {
         Args: { p_consent: Json; p_token: string }
@@ -5338,6 +5383,17 @@ export type Database = {
       generate_inbound_shipment_number: { Args: never; Returns: string }
       generate_route_number: { Args: never; Returns: string }
       generate_supply_request_number: { Args: never; Returns: string }
+      get_carrier_account_link: {
+        Args: { _token: string }
+        Returns: {
+          carrier_name: string
+          expired: boolean
+          expires_at: string
+          ext_id: string
+          revoked: boolean
+          used: boolean
+        }[]
+      }
       get_client_by_portal_token: {
         Args: { _token: string }
         Returns: {

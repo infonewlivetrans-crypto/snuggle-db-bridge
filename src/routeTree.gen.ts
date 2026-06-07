@@ -181,6 +181,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
 import { Route as DriverRegisterTokenRouteImport } from './routes/driver.register.$token'
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
+import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
 import { Route as ApiWarehouseDockEventsIdRouteImport } from './routes/api/warehouse-dock-events.$id'
@@ -272,6 +273,7 @@ import { Route as ApiDispatcherDealsFromMatchRouteImport } from './routes/api/di
 import { Route as ApiDispatcherDealsIdRouteImport } from './routes/api/dispatcher/deals.$id'
 import { Route as ApiDispatcherCarriersIdRouteImport } from './routes/api/dispatcher/carriers.$id'
 import { Route as ApiDispatcherCarrierLinkUsersRouteImport } from './routes/api/dispatcher/carrier-link.users'
+import { Route as ApiDispatcherCarrierLinkInvitesRouteImport } from './routes/api/dispatcher/carrier-link.invites'
 import { Route as ApiDispatcherCarrierLinkCreateUserRouteImport } from './routes/api/dispatcher/carrier-link.create-user'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
@@ -1162,6 +1164,11 @@ const DispatcherRegisterTokenRoute = DispatcherRegisterTokenRouteImport.update({
   path: '/dispatcher/register/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarrierActivateTokenRoute = CarrierActivateTokenRouteImport.update({
+  id: '/activate/$token',
+  path: '/activate/$token',
+  getParentRoute: () => CarrierRoute,
+} as any)
 const ApiWorkspaceSummaryRoute = ApiWorkspaceSummaryRouteImport.update({
   id: '/api/workspace/summary',
   path: '/api/workspace/summary',
@@ -1639,6 +1646,12 @@ const ApiDispatcherCarrierLinkUsersRoute =
     path: '/users',
     getParentRoute: () => ApiDispatcherCarrierLinkRoute,
   } as any)
+const ApiDispatcherCarrierLinkInvitesRoute =
+  ApiDispatcherCarrierLinkInvitesRouteImport.update({
+    id: '/invites',
+    path: '/invites',
+    getParentRoute: () => ApiDispatcherCarrierLinkRoute,
+  } as any)
 const ApiDispatcherCarrierLinkCreateUserRoute =
   ApiDispatcherCarrierLinkCreateUserRouteImport.update({
     id: '/create-user',
@@ -2002,6 +2015,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2014,6 +2028,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
+  '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
@@ -2287,6 +2302,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2299,6 +2315,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
+  '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
@@ -2574,6 +2591,7 @@ export interface FileRoutesById {
   '/api/warehouse-dock-events/$id': typeof ApiWarehouseDockEventsIdRoute
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
+  '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2586,6 +2604,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
+  '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
@@ -2862,6 +2881,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/carrier/activate/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -2874,6 +2894,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/dispatcher/carrier-link/create-user'
+    | '/api/dispatcher/carrier-link/invites'
     | '/api/dispatcher/carrier-link/users'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
@@ -3147,6 +3168,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/carrier/activate/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -3159,6 +3181,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/dispatcher/carrier-link/create-user'
+    | '/api/dispatcher/carrier-link/invites'
     | '/api/dispatcher/carrier-link/users'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
@@ -3433,6 +3456,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-dock-events/$id'
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
+    | '/carrier/activate/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -3445,6 +3469,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
     | '/api/dispatcher/carrier-link/create-user'
+    | '/api/dispatcher/carrier-link/invites'
     | '/api/dispatcher/carrier-link/users'
     | '/api/dispatcher/carriers/$id'
     | '/api/dispatcher/deals/$id'
@@ -4887,6 +4912,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DispatcherRegisterTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carrier/activate/$token': {
+      id: '/carrier/activate/$token'
+      path: '/activate/$token'
+      fullPath: '/carrier/activate/$token'
+      preLoaderRoute: typeof CarrierActivateTokenRouteImport
+      parentRoute: typeof CarrierRoute
+    }
     '/api/workspace/summary': {
       id: '/api/workspace/summary'
       path: '/api/workspace/summary'
@@ -5524,6 +5556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCarrierLinkUsersRouteImport
       parentRoute: typeof ApiDispatcherCarrierLinkRoute
     }
+    '/api/dispatcher/carrier-link/invites': {
+      id: '/api/dispatcher/carrier-link/invites'
+      path: '/invites'
+      fullPath: '/api/dispatcher/carrier-link/invites'
+      preLoaderRoute: typeof ApiDispatcherCarrierLinkInvitesRouteImport
+      parentRoute: typeof ApiDispatcherCarrierLinkRoute
+    }
     '/api/dispatcher/carrier-link/create-user': {
       id: '/api/dispatcher/carrier-link/create-user'
       path: '/create-user'
@@ -5680,6 +5719,7 @@ interface CarrierRouteChildren {
   CarrierTripsRoute: typeof CarrierTripsRoute
   CarrierVehiclesRoute: typeof CarrierVehiclesRoute
   CarrierIndexRoute: typeof CarrierIndexRoute
+  CarrierActivateTokenRoute: typeof CarrierActivateTokenRoute
 }
 
 const CarrierRouteChildren: CarrierRouteChildren = {
@@ -5688,6 +5728,7 @@ const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierTripsRoute: CarrierTripsRoute,
   CarrierVehiclesRoute: CarrierVehiclesRoute,
   CarrierIndexRoute: CarrierIndexRoute,
+  CarrierActivateTokenRoute: CarrierActivateTokenRoute,
 }
 
 const CarrierRouteWithChildren =
@@ -6192,6 +6233,7 @@ const ApiCarrierVehiclesRouteWithChildren =
 
 interface ApiDispatcherCarrierLinkRouteChildren {
   ApiDispatcherCarrierLinkCreateUserRoute: typeof ApiDispatcherCarrierLinkCreateUserRoute
+  ApiDispatcherCarrierLinkInvitesRoute: typeof ApiDispatcherCarrierLinkInvitesRoute
   ApiDispatcherCarrierLinkUsersRoute: typeof ApiDispatcherCarrierLinkUsersRoute
 }
 
@@ -6199,6 +6241,7 @@ const ApiDispatcherCarrierLinkRouteChildren: ApiDispatcherCarrierLinkRouteChildr
   {
     ApiDispatcherCarrierLinkCreateUserRoute:
       ApiDispatcherCarrierLinkCreateUserRoute,
+    ApiDispatcherCarrierLinkInvitesRoute: ApiDispatcherCarrierLinkInvitesRoute,
     ApiDispatcherCarrierLinkUsersRoute: ApiDispatcherCarrierLinkUsersRoute,
   }
 
