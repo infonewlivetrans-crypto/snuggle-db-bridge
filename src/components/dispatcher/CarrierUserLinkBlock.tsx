@@ -97,13 +97,17 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
         <div className="space-y-2 text-sm">
           <p className="text-muted-foreground">
             Кабинет перевозчика заработает только после привязки пользователя с ролью «Перевозчик».
+            Рекомендованный способ — создать ссылку для регистрации, перевозчик сам заведёт логин и пароль.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => setPickerOpen(true)}>
-              <Link2 className="mr-1 h-4 w-4" /> Связать пользователя
+            <Button size="sm" onClick={() => setInvitesOpen(true)}>
+              <Mail className="mr-1 h-4 w-4" /> Создать ссылку для входа перевозчика
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
+              <Link2 className="mr-1 h-4 w-4" /> Связать существующего
             </Button>
             <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
-              <UserPlus className="mr-1 h-4 w-4" /> Создать пользователя перевозчика
+              <UserPlus className="mr-1 h-4 w-4" /> Создать вручную
             </Button>
           </div>
         </div>
@@ -132,6 +136,13 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
         onOpenChange={setCreateOpen}
         extId={carrierExtId}
         onCreated={load}
+      />
+
+      <InviteLinksDialog
+        open={invitesOpen}
+        onOpenChange={setInvitesOpen}
+        extId={carrierExtId}
+        onClaimed={load}
       />
     </div>
   );
