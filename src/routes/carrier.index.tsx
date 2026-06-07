@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export const Route = createFileRoute("/carrier/")({
   head: () => ({ meta: [{ title: "Мои данные — кабинет перевозчика" }] }),
@@ -13,6 +14,9 @@ export const Route = createFileRoute("/carrier/")({
 type Me = {
   ok: boolean;
   reason?: string;
+  error?: string;
+  user_id?: string;
+  profile_carrier_id?: string | null;
   profile: { full_name: string | null; email: string | null; phone: string | null } | null;
   carrier: {
     id: string;
@@ -45,9 +49,12 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 function CarrierOverviewPage() {
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin");
   const { data, isLoading, error } = useQuery({
     queryKey: ["carrier", "me"],
     queryFn: () => apiGetAuth<Me>("/api/carrier/me", 10000),
+    retry: false,
   });
 
   if (isLoading) {
@@ -58,13 +65,35 @@ function CarrierOverviewPage() {
     );
   }
   if (error || !data?.ok) {
+    const isNotLinked =
+      data?.reason === "no_carrier_linked" || data?.error === "no_carrier_linked";
     return (
       <Card>
-        <CardContent className="py-10 text-center text-sm text-muted-foreground">
-          Не удалось загрузить данные перевозчика.{" "}
-          {data?.reason === "no_carrier_linked"
-            ? "Ваша учётная запись пока не связана с карточкой перевозчика."
-            : null}
+        <CardContent className="space-y-3 py-10 text-center text-sm">
+          <div className="flex items-center justify-center text-amber-600">
+            <AlertCircle className="mr-2 h-5 w-5" />
+            <span className="font-medium">
+              {isNotLinked
+                ? "Кабинет перевозчика не связан с карточкой"
+                : "Не удалось загрузить данные перевозчика"}
+            </span>
+          </div>
+          <p className="text-muted-foreground">
+            {isNotLinked
+              ? "Ваша учётная запись пока не связана с карточкой перевозчика. Обратитесь к администратору."
+              : "Попробуйте обновить страницу или зайдите позже."}
+          </p>
+          {isAdmin && (data?.user_id || data?.profile_carrier_id !== undefined) && (
+            <div className="mx-auto max-w-md rounded-md border border-border bg-muted/40 p-3 text-left text-xs text-muted-foreground">
+              <div>
+                <span className="font-medium">user_id:</span> {data?.user_id ?? "—"}
+              </div>
+              <div>
+                <span className="font-medium">profile.carrier_id:</span>{" "}
+                {data?.profile_carrier_id ?? "—"}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
