@@ -53,28 +53,40 @@ function ActivatePage() {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc(
-        "get_carrier_account_link",
-        { _token: token },
-      );
-      if (cancelled) return;
-      if (error) {
-        setError(error.message);
-      } else if (!data || (Array.isArray(data) && data.length === 0)) {
-        setError("Ссылка не найдена");
-      } else {
-        const row = Array.isArray(data) ? data[0] : data;
-        const li = row as LinkInfo;
-        setInfo(li);
-        if (li.revoked) setError("Ссылка отозвана администратором");
-        else if (li.expired) setError("Срок действия ссылки истёк");
-        else if (li.used) setError("Ссылка уже использована");
+      try {
+        const rpcPromise = (supabase as unknown as {
+          rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+        }).rpc("get_carrier_account_link", { _token: token });
+        const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: { message: "Превышено время ожидания сервера. Проверьте интернет и попробуйте обновить страницу." } }), 12000),
+        );
+        const { data, error } = await Promise.race([rpcPromise, timeout]);
+        if (cancelled) return;
+        if (error) {
+          console.error("[carrier.activate] rpc error", error);
+          setError(error.message);
+        } else if (!data || (Array.isArray(data) && data.length === 0)) {
+          setError("Ссылка не найдена");
+        } else {
+          const row = Array.isArray(data) ? data[0] : data;
+          const li = row as LinkInfo;
+          setInfo(li);
+          if (li.revoked) setError("Ссылка отозвана администратором");
+          else if (li.expired) setError("Срок действия ссылки истёк");
+          else if (li.used) setError("Ссылка уже использована");
+        }
+      } catch (e) {
+        if (cancelled) return;
+        console.error("[carrier.activate] fetch failed", e);
+        setError(e instanceof Error ? e.message : "Ошибка сети");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [token]);
+
+
 
   const submit = async () => {
     if (!fullName.trim() || !email.trim() || password.length < 6) {
