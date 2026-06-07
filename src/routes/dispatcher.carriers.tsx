@@ -312,6 +312,9 @@ function CarrierViewBody({
         formSubmittedAt={row.commission_agreed_at}
       />
 
+      {/* Пользователь кабинета перевозчика */}
+      <CarrierUserLinkBlock carrierExtId={row.id} />
+
       {/* Согласие на комиссию */}
       <div className="rounded-md border p-3 space-y-1">
         <div className="flex items-center justify-between">
