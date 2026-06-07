@@ -207,8 +207,9 @@ function CarrierUserPicker({
         )}
         {!loading && rows.length === 0 && (
           <div className="text-sm text-muted-foreground">
-            Нет пользователей с ролью «Перевозчик»
-            {search ? " по этому запросу" : ""}.
+            {search
+              ? "Нет пользователей-перевозчиков по этому запросу."
+              : "Пользователей-перевозчиков пока нет. Создайте нового пользователя."}
           </div>
         )}
         {rows.map((u) => {
