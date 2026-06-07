@@ -90,9 +90,9 @@ export const Route = createFileRoute("/api/dispatcher/carrier-link")({
       DELETE: async ({ request }) => {
         const auth = await requireAnyRole(request, ["admin", "dispatcher"]);
         if (auth instanceof Response) return auth;
-        let body: unknown;
-        try { body = await request.json(); } catch { return jsonResponse({ error: "invalid_json" }, { status: 400 }); }
-        const parsed = DeleteSchema.safeParse(body);
+        const url = new URL(request.url);
+        const extId = url.searchParams.get("ext_id");
+        const parsed = DeleteSchema.safeParse({ ext_id: extId });
         if (!parsed.success) {
           return jsonResponse({ error: "validation_failed", issues: parsed.error.issues }, { status: 400 });
         }
