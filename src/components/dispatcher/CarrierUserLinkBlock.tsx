@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Link2, Unlink, UserCheck, UserPlus, Copy, RefreshCw, Mail, Trash2 } from "lucide-react";
+import { Loader2, Link2, Unlink, UserCheck, UserPlus, Copy, RefreshCw, Mail, Trash2, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -512,6 +513,33 @@ function InviteLinksDialog({
     catch { toast.error("Не удалось скопировать"); }
   };
 
+  const [checking, setChecking] = useState<string | null>(null);
+  const checkLink = async (token: string) => {
+    setChecking(token);
+    try {
+      const rpcPromise = (supabase as unknown as {
+        rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("get_carrier_account_link", { _token: token });
+      const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: { message: "Таймаут" } }), 10000),
+      );
+      const { data, error } = await Promise.race([rpcPromise, timeout]);
+      if (error) { toast.error(`Ошибка: ${error.message}`); return; }
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) { toast.error("Не найдена в БД"); return; }
+      const r = row as { used: boolean; revoked: boolean; expired: boolean };
+      if (r.revoked) toast.warning("Отозвана");
+      else if (r.used) toast.warning("Уже активирована");
+      else if (r.expired) toast.warning("Истекла");
+      else toast.success("Активна — ссылка рабочая");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сети");
+    } finally {
+      setChecking(null);
+    }
+  };
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
@@ -555,17 +583,27 @@ function InviteLinksDialog({
                       до {new Date(r.expires_at).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Input value={url} readOnly className="font-mono text-xs" />
-                    <Button size="sm" variant="outline" onClick={() => copy(url)}>
+                    <Button size="sm" variant="outline" onClick={() => copy(url)} title="Скопировать">
                       <Copy className="h-4 w-4" />
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => checkLink(r.token)}
+                      disabled={checking === r.token}
+                      title="Проверить ссылку"
+                    >
+                      {checking === r.token ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                    </Button>
                     {!r.used_at && !r.revoked_at && (
-                      <Button size="sm" variant="outline" onClick={() => revoke(r.id)}>
+                      <Button size="sm" variant="outline" onClick={() => revoke(r.id)} title="Отозвать">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
+
                 </div>
               );
             })}
