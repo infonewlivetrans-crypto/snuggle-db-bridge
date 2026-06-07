@@ -250,3 +250,166 @@ function CarrierUserPicker({
     </div>
   );
 }
+
+function genPassword(len = 12): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  let out = "";
+  const cryptoObj = typeof crypto !== "undefined" ? crypto : undefined;
+  if (cryptoObj?.getRandomValues) {
+    const arr = new Uint32Array(len);
+    cryptoObj.getRandomValues(arr);
+    for (let i = 0; i < len; i++) out += alphabet[arr[i] % alphabet.length];
+  } else {
+    for (let i = 0; i < len; i++)
+      out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return out;
+}
+
+type CreateResult = {
+  user_id: string;
+  email: string;
+  phone: string | null;
+  password: string;
+};
+
+function CreateCarrierUserDialog({
+  open,
+  onOpenChange,
+  extId,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  extId: string;
+  onCreated: () => void | Promise<void>;
+}) {
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState(() => genPassword());
+  const [linkNow, setLinkNow] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<CreateResult | null>(null);
+
+  // reset on open
+  useEffect(() => {
+    if (open) {
+      setFullName(""); setEmail(""); setPhone("");
+      setPassword(genPassword()); setLinkNow(true);
+      setSubmitting(false); setResult(null);
+    }
+  }, [open]);
+
+  const submit = async () => {
+    if (!fullName.trim() || !email.trim() || password.length < 6) {
+      toast.error("Заполните ФИО, email и пароль (минимум 6 символов)");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const r = await apiPost<{ user_id: string; email: string; phone: string | null; linked: boolean }>(
+        "/api/dispatcher/carrier-link/create-user",
+        {
+          ext_id: extId,
+          full_name: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          password,
+          link: linkNow,
+        },
+        15000,
+      );
+      setResult({ user_id: r.user_id, email: r.email, phone: r.phone, password });
+      toast.success("Пользователь создан");
+      await onCreated();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось создать пользователя");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const copyAll = async () => {
+    if (!result) return;
+    const text =
+      `Кабинет перевозчика — данные для входа\n` +
+      `Email: ${result.email}\n` +
+      (result.phone ? `Телефон: ${result.phone}\n` : "") +
+      `Временный пароль: ${result.password}\n`;
+    try { await navigator.clipboard.writeText(text); toast.success("Скопировано"); }
+    catch { toast.error("Не удалось скопировать"); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Создать пользователя перевозчика</DialogTitle>
+          <DialogDescription>
+            Аккаунт с ролью «Перевозчик» и доступом в кабинет /carrier.
+          </DialogDescription>
+        </DialogHeader>
+
+        {result ? (
+          <div className="space-y-3">
+            <div className="rounded-md border bg-muted/40 p-3 text-sm space-y-1">
+              <div><span className="text-muted-foreground">Email: </span><span className="font-medium">{result.email}</span></div>
+              {result.phone && (
+                <div><span className="text-muted-foreground">Телефон: </span><span className="font-medium">{result.phone}</span></div>
+              )}
+              <div><span className="text-muted-foreground">Временный пароль: </span><span className="font-mono">{result.password}</span></div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Передайте эти данные перевозчику для входа в кабинет. После закрытия окна пароль больше не отобразится.
+            </p>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={copyAll}>
+                <Copy className="mr-1 h-4 w-4" /> Скопировать
+              </Button>
+              <Button onClick={() => onOpenChange(false)}>Готово</Button>
+            </DialogFooter>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="ccu-name">ФИО</Label>
+              <Input id="ccu-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ccu-email">Email</Label>
+              <Input id="ccu-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ccu-phone">Телефон</Label>
+              <Input id="ccu-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="ccu-pass">Временный пароль</Label>
+              <div className="flex gap-2">
+                <Input id="ccu-pass" value={password} onChange={(e) => setPassword(e.target.value)} className="font-mono" />
+                <Button type="button" variant="outline" onClick={() => setPassword(genPassword())} title="Сгенерировать">
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={linkNow} onCheckedChange={(v) => setLinkNow(v === true)} />
+              Сразу связать с этим перевозчиком
+            </label>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+                Отмена
+              </Button>
+              <Button onClick={submit} disabled={submitting}>
+                {submitting ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <UserPlus className="mr-1 h-4 w-4" />}
+                Создать
+              </Button>
+            </DialogFooter>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
