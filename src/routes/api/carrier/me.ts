@@ -68,7 +68,9 @@ export const Route = createFileRoute("/api/carrier/me")({
 
         const ext = extResult.data as Record<string, unknown>;
         const carrierId =
-          (ext?.carrier_id as string | undefined) ?? profileCarrierId ?? linkExtId;
+          ((ext?.carrier_id as string | undefined) ??
+            profileCarrierId ??
+            linkExtId) as string;
 
         const { data: carrier } = await admin
           .from("carriers")
