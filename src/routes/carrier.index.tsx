@@ -55,11 +55,42 @@ const STATUS_LABEL: Record<string, string> = {
 function CarrierOverviewPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
+  const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["carrier", "me"],
     queryFn: () => apiGetAuth<Me>("/api/carrier/me", 10000),
     retry: false,
   });
+
+  // Если пользователь только что подтвердил email и зашёл — попробуем
+  // привязать его к карточке перевозчика через сохранённый токен.
+  const claimedRef = useRef(false);
+  useEffect(() => {
+    if (claimedRef.current) return;
+    if (data?.ok) {
+      try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+      return;
+    }
+    const isNotLinked =
+      data?.reason === "no_carrier_linked" || data?.error === "no_carrier_linked";
+    if (!isNotLinked) return;
+    let token: string | null = null;
+    try { token = localStorage.getItem(PENDING_KEY); } catch { /* noop */ }
+    if (!token) return;
+    claimedRef.current = true;
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any).rpc(
+        "claim_carrier_account_link",
+        { _token: token },
+      );
+      if (!error) {
+        try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+        await qc.invalidateQueries({ queryKey: ["carrier", "me"] });
+      }
+    })();
+  }, [data, qc]);
+
 
   if (isLoading) {
     return (
