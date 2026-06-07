@@ -513,6 +513,33 @@ function InviteLinksDialog({
     catch { toast.error("Не удалось скопировать"); }
   };
 
+  const [checking, setChecking] = useState<string | null>(null);
+  const checkLink = async (token: string) => {
+    setChecking(token);
+    try {
+      const rpcPromise = (supabase as unknown as {
+        rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("get_carrier_account_link", { _token: token });
+      const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: { message: "Таймаут" } }), 10000),
+      );
+      const { data, error } = await Promise.race([rpcPromise, timeout]);
+      if (error) { toast.error(`Ошибка: ${error.message}`); return; }
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) { toast.error("Не найдена в БД"); return; }
+      const r = row as { used: boolean; revoked: boolean; expired: boolean };
+      if (r.revoked) toast.warning("Отозвана");
+      else if (r.used) toast.warning("Уже активирована");
+      else if (r.expired) toast.warning("Истекла");
+      else toast.success("Активна — ссылка рабочая");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сети");
+    } finally {
+      setChecking(null);
+    }
+  };
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
