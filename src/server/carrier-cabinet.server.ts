@@ -10,11 +10,26 @@ export interface CarrierCtx {
   admin: SupabaseClient<Database>;
 }
 
+export interface CarrierCtxDebug {
+  userId: string;
+  profileCarrierId: string | null;
+  matchedBy: "ext.id" | "ext.carrier_id" | "ext.production_carrier_id" | "created" | null;
+}
+
 /**
- * Резолвит carrier_id текущего пользователя из profiles, а также соответствующий
- * dispatcher_carrier_ext.id. Возвращает Response с 404, если связи нет.
+ * Резолвит carrier контекст текущего пользователя.
+ *
+ * profiles.carrier_id может указывать на разное:
+ *   - dispatcher_carrier_ext.id (новая регистрация через /carrier/register);
+ *   - dispatcher_carrier_ext.carrier_id (carriers.id), если ext создан в ai-диспетчере;
+ *   - production carriers.id, если запись создана в старом контуре.
+ *
+ * Поэтому ищем ext всеми доступными способами. При невозможности — возвращаем
+ * понятный no_carrier_linked, не пытаясь массово создавать новые записи.
  */
-export async function resolveCarrierCtx(userId: string): Promise<CarrierCtx | Response> {
+export async function resolveCarrierCtx(
+  userId: string,
+): Promise<CarrierCtx | Response> {
   const admin = makeAdminClient();
 
   const { data: profile } = await admin
@@ -22,37 +37,63 @@ export async function resolveCarrierCtx(userId: string): Promise<CarrierCtx | Re
     .select("carrier_id")
     .eq("user_id", userId)
     .maybeSingle();
-  const carrierId = (profile as { carrier_id: string | null } | null)?.carrier_id ?? null;
-  if (!carrierId) {
-    return jsonResponse({ error: "no_carrier_linked" }, { status: 404 });
+  const profileCarrierId =
+    (profile as { carrier_id: string | null } | null)?.carrier_id ?? null;
+
+  if (!profileCarrierId) {
+    return jsonResponse(
+      {
+        error: "no_carrier_linked",
+        reason: "no_carrier_linked",
+        user_id: userId,
+        profile_carrier_id: null,
+        detail: "У профиля пользователя не указан carrier_id",
+      },
+      { status: 404 },
+    );
   }
 
-  const { data: ext } = await admin
-    .from("dispatcher_carrier_ext")
-    .select("id")
-    .eq("carrier_id", carrierId)
+  // 1) profile.carrier_id === dispatcher_carrier_ext.id
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byExtId = await (admin.from("dispatcher_carrier_ext") as any)
+    .select("id, carrier_id")
+    .eq("id", profileCarrierId)
     .maybeSingle();
-  let dispatcherCarrierExtId = (ext as { id: string } | null)?.id ?? "";
-
-  // Если carrier создан вне ai-диспетчера и ext-записи нет — создаём минимальную,
-  // чтобы личный кабинет работал без обращения к админу. Это безопасно: ext —
-  // расширение существующего carrier.
-  if (!dispatcherCarrierExtId) {
-    const { data: created } = await admin
-      .from("dispatcher_carrier_ext")
-      .insert({
-        carrier_id: carrierId,
-        commission_rate: 0.05,
-        verification_status: "new",
-      } as never)
-      .select("id")
-      .single();
-    dispatcherCarrierExtId = (created as { id: string } | null)?.id ?? "";
+  if (byExtId.data?.id) {
+    return { carrierId: byExtId.data.carrier_id ?? profileCarrierId, dispatcherCarrierExtId: byExtId.data.id, admin };
   }
 
-  if (!dispatcherCarrierExtId) {
-    return jsonResponse({ error: "no_carrier_ext" }, { status: 500 });
+  // 2) profile.carrier_id === dispatcher_carrier_ext.carrier_id (carriers.id)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byCarrierId = await (admin.from("dispatcher_carrier_ext") as any)
+    .select("id, carrier_id")
+    .eq("carrier_id", profileCarrierId)
+    .maybeSingle();
+  if (byCarrierId.data?.id) {
+    return { carrierId: profileCarrierId, dispatcherCarrierExtId: byCarrierId.data.id, admin };
   }
 
-  return { carrierId, dispatcherCarrierExtId, admin };
+  // 3) profile.carrier_id === dispatcher_carrier_ext.production_carrier_id
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byProd = await (admin.from("dispatcher_carrier_ext") as any)
+    .select("id, carrier_id")
+    .eq("production_carrier_id", profileCarrierId)
+    .maybeSingle();
+  if (byProd.data?.id) {
+    return { carrierId: byProd.data.carrier_id ?? profileCarrierId, dispatcherCarrierExtId: byProd.data.id, admin };
+  }
+
+  // Связи нет — возвращаем понятный no_carrier_linked, ничего не создаём,
+  // чтобы не трогать production carriers и не плодить мусорные ext-записи.
+  return jsonResponse(
+    {
+      error: "no_carrier_linked",
+      reason: "no_carrier_linked",
+      user_id: userId,
+      profile_carrier_id: profileCarrierId,
+      detail:
+        "profile.carrier_id не сопоставлен ни с dispatcher_carrier_ext.id, ни с carrier_id, ни с production_carrier_id",
+    },
+    { status: 404 },
+  );
 }
