@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { apiGetAuth, apiPost, apiDelete } from "@/lib/api-client";
+import { carrierActivateUrl } from "@/lib/invite-url";
 
 type LinkInfo = {
   link: { id: string; user_id: string; status: string; created_at: string } | null;
@@ -449,10 +450,7 @@ type InviteRow = {
 };
 
 function buildActivateUrl(token: string): string {
-  const base =
-    (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/+$/, "") ||
-    (typeof window !== "undefined" ? window.location.origin : "");
-  return `${base}/carrier/activate/${token}`;
+  return carrierActivateUrl(token);
 }
 
 function InviteLinksDialog({

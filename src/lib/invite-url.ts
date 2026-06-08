@@ -16,6 +16,14 @@ export function inviteUrl(token: string): string {
   return `${getPublicAppUrl()}/invite/${token}`;
 }
 
+export function carrierActivateUrl(token: string): string {
+  return `${getPublicAppUrl()}/carrier/activate/${token}`;
+}
+
+export function driverRegisterUrl(token: string): string {
+  return `${getPublicAppUrl()}/driver/register/${token}`;
+}
+
 export function isPreviewHost(): boolean {
   if (typeof window === "undefined") return false;
   const host = window.location.hostname.toLowerCase();
