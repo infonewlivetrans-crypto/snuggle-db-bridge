@@ -449,7 +449,6 @@ type InviteRow = {
   created_at: string;
 };
 
-import { carrierActivateUrl } from "@/lib/invite-url";
 function buildActivateUrl(token: string): string {
   return carrierActivateUrl(token);
 }
