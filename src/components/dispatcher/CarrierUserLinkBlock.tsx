@@ -11,6 +11,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import { apiGetAuth, apiPost, apiDelete } from "@/lib/api-client";
+import { carrierActivateUrl } from "@/lib/invite-url";
 
 type LinkInfo = {
   link: { id: string; user_id: string; status: string; created_at: string } | null;
