@@ -64,16 +64,16 @@ function ActivatePage() {
         if (cancelled) return;
         if (error) {
           console.error("[carrier.activate] rpc error", error);
-          setError(error.message);
+          setError(`Ошибка сервера: ${error.message}`);
         } else if (!data || (Array.isArray(data) && data.length === 0)) {
-          setError("Ссылка не найдена");
+          setError("Ссылка не найдена в системе. Возможно, она была удалена. Запросите новую у диспетчера.");
         } else {
           const row = Array.isArray(data) ? data[0] : data;
           const li = row as LinkInfo;
           setInfo(li);
-          if (li.revoked) setError("Ссылка отозвана администратором");
-          else if (li.expired) setError("Срок действия ссылки истёк");
-          else if (li.used) setError("Ссылка уже использована");
+          if (li.revoked) setError("Ссылка отозвана администратором. Запросите новую.");
+          else if (li.expired) setError("Срок действия ссылки истёк. Запросите новую у диспетчера.");
+          else if (li.used) setError("Ссылка уже использована. Войдите по email и паролю, который вы указали при регистрации.");
         }
       } catch (e) {
         if (cancelled) return;
