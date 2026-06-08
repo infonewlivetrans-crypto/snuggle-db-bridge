@@ -448,11 +448,9 @@ type InviteRow = {
   created_at: string;
 };
 
+import { carrierActivateUrl } from "@/lib/invite-url";
 function buildActivateUrl(token: string): string {
-  const base =
-    (import.meta.env.VITE_PUBLIC_APP_URL as string | undefined)?.replace(/\/+$/, "") ||
-    (typeof window !== "undefined" ? window.location.origin : "");
-  return `${base}/carrier/activate/${token}`;
+  return carrierActivateUrl(token);
 }
 
 function InviteLinksDialog({
