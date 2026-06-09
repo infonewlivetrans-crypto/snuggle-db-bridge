@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 // Публичная общая регистрация в AI-диспетчере.
 // Страница полностью клиентская, без SSR — чтобы не упасть на воркере.
@@ -178,6 +180,8 @@ function JoinPage() {
   const [honeypot, setHoneypot] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [offerAccepted, setOfferAccepted] = useState(false);
+  const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
 
   const needsCarrier = regType === "carrier" || regType === "carrier_full";
   const needsDriver =
