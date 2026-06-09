@@ -991,6 +991,74 @@ export type Database = {
           },
         ]
       }
+      dispatcher_contract_acceptances: {
+        Row: {
+          accepted_at: string
+          accepted_by_email: string | null
+          accepted_by_name: string | null
+          accepted_by_phone: string | null
+          accepted_ip: string | null
+          accepted_user_agent: string | null
+          commission_rate: number | null
+          contract_text: string | null
+          contract_title: string | null
+          contract_type: string
+          contract_version: string
+          created_at: string
+          dispatcher_carrier_ext_id: string
+          id: string
+          minimum_fee: number | null
+          source: string
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string
+          accepted_by_email?: string | null
+          accepted_by_name?: string | null
+          accepted_by_phone?: string | null
+          accepted_ip?: string | null
+          accepted_user_agent?: string | null
+          commission_rate?: number | null
+          contract_text?: string | null
+          contract_title?: string | null
+          contract_type?: string
+          contract_version: string
+          created_at?: string
+          dispatcher_carrier_ext_id: string
+          id?: string
+          minimum_fee?: number | null
+          source?: string
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string
+          accepted_by_email?: string | null
+          accepted_by_name?: string | null
+          accepted_by_phone?: string | null
+          accepted_ip?: string | null
+          accepted_user_agent?: string | null
+          commission_rate?: number | null
+          contract_text?: string | null
+          contract_title?: string | null
+          contract_type?: string
+          contract_version?: string
+          created_at?: string
+          dispatcher_carrier_ext_id?: string
+          id?: string
+          minimum_fee?: number | null
+          source?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_contract_acceptances_dispatcher_carrier_ext_id_fkey"
+            columns: ["dispatcher_carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_deals: {
         Row: {
           addon_freight_ids: string[]
@@ -5236,6 +5304,15 @@ export type Database = {
         Returns: boolean
       }
       _gen_invite_token: { Args: never; Returns: string }
+      _insert_contract_acceptance: {
+        Args: {
+          p_carrier_id: string
+          p_payload: Json
+          p_source: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       _trip_stage_can_write: {
         Args: { _delivery_route_id: string; _user_id: string }
         Returns: boolean
@@ -5564,6 +5641,14 @@ export type Database = {
       recalc_route_costs: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_etas: { Args: { p_route_id: string }; Returns: undefined }
       recalc_route_totals: { Args: { p_route_id: string }; Returns: undefined }
+      record_carrier_offer_acceptance: {
+        Args: {
+          p_dispatcher_carrier_ext_id: string
+          p_payload: Json
+          p_source?: string
+        }
+        Returns: Json
+      }
       resolve_manager_for_route_sheet_import: {
         Args: {
           p_created_by: string
