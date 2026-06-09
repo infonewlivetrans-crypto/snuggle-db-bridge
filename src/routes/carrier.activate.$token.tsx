@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
 import { buildOfferPayload, savePendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
+import { apiPost, setLocalSessionTokens } from "@/lib/api-client";
 
 // Публичная страница регистрации кабинета перевозчика по ссылке.
 // Использует ТОЛЬКО публичный supabase.auth.signUp (anon key),
@@ -58,22 +59,24 @@ function ActivatePage() {
     (async () => {
       setLoading(true);
       try {
-        const rpcPromise = (supabase as unknown as {
-          rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
-        }).rpc("get_carrier_account_link", { _token: token });
-        const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) =>
-          setTimeout(() => resolve({ data: null, error: { message: "Превышено время ожидания сервера. Проверьте интернет и попробуйте обновить страницу." } }), 12000),
-        );
-        const { data, error } = await Promise.race([rpcPromise, timeout]);
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 12000);
+        const res = await fetch(`/api/public/carrier-activate/${encodeURIComponent(token)}`, {
+          signal: ctrl.signal,
+          headers: { accept: "application/json" },
+        }).finally(() => clearTimeout(t));
+        const body = (await res.json().catch(() => null)) as
+          | { ok: boolean; link?: LinkInfo; reason?: string; error?: string }
+          | null;
         if (cancelled) return;
-        if (error) {
-          console.error("[carrier.activate] rpc error", error);
-          setError(`Ошибка сервера: ${error.message}`);
-        } else if (!data || (Array.isArray(data) && data.length === 0)) {
-          setError("Ссылка не найдена в системе. Возможно, она была удалена. Запросите новую у диспетчера.");
+        if (!res.ok || !body?.ok || !body.link) {
+          if (body?.reason === "not_found" || res.status === 404) {
+            setError("Ссылка не найдена в системе. Возможно, она была удалена. Запросите новую у диспетчера.");
+          } else {
+            setError(`Ошибка сервера: ${body?.error ?? res.statusText}`);
+          }
         } else {
-          const row = Array.isArray(data) ? data[0] : data;
-          const li = row as LinkInfo;
+          const li = body.link;
           setInfo(li);
           if (li.revoked) setError("Ссылка отозвана администратором. Запросите новую.");
           else if (li.expired) setError("Срок действия ссылки истёк. Запросите новую у диспетчера.");
@@ -130,34 +133,45 @@ function ActivatePage() {
         toast.error(error.message);
         return;
       }
-      // Если у нас уже есть session — confirmation отключён, можно сразу клеймить.
+      // Если у нас уже есть session — confirmation отключён, можно сразу клеймить через API.
       if (data.session) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const claim = await (supabase as any).rpc("claim_carrier_account_link", { _token: token });
-        if (claim.error) {
-          toast.error(`Аккаунт создан, но не привязан: ${claim.error.message}`);
+        // Кладём токен в localStorage, чтобы apiPost мог авторизоваться Bearer'ом
+        // (cookie-сессии в этот момент ещё нет).
+        setLocalSessionTokens({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        try {
+          const claim = await apiPost<{ ok: boolean; reason?: string; error?: string }>(
+            `/api/carrier/activate/${encodeURIComponent(token)}`,
+          );
+          if (!claim.ok) {
+            toast.error(`Аккаунт создан, но не привязан: ${claim.error ?? claim.reason ?? "ошибка"}`);
+            try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+            savePendingOffer(offerPayload);
+          } else {
+            // Запись акцепта договора-оферты через серверный API
+            if (info?.ext_id) {
+              try {
+                await apiPost("/api/carrier/offer-acceptance", {
+                  dispatcher_carrier_ext_id: info.ext_id,
+                  payload: offerPayload,
+                  source: "carrier_activate",
+                });
+                clearPendingOffer();
+              } catch (recErr) {
+                console.error("[carrier.activate] record_offer error", recErr);
+                savePendingOffer(offerPayload);
+              }
+            }
+            setDone("logged_in");
+            try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+            return;
+          }
+        } catch (claimErr) {
+          toast.error(`Аккаунт создан, но не привязан: ${claimErr instanceof Error ? claimErr.message : "ошибка"}`);
           try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
           savePendingOffer(offerPayload);
-        } else {
-          // Запись акцепта договора-оферты
-          if (info?.ext_id) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rec = await (supabase as any).rpc("record_carrier_offer_acceptance", {
-              p_dispatcher_carrier_ext_id: info.ext_id,
-              p_payload: offerPayload,
-              p_source: "carrier_activate",
-            });
-            if (rec.error) {
-              console.error("[carrier.activate] record_offer error", rec.error);
-              // не блокируем активацию, сохраним для повторной попытки на /carrier
-              savePendingOffer(offerPayload);
-            } else {
-              clearPendingOffer();
-            }
-          }
-          setDone("logged_in");
-          try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
-          return;
         }
       } else {
         // Email confirmation включён — сохраняем и токен, и акцепт для записи после входа.

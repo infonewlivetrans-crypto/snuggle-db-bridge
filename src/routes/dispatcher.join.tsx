@@ -235,24 +235,8 @@ function JoinPage() {
         });
       }
 
-      
-      // dispatcher_join_force_offer_payload_fix
-      if (needsCarrier && !payload.offer_acceptance) {
-        const acceptedBy =
-          offerAcceptedBy?.trim?.() ||
-          contactName?.trim?.() ||
-          companyName?.trim?.() ||
-          fullName?.trim?.() ||
-          name?.trim?.() ||
-          "Перевозчик";
 
-        payload.offer_acceptance = buildOfferPayload({
-          accepted: true,
-          acceptedBy,
-          rate: 5,
-          source: "dispatcher_join",
-        });
-      }
+
 
 const res = await fetch("/api/public/dispatcher-join", {
         method: "POST",
