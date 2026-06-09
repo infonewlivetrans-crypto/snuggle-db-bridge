@@ -248,7 +248,16 @@ export const Route = createFileRoute("/api/public/carrier-register")({
         } as never);
 
         return jsonResponse({ ok: true, email: data.email });
+        } catch (error) {
+          console.error("[carrier-register] unexpected_error", error);
+          const message = error instanceof Error ? error.message : String(error);
+          return jsonResponse(
+            { ok: false, reason: "internal_error", details: message },
+            { status: 500 },
+          );
+        }
       },
     },
   },
 });
+
