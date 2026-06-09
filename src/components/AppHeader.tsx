@@ -352,6 +352,8 @@ export function AppHeader() {
   const isDriverOnly = roles.length > 0 && roles.every((r) => r === "driver");
   const isDispatcherOnly =
     roles.length > 0 && roles.every((r) => r === "dispatcher");
+  const isCarrierOnly =
+    roles.length > 0 && roles.every((r) => r === "carrier");
 
   const visibleGroups = useMemo<NavGroup[]>(() => {
     if (isDriverOnly) {
@@ -366,6 +368,22 @@ export function AppHeader() {
             { to: "/notifications", label: "Уведомления", icon: Bell },
             { to: "/workspace", label: "Профиль", icon: User },
             { to: "/feedback", label: "Обратная связь", icon: MessageSquare },
+          ],
+        },
+      ];
+    }
+    if (isCarrierOnly) {
+      return [
+        {
+          id: "carrier",
+          label: "Кабинет перевозчика",
+          icon: Truck,
+          match: (p: string) => p.startsWith("/carrier"),
+          items: [
+            { to: "/carrier", label: "Мои данные", icon: User },
+            { to: "/carrier/vehicles", label: "Мой транспорт", icon: Truck },
+            { to: "/carrier/drivers", label: "Мои водители", icon: UsersIcon },
+            { to: "/carrier/trips", label: "Задания / рейсы", icon: ClipboardList },
           ],
         },
       ];
@@ -391,6 +409,7 @@ export function AppHeader() {
     appMode,
     isDriverOnly,
     isDispatcherOnly,
+    isCarrierOnly,
   ]);
 
   const activeGroup =
