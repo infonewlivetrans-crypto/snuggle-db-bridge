@@ -43,7 +43,7 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
   const [bodyType, setBodyType] = useState("");
   const [loadMethods, setLoadMethods] = useState<LoadMethod[]>([]);
   const [rate, setRate] = useState("");
-  const [paymentType, setPaymentType] = useState<string>("none");
+  const [paymentType, setPaymentType] = useState<PaymentType | "none">(initial?.payment_type ? (initial.payment_type as PaymentType) : "none");
   const [paymentDelay, setPaymentDelay] = useState("");
   const [source, setSource] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
@@ -53,8 +53,8 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
   const [contactTg, setContactTg] = useState("");
   const [contactMx, setContactMx] = useState("");
   const [comment, setComment] = useState("");
-  const [status, setStatus] = useState<FreightStatus>("new");
-  const [kind, setKind] = useState<FreightKind>("main");
+  const [status, setStatus] = useState<FreightStatus>((initial?.dispatcher_status as FreightStatus) ?? "new");
+  const [kind, setKind] = useState<FreightKind>(initial?.freight_kind === "additional" ? "additional" : "main");
 
   useEffect(() => {
     if (initial) {
@@ -69,7 +69,7 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setBodyType(empty(initial.body_type));
       setLoadMethods((initial.load_methods as LoadMethod[]) ?? []);
       setRate(numStr(initial.rate));
-      setPaymentType(initial.payment_type ?? "none");
+      setPaymentType(initial?.payment_type ? (initial.payment_type as PaymentType) : "none");
       setPaymentDelay(numStr(initial.payment_delay_days));
       setSource(empty(initial.source));
       setSourceUrl(empty(initial.source_url));
@@ -79,8 +79,11 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setContactTg(empty(initial.contact_telegram));
       setContactMx(empty(initial.contact_max_messenger));
       setComment(empty(initial.comment));
-      setStatus((initial.dispatcher_status as FreightStatus) ?? "new");
-      setKind((initial.freight_kind as FreightKind) ?? "main");
+      setStatus((initial?.dispatcher_status as FreightStatus) ?? "new");
+      setKind(initial?.freight_kind === "additional" ? "additional" : "main");
+      setStatus((initial?.dispatcher_status as FreightStatus) ?? "new");
+      setPaymentType(initial?.payment_type ? (initial.payment_type as PaymentType) : "none");
+      setKind(initial?.freight_kind === "additional" ? "additional" : "main");
     }
   }, [initial]);
 
@@ -112,7 +115,7 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
       contact_max_messenger: contactMx || null,
       comment: comment || null,
       dispatcher_status: status,
-      freight_kind: kind,
+      freight_kind: kind === "additional" ? "additional" : "main",
     });
   };
 

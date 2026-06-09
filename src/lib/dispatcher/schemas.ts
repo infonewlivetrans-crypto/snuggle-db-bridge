@@ -1,4 +1,13 @@
 import { z } from "zod";
+
+const emptyStringToNull = (value: unknown) => value === "" ? null : value;
+
+const paymentTypeSchema = z
+  .preprocess(emptyStringToNull, z.enum(PAYMENT_TYPES).nullable().optional())
+  .transform((v) => v ?? null);
+
+
+const blankToUndefined = (value: unknown) => value === "" ? undefined : value;
 import {
   CARRIER_KINDS,
   CARRIER_STATUSES,
@@ -158,11 +167,7 @@ export const freightCreateSchema = z.object({
   body_type: nullableText(100),
   load_methods: z.array(z.enum(LOAD_METHODS)).optional().default([]),
   rate: optionalNumber,
-  payment_type: z
-    .enum(PAYMENT_TYPES)
-    .optional()
-    .nullable()
-    .transform((v) => v ?? null),
+  payment_type: paymentTypeSchema,
   payment_delay_days: optionalInt,
   source: nullableText(255),
   source_url: nullableText(1024),
@@ -172,8 +177,8 @@ export const freightCreateSchema = z.object({
   contact_telegram: nullableText(100),
   contact_max_messenger: nullableText(255),
   comment: nullableText(2000),
-  dispatcher_status: z.enum(FREIGHT_STATUSES).optional().default("new"),
-  freight_kind: z.enum(FREIGHT_KINDS).optional().default("main"),
+  dispatcher_status: z.preprocess(blankToUndefined, z.enum(FREIGHT_STATUSES).optional().default("new")),
+  freight_kind: z.preprocess(blankToUndefined, z.enum(FREIGHT_KINDS).optional().default("main")),
 });
 export type FreightCreateInput = z.infer<typeof freightCreateSchema>;
 
@@ -234,11 +239,7 @@ export const dealCreateSchema = z.object({
     .optional()
     .transform((v) => (v == null || v === "" ? 0.05 : Number(v)))
     .refine((n) => Number.isFinite(n) && n >= 0 && n <= 1, "0..1"),
-  payment_type: z
-    .enum(PAYMENT_TYPES)
-    .optional()
-    .nullable()
-    .transform((v) => v ?? null),
+  payment_type: paymentTypeSchema,
   payment_delay_days: optionalInt,
   expected_payment_date: optionalDate,
   payment_due: optionalDate,
