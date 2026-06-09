@@ -80,7 +80,45 @@ function ActivatePage() {
           setInfo(li);
           if (li.revoked) setError("Ссылка отозвана администратором. Запросите новую.");
           else if (li.expired) setError("Срок действия ссылки истёк. Запросите новую у диспетчера.");
-          else if (li.used) setError("Ссылка уже использована. Войдите по email и паролю, который вы указали при регистрации.");
+          else if (li.used) {
+            // Если ссылка уже использована — попробуем тихо привязать
+            // текущего авторизованного пользователя (RPC проверит used_by).
+            // Иначе покажем сообщение.
+            const { data: sess } = await supabase.auth.getSession();
+            if (sess.session) {
+              setLocalSessionTokens({
+                access_token: sess.session.access_token,
+                refresh_token: sess.session.refresh_token,
+              });
+              const claim = await apiPost<{ ok: boolean; error?: string }>(
+                `/api/carrier/activate/${encodeURIComponent(token)}`,
+              ).catch(() => ({ ok: false } as { ok: boolean }));
+              if (!cancelled && claim.ok) {
+                try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+                setDone("logged_in");
+                return;
+              }
+            }
+            setError("Ссылка уже использована. Войдите по email и паролю, который вы указали при регистрации.");
+          } else {
+            // Не использована: если уже авторизован — сразу клеймим и в кабинет.
+            const { data: sess } = await supabase.auth.getSession();
+            if (sess.session) {
+              setLocalSessionTokens({
+                access_token: sess.session.access_token,
+                refresh_token: sess.session.refresh_token,
+              });
+              const claim = await apiPost<{ ok: boolean; error?: string }>(
+                `/api/carrier/activate/${encodeURIComponent(token)}`,
+              ).catch((e) => ({ ok: false, error: e instanceof Error ? e.message : "error" }));
+              if (cancelled) return;
+              if (claim.ok) {
+                try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+                setDone("logged_in");
+                return;
+              }
+            }
+          }
         }
       } catch (e) {
         if (cancelled) return;
@@ -92,6 +130,7 @@ function ActivatePage() {
     })();
     return () => { cancelled = true; };
   }, [token]);
+
 
 
 
