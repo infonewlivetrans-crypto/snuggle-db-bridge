@@ -35,7 +35,7 @@ export function landingPathForRoles(roles: AppRole[]): string {
   if (roles.includes("warehouse")) return "/warehouse-today";
   if (roles.includes("supply")) return "/supply";
   if (roles.includes("driver")) return "/driver";
-  if (roles.includes("carrier")) return "/carrier-offers";
+  if (roles.includes("carrier")) return "/carrier";
   return "/";
 }
 
