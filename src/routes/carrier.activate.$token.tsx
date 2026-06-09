@@ -133,34 +133,45 @@ function ActivatePage() {
         toast.error(error.message);
         return;
       }
-      // Если у нас уже есть session — confirmation отключён, можно сразу клеймить.
+      // Если у нас уже есть session — confirmation отключён, можно сразу клеймить через API.
       if (data.session) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const claim = await (supabase as any).rpc("claim_carrier_account_link", { _token: token });
-        if (claim.error) {
-          toast.error(`Аккаунт создан, но не привязан: ${claim.error.message}`);
+        // Кладём токен в localStorage, чтобы apiPost мог авторизоваться Bearer'ом
+        // (cookie-сессии в этот момент ещё нет).
+        setLocalSessionTokens({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        try {
+          const claim = await apiPost<{ ok: boolean; reason?: string; error?: string }>(
+            `/api/carrier/activate/${encodeURIComponent(token)}`,
+          );
+          if (!claim.ok) {
+            toast.error(`Аккаунт создан, но не привязан: ${claim.error ?? claim.reason ?? "ошибка"}`);
+            try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+            savePendingOffer(offerPayload);
+          } else {
+            // Запись акцепта договора-оферты через серверный API
+            if (info?.ext_id) {
+              try {
+                await apiPost("/api/carrier/offer-acceptance", {
+                  dispatcher_carrier_ext_id: info.ext_id,
+                  payload: offerPayload,
+                  source: "carrier_activate",
+                });
+                clearPendingOffer();
+              } catch (recErr) {
+                console.error("[carrier.activate] record_offer error", recErr);
+                savePendingOffer(offerPayload);
+              }
+            }
+            setDone("logged_in");
+            try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+            return;
+          }
+        } catch (claimErr) {
+          toast.error(`Аккаунт создан, но не привязан: ${claimErr instanceof Error ? claimErr.message : "ошибка"}`);
           try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
           savePendingOffer(offerPayload);
-        } else {
-          // Запись акцепта договора-оферты
-          if (info?.ext_id) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const rec = await (supabase as any).rpc("record_carrier_offer_acceptance", {
-              p_dispatcher_carrier_ext_id: info.ext_id,
-              p_payload: offerPayload,
-              p_source: "carrier_activate",
-            });
-            if (rec.error) {
-              console.error("[carrier.activate] record_offer error", rec.error);
-              // не блокируем активацию, сохраним для повторной попытки на /carrier
-              savePendingOffer(offerPayload);
-            } else {
-              clearPendingOffer();
-            }
-          }
-          setDone("logged_in");
-          try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
-          return;
         }
       } else {
         // Email confirmation включён — сохраняем и токен, и акцепт для записи после входа.
