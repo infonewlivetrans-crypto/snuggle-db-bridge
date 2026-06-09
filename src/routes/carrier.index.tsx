@@ -81,12 +81,31 @@ function CarrierOverviewPage() {
     claimedRef.current = true;
     (async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).rpc(
-        "claim_carrier_account_link",
-        { _token: token },
-      );
+      const sb = supabase as any;
+      const { error } = await sb.rpc("claim_carrier_account_link", { _token: token });
       if (!error) {
         try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+        // Записываем отложенный акцепт договора-оферты, если есть
+        const pending = readPendingOffer();
+        if (pending) {
+          // Нужен carrier ext_id. Получим через /api/carrier/me после invalidate.
+          // Простой подход: запросим из dispatcher_carrier_users по auth.uid()
+          const { data: link } = await sb
+            .from("dispatcher_carrier_users")
+            .select("dispatcher_carrier_ext_id")
+            .eq("status", "active")
+            .maybeSingle();
+          const extId = (link as { dispatcher_carrier_ext_id?: string } | null)
+            ?.dispatcher_carrier_ext_id;
+          if (extId) {
+            const rec = await sb.rpc("record_carrier_offer_acceptance", {
+              p_dispatcher_carrier_ext_id: extId,
+              p_payload: pending,
+              p_source: pending.source ?? "carrier_activate",
+            });
+            if (!rec.error) clearPendingOffer();
+          }
+        }
         await qc.invalidateQueries({ queryKey: ["carrier", "me"] });
       }
     })();
