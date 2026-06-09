@@ -177,7 +177,44 @@ export const freightCreateSchema = z.object({
 });
 export type FreightCreateInput = z.infer<typeof freightCreateSchema>;
 
-export const freightUpdateSchema = freightCreateSchema.partial();
+// Update schema: НИКАКИХ defaults — отсутствующие поля остаются undefined и
+// не перетирают существующие значения в БД.
+export const freightUpdateSchema = z
+  .object({
+    title: nullableText(255).optional(),
+    loading_city: nullableText(100).optional(),
+    unloading_city: nullableText(100).optional(),
+    loading_date: optionalDate.optional(),
+    unloading_date: optionalDate.optional(),
+    cargo_name: nullableText(255).optional(),
+    weight_kg: optionalNumber.optional(),
+    volume_m3: optionalNumber.optional(),
+    body_type: nullableText(100).optional(),
+    load_methods: z.array(z.enum(LOAD_METHODS)).optional(),
+    rate: optionalNumber.optional(),
+    payment_type: z
+      .union([z.enum(PAYMENT_TYPES), z.literal(""), z.null()])
+      .optional()
+      .transform((v) => (v === "" || v === null ? null : v)),
+    payment_delay_days: optionalInt.optional(),
+    source: nullableText(255).optional(),
+    source_url: nullableText(1024).optional(),
+    contact_name: nullableText(255).optional(),
+    contact_phone: nullableText(50).optional(),
+    contact_whatsapp: nullableText(100).optional(),
+    contact_telegram: nullableText(100).optional(),
+    contact_max_messenger: nullableText(255).optional(),
+    comment: nullableText(2000).optional(),
+    dispatcher_status: z
+      .union([z.enum(FREIGHT_STATUSES), z.literal("")])
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    freight_kind: z
+      .union([z.enum(FREIGHT_KINDS), z.literal("")])
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+  })
+  .strip();
 export type FreightUpdateInput = z.infer<typeof freightUpdateSchema>;
 
 // =================== Deal ===================
