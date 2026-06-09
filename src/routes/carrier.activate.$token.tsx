@@ -351,34 +351,47 @@ function ActivatePage() {
     <div className="mx-auto max-w-md p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Активация кабинета перевозчика</CardTitle>
+          <CardTitle>
+            {mode === "signup" ? "Активация кабинета перевозчика" : "Вход в кабинет перевозчика"}
+          </CardTitle>
           {info.carrier_name && (
             <p className="text-sm text-muted-foreground">
               Карточка: <span className="font-medium">{info.carrier_name}</span>
             </p>
           )}
+          {mode === "signin" && (
+            <p className="text-sm text-muted-foreground">
+              Этот email уже зарегистрирован. Войдите паролем — мы привяжем аккаунт к карточке перевозчика.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="ca-name">ФИО</Label>
-            <Input id="ca-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="ca-name">ФИО</Label>
+              <Input id="ca-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+          )}
           <div className="space-y-1">
             <Label htmlFor="ca-email">Email</Label>
             <Input id="ca-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="ca-phone">Телефон</Label>
-            <Input id="ca-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="ca-phone">Телефон</Label>
+              <Input id="ca-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+          )}
           <div className="space-y-1">
             <Label htmlFor="ca-pass">Пароль</Label>
             <Input id="ca-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="ca-pass2">Повторите пароль</Label>
-            <Input id="ca-pass2" type="password" value={password2} onChange={(e) => setPassword2(e.target.value)} />
-          </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="ca-pass2">Повторите пароль</Label>
+              <Input id="ca-pass2" type="password" value={password2} onChange={(e) => setPassword2(e.target.value)} />
+            </div>
+          )}
 
           <CarrierOfferAcceptBlock
             accepted={offerAccepted}
@@ -389,8 +402,19 @@ function ActivatePage() {
 
           <Button className="w-full" onClick={submit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Создать аккаунт и активировать кабинет
+            {mode === "signup"
+              ? "Создать аккаунт и активировать кабинет"
+              : "Войти и активировать кабинет"}
           </Button>
+          <button
+            type="button"
+            className="w-full text-center text-xs text-muted-foreground underline hover:text-foreground"
+            onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+          >
+            {mode === "signup"
+              ? "У меня уже есть аккаунт — войти"
+              : "Создать новый аккаунт"}
+          </button>
         </CardContent>
       </Card>
     </div>
