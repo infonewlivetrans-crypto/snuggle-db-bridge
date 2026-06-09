@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 export const Route = createFileRoute("/dispatcher/register/$token")({
   // Страница полностью клиентская: грузит данные по токену через fetch в useEffect.
@@ -42,6 +44,8 @@ function RegisterPage() {
   const [saving, setSaving] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [agreedBy, setAgreedBy] = useState("");
+  const [offerAccepted, setOfferAccepted] = useState(false);
+  const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -94,21 +98,37 @@ function RegisterPage() {
         toast.error("Подтвердите согласие и укажите ФИО");
         return;
       }
+      if (!offerAccepted || !offerAcceptedBy.trim()) {
+        toast.error("Необходимо принять договор-оферту и указать ФИО");
+        return;
+      }
     }
     setSaving(true);
     try {
+      const phone = (form.phone as string) || "";
+      const email = (form.email as string) || "";
+      const body =
+        entityType === "carrier"
+          ? {
+              agreed: true,
+              agreed_by: agreedBy.trim(),
+              agreement_text: COMMISSION_TEXT,
+              offer_acceptance: buildOfferPayload({
+                acceptedByName: offerAcceptedBy,
+                acceptedByPhone: phone || undefined,
+                acceptedByEmail: email || undefined,
+                source: "dispatcher_register_token",
+              }),
+            }
+          : {};
       const res = await fetch(`/api/public/dispatcher-invite/${token}/complete`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(
-          entityType === "carrier"
-            ? { agreed: true, agreed_by: agreedBy.trim(), agreement_text: COMMISSION_TEXT }
-            : {},
-        ),
+        body: JSON.stringify(body),
       });
-      const body = (await res.json()) as { ok: boolean; reason?: string };
-      if (!body.ok) {
-        toast.error(body.reason ?? "Не удалось завершить");
+      const resp = (await res.json()) as { ok: boolean; reason?: string };
+      if (!resp.ok) {
+        toast.error(resp.reason ?? "Не удалось завершить");
         return;
       }
       setDone(true);
@@ -202,6 +222,15 @@ function RegisterPage() {
               />
             </div>
           </section>
+        )}
+
+        {entityType === "carrier" && (
+          <CarrierOfferAcceptBlock
+            accepted={offerAccepted}
+            acceptedByName={offerAcceptedBy}
+            onAcceptedChange={setOfferAccepted}
+            onAcceptedByNameChange={setOfferAcceptedBy}
+          />
         )}
 
         <section className="rounded-md border bg-card p-4">

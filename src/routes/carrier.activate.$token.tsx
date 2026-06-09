@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { buildOfferPayload, savePendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
 
 // Публичная страница регистрации кабинета перевозчика по ссылке.
 // Использует ТОЛЬКО публичный supabase.auth.signUp (anon key),
@@ -46,6 +48,8 @@ function ActivatePage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [offerAccepted, setOfferAccepted] = useState(false);
+  const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<null | "logged_in" | "needs_confirm">(null);
 
@@ -97,8 +101,19 @@ function ActivatePage() {
       toast.error("Пароли не совпадают");
       return;
     }
+    if (!offerAccepted || !offerAcceptedBy.trim()) {
+      toast.error("Необходимо принять договор-оферту и указать ФИО");
+      return;
+    }
     setSubmitting(true);
     try {
+      const offerPayload = buildOfferPayload({
+        acceptedByName: offerAcceptedBy,
+        acceptedByPhone: phone || undefined,
+        acceptedByEmail: email || undefined,
+        source: "carrier_activate",
+      });
+
       const redirectTo =
         typeof window !== "undefined"
           ? `${window.location.origin}/carrier`
@@ -121,16 +136,33 @@ function ActivatePage() {
         const claim = await (supabase as any).rpc("claim_carrier_account_link", { _token: token });
         if (claim.error) {
           toast.error(`Аккаунт создан, но не привязан: ${claim.error.message}`);
-          // Сохраним токен на случай, если пользователь зайдёт позже
           try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+          savePendingOffer(offerPayload);
         } else {
+          // Запись акцепта договора-оферты
+          if (info?.ext_id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rec = await (supabase as any).rpc("record_carrier_offer_acceptance", {
+              p_dispatcher_carrier_ext_id: info.ext_id,
+              p_payload: offerPayload,
+              p_source: "carrier_activate",
+            });
+            if (rec.error) {
+              console.error("[carrier.activate] record_offer error", rec.error);
+              // не блокируем активацию, сохраним для повторной попытки на /carrier
+              savePendingOffer(offerPayload);
+            } else {
+              clearPendingOffer();
+            }
+          }
           setDone("logged_in");
           try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
           return;
         }
       } else {
-        // Email confirmation включён — нужно подтвердить email и войти.
+        // Email confirmation включён — сохраняем и токен, и акцепт для записи после входа.
         try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+        savePendingOffer(offerPayload);
         setDone("needs_confirm");
       }
     } catch (e) {
@@ -238,6 +270,14 @@ function ActivatePage() {
             <Label htmlFor="ca-pass2">Повторите пароль</Label>
             <Input id="ca-pass2" type="password" value={password2} onChange={(e) => setPassword2(e.target.value)} />
           </div>
+
+          <CarrierOfferAcceptBlock
+            accepted={offerAccepted}
+            acceptedByName={offerAcceptedBy}
+            onAcceptedChange={setOfferAccepted}
+            onAcceptedByNameChange={setOfferAcceptedBy}
+          />
+
           <Button className="w-full" onClick={submit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Создать аккаунт и активировать кабинет

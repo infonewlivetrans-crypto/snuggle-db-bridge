@@ -23,6 +23,7 @@ import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistrationBlock";
 import { CarrierUserLinkBlock } from "@/components/dispatcher/CarrierUserLinkBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
+import { CarrierContractAcceptanceBlock } from "@/components/dispatcher/CarrierContractAcceptanceBlock";
 import { carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
@@ -314,6 +315,12 @@ function CarrierViewBody({
 
       {/* Пользователь кабинета перевозчика */}
       <CarrierUserLinkBlock carrierExtId={row.id} />
+
+      {/* Договор-оферта и комиссия */}
+      <CarrierContractAcceptanceBlock
+        carrierId={row.id}
+        currentCommissionRate={row.commission_rate}
+      />
 
       {/* Согласие на комиссию */}
       <div className="rounded-md border p-3 space-y-1">

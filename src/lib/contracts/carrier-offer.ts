@@ -160,12 +160,28 @@ export function formatPercent(rate: number | null | undefined): string {
   return Number.isInteger(pct) ? String(pct) : pct.toFixed(1).replace(/\.0$/, "");
 }
 
+export interface OfferPayload {
+  accepted: true;
+  contract_type: string;
+  contract_version: string;
+  contract_title: string;
+  contract_text: string;
+  minimum_fee: number;
+  commission_rate: number;
+  accepted_by_name: string;
+  accepted_by_phone: string | null;
+  accepted_by_email: string | null;
+  accepted_user_agent: string;
+  source: string;
+}
+
 export function buildOfferPayload(input: {
   acceptedByName: string;
   acceptedByPhone?: string;
   acceptedByEmail?: string;
   commissionRate?: number;
-}) {
+  source?: string;
+}): OfferPayload {
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   return {
     accepted: true,
@@ -174,9 +190,40 @@ export function buildOfferPayload(input: {
     contract_title: CARRIER_OFFER_TITLE,
     contract_text: CARRIER_OFFER_FULL_TEXT,
     minimum_fee: CARRIER_OFFER_MINIMUM_FEE,
+    commission_rate: input.commissionRate ?? CARRIER_OFFER_DEFAULT_RATE,
     accepted_by_name: input.acceptedByName.trim(),
     accepted_by_phone: input.acceptedByPhone?.trim() || null,
     accepted_by_email: input.acceptedByEmail?.trim() || null,
     accepted_user_agent: ua,
+    source: input.source ?? "unknown",
   };
+}
+
+/** localStorage helpers для отложенного акцепта (email confirmation flow). */
+export const PENDING_OFFER_KEY = "rt-carrier-offer-pending";
+
+export function savePendingOffer(payload: OfferPayload): void {
+  try {
+    localStorage.setItem(PENDING_OFFER_KEY, JSON.stringify(payload));
+  } catch {
+    /* noop */
+  }
+}
+
+export function readPendingOffer(): OfferPayload | null {
+  try {
+    const raw = localStorage.getItem(PENDING_OFFER_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as OfferPayload;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingOffer(): void {
+  try {
+    localStorage.removeItem(PENDING_OFFER_KEY);
+  } catch {
+    /* noop */
+  }
 }
