@@ -62,7 +62,7 @@ export const Route = createFileRoute("/api/carrier/me")({
               profile_carrier_id: profileCarrierId,
               profile,
             },
-            { status: 404 },
+            { status: 200 },
           );
         }
 
@@ -88,9 +88,10 @@ export const Route = createFileRoute("/api/carrier/me")({
               profile_carrier_id: profileCarrierId,
               profile,
             },
-            { status: 404 },
+            { status: 200 },
           );
         }
+
 
         const { data: vehicles } = await admin
           .from("vehicles")
