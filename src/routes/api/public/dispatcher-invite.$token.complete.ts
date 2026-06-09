@@ -18,9 +18,10 @@ export const Route = createFileRoute("/api/public/dispatcher-invite/$token/compl
           agreed?: boolean;
           agreed_by?: string;
           agreement_text?: string;
+          offer_acceptance?: Record<string, unknown>;
         };
         // На сервере дополнительно ограничиваем длину строк перед передачей в SD функцию.
-        const sanitized = {
+        const sanitized: Record<string, unknown> = {
           agreed: Boolean(consent.agreed),
           agreed_by:
             typeof consent.agreed_by === "string"
@@ -31,6 +32,9 @@ export const Route = createFileRoute("/api/public/dispatcher-invite/$token/compl
               ? consent.agreement_text.slice(0, 2000)
               : "",
         };
+        if (consent.offer_acceptance && typeof consent.offer_acceptance === "object") {
+          sanitized.offer_acceptance = consent.offer_acceptance;
+        }
 
         const client = makeAnonClient();
         const { data, error } = await client.rpc(
