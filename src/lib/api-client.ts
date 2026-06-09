@@ -47,6 +47,34 @@ export function authHeaders(): Record<string, string> {
   return token ? { authorization: `Bearer ${token}` } : {};
 }
 
+/**
+ * Возвращает Bearer-заголовок для запроса. Сначала смотрит rt-access-token
+ * (наш fallback), а если его нет — подтягивает access_token из активной
+ * Supabase-сессии. Это покрывает случай, когда пользователь только что
+ * выполнил supabase.auth.signUp / signInWithPassword напрямую (например,
+ * на /carrier/activate/$token), и наш rt-access-token ещё не записан.
+ */
+async function resolveAuthHeaders(): Promise<Record<string, string>> {
+  const local = getLocalAccessToken();
+  if (local) return { authorization: `Bearer ${local}` };
+  if (typeof window === "undefined") return {};
+  try {
+    const mod = await import("@/integrations/supabase/client");
+    const { data } = await mod.supabase.auth.getSession();
+    const sess = data?.session;
+    if (sess?.access_token && sess.refresh_token) {
+      setLocalSessionTokens({
+        access_token: sess.access_token,
+        refresh_token: sess.refresh_token,
+      });
+      return { authorization: `Bearer ${sess.access_token}` };
+    }
+  } catch {
+    /* ignore */
+  }
+  return {};
+}
+
 async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return await new Promise<T>((resolve, reject) => {
     const t = setTimeout(
@@ -69,7 +97,7 @@ async function apiFetch(
 ): Promise<Response> {
   const headers: Record<string, string> = {
     accept: "application/json",
-    ...authHeaders(),
+    ...(await resolveAuthHeaders()),
   };
   const res = await withTimeout(
     fetch(path, { headers, credentials: "same-origin" }),
