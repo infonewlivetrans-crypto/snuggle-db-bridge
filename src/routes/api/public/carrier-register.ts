@@ -16,9 +16,9 @@ import {
 //     выполняет SECURITY DEFINER RPC public.carrier_self_register(payload),
 //     которая берёт auth.uid() из JWT текущего пользователя.
 //
-// ВАЖНО: здесь НЕЛЬЗЯ использовать makeAdminClient / supabaseAdmin / auth.admin /
-// service_role — на VPS service_role key невалиден и ломает регистрацию
-// с "Invalid API key".
+// ВАЖНО: этот endpoint НЕ использует привилегированных клиентов и работает
+// только через user-auth Bearer-токен. На VPS service_role key невалиден и
+// ломает регистрацию с "Invalid API key" — поэтому здесь его быть не должно.
 
 const text = (max: number) =>
   z
