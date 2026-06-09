@@ -316,6 +316,12 @@ function CarrierViewBody({
       {/* Пользователь кабинета перевозчика */}
       <CarrierUserLinkBlock carrierExtId={row.id} />
 
+      {/* Договор-оферта и комиссия */}
+      <CarrierContractAcceptanceBlock
+        carrierId={row.id}
+        currentCommissionRate={row.commission_rate}
+      />
+
       {/* Согласие на комиссию */}
       <div className="rounded-md border p-3 space-y-1">
         <div className="flex items-center justify-between">
