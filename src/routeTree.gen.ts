@@ -281,6 +281,7 @@ import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/deli
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
 import { Route as ApiCarrierVehiclesIdRouteImport } from './routes/api/carrier/vehicles.$id'
+import { Route as ApiCarrierActivateTokenRouteImport } from './routes/api/carrier/activate.$token'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
 import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.users.cleanup'
@@ -1694,6 +1695,11 @@ const ApiCarrierVehiclesIdRoute = ApiCarrierVehiclesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCarrierVehiclesRoute,
 } as any)
+const ApiCarrierActivateTokenRoute = ApiCarrierActivateTokenRouteImport.update({
+  id: '/api/carrier/activate/$token',
+  path: '/api/carrier/activate/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBackupsIdUrlRoute = ApiBackupsIdUrlRouteImport.update({
   id: '/$id/url',
   path: '/$id/url',
@@ -2036,6 +2042,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
@@ -2325,6 +2332,7 @@ export interface FileRoutesByTo {
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
@@ -2616,6 +2624,7 @@ export interface FileRoutesById {
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
+  '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
@@ -2908,6 +2917,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/carrier/activate/$token'
     | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
@@ -3197,6 +3207,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/carrier/activate/$token'
     | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
@@ -3487,6 +3498,7 @@ export interface FileRouteTypes {
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
+    | '/api/carrier/activate/$token'
     | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
@@ -3726,6 +3738,7 @@ export interface RootRouteChildren {
   DriverRegisterTokenRoute: typeof DriverRegisterTokenRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
+  ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
@@ -5639,6 +5652,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierVehiclesIdRouteImport
       parentRoute: typeof ApiCarrierVehiclesRoute
     }
+    '/api/carrier/activate/$token': {
+      id: '/api/carrier/activate/$token'
+      path: '/api/carrier/activate/$token'
+      fullPath: '/api/carrier/activate/$token'
+      preLoaderRoute: typeof ApiCarrierActivateTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/backups/$id/url': {
       id: '/api/backups/$id/url'
       path: '/$id/url'
@@ -6710,6 +6730,7 @@ const rootRouteChildren: RootRouteChildren = {
   DriverRegisterTokenRoute: DriverRegisterTokenRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
+  ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
   ApiDispatcherContractsCarrierOfferRoute:
     ApiDispatcherContractsCarrierOfferRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
@@ -6721,13 +6742,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
