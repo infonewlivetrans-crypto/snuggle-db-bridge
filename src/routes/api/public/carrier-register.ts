@@ -118,16 +118,18 @@ export const Route = createFileRoute("/api/public/carrier-register")({
           const msg = userErr?.message ?? "";
           if (/already|registered|exists/i.test(msg)) {
             return jsonResponse(
-              { ok: false, already_registered: true, reason: "already_registered" },
+              { ok: false, already_registered: true, reason: "user_already_registered" },
               { status: 409 },
             );
           }
+          console.error("[carrier-register] user_create_failed", userErr);
           return jsonResponse(
-            { ok: false, reason: msg || "user_create_failed" },
+            { ok: false, reason: "user_create_failed", details: msg || null },
             { status: 500 },
           );
         }
         const userId = userRes.user.id;
+
 
         // 2) carriers
         const { data: carrierRow, error: carrierErr } = await admin
