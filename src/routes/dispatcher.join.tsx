@@ -198,6 +198,8 @@ function JoinPage() {
       if (!carrier.phone.trim()) return toast.error("Укажите телефон перевозчика");
       if (!agreed || !agreedBy.trim())
         return toast.error("Подтвердите согласие на комиссию 5% и укажите ФИО");
+      if (!offerAccepted || !offerAcceptedBy.trim())
+        return toast.error("Необходимо принять договор-оферту и указать ФИО");
     }
     if (needsDriver) {
       if (!driver.full_name.trim()) return toast.error("Укажите ФИО водителя");
@@ -225,6 +227,12 @@ function JoinPage() {
           agreed_by: agreedBy.trim(),
           agreement_text: COMMISSION_TEXT,
         };
+        payload.offer_acceptance = buildOfferPayload({
+          acceptedByName: offerAcceptedBy,
+          acceptedByPhone: carrier.phone || undefined,
+          acceptedByEmail: carrier.email || undefined,
+          source: "dispatcher_join",
+        });
       }
 
       const res = await fetch("/api/public/dispatcher-join", {
