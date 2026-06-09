@@ -114,14 +114,19 @@ function CarrierRegisterPage() {
         reason?: string;
       };
       if (!body.ok) {
-        if (body.already_registered) {
+        if (body.already_registered || body.reason === "user_already_registered") {
           setAlreadyRegistered(true);
-          toast.error("Этот email уже зарегистрирован");
+          toast.error("Этот email уже зарегистрирован. Войдите по email и паролю.");
           return;
         }
-        toast.error(body.reason ?? "Не удалось зарегистрироваться");
+        if (body.reason === "validation_failed") {
+          toast.error("Проверьте обязательные поля и попробуйте снова");
+          return;
+        }
+        toast.error("Не удалось зарегистрироваться. Попробуйте позже.");
         return;
       }
+
 
       toast.success("Регистрация прошла. Входим в кабинет…");
       try {
