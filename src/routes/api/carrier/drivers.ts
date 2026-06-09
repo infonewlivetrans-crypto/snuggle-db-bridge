@@ -12,7 +12,14 @@ export const Route = createFileRoute("/api/carrier/drivers")({
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
         const ctx = await resolveCarrierCtx(auth.userId);
-        if (ctx instanceof Response) return ctx;
+        if (ctx instanceof Response) {
+          return jsonResponse({
+            ok: false,
+            reason: "no_carrier_linked",
+            rows: [],
+            total: 0,
+          });
+        }
 
         const { data, error } = await ctx.admin
           .from("drivers")
@@ -22,8 +29,16 @@ export const Route = createFileRoute("/api/carrier/drivers")({
           )
           .eq("carrier_id", ctx.carrierId)
           .order("created_at", { ascending: false });
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse({ rows: data ?? [], total: data?.length ?? 0 });
+        if (error)
+          return jsonResponse(
+            { ok: false, error: error.message, rows: [], total: 0 },
+            { status: 200 },
+          );
+        return jsonResponse({
+          ok: true,
+          rows: data ?? [],
+          total: data?.length ?? 0,
+        });
       },
     },
   },
