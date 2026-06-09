@@ -81,8 +81,13 @@ function ActivatePage() {
         } else {
           const li = body.link;
           setInfo(li);
-          if (li.revoked) setError("Ссылка отозвана администратором. Запросите новую.");
-          else if (li.expired) setError("Срок действия ссылки истёк. Запросите новую у диспетчера.");
+          if (li.revoked) {
+            try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+            setError("Ссылка отозвана администратором. Запросите новую.");
+          } else if (li.expired) {
+            try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+            setError("Срок действия ссылки истёк. Запросите новую у диспетчера.");
+          }
           else if (li.used) {
             // Если ссылка уже использована — попробуем тихо привязать
             // текущего авторизованного пользователя (RPC проверит used_by).
