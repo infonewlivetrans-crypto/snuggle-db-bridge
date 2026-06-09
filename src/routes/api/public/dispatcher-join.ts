@@ -75,6 +75,23 @@ const vehicleSchema = z
   })
   .partial();
 
+const offerSchema = z
+  .object({
+    accepted: z.boolean().optional(),
+    contract_type: z.string().max(100).optional(),
+    contract_version: z.string().max(50).optional(),
+    contract_title: z.string().max(500).optional(),
+    contract_text: z.string().max(200000).optional(),
+    minimum_fee: z.number().optional(),
+    commission_rate: z.number().optional(),
+    accepted_by_name: text(255).optional(),
+    accepted_by_phone: text(50).optional().nullable(),
+    accepted_by_email: text(255).optional().nullable(),
+    accepted_user_agent: z.string().max(500).optional(),
+    source: z.string().max(100).optional(),
+  })
+  .partial();
+
 const bodySchema = z.object({
   registration_type: z.enum(["carrier", "driver", "driver_with_vehicle", "carrier_full"]),
   carrier: carrierSchema.optional(),
@@ -87,6 +104,7 @@ const bodySchema = z.object({
       agreement_text: text(2000).optional(),
     })
     .optional(),
+  offer_acceptance: offerSchema.optional(),
   // Honeypot: обычные люди не заполняют.
   website: z.string().max(500).optional(),
   company_site_extra: z.string().max(500).optional(),
@@ -116,7 +134,6 @@ export const Route = createFileRoute("/api/public/dispatcher-join")({
           return jsonResponse({ ok: true, spam: true });
         }
 
-        // Минимальные проверки: телефон обязателен для основного субъекта.
         const needsCarrier = data.registration_type === "carrier" || data.registration_type === "carrier_full";
         const needsDriver = data.registration_type === "driver" || data.registration_type === "driver_with_vehicle" || data.registration_type === "carrier_full";
 
@@ -125,6 +142,9 @@ export const Route = createFileRoute("/api/public/dispatcher-join")({
           if (!data.carrier?.phone) return jsonResponse({ ok: false, reason: "carrier_phone_required" }, { status: 400 });
           if (!data.agreement?.agreed || !data.agreement?.agreed_by) {
             return jsonResponse({ ok: false, reason: "agreement_required" }, { status: 400 });
+          }
+          if (!data.offer_acceptance?.accepted || !data.offer_acceptance?.accepted_by_name) {
+            return jsonResponse({ ok: false, reason: "offer_required" }, { status: 400 });
           }
         }
         if (needsDriver) {
