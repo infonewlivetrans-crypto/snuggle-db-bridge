@@ -241,6 +241,7 @@ import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-r
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
 import { Route as ApiCarrierVehiclesRouteImport } from './routes/api/carrier/vehicles'
+import { Route as ApiCarrierTripsRouteImport } from './routes/api/carrier/trips'
 import { Route as ApiCarrierOfferAcceptanceRouteImport } from './routes/api/carrier/offer-acceptance'
 import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
 import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
@@ -282,7 +283,6 @@ import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/d
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
-import { Route as ApiCarrierVehiclesIdRouteImport } from './routes/api/carrier/vehicles.$id'
 import { Route as ApiCarrierActivateTokenRouteImport } from './routes/api/carrier/activate.$token'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
@@ -1479,6 +1479,11 @@ const ApiCarrierVehiclesRoute = ApiCarrierVehiclesRouteImport.update({
   path: '/api/carrier/vehicles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierTripsRoute = ApiCarrierTripsRouteImport.update({
+  id: '/api/carrier/trips',
+  path: '/api/carrier/trips',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCarrierOfferAcceptanceRoute =
   ApiCarrierOfferAcceptanceRouteImport.update({
     id: '/api/carrier/offer-acceptance',
@@ -1703,11 +1708,6 @@ const ApiClientsIdPortalLinkRoute = ApiClientsIdPortalLinkRouteImport.update({
   id: '/$id/portal-link',
   path: '/$id/portal-link',
   getParentRoute: () => ApiClientsRoute,
-} as any)
-const ApiCarrierVehiclesIdRoute = ApiCarrierVehiclesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiCarrierVehiclesRoute,
 } as any)
 const ApiCarrierActivateTokenRoute = ApiCarrierActivateTokenRouteImport.update({
   id: '/api/carrier/activate/$token',
@@ -1991,7 +1991,8 @@ export interface FileRoutesByFullPath {
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
-  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
+  '/api/carrier/trips': typeof ApiCarrierTripsRoute
+  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2058,7 +2059,6 @@ export interface FileRoutesByFullPath {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
-  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2283,7 +2283,8 @@ export interface FileRoutesByTo {
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
-  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
+  '/api/carrier/trips': typeof ApiCarrierTripsRoute
+  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2350,7 +2351,6 @@ export interface FileRoutesByTo {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
-  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2577,7 +2577,8 @@ export interface FileRoutesById {
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
-  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
+  '/api/carrier/trips': typeof ApiCarrierTripsRoute
+  '/api/carrier/vehicles': typeof ApiCarrierVehiclesRoute
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
   '/api/delivery-routes/$id': typeof ApiDeliveryRoutesIdRouteWithChildren
@@ -2644,7 +2645,6 @@ export interface FileRoutesById {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
-  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2872,6 +2872,7 @@ export interface FileRouteTypes {
     | '/api/carrier/drivers'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
+    | '/api/carrier/trips'
     | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
@@ -2939,7 +2940,6 @@ export interface FileRouteTypes {
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
-    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3164,6 +3164,7 @@ export interface FileRouteTypes {
     | '/api/carrier/drivers'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
+    | '/api/carrier/trips'
     | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
@@ -3231,7 +3232,6 @@ export interface FileRouteTypes {
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
-    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3457,6 +3457,7 @@ export interface FileRouteTypes {
     | '/api/carrier/drivers'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
+    | '/api/carrier/trips'
     | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
@@ -3524,7 +3525,6 @@ export interface FileRouteTypes {
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
-    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3743,7 +3743,8 @@ export interface RootRouteChildren {
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
   ApiCarrierOfferAcceptanceRoute: typeof ApiCarrierOfferAcceptanceRoute
-  ApiCarrierVehiclesRoute: typeof ApiCarrierVehiclesRouteWithChildren
+  ApiCarrierTripsRoute: typeof ApiCarrierTripsRoute
+  ApiCarrierVehiclesRoute: typeof ApiCarrierVehiclesRoute
   ApiDispatcherCarrierLinkRoute: typeof ApiDispatcherCarrierLinkRouteWithChildren
   ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
   ApiDispatcherDashboardRoute: typeof ApiDispatcherDashboardRoute
@@ -5400,6 +5401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierVehiclesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/trips': {
+      id: '/api/carrier/trips'
+      path: '/api/carrier/trips'
+      fullPath: '/api/carrier/trips'
+      preLoaderRoute: typeof ApiCarrierTripsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/offer-acceptance': {
       id: '/api/carrier/offer-acceptance'
       path: '/api/carrier/offer-acceptance'
@@ -5686,13 +5694,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/clients/$id/portal-link'
       preLoaderRoute: typeof ApiClientsIdPortalLinkRouteImport
       parentRoute: typeof ApiClientsRoute
-    }
-    '/api/carrier/vehicles/$id': {
-      id: '/api/carrier/vehicles/$id'
-      path: '/$id'
-      fullPath: '/api/carrier/vehicles/$id'
-      preLoaderRoute: typeof ApiCarrierVehiclesIdRouteImport
-      parentRoute: typeof ApiCarrierVehiclesRoute
     }
     '/api/carrier/activate/$token': {
       id: '/api/carrier/activate/$token'
@@ -6323,17 +6324,6 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
-interface ApiCarrierVehiclesRouteChildren {
-  ApiCarrierVehiclesIdRoute: typeof ApiCarrierVehiclesIdRoute
-}
-
-const ApiCarrierVehiclesRouteChildren: ApiCarrierVehiclesRouteChildren = {
-  ApiCarrierVehiclesIdRoute: ApiCarrierVehiclesIdRoute,
-}
-
-const ApiCarrierVehiclesRouteWithChildren =
-  ApiCarrierVehiclesRoute._addFileChildren(ApiCarrierVehiclesRouteChildren)
-
 interface ApiDispatcherCarrierLinkRouteChildren {
   ApiDispatcherCarrierLinkCreateUserRoute: typeof ApiDispatcherCarrierLinkCreateUserRoute
   ApiDispatcherCarrierLinkInvitesRoute: typeof ApiDispatcherCarrierLinkInvitesRoute
@@ -6751,7 +6741,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierDriversRoute: ApiCarrierDriversRoute,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
   ApiCarrierOfferAcceptanceRoute: ApiCarrierOfferAcceptanceRoute,
-  ApiCarrierVehiclesRoute: ApiCarrierVehiclesRouteWithChildren,
+  ApiCarrierTripsRoute: ApiCarrierTripsRoute,
+  ApiCarrierVehiclesRoute: ApiCarrierVehiclesRoute,
   ApiDispatcherCarrierLinkRoute: ApiDispatcherCarrierLinkRouteWithChildren,
   ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
   ApiDispatcherDashboardRoute: ApiDispatcherDashboardRoute,
