@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { buildOfferPayload, savePendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
 
 // Публичная страница регистрации кабинета перевозчика по ссылке.
 // Использует ТОЛЬКО публичный supabase.auth.signUp (anon key),
