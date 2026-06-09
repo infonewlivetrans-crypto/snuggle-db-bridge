@@ -44,6 +44,7 @@ function ActivatePage() {
   const [info, setInfo] = useState<LinkInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
