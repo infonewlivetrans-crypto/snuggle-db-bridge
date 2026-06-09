@@ -270,6 +270,14 @@ function ActivatePage() {
             <Label htmlFor="ca-pass2">Повторите пароль</Label>
             <Input id="ca-pass2" type="password" value={password2} onChange={(e) => setPassword2(e.target.value)} />
           </div>
+
+          <CarrierOfferAcceptBlock
+            accepted={offerAccepted}
+            acceptedByName={offerAcceptedBy}
+            onAcceptedChange={setOfferAccepted}
+            onAcceptedByNameChange={setOfferAcceptedBy}
+          />
+
           <Button className="w-full" onClick={submit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Создать аккаунт и активировать кабинет
