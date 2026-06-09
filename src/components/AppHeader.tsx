@@ -593,7 +593,7 @@ export function AppHeader() {
 
         {/* ===== ПРАВО: уведомления + демо + пользователь ===== */}
         <div className="flex shrink-0 items-center gap-2">
-          <NotificationsBell />
+          {!isCarrierOnly && <NotificationsBell />}
           <DemoModeBadge />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
