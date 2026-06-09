@@ -223,7 +223,7 @@ async function apiSend<T>(
   const init: RequestInit = {
     method,
     credentials: "same-origin",
-    headers: { accept: "application/json", ...authHeaders() },
+    headers: { accept: "application/json", ...(await resolveAuthHeaders()) },
   };
   if (body instanceof FormData) {
     init.body = body;
