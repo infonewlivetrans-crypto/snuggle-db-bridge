@@ -44,6 +44,7 @@ function ActivatePage() {
   const [info, setInfo] = useState<LinkInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -142,19 +143,70 @@ function ActivatePage() {
 
 
 
-  const submit = async () => {
-    if (!fullName.trim() || !email.trim() || password.length < 6) {
-      toast.error("Заполните ФИО, email и пароль (минимум 6 символов)");
-      return;
+  // Запускает claim + запись акцепта, требует уже активной supabase-сессии.
+  const runClaimFlow = async (
+    session: { access_token: string; refresh_token: string },
+    offerPayload: ReturnType<typeof buildOfferPayload>,
+  ): Promise<boolean> => {
+    setLocalSessionTokens({
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+    });
+    try {
+      const claim = await apiPost<{ ok: boolean; reason?: string; error?: string }>(
+        `/api/carrier/activate/${encodeURIComponent(token)}`,
+      );
+      if (!claim.ok) {
+        toast.error(`Аккаунт не привязан: ${claim.error ?? claim.reason ?? "ошибка"}`);
+        try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+        savePendingOffer(offerPayload);
+        return false;
+      }
+      if (info?.ext_id) {
+        try {
+          await apiPost("/api/carrier/offer-acceptance", {
+            dispatcher_carrier_ext_id: info.ext_id,
+            payload: offerPayload,
+            source: "carrier_activate",
+          });
+          clearPendingOffer();
+        } catch (recErr) {
+          console.error("[carrier.activate] record_offer error", recErr);
+          savePendingOffer(offerPayload);
+        }
+      }
+      try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
+      setDone("logged_in");
+      return true;
+    } catch (claimErr) {
+      toast.error(`Не удалось привязать аккаунт: ${claimErr instanceof Error ? claimErr.message : "ошибка"}`);
+      try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+      savePendingOffer(offerPayload);
+      return false;
     }
-    if (password !== password2) {
-      toast.error("Пароли не совпадают");
+  };
+
+  const submit = async () => {
+    // Общая проверка для обоих режимов
+    if (!email.trim() || password.length < 6) {
+      toast.error("Заполните email и пароль (минимум 6 символов)");
       return;
     }
     if (!offerAccepted || !offerAcceptedBy.trim()) {
       toast.error("Необходимо принять договор-оферту и указать ФИО");
       return;
     }
+    if (mode === "signup") {
+      if (!fullName.trim()) {
+        toast.error("Заполните ФИО");
+        return;
+      }
+      if (password !== password2) {
+        toast.error("Пароли не совпадают");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const offerPayload = buildOfferPayload({
@@ -163,6 +215,22 @@ function ActivatePage() {
         acceptedByEmail: email || undefined,
         source: "carrier_activate",
       });
+
+      if (mode === "signin") {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error || !data.session) {
+          toast.error(error?.message ?? "Неверный email или пароль");
+          return;
+        }
+        await runClaimFlow(
+          { access_token: data.session.access_token, refresh_token: data.session.refresh_token },
+          offerPayload,
+        );
+        return;
+      }
 
       const redirectTo =
         typeof window !== "undefined"
@@ -177,57 +245,37 @@ function ActivatePage() {
         },
       });
       if (error) {
-        toast.error(error.message);
+        const msg = error.message.toLowerCase();
+        const alreadyRegistered =
+          msg.includes("already registered") ||
+          msg.includes("already exists") ||
+          msg.includes("user already") ||
+          msg.includes("registered");
+        if (alreadyRegistered) {
+          setMode("signin");
+          setPassword("");
+          setPassword2("");
+          toast.message("У вас уже есть аккаунт", {
+            description: "Введите пароль от существующего аккаунта — мы привяжем его к карточке перевозчика.",
+          });
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
-      // Если у нас уже есть session — confirmation отключён, можно сразу клеймить через API.
       if (data.session) {
-        // Кладём токен в localStorage, чтобы apiPost мог авторизоваться Bearer'ом
-        // (cookie-сессии в этот момент ещё нет).
-        setLocalSessionTokens({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-        try {
-          const claim = await apiPost<{ ok: boolean; reason?: string; error?: string }>(
-            `/api/carrier/activate/${encodeURIComponent(token)}`,
-          );
-          if (!claim.ok) {
-            toast.error(`Аккаунт создан, но не привязан: ${claim.error ?? claim.reason ?? "ошибка"}`);
-            try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
-            savePendingOffer(offerPayload);
-          } else {
-            // Запись акцепта договора-оферты через серверный API
-            if (info?.ext_id) {
-              try {
-                await apiPost("/api/carrier/offer-acceptance", {
-                  dispatcher_carrier_ext_id: info.ext_id,
-                  payload: offerPayload,
-                  source: "carrier_activate",
-                });
-                clearPendingOffer();
-              } catch (recErr) {
-                console.error("[carrier.activate] record_offer error", recErr);
-                savePendingOffer(offerPayload);
-              }
-            }
-            setDone("logged_in");
-            try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
-            return;
-          }
-        } catch (claimErr) {
-          toast.error(`Аккаунт создан, но не привязан: ${claimErr instanceof Error ? claimErr.message : "ошибка"}`);
-          try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
-          savePendingOffer(offerPayload);
-        }
+        await runClaimFlow(
+          { access_token: data.session.access_token, refresh_token: data.session.refresh_token },
+          offerPayload,
+        );
       } else {
-        // Email confirmation включён — сохраняем и токен, и акцепт для записи после входа.
+        // Email confirmation включён — сохраняем токен и акцепт до подтверждения.
         try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
         savePendingOffer(offerPayload);
         setDone("needs_confirm");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Не удалось завершить регистрацию");
+      toast.error(e instanceof Error ? e.message : "Не удалось завершить операцию");
     } finally {
       setSubmitting(false);
     }
@@ -303,34 +351,47 @@ function ActivatePage() {
     <div className="mx-auto max-w-md p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Активация кабинета перевозчика</CardTitle>
+          <CardTitle>
+            {mode === "signup" ? "Активация кабинета перевозчика" : "Вход в кабинет перевозчика"}
+          </CardTitle>
           {info.carrier_name && (
             <p className="text-sm text-muted-foreground">
               Карточка: <span className="font-medium">{info.carrier_name}</span>
             </p>
           )}
+          {mode === "signin" && (
+            <p className="text-sm text-muted-foreground">
+              Этот email уже зарегистрирован. Войдите паролем — мы привяжем аккаунт к карточке перевозчика.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="space-y-1">
-            <Label htmlFor="ca-name">ФИО</Label>
-            <Input id="ca-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-          </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="ca-name">ФИО</Label>
+              <Input id="ca-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            </div>
+          )}
           <div className="space-y-1">
             <Label htmlFor="ca-email">Email</Label>
             <Input id="ca-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="ca-phone">Телефон</Label>
-            <Input id="ca-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="ca-phone">Телефон</Label>
+              <Input id="ca-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+          )}
           <div className="space-y-1">
             <Label htmlFor="ca-pass">Пароль</Label>
             <Input id="ca-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="ca-pass2">Повторите пароль</Label>
-            <Input id="ca-pass2" type="password" value={password2} onChange={(e) => setPassword2(e.target.value)} />
-          </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="ca-pass2">Повторите пароль</Label>
+              <Input id="ca-pass2" type="password" value={password2} onChange={(e) => setPassword2(e.target.value)} />
+            </div>
+          )}
 
           <CarrierOfferAcceptBlock
             accepted={offerAccepted}
@@ -341,8 +402,19 @@ function ActivatePage() {
 
           <Button className="w-full" onClick={submit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Создать аккаунт и активировать кабинет
+            {mode === "signup"
+              ? "Создать аккаунт и активировать кабинет"
+              : "Войти и активировать кабинет"}
           </Button>
+          <button
+            type="button"
+            className="w-full text-center text-xs text-muted-foreground underline hover:text-foreground"
+            onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+          >
+            {mode === "signup"
+              ? "У меня уже есть аккаунт — войти"
+              : "Создать новый аккаунт"}
+          </button>
         </CardContent>
       </Card>
     </div>
