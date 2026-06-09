@@ -74,10 +74,27 @@ function FreightsPage() {
   const handleSubmit = async (data: FreightCreateInput) => {
     setSubmitting(true);
     try {
-      if (editing) await freightsApi.update(editing.id, data);
-      else await freightsApi.create(data);
+      let updatedRow: FreightDTO | null = null;
+      if (editing) {
+        const res = await freightsApi.update(editing.id, data);
+        updatedRow = res.row;
+      } else {
+        const res = await freightsApi.create(data);
+        updatedRow = res.row;
+      }
       toast.success(editing ? "Груз обновлён" : "Груз добавлен");
-      setDialogOpen(false); setEditing(null);
+      setDialogOpen(false);
+      setEditing(null);
+      if (updatedRow) {
+        setRows((prev) => {
+          const idx = prev.findIndex((r) => r.id === updatedRow!.id);
+          if (idx === -1) return [updatedRow!, ...prev];
+          const next = prev.slice();
+          next[idx] = updatedRow!;
+          return next;
+        });
+        setViewing((v) => (v && v.id === updatedRow!.id ? updatedRow! : v));
+      }
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
