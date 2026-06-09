@@ -259,6 +259,7 @@ import { Route as ApiPublicDriverInviteTokenRouteImport } from './routes/api/pub
 import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
 import { Route as ApiPublicDispatcherInviteTokenRouteImport } from './routes/api/public/dispatcher-invite.$token'
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
+import { Route as ApiPublicCarrierActivateTokenRouteImport } from './routes/api/public/carrier-activate.$token'
 import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pilot-tasks.$taskId.comments'
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
@@ -1573,6 +1574,12 @@ const ApiPublicClientPortalTokenRoute =
     path: '/api/public/client-portal/$token',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCarrierActivateTokenRoute =
+  ApiPublicCarrierActivateTokenRouteImport.update({
+    id: '/api/public/carrier-activate/$token',
+    path: '/api/public/carrier-activate/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPilotTasksTaskIdCommentsRoute =
   ApiPilotTasksTaskIdCommentsRouteImport.update({
     id: '/$taskId/comments',
@@ -2074,6 +2081,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
+  '/api/public/carrier-activate/$token': typeof ApiPublicCarrierActivateTokenRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
@@ -2365,6 +2373,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
+  '/api/public/carrier-activate/$token': typeof ApiPublicCarrierActivateTokenRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
@@ -2658,6 +2667,7 @@ export interface FileRoutesById {
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
   '/api/pilot-tasks/$taskId/comments': typeof ApiPilotTasksTaskIdCommentsRoute
+  '/api/public/carrier-activate/$token': typeof ApiPublicCarrierActivateTokenRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
@@ -2952,6 +2962,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
+    | '/api/public/carrier-activate/$token'
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
@@ -3243,6 +3254,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
+    | '/api/public/carrier-activate/$token'
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
@@ -3535,6 +3547,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
     | '/api/pilot-tasks/$taskId/comments'
+    | '/api/public/carrier-activate/$token'
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
     | '/api/public/driver-access/resolve'
@@ -3754,6 +3767,7 @@ export interface RootRouteChildren {
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
+  ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
   ApiPublicDriverAccessResolveRoute: typeof ApiPublicDriverAccessResolveRoute
@@ -5512,6 +5526,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientPortalTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/carrier-activate/$token': {
+      id: '/api/public/carrier-activate/$token'
+      path: '/api/public/carrier-activate/$token'
+      fullPath: '/api/public/carrier-activate/$token'
+      preLoaderRoute: typeof ApiPublicCarrierActivateTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/pilot-tasks/$taskId/comments': {
       id: '/api/pilot-tasks/$taskId/comments'
       path: '/$taskId/comments'
@@ -6755,6 +6776,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
   ApiDispatcherContractsCarrierOfferRoute:
     ApiDispatcherContractsCarrierOfferRoute,
+  ApiPublicCarrierActivateTokenRoute: ApiPublicCarrierActivateTokenRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:
     ApiPublicDispatcherInviteTokenRouteWithChildren,
