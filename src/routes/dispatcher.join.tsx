@@ -468,6 +468,15 @@ function JoinPage() {
                   />
                 </div>
               </div>
+
+              <div className="mt-4">
+                <CarrierOfferAcceptBlock
+                  accepted={offerAccepted}
+                  acceptedByName={offerAcceptedBy}
+                  onAcceptedChange={setOfferAccepted}
+                  onAcceptedByNameChange={setOfferAcceptedBy}
+                />
+              </div>
             </section>
           )}
 
