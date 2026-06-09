@@ -180,6 +180,8 @@ function JoinPage() {
   const [honeypot, setHoneypot] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [offerAccepted, setOfferAccepted] = useState(false);
+  const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
 
   const needsCarrier = regType === "carrier" || regType === "carrier_full";
   const needsDriver =
