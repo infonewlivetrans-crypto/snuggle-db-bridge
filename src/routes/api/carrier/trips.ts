@@ -3,8 +3,7 @@ import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
 
 // GET /api/carrier/trips — read-only view of production `delivery_routes`
-// filtered by current carrier. No new business logic, no writes.
-// Не дублирует водительский контур и Яндекс-маршрут — только список.
+// filtered by current carrier.
 
 export const Route = createFileRoute("/api/carrier/trips")({
   server: {
@@ -13,7 +12,14 @@ export const Route = createFileRoute("/api/carrier/trips")({
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
         const ctx = await resolveCarrierCtx(auth.userId);
-        if (ctx instanceof Response) return ctx;
+        if (ctx instanceof Response) {
+          return jsonResponse({
+            ok: false,
+            reason: "no_carrier_linked",
+            rows: [],
+            total: 0,
+          });
+        }
 
         const { data, error } = await ctx.admin
           .from("delivery_routes")
@@ -27,8 +33,16 @@ export const Route = createFileRoute("/api/carrier/trips")({
           .eq("carrier_id", ctx.carrierId)
           .order("route_date", { ascending: false })
           .limit(200);
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse({ rows: data ?? [], total: data?.length ?? 0 });
+        if (error)
+          return jsonResponse(
+            { ok: false, error: error.message, rows: [], total: 0 },
+            { status: 200 },
+          );
+        return jsonResponse({
+          ok: true,
+          rows: data ?? [],
+          total: data?.length ?? 0,
+        });
       },
     },
   },
