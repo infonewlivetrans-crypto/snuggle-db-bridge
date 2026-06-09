@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 export const Route = createFileRoute("/dispatcher/register/$token")({
   // Страница полностью клиентская: грузит данные по токену через fetch в useEffect.
