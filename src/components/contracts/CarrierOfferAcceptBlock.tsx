@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -59,6 +60,9 @@ export function CarrierOfferAcceptBlock({
               <DialogTitle>
                 {CARRIER_OFFER_TITLE} <span className="text-xs text-muted-foreground ml-2">ред. {CARRIER_OFFER_VERSION}</span>
               </DialogTitle>
+            <DialogDescription>
+              Прочитайте условия договора-оферты и подтвердите согласие на оказание услуг диспетчера.
+            </DialogDescription>
             </DialogHeader>
             <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed overflow-y-auto pr-2">
               {CARRIER_OFFER_FULL_TEXT}
