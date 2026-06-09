@@ -132,7 +132,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   // Минимальный режим запуска — скрываем всё, что не входит в базовый сценарий
-  if (!isPathVisibleInLaunchMode(path, launchMode)) {
+  if (!isCarrierCabinetPath && !isPathVisibleInLaunchMode(path, launchMode)) {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
