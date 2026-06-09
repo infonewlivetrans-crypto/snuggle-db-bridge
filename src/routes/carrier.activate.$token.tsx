@@ -70,6 +70,9 @@ function ActivatePage() {
           | null;
         if (cancelled) return;
         if (!res.ok || !body?.ok || !body.link) {
+          // Любая «битая» ссылка — чистим pending token, чтобы /carrier
+          // не пытался повторно клеймить его в фоне.
+          try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
           if (body?.reason === "not_found" || res.status === 404) {
             setError("Ссылка не найдена в системе. Возможно, она была удалена. Запросите новую у диспетчера.");
           } else {
