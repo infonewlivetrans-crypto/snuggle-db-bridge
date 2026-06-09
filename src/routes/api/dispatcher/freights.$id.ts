@@ -46,9 +46,17 @@ export const Route = createFileRoute("/api/dispatcher/freights/$id")({
             { status: 400 },
           );
         }
+        // Только реально пришедшие поля — не перетираем БД undefined'ами.
+        const updatePatch: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(parsed.data)) {
+          if (v !== undefined) updatePatch[k] = v;
+        }
+        if (Object.keys(updatePatch).length === 0) {
+          return jsonResponse({ error: "no_fields_to_update" }, { status: 400 });
+        }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (auth.client.from(TABLE as never) as any)
-          .update(parsed.data as unknown as never)
+          .update(updatePatch as unknown as never)
           .eq("id", params.id)
           .select(SELECT)
           .maybeSingle();
