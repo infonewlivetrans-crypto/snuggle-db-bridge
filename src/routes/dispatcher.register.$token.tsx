@@ -224,6 +224,15 @@ function RegisterPage() {
           </section>
         )}
 
+        {entityType === "carrier" && (
+          <CarrierOfferAcceptBlock
+            accepted={offerAccepted}
+            acceptedByName={offerAcceptedBy}
+            onAcceptedChange={setOfferAccepted}
+            onAcceptedByNameChange={setOfferAcceptedBy}
+          />
+        )}
+
         <section className="rounded-md border bg-card p-4">
           <h2 className="font-semibold">Документы</h2>
           <p className="text-sm text-muted-foreground mt-1">
