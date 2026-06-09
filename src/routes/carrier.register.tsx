@@ -88,12 +88,68 @@ function CarrierRegisterPage() {
 
     setBusy(true);
     try {
+      const emailNorm = email.trim();
+
+      // Шаг 1: signUp на клиенте через Supabase (без admin key).
+      let accessToken: string | null = null;
+      const signUpRes = await supabase.auth.signUp({
+        email: emailNorm,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/carrier`,
+          data: {
+            full_name: contactPerson.trim() || companyName.trim(),
+            source: "carrier_self_register",
+          },
+        },
+      });
+
+      if (signUpRes.error) {
+        const msg = signUpRes.error.message || "";
+        if (/already|registered|exists/i.test(msg)) {
+          // Email уже зарегистрирован — пробуем войти этим же паролем.
+          const signInRes = await supabase.auth.signInWithPassword({
+            email: emailNorm,
+            password,
+          });
+          if (signInRes.error || !signInRes.data.session) {
+            setAlreadyRegistered(true);
+            toast.error("Этот email уже зарегистрирован. Войдите по email и паролю.");
+            return;
+          }
+          accessToken = signInRes.data.session.access_token;
+        } else {
+          toast.error(msg || "Не удалось зарегистрироваться. Попробуйте позже.");
+          return;
+        }
+      } else {
+        accessToken = signUpRes.data.session?.access_token ?? null;
+        if (!accessToken) {
+          // confirm-email включён в проекте — сессии нет. Пробуем сразу войти.
+          const signInRes = await supabase.auth.signInWithPassword({
+            email: emailNorm,
+            password,
+          });
+          if (signInRes.error || !signInRes.data.session) {
+            toast.success(
+              "Подтвердите email из письма и войдите по email и паролю.",
+            );
+            navigate({ to: "/" });
+            return;
+          }
+          accessToken = signInRes.data.session.access_token;
+        }
+      }
+
+      // Шаг 2: создаём/привязываем production-карточку перевозчика к user_id.
       const res = await fetch("/api/public/carrier-register", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify({
-          email: email.trim(),
-          password,
+          email: emailNorm,
           registration_type: regType,
           company_name: companyName.trim(),
           carrier_kind: carrierKind,
@@ -111,32 +167,28 @@ function CarrierRegisterPage() {
       });
       const body = (await res.json()) as {
         ok: boolean;
-        already_registered?: boolean;
         reason?: string;
       };
       if (!body.ok) {
-        if (body.already_registered || body.reason === "user_already_registered") {
-          setAlreadyRegistered(true);
-          toast.error("Этот email уже зарегистрирован. Войдите по email и паролю.");
-          return;
-        }
         if (body.reason === "validation_failed") {
           toast.error("Проверьте обязательные поля и попробуйте снова");
+          return;
+        }
+        if (body.reason === "unauthorized") {
+          toast.error("Сессия не получена. Попробуйте войти и завершить регистрацию.");
           return;
         }
         toast.error("Не удалось зарегистрироваться. Попробуйте позже.");
         return;
       }
 
-
       toast.success("Регистрация прошла. Входим в кабинет…");
       try {
-        await signIn(email.trim(), password);
-        navigate({ to: "/carrier" });
+        await signIn(emailNorm, password);
       } catch {
-        // Если автологин не прошёл — отправляем на страницу входа.
-        navigate({ to: "/" });
+        // сессия уже есть от supabase.auth — этого достаточно.
       }
+      navigate({ to: "/carrier" });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Сетевая ошибка");
     } finally {
