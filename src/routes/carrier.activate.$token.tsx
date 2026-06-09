@@ -59,22 +59,24 @@ function ActivatePage() {
     (async () => {
       setLoading(true);
       try {
-        const rpcPromise = (supabase as unknown as {
-          rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
-        }).rpc("get_carrier_account_link", { _token: token });
-        const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) =>
-          setTimeout(() => resolve({ data: null, error: { message: "Превышено время ожидания сервера. Проверьте интернет и попробуйте обновить страницу." } }), 12000),
-        );
-        const { data, error } = await Promise.race([rpcPromise, timeout]);
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 12000);
+        const res = await fetch(`/api/public/carrier-activate/${encodeURIComponent(token)}`, {
+          signal: ctrl.signal,
+          headers: { accept: "application/json" },
+        }).finally(() => clearTimeout(t));
+        const body = (await res.json().catch(() => null)) as
+          | { ok: boolean; link?: LinkInfo; reason?: string; error?: string }
+          | null;
         if (cancelled) return;
-        if (error) {
-          console.error("[carrier.activate] rpc error", error);
-          setError(`Ошибка сервера: ${error.message}`);
-        } else if (!data || (Array.isArray(data) && data.length === 0)) {
-          setError("Ссылка не найдена в системе. Возможно, она была удалена. Запросите новую у диспетчера.");
+        if (!res.ok || !body?.ok || !body.link) {
+          if (body?.reason === "not_found" || res.status === 404) {
+            setError("Ссылка не найдена в системе. Возможно, она была удалена. Запросите новую у диспетчера.");
+          } else {
+            setError(`Ошибка сервера: ${body?.error ?? res.statusText}`);
+          }
         } else {
-          const row = Array.isArray(data) ? data[0] : data;
-          const li = row as LinkInfo;
+          const li = body.link;
           setInfo(li);
           if (li.revoked) setError("Ссылка отозвана администратором. Запросите новую.");
           else if (li.expired) setError("Срок действия ссылки истёк. Запросите новую у диспетчера.");
