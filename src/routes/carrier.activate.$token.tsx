@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
 import { buildOfferPayload, savePendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
+import { apiPost, setLocalSessionTokens } from "@/lib/api-client";
 
 // Публичная страница регистрации кабинета перевозчика по ссылке.
 // Использует ТОЛЬКО публичный supabase.auth.signUp (anon key),

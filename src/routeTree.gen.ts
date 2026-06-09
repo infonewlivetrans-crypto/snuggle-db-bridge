@@ -241,6 +241,7 @@ import { Route as ApiDeliveryRoutesIdRouteImport } from './routes/api/delivery-r
 import { Route as ApiCarriersImportRouteImport } from './routes/api/carriers.import'
 import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
 import { Route as ApiCarrierVehiclesRouteImport } from './routes/api/carrier/vehicles'
+import { Route as ApiCarrierOfferAcceptanceRouteImport } from './routes/api/carrier/offer-acceptance'
 import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
 import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
 import { Route as ApiCarrierDriverInvitesRouteImport } from './routes/api/carrier/driver-invites'
@@ -1477,6 +1478,12 @@ const ApiCarrierVehiclesRoute = ApiCarrierVehiclesRouteImport.update({
   path: '/api/carrier/vehicles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierOfferAcceptanceRoute =
+  ApiCarrierOfferAcceptanceRouteImport.update({
+    id: '/api/carrier/offer-acceptance',
+    path: '/api/carrier/offer-acceptance',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierMeRoute = ApiCarrierMeRouteImport.update({
   id: '/api/carrier/me',
   path: '/api/carrier/me',
@@ -1976,6 +1983,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
+  '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
@@ -2266,6 +2274,7 @@ export interface FileRoutesByTo {
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
+  '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
@@ -2558,6 +2567,7 @@ export interface FileRoutesById {
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
+  '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
   '/api/carriers/$id': typeof ApiCarriersIdRoute
   '/api/carriers/import': typeof ApiCarriersImportRoute
@@ -2851,6 +2861,7 @@ export interface FileRouteTypes {
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
+    | '/api/carrier/offer-acceptance'
     | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
@@ -3141,6 +3152,7 @@ export interface FileRouteTypes {
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
+    | '/api/carrier/offer-acceptance'
     | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
@@ -3432,6 +3444,7 @@ export interface FileRouteTypes {
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
+    | '/api/carrier/offer-acceptance'
     | '/api/carrier/vehicles'
     | '/api/carriers/$id'
     | '/api/carriers/import'
@@ -3716,6 +3729,7 @@ export interface RootRouteChildren {
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
+  ApiCarrierOfferAcceptanceRoute: typeof ApiCarrierOfferAcceptanceRoute
   ApiCarrierVehiclesRoute: typeof ApiCarrierVehiclesRouteWithChildren
   ApiDispatcherCarrierLinkRoute: typeof ApiDispatcherCarrierLinkRouteWithChildren
   ApiDispatcherCarriersRoute: typeof ApiDispatcherCarriersRouteWithChildren
@@ -5372,6 +5386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierVehiclesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/offer-acceptance': {
+      id: '/api/carrier/offer-acceptance'
+      path: '/api/carrier/offer-acceptance'
+      fullPath: '/api/carrier/offer-acceptance'
+      preLoaderRoute: typeof ApiCarrierOfferAcceptanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/me': {
       id: '/api/carrier/me'
       path: '/api/carrier/me'
@@ -6708,6 +6729,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
   ApiCarrierDriversRoute: ApiCarrierDriversRoute,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
+  ApiCarrierOfferAcceptanceRoute: ApiCarrierOfferAcceptanceRoute,
   ApiCarrierVehiclesRoute: ApiCarrierVehiclesRouteWithChildren,
   ApiDispatcherCarrierLinkRoute: ApiDispatcherCarrierLinkRouteWithChildren,
   ApiDispatcherCarriersRoute: ApiDispatcherCarriersRouteWithChildren,
