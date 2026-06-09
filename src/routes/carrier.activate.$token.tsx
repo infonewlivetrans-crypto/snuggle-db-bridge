@@ -101,8 +101,19 @@ function ActivatePage() {
       toast.error("Пароли не совпадают");
       return;
     }
+    if (!offerAccepted || !offerAcceptedBy.trim()) {
+      toast.error("Необходимо принять договор-оферту и указать ФИО");
+      return;
+    }
     setSubmitting(true);
     try {
+      const offerPayload = buildOfferPayload({
+        acceptedByName: offerAcceptedBy,
+        acceptedByPhone: phone || undefined,
+        acceptedByEmail: email || undefined,
+        source: "carrier_activate",
+      });
+
       const redirectTo =
         typeof window !== "undefined"
           ? `${window.location.origin}/carrier`
@@ -125,16 +136,33 @@ function ActivatePage() {
         const claim = await (supabase as any).rpc("claim_carrier_account_link", { _token: token });
         if (claim.error) {
           toast.error(`Аккаунт создан, но не привязан: ${claim.error.message}`);
-          // Сохраним токен на случай, если пользователь зайдёт позже
           try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+          savePendingOffer(offerPayload);
         } else {
+          // Запись акцепта договора-оферты
+          if (info?.ext_id) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rec = await (supabase as any).rpc("record_carrier_offer_acceptance", {
+              p_dispatcher_carrier_ext_id: info.ext_id,
+              p_payload: offerPayload,
+              p_source: "carrier_activate",
+            });
+            if (rec.error) {
+              console.error("[carrier.activate] record_offer error", rec.error);
+              // не блокируем активацию, сохраним для повторной попытки на /carrier
+              savePendingOffer(offerPayload);
+            } else {
+              clearPendingOffer();
+            }
+          }
           setDone("logged_in");
           try { localStorage.removeItem(PENDING_KEY); } catch { /* noop */ }
           return;
         }
       } else {
-        // Email confirmation включён — нужно подтвердить email и войти.
+        // Email confirmation включён — сохраняем и токен, и акцепт для записи после входа.
         try { localStorage.setItem(PENDING_KEY, token); } catch { /* noop */ }
+        savePendingOffer(offerPayload);
         setDone("needs_confirm");
       }
     } catch (e) {
