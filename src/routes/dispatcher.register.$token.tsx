@@ -44,6 +44,8 @@ function RegisterPage() {
   const [saving, setSaving] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [agreedBy, setAgreedBy] = useState("");
+  const [offerAccepted, setOfferAccepted] = useState(false);
+  const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
   const [done, setDone] = useState(false);
 
   useEffect(() => {
