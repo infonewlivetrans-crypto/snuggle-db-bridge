@@ -59,6 +59,7 @@ export const Route = createFileRoute("/api/public/carrier-register")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        try {
         let raw: unknown;
         try {
           raw = await request.json();
@@ -68,11 +69,12 @@ export const Route = createFileRoute("/api/public/carrier-register")({
         const parsed = bodySchema.safeParse(raw);
         if (!parsed.success) {
           return jsonResponse(
-            { ok: false, reason: "validation_failed", issues: parsed.error.issues },
+            { ok: false, reason: "validation_failed", details: parsed.error.issues },
             { status: 400 },
           );
         }
         const data = parsed.data;
+
 
         // Honeypot
         if (data.website && data.website.length > 0) {
