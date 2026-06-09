@@ -48,6 +48,8 @@ function ActivatePage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [offerAccepted, setOfferAccepted] = useState(false);
+  const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<null | "logged_in" | "needs_confirm">(null);
 
