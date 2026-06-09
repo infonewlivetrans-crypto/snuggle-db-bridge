@@ -98,21 +98,37 @@ function RegisterPage() {
         toast.error("Подтвердите согласие и укажите ФИО");
         return;
       }
+      if (!offerAccepted || !offerAcceptedBy.trim()) {
+        toast.error("Необходимо принять договор-оферту и указать ФИО");
+        return;
+      }
     }
     setSaving(true);
     try {
+      const phone = (form.phone as string) || "";
+      const email = (form.email as string) || "";
+      const body =
+        entityType === "carrier"
+          ? {
+              agreed: true,
+              agreed_by: agreedBy.trim(),
+              agreement_text: COMMISSION_TEXT,
+              offer_acceptance: buildOfferPayload({
+                acceptedByName: offerAcceptedBy,
+                acceptedByPhone: phone || undefined,
+                acceptedByEmail: email || undefined,
+                source: "dispatcher_register_token",
+              }),
+            }
+          : {};
       const res = await fetch(`/api/public/dispatcher-invite/${token}/complete`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(
-          entityType === "carrier"
-            ? { agreed: true, agreed_by: agreedBy.trim(), agreement_text: COMMISSION_TEXT }
-            : {},
-        ),
+        body: JSON.stringify(body),
       });
-      const body = (await res.json()) as { ok: boolean; reason?: string };
-      if (!body.ok) {
-        toast.error(body.reason ?? "Не удалось завершить");
+      const resp = (await res.json()) as { ok: boolean; reason?: string };
+      if (!resp.ok) {
+        toast.error(resp.reason ?? "Не удалось завершить");
         return;
       }
       setDone(true);
