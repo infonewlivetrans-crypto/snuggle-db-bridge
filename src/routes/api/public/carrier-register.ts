@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import {
   jsonResponse,
-  makeAdminClient,
   requireUser,
   getBearerToken,
 } from "@/server/api-helpers.server";
@@ -10,14 +9,16 @@ import {
 // Публичный endpoint регистрации перевозчика — ШАГ 2 (после signUp на клиенте).
 //
 // Контракт:
-//   • Клиент сначала сам делает supabase.auth.signUp / signInWithPassword.
+//   • Клиент сам делает supabase.auth.signUp / signInWithPassword.
 //   • Затем вызывает этот endpoint с Authorization: Bearer <access_token>.
-//   • Endpoint НЕ создаёт auth user (никакого admin.createUser), а только
-//     создаёт/привязывает production-карточку carrier к уже существующему
-//     auth-пользователю.
+//   • Endpoint работает ТОЛЬКО через user-auth Supabase client.
+//   • Все привилегированные операции (создание carriers/ext/profiles/role/...)
+//     выполняет SECURITY DEFINER RPC public.carrier_self_register(payload),
+//     которая берёт auth.uid() из JWT текущего пользователя.
 //
-// Идемпотентность: если profile.user_id уже привязан к carrier — возвращаем ok
-// с этим carrier_id и не дублируем записи.
+// ВАЖНО: этот endpoint НЕ использует привилегированных клиентов и работает
+// только через user-auth Bearer-токен. На VPS service_role key невалиден и
+// ломает регистрацию с "Invalid API key" — поэтому здесь его быть не должно.
 
 const text = (max: number) =>
   z
@@ -42,18 +43,6 @@ const bodySchema = z.object({
   website: z.string().max(500).optional(), // honeypot
 });
 
-const COMMISSION_TEXT =
-  "Я подтверждаю, что за рейсы, найденные диспетчером/сервисом, оплачиваю комиссию 5% после получения оплаты за перевозку.";
-
-function mapCarrierType(kind: z.infer<typeof bodySchema>["carrier_kind"]):
-  | "ip"
-  | "ooo"
-  | "self_employed" {
-  if (kind === "ip") return "ip";
-  if (kind === "ooo") return "ooo";
-  return "self_employed";
-}
-
 export const Route = createFileRoute("/api/public/carrier-register")({
   server: {
     handlers: {
@@ -74,7 +63,7 @@ export const Route = createFileRoute("/api/public/carrier-register")({
               { status: 401 },
             );
           }
-          const userId = auth.userId;
+          const userClient = auth.client;
 
           let raw: unknown;
           try {
@@ -120,146 +109,45 @@ export const Route = createFileRoute("/api/public/carrier-register")({
             }
           }
 
-          const admin = makeAdminClient();
+          // Всю работу делает SECURITY DEFINER RPC. auth.uid() внутри RPC
+          // равен текущему пользователю, чей Bearer-токен пришёл в запрос.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: rpcData, error: rpcErr } = await (userClient.rpc as any)(
+            "carrier_self_register",
+            { payload: data },
+          );
 
-          // Идемпотентность: уже привязан?
-          const { data: existingProfile } = await admin
-            .from("profiles")
-            .select("carrier_id")
-            .eq("user_id", userId)
-            .maybeSingle();
-          const existingCarrierId =
-            (existingProfile as { carrier_id?: string | null } | null)?.carrier_id ?? null;
-          if (existingCarrierId) {
-            return jsonResponse({
-              ok: true,
-              already_linked: true,
-              carrier_id: existingCarrierId,
-            });
-          }
-
-          // 1) carriers
-          const { data: carrierRow, error: carrierErr } = await admin
-            .from("carriers")
-            .insert({
-              carrier_type: mapCarrierType(data.carrier_kind),
-              company_name: data.company_name,
-              inn: data.inn || null,
-              ogrn: data.ogrn || null,
-              phone: data.phone || null,
-              email: data.email,
-              city: data.city || null,
-              contact_person: data.contact_person || null,
-              verification_status: "new",
-              source: "carrier_self_register",
-            } as never)
-            .select("id")
-            .single();
-          if (carrierErr || !carrierRow) {
-            console.error("[carrier-register] carrier_create_failed", carrierErr);
+          if (rpcErr) {
+            console.error("[carrier-register] rpc_failed", rpcErr);
             return jsonResponse(
               {
                 ok: false,
                 reason: "carrier_create_failed",
-                details: carrierErr?.message ?? null,
+                details: rpcErr.message ?? null,
               },
               { status: 500 },
             );
           }
-          const carrierId = (carrierRow as { id: string }).id;
 
-          // 2) dispatcher_carrier_ext
-          const { data: extRow, error: extErr } = await admin
-            .from("dispatcher_carrier_ext")
-            .insert({
-              carrier_id: carrierId,
-              name: data.company_name,
-              carrier_kind: data.carrier_kind,
-              inn: data.inn || null,
-              ogrn: data.ogrn || null,
-              phone: data.phone || null,
-              email: data.email,
-              city: data.city || null,
-              commission_rate: 0.05,
-              commission_agreed: true,
-              commission_agreed_at: new Date().toISOString(),
-              commission_agreed_by: data.commission_agreed_by,
-              commission_agreement_text: COMMISSION_TEXT,
-              commission_payment_method: data.commission_payment_method || null,
-              verification_status: "new",
-            } as never)
-            .select("id")
-            .single();
-          if (extErr) {
-            console.error("[carrier-register] ext_create_failed", extErr);
-            return jsonResponse(
-              { ok: false, reason: "ext_create_failed", details: extErr.message ?? null },
-              { status: 500 },
-            );
-          }
-          const carrierExtId = (extRow as { id: string }).id;
+          const result = (rpcData ?? {}) as {
+            ok?: boolean;
+            reason?: string;
+            carrier_id?: string;
+            already_linked?: boolean;
+          };
 
-          // 3) profiles.user_id ↔ carrier_id
-          await admin
-            .from("profiles")
-            .upsert(
-              {
-                user_id: userId,
-                full_name: data.contact_person || data.company_name,
-                email: data.email,
-                phone: data.phone || null,
-                carrier_id: carrierId,
-                is_active: true,
-              } as never,
-              { onConflict: "user_id" },
-            );
-
-          // 4) роль carrier (если ещё нет)
-          await admin
-            .from("user_roles")
-            .upsert({ user_id: userId, role: "carrier" } as never, {
-              onConflict: "user_id,role",
-            });
-
-          // 5) водитель (опционально)
-          if (data.registration_type === "carrier_with_driver") {
-            const { data: driverRow } = await admin
-              .from("drivers")
-              .insert({
-                carrier_id: carrierId,
-                full_name: data.driver_full_name!,
-                phone: data.driver_phone || null,
-                is_active: true,
-                source: "carrier_self_register",
-              } as never)
-              .select("id")
-              .single();
-            if (driverRow) {
-              await admin.from("dispatcher_driver_ext").insert({
-                driver_id: (driverRow as { id: string }).id,
-                full_name: data.driver_full_name!,
-                phone: data.driver_phone || null,
-                city: data.city || null,
-                dispatcher_carrier_ext_id: carrierExtId,
-                dispatcher_status: "new",
-                docs_status: "not_uploaded",
-              } as never);
-            }
+          if (!result.ok) {
+            const reason = result.reason ?? "carrier_create_failed";
+            const status = reason === "unauthorized" ? 401 : 400;
+            return jsonResponse({ ok: false, reason }, { status });
           }
 
-          // 6) задача диспетчеру
-          await admin.from("dispatcher_tasks").insert({
-            task_type: "check_documents",
-            title: `Проверить нового перевозчика: ${data.company_name}`,
-            description: `Перевозчик зарегистрировался самостоятельно через /carrier/register. Email: ${data.email}. Телефон: ${data.phone}.`,
-            priority: "normal",
-            task_status: "open",
-            related_entity_type: "carrier",
-            related_entity_id: carrierId,
-            dispatcher_carrier_ext_id: carrierExtId,
-          } as never);
-
-          return jsonResponse({ ok: true, email: data.email, carrier_id: carrierId });
+          return jsonResponse({
+            ok: true,
+            email: data.email,
+            carrier_id: result.carrier_id ?? null,
+            already_linked: Boolean(result.already_linked),
+          });
         } catch (error) {
           console.error("[carrier-register] unexpected_error", error);
           const message = error instanceof Error ? error.message : String(error);
