@@ -158,7 +158,7 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
         <div><Label>Ставка груза, ₽</Label><Input value={rate} onChange={(e) => setRate(e.target.value)} /></div>
         <div>
           <Label>Тип оплаты</Label>
-          <Select value={paymentType} onValueChange={setPaymentType}>
+          <Select value={paymentType} onValueChange={(v) => setPaymentType(v as typeof paymentType)}>
             <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— не указан —</SelectItem>
