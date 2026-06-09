@@ -293,6 +293,7 @@ import { Route as ApiDispatcherTasksIdCompleteRouteImport } from './routes/api/d
 import { Route as ApiDispatcherInvitesIdRevokeRouteImport } from './routes/api/dispatcher/invites.$id.revoke'
 import { Route as ApiDispatcherFreightsIdMatchVehiclesRouteImport } from './routes/api/dispatcher/freights.$id.match-vehicles'
 import { Route as ApiDispatcherDocumentsIdDownloadRouteImport } from './routes/api/dispatcher/documents.$id.download'
+import { Route as ApiDispatcherCarriersIdContractAcceptancesRouteImport } from './routes/api/dispatcher/carriers.$id.contract-acceptances'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
@@ -1761,6 +1762,12 @@ const ApiDispatcherDocumentsIdDownloadRoute =
     path: '/download',
     getParentRoute: () => ApiDispatcherDocumentsIdRoute,
   } as any)
+const ApiDispatcherCarriersIdContractAcceptancesRoute =
+  ApiDispatcherCarriersIdContractAcceptancesRouteImport.update({
+    id: '/contract-acceptances',
+    path: '/contract-acceptances',
+    getParentRoute: () => ApiDispatcherCarriersIdRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -2037,7 +2044,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
-  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
+  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRouteWithChildren
   '/api/dispatcher/contracts/carrier-offer': typeof ApiDispatcherContractsCarrierOfferRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
@@ -2057,6 +2064,7 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/dispatcher/carriers/$id/contract-acceptances': typeof ApiDispatcherCarriersIdContractAcceptancesRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
   '/api/dispatcher/invites/$id/revoke': typeof ApiDispatcherInvitesIdRevokeRoute
@@ -2325,7 +2333,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
-  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
+  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRouteWithChildren
   '/api/dispatcher/contracts/carrier-offer': typeof ApiDispatcherContractsCarrierOfferRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
@@ -2345,6 +2353,7 @@ export interface FileRoutesByTo {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/dispatcher/carriers/$id/contract-acceptances': typeof ApiDispatcherCarriersIdContractAcceptancesRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
   '/api/dispatcher/invites/$id/revoke': typeof ApiDispatcherInvitesIdRevokeRoute
@@ -2615,7 +2624,7 @@ export interface FileRoutesById {
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
-  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRoute
+  '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRouteWithChildren
   '/api/dispatcher/contracts/carrier-offer': typeof ApiDispatcherContractsCarrierOfferRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRoute
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
@@ -2635,6 +2644,7 @@ export interface FileRoutesById {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/dispatcher/carriers/$id/contract-acceptances': typeof ApiDispatcherCarriersIdContractAcceptancesRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
   '/api/dispatcher/invites/$id/revoke': typeof ApiDispatcherInvitesIdRevokeRoute
@@ -2926,6 +2936,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/dispatcher/carriers/$id/contract-acceptances'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/match-vehicles'
     | '/api/dispatcher/invites/$id/revoke'
@@ -3214,6 +3225,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/dispatcher/carriers/$id/contract-acceptances'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/match-vehicles'
     | '/api/dispatcher/invites/$id/revoke'
@@ -3503,6 +3515,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/dispatcher/carriers/$id/contract-acceptances'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/match-vehicles'
     | '/api/dispatcher/invites/$id/revoke'
@@ -5710,6 +5723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherDocumentsIdDownloadRouteImport
       parentRoute: typeof ApiDispatcherDocumentsIdRoute
     }
+    '/api/dispatcher/carriers/$id/contract-acceptances': {
+      id: '/api/dispatcher/carriers/$id/contract-acceptances'
+      path: '/contract-acceptances'
+      fullPath: '/api/dispatcher/carriers/$id/contract-acceptances'
+      preLoaderRoute: typeof ApiDispatcherCarriersIdContractAcceptancesRouteImport
+      parentRoute: typeof ApiDispatcherCarriersIdRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
       path: '/orders/$orderId'
@@ -6271,12 +6291,27 @@ const ApiDispatcherCarrierLinkRouteWithChildren =
     ApiDispatcherCarrierLinkRouteChildren,
   )
 
+interface ApiDispatcherCarriersIdRouteChildren {
+  ApiDispatcherCarriersIdContractAcceptancesRoute: typeof ApiDispatcherCarriersIdContractAcceptancesRoute
+}
+
+const ApiDispatcherCarriersIdRouteChildren: ApiDispatcherCarriersIdRouteChildren =
+  {
+    ApiDispatcherCarriersIdContractAcceptancesRoute:
+      ApiDispatcherCarriersIdContractAcceptancesRoute,
+  }
+
+const ApiDispatcherCarriersIdRouteWithChildren =
+  ApiDispatcherCarriersIdRoute._addFileChildren(
+    ApiDispatcherCarriersIdRouteChildren,
+  )
+
 interface ApiDispatcherCarriersRouteChildren {
-  ApiDispatcherCarriersIdRoute: typeof ApiDispatcherCarriersIdRoute
+  ApiDispatcherCarriersIdRoute: typeof ApiDispatcherCarriersIdRouteWithChildren
 }
 
 const ApiDispatcherCarriersRouteChildren: ApiDispatcherCarriersRouteChildren = {
-  ApiDispatcherCarriersIdRoute: ApiDispatcherCarriersIdRoute,
+  ApiDispatcherCarriersIdRoute: ApiDispatcherCarriersIdRouteWithChildren,
 }
 
 const ApiDispatcherCarriersRouteWithChildren =
