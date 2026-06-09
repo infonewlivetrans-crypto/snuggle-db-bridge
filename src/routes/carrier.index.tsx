@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
-import { supabase } from "@/integrations/supabase/client";
+import { apiPost } from "@/lib/api-client";
 import { readPendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
 
 const PENDING_KEY = "rt-carrier-activate-token";
