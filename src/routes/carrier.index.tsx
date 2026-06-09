@@ -110,7 +110,6 @@ function CarrierOverviewPage() {
         console.error("[carrier.index] claim error", e);
       }
     })();
-    })();
   }, [data, qc]);
 
 
