@@ -593,7 +593,14 @@ export function AppHeader() {
 
         {/* ===== ПРАВО: уведомления + демо + пользователь ===== */}
         <div className="flex shrink-0 items-center gap-2">
-          {!isCarrierOnly && <NotificationsBell />}
+          {(() => {
+            const isPublicCarrierPage =
+              path === "/carrier/register" ||
+              path.startsWith("/carrier/activate");
+            const showNotifications =
+              !!user && !isCarrierOnly && !isPublicCarrierPage;
+            return showNotifications ? <NotificationsBell /> : null;
+          })()}
           <DemoModeBadge />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
