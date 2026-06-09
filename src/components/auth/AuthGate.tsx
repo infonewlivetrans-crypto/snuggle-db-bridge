@@ -112,7 +112,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   // Модуль выключен в системных настройках — скрываем раздел даже при прямом переходе по URL
-  if (!isPathEnabled(path, enabledModules)) {
+  const isCarrierCabinetPath = path === "/carrier" || path.startsWith("/carrier/");
+
+  if (!isCarrierCabinetPath && !isPathEnabled(path, enabledModules)) {
     const moduleKey = pathBelongsToModule(path);
     const moduleLabel = moduleKey ? MODULE_LABELS[moduleKey] : "этот";
     return (
@@ -130,7 +132,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
   }
 
   // Минимальный режим запуска — скрываем всё, что не входит в базовый сценарий
-  if (!isPathVisibleInLaunchMode(path, launchMode)) {
+  if (!isCarrierCabinetPath && !isPathVisibleInLaunchMode(path, launchMode)) {
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
