@@ -32,6 +32,26 @@ export interface CarrierRequestPayload {
   request_status?: string | null;
 }
 
+export interface CarrierRequestContractPayload extends CarrierRequestPayload {
+  request_created_at?: string | null;
+  carrier_inn?: string | null;
+  carrier_ogrn?: string | null;
+  carrier_tax_regime?: string | null;
+  carrier_phone?: string | null;
+  carrier_email?: string | null;
+  carrier_ati?: string | null;
+  driver_phone?: string | null;
+  vehicle_plate?: string | null;
+  vehicle_kind?: string | null;
+  vehicle_body_type?: string | null;
+  vehicle_payload_kg?: number | string | null;
+  vehicle_volume_m3?: number | string | null;
+  carrier_responded_by?: string | null;
+  carrier_responded_at?: string | null;
+  /** Если true — не показывать комиссию (вариант для заказчика). */
+  hide_commission?: boolean;
+}
+
 const NA = "не указано";
 
 function val(v: string | number | null | undefined): string {
