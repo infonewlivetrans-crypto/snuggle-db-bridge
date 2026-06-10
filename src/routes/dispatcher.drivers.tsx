@@ -198,7 +198,11 @@ function DriversPage() {
             <DialogTitle>{editing ? "Редактировать водителя" : "Новый водитель"}</DialogTitle>
             <DialogDescription>Заполните данные водителя и сохраните.</DialogDescription>
           </DialogHeader>
-          <DriverForm initial={editing} carriers={carriers} submitting={submitting}
+          <DriverForm
+            initial={editing}
+            carriers={carriers}
+            initialCarrierId={carrierFilter !== "all" ? carrierFilter : null}
+            submitting={submitting}
             onCancel={() => { setDialogOpen(false); setEditing(null); }}
             onSubmit={handleSubmit}
           />

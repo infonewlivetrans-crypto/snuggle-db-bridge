@@ -5,16 +5,18 @@ import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
 // GET /api/carrier/drivers — водители текущего перевозчика.
 // Источник 1: production `drivers` по carrier_id.
 // Источник 2: `dispatcher_driver_ext` по dispatcher_carrier_ext_id
-//             (расширенные карточки из AI-диспетчера, ещё не синхронизированные
-//             с production). Это позволяет кабинету видеть водителей, заведённых
-//             только в диспетчере. Только чтение.
+//             (расширенные карточки из AI-диспетчера).
+// Только чтение.
 
 type DriverRow = {
   id: string;
   full_name: string | null;
   phone: string | null;
+  city: string | null;
   license_number: string | null;
   license_categories: string | null;
+  dispatcher_status: string | null;
+  docs_verified: boolean | null;
   is_active: boolean | null;
   source: "production" | "dispatcher";
 };
@@ -40,7 +42,7 @@ export const Route = createFileRoute("/api/carrier/drivers")({
         const rows: DriverRow[] = [];
         const seenProdIds = new Set<string>();
 
-        // (1) production drivers
+        // (1) production drivers (если таблица доступна)
         const prodRes = await ctx.admin
           .from("drivers")
           .select(
@@ -62,8 +64,11 @@ export const Route = createFileRoute("/api/carrier/drivers")({
               id: d.id,
               full_name: d.full_name,
               phone: d.phone,
+              city: null,
               license_number: d.license_number,
               license_categories: d.license_categories,
+              dispatcher_status: null,
+              docs_verified: null,
               is_active: d.is_active,
               source: "production",
             });
@@ -75,7 +80,8 @@ export const Route = createFileRoute("/api/carrier/drivers")({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const extRes = await (ctx.admin.from("dispatcher_driver_ext" as never) as any)
           .select(
-            "id, full_name, phone, dispatcher_status, production_driver_id, created_at",
+            "id, full_name, phone, city, dispatcher_status, docs_verified, " +
+              "production_driver_id, created_at",
           )
           .eq("dispatcher_carrier_ext_id", ctx.dispatcherCarrierExtId)
           .order("created_at", { ascending: false });
@@ -84,17 +90,21 @@ export const Route = createFileRoute("/api/carrier/drivers")({
             id: string;
             full_name: string | null;
             phone: string | null;
+            city: string | null;
             dispatcher_status: string | null;
+            docs_verified: boolean | null;
             production_driver_id: string | null;
           }>) {
-            // не дублируем, если уже есть production-запись
             if (d.production_driver_id && seenProdIds.has(d.production_driver_id)) continue;
             rows.push({
               id: d.id,
               full_name: d.full_name,
               phone: d.phone,
+              city: d.city,
               license_number: null,
               license_categories: null,
+              dispatcher_status: d.dispatcher_status,
+              docs_verified: d.docs_verified,
               is_active: !EXT_INACTIVE.has(d.dispatcher_status ?? ""),
               source: "dispatcher",
             });
