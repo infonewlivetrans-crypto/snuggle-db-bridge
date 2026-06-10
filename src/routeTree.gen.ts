@@ -248,6 +248,7 @@ import { Route as ApiCarrierOfferAcceptanceRouteImport } from './routes/api/carr
 import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
 import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
 import { Route as ApiCarrierDriverInvitesRouteImport } from './routes/api/carrier/driver-invites'
+import { Route as ApiCarrierDocumentsRouteImport } from './routes/api/carrier/documents'
 import { Route as ApiBackupsCreateRouteImport } from './routes/api/backups.create'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -285,6 +286,7 @@ import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/d
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
+import { Route as ApiCarrierDocumentsIdRouteImport } from './routes/api/carrier/documents.$id'
 import { Route as ApiCarrierActivateTokenRouteImport } from './routes/api/carrier/activate.$token'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
 import { Route as ApiBackupsIdRestoreRouteImport } from './routes/api/backups.$id.restore'
@@ -1518,6 +1520,11 @@ const ApiCarrierDriverInvitesRoute = ApiCarrierDriverInvitesRouteImport.update({
   path: '/api/carrier/driver-invites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierDocumentsRoute = ApiCarrierDocumentsRouteImport.update({
+  id: '/api/carrier/documents',
+  path: '/api/carrier/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBackupsCreateRoute = ApiBackupsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -1721,6 +1728,11 @@ const ApiClientsIdPortalLinkRoute = ApiClientsIdPortalLinkRouteImport.update({
   id: '/$id/portal-link',
   path: '/$id/portal-link',
   getParentRoute: () => ApiClientsRoute,
+} as any)
+const ApiCarrierDocumentsIdRoute = ApiCarrierDocumentsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCarrierDocumentsRoute,
 } as any)
 const ApiCarrierActivateTokenRoute = ApiCarrierActivateTokenRouteImport.update({
   id: '/api/carrier/activate/$token',
@@ -2000,6 +2012,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
@@ -2074,6 +2087,7 @@ export interface FileRoutesByFullPath {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
+  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2294,6 +2308,7 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
@@ -2368,6 +2383,7 @@ export interface FileRoutesByTo {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
+  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2590,6 +2606,7 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
   '/api/carrier/me': typeof ApiCarrierMeRoute
@@ -2664,6 +2681,7 @@ export interface FileRoutesById {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
+  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2887,6 +2905,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
@@ -2961,6 +2980,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
+    | '/api/carrier/documents/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3181,6 +3201,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
@@ -3255,6 +3276,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
+    | '/api/carrier/documents/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3476,6 +3498,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
@@ -3550,6 +3573,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/restore'
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
+    | '/api/carrier/documents/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3764,6 +3788,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiCarrierDocumentsRoute: typeof ApiCarrierDocumentsRouteWithChildren
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
@@ -5477,6 +5502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierDriverInvitesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/documents': {
+      id: '/api/carrier/documents'
+      path: '/api/carrier/documents'
+      fullPath: '/api/carrier/documents'
+      preLoaderRoute: typeof ApiCarrierDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/backups/create': {
       id: '/api/backups/create'
       path: '/create'
@@ -5735,6 +5767,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/clients/$id/portal-link'
       preLoaderRoute: typeof ApiClientsIdPortalLinkRouteImport
       parentRoute: typeof ApiClientsRoute
+    }
+    '/api/carrier/documents/$id': {
+      id: '/api/carrier/documents/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/documents/$id'
+      preLoaderRoute: typeof ApiCarrierDocumentsIdRouteImport
+      parentRoute: typeof ApiCarrierDocumentsRoute
     }
     '/api/carrier/activate/$token': {
       id: '/api/carrier/activate/$token'
@@ -6365,6 +6404,17 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface ApiCarrierDocumentsRouteChildren {
+  ApiCarrierDocumentsIdRoute: typeof ApiCarrierDocumentsIdRoute
+}
+
+const ApiCarrierDocumentsRouteChildren: ApiCarrierDocumentsRouteChildren = {
+  ApiCarrierDocumentsIdRoute: ApiCarrierDocumentsIdRoute,
+}
+
+const ApiCarrierDocumentsRouteWithChildren =
+  ApiCarrierDocumentsRoute._addFileChildren(ApiCarrierDocumentsRouteChildren)
+
 interface ApiDispatcherCarrierLinkRouteChildren {
   ApiDispatcherCarrierLinkCreateUserRoute: typeof ApiDispatcherCarrierLinkCreateUserRoute
   ApiDispatcherCarrierLinkInvitesRoute: typeof ApiDispatcherCarrierLinkInvitesRoute
@@ -6778,6 +6828,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiCarrierDocumentsRoute: ApiCarrierDocumentsRouteWithChildren,
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
   ApiCarrierDriversRoute: ApiCarrierDriversRoute,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
@@ -6820,13 +6871,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
