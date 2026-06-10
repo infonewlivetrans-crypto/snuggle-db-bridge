@@ -219,8 +219,8 @@ function JoinPage() {
       }
       if (needsCarrier) {
         payload.agreement = {
-          agreed,
-          agreed_by: agreedBy.trim(),
+          agreed: true,
+          agreed_by: offerAcceptedBy.trim(),
           agreement_text: COMMISSION_TEXT,
         };
         payload.offer_acceptance = buildOfferPayload({
