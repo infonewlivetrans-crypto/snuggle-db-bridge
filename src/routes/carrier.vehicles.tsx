@@ -165,5 +165,3 @@ function CarrierVehiclesPage() {
     </div>
   );
 }
-// touch type imports to keep tree-shaking happy
-export type _t = VehicleStatus | VehicleBodyType;
