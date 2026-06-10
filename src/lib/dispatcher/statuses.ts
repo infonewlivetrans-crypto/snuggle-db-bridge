@@ -159,6 +159,42 @@ export const FREIGHT_KIND_LABELS: Record<FreightKind, string> = {
   additional: "Догруз",
 };
 
+export const FREIGHT_SOURCE_TYPES = [
+  "manual",
+  "email",
+  "ati",
+  "site",
+  "messenger",
+  "other",
+] as const;
+export type FreightSourceType = (typeof FREIGHT_SOURCE_TYPES)[number];
+
+export const FREIGHT_SOURCE_TYPE_LABELS: Record<FreightSourceType, string> = {
+  manual: "Вручную",
+  email: "Почта",
+  ati: "ATI",
+  site: "Сайт",
+  messenger: "Мессенджер",
+  other: "Другое",
+};
+
+export const FREIGHT_PARSE_STATUSES = [
+  "draft",
+  "parsed",
+  "needs_review",
+  "converted",
+  "archive",
+] as const;
+export type FreightParseStatus = (typeof FREIGHT_PARSE_STATUSES)[number];
+
+export const FREIGHT_PARSE_STATUS_LABELS: Record<FreightParseStatus, string> = {
+  draft: "Черновик",
+  parsed: "Разобрано",
+  needs_review: "Нужна проверка",
+  converted: "Передано в работу",
+  archive: "Архив",
+};
+
 /** Цвет бейджа по семантике статуса. */
 export function statusBadgeClass(status: string): string {
   switch (status) {

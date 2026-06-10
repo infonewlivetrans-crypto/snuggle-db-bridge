@@ -3,7 +3,7 @@ import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 
 // =============== Constants ===============
 
-export const DOCUMENT_OWNER_TYPES = ["carrier", "driver", "vehicle"] as const;
+export const DOCUMENT_OWNER_TYPES = ["carrier", "driver", "vehicle", "freight"] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 
 export const DOCUMENT_STATUSES = [
@@ -53,6 +53,15 @@ export const VEHICLE_DOC_TYPES = [
   "other",
 ] as const;
 
+export const FREIGHT_DOC_TYPES = [
+  "customer_request_pdf",
+  "customer_contract_pdf",
+  "customer_specification",
+  "customer_invoice",
+  "email_attachment",
+  "other",
+] as const;
+
 export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   company_card: "Карточка предприятия / реквизиты",
   inn: "ИНН",
@@ -69,12 +78,18 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   osago: "ОСАГО",
   vehicle_photo: "Фото машины",
   diagnostic_card: "Диагностическая карта",
+  customer_request_pdf: "PDF-заявка заказчика",
+  customer_contract_pdf: "Договор от заказчика",
+  customer_specification: "Спецификация",
+  customer_invoice: "Счёт",
+  email_attachment: "Вложение письма",
   other: "Другое",
 };
 
 export function documentTypesFor(ownerType: DocumentOwnerType): readonly string[] {
   if (ownerType === "carrier") return CARRIER_DOC_TYPES;
   if (ownerType === "driver") return DRIVER_DOC_TYPES;
+  if (ownerType === "freight") return FREIGHT_DOC_TYPES;
   return VEHICLE_DOC_TYPES;
 }
 
