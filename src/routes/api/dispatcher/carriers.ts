@@ -13,7 +13,8 @@ const TABLE = "dispatcher_carrier_ext";
 const ALLOWED_ROLES = ["admin", "dispatcher"];
 
 const SELECT =
-  "id, name, carrier_kind, inn, ogrn, phone, email, city, whatsapp, telegram, max_messenger, " +
+  "id, name, carrier_kind, tax_regime, inn, ogrn, phone, email, city, " +
+  "ati_id, ati_phone, ati_email, whatsapp, telegram, max_messenger, " +
   "bank_name, bank_account, bank_bik, bank_corr_account, commission_rate, payment_method, " +
   "commission_agreed, commission_agreed_at, commission_agreed_by, commission_agreement_text, " +
   "commission_payment_method, verification_status, dispatcher_comment, production_carrier_id, " +

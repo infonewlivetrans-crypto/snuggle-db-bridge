@@ -156,6 +156,26 @@ export const CARRIER_KIND_LABELS: Record<CarrierKind, string> = {
   individual: "Физлицо",
 };
 
+// Налоговые режимы перевозчика. Технические value стабильны, русский — label.
+export const CARRIER_TAX_REGIMES = [
+  "osno",
+  "usn_income",
+  "usn_income_expense",
+  "patent",
+  "npd",
+  "eshn",
+] as const;
+export type CarrierTaxRegime = (typeof CARRIER_TAX_REGIMES)[number];
+
+export const CARRIER_TAX_REGIME_LABELS: Record<CarrierTaxRegime, string> = {
+  osno: "ОСН",
+  usn_income: "УСН (доходы)",
+  usn_income_expense: "УСН (доходы − расходы)",
+  patent: "Патент",
+  npd: "НПД (самозанятый)",
+  eshn: "ЕСХН",
+};
+
 export const LOAD_METHODS = ["back", "side", "top", "tail_lift"] as const;
 export type LoadMethod = (typeof LOAD_METHODS)[number];
 

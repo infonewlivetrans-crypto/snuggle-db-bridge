@@ -67,14 +67,58 @@ const optionalDate = z
   .transform((v) => (v == null || v === "" ? null : v));
 
 // =================== Carrier ===================
+const innSchema = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v == null || v === "" ? null : v))
+  .refine((v) => v === null || /^\d{10}$|^\d{12}$/.test(v), {
+    message: "ИНН: 10 или 12 цифр",
+  });
+
+const ogrnSchema = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v == null || v === "" ? null : v))
+  .refine((v) => v === null || /^\d{13}$|^\d{15}$/.test(v), {
+    message: "ОГРН — 13 цифр, ОГРНИП — 15 цифр",
+  });
+
+const phoneSchema = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v == null || v === "" ? null : v))
+  .refine((v) => v === null || /^[+\d][\d\s()\-]{5,30}$/.test(v), {
+    message: "Некорректный телефон",
+  });
+
+const emailSchema = z
+  .string()
+  .trim()
+  .optional()
+  .nullable()
+  .transform((v) => (v == null || v === "" ? null : v))
+  .refine((v) => v === null || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), {
+    message: "Некорректный email",
+  });
+
 export const carrierCreateSchema = z.object({
   name: z.string().trim().min(1, "Название обязательно").max(255),
   carrier_kind: z.enum(CARRIER_KINDS),
-  inn: nullableText(20),
-  ogrn: nullableText(20),
-  phone: nullableText(50),
-  email: nullableText(255),
+  tax_regime: nullableText(50),
+  inn: innSchema,
+  ogrn: ogrnSchema,
+  phone: phoneSchema,
+  email: emailSchema,
   city: nullableText(100),
+  ati_id: nullableText(50),
+  ati_phone: phoneSchema,
+  ati_email: emailSchema,
   whatsapp: nullableText(100),
   telegram: nullableText(100),
   max_messenger: nullableText(255),
