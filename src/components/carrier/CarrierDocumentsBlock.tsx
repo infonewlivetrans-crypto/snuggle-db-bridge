@@ -105,6 +105,7 @@ export function CarrierDocumentsBlock({ ownerType, ownerId, title }: Props) {
                 {(d.title || d.file_name) && (
                   <div className="text-xs text-muted-foreground truncate">
                     {d.title || d.file_name}
+                    {d.file_size ? ` · ${Math.round(d.file_size / 1024)} КБ` : ""}
                   </div>
                 )}
                 {d.comment && (
@@ -113,6 +114,30 @@ export function CarrierDocumentsBlock({ ownerType, ownerId, title }: Props) {
                   </div>
                 )}
               </div>
+              {d.file_path && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/dispatcher/documents/${d.id}/download`, {
+                        credentials: "same-origin",
+                        headers: authHeaders(),
+                      });
+                      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                      const blob = await res.blob();
+                      const url = URL.createObjectURL(blob);
+                      if (typeof window !== "undefined") window.open(url, "_blank", "noopener,noreferrer");
+                      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+                    } catch (e) {
+                      toast.error(e instanceof Error ? e.message : "Не удалось открыть");
+                    }
+                  }}
+                  title="Открыть"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </Button>
+              )}
             </li>
           ))}
         </ul>
