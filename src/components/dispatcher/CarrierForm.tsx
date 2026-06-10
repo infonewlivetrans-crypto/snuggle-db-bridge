@@ -17,6 +17,8 @@ import {
   CARRIER_STATUS_LABELS,
   CARRIER_PAYMENT_METHODS,
   CARRIER_PAYMENT_METHOD_LABELS,
+  CARRIER_TAX_REGIMES,
+  CARRIER_TAX_REGIME_LABELS,
   type CarrierKind,
   type CarrierStatus,
 } from "@/lib/dispatcher/statuses";
@@ -41,11 +43,15 @@ const isCarrierStatus = (value: unknown): value is CarrierStatus =>
 export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) {
   const [name, setName] = useState("");
   const [kind, setKind] = useState<CarrierKind>("individual_entrepreneur");
+  const [taxRegime, setTaxRegime] = useState("");
   const [inn, setInn] = useState("");
   const [ogrn, setOgrn] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
+  const [atiId, setAtiId] = useState("");
+  const [atiPhone, setAtiPhone] = useState("");
+  const [atiEmail, setAtiEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [telegram, setTelegram] = useState("");
   const [maxId, setMaxId] = useState("");
@@ -63,11 +69,15 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
     if (initial) {
       setName(empty(initial.name));
       setKind((initial.carrier_kind as CarrierKind) || "individual_entrepreneur");
+      setTaxRegime(empty(initial.tax_regime));
       setInn(empty(initial.inn));
       setOgrn(empty(initial.ogrn));
       setPhone(empty(initial.phone));
       setEmail(empty(initial.email));
       setCity(empty(initial.city));
+      setAtiId(empty(initial.ati_id));
+      setAtiPhone(empty(initial.ati_phone));
+      setAtiEmail(empty(initial.ati_email));
       setWhatsapp(empty(initial.whatsapp));
       setTelegram(empty(initial.telegram));
       setMaxId(empty(initial.max_messenger));
