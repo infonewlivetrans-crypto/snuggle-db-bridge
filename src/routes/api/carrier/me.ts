@@ -4,6 +4,7 @@ import {
   makeAdminClient,
   requireAnyRole,
 } from "@/server/api-helpers.server";
+import { ensureCarrierLink } from "@/server/carrier-autolink.server";
 
 // GET /api/carrier/me
 // Возвращает данные текущего перевозчика для личного кабинета.
@@ -27,14 +28,9 @@ export const Route = createFileRoute("/api/carrier/me")({
         const profileCarrierId =
           (profile as { carrier_id: string | null } | null)?.carrier_id ?? null;
 
-        // (1) Связь через dispatcher_carrier_users.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const link = await (admin.from("dispatcher_carrier_users" as never) as any)
-          .select("dispatcher_carrier_ext_id")
-          .eq("user_id", auth.userId)
-          .eq("status", "active")
-          .maybeSingle();
-        const linkExtId = link?.data?.dispatcher_carrier_ext_id as string | undefined;
+        // (1) Авто-связка user → dispatcher_carrier_ext (ничего не нажимая руками).
+        const auto = await ensureCarrierLink(admin, auth.userId);
+        const linkExtId = auto?.extId;
 
         // (2) Поиск ext-записи.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
