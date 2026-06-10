@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { CarrierUnifiedConsentBlock } from "@/components/contracts/CarrierUnifiedConsentBlock";
 import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 // Публичная общая регистрация в AI-диспетчере.
