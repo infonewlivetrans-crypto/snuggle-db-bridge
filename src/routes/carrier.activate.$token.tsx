@@ -241,7 +241,13 @@ function ActivatePage() {
         password,
         options: {
           emailRedirectTo: redirectTo,
-          data: { full_name: fullName.trim(), phone: phone.trim() || null },
+          data: {
+            full_name: fullName.trim(),
+            phone: phone.trim() || null,
+            // Серверная авто-связка подберёт токен после подтверждения email,
+            // даже если localStorage в другом браузере недоступен.
+            carrier_activate_token: token,
+          },
         },
       });
       if (error) {
