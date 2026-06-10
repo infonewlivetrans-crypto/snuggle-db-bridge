@@ -295,6 +295,7 @@ import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './route
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
 import { Route as ApiCarrierRequestsIdRouteImport } from './routes/api/carrier/requests.$id'
 import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
+import { Route as ApiCarrierDocumentsUploadRouteImport } from './routes/api/carrier/documents.upload'
 import { Route as ApiCarrierDocumentsIdRouteImport } from './routes/api/carrier/documents.$id'
 import { Route as ApiCarrierActivateTokenRouteImport } from './routes/api/carrier/activate.$token'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
@@ -1797,6 +1798,12 @@ const ApiCarrierFreightsSigningRoute =
     path: '/api/carrier/freights/signing',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiCarrierDocumentsUploadRoute =
+  ApiCarrierDocumentsUploadRouteImport.update({
+    id: '/upload',
+    path: '/upload',
+    getParentRoute: () => ApiCarrierDocumentsRoute,
+  } as any)
 const ApiCarrierDocumentsIdRoute = ApiCarrierDocumentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2207,6 +2214,7 @@ export interface FileRoutesByFullPath {
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
@@ -2520,6 +2528,7 @@ export interface FileRoutesByTo {
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
@@ -2835,6 +2844,7 @@ export interface FileRoutesById {
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
@@ -3151,6 +3161,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
+    | '/api/carrier/documents/upload'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/clients/$id/portal-link'
@@ -3464,6 +3475,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
+    | '/api/carrier/documents/upload'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/clients/$id/portal-link'
@@ -3778,6 +3790,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
+    | '/api/carrier/documents/upload'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/clients/$id/portal-link'
@@ -6055,6 +6068,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierFreightsSigningRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/documents/upload': {
+      id: '/api/carrier/documents/upload'
+      path: '/upload'
+      fullPath: '/api/carrier/documents/upload'
+      preLoaderRoute: typeof ApiCarrierDocumentsUploadRouteImport
+      parentRoute: typeof ApiCarrierDocumentsRoute
+    }
     '/api/carrier/documents/$id': {
       id: '/api/carrier/documents/$id'
       path: '/$id'
@@ -6749,10 +6769,12 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
 
 interface ApiCarrierDocumentsRouteChildren {
   ApiCarrierDocumentsIdRoute: typeof ApiCarrierDocumentsIdRoute
+  ApiCarrierDocumentsUploadRoute: typeof ApiCarrierDocumentsUploadRoute
 }
 
 const ApiCarrierDocumentsRouteChildren: ApiCarrierDocumentsRouteChildren = {
   ApiCarrierDocumentsIdRoute: ApiCarrierDocumentsIdRoute,
+  ApiCarrierDocumentsUploadRoute: ApiCarrierDocumentsUploadRoute,
 }
 
 const ApiCarrierDocumentsRouteWithChildren =
