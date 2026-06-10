@@ -50,7 +50,14 @@ export const Route = createFileRoute("/api/carrier/drivers")({
           .eq("carrier_id", ctx.carrierId)
           .order("created_at", { ascending: false });
         if (!prodRes.error && prodRes.data) {
-          for (const d of prodRes.data) {
+          for (const d of prodRes.data as Array<{
+            id: string;
+            full_name: string | null;
+            phone: string | null;
+            license_number: string | null;
+            license_categories: string | null;
+            is_active: boolean | null;
+          }>) {
             rows.push({
               id: d.id,
               full_name: d.full_name,
