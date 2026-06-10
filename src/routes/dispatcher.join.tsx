@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   Select,
   SelectContent,
@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { CarrierUnifiedConsentBlock } from "@/components/contracts/CarrierUnifiedConsentBlock";
 import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 // Публичная общая регистрация в AI-диспетчере.
@@ -175,8 +175,6 @@ function JoinPage() {
   const [carrier, setCarrier] = useState<CarrierForm>(emptyCarrier);
   const [driver, setDriver] = useState<DriverForm>(emptyDriver);
   const [vehicle, setVehicle] = useState<VehicleForm>(emptyVehicle);
-  const [agreed, setAgreed] = useState(false);
-  const [agreedBy, setAgreedBy] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -196,10 +194,8 @@ function JoinPage() {
     if (needsCarrier) {
       if (!carrier.name.trim()) return toast.error("Укажите название перевозчика");
       if (!carrier.phone.trim()) return toast.error("Укажите телефон перевозчика");
-      if (!agreed || !agreedBy.trim())
-        return toast.error("Подтвердите согласие на комиссию 5% и укажите ФИО");
       if (!offerAccepted || !offerAcceptedBy.trim())
-        return toast.error("Необходимо принять договор-оферту и указать ФИО");
+        return toast.error("Подтвердите согласие на комиссию и укажите ФИО");
     }
     if (needsDriver) {
       if (!driver.full_name.trim()) return toast.error("Укажите ФИО водителя");
@@ -223,8 +219,8 @@ function JoinPage() {
       }
       if (needsCarrier) {
         payload.agreement = {
-          agreed,
-          agreed_by: agreedBy.trim(),
+          agreed: true,
+          agreed_by: offerAcceptedBy.trim(),
           agreement_text: COMMISSION_TEXT,
         };
         payload.offer_acceptance = buildOfferPayload({
@@ -451,29 +447,8 @@ const res = await fetch("/api/public/dispatcher-join", {
                 </Field>
               </div>
 
-              <div className="mt-5 rounded-md border bg-muted/40 p-4">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id="agree-5"
-                    checked={agreed}
-                    onCheckedChange={(v) => setAgreed(Boolean(v))}
-                  />
-                  <Label htmlFor="agree-5" className="text-sm leading-snug">
-                    {COMMISSION_TEXT}
-                  </Label>
-                </div>
-                <div className="mt-3">
-                  <Label className="text-sm">ФИО подтверждающего *</Label>
-                  <Input
-                    className="mt-1"
-                    value={agreedBy}
-                    onChange={(e) => setAgreedBy(e.target.value)}
-                  />
-                </div>
-              </div>
-
               <div className="mt-4">
-                <CarrierOfferAcceptBlock
+                <CarrierUnifiedConsentBlock
                   accepted={offerAccepted}
                   acceptedByName={offerAcceptedBy}
                   onAcceptedChange={setOfferAccepted}

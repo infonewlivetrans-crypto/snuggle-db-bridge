@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { CarrierUnifiedConsentBlock } from "@/components/contracts/CarrierUnifiedConsentBlock";
 import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 export const Route = createFileRoute("/dispatcher/register/$token")({
@@ -42,8 +41,6 @@ function RegisterPage() {
   const [info, setInfo] = useState<ResolveResp | null>(null);
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [agreedBy, setAgreedBy] = useState("");
   const [offerAccepted, setOfferAccepted] = useState(false);
   const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
   const [done, setDone] = useState(false);
@@ -94,12 +91,8 @@ function RegisterPage() {
   const complete = async () => {
     if (!(await save())) return;
     if (entityType === "carrier") {
-      if (!agreed || !agreedBy.trim()) {
-        toast.error("Подтвердите согласие и укажите ФИО");
-        return;
-      }
       if (!offerAccepted || !offerAcceptedBy.trim()) {
-        toast.error("Необходимо принять договор-оферту и указать ФИО");
+        toast.error("Подтвердите согласие на комиссию и укажите ФИО");
         return;
       }
     }
@@ -111,7 +104,7 @@ function RegisterPage() {
         entityType === "carrier"
           ? {
               agreed: true,
-              agreed_by: agreedBy.trim(),
+              agreed_by: offerAcceptedBy.trim(),
               agreement_text: COMMISSION_TEXT,
               offer_acceptance: buildOfferPayload({
                 acceptedByName: offerAcceptedBy,
@@ -206,26 +199,7 @@ function RegisterPage() {
         )}
 
         {entityType === "carrier" && (
-          <section className="rounded-md border bg-card p-4 space-y-3">
-            <h2 className="font-semibold">Согласие на комиссию 5%</h2>
-            <p className="text-sm">{COMMISSION_TEXT}</p>
-            <label className="flex items-start gap-2 text-sm">
-              <Checkbox checked={agreed} onCheckedChange={(v) => setAgreed(Boolean(v))} />
-              <span>Я подтверждаю условия и согласен на комиссию 5%.</span>
-            </label>
-            <div>
-              <Label>ФИО подтверждающего</Label>
-              <Input
-                value={agreedBy}
-                onChange={(e) => setAgreedBy(e.target.value)}
-                placeholder="Иванов Иван Иванович"
-              />
-            </div>
-          </section>
-        )}
-
-        {entityType === "carrier" && (
-          <CarrierOfferAcceptBlock
+          <CarrierUnifiedConsentBlock
             accepted={offerAccepted}
             acceptedByName={offerAcceptedBy}
             onAcceptedChange={setOfferAccepted}
