@@ -5,14 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import {
-  VEHICLE_BODY_TYPE_LABELS,
-  VEHICLE_STATUS_LABELS,
   LOAD_METHOD_LABELS,
   VEHICLE_FEATURE_LABELS,
-  type VehicleStatus,
-  type VehicleBodyType,
   type LoadMethod,
   type VehicleFeature,
+
 } from "@/lib/dispatcher/statuses";
 
 export const Route = createFileRoute("/carrier/vehicles")({
