@@ -194,10 +194,8 @@ function JoinPage() {
     if (needsCarrier) {
       if (!carrier.name.trim()) return toast.error("Укажите название перевозчика");
       if (!carrier.phone.trim()) return toast.error("Укажите телефон перевозчика");
-      if (!agreed || !agreedBy.trim())
-        return toast.error("Подтвердите согласие на комиссию 5% и укажите ФИО");
       if (!offerAccepted || !offerAcceptedBy.trim())
-        return toast.error("Необходимо принять договор-оферту и указать ФИО");
+        return toast.error("Подтвердите согласие на комиссию и укажите ФИО");
     }
     if (needsDriver) {
       if (!driver.full_name.trim()) return toast.error("Укажите ФИО водителя");
