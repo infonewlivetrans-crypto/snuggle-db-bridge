@@ -41,8 +41,6 @@ function RegisterPage() {
   const [info, setInfo] = useState<ResolveResp | null>(null);
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [saving, setSaving] = useState(false);
-  const [agreed, setAgreed] = useState(false);
-  const [agreedBy, setAgreedBy] = useState("");
   const [offerAccepted, setOfferAccepted] = useState(false);
   const [offerAcceptedBy, setOfferAcceptedBy] = useState("");
   const [done, setDone] = useState(false);
