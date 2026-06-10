@@ -3,7 +3,7 @@ import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api-client";
 
 // =============== Constants ===============
 
-export const DOCUMENT_OWNER_TYPES = ["carrier", "driver", "vehicle", "freight"] as const;
+export const DOCUMENT_OWNER_TYPES = ["carrier", "driver", "vehicle", "freight", "deal"] as const;
 export type DocumentOwnerType = (typeof DOCUMENT_OWNER_TYPES)[number];
 
 export const DOCUMENT_STATUSES = [
