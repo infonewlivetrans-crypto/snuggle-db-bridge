@@ -166,6 +166,23 @@ export const LOAD_METHOD_LABELS: Record<LoadMethod, string> = {
   tail_lift: "Гидроборт",
 };
 
+// Способы оплаты перевозчику (Радиус Трек → перевозчик).
+// Стабильные технические коды, русский текст только в label.
+export const CARRIER_PAYMENT_METHODS = [
+  "card",
+  "bank_transfer",
+  "card_or_bank",
+  "by_agreement",
+] as const;
+export type CarrierPaymentMethod = (typeof CARRIER_PAYMENT_METHODS)[number];
+
+export const CARRIER_PAYMENT_METHOD_LABELS: Record<CarrierPaymentMethod, string> = {
+  card: "На карту",
+  bank_transfer: "На расчётный счёт",
+  card_or_bank: "Карта / расчётный счёт",
+  by_agreement: "По договорённости",
+};
+
 // =============== Deals ===============
 export const DEAL_STATUSES = [
   "draft",
