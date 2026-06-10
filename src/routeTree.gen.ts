@@ -319,6 +319,7 @@ import { Route as ApiDispatcherCarrierRequestsIdCreateDealRouteImport } from './
 import { Route as ApiDispatcherCarrierRequestsIdContractPreviewRouteImport } from './routes/api/dispatcher/carrier-requests.$id.contract-preview'
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
+import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
@@ -1936,6 +1937,12 @@ const ApiCarrierRequestsIdContractPreviewRoute =
     path: '/contract-preview',
     getParentRoute: () => ApiCarrierRequestsIdRoute,
   } as any)
+const ApiCarrierDocumentsIdDownloadRoute =
+  ApiCarrierDocumentsIdDownloadRouteImport.update({
+    id: '/download',
+    path: '/download',
+    getParentRoute: () => ApiCarrierDocumentsIdRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -2213,7 +2220,7 @@ export interface FileRoutesByFullPath {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
-  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
@@ -2249,6 +2256,7 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
@@ -2527,7 +2535,7 @@ export interface FileRoutesByTo {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
-  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
@@ -2563,6 +2571,7 @@ export interface FileRoutesByTo {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
@@ -2843,7 +2852,7 @@ export interface FileRoutesById {
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
-  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
@@ -2879,6 +2888,7 @@ export interface FileRoutesById {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
@@ -3196,6 +3206,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
@@ -3510,6 +3521,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
@@ -3825,6 +3837,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
@@ -6236,6 +6249,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierRequestsIdContractPreviewRouteImport
       parentRoute: typeof ApiCarrierRequestsIdRoute
     }
+    '/api/carrier/documents/$id/download': {
+      id: '/api/carrier/documents/$id/download'
+      path: '/download'
+      fullPath: '/api/carrier/documents/$id/download'
+      preLoaderRoute: typeof ApiCarrierDocumentsIdDownloadRouteImport
+      parentRoute: typeof ApiCarrierDocumentsIdRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
       path: '/orders/$orderId'
@@ -6767,13 +6787,26 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface ApiCarrierDocumentsIdRouteChildren {
+  ApiCarrierDocumentsIdDownloadRoute: typeof ApiCarrierDocumentsIdDownloadRoute
+}
+
+const ApiCarrierDocumentsIdRouteChildren: ApiCarrierDocumentsIdRouteChildren = {
+  ApiCarrierDocumentsIdDownloadRoute: ApiCarrierDocumentsIdDownloadRoute,
+}
+
+const ApiCarrierDocumentsIdRouteWithChildren =
+  ApiCarrierDocumentsIdRoute._addFileChildren(
+    ApiCarrierDocumentsIdRouteChildren,
+  )
+
 interface ApiCarrierDocumentsRouteChildren {
-  ApiCarrierDocumentsIdRoute: typeof ApiCarrierDocumentsIdRoute
+  ApiCarrierDocumentsIdRoute: typeof ApiCarrierDocumentsIdRouteWithChildren
   ApiCarrierDocumentsUploadRoute: typeof ApiCarrierDocumentsUploadRoute
 }
 
 const ApiCarrierDocumentsRouteChildren: ApiCarrierDocumentsRouteChildren = {
-  ApiCarrierDocumentsIdRoute: ApiCarrierDocumentsIdRoute,
+  ApiCarrierDocumentsIdRoute: ApiCarrierDocumentsIdRouteWithChildren,
   ApiCarrierDocumentsUploadRoute: ApiCarrierDocumentsUploadRoute,
 }
 

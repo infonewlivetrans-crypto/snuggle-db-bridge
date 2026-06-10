@@ -120,7 +120,7 @@ export function CarrierDocumentsBlock({ ownerType, ownerId, title }: Props) {
                   variant="ghost"
                   onClick={async () => {
                     try {
-                      const res = await fetch(`/api/dispatcher/documents/${d.id}/download`, {
+                      const res = await fetch(`/api/carrier/documents/${d.id}/download`, {
                         credentials: "same-origin",
                         headers: authHeaders(),
                       });
