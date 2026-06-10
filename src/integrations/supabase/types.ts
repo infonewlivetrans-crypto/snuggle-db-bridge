@@ -1463,8 +1463,12 @@ export type Database = {
       }
       dispatcher_freights: {
         Row: {
+          assigned_carrier_ext_id: string | null
+          assigned_driver_ext_id: string | null
+          assigned_vehicle_ext_id: string | null
           body_type: string | null
           cargo_name: string | null
+          carrier_request_id: string | null
           comment: string | null
           contact: string | null
           contact_max_messenger: string | null
@@ -1477,6 +1481,7 @@ export type Database = {
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
+          deal_id: string | null
           dispatcher_status: string
           extracted_text: string | null
           freight_kind: string
@@ -1494,6 +1499,10 @@ export type Database = {
           payment_type: string | null
           rate: number | null
           raw_text: string | null
+          signed_pdf_document_id: string | null
+          signed_sent_at: string | null
+          signed_sent_channel: string | null
+          signed_sent_comment: string | null
           source: string | null
           source_document_count: number
           source_document_id: string | null
@@ -1514,8 +1523,12 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
+          assigned_carrier_ext_id?: string | null
+          assigned_driver_ext_id?: string | null
+          assigned_vehicle_ext_id?: string | null
           body_type?: string | null
           cargo_name?: string | null
+          carrier_request_id?: string | null
           comment?: string | null
           contact?: string | null
           contact_max_messenger?: string | null
@@ -1528,6 +1541,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          deal_id?: string | null
           dispatcher_status?: string
           extracted_text?: string | null
           freight_kind?: string
@@ -1545,6 +1559,10 @@ export type Database = {
           payment_type?: string | null
           rate?: number | null
           raw_text?: string | null
+          signed_pdf_document_id?: string | null
+          signed_sent_at?: string | null
+          signed_sent_channel?: string | null
+          signed_sent_comment?: string | null
           source?: string | null
           source_document_count?: number
           source_document_id?: string | null
@@ -1565,8 +1583,12 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
+          assigned_carrier_ext_id?: string | null
+          assigned_driver_ext_id?: string | null
+          assigned_vehicle_ext_id?: string | null
           body_type?: string | null
           cargo_name?: string | null
+          carrier_request_id?: string | null
           comment?: string | null
           contact?: string | null
           contact_max_messenger?: string | null
@@ -1579,6 +1601,7 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          deal_id?: string | null
           dispatcher_status?: string
           extracted_text?: string | null
           freight_kind?: string
@@ -1596,6 +1619,10 @@ export type Database = {
           payment_type?: string | null
           rate?: number | null
           raw_text?: string | null
+          signed_pdf_document_id?: string | null
+          signed_sent_at?: string | null
+          signed_sent_channel?: string | null
+          signed_sent_comment?: string | null
           source?: string | null
           source_document_count?: number
           source_document_id?: string | null
@@ -1615,7 +1642,50 @@ export type Database = {
           volume_m3?: number | null
           weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_freights_assigned_carrier_ext_id_fkey"
+            columns: ["assigned_carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_freights_assigned_driver_ext_id_fkey"
+            columns: ["assigned_driver_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_driver_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_freights_assigned_vehicle_ext_id_fkey"
+            columns: ["assigned_vehicle_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_vehicle_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_freights_carrier_request_id_fkey"
+            columns: ["carrier_request_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_freights_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_freights_signed_pdf_document_id_fkey"
+            columns: ["signed_pdf_document_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dispatcher_invite_tokens: {
         Row: {
