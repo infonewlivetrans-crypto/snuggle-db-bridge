@@ -4,6 +4,7 @@ import { Loader2, Truck, UserX } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
+import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import {
   VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_STATUS_LABELS,
@@ -155,6 +156,11 @@ function CarrierVehiclesPage() {
                   </div>
                   {v.comment && (
                     <div className="text-xs text-muted-foreground">{v.comment}</div>
+                  )}
+                  {v.source === "dispatcher" && (
+                    <div className="pt-2">
+                      <CarrierDocumentsBlock ownerType="vehicle" ownerId={v.id} />
+                    </div>
                   )}
                 </CardContent>
               </Card>

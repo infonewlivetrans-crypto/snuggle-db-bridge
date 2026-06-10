@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
 import { DRIVER_STATUS_LABELS, type DriverStatus } from "@/lib/dispatcher/statuses";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
+import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 
 export const Route = createFileRoute("/carrier/drivers")({
   head: () => ({ meta: [{ title: "Мои водители — кабинет перевозчика" }] }),
@@ -82,11 +83,16 @@ function CarrierDriversPage() {
                   </div>
                 )}
                 {d.source === "dispatcher" && (
-                  <div className="pt-1">
-                    <Badge variant={d.docs_verified ? "outline" : "secondary"}>
-                      {d.docs_verified ? "Документы проверены" : "Документы не проверены"}
-                    </Badge>
-                  </div>
+                  <>
+                    <div className="pt-1">
+                      <Badge variant={d.docs_verified ? "outline" : "secondary"}>
+                        {d.docs_verified ? "Документы проверены" : "Документы не проверены"}
+                      </Badge>
+                    </div>
+                    <div className="pt-2">
+                      <CarrierDocumentsBlock ownerType="driver" ownerId={d.id} />
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>

@@ -8,6 +8,7 @@ import { apiGetAuth } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiPost } from "@/lib/api-client";
 import { readPendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
+import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
@@ -35,6 +36,7 @@ type Me = {
     verification_status: string;
   } | null;
   ext: {
+    id?: string;
     commission_rate: number | null;
     commission_agreed: boolean;
     commission_agreed_by: string | null;
@@ -208,6 +210,16 @@ function CarrierOverviewPage() {
           <Row k="ФИО / контакт" v={profile?.full_name} />
         </CardContent>
       </Card>
+
+      {ext?.id && (
+        <div className="lg:col-span-2">
+          <CarrierDocumentsBlock
+            ownerType="carrier"
+            ownerId={ext.id}
+            title="Документы перевозчика"
+          />
+        </div>
+      )}
     </div>
   );
 }
