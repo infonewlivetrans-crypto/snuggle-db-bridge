@@ -269,6 +269,7 @@ function FreightsPage() {
               <Row label="Тип" value={FREIGHT_KIND_LABELS[viewing.freight_kind as keyof typeof FREIGHT_KIND_LABELS] ?? viewing.freight_kind} />
               <Row label="Статус" value={<StatusBadge status={viewing.dispatcher_status} label={FREIGHT_STATUS_LABELS[viewing.dispatcher_status as FreightStatus] ?? viewing.dispatcher_status} />} />
               <Row label="Комментарий" value={viewing.comment ?? "—"} />
+              <FreightPipelinePanel freight={viewing} onChanged={(r) => { setViewing(r); setRows((prev) => prev.map((x) => x.id === r.id ? r : x)); }} />
               <div className="pt-3">
                 <Button onClick={() => { setViewing(null); handleMatch(viewing); }}>
                   <Truck className="h-4 w-4 mr-1" /> Проверить машины
