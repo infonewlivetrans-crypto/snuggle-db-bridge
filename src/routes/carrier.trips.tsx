@@ -4,6 +4,7 @@ import { ClipboardList, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
+import { CarrierRequestsBlock } from "@/components/carrier/CarrierRequestsBlock";
 
 export const Route = createFileRoute("/carrier/trips")({
   head: () => ({ meta: [{ title: "Задания и рейсы — кабинет перевозчика" }] }),
