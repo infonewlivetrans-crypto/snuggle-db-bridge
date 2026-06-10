@@ -199,26 +199,7 @@ function RegisterPage() {
         )}
 
         {entityType === "carrier" && (
-          <section className="rounded-md border bg-card p-4 space-y-3">
-            <h2 className="font-semibold">Согласие на комиссию 5%</h2>
-            <p className="text-sm">{COMMISSION_TEXT}</p>
-            <label className="flex items-start gap-2 text-sm">
-              <Checkbox checked={agreed} onCheckedChange={(v) => setAgreed(Boolean(v))} />
-              <span>Я подтверждаю условия и согласен на комиссию 5%.</span>
-            </label>
-            <div>
-              <Label>ФИО подтверждающего</Label>
-              <Input
-                value={agreedBy}
-                onChange={(e) => setAgreedBy(e.target.value)}
-                placeholder="Иванов Иван Иванович"
-              />
-            </div>
-          </section>
-        )}
-
-        {entityType === "carrier" && (
-          <CarrierOfferAcceptBlock
+          <CarrierUnifiedConsentBlock
             accepted={offerAccepted}
             acceptedByName={offerAcceptedBy}
             onAcceptedChange={setOfferAccepted}
