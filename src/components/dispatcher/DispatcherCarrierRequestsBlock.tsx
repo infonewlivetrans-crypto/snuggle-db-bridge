@@ -633,6 +633,20 @@ export function DispatcherCarrierRequestsBlock({
                     >
                       Создать задачи
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setContractFor(r)}
+                    >
+                      <FileText className="mr-1 h-3.5 w-3.5" /> Заявка-договор
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAttachFor(r)}
+                    >
+                      Прикрепить подписанный
+                    </Button>
                     {r.dispatcher_deal_id && (
                       <Button asChild size="sm" variant="ghost">
                         <Link to="/dispatcher/deals">Открыть сделку</Link>
@@ -645,6 +659,115 @@ export function DispatcherCarrierRequestsBlock({
           </div>
         )}
       </div>
+
+      {/* Диалог предпросмотра заявки-договора */}
+      <Dialog open={!!contractFor} onOpenChange={(o) => !o && setContractFor(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {contractQ.data?.subject ??
+                `Заявка-договор №${contractFor?.request_number ?? ""}`}
+            </DialogTitle>
+          </DialogHeader>
+          {contractQ.isLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+            </div>
+          ) : contractQ.error ? (
+            <div className="text-sm text-destructive">
+              Не удалось загрузить:{" "}
+              {contractQ.error instanceof Error ? contractQ.error.message : "ошибка"}
+            </div>
+          ) : (
+            <Textarea
+              readOnly
+              value={contractQ.data?.contract_text ?? ""}
+              rows={18}
+              className="font-mono text-xs"
+            />
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={copyContract} disabled={!contractQ.data}>
+              <Copy className="mr-1 h-3.5 w-3.5" /> Копировать
+            </Button>
+            <Button variant="outline" onClick={printContract} disabled={!contractQ.data}>
+              <Printer className="mr-1 h-3.5 w-3.5" /> Печать
+            </Button>
+            <Button
+              onClick={() => {
+                if (contractFor) {
+                  setAttachFor(contractFor);
+                  setContractFor(null);
+                }
+              }}
+            >
+              Прикрепить подписанный
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог прикрепления подписанного документа */}
+      <Dialog open={!!attachFor} onOpenChange={(o) => !o && setAttachFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Подписанная заявка-договор №{attachFor?.request_number ?? ""}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <Label className="text-xs">Ссылка на файл (URL или путь)</Label>
+              <Input
+                value={attachForm.file_url}
+                onChange={(e) =>
+                  setAttachForm({ ...attachForm, file_url: e.target.value })
+                }
+                placeholder="https://… или относительный путь"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Название файла</Label>
+              <Input
+                value={attachForm.file_name}
+                onChange={(e) =>
+                  setAttachForm({ ...attachForm, file_name: e.target.value })
+                }
+                placeholder="scan-zayavka.pdf"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Комментарий</Label>
+              <Textarea
+                value={attachForm.comment}
+                onChange={(e) =>
+                  setAttachForm({ ...attachForm, comment: e.target.value })
+                }
+                rows={2}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Документ будет сохранён в dispatcher_documents как contract,
+              привязанный к перевозчику.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setAttachFor(null)}
+              disabled={attachMut.isPending}
+            >
+              Отмена
+            </Button>
+            <Button onClick={() => attachMut.mutate()} disabled={attachMut.isPending}>
+              {attachMut.isPending ? (
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+              ) : null}
+              Прикрепить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
