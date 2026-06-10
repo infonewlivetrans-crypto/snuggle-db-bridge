@@ -90,6 +90,7 @@ export function CarrierRequestsBlock() {
 
 function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void }) {
   const [comment, setComment] = useState<string>(row.carrier_comment ?? "");
+  const [contractOpen, setContractOpen] = useState(false);
 
   const respondMut = useMutation({
     mutationFn: async (status: "accepted" | "declined") =>
@@ -106,6 +107,27 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
         description: e instanceof Error ? e.message : undefined,
       }),
   });
+
+  const contractQ = useQuery({
+    queryKey: ["carrier", "contract", row.id],
+    queryFn: () =>
+      apiGetAuth<{ subject: string; contract_text: string }>(
+        `/api/carrier/requests/${row.id}/contract-preview`,
+        10000,
+      ),
+    enabled: contractOpen,
+  });
+
+  async function copyContract() {
+    const text = contractQ.data?.contract_text ?? "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Текст скопирован");
+    } catch {
+      toast.error("Не удалось скопировать");
+    }
+  }
 
   const isFinal = row.request_status === "accepted" || row.request_status === "declined";
   const currency = row.rate_currency ?? "RUB";
