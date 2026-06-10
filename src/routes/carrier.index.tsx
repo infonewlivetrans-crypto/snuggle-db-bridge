@@ -36,6 +36,7 @@ type Me = {
     verification_status: string;
   } | null;
   ext: {
+    id?: string;
     commission_rate: number | null;
     commission_agreed: boolean;
     commission_agreed_by: string | null;
