@@ -216,7 +216,50 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
             </div>
           )
         )}
+
+        <div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setContractOpen(true)}
+          >
+            <FileText className="mr-1 h-3.5 w-3.5" /> Посмотреть заявку-договор
+          </Button>
+        </div>
       </CardContent>
+
+      <Dialog open={contractOpen} onOpenChange={setContractOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {contractQ.data?.subject ??
+                `Заявка-договор №${row.request_number ?? ""}`}
+            </DialogTitle>
+          </DialogHeader>
+          {contractQ.isLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+            </div>
+          ) : contractQ.error ? (
+            <div className="text-sm text-destructive">
+              Не удалось загрузить:{" "}
+              {contractQ.error instanceof Error ? contractQ.error.message : "ошибка"}
+            </div>
+          ) : (
+            <Textarea
+              readOnly
+              value={contractQ.data?.contract_text ?? ""}
+              rows={18}
+              className="font-mono text-xs"
+            />
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={copyContract} disabled={!contractQ.data}>
+              <Copy className="mr-1 h-3.5 w-3.5" /> Копировать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
