@@ -51,7 +51,9 @@ function CarrierTripsPage() {
   const trips = data?.rows ?? [];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <CarrierRequestsBlock />
+
       <h2 className="text-lg font-medium">Задания и рейсы</h2>
       <p className="text-sm text-muted-foreground">
         Маршруты, закреплённые за вашими водителями и транспортом. Сам маршрут водитель
