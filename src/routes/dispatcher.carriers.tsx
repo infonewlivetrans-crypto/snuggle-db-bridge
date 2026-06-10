@@ -351,6 +351,9 @@ function CarrierViewBody({
       {/* Документы */}
       <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
 
+      <DispatcherPartnerCardBlock carrierExtId={row.id} />
+
+
 
 
       {/* Проверка перевозчика */}
