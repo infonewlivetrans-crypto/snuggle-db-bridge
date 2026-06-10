@@ -57,7 +57,7 @@ export function VehicleForm({
   onCancel,
   onSubmit,
 }: Props) {
-  const [plate, setPlate] = useState("");
+
   const [kind, setKind] = useState("");
   const [bodyType, setBodyType] = useState<string>("");
   const [payload, setPayload] = useState("");
@@ -90,7 +90,7 @@ export function VehicleForm({
       setFeatures(allMethods.filter((m) => FEATURE_SET.has(m)));
       // Plate сохраняется в vehicle_kind как первая часть, либо отдельный комментарий.
       setKind(empty(initial.vehicle_kind));
-      setPlate(""); // отдельного поля в схеме нет; редактируется через vehicle_kind
+
       const initBody = empty(initial.body_type);
       setBodyType(
         (VEHICLE_BODY_TYPES as readonly string[]).includes(initBody) ? initBody : initBody,
@@ -151,7 +151,7 @@ export function VehicleForm({
     const safeStatus: VehicleStatus =
       (VEHICLE_STATUSES as readonly string[]).includes(status) ? status : "new";
     onSubmit({
-      vehicle_kind: kind || (plate || null),
+      vehicle_kind: kind || null,
       body_type: bodyType || null,
       payload_kg: toNum(payload),
       volume_m3: toNum(volume),
