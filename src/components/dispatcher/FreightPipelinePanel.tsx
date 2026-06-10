@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -15,6 +14,7 @@ import {
   type FreightSignedSentChannel,
   type FreightStatus,
 } from "@/lib/dispatcher/statuses";
+import { FreightAssignmentBlock } from "./FreightAssignmentBlock";
 
 interface Props {
   freight: FreightDTO;
