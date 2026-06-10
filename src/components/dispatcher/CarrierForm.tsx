@@ -174,7 +174,24 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
         <div><Label>Telegram</Label><Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@username" /></div>
         <div><Label>Max Messenger</Label><Input value={maxId} onChange={(e) => setMaxId(e.target.value)} placeholder="Max ID или ссылка" /></div>
         <div><Label>Комиссия Радиус Трек (%)</Label><Input value={commissionRate} onChange={(e) => setCommissionRate(e.target.value)} inputMode="decimal" placeholder="например, 5" /></div>
-        <div><Label>Способ оплаты</Label><Input value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} /></div>
+        <div>
+          <Label>Способ оплаты</Label>
+          <Select
+            value={
+              (CARRIER_PAYMENT_METHODS as readonly string[]).includes(paymentMethod)
+                ? paymentMethod
+                : ""
+            }
+            onValueChange={(v) => setPaymentMethod(v)}
+          >
+            <SelectTrigger><SelectValue placeholder="— не выбрано —" /></SelectTrigger>
+            <SelectContent>
+              {CARRIER_PAYMENT_METHODS.map((m) => (
+                <SelectItem key={m} value={m}>{CARRIER_PAYMENT_METHOD_LABELS[m]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div><Label>Банк</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} /></div>
         <div><Label>Расч. счёт</Label><Input value={bankAccount} onChange={(e) => setBankAccount(e.target.value)} /></div>
         <div><Label>БИК</Label><Input value={bankBik} onChange={(e) => setBankBik(e.target.value)} /></div>
