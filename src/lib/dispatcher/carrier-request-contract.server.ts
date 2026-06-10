@@ -81,15 +81,12 @@ export async function loadCarrierRequestContractPreview(
   if (vehicleProd) {
     const { data: vrow } = await c
       .from("vehicles")
-      .select("license_plate, plate, gov_number")
+      .select("plate_number")
       .eq("id", vehicleProd)
       .maybeSingle();
     if (vrow) {
-      const v = vrow as Record<string, unknown>;
       vehiclePlate =
-        (v.license_plate as string | null) ??
-        (v.plate as string | null) ??
-        (v.gov_number as string | null) ??
+        ((vrow as Record<string, unknown>).plate_number as string | null) ??
         null;
     }
   }
