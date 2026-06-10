@@ -4,6 +4,8 @@ import { Loader2, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
+import { DRIVER_STATUS_LABELS, type DriverStatus } from "@/lib/dispatcher/statuses";
+import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 
 export const Route = createFileRoute("/carrier/drivers")({
   head: () => ({ meta: [{ title: "Мои водители — кабинет перевозчика" }] }),
@@ -14,10 +16,19 @@ type Driver = {
   id: string;
   full_name: string | null;
   phone: string | null;
+  city: string | null;
   license_number: string | null;
   license_categories: string | null;
+  dispatcher_status: string | null;
+  docs_verified: boolean | null;
   is_active: boolean | null;
+  source: "production" | "dispatcher";
 };
+
+function statusLabel(s: string | null): string {
+  if (!s) return "—";
+  return DRIVER_STATUS_LABELS[s as DriverStatus] ?? s;
+}
 
 function CarrierDriversPage() {
   const { data, isLoading } = useQuery({
@@ -30,8 +41,7 @@ function CarrierDriversPage() {
     <div className="space-y-3">
       <h2 className="text-lg font-medium">Мои водители</h2>
       <p className="text-sm text-muted-foreground">
-        Список водителей, закреплённых за вашей карточкой перевозчика. Водители работают
-        по существующей схеме — маршрут, точки, статусы.
+        Список водителей, закреплённых за вашей карточкой перевозчика.
       </p>
 
       {isLoading ? (
@@ -52,15 +62,30 @@ function CarrierDriversPage() {
               <CardContent className="space-y-1.5 p-4 text-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="text-base font-semibold">{d.full_name ?? "—"}</div>
-                  <Badge variant={d.is_active ? "outline" : "secondary"}>
-                    {d.is_active ? "Активен" : "Не активен"}
-                  </Badge>
+                  {d.dispatcher_status ? (
+                    <StatusBadge
+                      status={d.dispatcher_status}
+                      label={statusLabel(d.dispatcher_status)}
+                    />
+                  ) : (
+                    <Badge variant={d.is_active ? "outline" : "secondary"}>
+                      {d.is_active ? "Активен" : "Не активен"}
+                    </Badge>
+                  )}
                 </div>
                 <div className="text-muted-foreground">{d.phone ?? "—"}</div>
+                {d.city && <div className="text-xs">Город: {d.city}</div>}
                 {d.license_number && (
                   <div className="text-xs">
                     ВУ: <span className="font-medium">{d.license_number}</span>
                     {d.license_categories ? ` (${d.license_categories})` : ""}
+                  </div>
+                )}
+                {d.source === "dispatcher" && (
+                  <div className="pt-1">
+                    <Badge variant={d.docs_verified ? "outline" : "secondary"}>
+                      {d.docs_verified ? "Документы проверены" : "Документы не проверены"}
+                    </Badge>
                   </div>
                 )}
               </CardContent>
