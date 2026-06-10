@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,9 +13,14 @@ import {
 import {
   LOAD_METHODS,
   LOAD_METHOD_LABELS,
+  RUSSIAN_CITIES_PRESET,
+  VEHICLE_BODY_TYPES,
+  VEHICLE_BODY_TYPE_LABELS,
+  VEHICLE_FEATURES,
+  VEHICLE_FEATURE_LABELS,
   VEHICLE_STATUSES,
   VEHICLE_STATUS_LABELS,
-  type LoadMethod,
+  DRIVER_STATUS_LABELS,
   type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
@@ -25,6 +30,8 @@ interface Props {
   initial?: VehicleDTO | null;
   carriers: CarrierDTO[];
   drivers: DriverDTO[];
+  /** Если задан — перевозчик подставляется автоматически. */
+  initialCarrierId?: string | null;
   submitting?: boolean;
   onCancel: () => void;
   onSubmit: (data: VehicleCreateInput) => void;
@@ -38,20 +45,33 @@ const toNum = (s: string): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, onSubmit }: Props) {
+const LOAD_METHOD_SET = new Set<string>(LOAD_METHODS);
+const FEATURE_SET = new Set<string>(VEHICLE_FEATURES);
+
+export function VehicleForm({
+  initial,
+  carriers,
+  drivers,
+  initialCarrierId,
+  submitting,
+  onCancel,
+  onSubmit,
+}: Props) {
+  const [plate, setPlate] = useState("");
   const [kind, setKind] = useState("");
-  const [bodyType, setBodyType] = useState("");
+  const [bodyType, setBodyType] = useState<string>("");
   const [payload, setPayload] = useState("");
   const [volume, setVolume] = useState("");
   const [lengthM, setLengthM] = useState("");
   const [widthM, setWidthM] = useState("");
   const [heightM, setHeightM] = useState("");
-  const [loadMethods, setLoadMethods] = useState<LoadMethod[]>([]);
+  const [loadMethods, setLoadMethods] = useState<string[]>([]);
+  const [features, setFeatures] = useState<string[]>([]);
   const [homeCity, setHomeCity] = useState("");
   const [readyTo, setReadyTo] = useState("");
   const [readyDate, setReadyDate] = useState("");
   const [driverId, setDriverId] = useState<string>("none");
-  const [carrierId, setCarrierId] = useState<string>("none");
+  const [carrierId, setCarrierId] = useState<string>(initialCarrierId ?? "none");
   const [status, setStatus] = useState<VehicleStatus>("new");
   const [minTrip, setMinTrip] = useState("");
   const [minKm, setMinKm] = useState("");
@@ -63,19 +83,28 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
 
   useEffect(() => {
     if (initial) {
+      // Разделяем load_methods и features: всё, что не "способ загрузки",
+      // считаем дополнительным признаком.
+      const allMethods = (initial.load_methods ?? []) as string[];
+      setLoadMethods(allMethods.filter((m) => LOAD_METHOD_SET.has(m)));
+      setFeatures(allMethods.filter((m) => FEATURE_SET.has(m)));
+      // Plate сохраняется в vehicle_kind как первая часть, либо отдельный комментарий.
       setKind(empty(initial.vehicle_kind));
-      setBodyType(empty(initial.body_type));
+      setPlate(""); // отдельного поля в схеме нет; редактируется через vehicle_kind
+      const initBody = empty(initial.body_type);
+      setBodyType(
+        (VEHICLE_BODY_TYPES as readonly string[]).includes(initBody) ? initBody : initBody,
+      );
       setPayload(numStr(initial.payload_kg));
       setVolume(numStr(initial.volume_m3));
       setLengthM(numStr(initial.length_m));
       setWidthM(numStr(initial.width_m));
       setHeightM(numStr(initial.height_m));
-      setLoadMethods((initial.load_methods as LoadMethod[]) ?? []);
       setHomeCity(empty(initial.home_city));
       setReadyTo((initial.ready_to_cities ?? []).join(", "));
       setReadyDate(initial.ready_date ? String(initial.ready_date).slice(0, 10) : "");
       setDriverId(initial.dispatcher_driver_ext_id ?? "none");
-      setCarrierId(initial.dispatcher_carrier_ext_id ?? "none");
+      setCarrierId(initial.dispatcher_carrier_ext_id ?? initialCarrierId ?? "none");
       setStatus(
         (VEHICLE_STATUSES as readonly string[]).includes(initial.dispatcher_status ?? "")
           ? (initial.dispatcher_status as VehicleStatus)
@@ -87,25 +116,50 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
       setPointRate(numStr(initial.point_rate));
       setRateComment(empty(initial.rate_comment));
       setComment(empty(initial.dispatcher_comment));
+    } else if (initialCarrierId) {
+      setCarrierId(initialCarrierId);
     }
-  }, [initial]);
+  }, [initial, initialCarrierId]);
 
-  const toggleLoadMethod = (m: LoadMethod) => {
-    setLoadMethods((prev) => (prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]));
+  // Когда меняется перевозчик — сбрасываем водителя, если он не из этого перевозчика.
+  useEffect(() => {
+    if (driverId === "none") return;
+    const d = drivers.find((x) => x.id === driverId);
+    if (!d) return;
+    if (carrierId === "none" || d.dispatcher_carrier_ext_id !== carrierId) {
+      setDriverId("none");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carrierId]);
+
+  const filteredDrivers = useMemo(() => {
+    if (carrierId === "none") return [] as DriverDTO[];
+    return drivers.filter((d) => d.dispatcher_carrier_ext_id === carrierId);
+  }, [drivers, carrierId]);
+
+  const toggle = (arr: string[], setArr: (v: string[]) => void, v: string) => {
+    setArr(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   };
 
   const handle = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (carrierId === "none") {
+      setError("Выберите перевозчика");
+      return;
+    }
+    const safeStatus: VehicleStatus =
+      (VEHICLE_STATUSES as readonly string[]).includes(status) ? status : "new";
     onSubmit({
-      vehicle_kind: kind || null,
+      vehicle_kind: kind || (plate || null),
       body_type: bodyType || null,
       payload_kg: toNum(payload),
       volume_m3: toNum(volume),
       length_m: toNum(lengthM),
       width_m: toNum(widthM),
       height_m: toNum(heightM),
-      load_methods: loadMethods,
+      // load_methods хранит и способы загрузки, и доп. признаки (text[]).
+      load_methods: [...loadMethods, ...features],
       home_city: homeCity || null,
       ready_to_cities: readyTo
         .split(",")
@@ -113,8 +167,8 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
         .filter(Boolean),
       ready_date: readyDate || null,
       dispatcher_driver_ext_id: driverId === "none" ? null : driverId,
-      dispatcher_carrier_ext_id: carrierId === "none" ? null : carrierId,
-      dispatcher_status: (VEHICLE_STATUSES as readonly string[]).includes(status) ? status : "new",
+      dispatcher_carrier_ext_id: carrierId,
+      dispatcher_status: safeStatus,
       minimum_trip_rate: toNum(minTrip),
       minimum_km_rate: toNum(minKm),
       city_rate: toNum(cityRate),
@@ -125,11 +179,75 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
     });
   };
 
+  const carrierLabel = (c: CarrierDTO) => {
+    const bits = [c.name ?? "—"];
+    if (c.phone) bits.push(c.phone);
+    if (c.inn) bits.push(`ИНН ${c.inn}`);
+    return bits.join(" · ");
+  };
+
+  const driverLabel = (d: DriverDTO) => {
+    const bits = [d.full_name ?? "—"];
+    if (d.phone) bits.push(d.phone);
+    if (d.city) bits.push(d.city);
+    const st =
+      DRIVER_STATUS_LABELS[d.dispatcher_status as keyof typeof DRIVER_STATUS_LABELS] ??
+      d.dispatcher_status;
+    if (st) bits.push(st);
+    return bits.join(" · ");
+  };
+
   return (
     <form onSubmit={handle} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div><Label>Тип ТС</Label><Input value={kind} onChange={(e) => setKind(e.target.value)} placeholder="Тягач, Газель..." /></div>
-        <div><Label>Тип кузова</Label><Input value={bodyType} onChange={(e) => setBodyType(e.target.value)} placeholder="Тент, реф, борт..." /></div>
+        <div className="md:col-span-2">
+          <Label>Перевозчик *</Label>
+          <Select value={carrierId} onValueChange={setCarrierId}>
+            <SelectTrigger><SelectValue placeholder="Выберите перевозчика" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— не выбран —</SelectItem>
+              {carriers.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{carrierLabel(c)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="md:col-span-2">
+          <Label>Водитель</Label>
+          <Select value={driverId} onValueChange={setDriverId} disabled={carrierId === "none"}>
+            <SelectTrigger>
+              <SelectValue placeholder={carrierId === "none" ? "Сначала выберите перевозчика" : "— без водителя —"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— без водителя —</SelectItem>
+              {filteredDrivers.map((d) => (
+                <SelectItem key={d.id} value={d.id}>{driverLabel(d)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {carrierId !== "none" && filteredDrivers.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              У перевозчика пока нет водителей. Транспорт можно сохранить «без водителя».
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label>Госномер / Тип ТС</Label>
+          <Input value={kind} onChange={(e) => setKind(e.target.value)} placeholder="А123ВС777 · Тягач, Газель..." />
+        </div>
+        <div>
+          <Label>Тип кузова</Label>
+          <Select value={bodyType || "__none"} onValueChange={(v) => setBodyType(v === "__none" ? "" : v)}>
+            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">—</SelectItem>
+              {VEHICLE_BODY_TYPES.map((b) => (
+                <SelectItem key={b} value={b}>{VEHICLE_BODY_TYPE_LABELS[b]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div><Label>Грузоподъёмность, кг</Label><Input value={payload} onChange={(e) => setPayload(e.target.value)} /></div>
         <div><Label>Объём, м³</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} /></div>
         <div><Label>Длина, м</Label><Input value={lengthM} onChange={(e) => setLengthM(e.target.value)} /></div>
@@ -146,6 +264,7 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
             </SelectContent>
           </Select>
         </div>
+
         <div className="md:col-span-2">
           <Label>Способы загрузки</Label>
           <div className="flex flex-wrap gap-2 mt-1">
@@ -153,7 +272,7 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
               <button
                 type="button"
                 key={m}
-                onClick={() => toggleLoadMethod(m)}
+                onClick={() => toggle(loadMethods, setLoadMethods, m)}
                 className={`px-3 py-1 rounded-md border text-sm ${
                   loadMethods.includes(m)
                     ? "bg-primary text-primary-foreground border-primary"
@@ -165,33 +284,41 @@ export function VehicleForm({ initial, carriers, drivers, submitting, onCancel, 
             ))}
           </div>
         </div>
-        <div><Label>Город нахождения</Label><Input value={homeCity} onChange={(e) => setHomeCity(e.target.value)} /></div>
+        <div className="md:col-span-2">
+          <Label>Дополнительные признаки</Label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {VEHICLE_FEATURES.map((f) => (
+              <button
+                type="button"
+                key={f}
+                onClick={() => toggle(features, setFeatures, f)}
+                className={`px-3 py-1 rounded-md border text-sm ${
+                  features.includes(f)
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card border-border text-foreground hover:bg-accent"
+                }`}
+              >
+                {VEHICLE_FEATURE_LABELS[f]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label>Город нахождения</Label>
+          <Input
+            list="vehicle-cities-datalist"
+            value={homeCity}
+            onChange={(e) => setHomeCity(e.target.value)}
+            placeholder="Краснодар, Москва, ..."
+          />
+          <datalist id="vehicle-cities-datalist">
+            {RUSSIAN_CITIES_PRESET.map((c) => <option key={c} value={c} />)}
+          </datalist>
+        </div>
         <div><Label>Готов ехать (через запятую)</Label><Input value={readyTo} onChange={(e) => setReadyTo(e.target.value)} placeholder="Москва, Казань, ..." /></div>
         <div><Label>Дата готовности</Label><Input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} /></div>
-        <div>
-          <Label>Перевозчик</Label>
-          <Select value={carrierId} onValueChange={setCarrierId}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">— не привязан —</SelectItem>
-              {carriers.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.name ?? c.id}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="md:col-span-2">
-          <Label>Водитель</Label>
-          <Select value={driverId} onValueChange={setDriverId}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">— не привязан —</SelectItem>
-              {drivers.map((d) => (
-                <SelectItem key={d.id} value={d.id}>{d.full_name ?? d.id}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+
         <div className="md:col-span-2 mt-2 border-t pt-3">
           <div className="text-sm font-semibold mb-2">Экономика рейса</div>
         </div>
