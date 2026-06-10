@@ -515,17 +515,21 @@ function InviteLinksDialog({
   const checkLink = async (token: string) => {
     setChecking(token);
     try {
-      const rpcPromise = (supabase as unknown as {
-        rpc: (n: string, a: Record<string, unknown>) => Promise<{ data: unknown; error: { message: string } | null }>;
-      }).rpc("get_carrier_account_link", { _token: token });
-      const timeout = new Promise<{ data: null; error: { message: string } }>((resolve) =>
-        setTimeout(() => resolve({ data: null, error: { message: "Таймаут" } }), 10000),
-      );
-      const { data, error } = await Promise.race([rpcPromise, timeout]);
-      if (error) { toast.error(`Ошибка: ${error.message}`); return; }
-      const row = Array.isArray(data) ? data[0] : data;
-      if (!row) { toast.error("Не найдена в БД"); return; }
-      const r = row as { used: boolean; revoked: boolean; expired: boolean };
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 10000);
+      const res = await fetch(`/api/public/carrier-activate/${encodeURIComponent(token)}`, {
+        signal: ctrl.signal,
+        headers: { accept: "application/json" },
+      }).finally(() => clearTimeout(t));
+      const body = (await res.json().catch(() => null)) as
+        | { ok: boolean; link?: { used: boolean; revoked: boolean; expired: boolean }; reason?: string; error?: string }
+        | null;
+      if (!res.ok || !body?.ok || !body.link) {
+        if (body?.reason === "not_found" || res.status === 404) toast.error("Не найдена в БД");
+        else toast.error(`Ошибка: ${body?.error ?? body?.reason ?? res.statusText}`);
+        return;
+      }
+      const r = body.link;
       if (r.revoked) toast.warning("Отозвана");
       else if (r.used) toast.warning("Уже активирована");
       else if (r.expired) toast.warning("Истекла");
