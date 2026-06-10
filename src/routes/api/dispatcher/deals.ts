@@ -133,8 +133,9 @@ export async function enrichDeals(
   const driverIds = uniq(rows.map((r) => r.driver_id as string | null));
   const vehicleIds = uniq(rows.map((r) => r.vehicle_id as string | null));
   const freightIds = uniq(rows.map((r) => r.main_freight_id as string | null));
+  const dealIds = rows.map((r) => r.id as string);
 
-  const [carriers, drivers, vehicles, freights] = await Promise.all([
+  const [carriers, drivers, vehicles, freights, requests] = await Promise.all([
     carrierIds.length
       ? client
           .from("dispatcher_carrier_ext" as never)
@@ -159,18 +160,29 @@ export async function enrichDeals(
           .select("id, title")
           .in("id", freightIds)
       : Promise.resolve({ data: [] }),
+    dealIds.length
+      ? client
+          .from("dispatcher_carrier_requests" as never)
+          .select("id, request_number, dispatcher_deal_id")
+          .in("dispatcher_deal_id", dealIds)
+      : Promise.resolve({ data: [] }),
   ]);
 
   const cMap = indexBy((carriers.data ?? []) as Array<Record<string, unknown>>, "id");
   const dMap = indexBy((drivers.data ?? []) as Array<Record<string, unknown>>, "id");
   const vMap = indexBy((vehicles.data ?? []) as Array<Record<string, unknown>>, "id");
   const fMap = indexBy((freights.data ?? []) as Array<Record<string, unknown>>, "id");
+  const rMap = indexBy(
+    (requests.data ?? []) as Array<Record<string, unknown>>,
+    "dispatcher_deal_id",
+  );
 
   return rows.map((r) => {
     const c = r.carrier_id ? cMap[r.carrier_id as string] : null;
     const d = r.driver_id ? dMap[r.driver_id as string] : null;
     const v = r.vehicle_id ? vMap[r.vehicle_id as string] : null;
     const f = r.main_freight_id ? fMap[r.main_freight_id as string] : null;
+    const req = rMap[r.id as string] ?? null;
     return {
       ...r,
       carrier_name: c?.name ?? null,
@@ -186,6 +198,8 @@ export async function enrichDeals(
       vehicle_kind: v?.vehicle_kind ?? null,
       vehicle_body_type: v?.body_type ?? null,
       freight_title: f?.title ?? null,
+      source_request_id: req?.id ?? null,
+      source_request_number: req?.request_number ?? null,
     };
   });
 }
