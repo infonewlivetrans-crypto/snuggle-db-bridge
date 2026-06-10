@@ -104,6 +104,15 @@ export interface FreightDTO {
   comment: string | null;
   dispatcher_status: string;
   freight_kind: string;
+  assigned_carrier_ext_id?: string | null;
+  assigned_driver_ext_id?: string | null;
+  assigned_vehicle_ext_id?: string | null;
+  carrier_request_id?: string | null;
+  deal_id?: string | null;
+  signed_pdf_document_id?: string | null;
+  signed_sent_at?: string | null;
+  signed_sent_channel?: string | null;
+  signed_sent_comment?: string | null;
   created_at: string;
   updated_at: string;
 }
