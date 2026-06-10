@@ -8,6 +8,7 @@ import { apiGetAuth } from "@/lib/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiPost } from "@/lib/api-client";
 import { readPendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
+import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
