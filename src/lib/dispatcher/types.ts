@@ -4,11 +4,15 @@ export interface CarrierDTO {
   id: string;
   name: string | null;
   carrier_kind: string | null;
+  tax_regime: string | null;
   inn: string | null;
   ogrn: string | null;
   phone: string | null;
   email: string | null;
   city: string | null;
+  ati_id: string | null;
+  ati_phone: string | null;
+  ati_email: string | null;
   whatsapp: string | null;
   telegram: string | null;
   max_messenger: string | null;
