@@ -175,8 +175,6 @@ function JoinPage() {
   const [carrier, setCarrier] = useState<CarrierForm>(emptyCarrier);
   const [driver, setDriver] = useState<DriverForm>(emptyDriver);
   const [vehicle, setVehicle] = useState<VehicleForm>(emptyVehicle);
-  const [agreed, setAgreed] = useState(false);
-  const [agreedBy, setAgreedBy] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
