@@ -229,6 +229,12 @@ function DriversPage() {
               <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
               <div className="pt-3"><ContactLinks phone={viewing.phone} whatsapp={viewing.whatsapp} telegram={viewing.telegram} max_messenger={viewing.max_messenger} email={viewing.email} /></div>
               <DispatcherDocumentsBlock ownerType="driver" ownerId={viewing.id} />
+              {viewing.dispatcher_carrier_ext_id && (
+                <DispatcherPartnerCardBlock
+                  carrierExtId={viewing.dispatcher_carrier_ext_id}
+                  initialDriverId={viewing.id}
+                />
+              )}
             </div>
           )}
         </DialogContent>
