@@ -209,7 +209,15 @@ function CarrierOverviewPage() {
           <Row k="Телефон" v={profile?.phone} />
           <Row k="ФИО / контакт" v={profile?.full_name} />
         </CardContent>
-      </Card>
+      {ext?.id && (
+        <div className="lg:col-span-2">
+          <CarrierDocumentsBlock
+            ownerType="carrier"
+            ownerId={ext.id}
+            title="Документы перевозчика"
+          />
+        </div>
+      )}
     </div>
   );
 }
