@@ -294,6 +294,7 @@ import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/deli
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
 import { Route as ApiCarrierRequestsIdRouteImport } from './routes/api/carrier/requests.$id'
+import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
 import { Route as ApiCarrierDocumentsIdRouteImport } from './routes/api/carrier/documents.$id'
 import { Route as ApiCarrierActivateTokenRouteImport } from './routes/api/carrier/activate.$token'
 import { Route as ApiBackupsIdUrlRouteImport } from './routes/api/backups.$id.url'
@@ -1790,6 +1791,12 @@ const ApiCarrierRequestsIdRoute = ApiCarrierRequestsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCarrierRequestsRoute,
 } as any)
+const ApiCarrierFreightsSigningRoute =
+  ApiCarrierFreightsSigningRouteImport.update({
+    id: '/api/carrier/freights/signing',
+    path: '/api/carrier/freights/signing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierDocumentsIdRoute = ApiCarrierDocumentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2200,6 +2207,7 @@ export interface FileRoutesByFullPath {
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
@@ -2512,6 +2520,7 @@ export interface FileRoutesByTo {
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
@@ -2826,6 +2835,7 @@ export interface FileRoutesById {
   '/api/backups/$id/url': typeof ApiBackupsIdUrlRoute
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRoute
+  '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
@@ -3141,6 +3151,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
+    | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
@@ -3453,6 +3464,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
+    | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
@@ -3766,6 +3778,7 @@ export interface FileRouteTypes {
     | '/api/backups/$id/url'
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
+    | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
@@ -4027,6 +4040,7 @@ export interface RootRouteChildren {
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
+  ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
   ApiDispatcherPartnerCardPreviewRoute: typeof ApiDispatcherPartnerCardPreviewRoute
   ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRouteWithChildren
@@ -6034,6 +6048,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierRequestsIdRouteImport
       parentRoute: typeof ApiCarrierRequestsRoute
     }
+    '/api/carrier/freights/signing': {
+      id: '/api/carrier/freights/signing'
+      path: '/api/carrier/freights/signing'
+      fullPath: '/api/carrier/freights/signing'
+      preLoaderRoute: typeof ApiCarrierFreightsSigningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/documents/$id': {
       id: '/api/carrier/documents/$id'
       path: '/$id'
@@ -7268,6 +7289,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
+  ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
   ApiDispatcherContractsCarrierOfferRoute:
     ApiDispatcherContractsCarrierOfferRoute,
   ApiDispatcherPartnerCardPreviewRoute: ApiDispatcherPartnerCardPreviewRoute,
