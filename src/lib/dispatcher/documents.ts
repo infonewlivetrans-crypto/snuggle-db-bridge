@@ -60,7 +60,19 @@ export const FREIGHT_DOC_TYPES = [
   "customer_contract_pdf",
   "customer_specification",
   "customer_invoice",
+  "customer_attachment",
   "email_attachment",
+  "signed_request_pdf",
+  "other",
+] as const;
+
+export const DEAL_DOC_TYPES = [
+  "customer_request_pdf",
+  "customer_contract_pdf",
+  "customer_specification",
+  "customer_invoice",
+  "customer_attachment",
+  "signed_request_pdf",
   "other",
 ] as const;
 
@@ -72,6 +84,8 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   passport: "Паспорт",
   self_employed_certificate: "Документ самозанятого",
   contract: "Договор",
+  carrier_stamp_image: "Печать перевозчика",
+  carrier_signature_image: "Подпись перевозчика",
   driver_license: "Водительское удостоверение",
   medical_certificate: "Медицинская справка",
   photo: "Фото",
@@ -84,7 +98,9 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   customer_contract_pdf: "Договор от заказчика",
   customer_specification: "Спецификация",
   customer_invoice: "Счёт",
+  customer_attachment: "Другое вложение заказчика",
   email_attachment: "Вложение письма",
+  signed_request_pdf: "Подписанная заявка (PDF)",
   other: "Другое",
 };
 
@@ -92,6 +108,7 @@ export function documentTypesFor(ownerType: DocumentOwnerType): readonly string[
   if (ownerType === "carrier") return CARRIER_DOC_TYPES;
   if (ownerType === "driver") return DRIVER_DOC_TYPES;
   if (ownerType === "freight") return FREIGHT_DOC_TYPES;
+  if (ownerType === "deal") return DEAL_DOC_TYPES;
   return VEHICLE_DOC_TYPES;
 }
 
