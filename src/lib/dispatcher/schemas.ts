@@ -262,6 +262,15 @@ export const freightUpdateSchema = z
       .union([z.enum(FREIGHT_KINDS), z.literal("")])
       .optional()
       .transform((v) => (v === "" ? undefined : v)),
+    assigned_carrier_ext_id: optionalUuid.optional(),
+    assigned_driver_ext_id: optionalUuid.optional(),
+    assigned_vehicle_ext_id: optionalUuid.optional(),
+    carrier_request_id: optionalUuid.optional(),
+    deal_id: optionalUuid.optional(),
+    signed_pdf_document_id: optionalUuid.optional(),
+    signed_sent_at: nullableText(64).optional(),
+    signed_sent_channel: nullableText(32).optional(),
+    signed_sent_comment: nullableText(2000).optional(),
   })
   .strip();
 export type FreightUpdateInput = z.infer<typeof freightUpdateSchema>;
