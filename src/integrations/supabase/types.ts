@@ -1474,7 +1474,11 @@ export type Database = {
           contact_whatsapp: string | null
           created_at: string
           created_by: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
           dispatcher_status: string
+          extracted_text: string | null
           freight_kind: string
           from_city: string | null
           id: string
@@ -1484,11 +1488,20 @@ export type Database = {
           loading_city: string | null
           loading_date: string | null
           loading_method: string | null
+          parse_status: string
           payment_delay_days: number | null
           payment_term: string | null
           payment_type: string | null
           rate: number | null
+          raw_text: string | null
           source: string | null
+          source_document_count: number
+          source_document_id: string | null
+          source_email_body: string | null
+          source_email_from: string | null
+          source_email_subject: string | null
+          source_received_at: string | null
+          source_type: string
           source_url: string | null
           status: string
           title: string | null
@@ -1512,7 +1525,11 @@ export type Database = {
           contact_whatsapp?: string | null
           created_at?: string
           created_by?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           dispatcher_status?: string
+          extracted_text?: string | null
           freight_kind?: string
           from_city?: string | null
           id?: string
@@ -1522,11 +1539,20 @@ export type Database = {
           loading_city?: string | null
           loading_date?: string | null
           loading_method?: string | null
+          parse_status?: string
           payment_delay_days?: number | null
           payment_term?: string | null
           payment_type?: string | null
           rate?: number | null
+          raw_text?: string | null
           source?: string | null
+          source_document_count?: number
+          source_document_id?: string | null
+          source_email_body?: string | null
+          source_email_from?: string | null
+          source_email_subject?: string | null
+          source_received_at?: string | null
+          source_type?: string
           source_url?: string | null
           status?: string
           title?: string | null
@@ -1550,7 +1576,11 @@ export type Database = {
           contact_whatsapp?: string | null
           created_at?: string
           created_by?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
           dispatcher_status?: string
+          extracted_text?: string | null
           freight_kind?: string
           from_city?: string | null
           id?: string
@@ -1560,11 +1590,20 @@ export type Database = {
           loading_city?: string | null
           loading_date?: string | null
           loading_method?: string | null
+          parse_status?: string
           payment_delay_days?: number | null
           payment_term?: string | null
           payment_type?: string | null
           rate?: number | null
+          raw_text?: string | null
           source?: string | null
+          source_document_count?: number
+          source_document_id?: string | null
+          source_email_body?: string | null
+          source_email_from?: string | null
+          source_email_subject?: string | null
+          source_received_at?: string | null
+          source_type?: string
           source_url?: string | null
           status?: string
           title?: string | null
