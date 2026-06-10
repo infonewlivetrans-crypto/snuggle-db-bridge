@@ -312,6 +312,7 @@ import { Route as ApiDispatcherCarriersIdContractAcceptancesRouteImport } from '
 import { Route as ApiDispatcherCarrierRequestsIdLinkDealRouteImport } from './routes/api/dispatcher/carrier-requests.$id.link-deal'
 import { Route as ApiDispatcherCarrierRequestsIdCreateTasksRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-tasks'
 import { Route as ApiDispatcherCarrierRequestsIdCreateDealRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-deal'
+import { Route as ApiDispatcherCarrierRequestsIdContractPreviewRouteImport } from './routes/api/dispatcher/carrier-requests.$id.contract-preview'
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
@@ -1888,6 +1889,12 @@ const ApiDispatcherCarrierRequestsIdCreateDealRoute =
     path: '/create-deal',
     getParentRoute: () => ApiDispatcherCarrierRequestsIdRoute,
   } as any)
+const ApiDispatcherCarrierRequestsIdContractPreviewRoute =
+  ApiDispatcherCarrierRequestsIdContractPreviewRouteImport.update({
+    id: '/contract-preview',
+    path: '/contract-preview',
+    getParentRoute: () => ApiDispatcherCarrierRequestsIdRoute,
+  } as any)
 const ApiCarrierRequestsIdRespondRoute =
   ApiCarrierRequestsIdRespondRouteImport.update({
     id: '/respond',
@@ -2205,6 +2212,7 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
+  '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   '/api/dispatcher/carrier-requests/$id/link-deal': typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
@@ -2513,6 +2521,7 @@ export interface FileRoutesByTo {
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
+  '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   '/api/dispatcher/carrier-requests/$id/link-deal': typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
@@ -2823,6 +2832,7 @@ export interface FileRoutesById {
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
+  '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   '/api/dispatcher/carrier-requests/$id/link-deal': typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
@@ -3134,6 +3144,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
     | '/api/carrier/requests/$id/respond'
+    | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
     | '/api/dispatcher/carrier-requests/$id/link-deal'
@@ -3442,6 +3453,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
     | '/api/carrier/requests/$id/respond'
+    | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
     | '/api/dispatcher/carrier-requests/$id/link-deal'
@@ -3751,6 +3763,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
     | '/api/carrier/requests/$id/respond'
+    | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
     | '/api/dispatcher/carrier-requests/$id/link-deal'
@@ -6108,6 +6121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCarrierRequestsIdCreateDealRouteImport
       parentRoute: typeof ApiDispatcherCarrierRequestsIdRoute
     }
+    '/api/dispatcher/carrier-requests/$id/contract-preview': {
+      id: '/api/dispatcher/carrier-requests/$id/contract-preview'
+      path: '/contract-preview'
+      fullPath: '/api/dispatcher/carrier-requests/$id/contract-preview'
+      preLoaderRoute: typeof ApiDispatcherCarrierRequestsIdContractPreviewRouteImport
+      parentRoute: typeof ApiDispatcherCarrierRequestsIdRoute
+    }
     '/api/carrier/requests/$id/respond': {
       id: '/api/carrier/requests/$id/respond'
       path: '/respond'
@@ -6699,6 +6719,7 @@ const ApiDispatcherCarrierLinkRouteWithChildren =
   )
 
 interface ApiDispatcherCarrierRequestsIdRouteChildren {
+  ApiDispatcherCarrierRequestsIdContractPreviewRoute: typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   ApiDispatcherCarrierRequestsIdCreateDealRoute: typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   ApiDispatcherCarrierRequestsIdCreateTasksRoute: typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   ApiDispatcherCarrierRequestsIdLinkDealRoute: typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
@@ -6706,6 +6727,8 @@ interface ApiDispatcherCarrierRequestsIdRouteChildren {
 
 const ApiDispatcherCarrierRequestsIdRouteChildren: ApiDispatcherCarrierRequestsIdRouteChildren =
   {
+    ApiDispatcherCarrierRequestsIdContractPreviewRoute:
+      ApiDispatcherCarrierRequestsIdContractPreviewRoute,
     ApiDispatcherCarrierRequestsIdCreateDealRoute:
       ApiDispatcherCarrierRequestsIdCreateDealRoute,
     ApiDispatcherCarrierRequestsIdCreateTasksRoute:
