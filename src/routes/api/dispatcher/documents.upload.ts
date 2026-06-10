@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/dispatcher/documents/upload")({
         if (file.size > MAX_SIZE) {
           return jsonResponse({ error: "Файл слишком большой (макс 20 МБ)" }, { status: 400 });
         }
-        if (!["carrier", "driver", "vehicle"].includes(ownerType)) {
+        if (!["carrier", "driver", "vehicle", "freight", "deal"].includes(ownerType)) {
           return jsonResponse({ error: "invalid owner_type" }, { status: 400 });
         }
         if (!/^[0-9a-f-]{36}$/i.test(ownerId)) {
