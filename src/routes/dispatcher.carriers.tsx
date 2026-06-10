@@ -354,6 +354,8 @@ function CarrierViewBody({
 
       <DispatcherPartnerCardBlock carrierExtId={row.id} />
 
+      <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />
+
 
 
 
