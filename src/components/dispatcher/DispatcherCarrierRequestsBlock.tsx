@@ -1,12 +1,19 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ClipboardList, Copy, Loader2, Plus, Send } from "lucide-react";
+import { ClipboardList, Copy, FileText, Loader2, Plus, Printer, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -298,6 +305,83 @@ export function DispatcherCarrierRequestsBlock({
     }
   }
 
+  // ===== Заявка-договор: предпросмотр / печать / прикрепить подписанный файл =====
+  const [contractFor, setContractFor] = useState<RequestRow | null>(null);
+  const [attachFor, setAttachFor] = useState<RequestRow | null>(null);
+  const [attachForm, setAttachForm] = useState({
+    file_url: "",
+    file_name: "",
+    comment: "",
+  });
+
+  const contractQ = useQuery({
+    queryKey: ["dcrb", "contract", contractFor?.id ?? null],
+    queryFn: () =>
+      apiGetAuth<{ subject: string; contract_text: string }>(
+        `/api/dispatcher/carrier-requests/${contractFor!.id}/contract-preview`,
+        10000,
+      ),
+    enabled: !!contractFor,
+  });
+
+  async function copyContract() {
+    const text = contractQ.data?.contract_text ?? "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Текст заявки-договора скопирован");
+    } catch {
+      toast.error("Не удалось скопировать");
+    }
+  }
+
+  function printContract() {
+    const text = contractQ.data?.contract_text ?? "";
+    const subject = contractQ.data?.subject ?? "Заявка-договор";
+    if (!text) return;
+    const w = window.open("", "_blank", "noopener,noreferrer,width=900,height=700");
+    if (!w) {
+      toast.error("Браузер заблокировал окно печати");
+      return;
+    }
+    const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    w.document.write(
+      `<!doctype html><html><head><meta charset="utf-8"><title>${subject}</title>` +
+        `<style>body{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;padding:24px;font-size:12px;line-height:1.5}</style>` +
+        `</head><body>${escaped}</body></html>`,
+    );
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 200);
+  }
+
+  const attachMut = useMutation({
+    mutationFn: async () => {
+      if (!attachFor) throw new Error("no_request");
+      const subject = `Подписанная заявка-договор №${attachFor.request_number ?? attachFor.id.slice(0, 8)}`;
+      return apiPost<{ row: { id: string } }>("/api/dispatcher/documents", {
+        owner_type: "carrier",
+        owner_id: attachFor.dispatcher_carrier_ext_id,
+        document_type: "contract",
+        title: subject,
+        file_path: attachForm.file_url || null,
+        file_name: attachForm.file_name || null,
+        comment: attachForm.comment || null,
+        document_status: "uploaded",
+      });
+    },
+    onSuccess: () => {
+      toast.success("Подписанный документ прикреплён");
+      setAttachFor(null);
+      setAttachForm({ file_url: "", file_name: "", comment: "" });
+    },
+    onError: (e: unknown) =>
+      toast.error("Не удалось прикрепить документ", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
+  });
+
+
   return (
     <div className="space-y-3 rounded-md border p-3">
       <div className="flex items-center justify-between gap-2">
@@ -549,6 +633,20 @@ export function DispatcherCarrierRequestsBlock({
                     >
                       Создать задачи
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setContractFor(r)}
+                    >
+                      <FileText className="mr-1 h-3.5 w-3.5" /> Заявка-договор
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAttachFor(r)}
+                    >
+                      Прикрепить подписанный
+                    </Button>
                     {r.dispatcher_deal_id && (
                       <Button asChild size="sm" variant="ghost">
                         <Link to="/dispatcher/deals">Открыть сделку</Link>
@@ -561,6 +659,115 @@ export function DispatcherCarrierRequestsBlock({
           </div>
         )}
       </div>
+
+      {/* Диалог предпросмотра заявки-договора */}
+      <Dialog open={!!contractFor} onOpenChange={(o) => !o && setContractFor(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {contractQ.data?.subject ??
+                `Заявка-договор №${contractFor?.request_number ?? ""}`}
+            </DialogTitle>
+          </DialogHeader>
+          {contractQ.isLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+            </div>
+          ) : contractQ.error ? (
+            <div className="text-sm text-destructive">
+              Не удалось загрузить:{" "}
+              {contractQ.error instanceof Error ? contractQ.error.message : "ошибка"}
+            </div>
+          ) : (
+            <Textarea
+              readOnly
+              value={contractQ.data?.contract_text ?? ""}
+              rows={18}
+              className="font-mono text-xs"
+            />
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={copyContract} disabled={!contractQ.data}>
+              <Copy className="mr-1 h-3.5 w-3.5" /> Копировать
+            </Button>
+            <Button variant="outline" onClick={printContract} disabled={!contractQ.data}>
+              <Printer className="mr-1 h-3.5 w-3.5" /> Печать
+            </Button>
+            <Button
+              onClick={() => {
+                if (contractFor) {
+                  setAttachFor(contractFor);
+                  setContractFor(null);
+                }
+              }}
+            >
+              Прикрепить подписанный
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог прикрепления подписанного документа */}
+      <Dialog open={!!attachFor} onOpenChange={(o) => !o && setAttachFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Подписанная заявка-договор №{attachFor?.request_number ?? ""}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <Label className="text-xs">Ссылка на файл (URL или путь)</Label>
+              <Input
+                value={attachForm.file_url}
+                onChange={(e) =>
+                  setAttachForm({ ...attachForm, file_url: e.target.value })
+                }
+                placeholder="https://… или относительный путь"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Название файла</Label>
+              <Input
+                value={attachForm.file_name}
+                onChange={(e) =>
+                  setAttachForm({ ...attachForm, file_name: e.target.value })
+                }
+                placeholder="scan-zayavka.pdf"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Комментарий</Label>
+              <Textarea
+                value={attachForm.comment}
+                onChange={(e) =>
+                  setAttachForm({ ...attachForm, comment: e.target.value })
+                }
+                rows={2}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Документ будет сохранён в dispatcher_documents как contract,
+              привязанный к перевозчику.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setAttachFor(null)}
+              disabled={attachMut.isPending}
+            >
+              Отмена
+            </Button>
+            <Button onClick={() => attachMut.mutate()} disabled={attachMut.isPending}>
+              {attachMut.isPending ? (
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+              ) : null}
+              Прикрепить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

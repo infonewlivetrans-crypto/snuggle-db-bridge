@@ -1,10 +1,17 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Copy, FileText, Loader2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { apiGetAuth, apiPatch } from "@/lib/api-client";
 import { toast } from "sonner";
 import {
@@ -83,6 +90,7 @@ export function CarrierRequestsBlock() {
 
 function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void }) {
   const [comment, setComment] = useState<string>(row.carrier_comment ?? "");
+  const [contractOpen, setContractOpen] = useState(false);
 
   const respondMut = useMutation({
     mutationFn: async (status: "accepted" | "declined") =>
@@ -99,6 +107,27 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
         description: e instanceof Error ? e.message : undefined,
       }),
   });
+
+  const contractQ = useQuery({
+    queryKey: ["carrier", "contract", row.id],
+    queryFn: () =>
+      apiGetAuth<{ subject: string; contract_text: string }>(
+        `/api/carrier/requests/${row.id}/contract-preview`,
+        10000,
+      ),
+    enabled: contractOpen,
+  });
+
+  async function copyContract() {
+    const text = contractQ.data?.contract_text ?? "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Текст скопирован");
+    } catch {
+      toast.error("Не удалось скопировать");
+    }
+  }
 
   const isFinal = row.request_status === "accepted" || row.request_status === "declined";
   const currency = row.rate_currency ?? "RUB";
@@ -187,7 +216,50 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
             </div>
           )
         )}
+
+        <div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setContractOpen(true)}
+          >
+            <FileText className="mr-1 h-3.5 w-3.5" /> Посмотреть заявку-договор
+          </Button>
+        </div>
       </CardContent>
+
+      <Dialog open={contractOpen} onOpenChange={setContractOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {contractQ.data?.subject ??
+                `Заявка-договор №${row.request_number ?? ""}`}
+            </DialogTitle>
+          </DialogHeader>
+          {contractQ.isLoading ? (
+            <div className="flex items-center justify-center py-8 text-muted-foreground">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+            </div>
+          ) : contractQ.error ? (
+            <div className="text-sm text-destructive">
+              Не удалось загрузить:{" "}
+              {contractQ.error instanceof Error ? contractQ.error.message : "ошибка"}
+            </div>
+          ) : (
+            <Textarea
+              readOnly
+              value={contractQ.data?.contract_text ?? ""}
+              rows={18}
+              className="font-mono text-xs"
+            />
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={copyContract} disabled={!contractQ.data}>
+              <Copy className="mr-1 h-3.5 w-3.5" /> Копировать
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
