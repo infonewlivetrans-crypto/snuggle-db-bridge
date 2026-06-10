@@ -251,6 +251,7 @@ import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
 import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
 import { Route as ApiCarrierDriverInvitesRouteImport } from './routes/api/carrier/driver-invites'
 import { Route as ApiCarrierDocumentsRouteImport } from './routes/api/carrier/documents'
+import { Route as ApiCarrierDealsRouteImport } from './routes/api/carrier/deals'
 import { Route as ApiBackupsCreateRouteImport } from './routes/api/backups.create'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -1547,6 +1548,11 @@ const ApiCarrierDocumentsRoute = ApiCarrierDocumentsRouteImport.update({
   path: '/api/carrier/documents',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierDealsRoute = ApiCarrierDealsRouteImport.update({
+  id: '/api/carrier/deals',
+  path: '/api/carrier/deals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBackupsCreateRoute = ApiBackupsCreateRouteImport.update({
   id: '/create',
   path: '/create',
@@ -2087,6 +2093,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/deals': typeof ApiCarrierDealsRoute
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
@@ -2394,6 +2401,7 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/deals': typeof ApiCarrierDealsRoute
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
@@ -2703,6 +2711,7 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/deals': typeof ApiCarrierDealsRoute
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
@@ -3013,6 +3022,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/deals'
     | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
@@ -3320,6 +3330,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/deals'
     | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
@@ -3628,6 +3639,7 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/deals'
     | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
@@ -3929,6 +3941,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiCarrierDealsRoute: typeof ApiCarrierDealsRoute
   ApiCarrierDocumentsRoute: typeof ApiCarrierDocumentsRouteWithChildren
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
@@ -5668,6 +5681,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/deals': {
+      id: '/api/carrier/deals'
+      path: '/api/carrier/deals'
+      fullPath: '/api/carrier/deals'
+      preLoaderRoute: typeof ApiCarrierDealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/backups/create': {
       id: '/api/backups/create'
       path: '/create'
@@ -7122,6 +7142,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiCarrierDealsRoute: ApiCarrierDealsRoute,
   ApiCarrierDocumentsRoute: ApiCarrierDocumentsRouteWithChildren,
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
   ApiCarrierDriversRoute: ApiCarrierDriversRoute,
