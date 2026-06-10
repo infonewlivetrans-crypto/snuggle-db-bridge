@@ -15,6 +15,8 @@ import {
   CARRIER_KIND_LABELS,
   CARRIER_STATUSES,
   CARRIER_STATUS_LABELS,
+  CARRIER_PAYMENT_METHODS,
+  CARRIER_PAYMENT_METHOD_LABELS,
   type CarrierKind,
   type CarrierStatus,
 } from "@/lib/dispatcher/statuses";
