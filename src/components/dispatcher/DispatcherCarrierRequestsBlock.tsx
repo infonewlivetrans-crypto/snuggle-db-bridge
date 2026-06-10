@@ -236,6 +236,55 @@ export function DispatcherCarrierRequestsBlock({
     },
   });
 
+  const createDealMut = useMutation({
+    mutationFn: async (id: string) =>
+      apiPost<{ row: { id: string; deal_number: string | null }; already_linked: boolean }>(
+        `/api/dispatcher/carrier-requests/${id}/create-deal`,
+        {},
+      ),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["dcrb", "list", carrierExtId] });
+      toast.success(
+        res.already_linked
+          ? `Сделка уже связана: ${res.row.deal_number ?? res.row.id.slice(0, 8)}`
+          : `Создана сделка ${res.row.deal_number ?? res.row.id.slice(0, 8)}`,
+      );
+    },
+    onError: (e: unknown) =>
+      toast.error("Не удалось создать сделку", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
+  });
+
+  const linkDealMut = useMutation({
+    mutationFn: async (vars: { id: string; deal_id: string }) =>
+      apiPost<{ row: unknown; deal: { id: string; deal_number: string | null } }>(
+        `/api/dispatcher/carrier-requests/${vars.id}/link-deal`,
+        { deal_id: vars.deal_id },
+      ),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["dcrb", "list", carrierExtId] });
+      toast.success(`Связано со сделкой ${res.deal.deal_number ?? res.deal.id.slice(0, 8)}`);
+    },
+    onError: (e: unknown) =>
+      toast.error("Не удалось связать", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
+  });
+
+  const createTasksMut = useMutation({
+    mutationFn: async (id: string) =>
+      apiPost<{ rows: unknown[]; total: number }>(
+        `/api/dispatcher/carrier-requests/${id}/create-tasks`,
+        {},
+      ),
+    onSuccess: (res) => toast.success(`Создано задач: ${res.total}`),
+    onError: (e: unknown) =>
+      toast.error("Не удалось создать задачи", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
+  });
+
   async function copyText() {
     if (!previewText) {
       refreshPreview("draft");
