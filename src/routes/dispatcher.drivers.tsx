@@ -19,6 +19,7 @@ import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { DriverForm } from "@/components/dispatcher/DriverForm";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
+import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO } from "@/lib/dispatcher/types";
 import type { DriverCreateInput } from "@/lib/dispatcher/schemas";
@@ -228,6 +229,12 @@ function DriversPage() {
               <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
               <div className="pt-3"><ContactLinks phone={viewing.phone} whatsapp={viewing.whatsapp} telegram={viewing.telegram} max_messenger={viewing.max_messenger} email={viewing.email} /></div>
               <DispatcherDocumentsBlock ownerType="driver" ownerId={viewing.id} />
+              {viewing.dispatcher_carrier_ext_id && (
+                <DispatcherPartnerCardBlock
+                  carrierExtId={viewing.dispatcher_carrier_ext_id}
+                  initialDriverId={viewing.id}
+                />
+              )}
             </div>
           )}
         </DialogContent>
