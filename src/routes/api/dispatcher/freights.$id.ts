@@ -10,7 +10,11 @@ const SELECT =
   "cargo_name, weight_kg, volume_m3, body_type, load_methods, rate, " +
   "payment_type, payment_delay_days, source, source_url, " +
   "contact_name, contact_phone, contact_whatsapp, contact_telegram, contact_max_messenger, " +
-  "comment, dispatcher_status, freight_kind, created_at, updated_at";
+  "comment, dispatcher_status, freight_kind, " +
+  "assigned_carrier_ext_id, assigned_driver_ext_id, assigned_vehicle_ext_id, " +
+  "carrier_request_id, deal_id, signed_pdf_document_id, " +
+  "signed_sent_at, signed_sent_channel, signed_sent_comment, " +
+  "created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/freights/$id")({
   server: {

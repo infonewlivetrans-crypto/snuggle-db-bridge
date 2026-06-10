@@ -137,18 +137,43 @@ export const FREIGHT_STATUSES = [
   "rejected",
   "cancelled",
   "archived",
+  "customer_called",
+  "customer_ready",
+  "not_suitable",
+  "waiting_docs",
+  "docs_received",
+  "carrier_signing",
+  "signed_sent",
+  "deal_created",
 ] as const;
 export type FreightStatus = (typeof FREIGHT_STATUSES)[number];
 
 export const FREIGHT_STATUS_LABELS: Record<FreightStatus, string> = {
   new: "Новый",
-  checking: "Проверяется",
+  checking: "Проверяем",
   suitable: "Подходит",
   offered: "Предложен",
   booked: "Забронирован",
   rejected: "Отклонён",
   cancelled: "Отменён",
   archived: "Архив",
+  customer_called: "Заказчик прозвонен",
+  customer_ready: "Заказчик готов заключить заявку",
+  not_suitable: "Не подходит",
+  waiting_docs: "Ждём заявку/договор",
+  docs_received: "Документы получены",
+  carrier_signing: "На подписи у перевозчика",
+  signed_sent: "Подписанная заявка отправлена",
+  deal_created: "Сделка создана",
+};
+
+export const FREIGHT_SIGNED_SENT_CHANNELS = ["email", "messenger", "manual", "other"] as const;
+export type FreightSignedSentChannel = (typeof FREIGHT_SIGNED_SENT_CHANNELS)[number];
+export const FREIGHT_SIGNED_SENT_CHANNEL_LABELS: Record<FreightSignedSentChannel, string> = {
+  email: "Email",
+  messenger: "Мессенджер",
+  manual: "Вручную",
+  other: "Другое",
 };
 
 export const FREIGHT_KINDS = ["main", "additional"] as const;
