@@ -14,6 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  CARRIER_PAYMENT_METHODS,
+  CARRIER_PAYMENT_METHOD_LABELS,
+} from "@/lib/dispatcher/statuses";
 
 // Общая постоянная многоразовая публичная регистрация перевозчика.
 // Этап 9, шаг 1: только базовые поля + email/password + согласие 5%.
@@ -75,10 +79,13 @@ function CarrierRegisterPage() {
     setAlreadyRegistered(false);
 
     if (!email.trim()) return toast.error("Укажите email");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return toast.error("Некорректный email");
     if (password.length < 8) return toast.error("Пароль не короче 8 символов");
     if (password !== password2) return toast.error("Пароли не совпадают");
     if (!companyName.trim()) return toast.error("Укажите название / ФИО");
     if (!phone.trim()) return toast.error("Укажите телефон");
+    if (!/^[+\d][\d\s()\-]{5,30}$/.test(phone.trim())) return toast.error("Некорректный телефон");
+    if (inn.trim() && !/^\d{10}$|^\d{12}$/.test(inn.trim())) return toast.error("ИНН: 10 или 12 цифр");
     if (!agreed || !agreedBy.trim())
       return toast.error("Подтвердите согласие на комиссию 5% и укажите ФИО");
     if (regType === "carrier_with_driver") {
@@ -319,11 +326,18 @@ function CarrierRegisterPage() {
               />
             </Field>
             <Field label="Способ оплаты комиссии">
-              <Input
-                placeholder="на карту / на расчётный счёт"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              />
+              <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="— не выбрано —" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CARRIER_PAYMENT_METHODS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {CARRIER_PAYMENT_METHOD_LABELS[m]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
         </section>
