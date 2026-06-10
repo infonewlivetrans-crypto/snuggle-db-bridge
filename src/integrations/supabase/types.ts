@@ -1483,6 +1483,95 @@ export type Database = {
         }
         Relationships: []
       }
+      dispatcher_partner_card_sends: {
+        Row: {
+          created_at: string
+          dispatcher_carrier_ext_id: string
+          dispatcher_deal_id: string | null
+          dispatcher_driver_ext_id: string | null
+          dispatcher_vehicle_ext_id: string | null
+          id: string
+          message_text: string
+          recipient_email: string | null
+          recipient_messenger: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
+          send_channel: string
+          sent_at: string | null
+          sent_by: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dispatcher_carrier_ext_id: string
+          dispatcher_deal_id?: string | null
+          dispatcher_driver_ext_id?: string | null
+          dispatcher_vehicle_ext_id?: string | null
+          id?: string
+          message_text: string
+          recipient_email?: string | null
+          recipient_messenger?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          send_channel?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dispatcher_carrier_ext_id?: string
+          dispatcher_deal_id?: string | null
+          dispatcher_driver_ext_id?: string | null
+          dispatcher_vehicle_ext_id?: string | null
+          id?: string
+          message_text?: string
+          recipient_email?: string | null
+          recipient_messenger?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
+          send_channel?: string
+          sent_at?: string | null
+          sent_by?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_partner_card_sends_dispatcher_carrier_ext_id_fkey"
+            columns: ["dispatcher_carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_partner_card_sends_dispatcher_deal_id_fkey"
+            columns: ["dispatcher_deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_partner_card_sends_dispatcher_driver_ext_id_fkey"
+            columns: ["dispatcher_driver_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_driver_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_partner_card_sends_dispatcher_vehicle_ext_id_fkey"
+            columns: ["dispatcher_vehicle_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_vehicle_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_tasks: {
         Row: {
           action_url: string | null
