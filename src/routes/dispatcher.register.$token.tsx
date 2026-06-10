@@ -104,7 +104,7 @@ function RegisterPage() {
         entityType === "carrier"
           ? {
               agreed: true,
-              agreed_by: agreedBy.trim(),
+              agreed_by: offerAcceptedBy.trim(),
               agreement_text: COMMISSION_TEXT,
               offer_acceptance: buildOfferPayload({
                 acceptedByName: offerAcceptedBy,
