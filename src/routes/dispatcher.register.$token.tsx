@@ -91,12 +91,8 @@ function RegisterPage() {
   const complete = async () => {
     if (!(await save())) return;
     if (entityType === "carrier") {
-      if (!agreed || !agreedBy.trim()) {
-        toast.error("Подтвердите согласие и укажите ФИО");
-        return;
-      }
       if (!offerAccepted || !offerAcceptedBy.trim()) {
-        toast.error("Необходимо принять договор-оферту и указать ФИО");
+        toast.error("Подтвердите согласие на комиссию и укажите ФИО");
         return;
       }
     }
