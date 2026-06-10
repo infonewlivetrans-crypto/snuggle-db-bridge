@@ -492,26 +492,69 @@ export function DispatcherCarrierRequestsBlock({
           <div className="space-y-1">
             {rows.map((r) => (
               <Card key={r.id}>
-                <CardContent className="flex flex-wrap items-center justify-between gap-2 p-2 text-xs">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline">
-                      {CARRIER_REQUEST_STATUS_LABELS[r.request_status as CarrierRequestStatus] ??
-                        r.request_status}
-                    </Badge>
-                    <span className="font-medium">{r.request_number ?? r.id.slice(0, 8)}</span>
-                    <span>{r.cargo_name ?? "—"}</span>
-                    <span className="text-muted-foreground">
-                      {(r.loading_city ?? "—") + " → " + (r.unloading_city ?? "—")}
-                    </span>
-                    {r.rate_amount != null && (
-                      <span>{r.rate_amount} {r.rate_currency ?? "RUB"}</span>
+                <CardContent className="space-y-1.5 p-2 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {CARRIER_REQUEST_STATUS_LABELS[r.request_status as CarrierRequestStatus] ??
+                          r.request_status}
+                      </Badge>
+                      <span className="font-medium">{r.request_number ?? r.id.slice(0, 8)}</span>
+                      <span>{r.cargo_name ?? "—"}</span>
+                      <span className="text-muted-foreground">
+                        {(r.loading_city ?? "—") + " → " + (r.unloading_city ?? "—")}
+                      </span>
+                      {r.rate_amount != null && (
+                        <span>{r.rate_amount} {r.rate_currency ?? "RUB"}</span>
+                      )}
+                      {r.dispatcher_deal_id && (
+                        <Badge variant="secondary">Сделка создана</Badge>
+                      )}
+                    </div>
+                    {r.request_status === "draft" && (
+                      <Button size="sm" variant="ghost" onClick={() => markSentMut.mutate(r.id)}>
+                        Отметить отправленной
+                      </Button>
                     )}
                   </div>
-                  {r.request_status === "draft" && (
-                    <Button size="sm" variant="ghost" onClick={() => markSentMut.mutate(r.id)}>
-                      Отметить отправленной
+                  <div className="flex flex-wrap gap-1.5">
+                    {!r.dispatcher_deal_id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={createDealMut.isPending}
+                        onClick={() => createDealMut.mutate(r.id)}
+                      >
+                        Создать сделку
+                      </Button>
+                    )}
+                    {!r.dispatcher_deal_id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={linkDealMut.isPending}
+                        onClick={() => {
+                          const id = window.prompt("ID существующей сделки (UUID):");
+                          if (id) linkDealMut.mutate({ id: r.id, deal_id: id.trim() });
+                        }}
+                      >
+                        Связать со сделкой
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={createTasksMut.isPending}
+                      onClick={() => createTasksMut.mutate(r.id)}
+                    >
+                      Создать задачи
                     </Button>
-                  )}
+                    {r.dispatcher_deal_id && (
+                      <Button asChild size="sm" variant="ghost">
+                        <Link to="/dispatcher/deals">Открыть сделку</Link>
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             ))}
