@@ -314,6 +314,7 @@ import { Route as ApiDispatcherCarrierRequestsIdCreateTasksRouteImport } from '.
 import { Route as ApiDispatcherCarrierRequestsIdCreateDealRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-deal'
 import { Route as ApiDispatcherCarrierRequestsIdContractPreviewRouteImport } from './routes/api/dispatcher/carrier-requests.$id.contract-preview'
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
+import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
@@ -1901,6 +1902,12 @@ const ApiCarrierRequestsIdRespondRoute =
     path: '/respond',
     getParentRoute: () => ApiCarrierRequestsIdRoute,
   } as any)
+const ApiCarrierRequestsIdContractPreviewRoute =
+  ApiCarrierRequestsIdContractPreviewRouteImport.update({
+    id: '/contract-preview',
+    path: '/contract-preview',
+    getParentRoute: () => ApiCarrierRequestsIdRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -2211,6 +2218,7 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
@@ -2520,6 +2528,7 @@ export interface FileRoutesByTo {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
@@ -2831,6 +2840,7 @@ export interface FileRoutesById {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
@@ -3143,6 +3153,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
@@ -3452,6 +3463,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
@@ -3762,6 +3774,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
@@ -6135,6 +6148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierRequestsIdRespondRouteImport
       parentRoute: typeof ApiCarrierRequestsIdRoute
     }
+    '/api/carrier/requests/$id/contract-preview': {
+      id: '/api/carrier/requests/$id/contract-preview'
+      path: '/contract-preview'
+      fullPath: '/api/carrier/requests/$id/contract-preview'
+      preLoaderRoute: typeof ApiCarrierRequestsIdContractPreviewRouteImport
+      parentRoute: typeof ApiCarrierRequestsIdRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
       path: '/orders/$orderId'
@@ -6678,10 +6698,13 @@ const ApiCarrierDocumentsRouteWithChildren =
   ApiCarrierDocumentsRoute._addFileChildren(ApiCarrierDocumentsRouteChildren)
 
 interface ApiCarrierRequestsIdRouteChildren {
+  ApiCarrierRequestsIdContractPreviewRoute: typeof ApiCarrierRequestsIdContractPreviewRoute
   ApiCarrierRequestsIdRespondRoute: typeof ApiCarrierRequestsIdRespondRoute
 }
 
 const ApiCarrierRequestsIdRouteChildren: ApiCarrierRequestsIdRouteChildren = {
+  ApiCarrierRequestsIdContractPreviewRoute:
+    ApiCarrierRequestsIdContractPreviewRoute,
   ApiCarrierRequestsIdRespondRoute: ApiCarrierRequestsIdRespondRoute,
 }
 
