@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CarrierOfferAcceptBlock } from "@/components/contracts/CarrierOfferAcceptBlock";
+import { CarrierUnifiedConsentBlock } from "@/components/contracts/CarrierUnifiedConsentBlock";
 import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
 
 export const Route = createFileRoute("/dispatcher/register/$token")({
