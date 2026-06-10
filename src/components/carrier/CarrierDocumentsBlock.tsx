@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +19,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Upload, Loader2, FileText } from "lucide-react";
-import { apiGetAuth, apiPost } from "@/lib/api-client";
+import { Upload, Loader2, FileText, ExternalLink } from "lucide-react";
+import { apiGetAuth, apiPost, authHeaders } from "@/lib/api-client";
 import {
+  carrierDocumentsApi,
   documentTypesFor,
   DOCUMENT_STATUS_LABELS,
   DOCUMENT_TYPE_LABELS,
