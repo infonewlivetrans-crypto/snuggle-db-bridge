@@ -99,6 +99,35 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setError("Название обязательно");
       return;
     }
+    // Валидация (клиент): ИНН 10/12 цифр, ОГРН 13/15, телефон/email формат.
+    const innT = inn.trim();
+    if (innT && !/^\d{10}$|^\d{12}$/.test(innT)) {
+      setError("ИНН: 10 или 12 цифр");
+      return;
+    }
+    const ogrnT = ogrn.trim();
+    if (ogrnT && !/^\d{13}$|^\d{15}$/.test(ogrnT)) {
+      setError("ОГРН — 13 цифр, ОГРНИП — 15 цифр");
+      return;
+    }
+    const phoneRe = /^[+\d][\d\s()\-]{5,30}$/;
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (phone.trim() && !phoneRe.test(phone.trim())) {
+      setError("Некорректный телефон");
+      return;
+    }
+    if (email.trim() && !emailRe.test(email.trim())) {
+      setError("Некорректный email");
+      return;
+    }
+    if (atiPhone.trim() && !phoneRe.test(atiPhone.trim())) {
+      setError("Некорректный телефон ATI");
+      return;
+    }
+    if (atiEmail.trim() && !emailRe.test(atiEmail.trim())) {
+      setError("Некорректный email ATI");
+      return;
+    }
     const percent = Number(commissionRate);
     if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
       setError("Комиссия должна быть числом 0..100 (%)");
@@ -124,12 +153,16 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
     onSubmit({
       name: name.trim(),
       carrier_kind: safeCarrierKind,
+      tax_regime: blank(taxRegime),
       commission_payment_method: null,
       inn: blank(inn),
       ogrn: blank(ogrn),
       phone: blank(phone),
       email: blank(email),
       city: blank(city),
+      ati_id: blank(atiId),
+      ati_phone: blank(atiPhone),
+      ati_email: blank(atiEmail),
       whatsapp: blank(whatsapp),
       telegram: blank(telegram),
       max_messenger: blank(maxId),
@@ -139,7 +172,7 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       bank_corr_account: blank(bankCorr),
       commission_rate: rate,
       payment_method: blank(paymentMethod),
-      commission_agreed: false,
+      commission_agreed: initial?.commission_agreed ?? false,
       verification_status: safeVerificationStatus,
       dispatcher_comment: blank(comment),
       production_carrier_id: initial?.production_carrier_id ?? null,
@@ -175,11 +208,28 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
             </SelectContent>
           </Select>
         </div>
-        <div><Label>ИНН</Label><Input value={inn} onChange={(e) => setInn(e.target.value)} /></div>
-        <div><Label>ОГРН</Label><Input value={ogrn} onChange={(e) => setOgrn(e.target.value)} /></div>
-        <div><Label>Город</Label><Input value={city} onChange={(e) => setCity(e.target.value)} /></div>
-        <div><Label>Телефон</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
-        <div><Label>Email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+        <div>
+          <Label>Налоговый режим</Label>
+          <Select
+            value={(CARRIER_TAX_REGIMES as readonly string[]).includes(taxRegime) ? taxRegime : ""}
+            onValueChange={(v) => setTaxRegime(v)}
+          >
+            <SelectTrigger><SelectValue placeholder="— не выбрано —" /></SelectTrigger>
+            <SelectContent>
+              {CARRIER_TAX_REGIMES.map((r) => (
+                <SelectItem key={r} value={r}>{CARRIER_TAX_REGIME_LABELS[r]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div><Label>ИНН</Label><Input value={inn} onChange={(e) => setInn(e.target.value)} inputMode="numeric" placeholder="10 или 12 цифр" /></div>
+        <div><Label>ОГРН / ОГРНИП</Label><Input value={ogrn} onChange={(e) => setOgrn(e.target.value)} inputMode="numeric" placeholder="13 или 15 цифр" /></div>
+        <div><Label>Город</Label><Input value={city} onChange={(e) => setCity(e.target.value)} list="carrier-cities" placeholder="Москва, СПб…" /><datalist id="carrier-cities"><option value="Москва"/><option value="Санкт-Петербург"/><option value="Екатеринбург"/><option value="Новосибирск"/><option value="Казань"/><option value="Нижний Новгород"/><option value="Краснодар"/><option value="Ростов-на-Дону"/><option value="Самара"/><option value="Уфа"/><option value="Челябинск"/><option value="Воронеж"/><option value="Пермь"/><option value="Волгоград"/></datalist></div>
+        <div><Label>Телефон</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" /></div>
+        <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+        <div><Label>ATI ID</Label><Input value={atiId} onChange={(e) => setAtiId(e.target.value)} placeholder="например 123456" /></div>
+        <div><Label>Телефон (как в ATI)</Label><Input value={atiPhone} onChange={(e) => setAtiPhone(e.target.value)} inputMode="tel" /></div>
+        <div><Label>Email (как в ATI)</Label><Input type="email" value={atiEmail} onChange={(e) => setAtiEmail(e.target.value)} /></div>
         <div><Label>WhatsApp</Label><Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="номер или ссылка" /></div>
         <div><Label>Telegram</Label><Input value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@username" /></div>
         <div><Label>Max Messenger</Label><Input value={maxId} onChange={(e) => setMaxId(e.target.value)} placeholder="Max ID или ссылка" /></div>
