@@ -208,3 +208,14 @@ export const documentsApi = {
     }>("/api/dispatcher/documents/upload", form),
   downloadUrl: (id: string) => `/api/dispatcher/documents/${id}/download`,
 };
+
+export const carrierDocumentsApi = {
+  uploadFile: (form: FormData) =>
+    apiPost<{
+      file_path: string;
+      file_name: string;
+      file_mime: string;
+      file_size: number;
+    }>("/api/carrier/documents/upload", form),
+};
+

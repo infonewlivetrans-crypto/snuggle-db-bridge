@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
+import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
 
 const BUCKET = "dispatcher-documents";
-const ALLOWED_ROLES = ["admin", "dispatcher"];
-const MAX_SIZE = 20 * 1024 * 1024; // 20 MB
+const MAX_SIZE = 20 * 1024 * 1024;
 
 const ALLOWED_MIME = new Set([
   "image/jpeg",
@@ -14,12 +14,52 @@ const ALLOWED_MIME = new Set([
   "application/octet-stream",
 ]);
 
-export const Route = createFileRoute("/api/dispatcher/documents/upload")({
+type Ctx = Exclude<Awaited<ReturnType<typeof resolveCarrierCtx>>, Response>;
+
+async function checkOwnership(ctx: Ctx, ownerType: string, ownerId: string): Promise<boolean> {
+  if (ownerType === "carrier") return ownerId === ctx.dispatcherCarrierExtId;
+  if (ownerType === "freight") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (ctx.admin.from("dispatcher_freights" as never) as any)
+      .select("id")
+      .eq("id", ownerId)
+      .eq("assigned_carrier_ext_id", ctx.dispatcherCarrierExtId)
+      .maybeSingle();
+    return !!data?.id;
+  }
+  if (ownerType === "deal") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (ctx.admin.from("dispatcher_deals" as never) as any)
+      .select("id")
+      .eq("id", ownerId)
+      .eq("carrier_id", ctx.dispatcherCarrierExtId)
+      .maybeSingle();
+    return !!data?.id;
+  }
+  const table =
+    ownerType === "driver"
+      ? "dispatcher_driver_ext"
+      : ownerType === "vehicle"
+        ? "dispatcher_vehicle_ext"
+        : null;
+  if (!table) return false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (ctx.admin.from(table as never) as any)
+    .select("id")
+    .eq("id", ownerId)
+    .eq("dispatcher_carrier_ext_id", ctx.dispatcherCarrierExtId)
+    .maybeSingle();
+  return !!data?.id;
+}
+
+export const Route = createFileRoute("/api/carrier/documents/upload")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = await requireAnyRole(request, ALLOWED_ROLES);
+        const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
+        const ctx = await resolveCarrierCtx(auth.userId);
+        if (ctx instanceof Response) return ctx;
 
         const form = await request.formData().catch(() => null);
         if (!form) {
@@ -42,6 +82,9 @@ export const Route = createFileRoute("/api/dispatcher/documents/upload")({
           return jsonResponse({ error: "invalid owner_id" }, { status: 400 });
         }
 
+        const ok = await checkOwnership(ctx, ownerType, ownerId);
+        if (!ok) return jsonResponse({ error: "forbidden" }, { status: 403 });
+
         const mime = file.type || "application/octet-stream";
         if (!ALLOWED_MIME.has(mime)) {
           return jsonResponse(
@@ -52,7 +95,7 @@ export const Route = createFileRoute("/api/dispatcher/documents/upload")({
         const ext = (file.name.split(".").pop() || "bin").toLowerCase().slice(0, 8);
         const path = `${ownerType}/${ownerId}/${crypto.randomUUID()}.${ext}`;
 
-        const { error: upErr } = await auth.client.storage
+        const { error: upErr } = await ctx.admin.storage
           .from(BUCKET)
           .upload(path, file, { upsert: false, contentType: mime });
         if (upErr) {
