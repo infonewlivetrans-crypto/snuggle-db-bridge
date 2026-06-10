@@ -170,33 +170,44 @@ function AddDialog({
   const types = documentTypesFor(ownerType);
   const [docType, setDocType] = useState<string>(types[0] ?? "other");
   const [title, setTitle] = useState("");
-  const [filePath, setFilePath] = useState("");
-  const [fileName, setFileName] = useState("");
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (open) {
       setDocType(types[0] ?? "other");
       setTitle("");
-      setFilePath("");
-      setFileName("");
       setComment("");
+      if (fileRef.current) fileRef.current.value = "";
     }
   }, [open, types]);
 
   const submit = async () => {
     setSubmitting(true);
     try {
+      let filePart: {
+        file_path?: string;
+        file_name?: string;
+        file_mime?: string;
+        file_size?: number;
+      } = {};
+      const f = fileRef.current?.files?.[0];
+      if (f) {
+        const fd = new FormData();
+        fd.append("file", f);
+        fd.append("owner_type", ownerType);
+        fd.append("owner_id", ownerId);
+        filePart = await carrierDocumentsApi.uploadFile(fd);
+      }
       await apiPost("/api/carrier/documents", {
         owner_type: ownerType,
         owner_id: ownerId,
         document_type: docType,
         title: title || null,
-        file_path: filePath || null,
-        file_name: fileName || null,
         comment: comment || null,
         document_status: "uploaded",
+        ...filePart,
       });
       toast.success("Документ добавлен");
       onOpenChange(false);
@@ -214,7 +225,7 @@ function AddDialog({
         <DialogHeader>
           <DialogTitle>Новый документ</DialogTitle>
           <DialogDescription>
-            Укажите тип и приложите ссылку или название файла. Файл проверит диспетчер.
+            Загрузка файла необязательна — можно создать запись и приложить файл позже.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3 text-sm">
@@ -236,12 +247,8 @@ function AddDialog({
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div>
-            <div className="text-xs text-muted-foreground mb-1">Название файла</div>
-            <Input value={fileName} onChange={(e) => setFileName(e.target.value)} placeholder="passport.pdf" />
-          </div>
-          <div>
-            <div className="text-xs text-muted-foreground mb-1">Ссылка / путь к файлу</div>
-            <Input value={filePath} onChange={(e) => setFilePath(e.target.value)} placeholder="https://… или storage path" />
+            <div className="text-xs text-muted-foreground mb-1">Файл (jpg/png/webp/pdf, до 20 МБ)</div>
+            <Input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" />
           </div>
           <div>
             <div className="text-xs text-muted-foreground mb-1">Комментарий</div>
