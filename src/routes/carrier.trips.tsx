@@ -4,6 +4,7 @@ import { ClipboardList, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
+import { CarrierRequestsBlock } from "@/components/carrier/CarrierRequestsBlock";
 
 export const Route = createFileRoute("/carrier/trips")({
   head: () => ({ meta: [{ title: "Задания и рейсы — кабинет перевозчика" }] }),
@@ -50,7 +51,9 @@ function CarrierTripsPage() {
   const trips = data?.rows ?? [];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <CarrierRequestsBlock />
+
       <h2 className="text-lg font-medium">Задания и рейсы</h2>
       <p className="text-sm text-muted-foreground">
         Маршруты, закреплённые за вашими водителями и транспортом. Сам маршрут водитель

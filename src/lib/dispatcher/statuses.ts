@@ -517,6 +517,47 @@ export const PARTNER_CARD_SEND_STATUS_LABELS: Record<PartnerCardSendStatus, stri
   archive: "Архив",
 };
 
+// =============== Carrier requests ===============
+export const CARRIER_REQUEST_STATUSES = [
+  "draft",
+  "sent",
+  "viewed",
+  "accepted",
+  "declined",
+  "cancelled",
+  "archive",
+] as const;
+export type CarrierRequestStatus = (typeof CARRIER_REQUEST_STATUSES)[number];
+
+export const CARRIER_REQUEST_STATUS_LABELS: Record<CarrierRequestStatus, string> = {
+  draft: "Черновик",
+  sent: "Отправлена перевозчику",
+  viewed: "Просмотрена",
+  accepted: "Принята",
+  declined: "Отклонена",
+  cancelled: "Отменена",
+  archive: "Архив",
+};
+
+export const CARRIER_REQUEST_PAYMENT_TYPES = [
+  "prepayment",
+  "on_loading",
+  "on_unloading",
+  "delayed",
+  "mixed",
+  "other",
+] as const;
+export type CarrierRequestPaymentType = (typeof CARRIER_REQUEST_PAYMENT_TYPES)[number];
+
+export const CARRIER_REQUEST_PAYMENT_TYPE_LABELS: Record<CarrierRequestPaymentType, string> = {
+  prepayment: "Предоплата",
+  on_loading: "На загрузке",
+  on_unloading: "На выгрузке",
+  delayed: "Отсрочка",
+  mixed: "Смешанная",
+  other: "Другое",
+};
+
 
 // Часто используемые города для combobox/datalist.
 export const RUSSIAN_CITIES_PRESET = [

@@ -24,6 +24,7 @@ import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistr
 import { CarrierUserLinkBlock } from "@/components/dispatcher/CarrierUserLinkBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
+import { DispatcherCarrierRequestsBlock } from "@/components/dispatcher/DispatcherCarrierRequestsBlock";
 import { CarrierContractAcceptanceBlock } from "@/components/dispatcher/CarrierContractAcceptanceBlock";
 import { carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO } from "@/lib/dispatcher/types";
@@ -352,6 +353,8 @@ function CarrierViewBody({
       <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
 
       <DispatcherPartnerCardBlock carrierExtId={row.id} />
+
+      <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />
 
 
 

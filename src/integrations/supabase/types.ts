@@ -965,6 +965,143 @@ export type Database = {
           },
         ]
       }
+      dispatcher_carrier_requests: {
+        Row: {
+          cargo_name: string | null
+          carrier_comment: string | null
+          commission_amount: number | null
+          commission_percent: number
+          created_at: string
+          customer_contact: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          dispatcher_carrier_ext_id: string
+          dispatcher_comment: string | null
+          dispatcher_deal_id: string | null
+          dispatcher_driver_ext_id: string | null
+          dispatcher_vehicle_ext_id: string | null
+          id: string
+          loading_address: string | null
+          loading_city: string | null
+          loading_date: string | null
+          payment_delay_days: number | null
+          payment_type: string | null
+          rate_amount: number | null
+          rate_currency: string
+          request_number: string | null
+          request_status: string
+          responded_at: string | null
+          responded_by: string | null
+          sent_at: string | null
+          sent_by: string | null
+          terms_text: string | null
+          unloading_address: string | null
+          unloading_city: string | null
+          unloading_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo_name?: string | null
+          carrier_comment?: string | null
+          commission_amount?: number | null
+          commission_percent?: number
+          created_at?: string
+          customer_contact?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          dispatcher_carrier_ext_id: string
+          dispatcher_comment?: string | null
+          dispatcher_deal_id?: string | null
+          dispatcher_driver_ext_id?: string | null
+          dispatcher_vehicle_ext_id?: string | null
+          id?: string
+          loading_address?: string | null
+          loading_city?: string | null
+          loading_date?: string | null
+          payment_delay_days?: number | null
+          payment_type?: string | null
+          rate_amount?: number | null
+          rate_currency?: string
+          request_number?: string | null
+          request_status?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          terms_text?: string | null
+          unloading_address?: string | null
+          unloading_city?: string | null
+          unloading_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo_name?: string | null
+          carrier_comment?: string | null
+          commission_amount?: number | null
+          commission_percent?: number
+          created_at?: string
+          customer_contact?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          dispatcher_carrier_ext_id?: string
+          dispatcher_comment?: string | null
+          dispatcher_deal_id?: string | null
+          dispatcher_driver_ext_id?: string | null
+          dispatcher_vehicle_ext_id?: string | null
+          id?: string
+          loading_address?: string | null
+          loading_city?: string | null
+          loading_date?: string | null
+          payment_delay_days?: number | null
+          payment_type?: string | null
+          rate_amount?: number | null
+          rate_currency?: string
+          request_number?: string | null
+          request_status?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          terms_text?: string | null
+          unloading_address?: string | null
+          unloading_city?: string | null
+          unloading_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_carrier_requests_dispatcher_carrier_ext_id_fkey"
+            columns: ["dispatcher_carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_carrier_requests_dispatcher_deal_id_fkey"
+            columns: ["dispatcher_deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_carrier_requests_dispatcher_driver_ext_id_fkey"
+            columns: ["dispatcher_driver_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_driver_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_carrier_requests_dispatcher_vehicle_ext_id_fkey"
+            columns: ["dispatcher_vehicle_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_vehicle_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_carrier_users: {
         Row: {
           created_at: string
