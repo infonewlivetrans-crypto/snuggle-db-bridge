@@ -478,6 +478,45 @@ export function taskStatusBadgeClass(s: string): string {
   }
 }
 
+// =============== Partner card sends ===============
+export const PARTNER_CARD_SEND_CHANNELS = [
+  "manual",
+  "email",
+  "whatsapp",
+  "telegram",
+  "max",
+  "phone",
+  "other",
+] as const;
+export type PartnerCardSendChannel = (typeof PARTNER_CARD_SEND_CHANNELS)[number];
+
+export const PARTNER_CARD_SEND_CHANNEL_LABELS: Record<PartnerCardSendChannel, string> = {
+  manual: "Вручную",
+  email: "Email",
+  whatsapp: "WhatsApp",
+  telegram: "Telegram",
+  max: "Max",
+  phone: "Телефон",
+  other: "Другое",
+};
+
+export const PARTNER_CARD_SEND_STATUSES = [
+  "draft",
+  "copied",
+  "sent",
+  "cancelled",
+  "archive",
+] as const;
+export type PartnerCardSendStatus = (typeof PARTNER_CARD_SEND_STATUSES)[number];
+
+export const PARTNER_CARD_SEND_STATUS_LABELS: Record<PartnerCardSendStatus, string> = {
+  draft: "Черновик",
+  copied: "Скопировано",
+  sent: "Отправлено",
+  cancelled: "Отменено",
+  archive: "Архив",
+};
+
 
 // Часто используемые города для combobox/datalist.
 export const RUSSIAN_CITIES_PRESET = [
