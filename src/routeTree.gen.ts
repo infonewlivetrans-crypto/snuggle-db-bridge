@@ -271,6 +271,7 @@ import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orde
 import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
 import { Route as ApiDispatcherTasksGenerateDailyRouteImport } from './routes/api/dispatcher/tasks.generate-daily'
 import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
+import { Route as ApiDispatcherPartnerCardSendsRouteImport } from './routes/api/dispatcher/partner-card.sends'
 import { Route as ApiDispatcherPartnerCardPreviewRouteImport } from './routes/api/dispatcher/partner-card.preview'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
@@ -1645,6 +1646,12 @@ const ApiDispatcherTasksIdRoute = ApiDispatcherTasksIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherTasksRoute,
 } as any)
+const ApiDispatcherPartnerCardSendsRoute =
+  ApiDispatcherPartnerCardSendsRouteImport.update({
+    id: '/api/dispatcher/partner-card/sends',
+    path: '/api/dispatcher/partner-card/sends',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherPartnerCardPreviewRoute =
   ApiDispatcherPartnerCardPreviewRouteImport.update({
     id: '/api/dispatcher/partner-card/preview',
@@ -2111,6 +2118,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
+  '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRoute
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
@@ -2408,6 +2416,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
+  '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRoute
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
@@ -2707,6 +2716,7 @@ export interface FileRoutesById {
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
+  '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRoute
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRoute
@@ -3007,6 +3017,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/partner-card/preview'
+    | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
     | '/api/dispatcher/vehicles/$id'
@@ -3304,6 +3315,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/partner-card/preview'
+    | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
     | '/api/dispatcher/vehicles/$id'
@@ -3602,6 +3614,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/partner-card/preview'
+    | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
     | '/api/dispatcher/vehicles/$id'
@@ -3834,6 +3847,7 @@ export interface RootRouteChildren {
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
   ApiDispatcherPartnerCardPreviewRoute: typeof ApiDispatcherPartnerCardPreviewRoute
+  ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRoute
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
@@ -5677,6 +5691,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherTasksIdRouteImport
       parentRoute: typeof ApiDispatcherTasksRoute
     }
+    '/api/dispatcher/partner-card/sends': {
+      id: '/api/dispatcher/partner-card/sends'
+      path: '/api/dispatcher/partner-card/sends'
+      fullPath: '/api/dispatcher/partner-card/sends'
+      preLoaderRoute: typeof ApiDispatcherPartnerCardSendsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/partner-card/preview': {
       id: '/api/dispatcher/partner-card/preview'
       path: '/api/dispatcher/partner-card/preview'
@@ -6883,6 +6904,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherContractsCarrierOfferRoute:
     ApiDispatcherContractsCarrierOfferRoute,
   ApiDispatcherPartnerCardPreviewRoute: ApiDispatcherPartnerCardPreviewRoute,
+  ApiDispatcherPartnerCardSendsRoute: ApiDispatcherPartnerCardSendsRoute,
   ApiPublicCarrierActivateTokenRoute: ApiPublicCarrierActivateTokenRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:
