@@ -33,6 +33,8 @@ export const CARRIER_DOC_TYPES = [
   "passport",
   "self_employed_certificate",
   "contract",
+  "carrier_stamp_image",
+  "carrier_signature_image",
   "other",
 ] as const;
 
