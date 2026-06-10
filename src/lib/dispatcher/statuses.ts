@@ -48,12 +48,16 @@ export const DRIVER_STATUS_LABELS: Record<DriverStatus, string> = {
 export const VEHICLE_STATUSES = [
   "new",
   "docs_unchecked",
+  "ready_to_work",
   "available",
+  "partially_available",
   "waiting_freight",
   "offered",
+  "busy",
   "on_trip",
   "unloading",
   "resting",
+  "repair",
   "inactive",
   "blocked",
   "archive",
@@ -63,15 +67,64 @@ export type VehicleStatus = (typeof VEHICLE_STATUSES)[number];
 export const VEHICLE_STATUS_LABELS: Record<VehicleStatus, string> = {
   new: "Новый",
   docs_unchecked: "Документы не проверены",
+  ready_to_work: "Готов к работе",
   available: "Свободен",
+  partially_available: "Частично свободен",
   waiting_freight: "Ждёт груз",
   offered: "Предложен груз",
+  busy: "Занят",
   on_trip: "В рейсе",
   unloading: "На выгрузке",
   resting: "Отдыхает",
-  inactive: "Не работает",
+  repair: "В ремонте",
+  inactive: "Неактивен",
   blocked: "Заблокирован",
   archive: "Архив",
+};
+
+// Тип кузова. Стабильные коды + русские лейблы.
+export const VEHICLE_BODY_TYPES = [
+  "tent",
+  "box",
+  "refrigerator",
+  "board",
+  "flatbed",
+  "container",
+  "timber",
+  "other",
+] as const;
+export type VehicleBodyType = (typeof VEHICLE_BODY_TYPES)[number];
+
+export const VEHICLE_BODY_TYPE_LABELS: Record<VehicleBodyType, string> = {
+  tent: "Тент",
+  box: "Фургон",
+  refrigerator: "Рефрижератор",
+  board: "Бортовой",
+  flatbed: "Шаланда",
+  container: "Контейнеровоз",
+  timber: "Лесовоз / коники",
+  other: "Другое",
+};
+
+// Дополнительные признаки транспорта (хранятся в load_methods вместе со
+// способами загрузки, т.к. это text[] без жёсткой схемы).
+export const VEHICLE_FEATURES = [
+  "sliding_roof",
+  "removable_posts",
+  "fixed_posts",
+  "rings",
+  "straps",
+  "reinforced_floor",
+] as const;
+export type VehicleFeature = (typeof VEHICLE_FEATURES)[number];
+
+export const VEHICLE_FEATURE_LABELS: Record<VehicleFeature, string> = {
+  sliding_roof: "Верх откатной",
+  removable_posts: "Съёмные стойки",
+  fixed_posts: "Несъёмные стойки",
+  rings: "Кольца",
+  straps: "Ремни",
+  reinforced_floor: "Усиленный пол",
 };
 
 // =============== Freights ===============
@@ -114,6 +167,7 @@ export function statusBadgeClass(status: string): string {
     case "available":
     case "suitable":
       return "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800";
+    case "partially_available":
     case "on_check":
     case "docs_unchecked":
     case "waiting_freight":
@@ -121,12 +175,14 @@ export function statusBadgeClass(status: string): string {
     case "checking":
       return "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800";
     case "on_trip":
+    case "busy":
     case "unloading":
     case "booked":
       return "bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800";
     case "resting":
     case "inactive":
     case "cancelled":
+    case "repair":
       return "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-700";
     case "missing_docs":
     case "blocked":
