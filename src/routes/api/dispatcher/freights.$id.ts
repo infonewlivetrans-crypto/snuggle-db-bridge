@@ -58,6 +58,64 @@ export const Route = createFileRoute("/api/dispatcher/freights/$id")({
         if (Object.keys(updatePatch).length === 0) {
           return jsonResponse({ error: "no_fields_to_update" }, { status: 400 });
         }
+
+        // Валидация: водитель/транспорт должны принадлежать выбранному перевозчику.
+        const carrierId =
+          (updatePatch.assigned_carrier_ext_id as string | null | undefined) ?? undefined;
+        const driverId =
+          (updatePatch.assigned_driver_ext_id as string | null | undefined) ?? undefined;
+        const vehicleId =
+          (updatePatch.assigned_vehicle_ext_id as string | null | undefined) ?? undefined;
+        if (driverId || vehicleId) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const c = auth.client as any;
+          let effectiveCarrier = carrierId;
+          if (effectiveCarrier === undefined) {
+            const cur = await c
+              .from(TABLE)
+              .select("assigned_carrier_ext_id")
+              .eq("id", params.id)
+              .maybeSingle();
+            effectiveCarrier = cur.data?.assigned_carrier_ext_id ?? null;
+          }
+          if (driverId) {
+            const d = await c
+              .from("dispatcher_driver_ext")
+              .select("dispatcher_carrier_ext_id")
+              .eq("id", driverId)
+              .maybeSingle();
+            if (!d.data) return jsonResponse({ error: "driver_not_found" }, { status: 400 });
+            if (
+              effectiveCarrier &&
+              d.data.dispatcher_carrier_ext_id &&
+              d.data.dispatcher_carrier_ext_id !== effectiveCarrier
+            ) {
+              return jsonResponse(
+                { error: "Водитель не относится к выбранному перевозчику" },
+                { status: 400 },
+              );
+            }
+          }
+          if (vehicleId) {
+            const v = await c
+              .from("dispatcher_vehicle_ext")
+              .select("dispatcher_carrier_ext_id")
+              .eq("id", vehicleId)
+              .maybeSingle();
+            if (!v.data) return jsonResponse({ error: "vehicle_not_found" }, { status: 400 });
+            if (
+              effectiveCarrier &&
+              v.data.dispatcher_carrier_ext_id &&
+              v.data.dispatcher_carrier_ext_id !== effectiveCarrier
+            ) {
+              return jsonResponse(
+                { error: "Транспорт не относится к выбранному перевозчику" },
+                { status: 400 },
+              );
+            }
+          }
+        }
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (auth.client.from(TABLE as never) as any)
           .update(updatePatch as unknown as never)

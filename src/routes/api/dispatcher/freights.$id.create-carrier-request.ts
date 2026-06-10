@@ -90,11 +90,19 @@ export const Route = createFileRoute(
         if (ins.error)
           return jsonResponse({ error: ins.error.message }, { status: 500 });
 
-        // Помечаем заявку-груз как переданную в работу.
+        // Помечаем заявку-груз как переданную в работу и связываем с заявкой перевозчику.
         await client
           .from("dispatcher_freights")
-          .update({ parse_status: "converted", dispatcher_status: "offered" } as never)
+          .update({
+            parse_status: "converted",
+            dispatcher_status: "offered",
+            carrier_request_id: ins.data.id,
+            assigned_carrier_ext_id: d.dispatcher_carrier_ext_id,
+            assigned_driver_ext_id: d.dispatcher_driver_ext_id ?? null,
+            assigned_vehicle_ext_id: d.dispatcher_vehicle_ext_id ?? null,
+          } as never)
           .eq("id", params.id);
+
 
         return jsonResponse({ row: ins.data }, { status: 201 });
       },

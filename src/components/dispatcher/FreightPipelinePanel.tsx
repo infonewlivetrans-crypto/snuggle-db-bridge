@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -15,6 +14,7 @@ import {
   type FreightSignedSentChannel,
   type FreightStatus,
 } from "@/lib/dispatcher/statuses";
+import { FreightAssignmentBlock } from "./FreightAssignmentBlock";
 
 interface Props {
   freight: FreightDTO;
@@ -39,9 +39,6 @@ export function FreightPipelinePanel({ freight, onChanged }: Props) {
   const [busy, setBusy] = useState(false);
   const [channel, setChannel] = useState<FreightSignedSentChannel>("email");
   const [comment, setComment] = useState("");
-  const [assignCarrier, setAssignCarrier] = useState(freight.assigned_carrier_ext_id ?? "");
-  const [assignDriver, setAssignDriver] = useState(freight.assigned_driver_ext_id ?? "");
-  const [assignVehicle, setAssignVehicle] = useState(freight.assigned_vehicle_ext_id ?? "");
 
   const patch = async (body: Record<string, unknown>, okMsg: string) => {
     setBusy(true);
@@ -57,16 +54,6 @@ export function FreightPipelinePanel({ freight, onChanged }: Props) {
   };
 
   const setStatus = (s: FreightStatus) => patch({ dispatcher_status: s }, `Статус: ${FREIGHT_STATUS_LABELS[s]}`);
-
-  const saveAssignment = () =>
-    patch(
-      {
-        assigned_carrier_ext_id: assignCarrier || null,
-        assigned_driver_ext_id: assignDriver || null,
-        assigned_vehicle_ext_id: assignVehicle || null,
-      },
-      "Назначение сохранено",
-    );
 
   const markSignedSent = () =>
     patch(
@@ -111,18 +98,8 @@ export function FreightPipelinePanel({ freight, onChanged }: Props) {
         ))}
       </div>
 
-      <div className="space-y-2">
-        <div className="text-sm font-medium">Назначение машины</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <Input placeholder="ID перевозчика (ext)" value={assignCarrier} onChange={(e) => setAssignCarrier(e.target.value.trim())} />
-          <Input placeholder="ID водителя (ext)" value={assignDriver} onChange={(e) => setAssignDriver(e.target.value.trim())} />
-          <Input placeholder="ID транспорта (ext)" value={assignVehicle} onChange={(e) => setAssignVehicle(e.target.value.trim())} />
-        </div>
-        <Button size="sm" disabled={busy} onClick={saveAssignment}>Сохранить назначение</Button>
-        <div className="text-xs text-muted-foreground">
-          UUID берётся из таблиц «Перевозчики», «Водители», «Транспорт». Полноценный пикер — следующим этапом.
-        </div>
-      </div>
+      <FreightAssignmentBlock freight={freight} onChanged={onChanged} />
+
 
       <div className="space-y-2">
         <div className="text-sm font-medium">Подписанная заявка отправлена заказчику</div>
