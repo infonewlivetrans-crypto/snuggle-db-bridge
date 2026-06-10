@@ -854,6 +854,9 @@ export type Database = {
       }
       dispatcher_carrier_ext: {
         Row: {
+          ati_email: string | null
+          ati_id: string | null
+          ati_phone: string | null
           bank_account: string | null
           bank_bik: string | null
           bank_corr_account: string | null
@@ -878,12 +881,16 @@ export type Database = {
           payment_method: string | null
           phone: string | null
           production_carrier_id: string | null
+          tax_regime: string | null
           telegram: string | null
           updated_at: string
           verification_status: string
           whatsapp: string | null
         }
         Insert: {
+          ati_email?: string | null
+          ati_id?: string | null
+          ati_phone?: string | null
           bank_account?: string | null
           bank_bik?: string | null
           bank_corr_account?: string | null
@@ -908,12 +915,16 @@ export type Database = {
           payment_method?: string | null
           phone?: string | null
           production_carrier_id?: string | null
+          tax_regime?: string | null
           telegram?: string | null
           updated_at?: string
           verification_status?: string
           whatsapp?: string | null
         }
         Update: {
+          ati_email?: string | null
+          ati_id?: string | null
+          ati_phone?: string | null
           bank_account?: string | null
           bank_bik?: string | null
           bank_corr_account?: string | null
@@ -938,6 +949,7 @@ export type Database = {
           payment_method?: string | null
           phone?: string | null
           production_carrier_id?: string | null
+          tax_regime?: string | null
           telegram?: string | null
           updated_at?: string
           verification_status?: string
