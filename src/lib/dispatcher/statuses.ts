@@ -167,6 +167,7 @@ export function statusBadgeClass(status: string): string {
     case "available":
     case "suitable":
       return "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-800";
+    case "partially_available":
     case "on_check":
     case "docs_unchecked":
     case "waiting_freight":
@@ -174,12 +175,14 @@ export function statusBadgeClass(status: string): string {
     case "checking":
       return "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800";
     case "on_trip":
+    case "busy":
     case "unloading":
     case "booked":
       return "bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-950 dark:text-sky-200 dark:border-sky-800";
     case "resting":
     case "inactive":
     case "cancelled":
+    case "repair":
       return "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-900 dark:text-slate-200 dark:border-slate-700";
     case "missing_docs":
     case "blocked":
