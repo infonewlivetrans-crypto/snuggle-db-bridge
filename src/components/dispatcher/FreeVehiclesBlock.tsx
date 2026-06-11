@@ -16,6 +16,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { freeVehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
+import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
+import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
@@ -256,6 +258,7 @@ function VehicleDetailsDialog({
   taking: boolean;
   releasing: boolean;
 }) {
+  const [freightDialogOpen, setFreightDialogOpen] = useState(false);
   if (!row) return null;
   const v = row;
   const byMe = v.taken_by_self && v.dispatcher_work_status === "in_work";
@@ -348,6 +351,12 @@ function VehicleDetailsDialog({
               с {fmtDateTime(v.dispatcher_taken_at)}
             </div>
           ) : null}
+
+          {byMe ? (
+            <div className="sm:col-span-2">
+              <VehicleFreightsBlock vehicleId={v.id} />
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter className="flex-wrap gap-2">
@@ -363,7 +372,13 @@ function VehicleDetailsDialog({
           ) : null}
           {byMe ? (
             <>
-              <Button variant="secondary" size="sm" disabled title="Следующий этап">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setFreightDialogOpen(true)}
+                disabled={!v.carrier?.id}
+                title={!v.carrier?.id ? "Транспорт не привязан к перевозчику" : undefined}
+              >
                 Добавить найденный груз
               </Button>
               <Button size="sm" variant="destructive" onClick={() => onRelease(v.id)} disabled={releasing}>
@@ -371,16 +386,26 @@ function VehicleDetailsDialog({
               </Button>
             </>
           ) : byOther ? (
-            <Button size="sm" disabled>
+            <Button size="sm" disabled title="Машина в работе у другого диспетчера">
               В работе у другого
             </Button>
           ) : (
-            <Button size="sm" onClick={() => onTake(v.id)} disabled={taking}>
-              Взять в работу
-            </Button>
+            <>
+              <Button size="sm" variant="outline" disabled title="Сначала возьмите машину в работу">
+                Добавить найденный груз
+              </Button>
+              <Button size="sm" onClick={() => onTake(v.id)} disabled={taking}>
+                Взять в работу
+              </Button>
+            </>
           )}
         </DialogFooter>
       </DialogContent>
+      <AddFoundFreightDialog
+        vehicle={v}
+        open={freightDialogOpen}
+        onOpenChange={setFreightDialogOpen}
+      />
     </Dialog>
   );
 }

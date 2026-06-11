@@ -215,14 +215,21 @@ export const freightCreateSchema = z.object({
   payment_delay_days: optionalInt,
   source: nullableText(255),
   source_url: nullableText(1024),
+  source_type: nullableText(64).optional(),
   contact_name: nullableText(255),
   contact_phone: nullableText(50),
   contact_whatsapp: nullableText(100),
   contact_telegram: nullableText(100),
   contact_max_messenger: nullableText(255),
+  customer_name: nullableText(255).optional(),
+  customer_phone: nullableText(50).optional(),
+  customer_email: nullableText(255).optional(),
   comment: nullableText(2000),
   dispatcher_status: z.preprocess(blankToUndefined, z.enum(FREIGHT_STATUSES).optional().default("new")),
   freight_kind: z.preprocess(blankToUndefined, z.enum(FREIGHT_KINDS).optional().default("main")),
+  assigned_carrier_ext_id: optionalUuid.optional(),
+  assigned_driver_ext_id: optionalUuid.optional(),
+  assigned_vehicle_ext_id: optionalUuid.optional(),
 });
 export type FreightCreateInput = z.infer<typeof freightCreateSchema>;
 

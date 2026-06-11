@@ -39,6 +39,8 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         const dateFrom = url.searchParams.get("loading_date_from");
         const dateTo = url.searchParams.get("loading_date_to");
         const freightKind = url.searchParams.get("freight_kind");
+        const vehicleId = url.searchParams.get("vehicle_id");
+        const excludeArchived = url.searchParams.get("exclude_archived");
         const view = url.searchParams.get("view"); // all|email|needs_review|parsed|handed_over
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,6 +57,10 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         else if (view === "needs_review") q = q.eq("parse_status", "needs_review");
         else if (view === "parsed") q = q.eq("parse_status", "parsed");
         else if (view === "handed_over") q = q.not("carrier_request_id", "is", null);
+        if (vehicleId) q = q.eq("assigned_vehicle_ext_id", vehicleId);
+        if (excludeArchived === "1") {
+          q = q.not("dispatcher_status", "in", "(archived,cancelled,rejected,not_suitable)");
+        }
         if (loadingCity) q = q.ilike("loading_city", `%${loadingCity}%`);
         if (unloadingCity) q = q.ilike("unloading_city", `%${unloadingCity}%`);
         if (bodyType) q = q.ilike("body_type", `%${bodyType}%`);
@@ -92,7 +98,51 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
             { status: 400 },
           );
         }
-        const payload = { ...parsed.data, created_by: auth.userId };
+        const input = parsed.data;
+        // If the freight is being created against a specific vehicle, validate
+        // ownership (must be taken in work by current dispatcher, or admin),
+        // and back-fill assigned carrier/driver from the vehicle when missing.
+        if (input.assigned_vehicle_ext_id) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: veh, error: vErr } = await (auth.client.from("dispatcher_vehicle_ext" as never) as any)
+            .select(
+              "id, dispatcher_carrier_ext_id, dispatcher_driver_ext_id, dispatcher_taken_by, dispatcher_work_status",
+            )
+            .eq("id", input.assigned_vehicle_ext_id)
+            .maybeSingle();
+          if (vErr) return jsonResponse({ error: vErr.message }, { status: 500 });
+          if (!veh) return jsonResponse({ error: "vehicle_not_found" }, { status: 404 });
+          if (!veh.dispatcher_carrier_ext_id) {
+            return jsonResponse(
+              { error: "vehicle_without_carrier", message: "Транспорт не привязан к перевозчику" },
+              { status: 400 },
+            );
+          }
+          const { isAdmin } = await import("@/server/api-helpers.server");
+          const admin = await isAdmin(auth.client, auth.userId);
+          if (!admin) {
+            const takenByOther =
+              veh.dispatcher_taken_by && veh.dispatcher_taken_by !== auth.userId;
+            const notInWork = veh.dispatcher_work_status !== "in_work";
+            if (takenByOther) {
+              return jsonResponse(
+                { error: "vehicle_taken_by_other", message: "Машина в работе у другого диспетчера" },
+                { status: 409 },
+              );
+            }
+            if (notInWork) {
+              return jsonResponse(
+                { error: "vehicle_not_in_work", message: "Сначала возьмите машину в работу" },
+                { status: 409 },
+              );
+            }
+          }
+          if (!input.assigned_carrier_ext_id) input.assigned_carrier_ext_id = veh.dispatcher_carrier_ext_id;
+          if (!input.assigned_driver_ext_id && veh.dispatcher_driver_ext_id) {
+            input.assigned_driver_ext_id = veh.dispatcher_driver_ext_id;
+          }
+        }
+        const payload = { ...input, created_by: auth.userId };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (auth.client.from(TABLE as never) as any)
           .insert(payload as unknown as never)
