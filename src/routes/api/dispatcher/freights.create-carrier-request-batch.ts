@@ -149,6 +149,10 @@ export const Route = createFileRoute(
               "suspicious",
             ].includes(st)
           ) {
+            console.warn("[dispatcher.batch-offer] freight_status_blocks_offer", {
+              freight_id: f.id,
+              status: st,
+            });
             return jsonResponse(
               {
                 error: "freight_status_blocks_offer",
