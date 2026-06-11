@@ -271,6 +271,15 @@ function FreightsPage() {
               <Row label="Источник" value={viewing.source_url
                 ? <a href={viewing.source_url} target="_blank" rel="noopener noreferrer" className="underline">{viewing.source ?? viewing.source_url}</a>
                 : (viewing.source ?? "—")} />
+              {(viewing.source_type === "email" || viewing.source_type === "manual_email") && (
+                <>
+                  <Row label="От кого" value={viewing.source_email_from ?? "—"} />
+                  <Row label="Тема письма" value={viewing.source_email_subject ?? "—"} />
+                  <Row label="Дата письма" value={viewing.source_received_at ? new Date(viewing.source_received_at).toLocaleString("ru-RU") : "—"} />
+                  <Row label="Вложений" value={String(viewing.source_document_count ?? 0)} />
+                  <Row label="Статус разбора" value={viewing.parse_status ?? "—"} />
+                </>
+              )}
               <Row label="Контакт" value={viewing.contact_name ?? "—"} />
               <Row label="Каналы" value={
                 <ContactLinks
