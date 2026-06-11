@@ -45,6 +45,7 @@ function FreightsPage() {
   const [bodyType, setBodyType] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [kind, setKind] = useState<string>("all");
+  const [view, setView] = useState<string>("all");
   const [editing, setEditing] = useState<FreightDTO | null>(null);
   const [viewing, setViewing] = useState<FreightDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
