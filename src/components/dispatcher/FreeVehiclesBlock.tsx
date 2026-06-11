@@ -453,7 +453,12 @@ function VehicleDetailsDialog({
           ) : null}
         </div>
 
+        <div className="pt-4 border-t">
+          <TimelineBlock vehicleId={v.id} title="История машины" />
+        </div>
+
         <DialogFooter className="flex-wrap gap-2">
+
           {v.driver?.phone ? (
             <Button asChild variant="outline" size="sm">
               <a href={`tel:${v.driver.phone}`}>Позвонить водителю</a>
