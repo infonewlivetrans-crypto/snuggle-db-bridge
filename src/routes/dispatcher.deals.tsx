@@ -266,6 +266,7 @@ function DealsPage() {
           </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
+              <DealControlBlock deal={viewing} />
               <Row label="Маршрут" value={`${viewing.route_from ?? "—"} → ${viewing.route_to ?? "—"}`} />
               <Row label="Груз" value={viewing.freight_title ?? "—"} />
               <Row label="Перевозчик" value={viewing.carrier_name ?? "—"} />
