@@ -30,9 +30,11 @@ const fmtDateTime = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleString("ru-RU") : "—";
 
 type WorkStatus = "free" | "in_work" | "mine" | "all";
+type View = "map" | "list";
 
 export function FreeVehiclesBlock() {
   const qc = useQueryClient();
+  const [view, setView] = useState<View>("map");
   const [tab, setTab] = useState<WorkStatus>("free");
   const [city, setCity] = useState("");
   const [search, setSearch] = useState("");
