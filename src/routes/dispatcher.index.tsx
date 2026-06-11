@@ -21,6 +21,7 @@ import {
   DEAL_STATUS_LABELS,
   type DealStatus,
 } from "@/lib/dispatcher/statuses";
+import { FreeVehiclesBlock } from "@/components/dispatcher/FreeVehiclesBlock";
 
 export const Route = createFileRoute("/dispatcher/")({
   component: DispatcherHome,
