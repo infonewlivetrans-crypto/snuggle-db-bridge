@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { freeVehiclesApi, vehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
 import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
+import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
 
