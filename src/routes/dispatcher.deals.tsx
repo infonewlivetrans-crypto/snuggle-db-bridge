@@ -21,6 +21,7 @@ import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPa
 import { CustomerSendBlock } from "@/components/dispatcher/CustomerSendBlock";
 import { DealControlBlock } from "@/components/dispatcher/DealControlBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
+import { TimelineBlock } from "@/components/dispatcher/TimelineBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
