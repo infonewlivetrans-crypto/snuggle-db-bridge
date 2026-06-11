@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Truck, Phone, MapPin, Loader2, ExternalLink } from "lucide-react";
+import { Truck, Phone, MapPin, Loader2, ExternalLink, Map as MapIcon, List as ListIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -15,9 +17,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { freeVehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
+import { freeVehiclesApi, vehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
 import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
+import { VehicleMapPanel } from "./VehicleMapPanel";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
