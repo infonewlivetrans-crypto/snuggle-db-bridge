@@ -309,13 +309,7 @@ function CarrierViewBody({
 
   return (
     <div className="space-y-4 text-sm">
-      {/* Регистрация по ссылке */}
-      <CarrierRegistrationBlock
-        carrierId={row.id}
-        formSubmittedAt={row.commission_agreed_at}
-      />
-
-      {/* Пользователь кабинета перевозчика */}
+      {/* Кабинет перевозчика — главное действие */}
       <CarrierUserLinkBlock carrierExtId={row.id} />
 
       {/* Договор-оферта и комиссия */}
@@ -324,37 +318,49 @@ function CarrierViewBody({
         currentCommissionRate={row.commission_rate}
       />
 
-      {/* Согласие на комиссию */}
+      {/* Согласие на комиссию — компактно */}
       <div className="rounded-md border p-3 space-y-1">
         <div className="flex items-center justify-between">
-          <span className="font-medium">Согласие на комиссию</span>
+          <span className="font-medium">Договор и комиссия</span>
           {row.commission_agreed ? (
             <Badge variant="default" className="gap-1">
               <CheckCircle2 className="h-3 w-3" />
-              Комиссия {(row.commission_rate * 100).toFixed(0)}% подтверждена
+              {(row.commission_rate * 100).toFixed(0)}% подтверждено
             </Badge>
           ) : (
             <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-700">
-              <AlertTriangle className="h-3 w-3" />
-              Не подтверждено
+              <AlertTriangle className="h-3 w-3" /> Нет согласия
             </Badge>
           )}
         </div>
         <Row label="Ставка" value={`${(row.commission_rate * 100).toFixed(1)}%`} />
-        <Row label="Подтверждено" value={row.commission_agreed_at ? new Date(row.commission_agreed_at).toLocaleString("ru-RU") : "—"} />
-        <Row label="Кто подтвердил" value={row.commission_agreed_by ?? "—"} />
-        <Row label="Способ оплаты" value={row.commission_payment_method ?? row.payment_method ?? "—"} />
-        {row.commission_agreement_text && (
-          <Row label="Текст согласия" value={<span className="text-xs text-muted-foreground">{row.commission_agreement_text}</span>} />
-        )}
+        <Row label="Дата согласия" value={row.commission_agreed_at ? new Date(row.commission_agreed_at).toLocaleString("ru-RU") : "—"} />
+        <Row label="ФИО согласия" value={row.commission_agreed_by ?? "—"} />
+        <details className="pt-1">
+          <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Показать подробности</summary>
+          <div className="mt-2 space-y-1">
+            <Row label="Способ оплаты" value={row.commission_payment_method ?? row.payment_method ?? "—"} />
+            {row.commission_agreement_text && (
+              <Row label="Текст согласия" value={<span className="text-xs text-muted-foreground">{row.commission_agreement_text}</span>} />
+            )}
+          </div>
+        </details>
       </div>
 
-      {/* Документы */}
-      <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
+      {/* Дополнительно — технические блоки */}
+      <details className="rounded-md border p-3">
+        <summary className="cursor-pointer font-medium">Дополнительно</summary>
+        <div className="mt-3 space-y-4">
+          <CarrierRegistrationBlock
+            carrierId={row.id}
+            formSubmittedAt={row.commission_agreed_at}
+          />
+          <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
+          <DispatcherPartnerCardBlock carrierExtId={row.id} />
+          <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />
+        </div>
+      </details>
 
-      <DispatcherPartnerCardBlock carrierExtId={row.id} />
-
-      <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />
 
 
 
