@@ -211,6 +211,16 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
             driver_name: drv?.full_name ?? null,
             driver_phone: drv?.phone ?? null,
             source: "dispatcher",
+            current_city: v.current_city,
+            ready_to_cities: v.ready_to_cities,
+            ready_comment: v.ready_comment,
+            load_status: v.load_status,
+            free_payload_kg: v.free_payload_kg,
+            free_volume_m3: v.free_volume_m3,
+            partial_route_from: v.partial_route_from,
+            partial_route_to: v.partial_route_to,
+            loading_restrictions: v.loading_restrictions,
+            location_updated_at: v.location_updated_at,
           });
         }
 
