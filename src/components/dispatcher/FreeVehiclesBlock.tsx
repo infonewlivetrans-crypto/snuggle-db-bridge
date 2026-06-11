@@ -16,6 +16,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { freeVehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
+import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
+import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
