@@ -68,6 +68,73 @@ export const vehiclesApi = {
   archive: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/vehicles/${id}`),
 };
 
+// ========== free-vehicles workboard ==========
+export interface FreeVehicleRow {
+  id: string;
+  vehicle_kind: string | null;
+  body_type: string | null;
+  payload_kg: number | null;
+  volume_m3: number | null;
+  length_m: number | null;
+  width_m: number | null;
+  height_m: number | null;
+  load_methods: string[] | null;
+  home_city: string | null;
+  current_city: string | null;
+  ready_to_cities: string[] | null;
+  ready_date: string | null;
+  ready_comment: string | null;
+  dispatcher_status: string | null;
+  dispatcher_work_status: string | null;
+  dispatcher_taken_by: string | null;
+  dispatcher_taken_at: string | null;
+  minimum_trip_rate: number | null;
+  minimum_km_rate: number | null;
+  city_rate: number | null;
+  point_rate: number | null;
+  rate_comment: string | null;
+  dispatcher_comment: string | null;
+  docs_status: string | null;
+  driver: {
+    id: string;
+    full_name: string | null;
+    phone: string | null;
+    email: string | null;
+    whatsapp: string | null;
+    telegram: string | null;
+    max_messenger: string | null;
+    city: string | null;
+    docs_status: string | null;
+  } | null;
+  carrier: {
+    id: string;
+    name: string | null;
+    inn: string | null;
+    phone: string | null;
+    email: string | null;
+    whatsapp: string | null;
+    telegram: string | null;
+    max_messenger: string | null;
+    city: string | null;
+    ati_id: string | null;
+    ati_phone: string | null;
+    verification_status: string | null;
+  } | null;
+  taken_by_self: boolean;
+  taken_by_profile: { full_name: string | null; email: string | null } | null;
+}
+export const freeVehiclesApi = {
+  list: (params: Record<string, unknown> = {}) =>
+    apiGet<{ rows: FreeVehicleRow[]; total: number; user_id: string }>(
+      `/api/dispatcher/free-vehicles${qs(params)}`,
+      { auth: true },
+    ),
+  takeWork: (id: string) =>
+    apiPost<{ ok: true; row: unknown }>(`/api/dispatcher/vehicles/${id}/take-work`),
+  releaseWork: (id: string) =>
+    apiPost<{ ok: true; row: unknown }>(`/api/dispatcher/vehicles/${id}/release-work`),
+};
+
 // ========== freights ==========
 export const freightsApi = {
   list: (params: Record<string, unknown> = {}) =>
