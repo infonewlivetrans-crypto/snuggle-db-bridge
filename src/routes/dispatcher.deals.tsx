@@ -19,6 +19,7 @@ import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { DealForm } from "@/components/dispatcher/DealForm";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { CustomerSendBlock } from "@/components/dispatcher/CustomerSendBlock";
+import { DealControlBlock } from "@/components/dispatcher/DealControlBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
@@ -265,6 +266,7 @@ function DealsPage() {
           </DialogHeader>
           {viewing && (
             <div className="space-y-2 text-sm">
+              <DealControlBlock deal={viewing} />
               <Row label="Маршрут" value={`${viewing.route_from ?? "—"} → ${viewing.route_to ?? "—"}`} />
               <Row label="Груз" value={viewing.freight_title ?? "—"} />
               <Row label="Перевозчик" value={viewing.carrier_name ?? "—"} />

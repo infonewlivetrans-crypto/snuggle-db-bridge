@@ -1211,21 +1211,33 @@ export type Database = {
       dispatcher_deals: {
         Row: {
           addon_freight_ids: string[]
+          cancel_reason: string | null
           carrier_id: string | null
           carrier_payment_received_at: string | null
           comment: string | null
           commission_amount: number | null
+          commission_due_date: string | null
           commission_paid_at: string | null
           commission_rate: number
+          commission_received_at: string | null
           commission_status: string
           created_at: string
           created_by: string | null
+          customer_confirmed_at: string | null
+          customer_paid_at: string | null
+          customer_payment_due_date: string | null
+          customer_sent_at: string | null
+          deal_closed_at: string | null
           deal_number: string | null
           deal_status: string
+          delivered_at: string | null
+          dispatcher_next_action: string | null
           driver_id: string | null
           expected_payment_date: string | null
           id: string
+          in_transit_at: string | null
           loading_date: string | null
+          loading_started_at: string | null
           main_freight_id: string | null
           payment_delay_days: number | null
           payment_due: string | null
@@ -1235,26 +1247,39 @@ export type Database = {
           route_to: string | null
           total_rate: number
           unloading_date: string | null
+          unloading_started_at: string | null
           updated_at: string
           vehicle_id: string | null
         }
         Insert: {
           addon_freight_ids?: string[]
+          cancel_reason?: string | null
           carrier_id?: string | null
           carrier_payment_received_at?: string | null
           comment?: string | null
           commission_amount?: number | null
+          commission_due_date?: string | null
           commission_paid_at?: string | null
           commission_rate?: number
+          commission_received_at?: string | null
           commission_status?: string
           created_at?: string
           created_by?: string | null
+          customer_confirmed_at?: string | null
+          customer_paid_at?: string | null
+          customer_payment_due_date?: string | null
+          customer_sent_at?: string | null
+          deal_closed_at?: string | null
           deal_number?: string | null
           deal_status?: string
+          delivered_at?: string | null
+          dispatcher_next_action?: string | null
           driver_id?: string | null
           expected_payment_date?: string | null
           id?: string
+          in_transit_at?: string | null
           loading_date?: string | null
+          loading_started_at?: string | null
           main_freight_id?: string | null
           payment_delay_days?: number | null
           payment_due?: string | null
@@ -1264,26 +1289,39 @@ export type Database = {
           route_to?: string | null
           total_rate?: number
           unloading_date?: string | null
+          unloading_started_at?: string | null
           updated_at?: string
           vehicle_id?: string | null
         }
         Update: {
           addon_freight_ids?: string[]
+          cancel_reason?: string | null
           carrier_id?: string | null
           carrier_payment_received_at?: string | null
           comment?: string | null
           commission_amount?: number | null
+          commission_due_date?: string | null
           commission_paid_at?: string | null
           commission_rate?: number
+          commission_received_at?: string | null
           commission_status?: string
           created_at?: string
           created_by?: string | null
+          customer_confirmed_at?: string | null
+          customer_paid_at?: string | null
+          customer_payment_due_date?: string | null
+          customer_sent_at?: string | null
+          deal_closed_at?: string | null
           deal_number?: string | null
           deal_status?: string
+          delivered_at?: string | null
+          dispatcher_next_action?: string | null
           driver_id?: string | null
           expected_payment_date?: string | null
           id?: string
+          in_transit_at?: string | null
           loading_date?: string | null
+          loading_started_at?: string | null
           main_freight_id?: string | null
           payment_delay_days?: number | null
           payment_due?: string | null
@@ -1293,6 +1331,7 @@ export type Database = {
           route_to?: string | null
           total_rate?: number
           unloading_date?: string | null
+          unloading_started_at?: string | null
           updated_at?: string
           vehicle_id?: string | null
         }

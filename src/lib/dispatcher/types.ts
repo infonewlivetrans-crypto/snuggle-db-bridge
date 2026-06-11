@@ -179,6 +179,20 @@ export interface DealDTO {
   payment_status: string;
   commission_status: string;
   comment: string | null;
+  // Stage 11.12 — deal control timeline
+  customer_sent_at?: string | null;
+  customer_confirmed_at?: string | null;
+  loading_started_at?: string | null;
+  in_transit_at?: string | null;
+  unloading_started_at?: string | null;
+  delivered_at?: string | null;
+  customer_payment_due_date?: string | null;
+  customer_paid_at?: string | null;
+  commission_due_date?: string | null;
+  commission_received_at?: string | null;
+  deal_closed_at?: string | null;
+  cancel_reason?: string | null;
+  dispatcher_next_action?: string | null;
   created_at: string;
   updated_at: string;
   // joined display fields
