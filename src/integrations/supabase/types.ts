@@ -1940,15 +1940,21 @@ export type Database = {
           dispatcher_work_status: string | null
           docs_comment: string | null
           docs_status: string
+          free_payload_kg: number | null
+          free_volume_m3: number | null
           height_m: number | null
           home_city: string | null
           id: string
           length_m: number | null
           load_methods: string[] | null
+          load_status: string
+          loading_restrictions: string | null
           location_updated_at: string | null
           min_rate: number | null
           minimum_km_rate: number | null
           minimum_trip_rate: number | null
+          partial_route_from: string | null
+          partial_route_to: string | null
           payload_kg: number | null
           point_rate: number | null
           production_vehicle_id: string | null
@@ -1979,15 +1985,21 @@ export type Database = {
           dispatcher_work_status?: string | null
           docs_comment?: string | null
           docs_status?: string
+          free_payload_kg?: number | null
+          free_volume_m3?: number | null
           height_m?: number | null
           home_city?: string | null
           id?: string
           length_m?: number | null
           load_methods?: string[] | null
+          load_status?: string
+          loading_restrictions?: string | null
           location_updated_at?: string | null
           min_rate?: number | null
           minimum_km_rate?: number | null
           minimum_trip_rate?: number | null
+          partial_route_from?: string | null
+          partial_route_to?: string | null
           payload_kg?: number | null
           point_rate?: number | null
           production_vehicle_id?: string | null
@@ -2018,15 +2030,21 @@ export type Database = {
           dispatcher_work_status?: string | null
           docs_comment?: string | null
           docs_status?: string
+          free_payload_kg?: number | null
+          free_volume_m3?: number | null
           height_m?: number | null
           home_city?: string | null
           id?: string
           length_m?: number | null
           load_methods?: string[] | null
+          load_status?: string
+          loading_restrictions?: string | null
           location_updated_at?: string | null
           min_rate?: number | null
           minimum_km_rate?: number | null
           minimum_trip_rate?: number | null
+          partial_route_from?: string | null
+          partial_route_to?: string | null
           payload_kg?: number | null
           point_rate?: number | null
           production_vehicle_id?: string | null
