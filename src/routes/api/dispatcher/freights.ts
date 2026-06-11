@@ -22,7 +22,7 @@ const SELECT =
   "signed_sent_at, signed_sent_channel, signed_sent_comment, " +
   "source_type, source_email_from, source_email_subject, source_email_body, " +
   "source_received_at, source_document_count, parse_status, " +
-  "customer_email, customer_name, customer_phone, " +
+  "customer_email, customer_emails, customer_name, customer_phone, customer_send_comment, " +
   "created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/freights")({
@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         const dateTo = url.searchParams.get("loading_date_to");
         const freightKind = url.searchParams.get("freight_kind");
         const vehicleId = url.searchParams.get("vehicle_id");
+        const dealId = url.searchParams.get("deal_id");
         const excludeArchived = url.searchParams.get("exclude_archived");
         const view = url.searchParams.get("view"); // all|email|needs_review|parsed|handed_over
 
@@ -58,6 +59,7 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         else if (view === "parsed") q = q.eq("parse_status", "parsed");
         else if (view === "handed_over") q = q.not("carrier_request_id", "is", null);
         if (vehicleId) q = q.eq("assigned_vehicle_ext_id", vehicleId);
+        if (dealId) q = q.eq("deal_id", dealId);
         if (excludeArchived === "1") {
           q = q.not("dispatcher_status", "in", "(archived,cancelled,rejected,not_suitable)");
         }

@@ -1479,8 +1479,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           customer_email: string | null
+          customer_emails: string[]
           customer_name: string | null
           customer_phone: string | null
+          customer_send_comment: string | null
           deal_id: string | null
           dispatcher_status: string
           extracted_text: string | null
@@ -1539,8 +1541,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_email?: string | null
+          customer_emails?: string[]
           customer_name?: string | null
           customer_phone?: string | null
+          customer_send_comment?: string | null
           deal_id?: string | null
           dispatcher_status?: string
           extracted_text?: string | null
@@ -1599,8 +1603,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           customer_email?: string | null
+          customer_emails?: string[]
           customer_name?: string | null
           customer_phone?: string | null
+          customer_send_comment?: string | null
           deal_id?: string | null
           dispatcher_status?: string
           extracted_text?: string | null

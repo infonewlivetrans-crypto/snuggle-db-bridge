@@ -18,6 +18,7 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { DealForm } from "@/components/dispatcher/DealForm";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
+import { CustomerSendBlock } from "@/components/dispatcher/CustomerSendBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
@@ -296,9 +297,17 @@ function DealsPage() {
                 <Button size="sm" variant="outline" onClick={() => patch(viewing.id, { deal_status: "closed" }, "Закрыта")}>Закрыть</Button>
               </div>
 
+              <div className="pt-4 border-t">
+                <CustomerSendBlock
+                  dealId={viewing.id}
+                  dealStatus={viewing.deal_status}
+                  carrierAccepted={!!viewing.carrier_id}
+                />
+              </div>
+
               {viewing.carrier_id ? (
                 <div className="pt-4 border-t">
-                  <h4 className="mb-2 text-sm font-semibold">Данные для заказчика</h4>
+                  <h4 className="mb-2 text-sm font-semibold">Карточка партнёра (расширенная)</h4>
                   <DispatcherPartnerCardBlock
                     carrierExtId={viewing.carrier_id}
                     initialDriverId={viewing.driver_id ?? null}
