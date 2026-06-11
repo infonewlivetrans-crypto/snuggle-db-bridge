@@ -165,23 +165,8 @@ function DispatcherHome() {
           )}
         </Section>
 
-        {/* Free vehicles */}
-        <Section
-          title="Свободные машины"
-          icon={<Truck className="h-5 w-5" />}
-          count={data?.availableVehicles.length ?? 0}
-          linkTo="/dispatcher/vehicles"
-        >
-          {(data?.availableVehicles ?? []).length === 0 ? (
-            <Empty text="Нет свободных машин" />
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {data!.availableVehicles.slice(0, 9).map((v) => (
-                <VehicleCard key={String(v.id)} v={v} />
-              ))}
-            </div>
-          )}
-        </Section>
+        {/* Free vehicles workboard (Stage 11) */}
+        <FreeVehiclesBlock />
 
         {/* Active freights */}
         <Section
