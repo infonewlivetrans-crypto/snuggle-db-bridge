@@ -109,6 +109,16 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
               driver_name: null,
               driver_phone: null,
               source: "production",
+              current_city: null,
+              ready_to_cities: null,
+              ready_comment: null,
+              load_status: null,
+              free_payload_kg: null,
+              free_volume_m3: null,
+              partial_route_from: null,
+              partial_route_to: null,
+              loading_restrictions: null,
+              location_updated_at: null,
             });
             seenProdIds.add(v.id);
           }
