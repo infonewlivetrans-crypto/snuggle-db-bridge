@@ -208,14 +208,24 @@ function VehicleListCard({
             {v.current_city ?? v.home_city ?? "—"}
           </div>
         </div>
-        {byMe ? (
-          <Badge className="bg-primary text-primary-foreground">У меня</Badge>
-        ) : byOther ? (
-          <Badge variant="destructive">В работе</Badge>
-        ) : (
-          <Badge variant="secondary">Свободна</Badge>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {byMe ? (
+            <Badge className="bg-primary text-primary-foreground">У меня</Badge>
+          ) : byOther ? (
+            <Badge variant="destructive">В работе</Badge>
+          ) : (
+            <Badge variant="secondary">Свободна</Badge>
+          )}
+          <LoadStatusBadge status={v.load_status} hasCoords={v.has_coordinates} />
+        </div>
       </div>
+      {v.load_status === "partial" ? (
+        <div className="mt-2 rounded border border-amber-300/50 bg-amber-50 px-2 py-1 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          Нужен догруз: {v.partial_route_from ?? "?"} → {v.partial_route_to ?? "?"}
+          {v.free_payload_kg != null ? ` · своб. ${fmtNum(v.free_payload_kg)} кг` : ""}
+          {v.free_volume_m3 != null ? ` · ${fmtNum(v.free_volume_m3)} м³` : ""}
+        </div>
+      ) : null}
       <div className="mt-2 grid grid-cols-2 gap-1 text-xs text-muted-foreground">
         <div>Г/п: {fmtNum(v.payload_kg)} кг</div>
         <div>V: {fmtNum(v.volume_m3)} м³</div>
