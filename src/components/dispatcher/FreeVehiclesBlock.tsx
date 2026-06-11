@@ -32,6 +32,36 @@ const fmtDateTime = (s: string | null | undefined) =>
 type WorkStatus = "free" | "in_work" | "mine" | "all";
 type View = "map" | "list";
 
+const LOAD_STATUS_LABEL: Record<string, string> = {
+  empty: "Пустая",
+  partial: "Нужен догруз",
+  loaded: "Загружена",
+  unavailable: "Недоступна",
+  repair: "Ремонт",
+  resting: "Отдых",
+};
+
+function LoadStatusBadge({
+  status,
+  hasCoords,
+}: {
+  status: string | null | undefined;
+  hasCoords: boolean;
+}) {
+  const label = status ? (LOAD_STATUS_LABEL[status] ?? status) : "Пустая";
+  let cls = "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-100";
+  if (status === "partial") cls = "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900/40 dark:text-amber-100";
+  else if (status === "loaded") cls = "bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-900/40 dark:text-sky-100";
+  else if (status === "unavailable" || status === "repair" || status === "resting")
+    cls = "bg-muted text-muted-foreground border-border";
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Badge variant="outline" className={cls}>{label}</Badge>
+      {!hasCoords ? <Badge variant="outline" className="text-[10px]">Нет координат</Badge> : null}
+    </div>
+  );
+}
+
 export function FreeVehiclesBlock() {
   const qc = useQueryClient();
   const [view, setView] = useState<View>("map");
