@@ -128,6 +128,10 @@ function DispatcherHome() {
         {/* KPI */}
         <KpiRow data={data} loading={isLoading} />
 
+        {/* Stage 11.14 — компактный блок заработка диспетчера */}
+        <MyEarningsBlock />
+
+
         {/* Tasks */}
         <Section
           title="Задачи на сегодня"
