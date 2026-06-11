@@ -17,6 +17,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { DealForm } from "@/components/dispatcher/DealForm";
+import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
@@ -256,7 +257,7 @@ function DealsPage() {
       </Dialog>
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Сделка {viewing?.deal_number ?? ""}</DialogTitle>
             <DialogDescription>Карточка сделки.</DialogDescription>
@@ -294,6 +295,18 @@ function DealsPage() {
                 <Button size="sm" variant="outline" onClick={() => patch(viewing.id, { deal_status: "problem" }, "Проблема")}>Проблема</Button>
                 <Button size="sm" variant="outline" onClick={() => patch(viewing.id, { deal_status: "closed" }, "Закрыта")}>Закрыть</Button>
               </div>
+
+              {viewing.carrier_id ? (
+                <div className="pt-4 border-t">
+                  <h4 className="mb-2 text-sm font-semibold">Данные для заказчика</h4>
+                  <DispatcherPartnerCardBlock
+                    carrierExtId={viewing.carrier_id}
+                    initialDriverId={viewing.driver_id ?? null}
+                    initialVehicleId={viewing.vehicle_id ?? null}
+                    initialDealId={viewing.id}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
         </DialogContent>

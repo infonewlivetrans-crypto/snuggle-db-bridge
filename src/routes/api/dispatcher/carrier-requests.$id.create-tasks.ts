@@ -78,6 +78,21 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
         const vehicleExtId = (r.dispatcher_vehicle_ext_id as string | null) ?? null;
         const reqNum = (r.request_number as string | null) ?? params.id.slice(0, 8);
 
+        // Защита от дублей: если по этой сделке/заявке уже есть открытые задачи
+        // из шаблона — не создаём повторно.
+        if (dealId) {
+          const existing = await client
+            .from(TASKS_TABLE)
+            .select("id, title")
+            .eq("dispatcher_deal_id", dealId);
+          if ((existing.data ?? []).length > 0) {
+            return jsonResponse(
+              { rows: existing.data ?? [], total: existing.data?.length ?? 0, already_existed: true },
+              { status: 200 },
+            );
+          }
+        }
+
         const rows = TEMPLATE.map((t) => ({
           task_type: t.task_type,
           title: t.title,
@@ -97,7 +112,7 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
         const ins = await client.from(TASKS_TABLE).insert(rows as never).select("id, title");
         if (ins.error) return jsonResponse({ error: ins.error.message }, { status: 500 });
         return jsonResponse(
-          { rows: ins.data ?? [], total: ins.data?.length ?? 0 },
+          { rows: ins.data ?? [], total: ins.data?.length ?? 0, already_existed: false },
           { status: 201 },
         );
       },

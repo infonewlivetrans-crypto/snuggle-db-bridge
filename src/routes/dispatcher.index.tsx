@@ -22,6 +22,7 @@ import {
   type DealStatus,
 } from "@/lib/dispatcher/statuses";
 import { FreeVehiclesBlock } from "@/components/dispatcher/FreeVehiclesBlock";
+import { AcceptedOffersBlock } from "@/components/dispatcher/AcceptedOffersBlock";
 
 export const Route = createFileRoute("/dispatcher/")({
   component: DispatcherHome,
@@ -167,6 +168,10 @@ function DispatcherHome() {
 
         {/* Free vehicles workboard (Stage 11) */}
         <FreeVehiclesBlock />
+
+        {/* Accepted offers awaiting deal creation (Stage 11.6) */}
+        <AcceptedOffersBlock />
+
 
         {/* Active freights */}
         <Section
