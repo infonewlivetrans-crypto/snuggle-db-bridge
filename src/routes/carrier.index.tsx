@@ -223,6 +223,7 @@ function CarrierOverviewPage() {
           />
         </div>
       )}
+      </div>
     </div>
   );
 }
