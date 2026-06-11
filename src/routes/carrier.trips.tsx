@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
 import { CarrierRequestsBlock } from "@/components/carrier/CarrierRequestsBlock";
 import { CarrierTripProgressBlock } from "@/components/carrier/CarrierTripProgressBlock";
+import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import {
   DEAL_STATUS_LABELS,
   type DealStatus,
