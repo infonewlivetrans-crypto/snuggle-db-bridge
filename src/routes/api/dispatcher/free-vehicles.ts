@@ -59,7 +59,8 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
             .in("dispatcher_status", FREE_VEHICLE_STATUSES)
             .or(
               "dispatcher_work_status.is.null,dispatcher_work_status.eq.free,dispatcher_work_status.eq.released",
-            );
+            )
+            .in("load_status", ["empty", "partial"]);
         } else if (status === "in_work") {
           q = q.in("dispatcher_work_status", ["in_work", "offered", "accepted"]);
         } else if (status === "mine") {
@@ -70,6 +71,12 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
           q = q.or(
             `dispatcher_status.in.(${BUSY_VEHICLE_STATUSES.join(",")}),dispatcher_work_status.in.(in_work,offered,accepted)`,
           );
+        }
+        if (loadStatusParam && loadStatusParam !== "all") {
+          q = q.eq("load_status", loadStatusParam);
+        }
+        if (direction) {
+          q = q.contains("ready_to_cities", [direction]);
         }
         if (city) q = q.or(`home_city.ilike.%${city}%,current_city.ilike.%${city}%`);
         if (bodyType) q = q.eq("body_type", bodyType);
