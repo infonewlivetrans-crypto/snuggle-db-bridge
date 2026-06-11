@@ -114,6 +114,17 @@ export function FreeVehiclesBlock() {
         </TabsList>
       </Tabs>
 
+      <Tabs value={view} onValueChange={(v) => setView(v as View)} className="mb-3">
+        <TabsList>
+          <TabsTrigger value="map">
+            <MapIcon className="mr-1 h-3.5 w-3.5" /> Карта
+          </TabsTrigger>
+          <TabsTrigger value="list">
+            <ListIcon className="mr-1 h-3.5 w-3.5" /> Список
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           Ошибка: {error instanceof Error ? error.message : String(error)}
@@ -128,6 +139,14 @@ export function FreeVehiclesBlock() {
         <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
           Нет машин по выбранному фильтру
         </div>
+      ) : view === "map" ? (
+        <VehicleMapPanel
+          rows={rows}
+          selfId={data?.user_id ?? null}
+          onOpen={(id) => setOpenId(id)}
+          onTake={(id) => takeMut.mutate(id)}
+          taking={takeMut.isPending}
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((v) => (
