@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
               "unloading_city, unloading_address, unloading_date, " +
               "rate_amount, commission_percent, commission_amount, " +
               "payment_type, payment_delay_days, " +
-              "terms_text, dispatcher_comment, request_number",
+              "terms_text, dispatcher_comment, request_number, sent_by",
           )
           .eq("id", params.id)
           .maybeSingle();
