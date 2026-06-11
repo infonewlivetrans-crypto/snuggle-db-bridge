@@ -19,6 +19,7 @@ import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { FreightForm } from "@/components/dispatcher/FreightForm";
 import { FreightMatchResults } from "@/components/dispatcher/FreightMatchResults";
 import { FreightPipelinePanel } from "@/components/dispatcher/FreightPipelinePanel";
+import { FreightFromEmailBlock } from "@/components/dispatcher/FreightFromEmailBlock";
 import { freightsApi } from "@/lib/dispatcher/api";
 import type { FreightDTO, MatchResult } from "@/lib/dispatcher/types";
 import type { FreightCreateInput } from "@/lib/dispatcher/schemas";
