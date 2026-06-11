@@ -153,9 +153,22 @@ function CarrierTripsPage() {
                 </div>
                 {d.comment && (
                   <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap">
+                    <span className="font-semibold">Диспетчер: </span>
                     {d.comment}
                   </div>
                 )}
+                <CarrierTripProgressBlock
+                  deal={{
+                    id: d.id,
+                    deal_status: d.deal_status,
+                    loading_started_at: d.loading_started_at,
+                    in_transit_at: d.in_transit_at,
+                    unloading_started_at: d.unloading_started_at,
+                    delivered_at: d.delivered_at,
+                    carrier_comment: d.carrier_comment,
+                  }}
+                />
+
               </CardContent>
             </Card>
           ))}
