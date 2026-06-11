@@ -50,6 +50,11 @@ type Deal = {
   vehicle_plate: string | null;
   source_request_number: string | null;
   comment: string | null;
+  carrier_comment: string | null;
+  loading_started_at: string | null;
+  in_transit_at: string | null;
+  unloading_started_at: string | null;
+  delivered_at: string | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
