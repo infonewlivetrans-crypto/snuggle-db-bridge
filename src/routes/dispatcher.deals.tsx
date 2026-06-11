@@ -257,7 +257,7 @@ function DealsPage() {
       </Dialog>
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Сделка {viewing?.deal_number ?? ""}</DialogTitle>
             <DialogDescription>Карточка сделки.</DialogDescription>
