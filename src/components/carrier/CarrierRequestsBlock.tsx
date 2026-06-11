@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Copy, FileText, Loader2, X } from "lucide-react";
+import { Check, Copy, FileText, Inbox, Loader2, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,17 @@ import {
   type CarrierRequestPaymentType,
   type CarrierRequestStatus,
 } from "@/lib/dispatcher/statuses";
+
+interface FreightRow {
+  id: string;
+  cargo_name: string | null;
+  loading_city: string | null;
+  unloading_city: string | null;
+  loading_date: string | null;
+  weight_kg: number | string | null;
+  volume_m3: number | string | null;
+  rate_amount: number | string | null;
+}
 
 interface RequestRow {
   id: string;
@@ -42,7 +53,15 @@ interface RequestRow {
   carrier_comment: string | null;
   request_status: string;
   sent_at: string | null;
+  responded_at: string | null;
   created_at: string;
+  freights?: FreightRow[];
+}
+
+export interface CarrierRequestsResponse {
+  rows: RequestRow[];
+  total: number;
+  counts: Record<string, number>;
 }
 
 const DECLINE_REASONS = [
@@ -62,44 +81,126 @@ function paymentLabel(t: string | null, delay: number | null): string {
   return base;
 }
 
+export const CARRIER_REQUESTS_QUERY_KEY = ["carrier", "requests"] as const;
+
+export function useCarrierRequestsQuery() {
+  return useQuery({
+    queryKey: CARRIER_REQUESTS_QUERY_KEY,
+    queryFn: () => apiGetAuth<CarrierRequestsResponse>("/api/carrier/requests", 10000),
+    refetchInterval: 30_000,
+  });
+}
+
 export function CarrierRequestsBlock() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["carrier", "requests"],
-    queryFn: () => apiGetAuth<{ rows: RequestRow[] }>("/api/carrier/requests", 10000),
-  });
+  const { data, isLoading } = useCarrierRequestsQuery();
   const rows = data?.rows ?? [];
 
-  return (
-    <div className="space-y-3">
-      <h2 className="text-lg font-medium">Заявки от диспетчера</h2>
-      <p className="text-sm text-muted-foreground">
-        Заявки на перевозку, направленные вам диспетчером. Подтвердите или
-        отклоните условия.
-      </p>
+  const incoming = rows.filter((r) => r.request_status === "sent" || r.request_status === "viewed");
+  const accepted = rows.filter((r) => r.request_status === "accepted");
+  const declined = rows.filter((r) => r.request_status === "declined");
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-6 text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
-        </div>
-      ) : rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-6 text-center text-sm text-muted-foreground">
-            Пока нет заявок.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {rows.map((r) => (
-            <RequestCard key={r.id} row={r} onChange={() => qc.invalidateQueries({ queryKey: ["carrier", "requests"] })} />
-          ))}
-        </div>
-      )}
+  const refresh = () => qc.invalidateQueries({ queryKey: CARRIER_REQUESTS_QUERY_KEY });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-6 text-muted-foreground">
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <Section
+        icon={<Inbox className="h-4 w-4 text-primary" />}
+        title="Входящие предложения"
+        count={incoming.length}
+        emptyText="Нет новых предложений."
+      >
+        {incoming.map((r) => (
+          <RequestCard key={r.id} row={r} variant="incoming" onChange={refresh} />
+        ))}
+      </Section>
+
+      <Section
+        icon={<Check className="h-4 w-4 text-emerald-600" />}
+        title="Принятые рейсы"
+        count={accepted.length}
+        emptyText="Пока нет принятых предложений."
+      >
+        {accepted.map((r) => (
+          <RequestCard key={r.id} row={r} variant="accepted" onChange={refresh} />
+        ))}
+      </Section>
+
+      <Section
+        icon={<X className="h-4 w-4 text-muted-foreground" />}
+        title="История отказов"
+        count={declined.length}
+        emptyText="Отказов нет."
+        collapsible
+      >
+        {declined.map((r) => (
+          <RequestCard key={r.id} row={r} variant="declined" onChange={refresh} />
+        ))}
+      </Section>
     </div>
   );
 }
 
-function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void }) {
+function Section({
+  icon,
+  title,
+  count,
+  emptyText,
+  collapsible,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  count: number;
+  emptyText: string;
+  collapsible?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(!collapsible);
+  return (
+    <div className="space-y-2">
+      <button
+        type="button"
+        onClick={() => collapsible && setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 text-left"
+        disabled={!collapsible}
+      >
+        {icon}
+        <h3 className="text-base font-semibold">{title}</h3>
+        <Badge variant="secondary">{count}</Badge>
+      </button>
+      {open ? (
+        count === 0 ? (
+          <Card>
+            <CardContent className="py-4 text-center text-sm text-muted-foreground">
+              {emptyText}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">{children}</div>
+        )
+      ) : null}
+    </div>
+  );
+}
+
+function RequestCard({
+  row,
+  variant,
+  onChange,
+}: {
+  row: RequestRow;
+  variant: "incoming" | "accepted" | "declined";
+  onChange: () => void;
+}) {
   const [comment, setComment] = useState<string>(row.carrier_comment ?? "");
   const [contractOpen, setContractOpen] = useState(false);
 
@@ -140,28 +241,65 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
     }
   }
 
-  const isFinal = row.request_status === "accepted" || row.request_status === "declined";
   const currency = row.rate_currency ?? "RUB";
+  const payout =
+    row.rate_amount != null && row.commission_amount != null
+      ? Number(row.rate_amount) - Number(row.commission_amount)
+      : null;
+  const freights = row.freights ?? [];
+  const isNew = row.request_status === "sent";
 
   return (
-    <Card>
+    <Card className={isNew ? "border-primary/60" : ""}>
       <CardContent className="space-y-2 p-3 text-sm">
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="font-semibold">
-            {row.request_number ?? row.id.slice(0, 8)}
+          <div>
+            {variant === "incoming" && (
+              <div className="text-xs font-medium uppercase tracking-wide text-primary">
+                Вам предложен рейс
+              </div>
+            )}
+            <div className="font-semibold">
+              № {row.request_number ?? row.id.slice(0, 8)}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {(row.loading_city ?? "—") + " → " + (row.unloading_city ?? "—")}
+            </div>
           </div>
-          <Badge variant="outline">
-            {CARRIER_REQUEST_STATUS_LABELS[row.request_status as CarrierRequestStatus] ??
-              row.request_status}
-          </Badge>
+          <div className="flex flex-col items-end gap-1">
+            {isNew && <Badge>Новое</Badge>}
+            <Badge variant="outline">
+              {CARRIER_REQUEST_STATUS_LABELS[row.request_status as CarrierRequestStatus] ??
+                row.request_status}
+            </Badge>
+          </div>
         </div>
 
-        <div className="grid gap-1 text-xs sm:grid-cols-2">
-          <div><span className="text-muted-foreground">Груз: </span>{row.cargo_name ?? "—"}</div>
-          <div>
-            <span className="text-muted-foreground">Маршрут: </span>
-            {(row.loading_city ?? "—") + " → " + (row.unloading_city ?? "—")}
+        {freights.length > 0 && (
+          <div className="rounded-md border bg-muted/20 p-2 text-xs">
+            <div className="mb-1 text-muted-foreground">Грузы в рейсе ({freights.length}):</div>
+            <ul className="space-y-0.5">
+              {freights.map((f) => (
+                <li key={f.id} className="flex flex-wrap justify-between gap-2">
+                  <span className="truncate">
+                    {f.cargo_name ?? "Груз"} · {f.loading_city ?? "—"} → {f.unloading_city ?? "—"}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {[
+                      f.loading_date,
+                      f.weight_kg ? `${f.weight_kg} кг` : null,
+                      f.volume_m3 ? `${f.volume_m3} м³` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
+        )}
+
+        <div className="grid gap-1 text-xs sm:grid-cols-2">
           <div>
             <span className="text-muted-foreground">Загрузка: </span>
             {[row.loading_address, row.loading_date].filter(Boolean).join(" / ") || "—"}
@@ -171,7 +309,7 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
             {[row.unloading_address, row.unloading_date].filter(Boolean).join(" / ") || "—"}
           </div>
           <div>
-            <span className="text-muted-foreground">Ставка: </span>
+            <span className="text-muted-foreground">Ставка заказчика: </span>
             {row.rate_amount == null ? "—" : `${row.rate_amount} ${currency}`}
           </div>
           <div>
@@ -184,20 +322,11 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
               ? "—"
               : `${row.commission_amount} ${currency} (${row.commission_percent ?? 5}%)`}
           </div>
-          <div>
-            <span className="text-muted-foreground">К выплате: </span>
-            {row.rate_amount != null && row.commission_amount != null
-              ? `${Number(row.rate_amount) - Number(row.commission_amount)} ${currency}`
-              : "—"}
+          <div className="font-medium">
+            <span className="text-muted-foreground font-normal">К выплате перевозчику: </span>
+            {payout == null ? "—" : `${payout} ${currency}`}
           </div>
         </div>
-
-        {row.terms_text && (
-          <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap">
-            <div className="mb-1 text-muted-foreground">Состав рейса:</div>
-            {row.terms_text}
-          </div>
-        )}
 
         {row.dispatcher_comment && (
           <div className="rounded-md border bg-muted/30 p-2 text-xs">
@@ -206,7 +335,7 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
           </div>
         )}
 
-        {!isFinal ? (
+        {variant === "incoming" ? (
           <div className="space-y-2">
             <div className="flex flex-wrap gap-1">
               {DECLINE_REASONS.map((r) => (
@@ -242,36 +371,39 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
               >
                 <X className="mr-1 h-3.5 w-3.5" /> Отказаться
               </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setContractOpen(true)}
+              >
+                <FileText className="mr-1 h-3.5 w-3.5" /> Заявка-договор
+              </Button>
             </div>
           </div>
         ) : (
-          row.carrier_comment && (
-            <div className="rounded-md border p-2 text-xs">
-              <div className="text-muted-foreground">
-                {row.request_status === "declined" ? "Причина отказа:" : "Ваш комментарий:"}
+          <>
+            {row.carrier_comment && (
+              <div className="rounded-md border p-2 text-xs">
+                <div className="text-muted-foreground">
+                  {variant === "declined" ? "Причина отказа:" : "Ваш комментарий:"}
+                </div>
+                <div>{row.carrier_comment}</div>
               </div>
-              <div>{row.carrier_comment}</div>
+            )}
+            <div>
+              <Button size="sm" variant="outline" onClick={() => setContractOpen(true)}>
+                <FileText className="mr-1 h-3.5 w-3.5" /> Заявка-договор
+              </Button>
             </div>
-          )
+          </>
         )}
-
-        <div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setContractOpen(true)}
-          >
-            <FileText className="mr-1 h-3.5 w-3.5" /> Посмотреть заявку-договор
-          </Button>
-        </div>
       </CardContent>
 
       <Dialog open={contractOpen} onOpenChange={setContractOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {contractQ.data?.subject ??
-                `Заявка-договор №${row.request_number ?? ""}`}
+              {contractQ.data?.subject ?? `Заявка-договор №${row.request_number ?? ""}`}
             </DialogTitle>
           </DialogHeader>
           {contractQ.isLoading ? (

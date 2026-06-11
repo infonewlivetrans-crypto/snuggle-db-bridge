@@ -18,6 +18,14 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/accepted"
         const client = auth.client as any;
         const url = new URL(request.url);
         const includeWithDeal = url.searchParams.get("include_with_deal") === "1";
+        const bucket = (url.searchParams.get("bucket") ?? "accepted").toLowerCase();
+
+        const bucketStatuses: Record<string, string[]> = {
+          accepted: ["accepted"],
+          awaiting: ["sent", "viewed"],
+          declined: ["declined"],
+        };
+        const statuses = bucketStatuses[bucket] ?? bucketStatuses.accepted;
 
         let q = client
           .from("dispatcher_carrier_requests")
@@ -25,12 +33,15 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/accepted"
             "id, request_number, request_status, dispatcher_carrier_ext_id, dispatcher_driver_ext_id, " +
               "dispatcher_vehicle_ext_id, dispatcher_deal_id, cargo_name, loading_city, unloading_city, " +
               "loading_date, unloading_date, rate_amount, rate_currency, commission_percent, commission_amount, " +
-              "carrier_comment, dispatcher_comment, responded_at, created_at",
+              "carrier_comment, dispatcher_comment, sent_at, responded_at, created_at",
           )
-          .eq("request_status", "accepted")
-          .order("responded_at", { ascending: false, nullsFirst: false })
+          .in("request_status", statuses)
+          .order(bucket === "accepted" ? "responded_at" : bucket === "declined" ? "responded_at" : "sent_at", {
+            ascending: false,
+            nullsFirst: false,
+          })
           .limit(50);
-        if (!includeWithDeal) q = q.is("dispatcher_deal_id", null);
+        if (bucket === "accepted" && !includeWithDeal) q = q.is("dispatcher_deal_id", null);
         const reqsRes = await q;
         if (reqsRes.error) return jsonResponse({ error: reqsRes.error.message }, { status: 500 });
         const requests = (reqsRes.data ?? []) as Array<Record<string, unknown>>;

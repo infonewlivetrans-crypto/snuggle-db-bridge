@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { apiPost } from "@/lib/api-client";
 import { readPendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { CarrierInboxSummary } from "@/components/carrier/CarrierInboxSummary";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
@@ -162,7 +163,9 @@ function CarrierOverviewPage() {
     ext?.commission_rate != null ? Math.round(ext.commission_rate * 10000) / 100 : 5;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="space-y-4">
+      <CarrierInboxSummary />
+      <div className="grid gap-4 lg:grid-cols-2">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Перевозчик</CardTitle>
@@ -220,6 +223,7 @@ function CarrierOverviewPage() {
           />
         </div>
       )}
+      </div>
     </div>
   );
 }
