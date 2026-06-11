@@ -397,8 +397,28 @@ function VehicleDetailsDialog({
           </Block>
 
           <div className="sm:col-span-2">
+            <Block title={`Готовность от перевозчика${v.location_updated_at ? ` · обновлено ${fmtDateTime(v.location_updated_at)}` : ""}`}>
+              <KV label="Состояние" v={v.load_status ? (LOAD_STATUS_LABEL[v.load_status] ?? v.load_status) : "Пустая"} />
+              <KV label="Текущий город" v={v.current_city} />
+              <KV label="Готов в города" v={v.ready_to_cities?.join(", ") ?? null} />
+              <KV label="Готов к дате" v={fmtDate(v.ready_date)} />
+              {v.load_status === "partial" ? (
+                <>
+                  <KV label="Догруз откуда" v={v.partial_route_from} />
+                  <KV label="Догруз куда" v={v.partial_route_to} />
+                  <KV label="Свободно, кг" v={fmtNum(v.free_payload_kg)} />
+                  <KV label="Свободно, м³" v={fmtNum(v.free_volume_m3)} />
+                </>
+              ) : null}
+              <KV label="Ограничения" v={v.loading_restrictions} />
+              <KV label="Комментарий" v={v.ready_comment} />
+            </Block>
+          </div>
+
+          <div className="sm:col-span-2">
             <LocationEditBlock vehicle={v} />
           </div>
+
 
 
           {v.dispatcher_comment ? (
