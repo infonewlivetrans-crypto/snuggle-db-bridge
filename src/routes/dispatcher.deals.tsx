@@ -295,6 +295,18 @@ function DealsPage() {
                 <Button size="sm" variant="outline" onClick={() => patch(viewing.id, { deal_status: "problem" }, "Проблема")}>Проблема</Button>
                 <Button size="sm" variant="outline" onClick={() => patch(viewing.id, { deal_status: "closed" }, "Закрыта")}>Закрыть</Button>
               </div>
+
+              {viewing.carrier_id ? (
+                <div className="pt-4 border-t">
+                  <h4 className="mb-2 text-sm font-semibold">Данные для заказчика</h4>
+                  <DispatcherPartnerCardBlock
+                    carrierExtId={viewing.carrier_id}
+                    initialDriverId={viewing.driver_id ?? null}
+                    initialVehicleId={viewing.vehicle_id ?? null}
+                    initialDealId={viewing.id}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
         </DialogContent>
