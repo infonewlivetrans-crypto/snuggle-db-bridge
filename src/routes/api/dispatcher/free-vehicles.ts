@@ -76,6 +76,9 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
           const today = new Date().toISOString().slice(0, 10);
           q = q.lte("ready_date", today);
         }
+        if (hasCoords) {
+          q = q.not("current_lat", "is", null).not("current_lng", "is", null);
+        }
         if (search) {
           const s = search.replace(/[%,]/g, " ").trim();
           q = q.or(
