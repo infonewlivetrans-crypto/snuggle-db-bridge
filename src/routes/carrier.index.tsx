@@ -10,6 +10,7 @@ import { apiPost } from "@/lib/api-client";
 import { readPendingOffer, clearPendingOffer } from "@/lib/contracts/carrier-offer";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { CarrierInboxSummary } from "@/components/carrier/CarrierInboxSummary";
+import { CarrierIncomingOfferAlert } from "@/components/carrier/CarrierIncomingOfferAlert";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
