@@ -115,8 +115,13 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
         const enriched = rows.map((r) => {
           const takenBy = r.dispatcher_taken_by as string | null;
           const isMine = takenBy === auth.userId;
+          const lat = r.current_lat == null ? null : Number(r.current_lat);
+          const lng = r.current_lng == null ? null : Number(r.current_lng);
           return {
             ...r,
+            current_lat: lat,
+            current_lng: lng,
+            has_coordinates: Number.isFinite(lat) && Number.isFinite(lng),
             taken_by_self: isMine,
             taken_by_profile: takenBy ? (profiles[takenBy] ?? null) : null,
           };
