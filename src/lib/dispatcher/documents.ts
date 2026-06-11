@@ -119,6 +119,15 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   customer_attachment: "Другое вложение заказчика",
   email_attachment: "Вложение письма",
   signed_request_pdf: "Подписанная заявка (PDF)",
+  loading_photo: "Фото загрузки",
+  unloading_photo: "Фото выгрузки",
+  cargo_photo: "Фото груза",
+  delivery_proof: "Подтверждение доставки",
+  transport_document: "Транспортная накладная",
+  signed_ttn: "Подписанная ТТН",
+  act_or_upd: "Акт / УПД",
+  payment_document: "Документ по оплате",
+  other_trip_document: "Другой документ по рейсу",
   other: "Другое",
 };
 
