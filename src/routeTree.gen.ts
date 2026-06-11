@@ -331,6 +331,7 @@ import { Route as ApiCarrierVehiclesIdReadinessRouteImport } from './routes/api/
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
 import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
+import { Route as ApiCarrierDealsIdProgressRouteImport } from './routes/api/carrier/deals.$id.progress'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
@@ -2021,6 +2022,12 @@ const ApiCarrierDocumentsIdDownloadRoute =
     path: '/download',
     getParentRoute: () => ApiCarrierDocumentsIdRoute,
   } as any)
+const ApiCarrierDealsIdProgressRoute =
+  ApiCarrierDealsIdProgressRouteImport.update({
+    id: '/$id/progress',
+    path: '/$id/progress',
+    getParentRoute: () => ApiCarrierDealsRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -2226,7 +2233,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
-  '/api/carrier/deals': typeof ApiCarrierDealsRoute
+  '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
@@ -2345,6 +2352,7 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -2553,7 +2561,7 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
-  '/api/carrier/deals': typeof ApiCarrierDealsRoute
+  '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
@@ -2672,6 +2680,7 @@ export interface FileRoutesByTo {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -2882,7 +2891,7 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
-  '/api/carrier/deals': typeof ApiCarrierDealsRoute
+  '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRoute
@@ -3001,6 +3010,7 @@ export interface FileRoutesById {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -3331,6 +3341,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
@@ -3658,6 +3669,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
@@ -3986,6 +3998,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
@@ -4188,7 +4201,7 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
-  ApiCarrierDealsRoute: typeof ApiCarrierDealsRoute
+  ApiCarrierDealsRoute: typeof ApiCarrierDealsRouteWithChildren
   ApiCarrierDocumentsRoute: typeof ApiCarrierDocumentsRouteWithChildren
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
@@ -6492,6 +6505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierDocumentsIdDownloadRouteImport
       parentRoute: typeof ApiCarrierDocumentsIdRoute
     }
+    '/api/carrier/deals/$id/progress': {
+      id: '/api/carrier/deals/$id/progress'
+      path: '/$id/progress'
+      fullPath: '/api/carrier/deals/$id/progress'
+      preLoaderRoute: typeof ApiCarrierDealsIdProgressRouteImport
+      parentRoute: typeof ApiCarrierDealsRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
       path: '/orders/$orderId'
@@ -7028,6 +7048,18 @@ const ApiWarehousesRouteChildren: ApiWarehousesRouteChildren = {
 
 const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
+)
+
+interface ApiCarrierDealsRouteChildren {
+  ApiCarrierDealsIdProgressRoute: typeof ApiCarrierDealsIdProgressRoute
+}
+
+const ApiCarrierDealsRouteChildren: ApiCarrierDealsRouteChildren = {
+  ApiCarrierDealsIdProgressRoute: ApiCarrierDealsIdProgressRoute,
+}
+
+const ApiCarrierDealsRouteWithChildren = ApiCarrierDealsRoute._addFileChildren(
+  ApiCarrierDealsRouteChildren,
 )
 
 interface ApiCarrierDocumentsIdRouteChildren {
@@ -7618,7 +7650,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
-  ApiCarrierDealsRoute: ApiCarrierDealsRoute,
+  ApiCarrierDealsRoute: ApiCarrierDealsRouteWithChildren,
   ApiCarrierDocumentsRoute: ApiCarrierDocumentsRouteWithChildren,
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
   ApiCarrierDriversRoute: ApiCarrierDriversRoute,
