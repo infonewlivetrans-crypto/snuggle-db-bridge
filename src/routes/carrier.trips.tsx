@@ -169,6 +169,17 @@ function CarrierTripsPage() {
                     carrier_comment: d.carrier_comment,
                   }}
                 />
+                <div className="text-xs text-muted-foreground">
+                  {d.deal_status === "loading" && "Подсказка: загрузите фото загрузки."}
+                  {d.deal_status === "unloading" && "Подсказка: загрузите фото выгрузки."}
+                  {d.deal_status === "delivered" && "Подсказка: загрузите ТТН / акт / подтверждение доставки."}
+                </div>
+                <CarrierDocumentsBlock
+                  ownerType="deal"
+                  ownerId={d.id}
+                  title="Документы по рейсу"
+                />
+
 
               </CardContent>
             </Card>
