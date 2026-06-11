@@ -59,6 +59,7 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         else if (view === "parsed") q = q.eq("parse_status", "parsed");
         else if (view === "handed_over") q = q.not("carrier_request_id", "is", null);
         if (vehicleId) q = q.eq("assigned_vehicle_ext_id", vehicleId);
+        if (dealId) q = q.eq("deal_id", dealId);
         if (excludeArchived === "1") {
           q = q.not("dispatcher_status", "in", "(archived,cancelled,rejected,not_suitable)");
         }
