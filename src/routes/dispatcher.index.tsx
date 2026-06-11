@@ -169,6 +169,10 @@ function DispatcherHome() {
         {/* Free vehicles workboard (Stage 11) */}
         <FreeVehiclesBlock />
 
+        {/* Accepted offers awaiting deal creation (Stage 11.6) */}
+        <AcceptedOffersBlock />
+
+
         {/* Active freights */}
         <Section
           title="Найденные грузы"
