@@ -279,6 +279,7 @@ import { Route as ApiDispatcherPartnerCardSendsRouteImport } from './routes/api/
 import { Route as ApiDispatcherPartnerCardPreviewRouteImport } from './routes/api/dispatcher/partner-card.preview'
 import { Route as ApiDispatcherIncomingEmailSyncRouteImport } from './routes/api/dispatcher/incoming-email.sync'
 import { Route as ApiDispatcherFreightsFromEmailRouteImport } from './routes/api/dispatcher/freights.from-email'
+import { Route as ApiDispatcherFreightsCreateCarrierRequestBatchRouteImport } from './routes/api/dispatcher/freights.create-carrier-request-batch'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
 import { Route as ApiDispatcherDocumentsUploadRouteImport } from './routes/api/dispatcher/documents.upload'
@@ -1713,6 +1714,12 @@ const ApiDispatcherFreightsFromEmailRoute =
     path: '/from-email',
     getParentRoute: () => ApiDispatcherFreightsRoute,
   } as any)
+const ApiDispatcherFreightsCreateCarrierRequestBatchRoute =
+  ApiDispatcherFreightsCreateCarrierRequestBatchRouteImport.update({
+    id: '/create-carrier-request-batch',
+    path: '/create-carrier-request-batch',
+    getParentRoute: () => ApiDispatcherFreightsRoute,
+  } as any)
 const ApiDispatcherFreightsIdRoute = ApiDispatcherFreightsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2269,6 +2276,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
+  '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
@@ -2588,6 +2596,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
+  '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
@@ -2909,6 +2918,7 @@ export interface FileRoutesById {
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
+  '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
@@ -3231,6 +3241,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
+    | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
@@ -3550,6 +3561,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
+    | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
@@ -3870,6 +3882,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
+    | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
@@ -6023,6 +6036,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherFreightsFromEmailRouteImport
       parentRoute: typeof ApiDispatcherFreightsRoute
     }
+    '/api/dispatcher/freights/create-carrier-request-batch': {
+      id: '/api/dispatcher/freights/create-carrier-request-batch'
+      path: '/create-carrier-request-batch'
+      fullPath: '/api/dispatcher/freights/create-carrier-request-batch'
+      preLoaderRoute: typeof ApiDispatcherFreightsCreateCarrierRequestBatchRouteImport
+      parentRoute: typeof ApiDispatcherFreightsRoute
+    }
     '/api/dispatcher/freights/$id': {
       id: '/api/dispatcher/freights/$id'
       path: '/$id'
@@ -7081,11 +7101,14 @@ const ApiDispatcherFreightsIdRouteWithChildren =
 
 interface ApiDispatcherFreightsRouteChildren {
   ApiDispatcherFreightsIdRoute: typeof ApiDispatcherFreightsIdRouteWithChildren
+  ApiDispatcherFreightsCreateCarrierRequestBatchRoute: typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   ApiDispatcherFreightsFromEmailRoute: typeof ApiDispatcherFreightsFromEmailRoute
 }
 
 const ApiDispatcherFreightsRouteChildren: ApiDispatcherFreightsRouteChildren = {
   ApiDispatcherFreightsIdRoute: ApiDispatcherFreightsIdRouteWithChildren,
+  ApiDispatcherFreightsCreateCarrierRequestBatchRoute:
+    ApiDispatcherFreightsCreateCarrierRequestBatchRoute,
   ApiDispatcherFreightsFromEmailRoute: ApiDispatcherFreightsFromEmailRoute,
 }
 
