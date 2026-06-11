@@ -22,6 +22,11 @@ const SELECT =
   "payment_type, payment_delay_days, expected_payment_date, payment_due, " +
   "carrier_payment_received_at, commission_paid_at, " +
   "deal_status, payment_status, commission_status, comment, " +
+  "customer_sent_at, customer_confirmed_at, loading_started_at, " +
+  "in_transit_at, unloading_started_at, delivered_at, " +
+  "customer_payment_due_date, customer_paid_at, " +
+  "commission_due_date, commission_received_at, deal_closed_at, " +
+  "cancel_reason, dispatcher_next_action, " +
   "created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/deals")({
