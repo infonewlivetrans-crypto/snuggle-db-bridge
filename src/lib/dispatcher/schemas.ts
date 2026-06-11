@@ -305,6 +305,11 @@ export const freightUpdateSchema = z
     signed_sent_at: nullableText(64).optional(),
     signed_sent_channel: nullableText(32).optional(),
     signed_sent_comment: nullableText(2000).optional(),
+    customer_name: nullableText(255).optional(),
+    customer_phone: nullableText(50).optional(),
+    customer_email: nullableText(255).optional(),
+    customer_emails: z.array(z.string().trim().min(1).max(255)).optional(),
+    customer_send_comment: nullableText(2000).optional(),
   })
   .strip();
 export type FreightUpdateInput = z.infer<typeof freightUpdateSchema>;
