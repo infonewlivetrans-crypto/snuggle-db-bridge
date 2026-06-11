@@ -130,7 +130,7 @@ export function CustomerSendBlock({ dealId, dealStatus, carrierAccepted }: Props
               onSaved={() => {
                 qc.invalidateQueries({ queryKey: ["customer-send", "history", dealId] });
                 qc.invalidateQueries({ queryKey: ["customer-send", "freights", dealId] });
-                qc.invalidateQueries({ queryKey: ["customer-send", "freights-all", dealId] });
+                
               }}
             />
           ))}
