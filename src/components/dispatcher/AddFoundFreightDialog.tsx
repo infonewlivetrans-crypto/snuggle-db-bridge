@@ -247,11 +247,7 @@ export function AddFoundFreightDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Отмена</Button>
           <Button
-            onClick={() => {
-              // payment_type "_" sentinel → empty
-              if (f.payment_type === "_") set("payment_type", "");
-              createMut.mutate();
-            }}
+            onClick={() => createMut.mutate()}
             disabled={createMut.isPending}
           >
             {createMut.isPending ? "Создаём…" : "Создать груз"}
