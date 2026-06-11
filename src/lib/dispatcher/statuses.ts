@@ -449,6 +449,24 @@ export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
   closed: "Закрыто",
 };
 
+// =============== Dispatcher payout (Stage 11.14) ===============
+export const DISPATCHER_PAYOUT_STATUSES = [
+  "pending",
+  "ready",
+  "paid",
+  "held",
+  "cancelled",
+] as const;
+export type DispatcherPayoutStatus = (typeof DISPATCHER_PAYOUT_STATUSES)[number];
+
+export const DISPATCHER_PAYOUT_STATUS_LABELS: Record<DispatcherPayoutStatus, string> = {
+  pending: "Ожидает",
+  ready: "К выплате",
+  paid: "Выплачено",
+  held: "Удержано",
+  cancelled: "Отменено",
+};
+
 export const PAYMENT_TYPES = [
   "cash",
   "card",
