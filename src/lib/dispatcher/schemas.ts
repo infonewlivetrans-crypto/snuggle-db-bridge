@@ -203,8 +203,6 @@ export const freightCreateSchema = z.object({
   title: nullableText(255),
   loading_city: nullableText(100),
   unloading_city: nullableText(100),
-  loading_address: nullableText(500).optional(),
-  unloading_address: nullableText(500).optional(),
   loading_date: optionalDate,
   unloading_date: optionalDate,
   cargo_name: nullableText(255),
