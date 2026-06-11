@@ -46,6 +46,7 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
         const minPayload = Number(url.searchParams.get("min_payload_kg") ?? "") || 0;
         const minVolume = Number(url.searchParams.get("min_volume_m3") ?? "") || 0;
         const readyToday = url.searchParams.get("ready_today") === "true";
+        const hasCoords = url.searchParams.get("has_coordinates") === "1";
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = (auth.client.from(TABLE as never) as any).select(SELECT, { count: "exact" });
