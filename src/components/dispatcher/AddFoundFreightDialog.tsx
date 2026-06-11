@@ -114,7 +114,7 @@ export function AddFoundFreightDialog({
         volume_m3: f.volume_m3 ? Number(f.volume_m3) : null,
         body_type: f.body_type || null,
         rate: f.rate ? Number(f.rate) : null,
-        payment_type: f.payment_type || null,
+        payment_type: f.payment_type && f.payment_type !== "_" ? f.payment_type : null,
         payment_delay_days: f.payment_delay_days ? Number(f.payment_delay_days) : null,
         source: f.source_type,
         source_type: f.source_type,
