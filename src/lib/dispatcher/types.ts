@@ -193,6 +193,16 @@ export interface DealDTO {
   deal_closed_at?: string | null;
   cancel_reason?: string | null;
   dispatcher_next_action?: string | null;
+  // Stage 11.14 — dispatcher commission split
+  dispatcher_user_id?: string | null;
+  dispatcher_commission_percent?: number | null;
+  dispatcher_commission_amount?: number | null;
+  platform_commission_amount?: number | null;
+  dispatcher_payout_status?: string | null;
+  dispatcher_payout_due_date?: string | null;
+  dispatcher_paid_at?: string | null;
+  dispatcher_payout_comment?: string | null;
+  dispatcher_user_label?: string | null;
   created_at: string;
   updated_at: string;
   // joined display fields
