@@ -1,13 +1,32 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ExternalLink, Archive } from "lucide-react";
+import { ExternalLink, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { freightsApi } from "@/lib/dispatcher/api";
-import { FREIGHT_STATUS_LABELS } from "@/lib/dispatcher/statuses";
+import { FREIGHT_STATUS_LABELS, FREIGHT_INACTIVE_STATUSES } from "@/lib/dispatcher/statuses";
+import type { FreightStatus } from "@/lib/dispatcher/statuses";
 import { BuildOfferDialog } from "./BuildOfferDialog";
+
+const INACTIVE = FREIGHT_INACTIVE_STATUSES as readonly string[];
+
+const QUICK_ACTIONS: Array<{ status: FreightStatus; label: string; comment: string }> = [
+  { status: "taken_by_other", label: "Груз уже забрали", comment: "Груз уже забрали" },
+  { status: "not_actual", label: "Неактуален", comment: "Груз неактуален" },
+  { status: "no_answer", label: "Нет ответа", comment: "Заказчик не отвечает" },
+  { status: "bad_rate", label: "Не подходит ставка", comment: "Не подходит ставка" },
+  { status: "suspicious", label: "Сомнительный груз", comment: "Сомнительный груз" },
+];
+
 
 const fmt = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
@@ -31,11 +50,28 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
       freightsApi.list({ vehicle_id: vehicleId, exclude_archived: 1, limit: 50 }),
   });
 
-  const archiveMut = useMutation({
-    mutationFn: (id: string) =>
-      freightsApi.update(id, { dispatcher_status: "archived" }),
-    onSuccess: () => {
-      toast.success("Груз убран из подбора");
+  const statusMut = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      comment,
+    }: {
+      id: string;
+      status: FreightStatus;
+      comment?: string;
+    }) => {
+      const payload: Record<string, unknown> = { dispatcher_status: status };
+      if (comment) payload.comment = comment;
+      return freightsApi.update(id, payload);
+    },
+    onSuccess: (_d, vars) => {
+      const label = FREIGHT_STATUS_LABELS[vars.status] ?? "Обновлено";
+      toast.success(`Отмечено: ${label}`);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(vars.id);
+        return next;
+      });
       qc.invalidateQueries({ queryKey: ["vehicle-freights", vehicleId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Ошибка"),
@@ -47,12 +83,12 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
       rows.filter(
         (r) =>
           !r.carrier_request_id &&
-          !["archived", "cancelled", "rejected", "not_suitable", "offered", "booked"].includes(
-            String(r.dispatcher_status ?? ""),
-          ),
+          !INACTIVE.includes(String(r.dispatcher_status ?? "")) &&
+          !["offered", "booked"].includes(String(r.dispatcher_status ?? "")),
       ),
     [rows],
   );
+
   const selectedFreights = useMemo(
     () => selectableRows.filter((r) => selected.has(r.id)),
     [selectableRows, selected],
@@ -87,9 +123,9 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
             const isOffered = !!r.carrier_request_id;
             const blocked =
               isOffered ||
-              ["archived", "cancelled", "rejected", "not_suitable", "offered", "booked"].includes(
-                String(r.dispatcher_status ?? ""),
-              );
+              INACTIVE.includes(String(r.dispatcher_status ?? "")) ||
+              ["offered", "booked"].includes(String(r.dispatcher_status ?? ""));
+            const canChangeStatus = !isOffered && !["booked", "deal_created"].includes(String(r.dispatcher_status ?? ""));
             return (
               <li
                 key={r.id}
@@ -133,20 +169,48 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2"
-                      onClick={() => archiveMut.mutate(r.id)}
-                      disabled={archiveMut.isPending}
-                      title="В архив"
-                    >
-                      <Archive className="h-3 w-3" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2"
+                          disabled={!canChangeStatus || statusMut.isPending}
+                          title="Действия"
+                        >
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        {QUICK_ACTIONS.map((a) => (
+                          <DropdownMenuItem
+                            key={a.status}
+                            onSelect={() =>
+                              statusMut.mutate({ id: r.id, status: a.status, comment: a.comment })
+                            }
+                          >
+                            {a.label}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            statusMut.mutate({
+                              id: r.id,
+                              status: "archived",
+                              comment: "Убран из подбора",
+                            })
+                          }
+                        >
+                          Убрать из подбора / В архив
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </li>
             );
+
           })}
         </ul>
       )}
