@@ -1929,6 +1929,8 @@ export type Database = {
           city_rate: number | null
           created_at: string
           current_city: string | null
+          current_lat: number | null
+          current_lng: number | null
           dispatcher_carrier_ext_id: string | null
           dispatcher_comment: string | null
           dispatcher_driver_ext_id: string | null
@@ -1943,6 +1945,7 @@ export type Database = {
           id: string
           length_m: number | null
           load_methods: string[] | null
+          location_updated_at: string | null
           min_rate: number | null
           minimum_km_rate: number | null
           minimum_trip_rate: number | null
@@ -1965,6 +1968,8 @@ export type Database = {
           city_rate?: number | null
           created_at?: string
           current_city?: string | null
+          current_lat?: number | null
+          current_lng?: number | null
           dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_driver_ext_id?: string | null
@@ -1979,6 +1984,7 @@ export type Database = {
           id?: string
           length_m?: number | null
           load_methods?: string[] | null
+          location_updated_at?: string | null
           min_rate?: number | null
           minimum_km_rate?: number | null
           minimum_trip_rate?: number | null
@@ -2001,6 +2007,8 @@ export type Database = {
           city_rate?: number | null
           created_at?: string
           current_city?: string | null
+          current_lat?: number | null
+          current_lng?: number | null
           dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_driver_ext_id?: string | null
@@ -2015,6 +2023,7 @@ export type Database = {
           id?: string
           length_m?: number | null
           load_methods?: string[] | null
+          location_updated_at?: string | null
           min_rate?: number | null
           minimum_km_rate?: number | null
           minimum_trip_rate?: number | null
