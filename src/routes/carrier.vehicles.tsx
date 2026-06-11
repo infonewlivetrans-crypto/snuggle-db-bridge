@@ -169,7 +169,22 @@ function CarrierVehiclesPage() {
                     <div className="text-xs text-muted-foreground">{v.comment}</div>
                   )}
                   {v.source === "dispatcher" && (
-                    <div className="pt-2">
+                    <div className="space-y-2 pt-2">
+                      <ReportReadinessBlock
+                        vehicleId={v.id}
+                        initial={{
+                          current_city: v.current_city ?? null,
+                          ready_to_cities: v.ready_to_cities ?? null,
+                          ready_comment: v.ready_comment ?? null,
+                          load_status: v.load_status ?? null,
+                          free_payload_kg: v.free_payload_kg ?? null,
+                          free_volume_m3: v.free_volume_m3 ?? null,
+                          partial_route_from: v.partial_route_from ?? null,
+                          partial_route_to: v.partial_route_to ?? null,
+                          loading_restrictions: v.loading_restrictions ?? null,
+                          ready_date: v.ready_date ?? null,
+                        }}
+                      />
                       <CarrierDocumentsBlock ownerType="vehicle" ownerId={v.id} />
                     </div>
                   )}
