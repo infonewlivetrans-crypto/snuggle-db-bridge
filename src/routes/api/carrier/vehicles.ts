@@ -130,7 +130,9 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
           .select(
             "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, " +
               "height_m, home_city, ready_date, load_methods, dispatcher_status, " +
-              "dispatcher_driver_ext_id, dispatcher_comment, production_vehicle_id, created_at",
+              "dispatcher_driver_ext_id, dispatcher_comment, production_vehicle_id, created_at, " +
+              "current_city, ready_to_cities, ready_comment, load_status, free_payload_kg, " +
+              "free_volume_m3, partial_route_from, partial_route_to, loading_restrictions, location_updated_at",
           )
           .eq("dispatcher_carrier_ext_id", ctx.dispatcherCarrierExtId)
           .order("created_at", { ascending: false });
@@ -151,6 +153,16 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
           dispatcher_driver_ext_id: string | null;
           dispatcher_comment: string | null;
           production_vehicle_id: string | null;
+          current_city: string | null;
+          ready_to_cities: string[] | null;
+          ready_comment: string | null;
+          load_status: string | null;
+          free_payload_kg: number | null;
+          free_volume_m3: number | null;
+          partial_route_from: string | null;
+          partial_route_to: string | null;
+          loading_restrictions: string | null;
+          location_updated_at: string | null;
         }>;
 
         // Подтянуть водителей одним запросом
