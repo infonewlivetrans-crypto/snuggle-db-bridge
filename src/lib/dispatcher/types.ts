@@ -113,6 +113,16 @@ export interface FreightDTO {
   signed_sent_at?: string | null;
   signed_sent_channel?: string | null;
   signed_sent_comment?: string | null;
+  source_type?: string | null;
+  source_email_from?: string | null;
+  source_email_subject?: string | null;
+  source_email_body?: string | null;
+  source_received_at?: string | null;
+  source_document_count?: number | null;
+  parse_status?: string | null;
+  customer_email?: string | null;
+  customer_name?: string | null;
+  customer_phone?: string | null;
   created_at: string;
   updated_at: string;
 }
