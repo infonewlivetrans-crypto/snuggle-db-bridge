@@ -112,7 +112,7 @@ export function CustomerSendBlock({ dealId, dealStatus, carrierAccepted }: Props
         <span className="text-sm font-semibold">Данные заказчику по грузам</span>
       </div>
 
-      {freightsQ.isLoading || allFreightsQ.isLoading ? (
+      {freightsQ.isLoading ? (
         <div className="text-xs text-muted-foreground">
           <Loader2 className="mr-1 inline h-3.5 w-3.5 animate-spin" /> Загрузка грузов…
         </div>
