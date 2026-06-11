@@ -34,6 +34,17 @@ type VehicleRow = {
   driver_name: string | null;
   driver_phone: string | null;
   source: "production" | "dispatcher";
+  // readiness reported by carrier/driver (dispatcher source only)
+  current_city: string | null;
+  ready_to_cities: string[] | null;
+  ready_comment: string | null;
+  load_status: string | null;
+  free_payload_kg: number | null;
+  free_volume_m3: number | null;
+  partial_route_from: string | null;
+  partial_route_to: string | null;
+  loading_restrictions: string | null;
+  location_updated_at: string | null;
 };
 
 const EXT_INACTIVE = new Set(["blocked", "archive", "inactive"]);
@@ -98,6 +109,16 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
               driver_name: null,
               driver_phone: null,
               source: "production",
+              current_city: null,
+              ready_to_cities: null,
+              ready_comment: null,
+              load_status: null,
+              free_payload_kg: null,
+              free_volume_m3: null,
+              partial_route_from: null,
+              partial_route_to: null,
+              loading_restrictions: null,
+              location_updated_at: null,
             });
             seenProdIds.add(v.id);
           }
@@ -109,7 +130,9 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
           .select(
             "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, " +
               "height_m, home_city, ready_date, load_methods, dispatcher_status, " +
-              "dispatcher_driver_ext_id, dispatcher_comment, production_vehicle_id, created_at",
+              "dispatcher_driver_ext_id, dispatcher_comment, production_vehicle_id, created_at, " +
+              "current_city, ready_to_cities, ready_comment, load_status, free_payload_kg, " +
+              "free_volume_m3, partial_route_from, partial_route_to, loading_restrictions, location_updated_at",
           )
           .eq("dispatcher_carrier_ext_id", ctx.dispatcherCarrierExtId)
           .order("created_at", { ascending: false });
@@ -130,6 +153,16 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
           dispatcher_driver_ext_id: string | null;
           dispatcher_comment: string | null;
           production_vehicle_id: string | null;
+          current_city: string | null;
+          ready_to_cities: string[] | null;
+          ready_comment: string | null;
+          load_status: string | null;
+          free_payload_kg: number | null;
+          free_volume_m3: number | null;
+          partial_route_from: string | null;
+          partial_route_to: string | null;
+          loading_restrictions: string | null;
+          location_updated_at: string | null;
         }>;
 
         // Подтянуть водителей одним запросом
@@ -178,6 +211,16 @@ export const Route = createFileRoute("/api/carrier/vehicles")({
             driver_name: drv?.full_name ?? null,
             driver_phone: drv?.phone ?? null,
             source: "dispatcher",
+            current_city: v.current_city,
+            ready_to_cities: v.ready_to_cities,
+            ready_comment: v.ready_comment,
+            load_status: v.load_status,
+            free_payload_kg: v.free_payload_kg,
+            free_volume_m3: v.free_volume_m3,
+            partial_route_from: v.partial_route_from,
+            partial_route_to: v.partial_route_to,
+            loading_restrictions: v.loading_restrictions,
+            location_updated_at: v.location_updated_at,
           });
         }
 

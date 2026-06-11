@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
 import {
   VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_STATUS_LABELS,
@@ -42,6 +43,16 @@ type Vehicle = {
   driver_name: string | null;
   driver_phone: string | null;
   source: "production" | "dispatcher";
+  current_city?: string | null;
+  ready_to_cities?: string[] | null;
+  ready_comment?: string | null;
+  load_status?: string | null;
+  free_payload_kg?: number | null;
+  free_volume_m3?: number | null;
+  partial_route_from?: string | null;
+  partial_route_to?: string | null;
+  loading_restrictions?: string | null;
+  location_updated_at?: string | null;
 };
 
 const READY = new Set(["ready_to_work", "available", "free"]);
@@ -158,7 +169,22 @@ function CarrierVehiclesPage() {
                     <div className="text-xs text-muted-foreground">{v.comment}</div>
                   )}
                   {v.source === "dispatcher" && (
-                    <div className="pt-2">
+                    <div className="space-y-2 pt-2">
+                      <ReportReadinessBlock
+                        vehicleId={v.id}
+                        initial={{
+                          current_city: v.current_city ?? null,
+                          ready_to_cities: v.ready_to_cities ?? null,
+                          ready_comment: v.ready_comment ?? null,
+                          load_status: v.load_status ?? null,
+                          free_payload_kg: v.free_payload_kg ?? null,
+                          free_volume_m3: v.free_volume_m3 ?? null,
+                          partial_route_from: v.partial_route_from ?? null,
+                          partial_route_to: v.partial_route_to ?? null,
+                          loading_restrictions: v.loading_restrictions ?? null,
+                          ready_date: v.ready_date ?? null,
+                        }}
+                      />
                       <CarrierDocumentsBlock ownerType="vehicle" ownerId={v.id} />
                     </div>
                   )}

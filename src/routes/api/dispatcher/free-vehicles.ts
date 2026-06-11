@@ -26,6 +26,7 @@ const SELECT =
   "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, height_m, " +
   "load_methods, home_city, current_city, current_lat, current_lng, location_updated_at, " +
   "ready_to_cities, ready_date, ready_comment, " +
+  "load_status, free_payload_kg, free_volume_m3, partial_route_from, partial_route_to, loading_restrictions, " +
   "dispatcher_driver_ext_id, dispatcher_carrier_ext_id, dispatcher_status, dispatcher_work_status, " +
   "dispatcher_taken_by, dispatcher_taken_at, " +
   "minimum_trip_rate, minimum_km_rate, city_rate, point_rate, rate_comment, dispatcher_comment, " +
@@ -47,6 +48,8 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
         const minVolume = Number(url.searchParams.get("min_volume_m3") ?? "") || 0;
         const readyToday = url.searchParams.get("ready_today") === "true";
         const hasCoords = url.searchParams.get("has_coordinates") === "1";
+        const loadStatusParam = url.searchParams.get("load_status"); // empty|partial|loaded|...|all
+        const direction = url.searchParams.get("direction"); // matches ready_to_cities
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = (auth.client.from(TABLE as never) as any).select(SELECT, { count: "exact" });
@@ -56,7 +59,8 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
             .in("dispatcher_status", FREE_VEHICLE_STATUSES)
             .or(
               "dispatcher_work_status.is.null,dispatcher_work_status.eq.free,dispatcher_work_status.eq.released",
-            );
+            )
+            .in("load_status", ["empty", "partial"]);
         } else if (status === "in_work") {
           q = q.in("dispatcher_work_status", ["in_work", "offered", "accepted"]);
         } else if (status === "mine") {
@@ -67,6 +71,12 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
           q = q.or(
             `dispatcher_status.in.(${BUSY_VEHICLE_STATUSES.join(",")}),dispatcher_work_status.in.(in_work,offered,accepted)`,
           );
+        }
+        if (loadStatusParam && loadStatusParam !== "all") {
+          q = q.eq("load_status", loadStatusParam);
+        }
+        if (direction) {
+          q = q.contains("ready_to_cities", [direction]);
         }
         if (city) q = q.or(`home_city.ilike.%${city}%,current_city.ilike.%${city}%`);
         if (bodyType) q = q.eq("body_type", bodyType);

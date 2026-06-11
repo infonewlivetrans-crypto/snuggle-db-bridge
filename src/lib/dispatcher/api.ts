@@ -88,6 +88,12 @@ export interface FreeVehicleRow {
   ready_to_cities: string[] | null;
   ready_date: string | null;
   ready_comment: string | null;
+  load_status: string | null;
+  free_payload_kg: number | null;
+  free_volume_m3: number | null;
+  partial_route_from: string | null;
+  partial_route_to: string | null;
+  loading_restrictions: string | null;
   dispatcher_status: string | null;
   dispatcher_work_status: string | null;
   dispatcher_taken_by: string | null;

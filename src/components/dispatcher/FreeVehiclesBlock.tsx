@@ -32,6 +32,36 @@ const fmtDateTime = (s: string | null | undefined) =>
 type WorkStatus = "free" | "in_work" | "mine" | "all";
 type View = "map" | "list";
 
+const LOAD_STATUS_LABEL: Record<string, string> = {
+  empty: "Пустая",
+  partial: "Нужен догруз",
+  loaded: "Загружена",
+  unavailable: "Недоступна",
+  repair: "Ремонт",
+  resting: "Отдых",
+};
+
+function LoadStatusBadge({
+  status,
+  hasCoords,
+}: {
+  status: string | null | undefined;
+  hasCoords: boolean;
+}) {
+  const label = status ? (LOAD_STATUS_LABEL[status] ?? status) : "Пустая";
+  let cls = "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-100";
+  if (status === "partial") cls = "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900/40 dark:text-amber-100";
+  else if (status === "loaded") cls = "bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-900/40 dark:text-sky-100";
+  else if (status === "unavailable" || status === "repair" || status === "resting")
+    cls = "bg-muted text-muted-foreground border-border";
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Badge variant="outline" className={cls}>{label}</Badge>
+      {!hasCoords ? <Badge variant="outline" className="text-[10px]">Нет координат</Badge> : null}
+    </div>
+  );
+}
+
 export function FreeVehiclesBlock() {
   const qc = useQueryClient();
   const [view, setView] = useState<View>("map");
@@ -208,14 +238,24 @@ function VehicleListCard({
             {v.current_city ?? v.home_city ?? "—"}
           </div>
         </div>
-        {byMe ? (
-          <Badge className="bg-primary text-primary-foreground">У меня</Badge>
-        ) : byOther ? (
-          <Badge variant="destructive">В работе</Badge>
-        ) : (
-          <Badge variant="secondary">Свободна</Badge>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {byMe ? (
+            <Badge className="bg-primary text-primary-foreground">У меня</Badge>
+          ) : byOther ? (
+            <Badge variant="destructive">В работе</Badge>
+          ) : (
+            <Badge variant="secondary">Свободна</Badge>
+          )}
+          <LoadStatusBadge status={v.load_status} hasCoords={v.has_coordinates} />
+        </div>
       </div>
+      {v.load_status === "partial" ? (
+        <div className="mt-2 rounded border border-amber-300/50 bg-amber-50 px-2 py-1 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          Нужен догруз: {v.partial_route_from ?? "?"} → {v.partial_route_to ?? "?"}
+          {v.free_payload_kg != null ? ` · своб. ${fmtNum(v.free_payload_kg)} кг` : ""}
+          {v.free_volume_m3 != null ? ` · ${fmtNum(v.free_volume_m3)} м³` : ""}
+        </div>
+      ) : null}
       <div className="mt-2 grid grid-cols-2 gap-1 text-xs text-muted-foreground">
         <div>Г/п: {fmtNum(v.payload_kg)} кг</div>
         <div>V: {fmtNum(v.volume_m3)} м³</div>
@@ -357,8 +397,28 @@ function VehicleDetailsDialog({
           </Block>
 
           <div className="sm:col-span-2">
+            <Block title={`Готовность от перевозчика${v.location_updated_at ? ` · обновлено ${fmtDateTime(v.location_updated_at)}` : ""}`}>
+              <KV label="Состояние" v={v.load_status ? (LOAD_STATUS_LABEL[v.load_status] ?? v.load_status) : "Пустая"} />
+              <KV label="Текущий город" v={v.current_city} />
+              <KV label="Готов в города" v={v.ready_to_cities?.join(", ") ?? null} />
+              <KV label="Готов к дате" v={fmtDate(v.ready_date)} />
+              {v.load_status === "partial" ? (
+                <>
+                  <KV label="Догруз откуда" v={v.partial_route_from} />
+                  <KV label="Догруз куда" v={v.partial_route_to} />
+                  <KV label="Свободно, кг" v={fmtNum(v.free_payload_kg)} />
+                  <KV label="Свободно, м³" v={fmtNum(v.free_volume_m3)} />
+                </>
+              ) : null}
+              <KV label="Ограничения" v={v.loading_restrictions} />
+              <KV label="Комментарий" v={v.ready_comment} />
+            </Block>
+          </div>
+
+          <div className="sm:col-span-2">
             <LocationEditBlock vehicle={v} />
           </div>
+
 
 
           {v.dispatcher_comment ? (
