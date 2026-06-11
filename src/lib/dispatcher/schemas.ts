@@ -196,11 +196,32 @@ export const vehicleCreateSchema = z.object({
   rate_comment: nullableText(1000),
   dispatcher_comment: nullableText(2000),
   production_vehicle_id: optionalUuid,
+  load_status: z.enum(["empty", "partial", "loaded", "unavailable", "repair", "resting"]).optional(),
+  free_payload_kg: optionalNumber.optional(),
+  free_volume_m3: optionalNumber.optional(),
+  partial_route_from: nullableText(255).optional(),
+  partial_route_to: nullableText(255).optional(),
+  loading_restrictions: nullableText(1000).optional(),
 });
 export type VehicleCreateInput = z.infer<typeof vehicleCreateSchema>;
 
 export const vehicleUpdateSchema = vehicleCreateSchema.partial();
 export type VehicleUpdateInput = z.infer<typeof vehicleUpdateSchema>;
+
+// Готовность машины от перевозчика/водителя.
+export const vehicleReadinessSchema = z.object({
+  current_city: nullableText(100).optional(),
+  ready_to_cities: z.array(z.string().trim().min(1).max(100)).optional(),
+  ready_comment: nullableText(1000).optional(),
+  ready_date: optionalDate.optional(),
+  load_status: z.enum(["empty", "partial", "loaded", "unavailable", "repair", "resting"]).optional(),
+  free_payload_kg: optionalNumber.optional(),
+  free_volume_m3: optionalNumber.optional(),
+  partial_route_from: nullableText(255).optional(),
+  partial_route_to: nullableText(255).optional(),
+  loading_restrictions: nullableText(1000).optional(),
+});
+export type VehicleReadinessInput = z.infer<typeof vehicleReadinessSchema>;
 
 // =================== Freight ===================
 export const freightCreateSchema = z.object({
