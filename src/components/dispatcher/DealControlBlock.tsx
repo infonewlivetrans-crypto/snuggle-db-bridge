@@ -80,7 +80,7 @@ export function DealControlBlock({ deal }: Props) {
       setCancelOpen(true);
       return;
     }
-    mutate.mutate({ status, deal_status: status } as never);
+    mutate.mutate({ deal_status: status });
   };
 
   const submitMeta = () => {
