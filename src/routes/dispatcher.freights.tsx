@@ -60,6 +60,7 @@ function FreightsPage() {
       const res = await freightsApi.list({
         search, status, loading_city: loadingCity, unloading_city: unloadingCity,
         body_type: bodyType, loading_date_from: dateFrom, freight_kind: kind,
+        view,
         limit: 200,
       });
       setRows(res.rows);
@@ -72,7 +73,7 @@ function FreightsPage() {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, loadingCity, unloadingCity, bodyType, dateFrom, kind]);
+  }, [search, status, loadingCity, unloadingCity, bodyType, dateFrom, kind, view]);
 
   const handleSubmit = async (data: FreightCreateInput) => {
     setSubmitting(true);
