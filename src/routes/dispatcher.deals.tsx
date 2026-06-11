@@ -19,6 +19,7 @@ import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { DealForm } from "@/components/dispatcher/DealForm";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { CustomerSendBlock } from "@/components/dispatcher/CustomerSendBlock";
+import { DealControlBlock } from "@/components/dispatcher/DealControlBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
