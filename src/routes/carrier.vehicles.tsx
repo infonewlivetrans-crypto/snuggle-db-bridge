@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
 import {
   VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_STATUS_LABELS,
