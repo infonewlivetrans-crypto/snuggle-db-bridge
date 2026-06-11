@@ -1,0 +1,2 @@
+ALTER TABLE public.dispatcher_freights DROP CONSTRAINT IF EXISTS dispatcher_freights_dispatcher_status_chk;
+ALTER TABLE public.dispatcher_freights ADD CONSTRAINT dispatcher_freights_dispatcher_status_chk CHECK (dispatcher_status = ANY (ARRAY['new','checking','suitable','offered','booked','rejected','cancelled','archived','customer_called','customer_ready','not_suitable','waiting_docs','docs_received','carrier_signing','signed_sent','deal_created','taken_by_other','not_actual','no_answer','bad_rate','suspicious']));
