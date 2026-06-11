@@ -22,6 +22,7 @@ import {
   type DealStatus,
 } from "@/lib/dispatcher/statuses";
 import { FreeVehiclesBlock } from "@/components/dispatcher/FreeVehiclesBlock";
+import { AcceptedOffersBlock } from "@/components/dispatcher/AcceptedOffersBlock";
 
 export const Route = createFileRoute("/dispatcher/")({
   component: DispatcherHome,
