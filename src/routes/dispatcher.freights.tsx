@@ -162,9 +162,20 @@ function FreightsPage() {
               {FREIGHT_KINDS.map((k) => <SelectItem key={k} value={k}>{FREIGHT_KIND_LABELS[k]}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={view} onValueChange={setView}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Раздел" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все грузы</SelectItem>
+              <SelectItem value="email">Из почты</SelectItem>
+              <SelectItem value="needs_review">Нужна проверка</SelectItem>
+              <SelectItem value="parsed">Разобрано</SelectItem>
+              <SelectItem value="handed_over">Передано перевозчику</SelectItem>
+            </SelectContent>
+          </Select>
         </>
       }
     >
+      <FreightFromEmailBlock onCreated={load} />
       <div className="rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
