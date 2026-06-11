@@ -308,6 +308,12 @@ function DealsPage() {
                 />
               </div>
 
+              <div className="pt-4 border-t">
+                <h4 className="mb-2 text-sm font-semibold">Документы по рейсу</h4>
+                <DispatcherDocumentsBlock ownerType="deal" ownerId={viewing.id} />
+              </div>
+
+
               {viewing.carrier_id ? (
                 <div className="pt-4 border-t">
                   <h4 className="mb-2 text-sm font-semibold">Карточка партнёра (расширенная)</h4>
