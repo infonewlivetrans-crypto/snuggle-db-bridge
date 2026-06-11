@@ -319,6 +319,7 @@ import { Route as ApiDispatcherFreightsIdMatchVehiclesRouteImport } from './rout
 import { Route as ApiDispatcherFreightsIdCreateCarrierRequestRouteImport } from './routes/api/dispatcher/freights.$id.create-carrier-request'
 import { Route as ApiDispatcherDocumentsIdDownloadRouteImport } from './routes/api/dispatcher/documents.$id.download'
 import { Route as ApiDispatcherDealsIdCustomerSendPreviewRouteImport } from './routes/api/dispatcher/deals.$id.customer-send-preview'
+import { Route as ApiDispatcherDealsIdCustomerSendLogRouteImport } from './routes/api/dispatcher/deals.$id.customer-send-log'
 import { Route as ApiDispatcherCarriersIdContractAcceptancesRouteImport } from './routes/api/dispatcher/carriers.$id.contract-acceptances'
 import { Route as ApiDispatcherCarrierRequestsIdLinkDealRouteImport } from './routes/api/dispatcher/carrier-requests.$id.link-deal'
 import { Route as ApiDispatcherCarrierRequestsIdCreateTasksRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-tasks'
@@ -1945,6 +1946,12 @@ const ApiDispatcherDealsIdCustomerSendPreviewRoute =
     path: '/customer-send-preview',
     getParentRoute: () => ApiDispatcherDealsIdRoute,
   } as any)
+const ApiDispatcherDealsIdCustomerSendLogRoute =
+  ApiDispatcherDealsIdCustomerSendLogRouteImport.update({
+    id: '/customer-send-log',
+    path: '/customer-send-log',
+    getParentRoute: () => ApiDispatcherDealsIdRoute,
+  } as any)
 const ApiDispatcherCarriersIdContractAcceptancesRoute =
   ApiDispatcherCarriersIdContractAcceptancesRouteImport.update({
     id: '/contract-acceptances',
@@ -2325,6 +2332,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   '/api/dispatcher/carrier-requests/$id/link-deal': typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
   '/api/dispatcher/carriers/$id/contract-acceptances': typeof ApiDispatcherCarriersIdContractAcceptancesRoute
+  '/api/dispatcher/deals/$id/customer-send-log': typeof ApiDispatcherDealsIdCustomerSendLogRoute
   '/api/dispatcher/deals/$id/customer-send-preview': typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
@@ -2648,6 +2656,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   '/api/dispatcher/carrier-requests/$id/link-deal': typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
   '/api/dispatcher/carriers/$id/contract-acceptances': typeof ApiDispatcherCarriersIdContractAcceptancesRoute
+  '/api/dispatcher/deals/$id/customer-send-log': typeof ApiDispatcherDealsIdCustomerSendLogRoute
   '/api/dispatcher/deals/$id/customer-send-preview': typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
@@ -2973,6 +2982,7 @@ export interface FileRoutesById {
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
   '/api/dispatcher/carrier-requests/$id/link-deal': typeof ApiDispatcherCarrierRequestsIdLinkDealRoute
   '/api/dispatcher/carriers/$id/contract-acceptances': typeof ApiDispatcherCarriersIdContractAcceptancesRoute
+  '/api/dispatcher/deals/$id/customer-send-log': typeof ApiDispatcherDealsIdCustomerSendLogRoute
   '/api/dispatcher/deals/$id/customer-send-preview': typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
@@ -3299,6 +3309,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
     | '/api/dispatcher/carrier-requests/$id/link-deal'
     | '/api/dispatcher/carriers/$id/contract-acceptances'
+    | '/api/dispatcher/deals/$id/customer-send-log'
     | '/api/dispatcher/deals/$id/customer-send-preview'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/create-carrier-request'
@@ -3622,6 +3633,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
     | '/api/dispatcher/carrier-requests/$id/link-deal'
     | '/api/dispatcher/carriers/$id/contract-acceptances'
+    | '/api/dispatcher/deals/$id/customer-send-log'
     | '/api/dispatcher/deals/$id/customer-send-preview'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/create-carrier-request'
@@ -3946,6 +3958,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
     | '/api/dispatcher/carrier-requests/$id/link-deal'
     | '/api/dispatcher/carriers/$id/contract-acceptances'
+    | '/api/dispatcher/deals/$id/customer-send-log'
     | '/api/dispatcher/deals/$id/customer-send-preview'
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/create-carrier-request'
@@ -6355,6 +6368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherDealsIdCustomerSendPreviewRouteImport
       parentRoute: typeof ApiDispatcherDealsIdRoute
     }
+    '/api/dispatcher/deals/$id/customer-send-log': {
+      id: '/api/dispatcher/deals/$id/customer-send-log'
+      path: '/customer-send-log'
+      fullPath: '/api/dispatcher/deals/$id/customer-send-log'
+      preLoaderRoute: typeof ApiDispatcherDealsIdCustomerSendLogRouteImport
+      parentRoute: typeof ApiDispatcherDealsIdRoute
+    }
     '/api/dispatcher/carriers/$id/contract-acceptances': {
       id: '/api/dispatcher/carriers/$id/contract-acceptances'
       path: '/contract-acceptances'
@@ -7101,10 +7121,13 @@ const ApiDispatcherCarriersRouteWithChildren =
   )
 
 interface ApiDispatcherDealsIdRouteChildren {
+  ApiDispatcherDealsIdCustomerSendLogRoute: typeof ApiDispatcherDealsIdCustomerSendLogRoute
   ApiDispatcherDealsIdCustomerSendPreviewRoute: typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
 }
 
 const ApiDispatcherDealsIdRouteChildren: ApiDispatcherDealsIdRouteChildren = {
+  ApiDispatcherDealsIdCustomerSendLogRoute:
+    ApiDispatcherDealsIdCustomerSendLogRoute,
   ApiDispatcherDealsIdCustomerSendPreviewRoute:
     ApiDispatcherDealsIdCustomerSendPreviewRoute,
 }

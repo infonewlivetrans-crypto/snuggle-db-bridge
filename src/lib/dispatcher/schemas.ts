@@ -249,6 +249,8 @@ export const freightCreateSchema = z.object({
   customer_name: nullableText(255).optional(),
   customer_phone: nullableText(50).optional(),
   customer_email: nullableText(255).optional(),
+  customer_emails: z.array(z.string().trim().min(1).max(255)).optional(),
+  customer_send_comment: nullableText(2000).optional(),
   comment: nullableText(2000),
   dispatcher_status: z.preprocess(blankToUndefined, z.enum(FREIGHT_STATUSES).optional().default("new")),
   freight_kind: z.preprocess(blankToUndefined, z.enum(FREIGHT_KINDS).optional().default("main")),
