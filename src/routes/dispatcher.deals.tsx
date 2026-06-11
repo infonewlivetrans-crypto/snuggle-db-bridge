@@ -296,9 +296,17 @@ function DealsPage() {
                 <Button size="sm" variant="outline" onClick={() => patch(viewing.id, { deal_status: "closed" }, "Закрыта")}>Закрыть</Button>
               </div>
 
+              <div className="pt-4 border-t">
+                <CustomerSendBlock
+                  dealId={viewing.id}
+                  dealStatus={viewing.deal_status}
+                  carrierAccepted={!!viewing.carrier_id}
+                />
+              </div>
+
               {viewing.carrier_id ? (
                 <div className="pt-4 border-t">
-                  <h4 className="mb-2 text-sm font-semibold">Данные для заказчика</h4>
+                  <h4 className="mb-2 text-sm font-semibold">Карточка партнёра (расширенная)</h4>
                   <DispatcherPartnerCardBlock
                     carrierExtId={viewing.carrier_id}
                     initialDriverId={viewing.driver_id ?? null}
