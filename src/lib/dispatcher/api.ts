@@ -163,6 +163,15 @@ export const freightsApi = {
 export { authHeaders };
 
 // ========== deals ==========
+export interface DealStatusUpdateInput {
+  deal_status: string;
+  comment?: string | null;
+  cancel_reason?: string | null;
+  customer_payment_due_date?: string | null;
+  commission_due_date?: string | null;
+  dispatcher_next_action?: string | null;
+}
+
 export const dealsApi = {
   list: (params: Record<string, unknown> = {}) =>
     apiGet<ListResponse<DealDTO>>(`/api/dispatcher/deals${qs(params)}`, { auth: true }),
@@ -170,6 +179,11 @@ export const dealsApi = {
   create: (body: DealCreateInput) => apiPost<{ row: DealDTO }>("/api/dispatcher/deals", body),
   update: (id: string, body: DealUpdateInput) =>
     apiPatch<{ row: DealDTO }>(`/api/dispatcher/deals/${id}`, body),
+  updateStatus: (id: string, body: DealStatusUpdateInput) =>
+    apiPatch<{ row: Partial<DealDTO>; created_task: { id: string; title: string } | null }>(
+      `/api/dispatcher/deals/${id}/status`,
+      body,
+    ),
   archive: (id: string) => apiDelete<{ ok: true }>(`/api/dispatcher/deals/${id}`),
   fromMatch: (body: DealFromMatchInput) =>
     apiPost<{ row: DealDTO; already_exists?: boolean }>("/api/dispatcher/deals/from-match", body),
