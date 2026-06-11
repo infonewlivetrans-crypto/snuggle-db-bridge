@@ -37,12 +37,23 @@ interface RequestRow {
   payment_delay_days: number | null;
   commission_percent: number | string | null;
   commission_amount: number | string | null;
+  terms_text: string | null;
   dispatcher_comment: string | null;
   carrier_comment: string | null;
   request_status: string;
   sent_at: string | null;
   created_at: string;
 }
+
+const DECLINE_REASONS = [
+  "Низкая ставка",
+  "Не подходит маршрут",
+  "Не подходит дата",
+  "Не подходят условия оплаты",
+  "Машина занята",
+  "Водитель отказался",
+  "Другая причина",
+];
 
 function paymentLabel(t: string | null, delay: number | null): string {
   if (!t) return "—";
