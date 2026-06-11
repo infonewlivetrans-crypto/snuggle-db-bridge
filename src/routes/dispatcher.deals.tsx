@@ -20,6 +20,7 @@ import { DealForm } from "@/components/dispatcher/DealForm";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { CustomerSendBlock } from "@/components/dispatcher/CustomerSendBlock";
 import { DealControlBlock } from "@/components/dispatcher/DealControlBlock";
+import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
@@ -306,6 +307,12 @@ function DealsPage() {
                   carrierAccepted={!!viewing.carrier_id}
                 />
               </div>
+
+              <div className="pt-4 border-t">
+                <h4 className="mb-2 text-sm font-semibold">Документы по рейсу</h4>
+                <DispatcherDocumentsBlock ownerType="deal" ownerId={viewing.id} />
+              </div>
+
 
               {viewing.carrier_id ? (
                 <div className="pt-4 border-t">

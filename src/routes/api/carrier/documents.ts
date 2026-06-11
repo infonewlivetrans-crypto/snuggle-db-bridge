@@ -38,6 +38,15 @@ async function checkOwnership(
       .maybeSingle();
     return !!data?.id;
   }
+  if (ownerType === "deal") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (ctx.admin.from("dispatcher_deals" as never) as any)
+      .select("id")
+      .eq("id", ownerId)
+      .eq("carrier_id", ctx.dispatcherCarrierExtId)
+      .maybeSingle();
+    return !!data?.id;
+  }
   const table =
     ownerType === "driver"
       ? "dispatcher_driver_ext"
