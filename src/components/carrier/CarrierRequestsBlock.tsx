@@ -20,6 +20,7 @@ import {
   type CarrierRequestPaymentType,
   type CarrierRequestStatus,
 } from "@/lib/dispatcher/statuses";
+import { RouteMapPreview } from "@/components/dispatcher/VehicleMapPanel";
 
 interface FreightRow {
   id: string;
@@ -274,6 +275,11 @@ function RequestCard({
             </Badge>
           </div>
         </div>
+
+        <RouteMapPreview
+          loading={{ city: row.loading_city, address: row.loading_address }}
+          unloading={{ city: row.unloading_city, address: row.unloading_address }}
+        />
 
         {freights.length > 0 && (
           <div className="rounded-md border bg-muted/20 p-2 text-xs">

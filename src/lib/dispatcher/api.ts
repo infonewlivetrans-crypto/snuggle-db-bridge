@@ -81,6 +81,10 @@ export interface FreeVehicleRow {
   load_methods: string[] | null;
   home_city: string | null;
   current_city: string | null;
+  current_lat: number | null;
+  current_lng: number | null;
+  location_updated_at: string | null;
+  has_coordinates: boolean;
   ready_to_cities: string[] | null;
   ready_date: string | null;
   ready_comment: string | null;

@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Truck, Phone, MapPin, Loader2, ExternalLink } from "lucide-react";
+import { Truck, Phone, MapPin, Loader2, ExternalLink, Map as MapIcon, List as ListIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -15,9 +17,10 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { freeVehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
+import { freeVehiclesApi, vehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
 import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
+import { VehicleMapPanel } from "./VehicleMapPanel";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
@@ -27,9 +30,11 @@ const fmtDateTime = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleString("ru-RU") : "—";
 
 type WorkStatus = "free" | "in_work" | "mine" | "all";
+type View = "map" | "list";
 
 export function FreeVehiclesBlock() {
   const qc = useQueryClient();
+  const [view, setView] = useState<View>("map");
   const [tab, setTab] = useState<WorkStatus>("free");
   const [city, setCity] = useState("");
   const [search, setSearch] = useState("");
@@ -109,6 +114,17 @@ export function FreeVehiclesBlock() {
         </TabsList>
       </Tabs>
 
+      <Tabs value={view} onValueChange={(v) => setView(v as View)} className="mb-3">
+        <TabsList>
+          <TabsTrigger value="map">
+            <MapIcon className="mr-1 h-3.5 w-3.5" /> Карта
+          </TabsTrigger>
+          <TabsTrigger value="list">
+            <ListIcon className="mr-1 h-3.5 w-3.5" /> Список
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {error ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           Ошибка: {error instanceof Error ? error.message : String(error)}
@@ -123,6 +139,14 @@ export function FreeVehiclesBlock() {
         <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
           Нет машин по выбранному фильтру
         </div>
+      ) : view === "map" ? (
+        <VehicleMapPanel
+          rows={rows}
+          selfId={data?.user_id ?? null}
+          onOpen={(id) => setOpenId(id)}
+          onTake={(id) => takeMut.mutate(id)}
+          taking={takeMut.isPending}
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((v) => (
@@ -332,6 +356,11 @@ function VehicleDetailsDialog({
             ) : null}
           </Block>
 
+          <div className="sm:col-span-2">
+            <LocationEditBlock vehicle={v} />
+          </div>
+
+
           {v.dispatcher_comment ? (
             <div className="sm:col-span-2">
               <Block title="Комментарий диспетчера">
@@ -445,6 +474,82 @@ function KV({
       ) : (
         <span className="truncate font-medium text-foreground">{text}</span>
       )}
+    </div>
+  );
+}
+
+function LocationEditBlock({ vehicle }: { vehicle: FreeVehicleRow }) {
+  const qc = useQueryClient();
+  const [city, setCity] = useState(vehicle.current_city ?? "");
+  const [lat, setLat] = useState(vehicle.current_lat == null ? "" : String(vehicle.current_lat));
+  const [lng, setLng] = useState(vehicle.current_lng == null ? "" : String(vehicle.current_lng));
+  const [readyTo, setReadyTo] = useState((vehicle.ready_to_cities ?? []).join(", "));
+  const [readyComment, setReadyComment] = useState(vehicle.ready_comment ?? "");
+  const [readyDate, setReadyDate] = useState(vehicle.ready_date ?? "");
+
+  const saveMut = useMutation({
+    mutationFn: () => {
+      const latN = lat.trim() ? Number(lat.replace(",", ".")) : null;
+      const lngN = lng.trim() ? Number(lng.replace(",", ".")) : null;
+      return vehiclesApi.update(vehicle.id, {
+        current_city: city.trim() || null,
+        current_lat: latN != null && Number.isFinite(latN) ? latN : null,
+        current_lng: lngN != null && Number.isFinite(lngN) ? lngN : null,
+        ready_to_cities: readyTo
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        ready_comment: readyComment.trim() || null,
+        ready_date: readyDate || null,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Местоположение сохранено");
+      qc.invalidateQueries({ queryKey: ["free-vehicles"] });
+    },
+    onError: (e: unknown) =>
+      toast.error(e instanceof Error ? e.message : "Не удалось сохранить"),
+  });
+
+  return (
+    <div className="rounded-lg border border-border bg-card/40 p-3">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Местоположение и готовность
+        </div>
+        <Button size="sm" onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+          {saveMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Сохранить"}
+        </Button>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Текущий город</Label>
+          <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-8" />
+        </div>
+        <div>
+          <Label className="text-xs">Дата готовности</Label>
+          <Input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} className="h-8" />
+        </div>
+        <div>
+          <Label className="text-xs">Широта (lat)</Label>
+          <Input value={lat} onChange={(e) => setLat(e.target.value)} placeholder="55.7558" className="h-8" inputMode="decimal" />
+        </div>
+        <div>
+          <Label className="text-xs">Долгота (lng)</Label>
+          <Input value={lng} onChange={(e) => setLng(e.target.value)} placeholder="37.6173" className="h-8" inputMode="decimal" />
+        </div>
+        <div className="sm:col-span-2">
+          <Label className="text-xs">Куда готов ехать (через запятую)</Label>
+          <Input value={readyTo} onChange={(e) => setReadyTo(e.target.value)} className="h-8" placeholder="Москва, Санкт-Петербург" />
+        </div>
+        <div className="sm:col-span-2">
+          <Label className="text-xs">Комментарий готовности</Label>
+          <Textarea value={readyComment} onChange={(e) => setReadyComment(e.target.value)} rows={2} />
+        </div>
+      </div>
+      <div className="mt-1 text-[11px] text-muted-foreground">
+        Координаты не обязательны. Без них машина отображается в блоке «Без координат».
+      </div>
     </div>
   );
 }

@@ -24,7 +24,8 @@ const BUSY_VEHICLE_STATUSES = [
 
 const SELECT =
   "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, height_m, " +
-  "load_methods, home_city, current_city, ready_to_cities, ready_date, ready_comment, " +
+  "load_methods, home_city, current_city, current_lat, current_lng, location_updated_at, " +
+  "ready_to_cities, ready_date, ready_comment, " +
   "dispatcher_driver_ext_id, dispatcher_carrier_ext_id, dispatcher_status, dispatcher_work_status, " +
   "dispatcher_taken_by, dispatcher_taken_at, " +
   "minimum_trip_rate, minimum_km_rate, city_rate, point_rate, rate_comment, dispatcher_comment, " +
@@ -45,6 +46,7 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
         const minPayload = Number(url.searchParams.get("min_payload_kg") ?? "") || 0;
         const minVolume = Number(url.searchParams.get("min_volume_m3") ?? "") || 0;
         const readyToday = url.searchParams.get("ready_today") === "true";
+        const hasCoords = url.searchParams.get("has_coordinates") === "1";
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = (auth.client.from(TABLE as never) as any).select(SELECT, { count: "exact" });
@@ -73,6 +75,9 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
         if (readyToday) {
           const today = new Date().toISOString().slice(0, 10);
           q = q.lte("ready_date", today);
+        }
+        if (hasCoords) {
+          q = q.not("current_lat", "is", null).not("current_lng", "is", null);
         }
         if (search) {
           const s = search.replace(/[%,]/g, " ").trim();
@@ -110,8 +115,13 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
         const enriched = rows.map((r) => {
           const takenBy = r.dispatcher_taken_by as string | null;
           const isMine = takenBy === auth.userId;
+          const lat = r.current_lat == null ? null : Number(r.current_lat);
+          const lng = r.current_lng == null ? null : Number(r.current_lng);
           return {
             ...r,
+            current_lat: lat,
+            current_lng: lng,
+            has_coordinates: Number.isFinite(lat) && Number.isFinite(lng),
             taken_by_self: isMine,
             taken_by_profile: takenBy ? (profiles[takenBy] ?? null) : null,
           };
