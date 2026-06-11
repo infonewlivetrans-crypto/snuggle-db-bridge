@@ -14,6 +14,7 @@ const SELECT =
   "assigned_carrier_ext_id, assigned_driver_ext_id, assigned_vehicle_ext_id, " +
   "carrier_request_id, deal_id, signed_pdf_document_id, " +
   "signed_sent_at, signed_sent_channel, signed_sent_comment, " +
+  "customer_email, customer_emails, customer_name, customer_phone, customer_send_comment, " +
   "created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/freights/$id")({
