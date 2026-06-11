@@ -240,3 +240,44 @@ export const tasksApi = {
     ),
 };
 
+// ========== dispatcher commissions / earnings (Stage 11.14) ==========
+export interface DispatcherEarningsRow extends DealDTO {
+  source_request_number?: string | null;
+}
+export interface DispatcherEarningsSummary {
+  total_count: number;
+  dispatcher_total: number;
+  platform_total: number;
+  commission_total: number;
+  dispatcher_pending: number;
+  dispatcher_ready: number;
+  dispatcher_paid: number;
+}
+export interface DispatcherEarningsResponse {
+  rows: DispatcherEarningsRow[];
+  total: number;
+  summary: DispatcherEarningsSummary;
+  is_admin: boolean;
+  current_user_id: string;
+}
+export const dispatcherEarningsApi = {
+  list: (params: Record<string, unknown> = {}) =>
+    apiGet<DispatcherEarningsResponse>(
+      `/api/dispatcher/commissions/earnings${qs(params)}`,
+      { auth: true },
+    ),
+  setPayout: (
+    dealId: string,
+    body: {
+      dispatcher_payout_status?: string;
+      dispatcher_paid_at?: string | null;
+      dispatcher_payout_due_date?: string | null;
+      dispatcher_payout_comment?: string | null;
+    },
+  ) =>
+    apiPatch<{ row: Record<string, unknown> }>(
+      `/api/dispatcher/commissions/earnings/${dealId}/payout`,
+      body,
+    ),
+};
+
