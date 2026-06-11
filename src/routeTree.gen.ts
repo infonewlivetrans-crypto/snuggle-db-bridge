@@ -287,6 +287,7 @@ import { Route as ApiDispatcherDocumentsIdRouteImport } from './routes/api/dispa
 import { Route as ApiDispatcherDealsFromMatchRouteImport } from './routes/api/dispatcher/deals.from-match'
 import { Route as ApiDispatcherDealsIdRouteImport } from './routes/api/dispatcher/deals.$id'
 import { Route as ApiDispatcherContractsCarrierOfferRouteImport } from './routes/api/dispatcher/contracts.carrier-offer'
+import { Route as ApiDispatcherCommissionsEarningsRouteImport } from './routes/api/dispatcher/commissions.earnings'
 import { Route as ApiDispatcherCarriersIdRouteImport } from './routes/api/dispatcher/carriers.$id'
 import { Route as ApiDispatcherCarrierRequestsAcceptedRouteImport } from './routes/api/dispatcher/carrier-requests.accepted'
 import { Route as ApiDispatcherCarrierRequestsIdRouteImport } from './routes/api/dispatcher/carrier-requests.$id'
@@ -331,6 +332,7 @@ import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/ca
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
 import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
+import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
 
@@ -1764,6 +1766,12 @@ const ApiDispatcherContractsCarrierOfferRoute =
     path: '/api/dispatcher/contracts/carrier-offer',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherCommissionsEarningsRoute =
+  ApiDispatcherCommissionsEarningsRouteImport.update({
+    id: '/api/dispatcher/commissions/earnings',
+    path: '/api/dispatcher/commissions/earnings',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherCarriersIdRoute = ApiDispatcherCarriersIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2018,6 +2026,12 @@ const ApiPublicClientPortalTokenOrdersOrderIdRoute =
     id: '/orders/$orderId',
     path: '/orders/$orderId',
     getParentRoute: () => ApiPublicClientPortalTokenRoute,
+  } as any)
+const ApiDispatcherCommissionsEarningsDealIdPayoutRoute =
+  ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport.update({
+    id: '/$dealId/payout',
+    path: '/$dealId/payout',
+    getParentRoute: () => ApiDispatcherCommissionsEarningsRoute,
   } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute =
   ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport.update({
@@ -2305,6 +2319,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/carrier-requests/$id': typeof ApiDispatcherCarrierRequestsIdRouteWithChildren
   '/api/dispatcher/carrier-requests/accepted': typeof ApiDispatcherCarrierRequestsAcceptedRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRouteWithChildren
+  '/api/dispatcher/commissions/earnings': typeof ApiDispatcherCommissionsEarningsRouteWithChildren
   '/api/dispatcher/contracts/carrier-offer': typeof ApiDispatcherContractsCarrierOfferRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRouteWithChildren
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
@@ -2354,6 +2369,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2630,6 +2646,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/carrier-requests/$id': typeof ApiDispatcherCarrierRequestsIdRouteWithChildren
   '/api/dispatcher/carrier-requests/accepted': typeof ApiDispatcherCarrierRequestsAcceptedRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRouteWithChildren
+  '/api/dispatcher/commissions/earnings': typeof ApiDispatcherCommissionsEarningsRouteWithChildren
   '/api/dispatcher/contracts/carrier-offer': typeof ApiDispatcherContractsCarrierOfferRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRouteWithChildren
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
@@ -2679,6 +2696,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -2957,6 +2975,7 @@ export interface FileRoutesById {
   '/api/dispatcher/carrier-requests/$id': typeof ApiDispatcherCarrierRequestsIdRouteWithChildren
   '/api/dispatcher/carrier-requests/accepted': typeof ApiDispatcherCarrierRequestsAcceptedRoute
   '/api/dispatcher/carriers/$id': typeof ApiDispatcherCarriersIdRouteWithChildren
+  '/api/dispatcher/commissions/earnings': typeof ApiDispatcherCommissionsEarningsRouteWithChildren
   '/api/dispatcher/contracts/carrier-offer': typeof ApiDispatcherContractsCarrierOfferRoute
   '/api/dispatcher/deals/$id': typeof ApiDispatcherDealsIdRouteWithChildren
   '/api/dispatcher/deals/from-match': typeof ApiDispatcherDealsFromMatchRoute
@@ -3006,6 +3025,7 @@ export interface FileRoutesById {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
@@ -3285,6 +3305,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carrier-requests/$id'
     | '/api/dispatcher/carrier-requests/accepted'
     | '/api/dispatcher/carriers/$id'
+    | '/api/dispatcher/commissions/earnings'
     | '/api/dispatcher/contracts/carrier-offer'
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
@@ -3334,6 +3355,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -3610,6 +3632,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carrier-requests/$id'
     | '/api/dispatcher/carrier-requests/accepted'
     | '/api/dispatcher/carriers/$id'
+    | '/api/dispatcher/commissions/earnings'
     | '/api/dispatcher/contracts/carrier-offer'
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
@@ -3659,6 +3682,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -3936,6 +3960,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/carrier-requests/$id'
     | '/api/dispatcher/carrier-requests/accepted'
     | '/api/dispatcher/carriers/$id'
+    | '/api/dispatcher/commissions/earnings'
     | '/api/dispatcher/contracts/carrier-offer'
     | '/api/dispatcher/deals/$id'
     | '/api/dispatcher/deals/from-match'
@@ -3985,6 +4010,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -4198,6 +4224,7 @@ export interface RootRouteChildren {
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
+  ApiDispatcherCommissionsEarningsRoute: typeof ApiDispatcherCommissionsEarningsRouteWithChildren
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
   ApiDispatcherIncomingEmailSyncRoute: typeof ApiDispatcherIncomingEmailSyncRoute
   ApiDispatcherPartnerCardPreviewRoute: typeof ApiDispatcherPartnerCardPreviewRoute
@@ -6157,6 +6184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherContractsCarrierOfferRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/commissions/earnings': {
+      id: '/api/dispatcher/commissions/earnings'
+      path: '/api/dispatcher/commissions/earnings'
+      fullPath: '/api/dispatcher/commissions/earnings'
+      preLoaderRoute: typeof ApiDispatcherCommissionsEarningsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/carriers/$id': {
       id: '/api/dispatcher/carriers/$id'
       path: '/$id'
@@ -6464,6 +6498,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/client-portal/$token/orders/$orderId'
       preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRouteImport
       parentRoute: typeof ApiPublicClientPortalTokenRoute
+    }
+    '/api/dispatcher/commissions/earnings/$dealId/payout': {
+      id: '/api/dispatcher/commissions/earnings/$dealId/payout'
+      path: '/$dealId/payout'
+      fullPath: '/api/dispatcher/commissions/earnings/$dealId/payout'
+      preLoaderRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport
+      parentRoute: typeof ApiDispatcherCommissionsEarningsRoute
     }
     '/api/public/client-portal/$token/orders/$orderId/timeline': {
       id: '/api/public/client-portal/$token/orders/$orderId/timeline'
@@ -7313,6 +7354,21 @@ const ApiDispatcherVehiclesRouteWithChildren =
     ApiDispatcherVehiclesRouteChildren,
   )
 
+interface ApiDispatcherCommissionsEarningsRouteChildren {
+  ApiDispatcherCommissionsEarningsDealIdPayoutRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
+}
+
+const ApiDispatcherCommissionsEarningsRouteChildren: ApiDispatcherCommissionsEarningsRouteChildren =
+  {
+    ApiDispatcherCommissionsEarningsDealIdPayoutRoute:
+      ApiDispatcherCommissionsEarningsDealIdPayoutRoute,
+  }
+
+const ApiDispatcherCommissionsEarningsRouteWithChildren =
+  ApiDispatcherCommissionsEarningsRoute._addFileChildren(
+    ApiDispatcherCommissionsEarningsRouteChildren,
+  )
+
 interface ApiDispatcherPartnerCardSendsRouteChildren {
   ApiDispatcherPartnerCardSendsIdRoute: typeof ApiDispatcherPartnerCardSendsIdRoute
 }
@@ -7599,6 +7655,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
+  ApiDispatcherCommissionsEarningsRoute:
+    ApiDispatcherCommissionsEarningsRouteWithChildren,
   ApiDispatcherContractsCarrierOfferRoute:
     ApiDispatcherContractsCarrierOfferRoute,
   ApiDispatcherIncomingEmailSyncRoute: ApiDispatcherIncomingEmailSyncRoute,

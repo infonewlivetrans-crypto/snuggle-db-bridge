@@ -18,7 +18,11 @@ const SELECT =
   "customer_payment_due_date, customer_paid_at, " +
   "commission_due_date, commission_received_at, deal_closed_at, " +
   "cancel_reason, dispatcher_next_action, " +
-  "created_at, updated_at";
+  "dispatcher_user_id, dispatcher_commission_percent, " +
+  "dispatcher_commission_amount, platform_commission_amount, " +
+  "dispatcher_payout_status, dispatcher_payout_due_date, " +
+  "dispatcher_paid_at, dispatcher_payout_comment, " +
+  "created_by, created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/deals/$id")({
   server: {

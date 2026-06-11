@@ -1231,7 +1231,14 @@ export type Database = {
           deal_number: string | null
           deal_status: string
           delivered_at: string | null
+          dispatcher_commission_amount: number | null
+          dispatcher_commission_percent: number
           dispatcher_next_action: string | null
+          dispatcher_paid_at: string | null
+          dispatcher_payout_comment: string | null
+          dispatcher_payout_due_date: string | null
+          dispatcher_payout_status: string
+          dispatcher_user_id: string | null
           driver_id: string | null
           expected_payment_date: string | null
           id: string
@@ -1243,6 +1250,7 @@ export type Database = {
           payment_due: string | null
           payment_status: string
           payment_type: string | null
+          platform_commission_amount: number | null
           route_from: string | null
           route_to: string | null
           total_rate: number
@@ -1273,7 +1281,14 @@ export type Database = {
           deal_number?: string | null
           deal_status?: string
           delivered_at?: string | null
+          dispatcher_commission_amount?: number | null
+          dispatcher_commission_percent?: number
           dispatcher_next_action?: string | null
+          dispatcher_paid_at?: string | null
+          dispatcher_payout_comment?: string | null
+          dispatcher_payout_due_date?: string | null
+          dispatcher_payout_status?: string
+          dispatcher_user_id?: string | null
           driver_id?: string | null
           expected_payment_date?: string | null
           id?: string
@@ -1285,6 +1300,7 @@ export type Database = {
           payment_due?: string | null
           payment_status?: string
           payment_type?: string | null
+          platform_commission_amount?: number | null
           route_from?: string | null
           route_to?: string | null
           total_rate?: number
@@ -1315,7 +1331,14 @@ export type Database = {
           deal_number?: string | null
           deal_status?: string
           delivered_at?: string | null
+          dispatcher_commission_amount?: number | null
+          dispatcher_commission_percent?: number
           dispatcher_next_action?: string | null
+          dispatcher_paid_at?: string | null
+          dispatcher_payout_comment?: string | null
+          dispatcher_payout_due_date?: string | null
+          dispatcher_payout_status?: string
+          dispatcher_user_id?: string | null
           driver_id?: string | null
           expected_payment_date?: string | null
           id?: string
@@ -1327,6 +1350,7 @@ export type Database = {
           payment_due?: string | null
           payment_status?: string
           payment_type?: string | null
+          platform_commission_amount?: number | null
           route_from?: string | null
           route_to?: string | null
           total_rate?: number

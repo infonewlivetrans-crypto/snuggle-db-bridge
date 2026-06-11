@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
               "unloading_city, unloading_address, unloading_date, " +
               "rate_amount, commission_percent, commission_amount, " +
               "payment_type, payment_delay_days, " +
-              "terms_text, dispatcher_comment, request_number",
+              "terms_text, dispatcher_comment, request_number, sent_by",
           )
           .eq("id", params.id)
           .maybeSingle();
@@ -94,6 +94,19 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
         const mainFreightId = (freights[0]?.id as string | undefined) ?? null;
         const addonIds = freights.slice(1).map((f) => f.id as string);
 
+        // Stage 11.14 — определяем диспетчера сделки.
+        // Приоритет: sent_by заявки → dispatcher_taken_by машины → текущий пользователь.
+        let dispatcherUserId: string | null = (r.sent_by as string | null) ?? null;
+        if (!dispatcherUserId && r.dispatcher_vehicle_ext_id) {
+          const vRes = await client
+            .from(VEHICLES_TABLE)
+            .select("dispatcher_taken_by")
+            .eq("id", r.dispatcher_vehicle_ext_id)
+            .maybeSingle();
+          dispatcherUserId = (vRes.data?.dispatcher_taken_by as string | null) ?? null;
+        }
+        if (!dispatcherUserId) dispatcherUserId = auth.userId;
+
         const dealPayload: Record<string, unknown> = {
           carrier_id: r.dispatcher_carrier_ext_id ?? null,
           driver_id: r.dispatcher_driver_ext_id ?? null,
@@ -114,6 +127,8 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
           commission_status: "accrued",
           comment: comment ?? cargoName,
           created_by: auth.userId,
+          dispatcher_user_id: dispatcherUserId,
+          dispatcher_commission_percent: 50,
         };
 
         const ins = await client

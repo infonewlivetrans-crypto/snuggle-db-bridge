@@ -22,10 +22,12 @@ export const Route = createFileRoute("/dispatcher/commissions")({
   component: CommissionsPage,
 });
 
+import { EarningsTab } from "@/components/dispatcher/EarningsTab";
+
 const fmtMoney = (n: number | null | undefined) =>
   n == null ? "—" : `${Number(n).toLocaleString("ru-RU")} ₽`;
 
-type Tab = "all" | "waiting_customer" | "waiting_commission" | "overdue" | "paid" | "dispute";
+type Tab = "all" | "waiting_customer" | "waiting_commission" | "overdue" | "paid" | "dispute" | "earnings";
 
 function CommissionsPage() {
   const [rows, setRows] = useState<DealDTO[]>([]);
@@ -128,12 +130,17 @@ function CommissionsPage() {
               <SelectItem value="overdue">Просрочено</SelectItem>
               <SelectItem value="paid">Комиссия получена</SelectItem>
               <SelectItem value="dispute">Спор</SelectItem>
+              <SelectItem value="earnings">Заработок диспетчеров</SelectItem>
             </SelectContent>
           </Select>
         </>
       }
     >
+      {tab === "earnings" ? (
+        <EarningsTab />
+      ) : (
       <div className="rounded-md border bg-card overflow-x-auto">
+
         <Table>
           <TableHeader>
             <TableRow>
@@ -190,6 +197,7 @@ function CommissionsPage() {
           </TableBody>
         </Table>
       </div>
+      )}
     </EntityTableLayout>
   );
 }

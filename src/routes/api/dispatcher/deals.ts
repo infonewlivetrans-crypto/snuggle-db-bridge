@@ -27,7 +27,11 @@ const SELECT =
   "customer_payment_due_date, customer_paid_at, " +
   "commission_due_date, commission_received_at, deal_closed_at, " +
   "cancel_reason, dispatcher_next_action, " +
-  "created_at, updated_at";
+  "dispatcher_user_id, dispatcher_commission_percent, " +
+  "dispatcher_commission_amount, platform_commission_amount, " +
+  "dispatcher_payout_status, dispatcher_payout_due_date, " +
+  "dispatcher_paid_at, dispatcher_payout_comment, " +
+  "created_by, created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/deals")({
   server: {
@@ -139,8 +143,11 @@ export async function enrichDeals(
   const vehicleIds = uniq(rows.map((r) => r.vehicle_id as string | null));
   const freightIds = uniq(rows.map((r) => r.main_freight_id as string | null));
   const dealIds = rows.map((r) => r.id as string);
+  const dispatcherUserIds = uniq(
+    rows.map((r) => (r.dispatcher_user_id ?? r.created_by) as string | null),
+  );
 
-  const [carriers, drivers, vehicles, freights, requests] = await Promise.all([
+  const [carriers, drivers, vehicles, freights, requests, profiles] = await Promise.all([
     carrierIds.length
       ? client
           .from("dispatcher_carrier_ext" as never)
@@ -171,6 +178,12 @@ export async function enrichDeals(
           .select("id, request_number, dispatcher_deal_id")
           .in("dispatcher_deal_id", dealIds)
       : Promise.resolve({ data: [] }),
+    dispatcherUserIds.length
+      ? client
+          .from("profiles" as never)
+          .select("user_id, full_name, email")
+          .in("user_id", dispatcherUserIds)
+      : Promise.resolve({ data: [] }),
   ]);
 
   const cMap = indexBy((carriers.data ?? []) as Array<Record<string, unknown>>, "id");
@@ -181,6 +194,7 @@ export async function enrichDeals(
     (requests.data ?? []) as Array<Record<string, unknown>>,
     "dispatcher_deal_id",
   );
+  const pMap = indexBy((profiles.data ?? []) as Array<Record<string, unknown>>, "user_id");
 
   return rows.map((r) => {
     const c = r.carrier_id ? cMap[r.carrier_id as string] : null;
@@ -188,6 +202,8 @@ export async function enrichDeals(
     const v = r.vehicle_id ? vMap[r.vehicle_id as string] : null;
     const f = r.main_freight_id ? fMap[r.main_freight_id as string] : null;
     const req = rMap[r.id as string] ?? null;
+    const duId = (r.dispatcher_user_id ?? r.created_by) as string | null;
+    const p = duId ? pMap[duId] : null;
     return {
       ...r,
       carrier_name: c?.name ?? null,
@@ -205,6 +221,8 @@ export async function enrichDeals(
       freight_title: f?.title ?? null,
       source_request_id: req?.id ?? null,
       source_request_number: req?.request_number ?? null,
+      dispatcher_user_label:
+        (p?.full_name as string | null) ?? (p?.email as string | null) ?? null,
     };
   });
 }

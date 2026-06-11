@@ -24,6 +24,7 @@ import {
 import { FreeVehiclesBlock } from "@/components/dispatcher/FreeVehiclesBlock";
 import { AcceptedOffersBlock } from "@/components/dispatcher/AcceptedOffersBlock";
 import { CarrierResponsesOverviewBlock } from "@/components/dispatcher/CarrierResponsesOverviewBlock";
+import { MyEarningsBlock } from "@/components/dispatcher/MyEarningsBlock";
 
 export const Route = createFileRoute("/dispatcher/")({
   component: DispatcherHome,
@@ -126,6 +127,10 @@ function DispatcherHome() {
 
         {/* KPI */}
         <KpiRow data={data} loading={isLoading} />
+
+        {/* Stage 11.14 — компактный блок заработка диспетчера */}
+        <MyEarningsBlock />
+
 
         {/* Tasks */}
         <Section
