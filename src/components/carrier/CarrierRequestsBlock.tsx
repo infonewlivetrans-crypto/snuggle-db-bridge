@@ -20,6 +20,7 @@ import {
   type CarrierRequestPaymentType,
   type CarrierRequestStatus,
 } from "@/lib/dispatcher/statuses";
+import { RouteMapPreview } from "@/components/dispatcher/VehicleMapPanel";
 
 interface FreightRow {
   id: string;
