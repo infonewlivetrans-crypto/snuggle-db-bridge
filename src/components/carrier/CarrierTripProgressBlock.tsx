@@ -41,16 +41,7 @@ export function CarrierTripProgressBlock({ deal }: { deal: CarrierProgressDeal }
     mutationFn: async (status: string) => {
       const body: Record<string, unknown> = { deal_status: status };
       if (comment.trim()) body.carrier_comment = comment.trim();
-      const res = await apiFetchAuth(`/api/carrier/deals/${deal.id}/progress`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || "Не удалось обновить статус");
-      }
-      return res.json();
+      return apiPatch(`/api/carrier/deals/${deal.id}/progress`, body);
     },
     onSuccess: () => {
       toast.success("Статус рейса обновлён");
