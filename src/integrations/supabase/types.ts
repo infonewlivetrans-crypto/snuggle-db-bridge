@@ -1928,10 +1928,14 @@ export type Database = {
           body_type: string | null
           city_rate: number | null
           created_at: string
+          current_city: string | null
           dispatcher_carrier_ext_id: string | null
           dispatcher_comment: string | null
           dispatcher_driver_ext_id: string | null
           dispatcher_status: string
+          dispatcher_taken_at: string | null
+          dispatcher_taken_by: string | null
+          dispatcher_work_status: string | null
           docs_comment: string | null
           docs_status: string
           height_m: number | null
@@ -1947,6 +1951,7 @@ export type Database = {
           production_vehicle_id: string | null
           rate_comment: string | null
           ready_city: string | null
+          ready_comment: string | null
           ready_date: string | null
           ready_to_cities: string[] | null
           updated_at: string
@@ -1959,10 +1964,14 @@ export type Database = {
           body_type?: string | null
           city_rate?: number | null
           created_at?: string
+          current_city?: string | null
           dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_driver_ext_id?: string | null
           dispatcher_status?: string
+          dispatcher_taken_at?: string | null
+          dispatcher_taken_by?: string | null
+          dispatcher_work_status?: string | null
           docs_comment?: string | null
           docs_status?: string
           height_m?: number | null
@@ -1978,6 +1987,7 @@ export type Database = {
           production_vehicle_id?: string | null
           rate_comment?: string | null
           ready_city?: string | null
+          ready_comment?: string | null
           ready_date?: string | null
           ready_to_cities?: string[] | null
           updated_at?: string
@@ -1990,10 +2000,14 @@ export type Database = {
           body_type?: string | null
           city_rate?: number | null
           created_at?: string
+          current_city?: string | null
           dispatcher_carrier_ext_id?: string | null
           dispatcher_comment?: string | null
           dispatcher_driver_ext_id?: string | null
           dispatcher_status?: string
+          dispatcher_taken_at?: string | null
+          dispatcher_taken_by?: string | null
+          dispatcher_work_status?: string | null
           docs_comment?: string | null
           docs_status?: string
           height_m?: number | null
@@ -2009,6 +2023,7 @@ export type Database = {
           production_vehicle_id?: string | null
           rate_comment?: string | null
           ready_city?: string | null
+          ready_comment?: string | null
           ready_date?: string | null
           ready_to_cities?: string[] | null
           updated_at?: string
