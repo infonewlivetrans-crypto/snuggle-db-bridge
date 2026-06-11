@@ -84,38 +84,46 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
           <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Загрузка…
         </div>
       ) : info?.link ? (
-        <div className="space-y-1 text-sm">
-          <Row k="ФИО / контакт" v={info.profile?.full_name} />
-          <Row k="Email" v={info.profile?.email} />
-          <Row k="Телефон" v={info.profile?.phone} />
-          <Row k="user_id" v={info.link.user_id} mono />
-          <div className="pt-2">
-            <Button size="sm" variant="outline" onClick={unlink}>
-              <Unlink className="mr-1 h-4 w-4" /> Отвязать
-            </Button>
-          </div>
+        <div className="space-y-2 text-sm">
+          <p className="text-muted-foreground">Кабинет активирован. Перевозчик может входить в /carrier.</p>
+          <details className="text-sm">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Дополнительно</summary>
+            <div className="mt-2 space-y-1">
+              <Row k="ФИО / контакт" v={info.profile?.full_name} />
+              <Row k="Email" v={info.profile?.email} />
+              <Row k="Телефон" v={info.profile?.phone} />
+              <Row k="user_id" v={info.link.user_id} mono />
+              <div className="pt-2">
+                <Button size="sm" variant="outline" onClick={unlink}>
+                  <Unlink className="mr-1 h-4 w-4" /> Отвязать
+                </Button>
+              </div>
+            </div>
+          </details>
         </div>
       ) : (
-        <div className="space-y-2 text-sm">
+        <div className="space-y-3 text-sm">
           <p className="text-muted-foreground">
-            Создайте ссылку для активации кабинета и отправьте её перевозчику.
-            Он сам создаст логин и пароль для входа в кабинет.
+            Создайте доступ, чтобы перевозчик мог заходить в кабинет, видеть предложения и вести рейсы.
           </p>
-          <p className="text-xs text-muted-foreground">
-            Это <strong>ссылка перевозчику</strong> (/carrier/activate/…). Не путать со
-            ссылкой водителю (/driver/register/…) — её создаёт сам перевозчик в своём кабинете.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => setInvitesOpen(true)}>
-              <Mail className="mr-1 h-4 w-4" /> Создать ссылку для кабинета перевозчика
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
-              <Link2 className="mr-1 h-4 w-4" /> Связать существующего
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
-              <UserPlus className="mr-1 h-4 w-4" /> Создать вручную
-            </Button>
-          </div>
+          <Button
+            size="lg"
+            onClick={() => setInvitesOpen(true)}
+            className="bg-yellow-400 text-black hover:bg-yellow-500"
+          >
+            <Mail className="mr-2 h-4 w-4" /> Создать кабинет перевозчика
+          </Button>
+          <details className="text-sm">
+            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">Дополнительно</summary>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => setPickerOpen(true)}>
+                <Link2 className="mr-1 h-4 w-4" /> Связать существующего
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
+                <UserPlus className="mr-1 h-4 w-4" /> Создать вручную
+              </Button>
+            </div>
+          </details>
         </div>
       )}
 
