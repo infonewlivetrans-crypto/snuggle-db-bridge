@@ -50,11 +50,28 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
       freightsApi.list({ vehicle_id: vehicleId, exclude_archived: 1, limit: 50 }),
   });
 
-  const archiveMut = useMutation({
-    mutationFn: (id: string) =>
-      freightsApi.update(id, { dispatcher_status: "archived" }),
-    onSuccess: () => {
-      toast.success("Груз убран из подбора");
+  const statusMut = useMutation({
+    mutationFn: ({
+      id,
+      status,
+      comment,
+    }: {
+      id: string;
+      status: FreightStatus;
+      comment?: string;
+    }) => {
+      const payload: Record<string, unknown> = { dispatcher_status: status };
+      if (comment) payload.comment = comment;
+      return freightsApi.update(id, payload);
+    },
+    onSuccess: (_d, vars) => {
+      const label = FREIGHT_STATUS_LABELS[vars.status] ?? "Обновлено";
+      toast.success(`Отмечено: ${label}`);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(vars.id);
+        return next;
+      });
       qc.invalidateQueries({ queryKey: ["vehicle-freights", vehicleId] });
     },
     onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Ошибка"),
@@ -66,12 +83,12 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
       rows.filter(
         (r) =>
           !r.carrier_request_id &&
-          !["archived", "cancelled", "rejected", "not_suitable", "offered", "booked"].includes(
-            String(r.dispatcher_status ?? ""),
-          ),
+          !INACTIVE.includes(String(r.dispatcher_status ?? "")) &&
+          !["offered", "booked"].includes(String(r.dispatcher_status ?? "")),
       ),
     [rows],
   );
+
   const selectedFreights = useMemo(
     () => selectableRows.filter((r) => selected.has(r.id)),
     [selectableRows, selected],
