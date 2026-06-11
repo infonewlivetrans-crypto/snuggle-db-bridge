@@ -71,6 +71,12 @@ export const Route = createFileRoute("/api/carrier/deals/$id/progress")({
         const r = cur.data as Record<string, unknown>;
 
         if (r.carrier_id !== ctx.dispatcherCarrierExtId) {
+          console.warn("[carrier.deal.progress] carrier_ownership_failed", {
+            deal_id: params.id,
+            user_id: auth.userId,
+            deal_carrier_id: r.carrier_id,
+            user_carrier_id: ctx.dispatcherCarrierExtId,
+          });
           return jsonResponse({ error: "forbidden" }, { status: 403 });
         }
 
