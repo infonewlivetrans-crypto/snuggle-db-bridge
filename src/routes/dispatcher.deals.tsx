@@ -21,6 +21,7 @@ import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPa
 import { CustomerSendBlock } from "@/components/dispatcher/CustomerSendBlock";
 import { DealControlBlock } from "@/components/dispatcher/DealControlBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
+import { TimelineBlock } from "@/components/dispatcher/TimelineBlock";
 import { dealsApi } from "@/lib/dispatcher/api";
 import type { DealDTO } from "@/lib/dispatcher/types";
 import type { DealCreateInput } from "@/lib/dispatcher/schemas";
@@ -312,6 +313,11 @@ function DealsPage() {
                 <h4 className="mb-2 text-sm font-semibold">Документы по рейсу</h4>
                 <DispatcherDocumentsBlock ownerType="deal" ownerId={viewing.id} />
               </div>
+
+              <div className="pt-4 border-t">
+                <TimelineBlock dealId={viewing.id} title="История сделки" />
+              </div>
+
 
 
               {viewing.carrier_id ? (
