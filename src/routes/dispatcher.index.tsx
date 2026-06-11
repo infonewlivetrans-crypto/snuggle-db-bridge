@@ -173,6 +173,9 @@ function DispatcherHome() {
         {/* Accepted offers awaiting deal creation (Stage 11.6) */}
         <AcceptedOffersBlock />
 
+        {/* Awaiting / declined carrier responses (Stage 11.8) */}
+        <CarrierResponsesOverviewBlock />
+
 
         {/* Active freights */}
         <Section
