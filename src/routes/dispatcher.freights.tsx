@@ -19,6 +19,7 @@ import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { FreightForm } from "@/components/dispatcher/FreightForm";
 import { FreightMatchResults } from "@/components/dispatcher/FreightMatchResults";
 import { FreightPipelinePanel } from "@/components/dispatcher/FreightPipelinePanel";
+import { FreightFromEmailBlock } from "@/components/dispatcher/FreightFromEmailBlock";
 import { freightsApi } from "@/lib/dispatcher/api";
 import type { FreightDTO, MatchResult } from "@/lib/dispatcher/types";
 import type { FreightCreateInput } from "@/lib/dispatcher/schemas";
@@ -44,6 +45,7 @@ function FreightsPage() {
   const [bodyType, setBodyType] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [kind, setKind] = useState<string>("all");
+  const [view, setView] = useState<string>("all");
   const [editing, setEditing] = useState<FreightDTO | null>(null);
   const [viewing, setViewing] = useState<FreightDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -58,6 +60,7 @@ function FreightsPage() {
       const res = await freightsApi.list({
         search, status, loading_city: loadingCity, unloading_city: unloadingCity,
         body_type: bodyType, loading_date_from: dateFrom, freight_kind: kind,
+        view,
         limit: 200,
       });
       setRows(res.rows);
@@ -70,7 +73,7 @@ function FreightsPage() {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, loadingCity, unloadingCity, bodyType, dateFrom, kind]);
+  }, [search, status, loadingCity, unloadingCity, bodyType, dateFrom, kind, view]);
 
   const handleSubmit = async (data: FreightCreateInput) => {
     setSubmitting(true);
@@ -159,9 +162,20 @@ function FreightsPage() {
               {FREIGHT_KINDS.map((k) => <SelectItem key={k} value={k}>{FREIGHT_KIND_LABELS[k]}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={view} onValueChange={setView}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Раздел" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все грузы</SelectItem>
+              <SelectItem value="email">Из почты</SelectItem>
+              <SelectItem value="needs_review">Нужна проверка</SelectItem>
+              <SelectItem value="parsed">Разобрано</SelectItem>
+              <SelectItem value="handed_over">Передано перевозчику</SelectItem>
+            </SelectContent>
+          </Select>
         </>
       }
     >
+      <FreightFromEmailBlock onCreated={load} />
       <div className="rounded-md border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
@@ -257,6 +271,15 @@ function FreightsPage() {
               <Row label="Источник" value={viewing.source_url
                 ? <a href={viewing.source_url} target="_blank" rel="noopener noreferrer" className="underline">{viewing.source ?? viewing.source_url}</a>
                 : (viewing.source ?? "—")} />
+              {(viewing.source_type === "email" || viewing.source_type === "manual_email") && (
+                <>
+                  <Row label="От кого" value={viewing.source_email_from ?? "—"} />
+                  <Row label="Тема письма" value={viewing.source_email_subject ?? "—"} />
+                  <Row label="Дата письма" value={viewing.source_received_at ? new Date(viewing.source_received_at).toLocaleString("ru-RU") : "—"} />
+                  <Row label="Вложений" value={String(viewing.source_document_count ?? 0)} />
+                  <Row label="Статус разбора" value={viewing.parse_status ?? "—"} />
+                </>
+              )}
               <Row label="Контакт" value={viewing.contact_name ?? "—"} />
               <Row label="Каналы" value={
                 <ContactLinks

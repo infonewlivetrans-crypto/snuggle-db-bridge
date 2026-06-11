@@ -276,6 +276,7 @@ import { Route as ApiDispatcherTasksGenerateDailyRouteImport } from './routes/ap
 import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
 import { Route as ApiDispatcherPartnerCardSendsRouteImport } from './routes/api/dispatcher/partner-card.sends'
 import { Route as ApiDispatcherPartnerCardPreviewRouteImport } from './routes/api/dispatcher/partner-card.preview'
+import { Route as ApiDispatcherIncomingEmailSyncRouteImport } from './routes/api/dispatcher/incoming-email.sync'
 import { Route as ApiDispatcherFreightsFromEmailRouteImport } from './routes/api/dispatcher/freights.from-email'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
@@ -1691,6 +1692,12 @@ const ApiDispatcherPartnerCardPreviewRoute =
     path: '/api/dispatcher/partner-card/preview',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherIncomingEmailSyncRoute =
+  ApiDispatcherIncomingEmailSyncRouteImport.update({
+    id: '/api/dispatcher/incoming-email/sync',
+    path: '/api/dispatcher/incoming-email/sync',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherFreightsFromEmailRoute =
   ApiDispatcherFreightsFromEmailRouteImport.update({
     id: '/from-email',
@@ -2241,6 +2248,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
+  '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2556,6 +2564,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
+  '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -2873,6 +2882,7 @@ export interface FileRoutesById {
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
+  '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
@@ -3191,6 +3201,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/from-email'
+    | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
@@ -3506,6 +3517,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/from-email'
+    | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
@@ -3822,6 +3834,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/from-email'
+    | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
@@ -4068,6 +4081,7 @@ export interface RootRouteChildren {
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
+  ApiDispatcherIncomingEmailSyncRoute: typeof ApiDispatcherIncomingEmailSyncRoute
   ApiDispatcherPartnerCardPreviewRoute: typeof ApiDispatcherPartnerCardPreviewRoute
   ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
@@ -5948,6 +5962,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherPartnerCardPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/incoming-email/sync': {
+      id: '/api/dispatcher/incoming-email/sync'
+      path: '/api/dispatcher/incoming-email/sync'
+      fullPath: '/api/dispatcher/incoming-email/sync'
+      preLoaderRoute: typeof ApiDispatcherIncomingEmailSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/freights/from-email': {
       id: '/api/dispatcher/freights/from-email'
       path: '/from-email'
@@ -7347,6 +7368,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
   ApiDispatcherContractsCarrierOfferRoute:
     ApiDispatcherContractsCarrierOfferRoute,
+  ApiDispatcherIncomingEmailSyncRoute: ApiDispatcherIncomingEmailSyncRoute,
   ApiDispatcherPartnerCardPreviewRoute: ApiDispatcherPartnerCardPreviewRoute,
   ApiDispatcherPartnerCardSendsRoute:
     ApiDispatcherPartnerCardSendsRouteWithChildren,

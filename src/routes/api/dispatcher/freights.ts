@@ -20,6 +20,9 @@ const SELECT =
   "assigned_carrier_ext_id, assigned_driver_ext_id, assigned_vehicle_ext_id, " +
   "carrier_request_id, deal_id, signed_pdf_document_id, " +
   "signed_sent_at, signed_sent_channel, signed_sent_comment, " +
+  "source_type, source_email_from, source_email_subject, source_email_body, " +
+  "source_received_at, source_document_count, parse_status, " +
+  "customer_email, customer_name, customer_phone, " +
   "created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/freights")({
@@ -36,6 +39,7 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         const dateFrom = url.searchParams.get("loading_date_from");
         const dateTo = url.searchParams.get("loading_date_to");
         const freightKind = url.searchParams.get("freight_kind");
+        const view = url.searchParams.get("view"); // all|email|needs_review|parsed|handed_over
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = (auth.client.from(TABLE as never) as any)
@@ -47,6 +51,10 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         if (freightKind && (FREIGHT_KINDS as readonly string[]).includes(freightKind)) {
           q = q.eq("freight_kind", freightKind);
         }
+        if (view === "email") q = q.in("source_type", ["email", "manual_email"]);
+        else if (view === "needs_review") q = q.eq("parse_status", "needs_review");
+        else if (view === "parsed") q = q.eq("parse_status", "parsed");
+        else if (view === "handed_over") q = q.not("carrier_request_id", "is", null);
         if (loadingCity) q = q.ilike("loading_city", `%${loadingCity}%`);
         if (unloadingCity) q = q.ilike("unloading_city", `%${unloadingCity}%`);
         if (bodyType) q = q.ilike("body_type", `%${bodyType}%`);
