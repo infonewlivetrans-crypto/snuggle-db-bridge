@@ -356,6 +356,11 @@ function VehicleDetailsDialog({
             ) : null}
           </Block>
 
+          <div className="sm:col-span-2">
+            <LocationEditBlock vehicle={v} />
+          </div>
+
+
           {v.dispatcher_comment ? (
             <div className="sm:col-span-2">
               <Block title="Комментарий диспетчера">
