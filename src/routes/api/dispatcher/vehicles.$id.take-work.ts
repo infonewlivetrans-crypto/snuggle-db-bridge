@@ -24,6 +24,12 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id/take-work")({
         const workStatus = current.dispatcher_work_status as string | null;
 
         if (takenBy && takenBy !== auth.userId && workStatus && workStatus !== "free" && workStatus !== "released") {
+          console.warn("[dispatcher.take-work] vehicle_taken_by_other", {
+            vehicle_id: params.id,
+            requester: auth.userId,
+            taken_by: takenBy,
+            work_status: workStatus,
+          });
           return jsonResponse(
             {
               error: "already_taken",

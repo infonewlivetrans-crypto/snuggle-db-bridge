@@ -42,6 +42,12 @@ export const Route = createFileRoute("/api/carrier/requests/$id/respond")({
           .maybeSingle();
         if (!cur.data) return jsonResponse({ error: "not_found" }, { status: 404 });
         if (cur.data.dispatcher_carrier_ext_id !== ctx.dispatcherCarrierExtId) {
+          console.warn("[carrier.requests.respond] carrier_ownership_failed", {
+            request_id: params.id,
+            user_id: auth.userId,
+            request_carrier_id: cur.data.dispatcher_carrier_ext_id,
+            user_carrier_id: ctx.dispatcherCarrierExtId,
+          });
           return jsonResponse({ error: "forbidden" }, { status: 403 });
         }
 

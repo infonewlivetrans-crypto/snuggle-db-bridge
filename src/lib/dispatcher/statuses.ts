@@ -712,3 +712,24 @@ export const RUSSIAN_CITIES_PRESET = [
   "Воронеж",
   "Пермь",
 ] as const;
+
+// =============== Dispatcher work status (Stage 11.19) ===============
+// Состояние работы диспетчера с машиной: кто взял в работу, на каком этапе.
+export const DISPATCHER_WORK_STATUSES = [
+  "free",
+  "in_work",
+  "offered",
+  "accepted",
+  "declined",
+  "released",
+] as const;
+export type DispatcherWorkStatus = (typeof DISPATCHER_WORK_STATUSES)[number];
+
+export const DISPATCHER_WORK_STATUS_LABELS: Record<DispatcherWorkStatus, string> = {
+  free: "Свободна",
+  in_work: "В работе у диспетчера",
+  offered: "Предложение отправлено",
+  accepted: "Принято перевозчиком",
+  declined: "Отклонено перевозчиком",
+  released: "Освобождена",
+};

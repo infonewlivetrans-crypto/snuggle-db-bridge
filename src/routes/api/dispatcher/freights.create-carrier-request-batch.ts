@@ -72,12 +72,21 @@ export const Route = createFileRoute(
         const admin = await isAdmin(auth.client, auth.userId);
         if (!admin) {
           if (veh.data.dispatcher_taken_by && veh.data.dispatcher_taken_by !== auth.userId) {
+            console.warn("[dispatcher.batch-offer] vehicle_taken_by_other", {
+              vehicle_id: d.dispatcher_vehicle_ext_id,
+              requester: auth.userId,
+              taken_by: veh.data.dispatcher_taken_by,
+            });
             return jsonResponse(
               { error: "vehicle_taken_by_other" },
               { status: 409 },
             );
           }
           if (veh.data.dispatcher_work_status !== "in_work") {
+            console.warn("[dispatcher.batch-offer] vehicle_not_in_work", {
+              vehicle_id: d.dispatcher_vehicle_ext_id,
+              work_status: veh.data.dispatcher_work_status,
+            });
             return jsonResponse(
               { error: "vehicle_not_in_work" },
               { status: 409 },
@@ -140,6 +149,10 @@ export const Route = createFileRoute(
               "suspicious",
             ].includes(st)
           ) {
+            console.warn("[dispatcher.batch-offer] freight_status_blocks_offer", {
+              freight_id: f.id,
+              status: st,
+            });
             return jsonResponse(
               {
                 error: "freight_status_blocks_offer",

@@ -50,6 +50,10 @@ export const Route = createFileRoute("/api/dispatcher/carrier-requests/$id/creat
             .eq("id", r.dispatcher_deal_id)
             .maybeSingle();
           if (existing.data) {
+            console.warn("[dispatcher.create-deal] deal_duplicate_prevented", {
+              request_id: params.id,
+              deal_id: r.dispatcher_deal_id,
+            });
             return jsonResponse({ row: existing.data, already_linked: true });
           }
         }
