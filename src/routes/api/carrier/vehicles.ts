@@ -34,6 +34,17 @@ type VehicleRow = {
   driver_name: string | null;
   driver_phone: string | null;
   source: "production" | "dispatcher";
+  // readiness reported by carrier/driver (dispatcher source only)
+  current_city: string | null;
+  ready_to_cities: string[] | null;
+  ready_comment: string | null;
+  load_status: string | null;
+  free_payload_kg: number | null;
+  free_volume_m3: number | null;
+  partial_route_from: string | null;
+  partial_route_to: string | null;
+  loading_restrictions: string | null;
+  location_updated_at: string | null;
 };
 
 const EXT_INACTIVE = new Set(["blocked", "archive", "inactive"]);
