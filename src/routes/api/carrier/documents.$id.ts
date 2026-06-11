@@ -79,6 +79,22 @@ export const Route = createFileRoute("/api/carrier/documents/$id")({
             .eq("dispatcher_carrier_ext_id", ctx.dispatcherCarrierExtId)
             .maybeSingle();
           owned = !!data?.id;
+        } else if (ownerType === "freight") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data } = await (ctx.admin.from("dispatcher_freights" as never) as any)
+            .select("id")
+            .eq("id", ownerId)
+            .eq("assigned_carrier_ext_id", ctx.dispatcherCarrierExtId)
+            .maybeSingle();
+          owned = !!data?.id;
+        } else if (ownerType === "deal") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data } = await (ctx.admin.from("dispatcher_deals" as never) as any)
+            .select("id")
+            .eq("id", ownerId)
+            .eq("carrier_id", ctx.dispatcherCarrierExtId)
+            .maybeSingle();
+          owned = !!data?.id;
         }
         if (!owned) return jsonResponse({ error: "forbidden" }, { status: 403 });
 
