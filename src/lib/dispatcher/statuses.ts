@@ -82,6 +82,26 @@ export const VEHICLE_STATUS_LABELS: Record<VehicleStatus, string> = {
   archive: "Архив",
 };
 
+// Состояние загрузки машины. Заполняет перевозчик/водитель.
+export const LOAD_STATUSES = [
+  "empty",
+  "partial",
+  "loaded",
+  "unavailable",
+  "repair",
+  "resting",
+] as const;
+export type LoadStatus = (typeof LOAD_STATUSES)[number];
+
+export const LOAD_STATUS_LABELS: Record<LoadStatus, string> = {
+  empty: "Пустая",
+  partial: "Нужен догруз",
+  loaded: "Загружена",
+  unavailable: "Недоступна",
+  repair: "Ремонт",
+  resting: "Отдых",
+};
+
 // Тип кузова. Стабильные коды + русские лейблы.
 export const VEHICLE_BODY_TYPES = [
   "tent",
