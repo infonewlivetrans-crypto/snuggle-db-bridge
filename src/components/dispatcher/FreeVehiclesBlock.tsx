@@ -354,7 +354,11 @@ function VehicleDetailsDialog({
 
           {byMe ? (
             <div className="sm:col-span-2">
-              <VehicleFreightsBlock vehicleId={v.id} />
+              <VehicleFreightsBlock
+                vehicleId={v.id}
+                carrierExtId={v.carrier?.id ?? null}
+                driverExtId={v.driver?.id ?? null}
+              />
             </div>
           ) : null}
         </div>

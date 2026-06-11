@@ -1,18 +1,30 @@
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { freightsApi } from "@/lib/dispatcher/api";
 import { FREIGHT_STATUS_LABELS } from "@/lib/dispatcher/statuses";
+import { BuildOfferDialog } from "./BuildOfferDialog";
 
 const fmt = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
 const fmtDate = (s: string | null | undefined) =>
   s ? new Date(s).toLocaleDateString("ru-RU") : "—";
 
-export function VehicleFreightsBlock({ vehicleId }: { vehicleId: string }) {
+interface Props {
+  vehicleId: string;
+  carrierExtId?: string | null;
+  driverExtId?: string | null;
+}
+
+export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: Props) {
   const qc = useQueryClient();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [offerOpen, setOfferOpen] = useState(false);
+
   const { data, isLoading } = useQuery({
     queryKey: ["vehicle-freights", vehicleId],
     queryFn: () =>
@@ -30,6 +42,33 @@ export function VehicleFreightsBlock({ vehicleId }: { vehicleId: string }) {
   });
 
   const rows = data?.rows ?? [];
+  const selectableRows = useMemo(
+    () =>
+      rows.filter(
+        (r) =>
+          !r.carrier_request_id &&
+          !["archived", "cancelled", "rejected", "not_suitable", "offered", "booked"].includes(
+            String(r.dispatcher_status ?? ""),
+          ),
+      ),
+    [rows],
+  );
+  const selectedFreights = useMemo(
+    () => selectableRows.filter((r) => selected.has(r.id)),
+    [selectableRows, selected],
+  );
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const canBuildOffer =
+    selectedFreights.length > 0 && !!carrierExtId;
 
   return (
     <div className="rounded-lg border border-border bg-card/40 p-3">
@@ -45,30 +84,52 @@ export function VehicleFreightsBlock({ vehicleId }: { vehicleId: string }) {
         <ul className="space-y-2">
           {rows.map((r) => {
             const status = r.dispatcher_status as keyof typeof FREIGHT_STATUS_LABELS;
+            const isOffered = !!r.carrier_request_id;
+            const blocked =
+              isOffered ||
+              ["archived", "cancelled", "rejected", "not_suitable", "offered", "booked"].includes(
+                String(r.dispatcher_status ?? ""),
+              );
             return (
-              <li key={r.id} className="rounded border border-border bg-background p-2 text-xs">
-                <div className="flex items-start justify-between gap-2">
+              <li
+                key={r.id}
+                className="rounded border border-border bg-background p-2 text-xs"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="pt-0.5">
+                    <Checkbox
+                      checked={selected.has(r.id)}
+                      onCheckedChange={() => !blocked && toggle(r.id)}
+                      disabled={blocked}
+                      aria-label="Выбрать груз"
+                    />
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium text-foreground">
                       {(r.loading_city ?? "—") + " → " + (r.unloading_city ?? "—")}
                     </div>
                     <div className="mt-0.5 text-muted-foreground">
-                      {fmtDate(r.loading_date)} · {r.cargo_name ?? "—"} · {fmt(r.rate)} ₽
+                      {fmtDate(r.loading_date)} · {r.cargo_name ?? "—"} ·{" "}
+                      {fmt(r.rate)} ₽
                     </div>
-                    <div className="mt-0.5">
+                    <div className="mt-0.5 flex flex-wrap gap-1">
                       <Badge variant="secondary" className="text-[10px]">
                         {FREIGHT_STATUS_LABELS[status] ?? r.dispatcher_status ?? "—"}
                       </Badge>
+                      {isOffered ? (
+                        <Badge variant="outline" className="text-[10px]">
+                          Уже предложен
+                        </Badge>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2"
-                    >
-                      <a href={`/dispatcher/freights?id=${r.id}`} target="_blank" rel="noreferrer">
+                    <Button asChild size="sm" variant="ghost" className="h-7 px-2">
+                      <a
+                        href={`/dispatcher/freights?id=${r.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </Button>
@@ -89,9 +150,34 @@ export function VehicleFreightsBlock({ vehicleId }: { vehicleId: string }) {
           })}
         </ul>
       )}
-      <Button size="sm" variant="outline" className="mt-2 w-full" disabled title="Следующий этап">
-        Собрать предложение рейса (следующий этап)
+      <Button
+        size="sm"
+        variant="default"
+        className="mt-2 w-full"
+        disabled={!canBuildOffer}
+        onClick={() => setOfferOpen(true)}
+        title={
+          !carrierExtId
+            ? "Транспорт не привязан к перевозчику"
+            : selectedFreights.length === 0
+              ? "Выберите хотя бы один груз"
+              : undefined
+        }
+      >
+        Собрать предложение рейса
+        {selectedFreights.length > 0 ? ` (${selectedFreights.length})` : ""}
       </Button>
+
+      {carrierExtId ? (
+        <BuildOfferDialog
+          open={offerOpen}
+          onOpenChange={setOfferOpen}
+          vehicleId={vehicleId}
+          carrierExtId={carrierExtId}
+          driverExtId={driverExtId ?? null}
+          freights={selectedFreights}
+        />
+      ) : null}
     </div>
   );
 }

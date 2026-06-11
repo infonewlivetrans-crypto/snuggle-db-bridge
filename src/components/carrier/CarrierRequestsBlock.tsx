@@ -37,12 +37,23 @@ interface RequestRow {
   payment_delay_days: number | null;
   commission_percent: number | string | null;
   commission_amount: number | string | null;
+  terms_text: string | null;
   dispatcher_comment: string | null;
   carrier_comment: string | null;
   request_status: string;
   sent_at: string | null;
   created_at: string;
 }
+
+const DECLINE_REASONS = [
+  "Низкая ставка",
+  "Не подходит маршрут",
+  "Не подходит дата",
+  "Не подходят условия оплаты",
+  "Машина занята",
+  "Водитель отказался",
+  "Другая причина",
+];
 
 function paymentLabel(t: string | null, delay: number | null): string {
   if (!t) return "—";
@@ -168,12 +179,25 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
             {paymentLabel(row.payment_type, row.payment_delay_days)}
           </div>
           <div>
-            <span className="text-muted-foreground">Комиссия диспетчера: </span>
+            <span className="text-muted-foreground">Комиссия сервиса: </span>
             {row.commission_amount == null
               ? "—"
               : `${row.commission_amount} ${currency} (${row.commission_percent ?? 5}%)`}
           </div>
+          <div>
+            <span className="text-muted-foreground">К выплате: </span>
+            {row.rate_amount != null && row.commission_amount != null
+              ? `${Number(row.rate_amount) - Number(row.commission_amount)} ${currency}`
+              : "—"}
+          </div>
         </div>
+
+        {row.terms_text && (
+          <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap">
+            <div className="mb-1 text-muted-foreground">Состав рейса:</div>
+            {row.terms_text}
+          </div>
+        )}
 
         {row.dispatcher_comment && (
           <div className="rounded-md border bg-muted/30 p-2 text-xs">
@@ -184,10 +208,22 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
 
         {!isFinal ? (
           <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {DECLINE_REASONS.map((r) => (
+                <button
+                  type="button"
+                  key={r}
+                  onClick={() => setComment(r)}
+                  className="rounded-full border border-border bg-muted/40 px-2 py-0.5 text-[11px] hover:bg-muted"
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
             <Textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Комментарий перевозчика (по желанию)"
+              placeholder="Причина отказа или комментарий перевозчика"
               rows={2}
             />
             <div className="flex flex-wrap gap-2">
@@ -204,14 +240,16 @@ function RequestCard({ row, onChange }: { row: RequestRow; onChange: () => void 
                 onClick={() => respondMut.mutate("declined")}
                 disabled={respondMut.isPending}
               >
-                <X className="mr-1 h-3.5 w-3.5" /> Отклонить
+                <X className="mr-1 h-3.5 w-3.5" /> Отказаться
               </Button>
             </div>
           </div>
         ) : (
           row.carrier_comment && (
             <div className="rounded-md border p-2 text-xs">
-              <div className="text-muted-foreground">Ваш комментарий:</div>
+              <div className="text-muted-foreground">
+                {row.request_status === "declined" ? "Причина отказа:" : "Ваш комментарий:"}
+              </div>
               <div>{row.carrier_comment}</div>
             </div>
           )

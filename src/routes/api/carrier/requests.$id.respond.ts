@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/carrier/requests/$id/respond")({
         // Проверяем принадлежность заявки перевозчику.
         const cur = await client
           .from(TABLE)
-          .select("id, dispatcher_carrier_ext_id, request_status")
+          .select("id, dispatcher_carrier_ext_id, dispatcher_vehicle_ext_id, request_status")
           .eq("id", params.id)
           .maybeSingle();
         if (!cur.data) return jsonResponse({ error: "not_found" }, { status: 404 });
@@ -59,6 +59,32 @@ export const Route = createFileRoute("/api/carrier/requests/$id/respond")({
           .select(SELECT)
           .single();
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
+
+        // Side-effects on linked freights and vehicle.
+        if (request_status === "accepted") {
+          await client
+            .from("dispatcher_freights")
+            .update({ dispatcher_status: "booked" })
+            .eq("carrier_request_id", params.id);
+          if (cur.data.dispatcher_vehicle_ext_id) {
+            await client
+              .from("dispatcher_vehicle_ext")
+              .update({ dispatcher_work_status: "accepted" })
+              .eq("id", cur.data.dispatcher_vehicle_ext_id);
+          }
+        } else if (request_status === "declined") {
+          // Возвращаем грузы в подбор; carrier_request_id оставляем для истории.
+          await client
+            .from("dispatcher_freights")
+            .update({ dispatcher_status: "checking" })
+            .eq("carrier_request_id", params.id);
+          if (cur.data.dispatcher_vehicle_ext_id) {
+            await client
+              .from("dispatcher_vehicle_ext")
+              .update({ dispatcher_work_status: "in_work" })
+              .eq("id", cur.data.dispatcher_vehicle_ext_id);
+          }
+        }
         return jsonResponse({ row: data });
       },
     },
