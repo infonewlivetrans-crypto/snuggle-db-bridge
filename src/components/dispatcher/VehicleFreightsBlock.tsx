@@ -123,9 +123,9 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
             const isOffered = !!r.carrier_request_id;
             const blocked =
               isOffered ||
-              ["archived", "cancelled", "rejected", "not_suitable", "offered", "booked"].includes(
-                String(r.dispatcher_status ?? ""),
-              );
+              INACTIVE.includes(String(r.dispatcher_status ?? "")) ||
+              ["offered", "booked"].includes(String(r.dispatcher_status ?? ""));
+            const canChangeStatus = !isOffered && !["booked", "deal_created"].includes(String(r.dispatcher_status ?? ""));
             return (
               <li
                 key={r.id}
@@ -169,20 +169,48 @@ export function VehicleFreightsBlock({ vehicleId, carrierExtId, driverExtId }: P
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2"
-                      onClick={() => archiveMut.mutate(r.id)}
-                      disabled={archiveMut.isPending}
-                      title="В архив"
-                    >
-                      <Archive className="h-3 w-3" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2"
+                          disabled={!canChangeStatus || statusMut.isPending}
+                          title="Действия"
+                        >
+                          <MoreHorizontal className="h-3 w-3" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        {QUICK_ACTIONS.map((a) => (
+                          <DropdownMenuItem
+                            key={a.status}
+                            onSelect={() =>
+                              statusMut.mutate({ id: r.id, status: a.status, comment: a.comment })
+                            }
+                          >
+                            {a.label}
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onSelect={() =>
+                            statusMut.mutate({
+                              id: r.id,
+                              status: "archived",
+                              comment: "Убран из подбора",
+                            })
+                          }
+                        >
+                          Убрать из подбора / В архив
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </li>
             );
+
           })}
         </ul>
       )}
