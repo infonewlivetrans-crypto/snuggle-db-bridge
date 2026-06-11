@@ -49,9 +49,13 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id")({
             { status: 400 },
           );
         }
+        const updateBody: Record<string, unknown> = { ...(parsed.data as Record<string, unknown>) };
+        if ("current_lat" in updateBody || "current_lng" in updateBody || "current_city" in updateBody) {
+          updateBody.location_updated_at = new Date().toISOString();
+        }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (auth.client.from(TABLE as never) as any)
-          .update(parsed.data as unknown as never)
+          .update(updateBody as unknown as never)
           .eq("id", params.id)
           .select(SELECT)
           .maybeSingle();
