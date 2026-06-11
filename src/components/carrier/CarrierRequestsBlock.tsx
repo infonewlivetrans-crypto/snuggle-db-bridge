@@ -276,6 +276,11 @@ function RequestCard({
           </div>
         </div>
 
+        <RouteMapPreview
+          loading={{ city: row.loading_city, address: row.loading_address }}
+          unloading={{ city: row.unloading_city, address: row.unloading_address }}
+        />
+
         {freights.length > 0 && (
           <div className="rounded-md border bg-muted/20 p-2 text-xs">
             <div className="mb-1 text-muted-foreground">Грузы в рейсе ({freights.length}):</div>
