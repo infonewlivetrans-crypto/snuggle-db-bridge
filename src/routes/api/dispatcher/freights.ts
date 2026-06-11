@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         const dateTo = url.searchParams.get("loading_date_to");
         const freightKind = url.searchParams.get("freight_kind");
         const vehicleId = url.searchParams.get("vehicle_id");
+        const dealId = url.searchParams.get("deal_id");
         const excludeArchived = url.searchParams.get("exclude_archived");
         const view = url.searchParams.get("view"); // all|email|needs_review|parsed|handed_over
 
