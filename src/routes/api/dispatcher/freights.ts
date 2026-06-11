@@ -57,6 +57,10 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         else if (view === "needs_review") q = q.eq("parse_status", "needs_review");
         else if (view === "parsed") q = q.eq("parse_status", "parsed");
         else if (view === "handed_over") q = q.not("carrier_request_id", "is", null);
+        if (vehicleId) q = q.eq("assigned_vehicle_ext_id", vehicleId);
+        if (excludeArchived === "1") {
+          q = q.not("dispatcher_status", "in", "(archived,cancelled,rejected,not_suitable)");
+        }
         if (loadingCity) q = q.ilike("loading_city", `%${loadingCity}%`);
         if (unloadingCity) q = q.ilike("unloading_city", `%${unloadingCity}%`);
         if (bodyType) q = q.ilike("body_type", `%${bodyType}%`);
