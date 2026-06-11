@@ -227,6 +227,7 @@ import { Route as ApiDriverUnreadClientMessagesRouteImport } from './routes/api/
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
 import { Route as ApiDispatcherVehiclesRouteImport } from './routes/api/dispatcher/vehicles'
+import { Route as ApiDispatcherTimelineRouteImport } from './routes/api/dispatcher/timeline'
 import { Route as ApiDispatcherTasksRouteImport } from './routes/api/dispatcher/tasks'
 import { Route as ApiDispatcherInvitesRouteImport } from './routes/api/dispatcher/invites'
 import { Route as ApiDispatcherFreightsRouteImport } from './routes/api/dispatcher/freights'
@@ -1444,6 +1445,11 @@ const ApiDispatcherVehiclesRoute = ApiDispatcherVehiclesRouteImport.update({
   path: '/api/dispatcher/vehicles',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDispatcherTimelineRoute = ApiDispatcherTimelineRouteImport.update({
+  id: '/api/dispatcher/timeline',
+  path: '/api/dispatcher/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDispatcherTasksRoute = ApiDispatcherTasksRouteImport.update({
   id: '/api/dispatcher/tasks',
   path: '/api/dispatcher/tasks',
@@ -2259,6 +2265,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
   '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
+  '/api/dispatcher/timeline': typeof ApiDispatcherTimelineRoute
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -2587,6 +2594,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
   '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
+  '/api/dispatcher/timeline': typeof ApiDispatcherTimelineRoute
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -2917,6 +2925,7 @@ export interface FileRoutesById {
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
   '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
+  '/api/dispatcher/timeline': typeof ApiDispatcherTimelineRoute
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
@@ -3248,6 +3257,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/freights'
     | '/api/dispatcher/invites'
     | '/api/dispatcher/tasks'
+    | '/api/dispatcher/timeline'
     | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
@@ -3576,6 +3586,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/freights'
     | '/api/dispatcher/invites'
     | '/api/dispatcher/tasks'
+    | '/api/dispatcher/timeline'
     | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
@@ -3905,6 +3916,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/freights'
     | '/api/dispatcher/invites'
     | '/api/dispatcher/tasks'
+    | '/api/dispatcher/timeline'
     | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
@@ -4223,6 +4235,7 @@ export interface RootRouteChildren {
   ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRouteWithChildren
   ApiDispatcherInvitesRoute: typeof ApiDispatcherInvitesRouteWithChildren
   ApiDispatcherTasksRoute: typeof ApiDispatcherTasksRouteWithChildren
+  ApiDispatcherTimelineRoute: typeof ApiDispatcherTimelineRoute
   ApiDispatcherVehiclesRoute: typeof ApiDispatcherVehiclesRouteWithChildren
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
@@ -5775,6 +5788,13 @@ declare module '@tanstack/react-router' {
       path: '/api/dispatcher/vehicles'
       fullPath: '/api/dispatcher/vehicles'
       preLoaderRoute: typeof ApiDispatcherVehiclesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dispatcher/timeline': {
+      id: '/api/dispatcher/timeline'
+      path: '/api/dispatcher/timeline'
+      fullPath: '/api/dispatcher/timeline'
+      preLoaderRoute: typeof ApiDispatcherTimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/dispatcher/tasks': {
@@ -7673,6 +7693,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherFreightsRoute: ApiDispatcherFreightsRouteWithChildren,
   ApiDispatcherInvitesRoute: ApiDispatcherInvitesRouteWithChildren,
   ApiDispatcherTasksRoute: ApiDispatcherTasksRouteWithChildren,
+  ApiDispatcherTimelineRoute: ApiDispatcherTimelineRoute,
   ApiDispatcherVehiclesRoute: ApiDispatcherVehiclesRouteWithChildren,
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
@@ -7705,13 +7726,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
