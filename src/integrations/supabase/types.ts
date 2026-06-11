@@ -1212,6 +1212,7 @@ export type Database = {
         Row: {
           addon_freight_ids: string[]
           cancel_reason: string | null
+          carrier_comment: string | null
           carrier_id: string | null
           carrier_payment_received_at: string | null
           comment: string | null
@@ -1262,6 +1263,7 @@ export type Database = {
         Insert: {
           addon_freight_ids?: string[]
           cancel_reason?: string | null
+          carrier_comment?: string | null
           carrier_id?: string | null
           carrier_payment_received_at?: string | null
           comment?: string | null
@@ -1312,6 +1314,7 @@ export type Database = {
         Update: {
           addon_freight_ids?: string[]
           cancel_reason?: string | null
+          carrier_comment?: string | null
           carrier_id?: string | null
           carrier_payment_received_at?: string | null
           comment?: string | null

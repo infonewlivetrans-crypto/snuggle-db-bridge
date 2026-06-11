@@ -1,0 +1,1 @@
+ALTER TABLE public.dispatcher_deals ADD COLUMN IF NOT EXISTS carrier_comment text;
