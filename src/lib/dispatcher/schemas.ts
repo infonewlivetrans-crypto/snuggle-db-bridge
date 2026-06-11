@@ -177,11 +177,15 @@ export const vehicleCreateSchema = z.object({
     .optional()
     .default([]),
   home_city: nullableText(100),
+  current_city: nullableText(100).optional(),
+  current_lat: optionalNumber.optional(),
+  current_lng: optionalNumber.optional(),
   ready_to_cities: z
     .array(z.string().trim().min(1).max(100))
     .optional()
     .default([]),
   ready_date: optionalDate,
+  ready_comment: nullableText(1000).optional(),
   dispatcher_driver_ext_id: optionalUuid,
   dispatcher_carrier_ext_id: optionalUuid,
   dispatcher_status: z.enum(VEHICLE_STATUSES).optional().default("new"),
