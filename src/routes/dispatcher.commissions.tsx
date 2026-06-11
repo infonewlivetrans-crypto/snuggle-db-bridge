@@ -197,6 +197,7 @@ function CommissionsPage() {
           </TableBody>
         </Table>
       </div>
+      )}
     </EntityTableLayout>
   );
 }
