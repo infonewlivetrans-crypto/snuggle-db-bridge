@@ -258,6 +258,7 @@ function VehicleDetailsDialog({
   taking: boolean;
   releasing: boolean;
 }) {
+  const [freightDialogOpen, setFreightDialogOpen] = useState(false);
   if (!row) return null;
   const v = row;
   const byMe = v.taken_by_self && v.dispatcher_work_status === "in_work";
