@@ -130,12 +130,17 @@ function CommissionsPage() {
               <SelectItem value="overdue">Просрочено</SelectItem>
               <SelectItem value="paid">Комиссия получена</SelectItem>
               <SelectItem value="dispute">Спор</SelectItem>
+              <SelectItem value="earnings">Заработок диспетчеров</SelectItem>
             </SelectContent>
           </Select>
         </>
       }
     >
+      {tab === "earnings" ? (
+        <EarningsTab />
+      ) : (
       <div className="rounded-md border bg-card overflow-x-auto">
+
         <Table>
           <TableHeader>
             <TableRow>
