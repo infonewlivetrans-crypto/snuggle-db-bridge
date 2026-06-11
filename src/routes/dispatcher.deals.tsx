@@ -314,6 +314,11 @@ function DealsPage() {
                 <DispatcherDocumentsBlock ownerType="deal" ownerId={viewing.id} />
               </div>
 
+              <div className="pt-4 border-t">
+                <TimelineBlock dealId={viewing.id} title="История сделки" />
+              </div>
+
+
 
               {viewing.carrier_id ? (
                 <div className="pt-4 border-t">
