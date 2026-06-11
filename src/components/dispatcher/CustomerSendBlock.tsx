@@ -80,26 +80,10 @@ export function CustomerSendBlock({ dealId, dealStatus, carrierAccepted }: Props
       ),
   });
 
-  // freights API использует фильтр по vehicle_id; для deal_id нужен прямой
-  // запрос — фоллбэк через общий список с фильтром в памяти.
-  const allFreightsQ = useQuery({
-    enabled: ready,
-    queryKey: ["customer-send", "freights-all", dealId],
-    queryFn: () =>
-      apiGetAuth<{ rows: FreightRow[] & { deal_id?: string | null }[] }>(
-        `/api/dispatcher/freights?limit=500`,
-        12000,
-      ),
-  });
-
-  const freights: FreightRow[] = useMemo(() => {
-    const direct = freightsQ.data?.rows ?? [];
-    if (direct.length > 0) return direct;
-    const fallback = (allFreightsQ.data?.rows ?? []) as (FreightRow & {
-      deal_id?: string | null;
-    })[];
-    return fallback.filter((f) => f.deal_id === dealId);
-  }, [freightsQ.data, allFreightsQ.data, dealId]);
+  const freights: FreightRow[] = useMemo(
+    () => freightsQ.data?.rows ?? [],
+    [freightsQ.data],
+  );
 
   const historyQ = useQuery({
     enabled: ready,
