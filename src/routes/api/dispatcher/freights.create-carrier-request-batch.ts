@@ -127,12 +127,31 @@ export const Route = createFileRoute(
             );
           }
           const st = String(f.dispatcher_status ?? "");
-          if (["archived", "cancelled", "rejected", "not_suitable"].includes(st)) {
+          if (
+            [
+              "archived",
+              "cancelled",
+              "rejected",
+              "not_suitable",
+              "taken_by_other",
+              "not_actual",
+              "no_answer",
+              "bad_rate",
+              "suspicious",
+            ].includes(st)
+          ) {
             return jsonResponse(
-              { error: "freight_status_blocks_offer", freight_id: f.id, status: st },
-              { status: 400 },
+              {
+                error: "freight_status_blocks_offer",
+                freight_id: f.id,
+                status: st,
+                message:
+                  "Один из выбранных грузов больше неактуален и не может быть предложен перевозчику.",
+              },
+              { status: 409 },
             );
           }
+
         }
 
         // Sort by loading_date for stable ordering
