@@ -23,7 +23,8 @@ export const Route = createFileRoute("/api/carrier/deals")({
           .select(
             "id, deal_number, route_from, route_to, loading_date, unloading_date, " +
               "total_rate, commission_rate, commission_amount, payment_type, " +
-              "deal_status, payment_status, commission_status, comment, " +
+              "deal_status, payment_status, commission_status, comment, carrier_comment, " +
+              "loading_started_at, in_transit_at, unloading_started_at, delivered_at, " +
               "driver_id, vehicle_id, created_at, updated_at",
           )
           .eq("carrier_id", ctx.dispatcherCarrierExtId)

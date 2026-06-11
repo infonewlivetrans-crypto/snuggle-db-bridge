@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth } from "@/lib/api-client";
 import { CarrierRequestsBlock } from "@/components/carrier/CarrierRequestsBlock";
+import { CarrierTripProgressBlock } from "@/components/carrier/CarrierTripProgressBlock";
 import {
   DEAL_STATUS_LABELS,
   type DealStatus,
@@ -49,6 +50,11 @@ type Deal = {
   vehicle_plate: string | null;
   source_request_number: string | null;
   comment: string | null;
+  carrier_comment: string | null;
+  loading_started_at: string | null;
+  in_transit_at: string | null;
+  unloading_started_at: string | null;
+  delivered_at: string | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -147,9 +153,22 @@ function CarrierTripsPage() {
                 </div>
                 {d.comment && (
                   <div className="rounded-md border bg-muted/30 p-2 text-xs whitespace-pre-wrap">
+                    <span className="font-semibold">Диспетчер: </span>
                     {d.comment}
                   </div>
                 )}
+                <CarrierTripProgressBlock
+                  deal={{
+                    id: d.id,
+                    deal_status: d.deal_status,
+                    loading_started_at: d.loading_started_at,
+                    in_transit_at: d.in_transit_at,
+                    unloading_started_at: d.unloading_started_at,
+                    delivered_at: d.delivered_at,
+                    carrier_comment: d.carrier_comment,
+                  }}
+                />
+
               </CardContent>
             </Card>
           ))}
