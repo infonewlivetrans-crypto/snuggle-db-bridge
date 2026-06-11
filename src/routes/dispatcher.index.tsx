@@ -23,6 +23,7 @@ import {
 } from "@/lib/dispatcher/statuses";
 import { FreeVehiclesBlock } from "@/components/dispatcher/FreeVehiclesBlock";
 import { AcceptedOffersBlock } from "@/components/dispatcher/AcceptedOffersBlock";
+import { CarrierResponsesOverviewBlock } from "@/components/dispatcher/CarrierResponsesOverviewBlock";
 
 export const Route = createFileRoute("/dispatcher/")({
   component: DispatcherHome,
