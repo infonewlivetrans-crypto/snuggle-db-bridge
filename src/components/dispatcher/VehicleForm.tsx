@@ -74,6 +74,14 @@ export function VehicleForm({
   const [homeCity, setHomeCity] = useState("");
   const [readyTo, setReadyTo] = useState("");
   const [readyDate, setReadyDate] = useState("");
+  const [readyRadius, setReadyRadius] = useState<string>("");
+  const [readyMode, setReadyMode] = useState<VehicleReadyMode>("from_date");
+  const [readyFrom, setReadyFrom] = useState<string>("");
+  const [readyWeekdays, setReadyWeekdays] = useState<number[]>([]);
+  const [locationSource, setLocationSource] = useState<string | null>(null);
+  const [currentLat, setCurrentLat] = useState<string>("");
+  const [currentLng, setCurrentLng] = useState<string>("");
+  const [locationUpdatedAt, setLocationUpdatedAt] = useState<string | null>(null);
   const [driverId, setDriverId] = useState<string>("none");
   const [carrierId, setCarrierId] = useState<string>(initialCarrierId ?? "none");
   const [status, setStatus] = useState<VehicleStatus>("new");
