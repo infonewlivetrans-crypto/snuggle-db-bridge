@@ -112,6 +112,15 @@ export function VehicleForm({
       setHomeCity(empty(initial.home_city));
       setReadyTo((initial.ready_to_cities ?? []).join(", "));
       setReadyDate(initial.ready_date ? String(initial.ready_date).slice(0, 10) : "");
+      const init = initial as unknown as Record<string, unknown>;
+      setReadyRadius(numStr((init.ready_radius_km ?? null) as number | null));
+      setReadyMode(((init.ready_mode as VehicleReadyMode) ?? "from_date"));
+      setReadyFrom(init.ready_from ? String(init.ready_from).slice(0, 10) : "");
+      setReadyWeekdays(Array.isArray(init.ready_weekdays) ? (init.ready_weekdays as number[]) : []);
+      setLocationSource((init.location_source as string | null) ?? null);
+      setCurrentLat(init.current_lat == null ? "" : String(init.current_lat));
+      setCurrentLng(init.current_lng == null ? "" : String(init.current_lng));
+      setLocationUpdatedAt((init.location_updated_at as string | null) ?? null);
       setDriverId(initial.dispatcher_driver_ext_id ?? "none");
       setCarrierId(initial.dispatcher_carrier_ext_id ?? initialCarrierId ?? "none");
       setStatus(
