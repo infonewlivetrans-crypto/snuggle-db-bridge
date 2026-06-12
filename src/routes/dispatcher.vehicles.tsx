@@ -274,7 +274,7 @@ function VehiclesPage() {
           {viewing && (
             <div className="space-y-2 text-sm">
               <Row label="Тип" value={viewing.vehicle_kind ?? "—"} />
-              <Row label="Кузов" value={viewing.body_type ?? "—"} />
+              <Row label="Кузов" value={viewing.body_type ? getVehicleBodyTypeLabel(viewing.body_type) : "—"} />
               <Row label="Грузоподъёмность" value={viewing.payload_kg != null ? `${viewing.payload_kg} кг` : "—"} />
               <Row label="Объём" value={viewing.volume_m3 != null ? `${viewing.volume_m3} м³` : "—"} />
               <Row label="Габариты" value={fmtDim(viewing)} />
