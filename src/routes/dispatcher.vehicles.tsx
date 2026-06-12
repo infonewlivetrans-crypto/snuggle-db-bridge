@@ -53,6 +53,7 @@ function VehiclesPage() {
   const [city, setCity] = useState("");
   const [bodyType, setBodyType] = useState("");
   const [readyToday, setReadyToday] = useState(false);
+  const [archived, setArchived] = useState<"hide" | "only" | "all">("hide");
   const [sortKey, setSortKey] = useState<string>("created");
   const [orderAsc, setOrderAsc] = useState(false);
   const [editing, setEditing] = useState<VehicleDTO | null>(null);
