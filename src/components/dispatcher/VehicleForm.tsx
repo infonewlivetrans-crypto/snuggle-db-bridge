@@ -352,7 +352,101 @@ export function VehicleForm({
           </datalist>
         </div>
         <div><Label>Готов ехать (через запятую)</Label><Input value={readyTo} onChange={(e) => setReadyTo(e.target.value)} placeholder="Москва, Казань, ..." /></div>
-        <div><Label>Дата готовности</Label><Input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} /></div>
+        <div>
+          <Label>Радиус готовности от города, км (0–999)</Label>
+          <Input
+            type="number"
+            min={0}
+            max={999}
+            value={readyRadius}
+            onChange={(e) => setReadyRadius(e.target.value)}
+            placeholder="0"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label>Режим готовности</Label>
+          <Select value={readyMode} onValueChange={(v) => setReadyMode(v as VehicleReadyMode)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {VEHICLE_READY_MODES.map((m) => (
+                <SelectItem key={m} value={m}>{VEHICLE_READY_MODE_LABELS[m]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {readyMode === "from_date" && (
+          <div className="md:col-span-2">
+            <Label>Готов с даты</Label>
+            <Input type="date" value={readyFrom} onChange={(e) => setReadyFrom(e.target.value)} />
+          </div>
+        )}
+        {readyMode === "today" && (
+          <div className="md:col-span-2">
+            <Label>Дата готовности</Label>
+            <Input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} />
+          </div>
+        )}
+        {(readyMode === "weekdays" || readyMode === "custom") && (
+          <div className="md:col-span-2">
+            <Label>Дни недели</Label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {WEEKDAY_LABELS_SHORT.map((label, i) => {
+                const day = i + 1;
+                const active = readyWeekdays.includes(day);
+                return (
+                  <button
+                    type="button"
+                    key={day}
+                    onClick={() =>
+                      setReadyWeekdays(
+                        active ? readyWeekdays.filter((x) => x !== day) : [...readyWeekdays, day],
+                      )
+                    }
+                    className={`px-3 py-1 rounded-md border text-sm ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card border-border text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {readyMode === "weekdays" && readyWeekdays.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                По умолчанию — Пн–Пт. Выберите конкретные дни, если нужно.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="md:col-span-2 mt-2 border-t pt-3">
+          <div className="text-sm font-semibold mb-2">Местоположение (админ/тест)</div>
+          <p className="text-xs text-muted-foreground mb-2">
+            Если указан только город — координаты подберутся автоматически (Яндекс). Координаты ниже —
+            только для тестирования и ручной корректировки.
+          </p>
+        </div>
+        <div><Label>Широта (lat)</Label><Input value={currentLat} onChange={(e) => setCurrentLat(e.target.value)} placeholder="55.7558" /></div>
+        <div><Label>Долгота (lng)</Label><Input value={currentLng} onChange={(e) => setCurrentLng(e.target.value)} placeholder="37.6173" /></div>
+        <div className="md:col-span-2 text-xs text-muted-foreground">
+          Источник координат:{" "}
+          <span className="font-medium text-foreground">
+            {locationSource
+              ? VEHICLE_LOCATION_SOURCE_LABELS[
+                  locationSource as keyof typeof VEHICLE_LOCATION_SOURCE_LABELS
+                ] ?? locationSource
+              : "—"}
+          </span>
+          {locationUpdatedAt && (
+            <>
+              {" · обновлено "}
+              {new Date(locationUpdatedAt).toLocaleString("ru-RU")}
+            </>
+          )}
+        </div>
 
         <div className="md:col-span-2 mt-2 border-t pt-3">
           <div className="text-sm font-semibold mb-2">Экономика рейса</div>
