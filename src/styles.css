@@ -515,3 +515,29 @@ main, main > * { min-width: 0; }
 
 /* Запрет переноса текста пунктов меню в две строки */
 header nav a, header nav button { white-space: nowrap; }
+
+/* Кастомные маркеры машин на Leaflet-карте свободных машин */
+.vmap-pin-wrap { background: transparent !important; border: 0 !important; }
+.vmap-pin {
+  position: relative;
+  width: 40px;
+  height: 48px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+}
+.vmap-pin__body {
+  position: absolute; inset: 0 0 6px 0;
+  background: var(--c, #10b981);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.vmap-pin__emoji { font-size: 18px; line-height: 1; }
+.vmap-pin__tail {
+  position: absolute; left: 50%; bottom: 0;
+  width: 0; height: 0;
+  transform: translateX(-50%);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 10px solid var(--c, #10b981);
+}
+.leaflet-popup-content { margin: 10px 12px; }
