@@ -57,7 +57,7 @@ const READY = new Set(["ready_to_work", "available", "free"]);
 
 function bodyTypeLabel(b: string | null): string {
   if (!b) return "—";
-  return (VEHICLE_BODY_TYPE_LABELS as Record<string, string>)[b] ?? b;
+  return getVehicleBodyTypeLabel(b) || "—";
 }
 
 function statusLabel(s: string | null): string {
