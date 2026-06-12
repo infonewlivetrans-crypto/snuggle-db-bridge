@@ -81,6 +81,7 @@ export function FreightMatchResults({ rows, loading, freightId }: Props) {
               <TableCell>
                 <div className="font-medium">{r.vehicle_kind ?? "—"}</div>
                 <div className="text-xs text-muted-foreground">{r.body_type ?? ""}</div>
+
               </TableCell>
               <TableCell className="text-xs">
                 <div>{r.payload_kg != null ? `${r.payload_kg} кг` : "—"}</div>
