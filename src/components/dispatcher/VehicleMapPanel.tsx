@@ -326,8 +326,7 @@ function LeafletVehicleMap({
           attribution: "&copy; OpenStreetMap",
         }).addTo(map);
 
-        // @ts-expect-error markerClusterGroup добавляется плагином в runtime
-        const cluster = L.markerClusterGroup({
+        const cluster = (L as any).markerClusterGroup({
           showCoverageOnHover: false,
           maxClusterRadius: 50,
           spiderfyOnMaxZoom: true,
