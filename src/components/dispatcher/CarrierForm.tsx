@@ -199,7 +199,6 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       commission_rate: rate,
       payment_method: blank(paymentMethod),
       commission_payment_method: initial?.commission_payment_method ?? null,
-      payment_method: blank(paymentMethod),
       commission_agreed: initial?.commission_agreed ?? false,
       verification_status: safeVerificationStatus,
       dispatcher_comment: blank(comment),
