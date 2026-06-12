@@ -345,7 +345,7 @@ function VehicleDetailsDialog({
 
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <Block title="Транспорт">
-            <KV label="Кузов" v={v.body_type} />
+            <KV label="Кузов" v={v.body_type ? getVehicleBodyTypeLabel(v.body_type) : null} />
             <KV label="Тоннаж, кг" v={fmtNum(v.payload_kg)} />
             <KV label="Объём, м³" v={fmtNum(v.volume_m3)} />
             <KV label="Габариты" v={`${fmtNum(v.length_m)}×${fmtNum(v.width_m)}×${fmtNum(v.height_m)} м`} />
