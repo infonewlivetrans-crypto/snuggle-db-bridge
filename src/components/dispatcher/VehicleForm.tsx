@@ -194,7 +194,18 @@ export function VehicleForm({
       rate_comment: rateComment || null,
       dispatcher_comment: comment || null,
       production_vehicle_id: initial?.production_vehicle_id ?? null,
-    });
+      ready_radius_km: readyRadius.trim() === "" ? null : Math.max(0, Math.min(999, Math.trunc(Number(readyRadius)) || 0)),
+      ready_mode: readyMode ?? null,
+      ready_weekdays:
+        readyMode === "weekdays" || readyMode === "custom" ? readyWeekdays : null,
+      ready_from: readyFrom || null,
+      current_lat: currentLat.trim() === "" ? null : (Number(currentLat) || null),
+      current_lng: currentLng.trim() === "" ? null : (Number(currentLng) || null),
+      location_source:
+        currentLat.trim() !== "" && currentLng.trim() !== ""
+          ? "admin"
+          : ((locationSource as never) ?? null),
+    } as never);
   };
 
   const carrierLabel = (c: CarrierDTO) => {
