@@ -340,7 +340,7 @@ export function VehicleForm({
         </div>
 
         <div>
-          <Label>Город нахождения</Label>
+          <Label>Город базирования / текущее местоположение</Label>
           <Input
             list="vehicle-cities-datalist"
             value={homeCity}
@@ -350,6 +350,9 @@ export function VehicleForm({
           <datalist id="vehicle-cities-datalist">
             {RUSSIAN_CITIES_PRESET.map((c) => <option key={c} value={c} />)}
           </datalist>
+          <p className="text-xs text-muted-foreground mt-1">
+            Если приложение водителя передаёт GPS — отображается оно. Если нет — это поле.
+          </p>
         </div>
         <div><Label>Готов ехать (через запятую)</Label><Input value={readyTo} onChange={(e) => setReadyTo(e.target.value)} placeholder="Москва, Казань, ..." /></div>
         <div>
