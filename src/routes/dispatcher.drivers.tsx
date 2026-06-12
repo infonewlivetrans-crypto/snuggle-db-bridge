@@ -54,6 +54,7 @@ function DriversPage() {
         status,
         city,
         carrier_id: carrierFilter === "all" ? "" : carrierFilter,
+        archived,
         limit: 200,
       });
       setRows(res.rows);
