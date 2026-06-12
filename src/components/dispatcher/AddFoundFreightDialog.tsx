@@ -201,7 +201,7 @@ export function AddFoundFreightDialog({
             <Input type="number" value={f.volume_m3} onChange={(e) => set("volume_m3", e.target.value)} />
           </Field>
           <Field label="Кузов">
-            <Input value={f.body_type} onChange={(e) => set("body_type", e.target.value)} />
+            <VehicleBodyTypeSelect value={f.body_type} onChange={(v) => set("body_type", v)} />
           </Field>
           <Field label="Ставка, ₽">
             <Input type="number" value={f.rate} onChange={(e) => set("rate", e.target.value)} />
