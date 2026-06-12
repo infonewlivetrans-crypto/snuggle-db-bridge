@@ -26,6 +26,9 @@ import {
   LOAD_METHOD_LABELS,
   VEHICLE_STATUSES,
   VEHICLE_STATUS_LABELS,
+  VEHICLE_READY_MODE_LABELS,
+  VEHICLE_LOCATION_SOURCE_LABELS,
+  WEEKDAY_LABELS_SHORT,
   type LoadMethod,
 } from "@/lib/dispatcher/statuses";
 import { VEHICLE_BODY_TYPES, getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
@@ -295,32 +298,79 @@ function VehiclesPage() {
             <DialogTitle>Транспорт</DialogTitle>
             <DialogDescription>Карточка транспортного средства.</DialogDescription>
           </DialogHeader>
-          {viewing && (
+          {viewing && (() => {
+            const v = viewing as VehicleDTO & {
+              current_city?: string | null;
+              current_lat?: number | null;
+              current_lng?: number | null;
+              location_source?: string | null;
+              location_updated_at?: string | null;
+              ready_radius_km?: number | null;
+              ready_mode?: string | null;
+              ready_from?: string | null;
+              ready_weekdays?: number[] | null;
+            };
+            const carrier = carriers.find((c) => c.id === v.dispatcher_carrier_ext_id);
+            const driver = drivers.find((d) => d.id === v.dispatcher_driver_ext_id);
+            const locText = v.current_city
+              ? v.current_city
+              : (v.current_lat != null && v.current_lng != null
+                ? `${v.current_lat.toFixed(4)}, ${v.current_lng.toFixed(4)}`
+                : (v.home_city ?? "—"));
+            const srcLabel = v.location_source
+              ? VEHICLE_LOCATION_SOURCE_LABELS[v.location_source as keyof typeof VEHICLE_LOCATION_SOURCE_LABELS] ?? v.location_source
+              : "—";
+            const readyModeLabel = v.ready_mode
+              ? VEHICLE_READY_MODE_LABELS[v.ready_mode as keyof typeof VEHICLE_READY_MODE_LABELS] ?? v.ready_mode
+              : "—";
+            const weekdays = (v.ready_weekdays ?? []).map((d) => WEEKDAY_LABELS_SHORT[d - 1]).join(", ");
+            return (
             <div className="space-y-2 text-sm">
-              <Row label="Тип" value={viewing.vehicle_kind ?? "—"} />
-              <Row label="Кузов" value={viewing.body_type ? getVehicleBodyTypeLabel(viewing.body_type) : "—"} />
-              <Row label="Грузоподъёмность" value={viewing.payload_kg != null ? `${viewing.payload_kg} кг` : "—"} />
-              <Row label="Объём" value={viewing.volume_m3 != null ? `${viewing.volume_m3} м³` : "—"} />
-              <Row label="Габариты" value={fmtDim(viewing)} />
-              <Row label="Способы загрузки" value={(viewing.load_methods ?? []).map((m) => LOAD_METHOD_LABELS[m as LoadMethod] ?? m).join(", ") || "—"} />
-              <Row label="Город нахождения" value={viewing.home_city ?? "—"} />
-              <Row label="Куда готов ехать" value={(viewing.ready_to_cities ?? []).join(", ") || "—"} />
-              <Row label="Дата готовности" value={viewing.ready_date ?? "—"} />
-              <Row label="Перевозчик" value={carrierName(viewing.dispatcher_carrier_ext_id)} />
-              <Row label="Водитель" value={driverName(viewing.dispatcher_driver_ext_id)} />
-              <Row label="Мин. ставка за рейс" value={fmtMoney(viewing.minimum_trip_rate)} />
-              <Row label="Мин. ставка за км" value={fmtMoney(viewing.minimum_km_rate)} />
-              <Row label="Ставка по городу" value={fmtMoney(viewing.city_rate)} />
-              <Row label="Ставка за точку" value={fmtMoney(viewing.point_rate)} />
-              <Row label="Комментарий по ставке" value={viewing.rate_comment ?? "—"} />
-              <Row label="Статус" value={<StatusBadge status={viewing.dispatcher_status} label={VEHICLE_STATUS_LABELS[viewing.dispatcher_status as keyof typeof VEHICLE_STATUS_LABELS] ?? viewing.dispatcher_status} />} />
-              <Row label="Комментарий" value={viewing.dispatcher_comment ?? "—"} />
-              <DispatcherDocumentsBlock ownerType="vehicle" ownerId={viewing.id} />
-              {viewing.dispatcher_carrier_ext_id && (
+              <Row label="Тип" value={v.vehicle_kind ?? "—"} />
+              <Row label="Кузов" value={v.body_type ? getVehicleBodyTypeLabel(v.body_type) : "—"} />
+              <Row label="Грузоподъёмность" value={v.payload_kg != null ? `${v.payload_kg} кг` : "—"} />
+              <Row label="Объём" value={v.volume_m3 != null ? `${v.volume_m3} м³` : "—"} />
+              <Row label="Габариты" value={fmtDim(v)} />
+              <Row label="Способы загрузки" value={(v.load_methods ?? []).map((m) => LOAD_METHOD_LABELS[m as LoadMethod] ?? m).join(", ") || "—"} />
+              <Row label="Город базирования" value={v.home_city ?? "—"} />
+              <Row label="Текущее местоположение" value={locText} />
+              <Row label="Источник местоположения" value={
+                <span>
+                  {srcLabel}
+                  {v.location_updated_at && (
+                    <span className="text-xs text-muted-foreground"> · обновлено {new Date(v.location_updated_at).toLocaleString("ru-RU")}</span>
+                  )}
+                </span>
+              } />
+              <Row label="Радиус готовности" value={v.ready_radius_km != null ? `${v.ready_radius_km} км` : "—"} />
+              <Row label="Режим готовности" value={readyModeLabel} />
+              {v.ready_from && <Row label="Готов с даты" value={v.ready_from} />}
+              {weekdays && <Row label="Дни недели" value={weekdays} />}
+              <Row label="Куда готов ехать" value={(v.ready_to_cities ?? []).join(", ") || "—"} />
+              <Row label="Дата готовности" value={v.ready_date ?? "—"} />
+              <Row label="Перевозчик" value={
+                carrier
+                  ? `${carrier.name ?? "—"}${carrier.phone ? " · " + carrier.phone : ""}`
+                  : "—"
+              } />
+              <Row label="Водитель" value={
+                driver
+                  ? `${driver.full_name ?? "—"}${driver.phone ? " · " + driver.phone : ""}`
+                  : "—"
+              } />
+              <Row label="Мин. ставка за рейс" value={fmtMoney(v.minimum_trip_rate)} />
+              <Row label="Мин. ставка за км" value={fmtMoney(v.minimum_km_rate)} />
+              <Row label="Ставка по городу" value={fmtMoney(v.city_rate)} />
+              <Row label="Ставка за точку" value={fmtMoney(v.point_rate)} />
+              <Row label="Комментарий по ставке" value={v.rate_comment ?? "—"} />
+              <Row label="Статус" value={<StatusBadge status={v.dispatcher_status} label={VEHICLE_STATUS_LABELS[v.dispatcher_status as keyof typeof VEHICLE_STATUS_LABELS] ?? v.dispatcher_status} />} />
+              <Row label="Комментарий" value={v.dispatcher_comment ?? "—"} />
+              <DispatcherDocumentsBlock ownerType="vehicle" ownerId={v.id} />
+              {v.dispatcher_carrier_ext_id && (
                 <DispatcherPartnerCardBlock
-                  carrierExtId={viewing.dispatcher_carrier_ext_id}
-                  initialDriverId={viewing.dispatcher_driver_ext_id ?? null}
-                  initialVehicleId={viewing.id}
+                  carrierExtId={v.dispatcher_carrier_ext_id}
+                  initialDriverId={v.dispatcher_driver_ext_id ?? null}
+                  initialVehicleId={v.id}
                 />
               )}
               <div className="rounded-md border p-3 space-y-2">
@@ -328,10 +378,11 @@ function VehiclesPage() {
                 <div className="text-xs text-muted-foreground">
                   Отправьте водителю или перевозчику ссылку — он заполнит данные транспорта и прикрепит документы.
                 </div>
-                <InviteLinkButton entityType="vehicle" entityId={viewing.id} inviteType="vehicle_registration" />
+                <InviteLinkButton entityType="vehicle" entityId={v.id} inviteType="vehicle_registration" />
               </div>
             </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </EntityTableLayout>
