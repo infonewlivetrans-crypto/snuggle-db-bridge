@@ -202,6 +202,29 @@ export const vehicleCreateSchema = z.object({
   partial_route_from: nullableText(255).optional(),
   partial_route_to: nullableText(255).optional(),
   loading_restrictions: nullableText(1000).optional(),
+  location_source: z
+    .enum(["gps", "driver", "carrier", "admin", "home_city", "manual"])
+    .nullable()
+    .optional(),
+  ready_radius_km: z
+    .union([z.number(), z.string()])
+    .optional()
+    .nullable()
+    .transform((v) => {
+      if (v == null || v === "") return null;
+      const n = typeof v === "string" ? Number(v) : v;
+      if (!Number.isFinite(n)) return null;
+      const i = Math.trunc(n);
+      if (i < 0) return 0;
+      if (i > 999) return 999;
+      return i;
+    }),
+  ready_mode: z
+    .enum(["today", "from_date", "always", "weekdays", "custom"])
+    .nullable()
+    .optional(),
+  ready_weekdays: z.array(z.number().int().min(1).max(7)).optional().nullable(),
+  ready_from: optionalDate.optional(),
 });
 export type VehicleCreateInput = z.infer<typeof vehicleCreateSchema>;
 
