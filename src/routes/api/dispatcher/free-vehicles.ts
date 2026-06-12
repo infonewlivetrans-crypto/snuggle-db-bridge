@@ -24,8 +24,8 @@ const BUSY_VEHICLE_STATUSES = [
 
 const SELECT =
   "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, height_m, " +
-  "load_methods, home_city, current_city, current_lat, current_lng, location_updated_at, " +
-  "ready_to_cities, ready_date, ready_comment, " +
+  "load_methods, home_city, current_city, current_lat, current_lng, location_updated_at, location_source, " +
+  "ready_to_cities, ready_date, ready_comment, ready_radius_km, ready_mode, ready_weekdays, ready_from, " +
   "load_status, free_payload_kg, free_volume_m3, partial_route_from, partial_route_to, loading_restrictions, " +
   "dispatcher_driver_ext_id, dispatcher_carrier_ext_id, dispatcher_status, dispatcher_work_status, " +
   "dispatcher_taken_by, dispatcher_taken_at, " +
