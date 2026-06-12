@@ -14,8 +14,6 @@ import {
   LOAD_METHODS,
   LOAD_METHOD_LABELS,
   RUSSIAN_CITIES_PRESET,
-  VEHICLE_BODY_TYPES,
-  VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_FEATURES,
   VEHICLE_FEATURE_LABELS,
   VEHICLE_STATUSES,
@@ -23,6 +21,7 @@ import {
   DRIVER_STATUS_LABELS,
   type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
+import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { VehicleCreateInput } from "@/lib/dispatcher/schemas";
 
