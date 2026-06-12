@@ -41,6 +41,7 @@ function DriversPage() {
   const [status, setStatus] = useState<string>("all");
   const [city, setCity] = useState("");
   const [carrierFilter, setCarrierFilter] = useState<string>("all");
+  const [archived, setArchived] = useState<"hide" | "only" | "all">("hide");
   const [editing, setEditing] = useState<DriverDTO | null>(null);
   const [viewing, setViewing] = useState<DriverDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
