@@ -19,6 +19,11 @@ import {
   VEHICLE_STATUSES,
   VEHICLE_STATUS_LABELS,
   DRIVER_STATUS_LABELS,
+  VEHICLE_READY_MODES,
+  VEHICLE_READY_MODE_LABELS,
+  VEHICLE_LOCATION_SOURCE_LABELS,
+  WEEKDAY_LABELS_SHORT,
+  type VehicleReadyMode,
   type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
 import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
