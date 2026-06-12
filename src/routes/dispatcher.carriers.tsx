@@ -67,7 +67,7 @@ function CarriersPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await carriersApi.list({ search, status, city, limit: 200 });
+      const res = await carriersApi.list({ search, status, city, archived, limit: 200 });
       setRows(res.rows);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка загрузки");
