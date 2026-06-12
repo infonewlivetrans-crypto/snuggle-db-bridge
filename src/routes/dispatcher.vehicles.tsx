@@ -213,7 +213,7 @@ function VehiclesPage() {
               <TableRow key={r.id} className="cursor-pointer" onClick={() => setViewing(r)}>
                 <TableCell className="font-medium">
                   <div>{r.vehicle_kind ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">{r.body_type ?? ""}</div>
+                  <div className="text-xs text-muted-foreground">{getVehicleBodyTypeLabel(r.body_type)}</div>
                 </TableCell>
                 <TableCell>
                   <div>{r.payload_kg != null ? `${r.payload_kg} кг` : "—"}</div>
