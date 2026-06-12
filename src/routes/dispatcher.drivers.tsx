@@ -203,10 +203,13 @@ function DriversPage() {
                   </Select>
                 </TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button size="icon" variant="ghost" onClick={() => setViewing(r)}><Eye className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                  <InviteLinkButton entityType="driver" entityId={r.id} inviteType="driver_registration" />
-                  <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)}><Archive className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setViewing(r)} title="Просмотр"><Eye className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }} title="Редактировать"><Pencil className="h-4 w-4" /></Button>
+                  {r.dispatcher_status === "archive" ? (
+                    <Button size="icon" variant="ghost" onClick={() => handleRestore(r.id)} title="Восстановить"><RotateCcw className="h-4 w-4" /></Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать"><Archive className="h-4 w-4" /></Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
