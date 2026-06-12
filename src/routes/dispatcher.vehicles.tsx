@@ -98,7 +98,18 @@ function VehiclesPage() {
     const t = setTimeout(load, 200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, city, bodyType, readyToday, sortKey, orderAsc]);
+  }, [status, city, bodyType, readyToday, archived, sortKey, orderAsc]);
+
+  const handleRestore = async (id: string) => {
+    if (!confirm("Восстановить транспорт из архива?")) return;
+    try {
+      await vehiclesApi.update(id, { dispatcher_status: "new" } as never);
+      toast.success("Восстановлен");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
 
   const handleSubmit = async (data: VehicleCreateInput) => {
     setSubmitting(true);
