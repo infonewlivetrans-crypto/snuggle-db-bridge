@@ -17,6 +17,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { FreightForm } from "@/components/dispatcher/FreightForm";
+import { CityCombobox } from "@/components/common/CityCombobox";
 import { FreightMatchResults } from "@/components/dispatcher/FreightMatchResults";
 import { FreightPipelinePanel } from "@/components/dispatcher/FreightPipelinePanel";
 import { FreightFromEmailBlock } from "@/components/dispatcher/FreightFromEmailBlock";
@@ -145,8 +146,8 @@ function FreightsPage() {
       toolbar={
         <>
           <Input placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
-          <Input placeholder="Город загрузки" value={loadingCity} onChange={(e) => setLoadingCity(e.target.value)} className="w-44" />
-          <Input placeholder="Город выгрузки" value={unloadingCity} onChange={(e) => setUnloadingCity(e.target.value)} className="w-44" />
+          <div className="w-44"><CityCombobox value={loadingCity} onChange={setLoadingCity} placeholder="Город загрузки" size="sm" /></div>
+          <div className="w-44"><CityCombobox value={unloadingCity} onChange={setUnloadingCity} placeholder="Город выгрузки" size="sm" /></div>
           <Select value={bodyType || "all"} onValueChange={(v) => setBodyType(v === "all" ? "" : v)}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Тип кузова" /></SelectTrigger>
             <SelectContent>

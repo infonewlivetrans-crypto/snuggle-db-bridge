@@ -19,6 +19,7 @@ import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { DriverForm } from "@/components/dispatcher/DriverForm";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
+import { CityCombobox } from "@/components/common/CityCombobox";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO } from "@/lib/dispatcher/types";
@@ -139,7 +140,7 @@ function DriversPage() {
       toolbar={
         <>
           <Input placeholder="Поиск: ФИО, телефон, email" value={search} onChange={(e) => setSearch(e.target.value)} className="w-72" />
-          <Input placeholder="Город" value={city} onChange={(e) => setCity(e.target.value)} className="w-40" />
+          <div className="w-40"><CityCombobox value={city} onChange={setCity} placeholder="Город" size="sm" /></div>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-52"><SelectValue placeholder="Статус" /></SelectTrigger>
             <SelectContent>

@@ -23,6 +23,7 @@ import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistr
 import { CarrierUserLinkBlock } from "@/components/dispatcher/CarrierUserLinkBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { DispatcherCarrierRequestsBlock } from "@/components/dispatcher/DispatcherCarrierRequestsBlock";
+import { CityCombobox } from "@/components/common/CityCombobox";
 import { CarrierContractAcceptanceBlock } from "@/components/dispatcher/CarrierContractAcceptanceBlock";
 import { carriersApi, driversApi, vehiclesApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
@@ -179,12 +180,9 @@ function CarriersPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-72"
           />
-          <Input
-            placeholder="Город"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            className="w-48"
-          />
+          <div className="w-48">
+            <CityCombobox value={city} onChange={setCity} placeholder="Город" size="sm" />
+          </div>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-56"><SelectValue placeholder="Статус" /></SelectTrigger>
             <SelectContent>

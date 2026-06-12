@@ -18,6 +18,7 @@ import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { VehicleForm } from "@/components/dispatcher/VehicleForm";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
+import { CityCombobox } from "@/components/common/CityCombobox";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { vehiclesApi, driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
@@ -166,7 +167,7 @@ function VehiclesPage() {
       onCreate={() => { setEditing(null); setDialogOpen(true); }}
       toolbar={
         <>
-          <Input placeholder="Город" value={city} onChange={(e) => setCity(e.target.value)} className="w-40" />
+          <div className="w-40"><CityCombobox value={city} onChange={setCity} placeholder="Город" size="sm" /></div>
           <Select value={bodyType || "all"} onValueChange={(v) => setBodyType(v === "all" ? "" : v)}>
             <SelectTrigger className="w-48"><SelectValue placeholder="Тип кузова" /></SelectTrigger>
             <SelectContent>
