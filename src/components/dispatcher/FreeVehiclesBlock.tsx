@@ -233,7 +233,7 @@ function VehicleListCard({
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-foreground">
             {v.vehicle_kind ?? "—"}
-            {v.body_type ? <span className="text-muted-foreground"> · {v.body_type}</span> : null}
+            {v.body_type ? <span className="text-muted-foreground"> · {getVehicleBodyTypeLabel(v.body_type)}</span> : null}
           </div>
           <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="h-3 w-3" />
