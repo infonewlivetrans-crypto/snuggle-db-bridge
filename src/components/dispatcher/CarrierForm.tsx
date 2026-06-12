@@ -92,6 +92,17 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
     }
   }, [initial]);
 
+  // Тип ИНН/ОГРН зависит от вида перевозчика.
+  const innRequiredLen = kind === "llc" ? 10 : 12;
+  const ogrnRequiredLen = kind === "llc" ? 13 : 15;
+  const innDigits = inn.replace(/\D/g, "");
+  const ogrnDigits = ogrn.replace(/\D/g, "");
+  const phoneDigits = phone.replace(/\D/g, "");
+  const innInvalid = innDigits.length > 0 && innDigits.length !== innRequiredLen;
+  const ogrnInvalid = ogrnDigits.length > 0 && ogrnDigits.length !== ogrnRequiredLen;
+  const phoneInvalid = phoneDigits.length > 0 && phoneDigits.length < 10;
+  const requireStrict = status === "ready_to_work";
+
   const handle = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -99,28 +110,44 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       setError("Название обязательно");
       return;
     }
-    // Валидация (клиент): ИНН 10/12 цифр, ОГРН 13/15, телефон/email формат.
-    const innT = inn.trim();
-    if (innT && !/^\d{10}$|^\d{12}$/.test(innT)) {
-      setError("ИНН: 10 или 12 цифр");
-      return;
+    // Strict validation только для статуса «Готов к работе».
+    if (requireStrict) {
+      if (innDigits.length !== innRequiredLen) {
+        setError(`ИНН должен содержать ${innRequiredLen} цифр для выбранного типа`);
+        return;
+      }
+      if (ogrnDigits.length !== ogrnRequiredLen) {
+        setError(`ОГРН${kind === "llc" ? "" : "ИП"} должен содержать ${ogrnRequiredLen} цифр`);
+        return;
+      }
+      if (phoneDigits.length < 10) {
+        setError("Телефон: минимум 10 цифр");
+        return;
+      }
+    } else {
+      // Чёрновое сохранение: проверяем только формат, если поле заполнено.
+      const innT = inn.trim();
+      if (innT && !/^\d{10}$|^\d{12}$/.test(innT)) {
+        setError("ИНН: 10 или 12 цифр");
+        return;
+      }
+      const ogrnT = ogrn.trim();
+      if (ogrnT && !/^\d{13}$|^\d{15}$/.test(ogrnT)) {
+        setError("ОГРН — 13 цифр, ОГРНИП — 15 цифр");
+        return;
+      }
+      const phoneRe = /^[+\d][\d\s()\-]{5,30}$/;
+      if (phone.trim() && !phoneRe.test(phone.trim())) {
+        setError("Некорректный телефон");
+        return;
+      }
     }
-    const ogrnT = ogrn.trim();
-    if (ogrnT && !/^\d{13}$|^\d{15}$/.test(ogrnT)) {
-      setError("ОГРН — 13 цифр, ОГРНИП — 15 цифр");
-      return;
-    }
-    const phoneRe = /^[+\d][\d\s()\-]{5,30}$/;
     const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (phone.trim() && !phoneRe.test(phone.trim())) {
-      setError("Некорректный телефон");
-      return;
-    }
     if (email.trim() && !emailRe.test(email.trim())) {
       setError("Некорректный email");
       return;
     }
-    if (atiPhone.trim() && !phoneRe.test(atiPhone.trim())) {
+    if (atiPhone.trim() && !/^[+\d][\d\s()\-]{5,30}$/.test(atiPhone.trim())) {
       setError("Некорректный телефон ATI");
       return;
     }
@@ -154,7 +181,6 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
       name: name.trim(),
       carrier_kind: safeCarrierKind,
       tax_regime: blank(taxRegime),
-      commission_payment_method: null,
       inn: blank(inn),
       ogrn: blank(ogrn),
       phone: blank(phone),
