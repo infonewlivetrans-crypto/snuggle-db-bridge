@@ -121,6 +121,13 @@ export function DriverForm({
             <SelectTrigger><SelectValue placeholder="— не привязан —" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— не привязан —</SelectItem>
+              {carrierId !== "none" && !carriers.find((c) => c.id === carrierId) && (
+                <SelectItem value={carrierId}>
+                  {initial?.dispatcher_carrier_ext_id === carrierId
+                    ? "Текущий перевозчик (загрузка…)"
+                    : carrierId}
+                </SelectItem>
+              )}
               {carriers.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {carrierLabel(c)}

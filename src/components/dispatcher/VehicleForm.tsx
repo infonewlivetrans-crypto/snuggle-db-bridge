@@ -202,6 +202,13 @@ export function VehicleForm({
             <SelectTrigger><SelectValue placeholder="Выберите перевозчика" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— не выбран —</SelectItem>
+              {carrierId !== "none" && !carriers.find((c) => c.id === carrierId) && (
+                <SelectItem value={carrierId}>
+                  {initial?.dispatcher_carrier_ext_id === carrierId
+                    ? "Текущий перевозчик (загрузка…)"
+                    : carrierId}
+                </SelectItem>
+              )}
               {carriers.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{carrierLabel(c)}</SelectItem>
               ))}
@@ -216,6 +223,13 @@ export function VehicleForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— без водителя —</SelectItem>
+              {driverId !== "none" && !filteredDrivers.find((d) => d.id === driverId) && (
+                <SelectItem value={driverId}>
+                  {initial?.dispatcher_driver_ext_id === driverId
+                    ? "Текущий водитель (загрузка…)"
+                    : driverId}
+                </SelectItem>
+              )}
               {filteredDrivers.map((d) => (
                 <SelectItem key={d.id} value={d.id}>{driverLabel(d)}</SelectItem>
               ))}
