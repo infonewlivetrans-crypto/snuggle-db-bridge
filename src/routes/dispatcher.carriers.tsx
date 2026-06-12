@@ -80,7 +80,7 @@ function CarriersPage() {
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, city]);
+  }, [search, status, city, archived]);
 
   const handleSubmit = async (data: CarrierCreateInput) => {
     setSubmitting(true);
