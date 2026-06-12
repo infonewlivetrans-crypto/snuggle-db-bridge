@@ -81,6 +81,11 @@ interface Props {
   initialDriverId?: string | null;
   initialVehicleId?: string | null;
   initialDealId?: string | null;
+  /**
+   * История: показывать только список заявок без кнопки "Создать заявку".
+   * Создание заявки правильно начинать от груза → подбор машины → предложение.
+   */
+  historyOnly?: boolean;
 }
 
 const EMPTY_FORM = {
@@ -108,6 +113,7 @@ export function DispatcherCarrierRequestsBlock({
   initialDriverId = null,
   initialVehicleId = null,
   initialDealId = null,
+  historyOnly = false,
 }: Props) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -389,13 +395,15 @@ export function DispatcherCarrierRequestsBlock({
           <ClipboardList className="h-4 w-4" />
           <span className="text-sm font-semibold">Заявки перевозчику</span>
         </div>
-        <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>
-          <Plus className="mr-1 h-3.5 w-3.5" />
-          {open ? "Свернуть" : "Создать заявку"}
-        </Button>
+        {!historyOnly && (
+          <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            {open ? "Свернуть" : "Создать заявку"}
+          </Button>
+        )}
       </div>
 
-      {open && (
+      {!historyOnly && open && (
         <div className="space-y-2 rounded-md border bg-muted/30 p-2">
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="space-y-1">
