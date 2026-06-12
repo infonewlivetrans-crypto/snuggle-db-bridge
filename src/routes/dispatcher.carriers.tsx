@@ -336,75 +336,215 @@ function CarrierViewBody({
 }) {
   const [docsComment, setDocsComment] = useState(row.dispatcher_comment ?? "");
   const [showDocsField, setShowDocsField] = useState(row.verification_status === "missing_docs");
+  const [drivers, setDrivers] = useState<DriverDTO[]>([]);
+  const [vehicles, setVehicles] = useState<VehicleDTO[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [d, v] = await Promise.all([
+          driversApi.list({ carrier_id: row.id, archived: "hide", limit: 200 }),
+          vehiclesApi.list({ carrier_id: row.id, archived: "hide", limit: 200 }),
+        ]);
+        if (cancelled) return;
+        setDrivers(d.rows);
+        setVehicles(v.rows);
+      } catch {
+        /* мягко игнорируем — карточка не должна падать из-за подсчётов */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [row.id]);
+
+  const inTrip = useMemo(
+    () => vehicles.filter((v) => v.dispatcher_status === "in_trip").length,
+    [vehicles],
+  );
+
+  const kindLabel = row.carrier_kind
+    ? CARRIER_KIND_LABELS[row.carrier_kind as CarrierKind] ?? row.carrier_kind
+    : "—";
+  const taxLabel = row.tax_regime
+    ? CARRIER_TAX_REGIME_LABELS[row.tax_regime as CarrierTaxRegime] ?? row.tax_regime
+    : "—";
 
   return (
     <div className="space-y-4 text-sm">
-      {/* Кабинет перевозчика — главное действие */}
-      <CarrierUserLinkBlock carrierExtId={row.id} />
-
-      {/* Договор-оферта и комиссия */}
-      <CarrierContractAcceptanceBlock
-        carrierId={row.id}
-        currentCommissionRate={row.commission_rate}
-      />
-
-      {/* Согласие на комиссию — компактно */}
-      <div className="rounded-md border p-3 space-y-1">
-        <div className="flex items-center justify-between">
-          <span className="font-medium">Договор и комиссия</span>
-          {row.commission_agreed ? (
-            <Badge variant="default" className="gap-1">
-              <CheckCircle2 className="h-3 w-3" />
-              {(row.commission_rate * 100).toFixed(0)}% подтверждено
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-700">
-              <AlertTriangle className="h-3 w-3" /> Нет согласия
-            </Badge>
-          )}
-        </div>
-        <Row label="Ставка" value={`${(row.commission_rate * 100).toFixed(1)}%`} />
-        <Row label="Дата согласия" value={row.commission_agreed_at ? new Date(row.commission_agreed_at).toLocaleString("ru-RU") : "—"} />
-        <Row label="ФИО согласия" value={row.commission_agreed_by ?? "—"} />
-        <details className="pt-1">
-          <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">Показать подробности</summary>
-          <div className="mt-2 space-y-1">
-            <Row label="Способ оплаты" value={row.commission_payment_method ?? row.payment_method ?? "—"} />
-            {row.commission_agreement_text && (
-              <Row label="Текст согласия" value={<span className="text-xs text-muted-foreground">{row.commission_agreement_text}</span>} />
-            )}
+      {/* 1. Шапка */}
+      <div className="rounded-md border p-3 space-y-2 bg-muted/30">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="space-y-1">
+            <div className="text-lg font-semibold">{row.name ?? "Без названия"}</div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="outline">{kindLabel}</Badge>
+              {row.city && <span>· {row.city}</span>}
+              {row.inn && <span>· ИНН {row.inn}</span>}
+            </div>
           </div>
-        </details>
+          <StatusBadge
+            status={row.verification_status}
+            label={CARRIER_STATUS_LABELS[row.verification_status as keyof typeof CARRIER_STATUS_LABELS] ?? row.verification_status}
+          />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+          <Stat icon={<CheckCircle2 className="h-4 w-4" />} label="Комиссия" value={`${(row.commission_rate * 100).toFixed(1)}%`} />
+          <Stat icon={<Truck className="h-4 w-4" />} label="Транспорт" value={String(vehicles.length)} />
+          <Stat icon={<Users className="h-4 w-4" />} label="Водители" value={String(drivers.length)} />
+          <Stat icon={<RouteIcon className="h-4 w-4" />} label="В рейсе" value={String(inTrip)} />
+        </div>
       </div>
 
-      {/* Регистрация по ссылке — отдельный блок с пояснением */}
-      <div className="rounded-md border p-3 space-y-2">
-        <div className="font-medium">Регистрация по ссылке</div>
-        <div className="text-xs text-muted-foreground">
-          Ссылка для перевозчика — открывает форму регистрации/анкеты.
-          Отправьте её перевозчику в WhatsApp, Telegram или по e-mail.
+      {/* 2. Контакты */}
+      <Section title="Контакты">
+        <Row label="Телефон" value={row.phone ?? "—"} />
+        <Row label="Email" value={row.email ?? "—"} />
+        <Row label="WhatsApp" value={row.whatsapp ?? "—"} />
+        <Row label="Telegram" value={row.telegram ?? "—"} />
+        <Row label="Max Messenger" value={row.max_messenger ?? "—"} />
+        <Row label="ATI ID" value={row.ati_id ?? "—"} />
+        <Row label="Телефон в ATI" value={row.ati_phone ?? "—"} />
+        <Row label="Email в ATI" value={row.ati_email ?? "—"} />
+        <div className="pt-2">
+          <ContactLinks phone={row.phone} whatsapp={row.whatsapp} telegram={row.telegram} max_messenger={row.max_messenger} email={row.email} />
         </div>
-        <CarrierRegistrationBlock
-          carrierId={row.id}
-          formSubmittedAt={row.commission_agreed_at}
+      </Section>
+
+      {/* 3. Компания / юрлицо */}
+      <Section title="Компания / юрлицо">
+        <Row label="Название" value={row.name ?? "—"} />
+        <Row label="ИНН" value={row.inn ?? "—"} />
+        <Row label="ОГРН / ОГРНИП" value={row.ogrn ?? "—"} />
+        <Row label="Налоговый режим" value={taxLabel} />
+        <Row label="НДС" value={row.tax_regime === "osno" ? "С НДС" : "Без НДС"} />
+        <Row label="Банк" value={row.bank_name ?? "—"} />
+        <Row label="Р/счёт" value={row.bank_account ?? "—"} />
+        <Row label="БИК" value={row.bank_bik ?? "—"} />
+        <Row label="Корр. счёт" value={row.bank_corr_account ?? "—"} />
+        <div className="pt-2 text-xs text-muted-foreground">
+          Юридические данные редактируются через кнопку «Редактировать».
+          Привязка нескольких юрлиц к одному перевозчику — в работе.
+        </div>
+      </Section>
+
+      {/* 4. Кабинет перевозчика */}
+      <Section title="Кабинет перевозчика" hint="Кабинет нужен, чтобы перевозчик мог сам заходить, видеть предложения, добавлять транспорт, водителей и вести рейсы.">
+        <CarrierUserLinkBlock carrierExtId={row.id} />
+      </Section>
+
+      {/* 5. Регистрация по ссылке */}
+      <Section title="Регистрация по ссылке" hint="Ссылка нужна, чтобы перевозчик сам заполнил анкету, добавил документы, транспорт и водителей. Если диспетчер уже добавил данные вручную, ссылку можно не использовать.">
+        <CarrierRegistrationBlock carrierId={row.id} formSubmittedAt={row.commission_agreed_at} />
+      </Section>
+
+      {/* 6. Договор и комиссия — единый блок */}
+      <Section title="Договор и комиссия">
+        <CarrierContractAcceptanceBlock carrierId={row.id} currentCommissionRate={row.commission_rate} />
+        <div className="mt-3 space-y-1">
+          <Row
+            label="Статус"
+            value={row.commission_agreed ? (
+              <Badge variant="default" className="gap-1">
+                <CheckCircle2 className="h-3 w-3" /> Принят
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="gap-1 border-yellow-500 text-yellow-700">
+                <AlertTriangle className="h-3 w-3" /> Не принят
+              </Badge>
+            )}
+          />
+          <Row label="Ставка комиссии" value={`${(row.commission_rate * 100).toFixed(1)}%`} />
+          <Row label="Дата согласия" value={row.commission_agreed_at ? new Date(row.commission_agreed_at).toLocaleString("ru-RU") : "—"} />
+          <Row label="ФИО согласия" value={row.commission_agreed_by ?? "—"} />
+          <Row label="Способ оплаты" value={row.commission_payment_method ?? row.payment_method ?? "—"} />
+        </div>
+      </Section>
+
+      {/* 7. Документы */}
+      <Section title="Документы">
+        <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
+      </Section>
+
+      {/* 8. Водители перевозчика */}
+      <Section title={`Водители (${drivers.length})`}>
+        {drivers.length === 0 ? (
+          <div className="text-xs text-muted-foreground">Водители не привязаны.</div>
+        ) : (
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ФИО</TableHead>
+                  <TableHead>Телефон</TableHead>
+                  <TableHead>Город</TableHead>
+                  <TableHead>Статус</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {drivers.map((d) => (
+                  <TableRow key={d.id}>
+                    <TableCell>{d.full_name ?? "—"}</TableCell>
+                    <TableCell>{d.phone ?? "—"}</TableCell>
+                    <TableCell>{d.city ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {DRIVER_STATUS_LABELS[d.dispatcher_status as DriverStatus] ?? d.dispatcher_status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Section>
+
+      {/* 9. Транспорт перевозчика */}
+      <Section title={`Транспорт (${vehicles.length})`}>
+        {vehicles.length === 0 ? (
+          <div className="text-xs text-muted-foreground">Транспорт не добавлен.</div>
+        ) : (
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Кузов</TableHead>
+                  <TableHead>Грузоп.</TableHead>
+                  <TableHead>Объём</TableHead>
+                  <TableHead>Город</TableHead>
+                  <TableHead>Статус</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {vehicles.map((v) => (
+                  <TableRow key={v.id}>
+                    <TableCell>{v.body_type ?? v.vehicle_kind ?? "—"}</TableCell>
+                    <TableCell>{v.payload_kg != null ? `${v.payload_kg} кг` : "—"}</TableCell>
+                    <TableCell>{v.volume_m3 != null ? `${v.volume_m3} м³` : "—"}</TableCell>
+                    <TableCell>{v.home_city ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {VEHICLE_STATUS_LABELS[v.dispatcher_status as VehicleStatus] ?? v.dispatcher_status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Section>
+
+      {/* 10. История предложений и сделок */}
+      <Section title="История предложений и сделок" hint="Заявки и сделки создаются от груза: подобрать машину → отправить предложение → создать сделку.">
+        <DispatcherCarrierRequestsBlock
+          carrierExtId={row.id}
+          carrierName={row.name ?? null}
+          historyOnly
         />
-      </div>
+      </Section>
 
-      {/* Дополнительно — технические блоки */}
-      <details className="rounded-md border p-3">
-        <summary className="cursor-pointer font-medium">Дополнительно</summary>
-        <div className="mt-3 space-y-4">
-          <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
-          <DispatcherPartnerCardBlock carrierExtId={row.id} />
-          <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />
-        </div>
-      </details>
-
-
-
-
-
-      {/* Проверка перевозчика */}
+      {/* Проверка перевозчика — рабочее действие диспетчера */}
       <div className="rounded-md border p-3 space-y-2">
         <div className="flex items-center justify-between">
           <span className="font-medium">Проверка перевозчика</span>
@@ -462,31 +602,38 @@ function CarrierViewBody({
             </Button>
           </div>
         )}
-      </div>
-
-      {/* Реквизиты и контакты */}
-      <div className="rounded-md border p-3 space-y-1">
-        <div className="font-medium mb-1">Реквизиты и контакты</div>
-        <Row label="Тип" value={row.carrier_kind ? CARRIER_KIND_LABELS[row.carrier_kind as CarrierKind] ?? row.carrier_kind : "—"} />
-        <Row label="ИНН" value={row.inn ?? "—"} />
-        <Row label="ОГРН" value={row.ogrn ?? "—"} />
-        <Row label="Город" value={row.city ?? "—"} />
-        <Row label="Телефон" value={row.phone ?? "—"} />
-        <Row label="Email" value={row.email ?? "—"} />
-        <Row label="WhatsApp" value={row.whatsapp ?? "—"} />
-        <Row label="Telegram" value={row.telegram ?? "—"} />
-        <Row label="Max" value={row.max_messenger ?? "—"} />
-        <Row label="Банк" value={row.bank_name ?? "—"} />
-        <Row label="Р/счёт" value={row.bank_account ?? "—"} />
-        <Row label="БИК" value={row.bank_bik ?? "—"} />
-        <Row label="Комментарий" value={row.dispatcher_comment ?? "—"} />
-        <div className="pt-2 flex gap-2">
-          <ContactLinks phone={row.phone} whatsapp={row.whatsapp} telegram={row.telegram} max_messenger={row.max_messenger} email={row.email} />
-        </div>
+        {row.dispatcher_comment && (
+          <div className="text-xs text-muted-foreground pt-1">
+            Комментарий: {row.dispatcher_comment}
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+function Section({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-md border p-3 space-y-2">
+      <div className="font-medium">{title}</div>
+      {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-md border bg-background p-2">
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <div className="text-base font-semibold">{value}</div>
+    </div>
+  );
+}
+
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
