@@ -108,6 +108,17 @@ function DriversPage() {
     }
   };
 
+  const handleRestore = async (id: string) => {
+    if (!confirm("Восстановить водителя из архива?")) return;
+    try {
+      await driversApi.update(id, { dispatcher_status: "new" } as never);
+      toast.success("Восстановлен");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
+
   const handleStatusChange = async (row: DriverDTO, v: string) => {
     try {
       await driversApi.update(row.id, { dispatcher_status: v as DriverCreateInput["dispatcher_status"] });
