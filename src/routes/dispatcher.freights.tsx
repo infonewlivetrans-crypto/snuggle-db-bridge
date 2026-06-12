@@ -272,7 +272,7 @@ function FreightsPage() {
               <Row label="Груз" value={viewing.cargo_name ?? "—"} />
               <Row label="Вес" value={viewing.weight_kg != null ? `${viewing.weight_kg} кг` : "—"} />
               <Row label="Объём" value={viewing.volume_m3 != null ? `${viewing.volume_m3} м³` : "—"} />
-              <Row label="Кузов" value={viewing.body_type ?? "—"} />
+              <Row label="Кузов" value={viewing.body_type ? getVehicleBodyTypeLabel(viewing.body_type) : "—"} />
               <Row label="Способы загрузки" value={(viewing.load_methods ?? []).map((m) => LOAD_METHOD_LABELS[m as LoadMethod] ?? m).join(", ") || "—"} />
               <Row label="Ставка" value={fmtMoney(viewing.rate)} />
               <Row label="Оплата" value={viewing.payment_type ? (PAYMENT_TYPE_LABELS[viewing.payment_type as PaymentType] ?? viewing.payment_type) : "—"} />
