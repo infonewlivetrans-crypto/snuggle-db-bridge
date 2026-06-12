@@ -26,6 +26,7 @@ export const Route = createFileRoute("/api/dispatcher/drivers")({
         const status = url.searchParams.get("status");
         const city = url.searchParams.get("city");
         const carrierId = url.searchParams.get("carrier_id");
+        const archived = url.searchParams.get("archived") ?? "hide";
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = (auth.client.from(TABLE as never) as any)
@@ -33,6 +34,9 @@ export const Route = createFileRoute("/api/dispatcher/drivers")({
 
         if (status && status !== "all" && (DRIVER_STATUSES as readonly string[]).includes(status)) {
           q = q.eq("dispatcher_status", status);
+        } else {
+          if (archived === "hide") q = q.neq("dispatcher_status", "archive");
+          else if (archived === "only") q = q.eq("dispatcher_status", "archive");
         }
         if (city) q = q.ilike("city", `%${city}%`);
         if (carrierId) q = q.eq("dispatcher_carrier_ext_id", carrierId);

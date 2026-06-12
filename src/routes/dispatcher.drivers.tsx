@@ -12,7 +12,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Archive, Eye } from "lucide-react";
+import { Pencil, Archive, Eye, RotateCcw } from "lucide-react";
 import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
@@ -41,6 +41,7 @@ function DriversPage() {
   const [status, setStatus] = useState<string>("all");
   const [city, setCity] = useState("");
   const [carrierFilter, setCarrierFilter] = useState<string>("all");
+  const [archived, setArchived] = useState<"hide" | "only" | "all">("hide");
   const [editing, setEditing] = useState<DriverDTO | null>(null);
   const [viewing, setViewing] = useState<DriverDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,6 +54,7 @@ function DriversPage() {
         status,
         city,
         carrier_id: carrierFilter === "all" ? "" : carrierFilter,
+        archived,
         limit: 200,
       });
       setRows(res.rows);
@@ -77,7 +79,7 @@ function DriversPage() {
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, city, carrierFilter]);
+  }, [search, status, city, carrierFilter, archived]);
 
   const handleSubmit = async (data: DriverCreateInput) => {
     setSubmitting(true);
@@ -100,6 +102,17 @@ function DriversPage() {
     try {
       await driversApi.archive(id);
       toast.success("Архивирован");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    if (!confirm("Восстановить водителя из архива?")) return;
+    try {
+      await driversApi.update(id, { dispatcher_status: "new" } as never);
+      toast.success("Восстановлен");
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
@@ -145,6 +158,14 @@ function DriversPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={archived} onValueChange={(v) => setArchived(v as "hide" | "only" | "all")}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hide">Активные</SelectItem>
+              <SelectItem value="only">Архив</SelectItem>
+              <SelectItem value="all">Все</SelectItem>
+            </SelectContent>
+          </Select>
         </>
       }
     >
@@ -182,10 +203,13 @@ function DriversPage() {
                   </Select>
                 </TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button size="icon" variant="ghost" onClick={() => setViewing(r)}><Eye className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                  <InviteLinkButton entityType="driver" entityId={r.id} inviteType="driver_registration" />
-                  <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)}><Archive className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setViewing(r)} title="Просмотр"><Eye className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }} title="Редактировать"><Pencil className="h-4 w-4" /></Button>
+                  {r.dispatcher_status === "archive" ? (
+                    <Button size="icon" variant="ghost" onClick={() => handleRestore(r.id)} title="Восстановить"><RotateCcw className="h-4 w-4" /></Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать"><Archive className="h-4 w-4" /></Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -235,6 +259,13 @@ function DriversPage() {
                   initialDriverId={viewing.id}
                 />
               )}
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="font-medium">Ссылка для заполнения анкеты водителя</div>
+                <div className="text-xs text-muted-foreground">
+                  Отправьте водителю ссылку — он заполнит свои данные и прикрепит документы.
+                </div>
+                <InviteLinkButton entityType="driver" entityId={viewing.id} inviteType="driver_registration" />
+              </div>
             </div>
           )}
         </DialogContent>

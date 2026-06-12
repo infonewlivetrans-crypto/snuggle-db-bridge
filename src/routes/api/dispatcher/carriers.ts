@@ -29,6 +29,7 @@ export const Route = createFileRoute("/api/dispatcher/carriers")({
         const { limit, offset, search, url } = parseListParams(request);
         const status = url.searchParams.get("status");
         const city = url.searchParams.get("city");
+        const archived = url.searchParams.get("archived") ?? "hide"; // hide | only | all
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q: any = (auth.client.from(TABLE as never) as any)
@@ -36,6 +37,9 @@ export const Route = createFileRoute("/api/dispatcher/carriers")({
 
         if (status && status !== "all" && (CARRIER_STATUSES as readonly string[]).includes(status)) {
           q = q.eq("verification_status", status);
+        } else {
+          if (archived === "hide") q = q.neq("verification_status", "archive");
+          else if (archived === "only") q = q.eq("verification_status", "archive");
         }
         if (city) q = q.ilike("city", `%${city}%`);
         if (search) {

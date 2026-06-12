@@ -14,12 +14,11 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Archive, Eye, CheckCircle2, AlertTriangle, ShieldCheck, ShieldOff } from "lucide-react";
+import { Pencil, Archive, Eye, CheckCircle2, AlertTriangle, ShieldCheck, ShieldOff, RotateCcw } from "lucide-react";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierForm } from "@/components/dispatcher/CarrierForm";
-import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistrationBlock";
 import { CarrierUserLinkBlock } from "@/components/dispatcher/CarrierUserLinkBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
@@ -59,6 +58,7 @@ function CarriersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [quick, setQuick] = useState<QuickFilter>("all");
+  const [archived, setArchived] = useState<"hide" | "only" | "all">("hide");
   const [city, setCity] = useState("");
   const [editing, setEditing] = useState<CarrierDTO | null>(null);
   const [viewing, setViewing] = useState<CarrierDTO | null>(null);
@@ -67,7 +67,7 @@ function CarriersPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await carriersApi.list({ search, status, city, limit: 200 });
+      const res = await carriersApi.list({ search, status, city, archived, limit: 200 });
       setRows(res.rows);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка загрузки");
@@ -80,7 +80,7 @@ function CarriersPage() {
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, city]);
+  }, [search, status, city, archived]);
 
   const handleSubmit = async (data: CarrierCreateInput) => {
     setSubmitting(true);
@@ -107,6 +107,17 @@ function CarriersPage() {
     try {
       await carriersApi.archive(id);
       toast.success("Архивирован");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    if (!confirm("Восстановить перевозчика из архива?")) return;
+    try {
+      await carriersApi.update(id, { verification_status: "on_check" } as never);
+      toast.success("Восстановлен");
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
@@ -185,6 +196,14 @@ function CarriersPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={archived} onValueChange={(v) => setArchived(v as "hide" | "only" | "all")}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hide">Активные</SelectItem>
+              <SelectItem value="only">Архив</SelectItem>
+              <SelectItem value="all">Все</SelectItem>
+            </SelectContent>
+          </Select>
         </>
       }
     >
@@ -250,10 +269,15 @@ function CarriersPage() {
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }} title="Редактировать">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <InviteLinkButton entityType="carrier" entityId={r.id} inviteType="carrier_registration" />
-                  <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать">
-                    <Archive className="h-4 w-4" />
-                  </Button>
+                  {r.verification_status === "archive" ? (
+                    <Button size="icon" variant="ghost" onClick={() => handleRestore(r.id)} title="Восстановить">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать">
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -347,14 +371,23 @@ function CarrierViewBody({
         </details>
       </div>
 
+      {/* Регистрация по ссылке — отдельный блок с пояснением */}
+      <div className="rounded-md border p-3 space-y-2">
+        <div className="font-medium">Регистрация по ссылке</div>
+        <div className="text-xs text-muted-foreground">
+          Ссылка для перевозчика — открывает форму регистрации/анкеты.
+          Отправьте её перевозчику в WhatsApp, Telegram или по e-mail.
+        </div>
+        <CarrierRegistrationBlock
+          carrierId={row.id}
+          formSubmittedAt={row.commission_agreed_at}
+        />
+      </div>
+
       {/* Дополнительно — технические блоки */}
       <details className="rounded-md border p-3">
         <summary className="cursor-pointer font-medium">Дополнительно</summary>
         <div className="mt-3 space-y-4">
-          <CarrierRegistrationBlock
-            carrierId={row.id}
-            formSubmittedAt={row.commission_agreed_at}
-          />
           <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
           <DispatcherPartnerCardBlock carrierExtId={row.id} />
           <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />

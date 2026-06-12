@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/dispatcher/vehicles")({
         const carrierId = url.searchParams.get("carrier_id");
         const driverId = url.searchParams.get("driver_id");
         const readyToday = url.searchParams.get("ready_today") === "true";
+        const archived = url.searchParams.get("archived") ?? "hide";
         const sortKey = url.searchParams.get("sort") ?? "";
         const order = url.searchParams.get("order") === "asc";
 
@@ -49,6 +50,9 @@ export const Route = createFileRoute("/api/dispatcher/vehicles")({
 
         if (status && status !== "all" && (VEHICLE_STATUSES as readonly string[]).includes(status)) {
           q = q.eq("dispatcher_status", status);
+        } else {
+          if (archived === "hide") q = q.neq("dispatcher_status", "archive");
+          else if (archived === "only") q = q.eq("dispatcher_status", "archive");
         }
         if (city) q = q.ilike("home_city", `%${city}%`);
         if (bodyType) q = q.eq("body_type", bodyType);

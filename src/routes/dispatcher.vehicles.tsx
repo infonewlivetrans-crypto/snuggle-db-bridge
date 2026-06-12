@@ -12,7 +12,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Archive, Eye } from "lucide-react";
+import { Pencil, Archive, Eye, RotateCcw } from "lucide-react";
 import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
@@ -53,6 +53,7 @@ function VehiclesPage() {
   const [city, setCity] = useState("");
   const [bodyType, setBodyType] = useState("");
   const [readyToday, setReadyToday] = useState(false);
+  const [archived, setArchived] = useState<"hide" | "only" | "all">("hide");
   const [sortKey, setSortKey] = useState<string>("created");
   const [orderAsc, setOrderAsc] = useState(false);
   const [editing, setEditing] = useState<VehicleDTO | null>(null);
@@ -66,6 +67,7 @@ function VehiclesPage() {
         status, city,
         body_type: bodyType || "",
         ready_today: readyToday ? "true" : "",
+        archived,
         sort: sortKey === "created" ? "" : sortKey,
         order: orderAsc ? "asc" : "desc",
         limit: 200,
@@ -96,7 +98,18 @@ function VehiclesPage() {
     const t = setTimeout(load, 200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, city, bodyType, readyToday, sortKey, orderAsc]);
+  }, [status, city, bodyType, readyToday, archived, sortKey, orderAsc]);
+
+  const handleRestore = async (id: string) => {
+    if (!confirm("Восстановить транспорт из архива?")) return;
+    try {
+      await vehiclesApi.update(id, { dispatcher_status: "new" } as never);
+      toast.success("Восстановлен");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
 
   const handleSubmit = async (data: VehicleCreateInput) => {
     setSubmitting(true);
@@ -184,6 +197,14 @@ function VehiclesPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={archived} onValueChange={(v) => setArchived(v as "hide" | "only" | "all")}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hide">Активные</SelectItem>
+              <SelectItem value="only">Архив</SelectItem>
+              <SelectItem value="all">Все</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" size="sm" onClick={() => setOrderAsc((p) => !p)}>
             {orderAsc ? "↑ возр." : "↓ убыв."}
           </Button>
@@ -241,10 +262,13 @@ function VehiclesPage() {
                   </Select>
                 </TableCell>
                 <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                  <Button size="icon" variant="ghost" onClick={() => setViewing(r)}><Eye className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                  <InviteLinkButton entityType="vehicle" entityId={r.id} inviteType="vehicle_registration" />
-                  <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)}><Archive className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => setViewing(r)} title="Просмотр"><Eye className="h-4 w-4" /></Button>
+                  <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }} title="Редактировать"><Pencil className="h-4 w-4" /></Button>
+                  {r.dispatcher_status === "archive" ? (
+                    <Button size="icon" variant="ghost" onClick={() => handleRestore(r.id)} title="Восстановить"><RotateCcw className="h-4 w-4" /></Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать"><Archive className="h-4 w-4" /></Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -299,6 +323,13 @@ function VehiclesPage() {
                   initialVehicleId={viewing.id}
                 />
               )}
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="font-medium">Ссылка для заполнения данных транспорта</div>
+                <div className="text-xs text-muted-foreground">
+                  Отправьте водителю или перевозчику ссылку — он заполнит данные транспорта и прикрепит документы.
+                </div>
+                <InviteLinkButton entityType="vehicle" entityId={viewing.id} inviteType="vehicle_registration" />
+              </div>
             </div>
           )}
         </DialogContent>
