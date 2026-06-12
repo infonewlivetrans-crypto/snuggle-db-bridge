@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { freightsApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
+import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
+import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 const SOURCE_OPTIONS = [
   { v: "ati", l: "ATI" },
