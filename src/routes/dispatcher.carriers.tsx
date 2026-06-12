@@ -14,7 +14,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Archive, Eye, CheckCircle2, AlertTriangle, ShieldCheck, ShieldOff, RotateCcw } from "lucide-react";
+import { Pencil, Archive, Eye, CheckCircle2, AlertTriangle, ShieldCheck, ShieldOff, RotateCcw, Truck, Users, Route as RouteIcon } from "lucide-react";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
@@ -22,18 +22,24 @@ import { CarrierForm } from "@/components/dispatcher/CarrierForm";
 import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistrationBlock";
 import { CarrierUserLinkBlock } from "@/components/dispatcher/CarrierUserLinkBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
-import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { DispatcherCarrierRequestsBlock } from "@/components/dispatcher/DispatcherCarrierRequestsBlock";
 import { CarrierContractAcceptanceBlock } from "@/components/dispatcher/CarrierContractAcceptanceBlock";
-import { carriersApi } from "@/lib/dispatcher/api";
-import type { CarrierDTO } from "@/lib/dispatcher/types";
+import { carriersApi, driversApi, vehiclesApi } from "@/lib/dispatcher/api";
+import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
 import {
   CARRIER_KIND_LABELS,
   CARRIER_STATUSES,
   CARRIER_STATUS_LABELS,
+  CARRIER_TAX_REGIME_LABELS,
+  DRIVER_STATUS_LABELS,
+  VEHICLE_STATUS_LABELS,
   type CarrierKind,
+  type CarrierTaxRegime,
+  type DriverStatus,
+  type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
+
 
 export const Route = createFileRoute("/dispatcher/carriers")({
   component: CarriersPage,
