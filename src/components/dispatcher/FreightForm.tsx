@@ -131,7 +131,7 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
         <div className="md:col-span-2"><Label>Наименование груза</Label><Input value={cargoName} onChange={(e) => setCargoName(e.target.value)} /></div>
         <div><Label>Вес, кг</Label><Input value={weight} onChange={(e) => setWeight(e.target.value)} /></div>
         <div><Label>Объём, м³</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} /></div>
-        <div><Label>Тип кузова</Label><Input value={bodyType} onChange={(e) => setBodyType(e.target.value)} placeholder="Тент, реф, борт..." /></div>
+        <div><Label>Тип кузова</Label><VehicleBodyTypeSelect value={bodyType} onChange={setBodyType} /></div>
         <div>
           <Label>Основной / догруз</Label>
           <Select value={kind} onValueChange={(v) => setKind(v as FreightKind)}>
