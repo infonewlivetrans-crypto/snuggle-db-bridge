@@ -67,6 +67,7 @@ function VehiclesPage() {
         status, city,
         body_type: bodyType || "",
         ready_today: readyToday ? "true" : "",
+        archived,
         sort: sortKey === "created" ? "" : sortKey,
         order: orderAsc ? "asc" : "desc",
         limit: 200,
