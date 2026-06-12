@@ -89,9 +89,12 @@ export const Route = createFileRoute("/api/dispatcher/vehicles")({
             { status: 400 },
           );
         }
+        const insertBody = { ...(parsed.data as Record<string, unknown>) };
+        const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
+        await enrichVehicleLocation(auth.client, insertBody, "dispatcher");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (auth.client.from(TABLE as never) as any)
-          .insert(parsed.data as unknown as never)
+          .insert(insertBody as unknown as never)
           .select(SELECT)
           .single();
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
