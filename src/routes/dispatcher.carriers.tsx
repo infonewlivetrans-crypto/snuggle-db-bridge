@@ -261,10 +261,15 @@ function CarriersPage() {
                   <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setDialogOpen(true); }} title="Редактировать">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <InviteLinkButton entityType="carrier" entityId={r.id} inviteType="carrier_registration" />
-                  <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать">
-                    <Archive className="h-4 w-4" />
-                  </Button>
+                  {r.verification_status === "archive" ? (
+                    <Button size="icon" variant="ghost" onClick={() => handleRestore(r.id)} title="Восстановить">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" onClick={() => handleArchive(r.id)} title="Архивировать">
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
