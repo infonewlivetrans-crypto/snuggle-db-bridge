@@ -14,12 +14,11 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Archive, Eye, CheckCircle2, AlertTriangle, ShieldCheck, ShieldOff } from "lucide-react";
+import { Pencil, Archive, Eye, CheckCircle2, AlertTriangle, ShieldCheck, ShieldOff, RotateCcw } from "lucide-react";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { ContactLinks } from "@/components/dispatcher/ContactLinks";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierForm } from "@/components/dispatcher/CarrierForm";
-import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { CarrierRegistrationBlock } from "@/components/dispatcher/CarrierRegistrationBlock";
 import { CarrierUserLinkBlock } from "@/components/dispatcher/CarrierUserLinkBlock";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
