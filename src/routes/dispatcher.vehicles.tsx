@@ -12,7 +12,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Pencil, Archive, Eye } from "lucide-react";
+import { Pencil, Archive, Eye, RotateCcw } from "lucide-react";
 import { InviteLinkButton } from "@/components/dispatcher/InviteLinkButton";
 import { EntityTableLayout } from "@/components/dispatcher/EntityTableLayout";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
