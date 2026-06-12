@@ -79,7 +79,7 @@ function DriversPage() {
     const t = setTimeout(load, 300);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, status, city, carrierFilter]);
+  }, [search, status, city, carrierFilter, archived]);
 
   const handleSubmit = async (data: DriverCreateInput) => {
     setSubmitting(true);
