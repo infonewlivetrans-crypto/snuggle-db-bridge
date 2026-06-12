@@ -22,6 +22,7 @@ import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
 import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
+import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
@@ -232,7 +233,7 @@ function VehicleListCard({
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold text-foreground">
             {v.vehicle_kind ?? "—"}
-            {v.body_type ? <span className="text-muted-foreground"> · {v.body_type}</span> : null}
+            {v.body_type ? <span className="text-muted-foreground"> · {getVehicleBodyTypeLabel(v.body_type)}</span> : null}
           </div>
           <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="h-3 w-3" />
@@ -335,7 +336,7 @@ function VehicleDetailsDialog({
         <DialogHeader>
           <DialogTitle>
             {v.vehicle_kind ?? "Машина"}
-            {v.body_type ? ` · ${v.body_type}` : ""}
+            {v.body_type ? ` · ${getVehicleBodyTypeLabel(v.body_type)}` : ""}
           </DialogTitle>
           <DialogDescription>
             {(v.current_city ?? v.home_city ?? "—") + " → " + (v.ready_to_cities?.join(", ") || "—")}
@@ -344,7 +345,7 @@ function VehicleDetailsDialog({
 
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <Block title="Транспорт">
-            <KV label="Кузов" v={v.body_type} />
+            <KV label="Кузов" v={v.body_type ? getVehicleBodyTypeLabel(v.body_type) : null} />
             <KV label="Тоннаж, кг" v={fmtNum(v.payload_kg)} />
             <KV label="Объём, м³" v={fmtNum(v.volume_m3)} />
             <KV label="Габариты" v={`${fmtNum(v.length_m)}×${fmtNum(v.width_m)}×${fmtNum(v.height_m)} м`} />

@@ -14,8 +14,6 @@ import {
   LOAD_METHODS,
   LOAD_METHOD_LABELS,
   RUSSIAN_CITIES_PRESET,
-  VEHICLE_BODY_TYPES,
-  VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_FEATURES,
   VEHICLE_FEATURE_LABELS,
   VEHICLE_STATUSES,
@@ -23,6 +21,7 @@ import {
   DRIVER_STATUS_LABELS,
   type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
+import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { VehicleCreateInput } from "@/lib/dispatcher/schemas";
 
@@ -91,10 +90,7 @@ export function VehicleForm({
       // Plate сохраняется в vehicle_kind как первая часть, либо отдельный комментарий.
       setKind(empty(initial.vehicle_kind));
 
-      const initBody = empty(initial.body_type);
-      setBodyType(
-        (VEHICLE_BODY_TYPES as readonly string[]).includes(initBody) ? initBody : initBody,
-      );
+      setBodyType(empty(initial.body_type));
       setPayload(numStr(initial.payload_kg));
       setVolume(numStr(initial.volume_m3));
       setLengthM(numStr(initial.length_m));
@@ -238,15 +234,7 @@ export function VehicleForm({
         </div>
         <div>
           <Label>Тип кузова</Label>
-          <Select value={bodyType || "__none"} onValueChange={(v) => setBodyType(v === "__none" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">—</SelectItem>
-              {VEHICLE_BODY_TYPES.map((b) => (
-                <SelectItem key={b} value={b}>{VEHICLE_BODY_TYPE_LABELS[b]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <VehicleBodyTypeSelect value={bodyType} onChange={setBodyType} />
         </div>
         <div><Label>Грузоподъёмность, кг</Label><Input value={payload} onChange={(e) => setPayload(e.target.value)} /></div>
         <div><Label>Объём, м³</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} /></div>

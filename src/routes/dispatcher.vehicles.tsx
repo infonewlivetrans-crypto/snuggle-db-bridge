@@ -28,6 +28,7 @@ import {
   VEHICLE_STATUS_LABELS,
   type LoadMethod,
 } from "@/lib/dispatcher/statuses";
+import { VEHICLE_BODY_TYPES, getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 export const Route = createFileRoute("/dispatcher/vehicles")({
   component: VehiclesPage,
@@ -150,7 +151,15 @@ function VehiclesPage() {
       toolbar={
         <>
           <Input placeholder="Город" value={city} onChange={(e) => setCity(e.target.value)} className="w-40" />
-          <Input placeholder="Тип кузова" value={bodyType} onChange={(e) => setBodyType(e.target.value)} className="w-44" />
+          <Select value={bodyType || "all"} onValueChange={(v) => setBodyType(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Тип кузова" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все типы кузова</SelectItem>
+              {VEHICLE_BODY_TYPES.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-48"><SelectValue placeholder="Статус" /></SelectTrigger>
             <SelectContent>
@@ -204,7 +213,7 @@ function VehiclesPage() {
               <TableRow key={r.id} className="cursor-pointer" onClick={() => setViewing(r)}>
                 <TableCell className="font-medium">
                   <div>{r.vehicle_kind ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">{r.body_type ?? ""}</div>
+                  <div className="text-xs text-muted-foreground">{getVehicleBodyTypeLabel(r.body_type)}</div>
                 </TableCell>
                 <TableCell>
                   <div>{r.payload_kg != null ? `${r.payload_kg} кг` : "—"}</div>
@@ -265,7 +274,7 @@ function VehiclesPage() {
           {viewing && (
             <div className="space-y-2 text-sm">
               <Row label="Тип" value={viewing.vehicle_kind ?? "—"} />
-              <Row label="Кузов" value={viewing.body_type ?? "—"} />
+              <Row label="Кузов" value={viewing.body_type ? getVehicleBodyTypeLabel(viewing.body_type) : "—"} />
               <Row label="Грузоподъёмность" value={viewing.payload_kg != null ? `${viewing.payload_kg} кг` : "—"} />
               <Row label="Объём" value={viewing.volume_m3 != null ? `${viewing.volume_m3} м³` : "—"} />
               <Row label="Габариты" value={fmtDim(viewing)} />

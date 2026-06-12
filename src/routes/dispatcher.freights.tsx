@@ -29,6 +29,7 @@ import {
   LOAD_METHOD_LABELS, PAYMENT_TYPE_LABELS,
   type FreightStatus, type LoadMethod, type PaymentType,
 } from "@/lib/dispatcher/statuses";
+import { VEHICLE_BODY_TYPES, getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 export const Route = createFileRoute("/dispatcher/freights")({
   component: FreightsPage,
@@ -146,7 +147,15 @@ function FreightsPage() {
           <Input placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
           <Input placeholder="Город загрузки" value={loadingCity} onChange={(e) => setLoadingCity(e.target.value)} className="w-44" />
           <Input placeholder="Город выгрузки" value={unloadingCity} onChange={(e) => setUnloadingCity(e.target.value)} className="w-44" />
-          <Input placeholder="Тип кузова" value={bodyType} onChange={(e) => setBodyType(e.target.value)} className="w-40" />
+          <Select value={bodyType || "all"} onValueChange={(v) => setBodyType(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Тип кузова" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все типы кузова</SelectItem>
+              {VEHICLE_BODY_TYPES.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Статус" /></SelectTrigger>
@@ -206,7 +215,7 @@ function FreightsPage() {
                   <div>{r.weight_kg != null ? `${r.weight_kg} кг` : "—"}</div>
                   <div className="text-muted-foreground">{r.volume_m3 != null ? `${r.volume_m3} м³` : ""}</div>
                 </TableCell>
-                <TableCell className="text-xs">{r.body_type ?? "—"}</TableCell>
+                <TableCell className="text-xs">{r.body_type ? getVehicleBodyTypeLabel(r.body_type) : "—"}</TableCell>
                 <TableCell className="text-xs whitespace-nowrap">{fmtMoney(r.rate)}</TableCell>
                 <TableCell className="text-xs">
                   {r.source_url ? (
@@ -263,7 +272,7 @@ function FreightsPage() {
               <Row label="Груз" value={viewing.cargo_name ?? "—"} />
               <Row label="Вес" value={viewing.weight_kg != null ? `${viewing.weight_kg} кг` : "—"} />
               <Row label="Объём" value={viewing.volume_m3 != null ? `${viewing.volume_m3} м³` : "—"} />
-              <Row label="Кузов" value={viewing.body_type ?? "—"} />
+              <Row label="Кузов" value={viewing.body_type ? getVehicleBodyTypeLabel(viewing.body_type) : "—"} />
               <Row label="Способы загрузки" value={(viewing.load_methods ?? []).map((m) => LOAD_METHOD_LABELS[m as LoadMethod] ?? m).join(", ") || "—"} />
               <Row label="Ставка" value={fmtMoney(viewing.rate)} />
               <Row label="Оплата" value={viewing.payment_type ? (PAYMENT_TYPE_LABELS[viewing.payment_type as PaymentType] ?? viewing.payment_type) : "—"} />

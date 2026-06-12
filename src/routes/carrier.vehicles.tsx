@@ -7,15 +7,13 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
 import {
-  VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_STATUS_LABELS,
   LOAD_METHOD_LABELS,
   VEHICLE_FEATURE_LABELS,
   type LoadMethod,
   type VehicleFeature,
-
-
 } from "@/lib/dispatcher/statuses";
+import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 export const Route = createFileRoute("/carrier/vehicles")({
   head: () => ({ meta: [{ title: "Мой транспорт — кабинет перевозчика" }] }),
@@ -59,7 +57,7 @@ const READY = new Set(["ready_to_work", "available", "free"]);
 
 function bodyTypeLabel(b: string | null): string {
   if (!b) return "—";
-  return (VEHICLE_BODY_TYPE_LABELS as Record<string, string>)[b] ?? b;
+  return getVehicleBodyTypeLabel(b) || "—";
 }
 
 function statusLabel(s: string | null): string {
