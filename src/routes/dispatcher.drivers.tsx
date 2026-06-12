@@ -259,6 +259,13 @@ function DriversPage() {
                   initialDriverId={viewing.id}
                 />
               )}
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="font-medium">Ссылка для заполнения анкеты водителя</div>
+                <div className="text-xs text-muted-foreground">
+                  Отправьте водителю ссылку — он заполнит свои данные и прикрепит документы.
+                </div>
+                <InviteLinkButton entityType="driver" entityId={viewing.id} inviteType="driver_registration" />
+              </div>
             </div>
           )}
         </DialogContent>
