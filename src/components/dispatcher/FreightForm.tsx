@@ -15,6 +15,7 @@ import {
 } from "@/lib/dispatcher/statuses";
 import type { FreightDTO } from "@/lib/dispatcher/types";
 import type { FreightCreateInput } from "@/lib/dispatcher/schemas";
+import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
 
 interface Props {
   initial?: FreightDTO | null;
