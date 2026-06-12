@@ -120,11 +120,49 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
             profiles[p.user_id] = { full_name: p.full_name, email: p.email };
           }
         }
+        // Manual join: drivers + carriers (no FK relationship in schema)
+        const driverIds = Array.from(
+          new Set(
+            rows
+              .map((r) => r.dispatcher_driver_ext_id as string | null)
+              .filter((v): v is string => !!v),
+          ),
+        );
+        const carrierIds = Array.from(
+          new Set(
+            rows
+              .map((r) => r.dispatcher_carrier_ext_id as string | null)
+              .filter((v): v is string => !!v),
+          ),
+        );
+        const driverMap: Record<string, Record<string, unknown>> = {};
+        const carrierMap: Record<string, Record<string, unknown>> = {};
+        if (driverIds.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: drv } = await (auth.client.from("dispatcher_driver_ext") as any)
+            .select("id, full_name, phone, email, whatsapp, telegram, max_messenger, city, docs_status")
+            .in("id", driverIds);
+          for (const d of (drv ?? []) as Array<Record<string, unknown>>) {
+            driverMap[d.id as string] = d;
+          }
+        }
+        if (carrierIds.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: car } = await (auth.client.from("dispatcher_carrier_ext") as any)
+            .select("id, name, inn, phone, email, whatsapp, telegram, max_messenger, city, ati_id, ati_phone, verification_status")
+            .in("id", carrierIds);
+          for (const c of (car ?? []) as Array<Record<string, unknown>>) {
+            carrierMap[c.id as string] = c;
+          }
+        }
+
         const enriched = rows.map((r) => {
           const takenBy = r.dispatcher_taken_by as string | null;
           const isMine = takenBy === auth.userId;
           const lat = r.current_lat == null ? null : Number(r.current_lat);
           const lng = r.current_lng == null ? null : Number(r.current_lng);
+          const drvId = r.dispatcher_driver_ext_id as string | null;
+          const carId = r.dispatcher_carrier_ext_id as string | null;
           return {
             ...r,
             current_lat: lat,
@@ -132,6 +170,8 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
             has_coordinates: Number.isFinite(lat) && Number.isFinite(lng),
             taken_by_self: isMine,
             taken_by_profile: takenBy ? (profiles[takenBy] ?? null) : null,
+            driver: drvId ? (driverMap[drvId] ?? null) : null,
+            carrier: carId ? (carrierMap[carId] ?? null) : null,
           };
         });
 
