@@ -215,7 +215,7 @@ function FreightsPage() {
                   <div>{r.weight_kg != null ? `${r.weight_kg} кг` : "—"}</div>
                   <div className="text-muted-foreground">{r.volume_m3 != null ? `${r.volume_m3} м³` : ""}</div>
                 </TableCell>
-                <TableCell className="text-xs">{r.body_type ?? "—"}</TableCell>
+                <TableCell className="text-xs">{viewing && false ? null : (r.body_type ? getVehicleBodyTypeLabel(r.body_type) : "—")}</TableCell>
                 <TableCell className="text-xs whitespace-nowrap">{fmtMoney(r.rate)}</TableCell>
                 <TableCell className="text-xs">
                   {r.source_url ? (
