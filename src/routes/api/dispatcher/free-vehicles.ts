@@ -30,9 +30,7 @@ const SELECT =
   "dispatcher_driver_ext_id, dispatcher_carrier_ext_id, dispatcher_status, dispatcher_work_status, " +
   "dispatcher_taken_by, dispatcher_taken_at, " +
   "minimum_trip_rate, minimum_km_rate, city_rate, point_rate, rate_comment, dispatcher_comment, " +
-  "docs_status, created_at, updated_at, " +
-  "driver:dispatcher_driver_ext_id ( id, full_name, phone, email, whatsapp, telegram, max_messenger, city, docs_status ), " +
-  "carrier:dispatcher_carrier_ext_id ( id, name, inn, phone, email, whatsapp, telegram, max_messenger, city, ati_id, ati_phone, verification_status )";
+  "docs_status, created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
   server: {
