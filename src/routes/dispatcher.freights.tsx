@@ -147,7 +147,15 @@ function FreightsPage() {
           <Input placeholder="Поиск" value={search} onChange={(e) => setSearch(e.target.value)} className="w-48" />
           <Input placeholder="Город загрузки" value={loadingCity} onChange={(e) => setLoadingCity(e.target.value)} className="w-44" />
           <Input placeholder="Город выгрузки" value={unloadingCity} onChange={(e) => setUnloadingCity(e.target.value)} className="w-44" />
-          <Input placeholder="Тип кузова" value={bodyType} onChange={(e) => setBodyType(e.target.value)} className="w-40" />
+          <Select value={bodyType || "all"} onValueChange={(v) => setBodyType(v === "all" ? "" : v)}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Тип кузова" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Все типы кузова</SelectItem>
+              {VEHICLE_BODY_TYPES.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
           <Select value={status} onValueChange={setStatus}>
             <SelectTrigger className="w-44"><SelectValue placeholder="Статус" /></SelectTrigger>
