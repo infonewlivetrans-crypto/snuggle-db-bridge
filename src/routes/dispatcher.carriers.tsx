@@ -58,6 +58,7 @@ function CarriersPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [quick, setQuick] = useState<QuickFilter>("all");
+  const [archived, setArchived] = useState<"hide" | "only" | "all">("hide");
   const [city, setCity] = useState("");
   const [editing, setEditing] = useState<CarrierDTO | null>(null);
   const [viewing, setViewing] = useState<CarrierDTO | null>(null);
