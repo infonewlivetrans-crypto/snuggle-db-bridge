@@ -249,10 +249,10 @@ export function CarrierForm({ initial, submitting, onCancel, onSubmit }: Props) 
             </SelectContent>
           </Select>
         </div>
-        <div><Label>ИНН</Label><Input value={inn} onChange={(e) => setInn(e.target.value)} inputMode="numeric" placeholder="10 или 12 цифр" /></div>
-        <div><Label>ОГРН / ОГРНИП</Label><Input value={ogrn} onChange={(e) => setOgrn(e.target.value)} inputMode="numeric" placeholder="13 или 15 цифр" /></div>
+        <div><Label>ИНН</Label><Input value={inn} onChange={(e) => setInn(e.target.value)} inputMode="numeric" placeholder={`${innRequiredLen} цифр`} className={innInvalid ? "border-destructive focus-visible:ring-destructive" : ""} aria-invalid={innInvalid} /></div>
+        <div><Label>ОГРН / ОГРНИП</Label><Input value={ogrn} onChange={(e) => setOgrn(e.target.value)} inputMode="numeric" placeholder={`${ogrnRequiredLen} цифр`} className={ogrnInvalid ? "border-destructive focus-visible:ring-destructive" : ""} aria-invalid={ogrnInvalid} /></div>
         <div><Label>Город</Label><Input value={city} onChange={(e) => setCity(e.target.value)} list="carrier-cities" placeholder="Москва, СПб…" /><datalist id="carrier-cities"><option value="Москва"/><option value="Санкт-Петербург"/><option value="Екатеринбург"/><option value="Новосибирск"/><option value="Казань"/><option value="Нижний Новгород"/><option value="Краснодар"/><option value="Ростов-на-Дону"/><option value="Самара"/><option value="Уфа"/><option value="Челябинск"/><option value="Воронеж"/><option value="Пермь"/><option value="Волгоград"/></datalist></div>
-        <div><Label>Телефон</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" /></div>
+        <div><Label>Телефон</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" className={phoneInvalid ? "border-destructive focus-visible:ring-destructive" : ""} aria-invalid={phoneInvalid} /></div>
         <div><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
         <div><Label>ATI ID</Label><Input value={atiId} onChange={(e) => setAtiId(e.target.value)} placeholder="например 123456" /></div>
         <div><Label>Телефон (как в ATI)</Label><Input value={atiPhone} onChange={(e) => setAtiPhone(e.target.value)} inputMode="tel" /></div>
