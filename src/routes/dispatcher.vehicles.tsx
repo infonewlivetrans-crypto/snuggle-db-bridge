@@ -28,6 +28,7 @@ import {
   VEHICLE_STATUS_LABELS,
   type LoadMethod,
 } from "@/lib/dispatcher/statuses";
+import { VEHICLE_BODY_TYPES, getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 export const Route = createFileRoute("/dispatcher/vehicles")({
   component: VehiclesPage,
