@@ -22,6 +22,7 @@ import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
 import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
+import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
