@@ -30,8 +30,6 @@ import {
   type FreightStatus, type LoadMethod, type PaymentType,
 } from "@/lib/dispatcher/statuses";
 import { VEHICLE_BODY_TYPES, getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
-const _statusesEnd = true; void _statusesEnd;
-} from "@/lib/dispatcher/statuses";
 
 export const Route = createFileRoute("/dispatcher/freights")({
   component: FreightsPage,
