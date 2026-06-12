@@ -234,15 +234,7 @@ export function VehicleForm({
         </div>
         <div>
           <Label>Тип кузова</Label>
-          <Select value={bodyType || "__none"} onValueChange={(v) => setBodyType(v === "__none" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__none">—</SelectItem>
-              {VEHICLE_BODY_TYPES.map((b) => (
-                <SelectItem key={b} value={b}>{VEHICLE_BODY_TYPE_LABELS[b]}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <VehicleBodyTypeSelect value={bodyType} onChange={setBodyType} />
         </div>
         <div><Label>Грузоподъёмность, кг</Label><Input value={payload} onChange={(e) => setPayload(e.target.value)} /></div>
         <div><Label>Объём, м³</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} /></div>
