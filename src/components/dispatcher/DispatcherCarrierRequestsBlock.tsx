@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
+import { CityCombobox } from "@/components/common/CityCombobox";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -444,7 +445,7 @@ export function DispatcherCarrierRequestsBlock({
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Город загрузки</Label>
-              <Input value={form.loading_city} onChange={(e) => setForm({ ...form, loading_city: e.target.value })} />
+              <CityCombobox value={form.loading_city} onChange={(v) => setForm({ ...form, loading_city: v })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Дата загрузки</Label>
@@ -456,7 +457,7 @@ export function DispatcherCarrierRequestsBlock({
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Город выгрузки</Label>
-              <Input value={form.unloading_city} onChange={(e) => setForm({ ...form, unloading_city: e.target.value })} />
+              <CityCombobox value={form.unloading_city} onChange={(v) => setForm({ ...form, unloading_city: v })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Дата выгрузки</Label>
