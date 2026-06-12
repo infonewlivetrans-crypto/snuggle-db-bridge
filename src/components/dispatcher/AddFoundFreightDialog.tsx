@@ -159,7 +159,7 @@ export function AddFoundFreightDialog({
           <DialogTitle>Добавить найденный груз</DialogTitle>
           <DialogDescription>
             Под машину {vehicle.vehicle_kind ?? "—"}
-            {vehicle.body_type ? ` · ${vehicle.body_type}` : ""}
+            {vehicle.body_type ? ` · ${getVehicleBodyTypeLabel(vehicle.body_type)}` : ""}
             {" · "}
             {vehicle.carrier?.name ?? "перевозчик не указан"}
           </DialogDescription>
