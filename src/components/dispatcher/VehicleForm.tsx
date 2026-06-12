@@ -19,6 +19,11 @@ import {
   VEHICLE_STATUSES,
   VEHICLE_STATUS_LABELS,
   DRIVER_STATUS_LABELS,
+  VEHICLE_READY_MODES,
+  VEHICLE_READY_MODE_LABELS,
+  VEHICLE_LOCATION_SOURCE_LABELS,
+  WEEKDAY_LABELS_SHORT,
+  type VehicleReadyMode,
   type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
 import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
@@ -69,6 +74,14 @@ export function VehicleForm({
   const [homeCity, setHomeCity] = useState("");
   const [readyTo, setReadyTo] = useState("");
   const [readyDate, setReadyDate] = useState("");
+  const [readyRadius, setReadyRadius] = useState<string>("");
+  const [readyMode, setReadyMode] = useState<VehicleReadyMode>("from_date");
+  const [readyFrom, setReadyFrom] = useState<string>("");
+  const [readyWeekdays, setReadyWeekdays] = useState<number[]>([]);
+  const [locationSource, setLocationSource] = useState<string | null>(null);
+  const [currentLat, setCurrentLat] = useState<string>("");
+  const [currentLng, setCurrentLng] = useState<string>("");
+  const [locationUpdatedAt, setLocationUpdatedAt] = useState<string | null>(null);
   const [driverId, setDriverId] = useState<string>("none");
   const [carrierId, setCarrierId] = useState<string>(initialCarrierId ?? "none");
   const [status, setStatus] = useState<VehicleStatus>("new");
@@ -99,6 +112,15 @@ export function VehicleForm({
       setHomeCity(empty(initial.home_city));
       setReadyTo((initial.ready_to_cities ?? []).join(", "));
       setReadyDate(initial.ready_date ? String(initial.ready_date).slice(0, 10) : "");
+      const init = initial as unknown as Record<string, unknown>;
+      setReadyRadius(numStr((init.ready_radius_km ?? null) as number | null));
+      setReadyMode(((init.ready_mode as VehicleReadyMode) ?? "from_date"));
+      setReadyFrom(init.ready_from ? String(init.ready_from).slice(0, 10) : "");
+      setReadyWeekdays(Array.isArray(init.ready_weekdays) ? (init.ready_weekdays as number[]) : []);
+      setLocationSource((init.location_source as string | null) ?? null);
+      setCurrentLat(init.current_lat == null ? "" : String(init.current_lat));
+      setCurrentLng(init.current_lng == null ? "" : String(init.current_lng));
+      setLocationUpdatedAt((init.location_updated_at as string | null) ?? null);
       setDriverId(initial.dispatcher_driver_ext_id ?? "none");
       setCarrierId(initial.dispatcher_carrier_ext_id ?? initialCarrierId ?? "none");
       setStatus(
@@ -172,7 +194,18 @@ export function VehicleForm({
       rate_comment: rateComment || null,
       dispatcher_comment: comment || null,
       production_vehicle_id: initial?.production_vehicle_id ?? null,
-    });
+      ready_radius_km: readyRadius.trim() === "" ? null : Math.max(0, Math.min(999, Math.trunc(Number(readyRadius)) || 0)),
+      ready_mode: readyMode ?? null,
+      ready_weekdays:
+        readyMode === "weekdays" || readyMode === "custom" ? readyWeekdays : null,
+      ready_from: readyFrom || null,
+      current_lat: currentLat.trim() === "" ? null : (Number(currentLat) || null),
+      current_lng: currentLng.trim() === "" ? null : (Number(currentLng) || null),
+      location_source:
+        currentLat.trim() !== "" && currentLng.trim() !== ""
+          ? "admin"
+          : ((locationSource as never) ?? null),
+    } as never);
   };
 
   const carrierLabel = (c: CarrierDTO) => {
@@ -319,7 +352,101 @@ export function VehicleForm({
           </datalist>
         </div>
         <div><Label>Готов ехать (через запятую)</Label><Input value={readyTo} onChange={(e) => setReadyTo(e.target.value)} placeholder="Москва, Казань, ..." /></div>
-        <div><Label>Дата готовности</Label><Input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} /></div>
+        <div>
+          <Label>Радиус готовности от города, км (0–999)</Label>
+          <Input
+            type="number"
+            min={0}
+            max={999}
+            value={readyRadius}
+            onChange={(e) => setReadyRadius(e.target.value)}
+            placeholder="0"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <Label>Режим готовности</Label>
+          <Select value={readyMode} onValueChange={(v) => setReadyMode(v as VehicleReadyMode)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {VEHICLE_READY_MODES.map((m) => (
+                <SelectItem key={m} value={m}>{VEHICLE_READY_MODE_LABELS[m]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {readyMode === "from_date" && (
+          <div className="md:col-span-2">
+            <Label>Готов с даты</Label>
+            <Input type="date" value={readyFrom} onChange={(e) => setReadyFrom(e.target.value)} />
+          </div>
+        )}
+        {readyMode === "today" && (
+          <div className="md:col-span-2">
+            <Label>Дата готовности</Label>
+            <Input type="date" value={readyDate} onChange={(e) => setReadyDate(e.target.value)} />
+          </div>
+        )}
+        {(readyMode === "weekdays" || readyMode === "custom") && (
+          <div className="md:col-span-2">
+            <Label>Дни недели</Label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {WEEKDAY_LABELS_SHORT.map((label, i) => {
+                const day = i + 1;
+                const active = readyWeekdays.includes(day);
+                return (
+                  <button
+                    type="button"
+                    key={day}
+                    onClick={() =>
+                      setReadyWeekdays(
+                        active ? readyWeekdays.filter((x) => x !== day) : [...readyWeekdays, day],
+                      )
+                    }
+                    className={`px-3 py-1 rounded-md border text-sm ${
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-card border-border text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {readyMode === "weekdays" && readyWeekdays.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                По умолчанию — Пн–Пт. Выберите конкретные дни, если нужно.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="md:col-span-2 mt-2 border-t pt-3">
+          <div className="text-sm font-semibold mb-2">Местоположение (админ/тест)</div>
+          <p className="text-xs text-muted-foreground mb-2">
+            Если указан только город — координаты подберутся автоматически (Яндекс). Координаты ниже —
+            только для тестирования и ручной корректировки.
+          </p>
+        </div>
+        <div><Label>Широта (lat)</Label><Input value={currentLat} onChange={(e) => setCurrentLat(e.target.value)} placeholder="55.7558" /></div>
+        <div><Label>Долгота (lng)</Label><Input value={currentLng} onChange={(e) => setCurrentLng(e.target.value)} placeholder="37.6173" /></div>
+        <div className="md:col-span-2 text-xs text-muted-foreground">
+          Источник координат:{" "}
+          <span className="font-medium text-foreground">
+            {locationSource
+              ? VEHICLE_LOCATION_SOURCE_LABELS[
+                  locationSource as keyof typeof VEHICLE_LOCATION_SOURCE_LABELS
+                ] ?? locationSource
+              : "—"}
+          </span>
+          {locationUpdatedAt && (
+            <>
+              {" · обновлено "}
+              {new Date(locationUpdatedAt).toLocaleString("ru-RU")}
+            </>
+          )}
+        </div>
 
         <div className="md:col-span-2 mt-2 border-t pt-3">
           <div className="text-sm font-semibold mb-2">Экономика рейса</div>

@@ -13,8 +13,8 @@ const ALLOWED_ROLES = ["admin", "dispatcher"];
 
 const SELECT =
   "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, height_m, " +
-  "load_methods, home_city, current_city, current_lat, current_lng, location_updated_at, " +
-  "ready_to_cities, ready_date, ready_comment, " +
+  "load_methods, home_city, current_city, current_lat, current_lng, location_updated_at, location_source, " +
+  "ready_to_cities, ready_date, ready_comment, ready_radius_km, ready_mode, ready_weekdays, ready_from, " +
   "dispatcher_driver_ext_id, dispatcher_carrier_ext_id, dispatcher_status, " +
   "minimum_trip_rate, minimum_km_rate, city_rate, point_rate, rate_comment, " +
   "dispatcher_comment, production_vehicle_id, created_at, updated_at";
@@ -89,9 +89,12 @@ export const Route = createFileRoute("/api/dispatcher/vehicles")({
             { status: 400 },
           );
         }
+        const insertBody = { ...(parsed.data as Record<string, unknown>) };
+        const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
+        await enrichVehicleLocation(auth.client, insertBody, "dispatcher");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (auth.client.from(TABLE as never) as any)
-          .insert(parsed.data as unknown as never)
+          .insert(insertBody as unknown as never)
           .select(SELECT)
           .single();
         if (error) return jsonResponse({ error: error.message }, { status: 500 });

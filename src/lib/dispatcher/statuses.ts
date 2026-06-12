@@ -346,6 +346,46 @@ export const LOAD_METHOD_LABELS: Record<LoadMethod, string> = {
   tail_lift: "Гидроборт",
 };
 
+// Источник координат транспорта.
+export const VEHICLE_LOCATION_SOURCES = [
+  "gps",
+  "driver",
+  "carrier",
+  "admin",
+  "home_city",
+  "manual",
+] as const;
+export type VehicleLocationSource = (typeof VEHICLE_LOCATION_SOURCES)[number];
+
+export const VEHICLE_LOCATION_SOURCE_LABELS: Record<VehicleLocationSource, string> = {
+  gps: "GPS",
+  driver: "Указал водитель",
+  carrier: "Указал перевозчик",
+  admin: "Админ",
+  home_city: "Город базирования",
+  manual: "Вручную",
+};
+
+// Режим готовности транспорта.
+export const VEHICLE_READY_MODES = [
+  "today",
+  "from_date",
+  "always",
+  "weekdays",
+  "custom",
+] as const;
+export type VehicleReadyMode = (typeof VEHICLE_READY_MODES)[number];
+
+export const VEHICLE_READY_MODE_LABELS: Record<VehicleReadyMode, string> = {
+  today: "Готов сегодня",
+  from_date: "Готов с даты",
+  always: "Готов постоянно",
+  weekdays: "По будням",
+  custom: "По выбранным дням",
+};
+
+export const WEEKDAY_LABELS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"] as const;
+
 // Способы оплаты перевозчику (Радиус Трек → перевозчик).
 // Стабильные технические коды, русский текст только в label.
 export const CARRIER_PAYMENT_METHODS = [
