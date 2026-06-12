@@ -74,17 +74,15 @@ export const Route = createFileRoute("/api/carrier/vehicles/$id/readiness")({
         }
         update.location_updated_at = new Date().toISOString();
 
-        // Попытка геокодирования города — best-effort, не критично.
+        // Геокодирование города местонахождения — best-effort.
+        // Используется ТОЛЬКО current_city; ready_to_cities на координаты не влияет.
         if (typeof update.current_city === "string" && update.current_city) {
-          try {
-            const { geocodeAddress } = await import("@/server/yandex.server");
-            const geo = await geocodeAddress(ctx.admin, update.current_city as string);
-            if (geo && Number.isFinite(geo.lat) && Number.isFinite(geo.lng)) {
-              update.current_lat = geo.lat;
-              update.current_lng = geo.lng;
-            }
-          } catch (e) {
-            console.warn("[readiness] geocode failed:", (e as Error).message);
+          const { geocodeCityForVehicle } = await import("@/server/vehicle-location.server");
+          const geo = await geocodeCityForVehicle(ctx.admin, update.current_city as string);
+          if (geo) {
+            update.current_lat = geo.lat;
+            update.current_lng = geo.lng;
+            update.location_source = "carrier";
           }
         }
 
