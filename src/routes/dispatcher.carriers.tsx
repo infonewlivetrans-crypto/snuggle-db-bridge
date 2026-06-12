@@ -113,6 +113,17 @@ function CarriersPage() {
     }
   };
 
+  const handleRestore = async (id: string) => {
+    if (!confirm("Восстановить перевозчика из архива?")) return;
+    try {
+      await carriersApi.update(id, { verification_status: "on_check" } as never);
+      toast.success("Восстановлен");
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  };
+
   const handleStatusChange = async (row: CarrierDTO, newStatus: string) => {
     try {
       await carriersApi.update(row.id, { verification_status: newStatus as CarrierCreateInput["verification_status"] });
