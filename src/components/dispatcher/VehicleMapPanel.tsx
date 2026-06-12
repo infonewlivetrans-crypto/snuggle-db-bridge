@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, Truck, AlertTriangle, Map as MapIcon, ExternalLink, PackageSearch } from "lucide-react";
+import { MapPin, Truck, AlertTriangle, Map as MapIcon, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { yandexMapsUrl } from "@/lib/geo";
