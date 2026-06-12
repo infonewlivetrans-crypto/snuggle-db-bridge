@@ -2021,6 +2021,7 @@ export type Database = {
           load_methods: string[] | null
           load_status: string
           loading_restrictions: string | null
+          location_source: string | null
           location_updated_at: string | null
           min_rate: number | null
           minimum_km_rate: number | null
@@ -2034,7 +2035,11 @@ export type Database = {
           ready_city: string | null
           ready_comment: string | null
           ready_date: string | null
+          ready_from: string | null
+          ready_mode: string | null
+          ready_radius_km: number | null
           ready_to_cities: string[] | null
+          ready_weekdays: number[] | null
           updated_at: string
           vehicle_id: string | null
           vehicle_kind: string | null
@@ -2066,6 +2071,7 @@ export type Database = {
           load_methods?: string[] | null
           load_status?: string
           loading_restrictions?: string | null
+          location_source?: string | null
           location_updated_at?: string | null
           min_rate?: number | null
           minimum_km_rate?: number | null
@@ -2079,7 +2085,11 @@ export type Database = {
           ready_city?: string | null
           ready_comment?: string | null
           ready_date?: string | null
+          ready_from?: string | null
+          ready_mode?: string | null
+          ready_radius_km?: number | null
           ready_to_cities?: string[] | null
+          ready_weekdays?: number[] | null
           updated_at?: string
           vehicle_id?: string | null
           vehicle_kind?: string | null
@@ -2111,6 +2121,7 @@ export type Database = {
           load_methods?: string[] | null
           load_status?: string
           loading_restrictions?: string | null
+          location_source?: string | null
           location_updated_at?: string | null
           min_rate?: number | null
           minimum_km_rate?: number | null
@@ -2124,7 +2135,11 @@ export type Database = {
           ready_city?: string | null
           ready_comment?: string | null
           ready_date?: string | null
+          ready_from?: string | null
+          ready_mode?: string | null
+          ready_radius_km?: number | null
           ready_to_cities?: string[] | null
+          ready_weekdays?: number[] | null
           updated_at?: string
           vehicle_id?: string | null
           vehicle_kind?: string | null
