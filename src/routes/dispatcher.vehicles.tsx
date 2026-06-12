@@ -323,6 +323,13 @@ function VehiclesPage() {
                   initialVehicleId={viewing.id}
                 />
               )}
+              <div className="rounded-md border p-3 space-y-2">
+                <div className="font-medium">Ссылка для заполнения данных транспорта</div>
+                <div className="text-xs text-muted-foreground">
+                  Отправьте водителю или перевозчику ссылку — он заполнит данные транспорта и прикрепит документы.
+                </div>
+                <InviteLinkButton entityType="vehicle" entityId={viewing.id} inviteType="vehicle_registration" />
+              </div>
             </div>
           )}
         </DialogContent>
