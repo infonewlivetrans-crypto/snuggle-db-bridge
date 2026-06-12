@@ -336,7 +336,7 @@ function VehicleDetailsDialog({
         <DialogHeader>
           <DialogTitle>
             {v.vehicle_kind ?? "Машина"}
-            {v.body_type ? ` · ${v.body_type}` : ""}
+            {v.body_type ? ` · ${getVehicleBodyTypeLabel(v.body_type)}` : ""}
           </DialogTitle>
           <DialogDescription>
             {(v.current_city ?? v.home_city ?? "—") + " → " + (v.ready_to_cities?.join(", ") || "—")}
