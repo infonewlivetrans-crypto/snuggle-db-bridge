@@ -16,6 +16,7 @@ import {
 import type { FreightDTO } from "@/lib/dispatcher/types";
 import type { FreightCreateInput } from "@/lib/dispatcher/schemas";
 import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
+import { CityCombobox } from "@/components/common/CityCombobox";
 
 interface Props {
   initial?: FreightDTO | null;
@@ -124,8 +125,8 @@ export function FreightForm({ initial, submitting, onCancel, onSubmit }: Props) 
     <form onSubmit={handle} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="md:col-span-2"><Label>Название груза</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Москва → Казань, 20т тент" /></div>
-        <div><Label>Откуда</Label><Input value={loadingCity} onChange={(e) => setLoadingCity(e.target.value)} /></div>
-        <div><Label>Куда</Label><Input value={unloadingCity} onChange={(e) => setUnloadingCity(e.target.value)} /></div>
+        <div><Label>Откуда</Label><CityCombobox value={loadingCity} onChange={setLoadingCity} /></div>
+        <div><Label>Куда</Label><CityCombobox value={unloadingCity} onChange={setUnloadingCity} /></div>
         <div><Label>Дата загрузки</Label><Input type="date" value={loadingDate} onChange={(e) => setLoadingDate(e.target.value)} /></div>
         <div><Label>Дата выгрузки</Label><Input type="date" value={unloadingDate} onChange={(e) => setUnloadingDate(e.target.value)} /></div>
         <div className="md:col-span-2"><Label>Наименование груза</Label><Input value={cargoName} onChange={(e) => setCargoName(e.target.value)} /></div>

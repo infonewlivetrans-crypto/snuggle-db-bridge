@@ -23,6 +23,7 @@ import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
 import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
+import { CityCombobox } from "@/components/common/CityCombobox";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
@@ -122,12 +123,7 @@ export function FreeVehiclesBlock() {
           <Badge variant="outline">{data?.total ?? 0}</Badge>
         </h2>
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Город"
-            className="h-8 w-32"
-          />
+          <div className="w-40"><CityCombobox value={city} onChange={setCity} placeholder="Город" size="sm" /></div>
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -591,7 +587,7 @@ function LocationEditBlock({ vehicle }: { vehicle: FreeVehicleRow }) {
       <div className="grid gap-2 sm:grid-cols-2">
         <div>
           <Label className="text-xs">Текущий город</Label>
-          <Input value={city} onChange={(e) => setCity(e.target.value)} className="h-8" />
+          <CityCombobox value={city} onChange={setCity} size="sm" />
         </div>
         <div>
           <Label className="text-xs">Дата готовности</Label>

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CarrierUnifiedConsentBlock } from "@/components/contracts/CarrierUnifiedConsentBlock";
 import { buildOfferPayload } from "@/lib/contracts/carrier-offer";
+import { CityCombobox } from "@/components/common/CityCombobox";
 
 export const Route = createFileRoute("/dispatcher/register/$token")({
   // Страница полностью клиентская: грузит данные по токену через fetch в useEffect.
@@ -259,7 +260,7 @@ function CarrierForm({ get, setField }: FProps) {
         <Field label="Тип" k="carrier_kind" get={get} setField={setField} placeholder="individual_entrepreneur / llc / self_employed / individual" />
         <Field label="ИНН" k="inn" get={get} setField={setField} />
         <Field label="ОГРН / ОГРНИП" k="ogrn" get={get} setField={setField} />
-        <Field label="Город" k="city" get={get} setField={setField} />
+        <div><Label>Город</Label><CityCombobox value={String(get("city") ?? "")} onChange={(v) => setField("city", v)} /></div>
         <Field label="Телефон" k="phone" get={get} setField={setField} />
         <Field label="WhatsApp" k="whatsapp" get={get} setField={setField} />
         <Field label="Telegram" k="telegram" get={get} setField={setField} />
@@ -286,7 +287,7 @@ function DriverForm({ get, setField }: FProps) {
         <Field label="Telegram" k="telegram" get={get} setField={setField} />
         <Field label="Max Messenger" k="max_messenger" get={get} setField={setField} />
         <Field label="Email" k="email" get={get} setField={setField} />
-        <Field label="Город" k="city" get={get} setField={setField} />
+        <div><Label>Город</Label><CityCombobox value={String(get("city") ?? "")} onChange={(v) => setField("city", v)} /></div>
       </div>
     </section>
   );
@@ -320,7 +321,7 @@ function VehicleForm({
           <Label>Способы загрузки (через запятую)</Label>
           <Input value={arr("load_methods")} onChange={(e) => setArr("load_methods", e.target.value)} />
         </div>
-        <Field label="Город нахождения" k="home_city" get={get} setField={setField} />
+        <div><Label>Город нахождения</Label><CityCombobox value={String(get("home_city") ?? "")} onChange={(v) => setField("home_city", v)} /></div>
         <div>
           <Label>Куда готов ехать (через запятую)</Label>
           <Input value={arr("ready_to_cities")} onChange={(e) => setArr("ready_to_cities", e.target.value)} />

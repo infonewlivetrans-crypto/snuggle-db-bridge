@@ -13,7 +13,6 @@ import {
 import {
   LOAD_METHODS,
   LOAD_METHOD_LABELS,
-  RUSSIAN_CITIES_PRESET,
   VEHICLE_FEATURES,
   VEHICLE_FEATURE_LABELS,
   VEHICLE_STATUSES,
@@ -27,6 +26,7 @@ import {
   type VehicleStatus,
 } from "@/lib/dispatcher/statuses";
 import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
+import { CityCombobox, CityMultiCombobox } from "@/components/common/CityCombobox";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { VehicleCreateInput } from "@/lib/dispatcher/schemas";
 
@@ -72,7 +72,7 @@ export function VehicleForm({
   const [loadMethods, setLoadMethods] = useState<string[]>([]);
   const [features, setFeatures] = useState<string[]>([]);
   const [homeCity, setHomeCity] = useState("");
-  const [readyTo, setReadyTo] = useState("");
+  const [readyTo, setReadyTo] = useState<string[]>([]);
   const [readyDate, setReadyDate] = useState("");
   const [readyRadius, setReadyRadius] = useState<string>("");
   const [readyMode, setReadyMode] = useState<VehicleReadyMode>("from_date");
@@ -110,7 +110,7 @@ export function VehicleForm({
       setWidthM(numStr(initial.width_m));
       setHeightM(numStr(initial.height_m));
       setHomeCity(empty(initial.home_city));
-      setReadyTo((initial.ready_to_cities ?? []).join(", "));
+      setReadyTo((initial.ready_to_cities ?? []) as string[]);
       setReadyDate(initial.ready_date ? String(initial.ready_date).slice(0, 10) : "");
       const init = initial as unknown as Record<string, unknown>;
       setReadyRadius(numStr((init.ready_radius_km ?? null) as number | null));
@@ -179,10 +179,7 @@ export function VehicleForm({
       // load_methods хранит и способы загрузки, и доп. признаки (text[]).
       load_methods: [...loadMethods, ...features],
       home_city: homeCity || null,
-      ready_to_cities: readyTo
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
+      ready_to_cities: readyTo.map((s) => s.trim()).filter(Boolean),
       ready_date: readyDate || null,
       dispatcher_driver_ext_id: driverId === "none" ? null : driverId,
       dispatcher_carrier_ext_id: carrierId,
@@ -341,20 +338,17 @@ export function VehicleForm({
 
         <div>
           <Label>Город базирования / текущее местоположение</Label>
-          <Input
-            list="vehicle-cities-datalist"
+          <CityCombobox
             value={homeCity}
-            onChange={(e) => setHomeCity(e.target.value)}
-            placeholder="Краснодар, Москва, ..."
+            onChange={setHomeCity}
+            placeholder="Краснодар, Энгельс, ст-ца Каневская…"
+            helper="Если приложение водителя передаёт GPS — отображается оно. Если нет — это поле."
           />
-          <datalist id="vehicle-cities-datalist">
-            {RUSSIAN_CITIES_PRESET.map((c) => <option key={c} value={c} />)}
-          </datalist>
-          <p className="text-xs text-muted-foreground mt-1">
-            Если приложение водителя передаёт GPS — отображается оно. Если нет — это поле.
-          </p>
         </div>
-        <div><Label>Готов ехать (через запятую)</Label><Input value={readyTo} onChange={(e) => setReadyTo(e.target.value)} placeholder="Москва, Казань, ..." /></div>
+        <div>
+          <Label>Готов ехать</Label>
+          <CityMultiCombobox value={readyTo} onChange={setReadyTo} placeholder="Добавить город назначения…" />
+        </div>
         <div>
           <Label>Радиус готовности от города, км (0–999)</Label>
           <Input

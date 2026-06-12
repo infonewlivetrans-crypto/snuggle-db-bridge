@@ -23,6 +23,7 @@ import {
 import { freightsApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
 import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSelect";
 import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
+import { CityCombobox } from "@/components/common/CityCombobox";
 
 const SOURCE_OPTIONS = [
   { v: "ati", l: "ATI" },
@@ -180,10 +181,10 @@ export function AddFoundFreightDialog({
             <Input value={f.source_url} onChange={(e) => set("source_url", e.target.value)} />
           </Field>
           <Field label="Город загрузки">
-            <Input value={f.loading_city} onChange={(e) => set("loading_city", e.target.value)} />
+            <CityCombobox value={f.loading_city} onChange={(v) => set("loading_city", v)} />
           </Field>
           <Field label="Город выгрузки">
-            <Input value={f.unloading_city} onChange={(e) => set("unloading_city", e.target.value)} />
+            <CityCombobox value={f.unloading_city} onChange={(v) => set("unloading_city", v)} />
           </Field>
           <Field label="Дата загрузки">
             <Input type="date" value={f.loading_date} onChange={(e) => set("loading_date", e.target.value)} />

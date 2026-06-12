@@ -13,11 +13,11 @@ import {
 import {
   DRIVER_STATUSES,
   DRIVER_STATUS_LABELS,
-  RUSSIAN_CITIES_PRESET,
   type DriverStatus,
 } from "@/lib/dispatcher/statuses";
 import type { CarrierDTO, DriverDTO } from "@/lib/dispatcher/types";
 import type { DriverCreateInput } from "@/lib/dispatcher/schemas";
+import { CityCombobox } from "@/components/common/CityCombobox";
 
 interface Props {
   initial?: DriverDTO | null;
@@ -152,17 +152,7 @@ export function DriverForm({
         </div>
         <div>
           <Label>Город</Label>
-          <Input
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            list="driver-cities"
-            placeholder="Краснодар, Москва…"
-          />
-          <datalist id="driver-cities">
-            {RUSSIAN_CITIES_PRESET.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
+          <CityCombobox value={city} onChange={setCity} />
         </div>
         <div><Label>Телефон</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+7…" /></div>
         <div><Label>Email</Label><Input value={email} onChange={(e) => setEmail(e.target.value)} /></div>
