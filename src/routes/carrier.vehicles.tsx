@@ -7,15 +7,13 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
 import {
-  VEHICLE_BODY_TYPE_LABELS,
   VEHICLE_STATUS_LABELS,
   LOAD_METHOD_LABELS,
   VEHICLE_FEATURE_LABELS,
   type LoadMethod,
   type VehicleFeature,
-
-
 } from "@/lib/dispatcher/statuses";
+import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 
 export const Route = createFileRoute("/carrier/vehicles")({
   head: () => ({ meta: [{ title: "Мой транспорт — кабинет перевозчика" }] }),
