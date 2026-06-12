@@ -50,7 +50,13 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id")({
           );
         }
         const updateBody: Record<string, unknown> = { ...(parsed.data as Record<string, unknown>) };
-        if ("current_lat" in updateBody || "current_lng" in updateBody || "current_city" in updateBody) {
+        const role = auth.role === "admin" ? "admin" : "dispatcher";
+        const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
+        await enrichVehicleLocation(auth.client, updateBody, role);
+        if (
+          !("location_updated_at" in updateBody) &&
+          ("current_lat" in updateBody || "current_lng" in updateBody || "current_city" in updateBody)
+        ) {
           updateBody.location_updated_at = new Date().toISOString();
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
