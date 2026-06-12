@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { apiPost, apiPatch } from "@/lib/api-client";
+import { CityCombobox } from "@/components/common/CityCombobox";
 import {
   VEHICLE_STATUSES,
   VEHICLE_STATUS_LABELS,
@@ -213,12 +214,10 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
               />
             </Field>
             <Field label="Город готовности">
-              {/* TODO: подключить существующий компонент подсказок Яндекс на следующем этапе. */}
-              <Input
+              <CityCombobox
                 value={values.home_city}
-                onChange={(e) => set("home_city", e.target.value)}
-                placeholder="Москва"
-                maxLength={120}
+                onChange={(v) => set("home_city", v)}
+                placeholder="Москва, Краснодар, ст-ца Каневская…"
               />
             </Field>
             <Field label="Дата готовности">
