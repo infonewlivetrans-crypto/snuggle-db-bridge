@@ -371,14 +371,23 @@ function CarrierViewBody({
         </details>
       </div>
 
+      {/* Регистрация по ссылке — отдельный блок с пояснением */}
+      <div className="rounded-md border p-3 space-y-2">
+        <div className="font-medium">Регистрация по ссылке</div>
+        <div className="text-xs text-muted-foreground">
+          Ссылка для перевозчика — открывает форму регистрации/анкеты.
+          Отправьте её перевозчику в WhatsApp, Telegram или по e-mail.
+        </div>
+        <CarrierRegistrationBlock
+          carrierId={row.id}
+          formSubmittedAt={row.commission_agreed_at}
+        />
+      </div>
+
       {/* Дополнительно — технические блоки */}
       <details className="rounded-md border p-3">
         <summary className="cursor-pointer font-medium">Дополнительно</summary>
         <div className="mt-3 space-y-4">
-          <CarrierRegistrationBlock
-            carrierId={row.id}
-            formSubmittedAt={row.commission_agreed_at}
-          />
           <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
           <DispatcherPartnerCardBlock carrierExtId={row.id} />
           <DispatcherCarrierRequestsBlock carrierExtId={row.id} carrierName={row.name ?? null} />
