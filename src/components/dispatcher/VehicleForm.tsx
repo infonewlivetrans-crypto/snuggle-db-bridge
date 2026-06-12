@@ -90,10 +90,7 @@ export function VehicleForm({
       // Plate сохраняется в vehicle_kind как первая часть, либо отдельный комментарий.
       setKind(empty(initial.vehicle_kind));
 
-      const initBody = empty(initial.body_type);
-      setBodyType(
-        (VEHICLE_BODY_TYPES as readonly string[]).includes(initBody) ? initBody : initBody,
-      );
+      setBodyType(empty(initial.body_type));
       setPayload(numStr(initial.payload_kg));
       setVolume(numStr(initial.volume_m3));
       setLengthM(numStr(initial.length_m));
