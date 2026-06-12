@@ -196,6 +196,14 @@ function CarriersPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={archived} onValueChange={(v) => setArchived(v as "hide" | "only" | "all")}>
+            <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="hide">Активные</SelectItem>
+              <SelectItem value="only">Архив</SelectItem>
+              <SelectItem value="all">Все</SelectItem>
+            </SelectContent>
+          </Select>
         </>
       }
     >
