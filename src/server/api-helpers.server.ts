@@ -2,6 +2,7 @@ import "@/server/env-bootstrap.server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { getSessionUser } from "@/server/auth-cookies.server";
+import { ServiceRoleUnavailableError } from "@/server/admin-errors";
 
 function getSupabaseUrl(): string {
   return (
