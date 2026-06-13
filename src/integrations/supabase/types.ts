@@ -1995,6 +1995,48 @@ export type Database = {
           },
         ]
       }
+      dispatcher_user_invites: {
+        Row: {
+          activated_at: string | null
+          activated_user_id: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dispatcher_vehicle_ext: {
         Row: {
           body_type: string | null
@@ -5814,6 +5856,28 @@ export type Database = {
       admin_delete_invite: { Args: { p_invite_id: string }; Returns: undefined }
       admin_delete_order: { Args: { p_order_id: string }; Returns: Json }
       admin_delete_route: { Args: { p_route_id: string }; Returns: Json }
+      admin_issue_dispatcher_user_invite: {
+        Args: { p_comment?: string; p_email?: string; p_full_name: string }
+        Returns: {
+          activated_at: string | null
+          activated_user_id: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          token: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "dispatcher_user_invites"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_issue_invite: {
         Args: {
           p_comment: string
@@ -5849,6 +5913,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_revoke_dispatcher_user_invite: {
+        Args: { p_invite_id: string }
+        Returns: undefined
+      }
       admin_rotate_invite: {
         Args: { p_invite_id: string }
         Returns: {
@@ -5879,6 +5947,10 @@ export type Database = {
       }
       admin_set_invite_active: {
         Args: { p_active: boolean; p_invite_id: string }
+        Returns: undefined
+      }
+      bind_dispatcher_invite_to_user: {
+        Args: { p_email: string; p_token: string; p_user_id: string }
         Returns: undefined
       }
       calc_order_delivery_cost: {
@@ -5953,6 +6025,15 @@ export type Database = {
         Returns: {
           id: string
           name: string
+        }[]
+      }
+      get_dispatcher_user_invite_public: {
+        Args: { p_token: string }
+        Returns: {
+          already_activated: boolean
+          email: string
+          full_name: string
+          is_active: boolean
         }[]
       }
       get_driver_access_route_by_token: {
