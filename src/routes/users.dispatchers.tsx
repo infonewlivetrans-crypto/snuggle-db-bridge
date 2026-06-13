@@ -22,7 +22,7 @@ import {
 import { apiGet, apiPost } from "@/lib/api-client";
 import { Copy, Plus, ShieldOff } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/users/dispatchers")({
+export const Route = createFileRoute("/users/dispatchers")({
   component: DispatchersAdminPage,
 });
 
