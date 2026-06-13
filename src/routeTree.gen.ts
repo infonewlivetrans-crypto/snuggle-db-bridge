@@ -335,6 +335,7 @@ import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/ca
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
 import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
 import { Route as ApiCarrierDealsIdProgressRouteImport } from './routes/api/carrier/deals.$id.progress'
+import { Route as ApiAdminDispatcherUserInvitesIdRevokeRouteImport } from './routes/api/admin/dispatcher-user-invites.$id.revoke'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
@@ -2048,6 +2049,12 @@ const ApiCarrierDealsIdProgressRoute =
     path: '/$id/progress',
     getParentRoute: () => ApiCarrierDealsRoute,
   } as any)
+const ApiAdminDispatcherUserInvitesIdRevokeRoute =
+  ApiAdminDispatcherUserInvitesIdRevokeRouteImport.update({
+    id: '/$id/revoke',
+    path: '/$id/revoke',
+    getParentRoute: () => ApiAdminDispatcherUserInvitesRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdRoute =
   ApiPublicClientPortalTokenOrdersOrderIdRouteImport.update({
     id: '/orders/$orderId',
@@ -2244,7 +2251,7 @@ export interface FileRoutesByFullPath {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
-  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRoute
+  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRouteWithChildren
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
@@ -2375,6 +2382,7 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
@@ -2575,7 +2583,7 @@ export interface FileRoutesByTo {
   '/users': typeof UsersIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
-  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRoute
+  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRouteWithChildren
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
@@ -2706,6 +2714,7 @@ export interface FileRoutesByTo {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
@@ -2908,7 +2917,7 @@ export interface FileRoutesById {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
-  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRoute
+  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRouteWithChildren
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
@@ -3039,6 +3048,7 @@ export interface FileRoutesById {
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
+  '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
@@ -3373,6 +3383,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
@@ -3704,6 +3715,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
@@ -4036,6 +4048,7 @@ export interface FileRouteTypes {
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
+    | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/requests/$id/contract-preview'
@@ -4232,7 +4245,7 @@ export interface RootRouteChildren {
   UsersIndexRoute: typeof UsersIndexRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
   WarehousesIndexRoute: typeof WarehousesIndexRoute
-  ApiAdminDispatcherUserInvitesRoute: typeof ApiAdminDispatcherUserInvitesRoute
+  ApiAdminDispatcherUserInvitesRoute: typeof ApiAdminDispatcherUserInvitesRouteWithChildren
   ApiAdminResetOwnerRoute: typeof ApiAdminResetOwnerRoute
   ApiAuthBootstrapAdminRoute: typeof ApiAuthBootstrapAdminRoute
   ApiAuthHasAdminRoute: typeof ApiAuthHasAdminRoute
@@ -6574,6 +6587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierDealsIdProgressRouteImport
       parentRoute: typeof ApiCarrierDealsRoute
     }
+    '/api/admin/dispatcher-user-invites/$id/revoke': {
+      id: '/api/admin/dispatcher-user-invites/$id/revoke'
+      path: '/$id/revoke'
+      fullPath: '/api/admin/dispatcher-user-invites/$id/revoke'
+      preLoaderRoute: typeof ApiAdminDispatcherUserInvitesIdRevokeRouteImport
+      parentRoute: typeof ApiAdminDispatcherUserInvitesRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId': {
       id: '/api/public/client-portal/$token/orders/$orderId'
       path: '/orders/$orderId'
@@ -7111,6 +7131,21 @@ const ApiWarehousesRouteChildren: ApiWarehousesRouteChildren = {
 const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
+
+interface ApiAdminDispatcherUserInvitesRouteChildren {
+  ApiAdminDispatcherUserInvitesIdRevokeRoute: typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
+}
+
+const ApiAdminDispatcherUserInvitesRouteChildren: ApiAdminDispatcherUserInvitesRouteChildren =
+  {
+    ApiAdminDispatcherUserInvitesIdRevokeRoute:
+      ApiAdminDispatcherUserInvitesIdRevokeRoute,
+  }
+
+const ApiAdminDispatcherUserInvitesRouteWithChildren =
+  ApiAdminDispatcherUserInvitesRoute._addFileChildren(
+    ApiAdminDispatcherUserInvitesRouteChildren,
+  )
 
 interface ApiCarrierDealsRouteChildren {
   ApiCarrierDealsIdProgressRoute: typeof ApiCarrierDealsIdProgressRoute
@@ -7705,7 +7740,8 @@ const rootRouteChildren: RootRouteChildren = {
   UsersIndexRoute: UsersIndexRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
   WarehousesIndexRoute: WarehousesIndexRoute,
-  ApiAdminDispatcherUserInvitesRoute: ApiAdminDispatcherUserInvitesRoute,
+  ApiAdminDispatcherUserInvitesRoute:
+    ApiAdminDispatcherUserInvitesRouteWithChildren,
   ApiAdminResetOwnerRoute: ApiAdminResetOwnerRoute,
   ApiAuthBootstrapAdminRoute: ApiAuthBootstrapAdminRoute,
   ApiAuthHasAdminRoute: ApiAuthHasAdminRoute,
