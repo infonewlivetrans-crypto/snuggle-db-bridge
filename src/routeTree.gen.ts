@@ -263,6 +263,7 @@ import { Route as ApiAuthHasAdminRouteImport } from './routes/api/auth.has-admin
 import { Route as ApiAuthBootstrapAdminRouteImport } from './routes/api/auth.bootstrap-admin'
 import { Route as ApiAppVersionsIdRouteImport } from './routes/api/app-versions.$id'
 import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset-owner'
+import { Route as ApiAdminDispatcherUserInvitesRouteImport } from './routes/api/admin/dispatcher-user-invites'
 import { Route as ApiRoutesIdOptimizeRouteImport } from './routes/api/routes.$id.optimize'
 import { Route as ApiPublicDriverInviteTokenRouteImport } from './routes/api/public/driver-invite.$token'
 import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
@@ -1631,6 +1632,12 @@ const ApiAdminResetOwnerRoute = ApiAdminResetOwnerRouteImport.update({
   path: '/api/admin/reset-owner',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminDispatcherUserInvitesRoute =
+  ApiAdminDispatcherUserInvitesRouteImport.update({
+    id: '/api/admin/dispatcher-user-invites',
+    path: '/api/admin/dispatcher-user-invites',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiRoutesIdOptimizeRoute = ApiRoutesIdOptimizeRouteImport.update({
   id: '/optimize',
   path: '/optimize',
@@ -2237,6 +2244,7 @@ export interface FileRoutesByFullPath {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
+  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
@@ -2567,6 +2575,7 @@ export interface FileRoutesByTo {
   '/users': typeof UsersIndexRoute
   '/vehicles': typeof VehiclesIndexRoute
   '/warehouses': typeof WarehousesIndexRoute
+  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
@@ -2899,6 +2908,7 @@ export interface FileRoutesById {
   '/users/': typeof UsersIndexRoute
   '/vehicles/': typeof VehiclesIndexRoute
   '/warehouses/': typeof WarehousesIndexRoute
+  '/api/admin/dispatcher-user-invites': typeof ApiAdminDispatcherUserInvitesRoute
   '/api/admin/reset-owner': typeof ApiAdminResetOwnerRoute
   '/api/app-versions/$id': typeof ApiAppVersionsIdRoute
   '/api/auth/bootstrap-admin': typeof ApiAuthBootstrapAdminRoute
@@ -3232,6 +3242,7 @@ export interface FileRouteTypes {
     | '/users/'
     | '/vehicles/'
     | '/warehouses/'
+    | '/api/admin/dispatcher-user-invites'
     | '/api/admin/reset-owner'
     | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
@@ -3562,6 +3573,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/vehicles'
     | '/warehouses'
+    | '/api/admin/dispatcher-user-invites'
     | '/api/admin/reset-owner'
     | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
@@ -3893,6 +3905,7 @@ export interface FileRouteTypes {
     | '/users/'
     | '/vehicles/'
     | '/warehouses/'
+    | '/api/admin/dispatcher-user-invites'
     | '/api/admin/reset-owner'
     | '/api/app-versions/$id'
     | '/api/auth/bootstrap-admin'
@@ -4219,6 +4232,7 @@ export interface RootRouteChildren {
   UsersIndexRoute: typeof UsersIndexRoute
   VehiclesIndexRoute: typeof VehiclesIndexRoute
   WarehousesIndexRoute: typeof WarehousesIndexRoute
+  ApiAdminDispatcherUserInvitesRoute: typeof ApiAdminDispatcherUserInvitesRoute
   ApiAdminResetOwnerRoute: typeof ApiAdminResetOwnerRoute
   ApiAuthBootstrapAdminRoute: typeof ApiAuthBootstrapAdminRoute
   ApiAuthHasAdminRoute: typeof ApiAuthHasAdminRoute
@@ -6056,6 +6070,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminResetOwnerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/dispatcher-user-invites': {
+      id: '/api/admin/dispatcher-user-invites'
+      path: '/api/admin/dispatcher-user-invites'
+      fullPath: '/api/admin/dispatcher-user-invites'
+      preLoaderRoute: typeof ApiAdminDispatcherUserInvitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/routes/$id/optimize': {
       id: '/api/routes/$id/optimize'
       path: '/optimize'
@@ -7684,6 +7705,7 @@ const rootRouteChildren: RootRouteChildren = {
   UsersIndexRoute: UsersIndexRoute,
   VehiclesIndexRoute: VehiclesIndexRoute,
   WarehousesIndexRoute: WarehousesIndexRoute,
+  ApiAdminDispatcherUserInvitesRoute: ApiAdminDispatcherUserInvitesRoute,
   ApiAdminResetOwnerRoute: ApiAdminResetOwnerRoute,
   ApiAuthBootstrapAdminRoute: ApiAuthBootstrapAdminRoute,
   ApiAuthHasAdminRoute: ApiAuthHasAdminRoute,
