@@ -1,6 +1,10 @@
 import { createStart, createMiddleware, createIsomorphicFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import {
+  isServiceRoleUnavailable,
+  serviceRoleUnavailableResponse,
+} from "@/server/admin-errors";
 
 // Server-only env normalization. Mirrors VITE_SUPABASE_URL -> SUPABASE_URL and
 // PUBLISHABLE/ANON variants so the auto-generated supabaseAdmin lazy proxy
@@ -48,6 +52,43 @@ const supabaseAuthHeader = createMiddleware({ type: "function" }).client(
   },
 );
 
+// Глобальный safety-net: если какой-то legacy endpoint (users/invites/managers/backups
+// и т.п.) пробует выйти на admin-клиент в окружении без SUPABASE_SERVICE_ROLE_KEY,
+// мы не валим воркер 500-кой, а отдаём понятный 501. Старый контур не должен ломать
+// прод и не должен требовать service_role на VPS.
+const serviceRoleGuardRequest = createMiddleware({ type: "request" }).server(
+  async ({ next }) => {
+    try {
+      return await next();
+    } catch (err) {
+      if (isServiceRoleUnavailable(err)) {
+        console.warn(
+          "[service-role-guard] privileged operation attempted without SUPABASE_SERVICE_ROLE_KEY",
+        );
+        return serviceRoleUnavailableResponse();
+      }
+      throw err;
+    }
+  },
+);
+
+const serviceRoleGuardFunction = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    try {
+      return await next();
+    } catch (err) {
+      if (isServiceRoleUnavailable(err)) {
+        console.warn(
+          "[service-role-guard] server fn requires service_role but it is not configured",
+        );
+        throw serviceRoleUnavailableResponse();
+      }
+      throw err;
+    }
+  },
+);
+
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth, supabaseAuthHeader],
+  requestMiddleware: [serviceRoleGuardRequest],
+  functionMiddleware: [serviceRoleGuardFunction, attachSupabaseAuth, supabaseAuthHeader],
 }));
