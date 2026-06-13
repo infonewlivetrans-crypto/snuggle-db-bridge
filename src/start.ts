@@ -1,6 +1,10 @@
 import { createStart, createMiddleware, createIsomorphicFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import {
+  isServiceRoleUnavailable,
+  serviceRoleUnavailableResponse,
+} from "@/server/admin-errors";
 
 // Server-only env normalization. Mirrors VITE_SUPABASE_URL -> SUPABASE_URL and
 // PUBLISHABLE/ANON variants so the auto-generated supabaseAdmin lazy proxy
