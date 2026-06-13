@@ -266,6 +266,7 @@ import { Route as ApiAdminResetOwnerRouteImport } from './routes/api/admin.reset
 import { Route as ApiRoutesIdOptimizeRouteImport } from './routes/api/routes.$id.optimize'
 import { Route as ApiPublicDriverInviteTokenRouteImport } from './routes/api/public/driver-invite.$token'
 import { Route as ApiPublicDriverAccessResolveRouteImport } from './routes/api/public/driver-access.resolve'
+import { Route as ApiPublicDispatcherUserInviteTokenRouteImport } from './routes/api/public/dispatcher-user-invite.$token'
 import { Route as ApiPublicDispatcherInviteTokenRouteImport } from './routes/api/public/dispatcher-invite.$token'
 import { Route as ApiPublicClientPortalTokenRouteImport } from './routes/api/public/client-portal.$token'
 import { Route as ApiPublicCarrierActivateTokenRouteImport } from './routes/api/public/carrier-activate.$token'
@@ -1647,6 +1648,12 @@ const ApiPublicDriverAccessResolveRoute =
     path: '/api/public/driver-access/resolve',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDispatcherUserInviteTokenRoute =
+  ApiPublicDispatcherUserInviteTokenRouteImport.update({
+    id: '/api/public/dispatcher-user-invite/$token',
+    path: '/api/public/dispatcher-user-invite/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicDispatcherInviteTokenRoute =
   ApiPublicDispatcherInviteTokenRouteImport.update({
     id: '/api/public/dispatcher-invite/$token',
@@ -2356,6 +2363,7 @@ export interface FileRoutesByFullPath {
   '/api/public/carrier-activate/$token': typeof ApiPublicCarrierActivateTokenRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
+  '/api/public/dispatcher-user-invite/$token': typeof ApiPublicDispatcherUserInviteTokenRoute
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
@@ -2685,6 +2693,7 @@ export interface FileRoutesByTo {
   '/api/public/carrier-activate/$token': typeof ApiPublicCarrierActivateTokenRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
+  '/api/public/dispatcher-user-invite/$token': typeof ApiPublicDispatcherUserInviteTokenRoute
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
@@ -3016,6 +3025,7 @@ export interface FileRoutesById {
   '/api/public/carrier-activate/$token': typeof ApiPublicCarrierActivateTokenRoute
   '/api/public/client-portal/$token': typeof ApiPublicClientPortalTokenRouteWithChildren
   '/api/public/dispatcher-invite/$token': typeof ApiPublicDispatcherInviteTokenRouteWithChildren
+  '/api/public/dispatcher-user-invite/$token': typeof ApiPublicDispatcherUserInviteTokenRoute
   '/api/public/driver-access/resolve': typeof ApiPublicDriverAccessResolveRoute
   '/api/public/driver-invite/$token': typeof ApiPublicDriverInviteTokenRouteWithChildren
   '/api/routes/$id/optimize': typeof ApiRoutesIdOptimizeRoute
@@ -3348,6 +3358,7 @@ export interface FileRouteTypes {
     | '/api/public/carrier-activate/$token'
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
+    | '/api/public/dispatcher-user-invite/$token'
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
@@ -3677,6 +3688,7 @@ export interface FileRouteTypes {
     | '/api/public/carrier-activate/$token'
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
+    | '/api/public/dispatcher-user-invite/$token'
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
@@ -4007,6 +4019,7 @@ export interface FileRouteTypes {
     | '/api/public/carrier-activate/$token'
     | '/api/public/client-portal/$token'
     | '/api/public/dispatcher-invite/$token'
+    | '/api/public/dispatcher-user-invite/$token'
     | '/api/public/driver-access/resolve'
     | '/api/public/driver-invite/$token'
     | '/api/routes/$id/optimize'
@@ -4258,6 +4271,7 @@ export interface RootRouteChildren {
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
+  ApiPublicDispatcherUserInviteTokenRoute: typeof ApiPublicDispatcherUserInviteTokenRoute
   ApiPublicDriverAccessResolveRoute: typeof ApiPublicDriverAccessResolveRoute
   ApiPublicDriverInviteTokenRoute: typeof ApiPublicDriverInviteTokenRouteWithChildren
 }
@@ -6063,6 +6077,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDriverAccessResolveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/dispatcher-user-invite/$token': {
+      id: '/api/public/dispatcher-user-invite/$token'
+      path: '/api/public/dispatcher-user-invite/$token'
+      fullPath: '/api/public/dispatcher-user-invite/$token'
+      preLoaderRoute: typeof ApiPublicDispatcherUserInviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/dispatcher-invite/$token': {
       id: '/api/public/dispatcher-invite/$token'
       path: '/api/public/dispatcher-invite/$token'
@@ -7720,6 +7741,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:
     ApiPublicDispatcherInviteTokenRouteWithChildren,
+  ApiPublicDispatcherUserInviteTokenRoute:
+    ApiPublicDispatcherUserInviteTokenRoute,
   ApiPublicDriverAccessResolveRoute: ApiPublicDriverAccessResolveRoute,
   ApiPublicDriverInviteTokenRoute: ApiPublicDriverInviteTokenRouteWithChildren,
 }
