@@ -181,6 +181,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
 import { Route as DriverRegisterTokenRouteImport } from './routes/driver.register.$token'
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
+import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
 import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
@@ -1207,6 +1208,11 @@ const DriverRegisterTokenRoute = DriverRegisterTokenRouteImport.update({
 const DispatcherRegisterTokenRoute = DispatcherRegisterTokenRouteImport.update({
   id: '/dispatcher/register/$token',
   path: '/dispatcher/register/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DispatcherInviteTokenRoute = DispatcherInviteTokenRouteImport.update({
+  id: '/dispatcher/invite/$token',
+  path: '/dispatcher/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CarrierActivateTokenRoute = CarrierActivateTokenRouteImport.update({
@@ -2334,6 +2340,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -2666,6 +2673,7 @@ export interface FileRoutesByTo {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -3000,6 +3008,7 @@ export interface FileRoutesById {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
@@ -3335,6 +3344,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -3667,6 +3677,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -4000,6 +4011,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
     | '/api/driver/route/$id'
@@ -4284,6 +4296,7 @@ export interface RootRouteChildren {
   ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
   ApiWorkspaceSummaryRoute: typeof ApiWorkspaceSummaryRoute
+  DispatcherInviteTokenRoute: typeof DispatcherInviteTokenRoute
   DispatcherRegisterTokenRoute: typeof DispatcherRegisterTokenRoute
   DriverRegisterTokenRoute: typeof DriverRegisterTokenRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
@@ -5507,6 +5520,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/register/$token'
       fullPath: '/dispatcher/register/$token'
       preLoaderRoute: typeof DispatcherRegisterTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/invite/$token': {
+      id: '/dispatcher/invite/$token'
+      path: '/dispatcher/invite/$token'
+      fullPath: '/dispatcher/invite/$token'
+      preLoaderRoute: typeof DispatcherInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/carrier/activate/$token': {
@@ -7781,6 +7801,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
   ApiWorkspaceSummaryRoute: ApiWorkspaceSummaryRoute,
+  DispatcherInviteTokenRoute: DispatcherInviteTokenRoute,
   DispatcherRegisterTokenRoute: DispatcherRegisterTokenRoute,
   DriverRegisterTokenRoute: DriverRegisterTokenRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
