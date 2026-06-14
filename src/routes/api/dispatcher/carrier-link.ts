@@ -5,6 +5,7 @@ import {
   makeAdminClient,
   requireAnyRole,
 } from "@/server/api-helpers.server";
+import { isServiceRoleUnavailable } from "@/server/admin-errors";
 
 // GET    /api/dispatcher/carrier-link?ext_id=<dispatcher_carrier_ext.id>
 //        → текущая активная связь с пользователем (если есть) + профиль
