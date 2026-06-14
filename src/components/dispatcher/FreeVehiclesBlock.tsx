@@ -22,6 +22,7 @@ import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
 import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 import { CityCombobox } from "@/components/common/CityCombobox";
 
