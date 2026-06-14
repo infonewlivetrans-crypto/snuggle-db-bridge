@@ -168,13 +168,18 @@ export function FreeVehiclesBlock() {
           Нет машин по выбранному фильтру
         </div>
       ) : view === "map" ? (
-        <VehicleMapPanel
-          rows={rows}
-          selfId={data?.user_id ?? null}
-          onOpen={(id) => setOpenId(id)}
-          onTake={(id) => takeMut.mutate(id)}
-          taking={takeMut.isPending}
-        />
+        <ErrorBoundary
+          compact
+          section="vehicle-map"
+        >
+          <VehicleMapPanel
+            rows={rows}
+            selfId={data?.user_id ?? null}
+            onOpen={(id) => setOpenId(id)}
+            onTake={(id) => takeMut.mutate(id)}
+            taking={takeMut.isPending}
+          />
+        </ErrorBoundary>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((v) => (
