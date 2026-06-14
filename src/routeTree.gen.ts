@@ -158,6 +158,7 @@ import { Route as ApiInboundShipmentItemsRouteImport } from './routes/api/inboun
 import { Route as ApiImportTransportRequestRouteImport } from './routes/api/import-transport-request'
 import { Route as ApiImportRouteSheetRouteImport } from './routes/api/import-route-sheet'
 import { Route as ApiImportLogsRouteImport } from './routes/api/import-logs'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiGeoRouteImport } from './routes/api/geo'
 import { Route as ApiFeedbackRouteImport } from './routes/api/feedback'
 import { Route as ApiDriversRouteImport } from './routes/api/drivers'
@@ -1094,6 +1095,11 @@ const ApiImportRouteSheetRoute = ApiImportRouteSheetRouteImport.update({
 const ApiImportLogsRoute = ApiImportLogsRouteImport.update({
   id: '/api/import-logs',
   path: '/api/import-logs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGeoRoute = ApiGeoRouteImport.update({
@@ -2149,6 +2155,7 @@ export interface FileRoutesByFullPath {
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/import-transport-request': typeof ApiImportTransportRequestRoute
@@ -2483,6 +2490,7 @@ export interface FileRoutesByTo {
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/import-transport-request': typeof ApiImportTransportRequestRoute
@@ -2819,6 +2827,7 @@ export interface FileRoutesById {
   '/api/drivers': typeof ApiDriversRouteWithChildren
   '/api/feedback': typeof ApiFeedbackRoute
   '/api/geo': typeof ApiGeoRouteWithChildren
+  '/api/health': typeof ApiHealthRoute
   '/api/import-logs': typeof ApiImportLogsRouteWithChildren
   '/api/import-route-sheet': typeof ApiImportRouteSheetRoute
   '/api/import-transport-request': typeof ApiImportTransportRequestRoute
@@ -3156,6 +3165,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/feedback'
     | '/api/geo'
+    | '/api/health'
     | '/api/import-logs'
     | '/api/import-route-sheet'
     | '/api/import-transport-request'
@@ -3490,6 +3500,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/feedback'
     | '/api/geo'
+    | '/api/health'
     | '/api/import-logs'
     | '/api/import-route-sheet'
     | '/api/import-transport-request'
@@ -3825,6 +3836,7 @@ export interface FileRouteTypes {
     | '/api/drivers'
     | '/api/feedback'
     | '/api/geo'
+    | '/api/health'
     | '/api/import-logs'
     | '/api/import-route-sheet'
     | '/api/import-transport-request'
@@ -4161,6 +4173,7 @@ export interface RootRouteChildren {
   ApiDriversRoute: typeof ApiDriversRouteWithChildren
   ApiFeedbackRoute: typeof ApiFeedbackRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiImportLogsRoute: typeof ApiImportLogsRouteWithChildren
   ApiImportRouteSheetRoute: typeof ApiImportRouteSheetRoute
   ApiImportTransportRequestRoute: typeof ApiImportTransportRequestRoute
@@ -5372,6 +5385,13 @@ declare module '@tanstack/react-router' {
       path: '/api/import-logs'
       fullPath: '/api/import-logs'
       preLoaderRoute: typeof ApiImportLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/geo': {
@@ -7672,6 +7692,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriversRoute: ApiDriversRouteWithChildren,
   ApiFeedbackRoute: ApiFeedbackRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
+  ApiHealthRoute: ApiHealthRoute,
   ApiImportLogsRoute: ApiImportLogsRouteWithChildren,
   ApiImportRouteSheetRoute: ApiImportRouteSheetRoute,
   ApiImportTransportRequestRoute: ApiImportTransportRequestRoute,

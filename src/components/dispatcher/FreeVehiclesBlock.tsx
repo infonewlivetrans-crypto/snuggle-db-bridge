@@ -22,6 +22,7 @@ import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
 import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 import { CityCombobox } from "@/components/common/CityCombobox";
 
@@ -168,13 +169,18 @@ export function FreeVehiclesBlock() {
           Нет машин по выбранному фильтру
         </div>
       ) : view === "map" ? (
-        <VehicleMapPanel
-          rows={rows}
-          selfId={data?.user_id ?? null}
-          onOpen={(id) => setOpenId(id)}
-          onTake={(id) => takeMut.mutate(id)}
-          taking={takeMut.isPending}
-        />
+        <ErrorBoundary
+          compact
+          section="vehicle-map"
+        >
+          <VehicleMapPanel
+            rows={rows}
+            selfId={data?.user_id ?? null}
+            onOpen={(id) => setOpenId(id)}
+            onTake={(id) => takeMut.mutate(id)}
+            taking={takeMut.isPending}
+          />
+        </ErrorBoundary>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((v) => (

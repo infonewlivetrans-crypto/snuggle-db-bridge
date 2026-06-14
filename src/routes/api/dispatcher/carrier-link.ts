@@ -5,6 +5,7 @@ import {
   makeAdminClient,
   requireAnyRole,
 } from "@/server/api-helpers.server";
+import { isServiceRoleUnavailable } from "@/server/admin-errors";
 
 // GET    /api/dispatcher/carrier-link?ext_id=<dispatcher_carrier_ext.id>
 //        → текущая активная связь с пользователем (если есть) + профиль
@@ -31,20 +32,34 @@ export const Route = createFileRoute("/api/dispatcher/carrier-link")({
         const url = new URL(request.url);
         const extId = url.searchParams.get("ext_id");
         if (!extId) return jsonResponse({ error: "ext_id required" }, { status: 400 });
-        const admin = makeAdminClient();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: link } = await (admin.from("dispatcher_carrier_users" as never) as any)
-          .select("id, user_id, status, created_at")
-          .eq("dispatcher_carrier_ext_id", extId)
-          .eq("status", "active")
-          .maybeSingle();
-        if (!link) return jsonResponse({ ok: true, link: null, profile: null });
-        const { data: profile } = await admin
-          .from("profiles")
-          .select("user_id, full_name, email, phone")
-          .eq("user_id", link.user_id)
-          .maybeSingle();
-        return jsonResponse({ ok: true, link, profile });
+        try {
+          const admin = makeAdminClient();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: link } = await (admin.from("dispatcher_carrier_users" as never) as any)
+            .select("id, user_id, status, created_at")
+            .eq("dispatcher_carrier_ext_id", extId)
+            .eq("status", "active")
+            .maybeSingle();
+          if (!link) return jsonResponse({ ok: true, link: null, profile: null });
+          const { data: profile } = await admin
+            .from("profiles")
+            .select("user_id, full_name, email, phone")
+            .eq("user_id", link.user_id)
+            .maybeSingle();
+          return jsonResponse({ ok: true, link, profile });
+        } catch (e) {
+          // Просмотр карточки перевозчика не должен падать, если на VPS нет
+          // service_role: возвращаем "не активирован" вместо 501.
+          if (isServiceRoleUnavailable(e)) {
+            return jsonResponse({
+              ok: true,
+              link: null,
+              profile: null,
+              service_role_unavailable: true,
+            });
+          }
+          throw e;
+        }
       },
 
       POST: async ({ request }) => {

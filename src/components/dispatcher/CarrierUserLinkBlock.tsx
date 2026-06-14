@@ -16,6 +16,7 @@ import { carrierActivateUrl } from "@/lib/invite-url";
 type LinkInfo = {
   link: { id: string; user_id: string; status: string; created_at: string } | null;
   profile: { user_id: string; full_name: string | null; email: string | null; phone: string | null } | null;
+  service_role_unavailable?: boolean;
 };
 
 type CarrierUserRow = {
@@ -34,6 +35,7 @@ type CarrierUserRow = {
 export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string }) {
   const [info, setInfo] = useState<LinkInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unavailable, setUnavailable] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
@@ -46,8 +48,18 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
         10000,
       );
       setInfo({ link: r.link ?? null, profile: r.profile ?? null });
+      setUnavailable(Boolean(r.service_role_unavailable));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Не удалось загрузить связь");
+      // Не валим карточку перевозчика, если admin-операции недоступны.
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/501|SERVICE_ROLE_UNAVAILABLE|service_role/i.test(msg)) {
+        setUnavailable(true);
+        setInfo({ link: null, profile: null });
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn("[CarrierUserLinkBlock] load failed:", msg);
+        setInfo({ link: null, profile: null });
+      }
     } finally {
       setLoading(false);
     }
@@ -100,6 +112,13 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
               </div>
             </div>
           </details>
+        </div>
+      ) : unavailable ? (
+        <div className="space-y-2 text-sm">
+          <p className="text-muted-foreground">
+            Создание кабинета перевозчика временно недоступно в этом окружении.
+            Просмотр карточки работает в режиме «только чтение».
+          </p>
         </div>
       ) : (
         <div className="space-y-3 text-sm">
