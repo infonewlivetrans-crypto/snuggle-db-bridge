@@ -113,6 +113,13 @@ export function CarrierUserLinkBlock({ carrierExtId }: { carrierExtId: string })
             </div>
           </details>
         </div>
+      ) : unavailable ? (
+        <div className="space-y-2 text-sm">
+          <p className="text-muted-foreground">
+            Создание кабинета перевозчика временно недоступно в этом окружении.
+            Просмотр карточки работает в режиме «только чтение».
+          </p>
+        </div>
       ) : (
         <div className="space-y-3 text-sm">
           <p className="text-muted-foreground">
