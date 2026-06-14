@@ -130,10 +130,13 @@ function DispatcherHome() {
         <KpiRow data={data} loading={isLoading} />
 
         {/* Stage 11.14 — компактный блок заработка диспетчера */}
-        <MyEarningsBlock />
+        <ErrorBoundary compact section="dispatcher-earnings">
+          <MyEarningsBlock />
+        </ErrorBoundary>
 
 
         {/* Tasks */}
+        <ErrorBoundary compact section="dispatcher-tasks">
         <Section
           title="Задачи на сегодня"
           icon={<ClipboardList className="h-5 w-5" />}
@@ -172,15 +175,22 @@ function DispatcherHome() {
             </div>
           )}
         </Section>
+        </ErrorBoundary>
 
         {/* Free vehicles workboard (Stage 11) */}
-        <FreeVehiclesBlock />
+        <ErrorBoundary compact section="dispatcher-free-vehicles">
+          <FreeVehiclesBlock />
+        </ErrorBoundary>
 
         {/* Accepted offers awaiting deal creation (Stage 11.6) */}
-        <AcceptedOffersBlock />
+        <ErrorBoundary compact section="dispatcher-accepted-offers">
+          <AcceptedOffersBlock />
+        </ErrorBoundary>
 
         {/* Awaiting / declined carrier responses (Stage 11.8) */}
-        <CarrierResponsesOverviewBlock />
+        <ErrorBoundary compact section="dispatcher-carrier-responses">
+          <CarrierResponsesOverviewBlock />
+        </ErrorBoundary>
 
 
         {/* Active freights */}
