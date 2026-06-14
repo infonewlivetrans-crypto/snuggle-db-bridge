@@ -25,6 +25,7 @@ import { FreeVehiclesBlock } from "@/components/dispatcher/FreeVehiclesBlock";
 import { AcceptedOffersBlock } from "@/components/dispatcher/AcceptedOffersBlock";
 import { CarrierResponsesOverviewBlock } from "@/components/dispatcher/CarrierResponsesOverviewBlock";
 import { MyEarningsBlock } from "@/components/dispatcher/MyEarningsBlock";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const Route = createFileRoute("/dispatcher/")({
   component: DispatcherHome,
