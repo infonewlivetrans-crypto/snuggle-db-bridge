@@ -117,6 +117,12 @@ function VehiclesPage() {
     }
   };
 
+  const invalidateMapAndDashboard = () => {
+    qc.invalidateQueries({ queryKey: ["free-vehicles"] });
+    qc.invalidateQueries({ queryKey: ["dispatcher-dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dispatcher-vehicles"] });
+  };
+
   const handleSubmit = async (data: VehicleCreateInput) => {
     setSubmitting(true);
     try {
@@ -126,6 +132,7 @@ function VehiclesPage() {
       setDialogOpen(false);
       setEditing(null);
       await load();
+      invalidateMapAndDashboard();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
     } finally {
