@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, Truck, UserX } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Truck, UserX, Plus, Archive } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
-import { apiGetAuth } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { apiDelete, apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
+import { CarrierVehicleFormDialog, UpdateMyLocationButton } from "@/components/carrier/CarrierForms";
 import {
   VEHICLE_STATUS_LABELS,
   LOAD_METHOD_LABELS,
@@ -78,19 +82,35 @@ function featuresLabel(arr: string[] | null): string {
 }
 
 function CarrierVehiclesPage() {
+  const qc = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "vehicles"],
     queryFn: () => apiGetAuth<{ rows: Vehicle[] }>("/api/carrier/vehicles", 10000),
   });
   const vehicles = data?.rows ?? [];
+  const archiveMut = useMutation({
+    mutationFn: (id: string) => apiDelete(`/api/carrier/vehicles/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["carrier", "vehicles"] });
+      toast.success("Машина архивирована");
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось архивировать"),
+  });
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium">Мой транспорт</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-medium">Мой транспорт</h2>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Добавить машину
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground">
-        Список транспорта закреплён за вашей карточкой перевозчика. Изменения вносит
-        администратор/диспетчер.
+        Машины вашей компании. Можно добавить, редактировать и обновлять местоположение.
       </p>
+      <CarrierVehicleFormDialog open={addOpen} onOpenChange={setAddOpen} />
+
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
@@ -168,6 +188,17 @@ function CarrierVehiclesPage() {
                   )}
                   {v.source === "dispatcher" && (
                     <div className="space-y-2 pt-2">
+                      <div className="flex flex-wrap gap-2">
+                        <UpdateMyLocationButton vehicleId={v.id} />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => archiveMut.mutate(v.id)}
+                          disabled={archiveMut.isPending}
+                        >
+                          <Archive className="mr-1 h-3 w-3" /> В архив
+                        </Button>
+                      </div>
                       <ReportReadinessBlock
                         endpoint={`/api/carrier/vehicles/${v.id}/readiness`}
                         invalidateKey={["carrier", "vehicles"]}

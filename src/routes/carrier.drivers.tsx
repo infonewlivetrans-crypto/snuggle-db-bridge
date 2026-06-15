@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, Users } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Users, Plus, Archive } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { apiGetAuth } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { apiDelete, apiGetAuth } from "@/lib/api-client";
 import { DRIVER_STATUS_LABELS, type DriverStatus } from "@/lib/dispatcher/statuses";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { CarrierDriverFormDialog } from "@/components/carrier/CarrierForms";
 
 export const Route = createFileRoute("/carrier/drivers")({
   head: () => ({ meta: [{ title: "Мои водители — кабинет перевозчика" }] }),
@@ -32,18 +36,35 @@ function statusLabel(s: string | null): string {
 }
 
 function CarrierDriversPage() {
+  const qc = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "drivers"],
     queryFn: () => apiGetAuth<{ rows: Driver[] }>("/api/carrier/drivers", 10000),
   });
   const drivers = data?.rows ?? [];
+  const archiveMut = useMutation({
+    mutationFn: (id: string) => apiDelete(`/api/carrier/drivers/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["carrier", "drivers"] });
+      toast.success("Водитель архивирован");
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось архивировать"),
+  });
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium">Мои водители</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-medium">Мои водители</h2>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Добавить водителя
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground">
-        Список водителей, закреплённых за вашей карточкой перевозчика.
+        Водители вашей компании. Можно добавить, редактировать и привязать к машине.
       </p>
+      <CarrierDriverFormDialog open={addOpen} onOpenChange={setAddOpen} />
+
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
@@ -84,10 +105,18 @@ function CarrierDriversPage() {
                 )}
                 {d.source === "dispatcher" && (
                   <>
-                    <div className="pt-1">
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
                       <Badge variant={d.docs_verified ? "outline" : "secondary"}>
                         {d.docs_verified ? "Документы проверены" : "Документы не проверены"}
                       </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => archiveMut.mutate(d.id)}
+                        disabled={archiveMut.isPending}
+                      >
+                        <Archive className="mr-1 h-3 w-3" /> В архив
+                      </Button>
                     </div>
                     <div className="pt-2">
                       <CarrierDocumentsBlock ownerType="driver" ownerId={d.id} />
