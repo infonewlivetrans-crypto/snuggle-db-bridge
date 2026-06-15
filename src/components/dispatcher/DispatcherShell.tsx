@@ -26,7 +26,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { useAuth } from "@/lib/auth/auth-context";
 import { cn } from "@/lib/utils";
