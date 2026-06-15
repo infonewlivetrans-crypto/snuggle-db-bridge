@@ -10,9 +10,27 @@ import { vehicleReadinessSchema } from "@/lib/dispatcher/schemas";
 
 const SELECT =
   "id, dispatcher_carrier_ext_id, current_city, current_lat, current_lng, " +
-  "location_updated_at, ready_to_cities, ready_comment, ready_date, " +
+  "location_updated_at, location_source, ready_to_cities, ready_comment, " +
+  "ready_date, ready_from, ready_radius_km, ready_mode, ready_weekdays, " +
   "load_status, free_payload_kg, free_volume_m3, partial_route_from, " +
   "partial_route_to, loading_restrictions";
+
+const ALLOWED_KEYS = [
+  "current_city",
+  "ready_to_cities",
+  "ready_comment",
+  "ready_date",
+  "ready_from",
+  "ready_radius_km",
+  "ready_mode",
+  "ready_weekdays",
+  "load_status",
+  "free_payload_kg",
+  "free_volume_m3",
+  "partial_route_from",
+  "partial_route_to",
+  "loading_restrictions",
+] as const;
 
 export const Route = createFileRoute("/api/carrier/vehicles/$id/readiness")({
   server: {
@@ -58,32 +76,17 @@ export const Route = createFileRoute("/api/carrier/vehicles/$id/readiness")({
 
         const input = parsed.data as Record<string, unknown>;
         const update: Record<string, unknown> = {};
-        for (const key of [
-          "current_city",
-          "ready_to_cities",
-          "ready_comment",
-          "ready_date",
-          "load_status",
-          "free_payload_kg",
-          "free_volume_m3",
-          "partial_route_from",
-          "partial_route_to",
-          "loading_restrictions",
-        ]) {
+        for (const key of ALLOWED_KEYS) {
           if (key in input) update[key] = input[key];
         }
-        update.location_updated_at = new Date().toISOString();
 
-        // Геокодирование города местонахождения — best-effort.
-        // Используется ТОЛЬКО current_city; ready_to_cities на координаты не влияет.
-        if (typeof update.current_city === "string" && update.current_city) {
-          const { geocodeCityForVehicle } = await import("@/server/vehicle-location.server");
-          const geo = await geocodeCityForVehicle(ctx.admin, update.current_city as string);
-          if (geo) {
-            update.current_lat = geo.lat;
-            update.current_lng = geo.lng;
-            update.location_source = "carrier";
-          }
+        // Единая логика смены города: сбрасываем старые координаты,
+        // снимаем ручную фиксацию, заново геокодим. Источник — "carrier".
+        const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
+        await enrichVehicleLocation(ctx.admin, update, "carrier", { vehicleId: params.id });
+
+        if (!("location_updated_at" in update)) {
+          update.location_updated_at = new Date().toISOString();
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

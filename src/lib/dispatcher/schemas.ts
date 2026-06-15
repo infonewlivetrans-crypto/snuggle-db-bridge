@@ -237,6 +237,25 @@ export const vehicleReadinessSchema = z.object({
   ready_to_cities: z.array(z.string().trim().min(1).max(100)).optional(),
   ready_comment: nullableText(1000).optional(),
   ready_date: optionalDate.optional(),
+  ready_from: optionalDate.optional(),
+  ready_radius_km: z
+    .union([z.number(), z.string()])
+    .optional()
+    .nullable()
+    .transform((v) => {
+      if (v == null || v === "") return null;
+      const n = typeof v === "string" ? Number(v) : v;
+      if (!Number.isFinite(n)) return null;
+      const i = Math.trunc(n);
+      if (i < 0) return 0;
+      if (i > 999) return 999;
+      return i;
+    }),
+  ready_mode: z
+    .enum(["today", "from_date", "always", "weekdays", "custom"])
+    .nullable()
+    .optional(),
+  ready_weekdays: z.array(z.number().int().min(1).max(7)).optional().nullable(),
   load_status: z.enum(["empty", "partial", "loaded", "unavailable", "repair", "resting"]).optional(),
   free_payload_kg: optionalNumber.optional(),
   free_volume_m3: optionalNumber.optional(),
