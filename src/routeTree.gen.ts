@@ -230,6 +230,7 @@ import { Route as ApiGeoGeocodeRouteImport } from './routes/api/geo.geocode'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverUnreadClientMessagesRouteImport } from './routes/api/driver.unread-client-messages'
+import { Route as ApiDriverMyVehicleRouteImport } from './routes/api/driver.my-vehicle'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
 import { Route as ApiDispatcherVehiclesRouteImport } from './routes/api/dispatcher/vehicles'
@@ -1469,6 +1470,11 @@ const ApiDriverUnreadClientMessagesRoute =
     path: '/api/driver/unread-client-messages',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDriverMyVehicleRoute = ApiDriverMyVehicleRouteImport.update({
+  id: '/api/driver/my-vehicle',
+  path: '/api/driver/my-vehicle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDriverMyRoutesRoute = ApiDriverMyRoutesRouteImport.update({
   id: '/api/driver/my-routes',
   path: '/api/driver/my-routes',
@@ -2332,6 +2338,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
+  '/api/driver/my-vehicle': typeof ApiDriverMyVehicleRoute
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -2670,6 +2677,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
+  '/api/driver/my-vehicle': typeof ApiDriverMyVehicleRoute
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -3010,6 +3018,7 @@ export interface FileRoutesById {
   '/api/dispatcher/vehicles': typeof ApiDispatcherVehiclesRouteWithChildren
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
+  '/api/driver/my-vehicle': typeof ApiDriverMyVehicleRoute
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -3351,6 +3360,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
+    | '/api/driver/my-vehicle'
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -3689,6 +3699,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
+    | '/api/driver/my-vehicle'
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -4028,6 +4039,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/vehicles'
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
+    | '/api/driver/my-vehicle'
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -4356,6 +4368,7 @@ export interface RootRouteChildren {
   ApiDispatcherVehiclesRoute: typeof ApiDispatcherVehiclesRouteWithChildren
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
+  ApiDriverMyVehicleRoute: typeof ApiDriverMyVehicleRoute
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiPublicCarrierRegisterRoute: typeof ApiPublicCarrierRegisterRoute
   ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
@@ -5928,6 +5941,13 @@ declare module '@tanstack/react-router' {
       path: '/api/driver/unread-client-messages'
       fullPath: '/api/driver/unread-client-messages'
       preLoaderRoute: typeof ApiDriverUnreadClientMessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/driver/my-vehicle': {
+      id: '/api/driver/my-vehicle'
+      path: '/api/driver/my-vehicle'
+      fullPath: '/api/driver/my-vehicle'
+      preLoaderRoute: typeof ApiDriverMyVehicleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/driver/my-routes': {
@@ -7901,6 +7921,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherVehiclesRoute: ApiDispatcherVehiclesRouteWithChildren,
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
+  ApiDriverMyVehicleRoute: ApiDriverMyVehicleRoute,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiPublicCarrierRegisterRoute: ApiPublicCarrierRegisterRoute,
   ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
