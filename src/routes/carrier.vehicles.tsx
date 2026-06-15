@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, Truck, UserX } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Truck, UserX, Plus, Archive } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
-import { apiGetAuth } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { apiDelete, apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
+import { CarrierVehicleFormDialog, UpdateMyLocationButton } from "@/components/carrier/CarrierForms";
 import {
   VEHICLE_STATUS_LABELS,
   LOAD_METHOD_LABELS,
