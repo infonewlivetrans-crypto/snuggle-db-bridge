@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -48,6 +49,7 @@ const SORT_OPTIONS = [
 ];
 
 function VehiclesPage() {
+  const qc = useQueryClient();
   const [rows, setRows] = useState<VehicleDTO[]>([]);
   const [carriers, setCarriers] = useState<CarrierDTO[]>([]);
   const [drivers, setDrivers] = useState<DriverDTO[]>([]);
@@ -115,6 +117,12 @@ function VehiclesPage() {
     }
   };
 
+  const invalidateMapAndDashboard = () => {
+    qc.invalidateQueries({ queryKey: ["free-vehicles"] });
+    qc.invalidateQueries({ queryKey: ["dispatcher-dashboard"] });
+    qc.invalidateQueries({ queryKey: ["dispatcher-vehicles"] });
+  };
+
   const handleSubmit = async (data: VehicleCreateInput) => {
     setSubmitting(true);
     try {
@@ -124,6 +132,7 @@ function VehiclesPage() {
       setDialogOpen(false);
       setEditing(null);
       await load();
+      invalidateMapAndDashboard();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
     } finally {
@@ -137,6 +146,7 @@ function VehiclesPage() {
       await vehiclesApi.archive(id);
       toast.success("Архивирован");
       await load();
+      invalidateMapAndDashboard();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
     }
@@ -147,6 +157,7 @@ function VehiclesPage() {
       await vehiclesApi.update(row.id, { dispatcher_status: v as VehicleCreateInput["dispatcher_status"] });
       toast.success("Статус обновлён");
       await load();
+      invalidateMapAndDashboard();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
     }
@@ -281,24 +292,29 @@ function VehiclesPage() {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) setEditing(null); }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0 flex flex-col gap-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b bg-background sticky top-0 z-10 shrink-0">
             <DialogTitle>{editing ? "Редактировать транспорт" : "Новый транспорт"}</DialogTitle>
-            <DialogDescription>Заполните данные транспорта и сохраните.</DialogDescription>
+            <DialogDescription className="text-xs">
+              Эти данные обычно заполняет перевозчик или водитель. Админ/диспетчер редактирует их только для проверки или ручной корректировки.
+            </DialogDescription>
           </DialogHeader>
-          <VehicleForm initial={editing} carriers={carriers} drivers={drivers} submitting={submitting}
-            onCancel={() => { setDialogOpen(false); setEditing(null); }}
-            onSubmit={handleSubmit}
-          />
+          <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4">
+            <VehicleForm initial={editing} carriers={carriers} drivers={drivers} submitting={submitting}
+              onCancel={() => { setDialogOpen(false); setEditing(null); }}
+              onSubmit={handleSubmit}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={!!viewing} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] p-0 flex flex-col gap-0 overflow-hidden">
+          <DialogHeader className="px-6 py-4 border-b bg-background sticky top-0 z-10 shrink-0">
             <DialogTitle>Транспорт</DialogTitle>
             <DialogDescription>Карточка транспортного средства.</DialogDescription>
           </DialogHeader>
+          <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4">
           {viewing && (() => {
             const v = viewing as VehicleDTO & {
               current_city?: string | null;
@@ -384,6 +400,7 @@ function VehiclesPage() {
             </div>
             );
           })()}
+          </div>
         </DialogContent>
       </Dialog>
     </EntityTableLayout>
