@@ -2,6 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
 import { vehicleReadinessSchema } from "@/lib/dispatcher/schemas";
+import {
+  isServiceRoleUnavailable,
+  serviceRoleUnavailableResponse,
+} from "@/server/admin-errors";
 
 // PATCH /api/carrier/vehicles/:id/readiness
 // Перевозчик сообщает готовность своей машины.
