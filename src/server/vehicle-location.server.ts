@@ -87,10 +87,20 @@ export async function enrichVehicleLocation(
   sb: Sb,
   update: Record<string, unknown>,
   callerRole: "admin" | "dispatcher" | "carrier" | "driver" = "dispatcher",
-  opts: { vehicleId?: string | null } = {},
+  opts: {
+    vehicleId?: string | null;
+    existing?: {
+      current_city: string | null;
+      current_lat: number | null;
+      current_lng: number | null;
+      location_source: string | null;
+    } | null;
+  } = {},
 ): Promise<void> {
   // Если нам передан id — подтягиваем текущее состояние, чтобы понять,
   // менялся ли current_city и стоит ли явная фиксация ('manual'/'admin').
+  // Если existing передан явно — используем его и не делаем лишнего запроса
+  // (важно для user-client, у которого RLS блокирует прямое чтение таблицы).
   let existing:
     | {
         current_city: string | null;
@@ -98,8 +108,8 @@ export async function enrichVehicleLocation(
         current_lng: number | null;
         location_source: string | null;
       }
-    | null = null;
-  if (opts.vehicleId) {
+    | null = opts.existing ?? null;
+  if (!existing && opts.vehicleId) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (sb.from("dispatcher_vehicle_ext" as never) as any)
