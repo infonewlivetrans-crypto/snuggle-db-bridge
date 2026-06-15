@@ -5957,6 +5957,8 @@ export type Database = {
         Args: { p_order_id: string }
         Returns: number
       }
+      carrier_me_get: { Args: never; Returns: Json }
+      carrier_my_ext_id: { Args: never; Returns: string }
       carrier_self_register: { Args: { payload: Json }; Returns: Json }
       claim_carrier_account_link: { Args: { _token: string }; Returns: Json }
       default_company_id: { Args: { _user_id: string }; Returns: string }
