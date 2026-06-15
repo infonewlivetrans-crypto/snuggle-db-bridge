@@ -146,6 +146,7 @@ function VehiclesPage() {
       await vehiclesApi.archive(id);
       toast.success("Архивирован");
       await load();
+      invalidateMapAndDashboard();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
     }
@@ -156,6 +157,7 @@ function VehiclesPage() {
       await vehiclesApi.update(row.id, { dispatcher_status: v as VehicleCreateInput["dispatcher_status"] });
       toast.success("Статус обновлён");
       await load();
+      invalidateMapAndDashboard();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Ошибка");
     }
