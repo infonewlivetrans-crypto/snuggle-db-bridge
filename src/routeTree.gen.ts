@@ -71,6 +71,7 @@ import { Route as SupplyHistoryRouteImport } from './routes/supply.history'
 import { Route as SupplyCabinetRouteImport } from './routes/supply.cabinet'
 import { Route as RoutesRouteIdRouteImport } from './routes/routes.$routeId'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as DriverVehicleRouteImport } from './routes/driver.vehicle'
 import { Route as DriverDeliveryRouteIdRouteImport } from './routes/driver.$deliveryRouteId'
 import { Route as DispatcherVehiclesRouteImport } from './routes/dispatcher.vehicles'
 import { Route as DispatcherTasksRouteImport } from './routes/dispatcher.tasks'
@@ -657,6 +658,11 @@ const RoutesRouteIdRoute = RoutesRouteIdRouteImport.update({
 const InviteTokenRoute = InviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriverVehicleRoute = DriverVehicleRouteImport.update({
+  id: '/driver/vehicle',
+  path: '/driver/vehicle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DriverDeliveryRouteIdRoute = DriverDeliveryRouteIdRouteImport.update({
@@ -2270,6 +2276,7 @@ export interface FileRoutesByFullPath {
   '/dispatcher/tasks': typeof DispatcherTasksRoute
   '/dispatcher/vehicles': typeof DispatcherVehiclesRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
+  '/driver/vehicle': typeof DriverVehicleRoute
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
@@ -2609,6 +2616,7 @@ export interface FileRoutesByTo {
   '/dispatcher/tasks': typeof DispatcherTasksRoute
   '/dispatcher/vehicles': typeof DispatcherVehiclesRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
+  '/driver/vehicle': typeof DriverVehicleRoute
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
@@ -2950,6 +2958,7 @@ export interface FileRoutesById {
   '/dispatcher/tasks': typeof DispatcherTasksRoute
   '/dispatcher/vehicles': typeof DispatcherVehiclesRoute
   '/driver/$deliveryRouteId': typeof DriverDeliveryRouteIdRoute
+  '/driver/vehicle': typeof DriverVehicleRoute
   '/invite/$token': typeof InviteTokenRoute
   '/routes/$routeId': typeof RoutesRouteIdRoute
   '/supply/cabinet': typeof SupplyCabinetRoute
@@ -3292,6 +3301,7 @@ export interface FileRouteTypes {
     | '/dispatcher/tasks'
     | '/dispatcher/vehicles'
     | '/driver/$deliveryRouteId'
+    | '/driver/vehicle'
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
@@ -3631,6 +3641,7 @@ export interface FileRouteTypes {
     | '/dispatcher/tasks'
     | '/dispatcher/vehicles'
     | '/driver/$deliveryRouteId'
+    | '/driver/vehicle'
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
@@ -3971,6 +3982,7 @@ export interface FileRouteTypes {
     | '/dispatcher/tasks'
     | '/dispatcher/vehicles'
     | '/driver/$deliveryRouteId'
+    | '/driver/vehicle'
     | '/invite/$token'
     | '/routes/$routeId'
     | '/supply/cabinet'
@@ -4307,6 +4319,7 @@ export interface RootRouteChildren {
   DispatcherTasksRoute: typeof DispatcherTasksRoute
   DispatcherVehiclesRoute: typeof DispatcherVehiclesRoute
   DriverDeliveryRouteIdRoute: typeof DriverDeliveryRouteIdRoute
+  DriverVehicleRoute: typeof DriverVehicleRoute
   InviteTokenRoute: typeof InviteTokenRoute
   RoutesRouteIdRoute: typeof RoutesRouteIdRoute
   SupplyCabinetRoute: typeof SupplyCabinetRoute
@@ -4828,6 +4841,13 @@ declare module '@tanstack/react-router' {
       path: '/invite/$token'
       fullPath: '/invite/$token'
       preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/driver/vehicle': {
+      id: '/driver/vehicle'
+      path: '/driver/vehicle'
+      fullPath: '/driver/vehicle'
+      preLoaderRoute: typeof DriverVehicleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/driver/$deliveryRouteId': {
@@ -7858,6 +7878,7 @@ const rootRouteChildren: RootRouteChildren = {
   DispatcherTasksRoute: DispatcherTasksRoute,
   DispatcherVehiclesRoute: DispatcherVehiclesRoute,
   DriverDeliveryRouteIdRoute: DriverDeliveryRouteIdRoute,
+  DriverVehicleRoute: DriverVehicleRoute,
   InviteTokenRoute: InviteTokenRoute,
   RoutesRouteIdRoute: RoutesRouteIdRoute,
   SupplyCabinetRoute: SupplyCabinetRoute,

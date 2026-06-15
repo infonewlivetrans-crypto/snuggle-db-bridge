@@ -103,7 +103,12 @@ function DriverRoutesListPage() {
           </div>
         )}
 
-        <div className="pt-2">
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <Link to="/driver/vehicle">
+            <Button variant="outline" size="sm" className="w-full">
+              <Truck className="mr-1 h-3.5 w-3.5" /> Моя машина
+            </Button>
+          </Link>
           <Link to="/workspace">
             <Button variant="outline" size="sm" className="w-full">
               Профиль
