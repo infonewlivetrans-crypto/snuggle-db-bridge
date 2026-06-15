@@ -36,18 +36,35 @@ function statusLabel(s: string | null): string {
 }
 
 function CarrierDriversPage() {
+  const qc = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "drivers"],
     queryFn: () => apiGetAuth<{ rows: Driver[] }>("/api/carrier/drivers", 10000),
   });
   const drivers = data?.rows ?? [];
+  const archiveMut = useMutation({
+    mutationFn: (id: string) => apiDelete(`/api/carrier/drivers/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["carrier", "drivers"] });
+      toast.success("Водитель архивирован");
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось архивировать"),
+  });
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium">Мои водители</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-medium">Мои водители</h2>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Добавить водителя
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground">
-        Список водителей, закреплённых за вашей карточкой перевозчика.
+        Водители вашей компании. Можно добавить, редактировать и привязать к машине.
       </p>
+      <CarrierDriverFormDialog open={addOpen} onOpenChange={setAddOpen} />
+
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
