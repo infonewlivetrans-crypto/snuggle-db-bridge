@@ -326,30 +326,46 @@ function LeafletVehicleMap({
         if (cancelled || !containerRef.current) return;
 
         const map = L.map(containerRef.current, {
-          center: [55.75, 37.62],
-          zoom: 4,
+          center: [61.5, 90.0], // центр РФ (примерно — между Уралом и Сибирью)
+          zoom: 3,
+          minZoom: 3,
+          maxZoom: 18,
           scrollWheelZoom: true,
           doubleClickZoom: true,
           dragging: true,
+          worldCopyJump: false,
         });
-        // CartoDB Voyager — светлая, читаемые подписи на латинице и кириллице,
-        // хорошо видны российские города и дороги. Fallback на OSM при ошибке тайла.
+
+        // Основной слой — стандартный OpenStreetMap: подписи рендерятся
+        // на родном языке региона, т.е. в РФ — кириллицей по-русски.
+        // Атрибуция переведена на русский, чтобы карта не выглядела
+        // иностранной. Fallback на CartoDB при недоступности OSM.
         const primary = L.tileLayer(
-          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
           {
-            maxZoom: 19,
-            subdomains: "abcd",
-            attribution: "&copy; OpenStreetMap &copy; CARTO",
+            maxZoom: 18,
+            attribution:
+              '&copy; участники <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+            crossOrigin: true,
           },
         );
+        let fallbackAdded = false;
         primary.on("tileerror", () => {
-          // если CDN недоступен — добавим OSM поверх
+          if (fallbackAdded) return;
+          fallbackAdded = true;
           try {
-            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-              maxZoom: 18,
-              attribution: "&copy; OpenStreetMap",
-            }).addTo(map);
-          } catch { /* noop */ }
+            L.tileLayer(
+              "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+              {
+                maxZoom: 19,
+                subdomains: "abcd",
+                attribution:
+                  '&copy; участники OpenStreetMap, тайлы CARTO',
+              },
+            ).addTo(map);
+          } catch {
+            /* noop */
+          }
         });
         primary.addTo(map);
 
@@ -357,6 +373,7 @@ function LeafletVehicleMap({
           showCoverageOnHover: false,
           maxClusterRadius: 50,
           spiderfyOnMaxZoom: true,
+          chunkedLoading: true,
         });
         map.addLayer(cluster);
 
