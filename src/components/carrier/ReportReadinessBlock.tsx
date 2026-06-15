@@ -63,8 +63,8 @@ interface Props {
   defaultOpen?: boolean;
 }
 
-const WEEKDAYS: ReadonlyArray<{ value: number; label: string }> = [1, 2, 3, 4, 5, 6, 7].map(
-  (n) => ({ value: n, label: WEEKDAY_LABELS_SHORT[n] ?? String(n) }),
+const WEEKDAYS: ReadonlyArray<{ value: number; label: string }> = WEEKDAY_LABELS_SHORT.map(
+  (label, i) => ({ value: i + 1, label }),
 );
 
 export function ReportReadinessBlock({
