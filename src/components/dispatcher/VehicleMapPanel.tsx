@@ -321,10 +321,26 @@ function LeafletVehicleMap({
           doubleClickZoom: true,
           dragging: true,
         });
-        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 18,
-          attribution: "&copy; OpenStreetMap",
-        }).addTo(map);
+        // CartoDB Voyager — светлая, читаемые подписи на латинице и кириллице,
+        // хорошо видны российские города и дороги. Fallback на OSM при ошибке тайла.
+        const primary = L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+          {
+            maxZoom: 19,
+            subdomains: "abcd",
+            attribution: "&copy; OpenStreetMap &copy; CARTO",
+          },
+        );
+        primary.on("tileerror", () => {
+          // если CDN недоступен — добавим OSM поверх
+          try {
+            L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+              maxZoom: 18,
+              attribution: "&copy; OpenStreetMap",
+            }).addTo(map);
+          } catch { /* noop */ }
+        });
+        primary.addTo(map);
 
         const cluster = (L as any).markerClusterGroup({
           showCoverageOnHover: false,
