@@ -267,7 +267,7 @@ function DispatcherTasksPage() {
           qc.invalidateQueries({ queryKey: ["dispatcher-tasks"] });
         }}
       />
-    </div>
+    </DispatcherShell>
   );
 }
 
