@@ -6,6 +6,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole, makeAdminClient } from "@/server/api-helpers.server";
 import { vehicleReadinessSchema } from "@/lib/dispatcher/schemas";
+import {
+  isServiceRoleUnavailable,
+  serviceRoleUnavailableResponse,
+} from "@/server/admin-errors";
 
 const SELECT =
   "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, height_m, " +
@@ -82,25 +86,27 @@ export const Route = createFileRoute("/api/driver/my-vehicle")({
         const auth = await requireAnyRole(request, ["driver", "admin"]);
         if (auth instanceof Response) return auth;
 
-        const link = await resolveDriverVehicle(auth.userId);
-        if (!link) return jsonResponse({ row: null });
+        try {
+          const link = await resolveDriverVehicle(auth.userId);
+          if (!link) return jsonResponse({ row: null });
 
-        const admin = makeAdminClient();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (admin.from("dispatcher_vehicle_ext" as never) as any)
-          .select(SELECT)
-          .eq("id", link.vehicleId)
-          .maybeSingle();
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse({ row: data ?? null });
+          const admin = makeAdminClient();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data, error } = await (admin.from("dispatcher_vehicle_ext" as never) as any)
+            .select(SELECT)
+            .eq("id", link.vehicleId)
+            .maybeSingle();
+          if (error) return jsonResponse({ error: error.message }, { status: 500 });
+          return jsonResponse({ row: data ?? null });
+        } catch (err) {
+          if (isServiceRoleUnavailable(err)) return serviceRoleUnavailableResponse();
+          throw err;
+        }
       },
 
       PATCH: async ({ request }) => {
         const auth = await requireAnyRole(request, ["driver", "admin"]);
         if (auth instanceof Response) return auth;
-
-        const link = await resolveDriverVehicle(auth.userId);
-        if (!link) return jsonResponse({ error: "no_vehicle_assigned" }, { status: 404 });
 
         let body: unknown;
         try {
@@ -117,26 +123,34 @@ export const Route = createFileRoute("/api/driver/my-vehicle")({
           );
         }
 
-        const input = parsed.data as Record<string, unknown>;
-        const update: Record<string, unknown> = {};
-        for (const key of ALLOWED_KEYS) if (key in input) update[key] = input[key];
+        try {
+          const link = await resolveDriverVehicle(auth.userId);
+          if (!link) return jsonResponse({ error: "no_vehicle_assigned" }, { status: 404 });
 
-        const admin = makeAdminClient();
-        const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
-        await enrichVehicleLocation(admin, update, "driver", { vehicleId: link.vehicleId });
+          const input = parsed.data as Record<string, unknown>;
+          const update: Record<string, unknown> = {};
+          for (const key of ALLOWED_KEYS) if (key in input) update[key] = input[key];
 
-        if (!("location_updated_at" in update)) {
-          update.location_updated_at = new Date().toISOString();
+          const admin = makeAdminClient();
+          const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
+          await enrichVehicleLocation(admin, update, "driver", { vehicleId: link.vehicleId });
+
+          if (!("location_updated_at" in update)) {
+            update.location_updated_at = new Date().toISOString();
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data, error } = await (admin.from("dispatcher_vehicle_ext" as never) as any)
+            .update(update as unknown as never)
+            .eq("id", link.vehicleId)
+            .select(SELECT)
+            .maybeSingle();
+          if (error) return jsonResponse({ error: error.message }, { status: 500 });
+          return jsonResponse({ ok: true, row: data });
+        } catch (err) {
+          if (isServiceRoleUnavailable(err)) return serviceRoleUnavailableResponse();
+          throw err;
         }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (admin.from("dispatcher_vehicle_ext" as never) as any)
-          .update(update as unknown as never)
-          .eq("id", link.vehicleId)
-          .select(SELECT)
-          .maybeSingle();
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse({ ok: true, row: data });
       },
     },
   },
