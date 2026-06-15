@@ -312,6 +312,7 @@ import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients
 import { Route as ApiCarrierVehiclesIdRouteImport } from './routes/api/carrier/vehicles.$id'
 import { Route as ApiCarrierRequestsIdRouteImport } from './routes/api/carrier/requests.$id'
 import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
+import { Route as ApiCarrierDriversIdRouteImport } from './routes/api/carrier/drivers.$id'
 import { Route as ApiCarrierDocumentsUploadRouteImport } from './routes/api/carrier/documents.upload'
 import { Route as ApiCarrierDocumentsIdRouteImport } from './routes/api/carrier/documents.$id'
 import { Route as ApiCarrierActivateTokenRouteImport } from './routes/api/carrier/activate.$token'
@@ -1918,6 +1919,11 @@ const ApiCarrierFreightsSigningRoute =
     path: '/api/carrier/freights/signing',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiCarrierDriversIdRoute = ApiCarrierDriversIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCarrierDriversRoute,
+} as any)
 const ApiCarrierDocumentsUploadRoute =
   ApiCarrierDocumentsUploadRouteImport.update({
     id: '/upload',
@@ -2331,7 +2337,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
-  '/api/carrier/drivers': typeof ApiCarrierDriversRoute
+  '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/requests': typeof ApiCarrierRequestsRouteWithChildren
@@ -2412,6 +2418,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
+  '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
@@ -2673,7 +2680,7 @@ export interface FileRoutesByTo {
   '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
-  '/api/carrier/drivers': typeof ApiCarrierDriversRoute
+  '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/requests': typeof ApiCarrierRequestsRouteWithChildren
@@ -2754,6 +2761,7 @@ export interface FileRoutesByTo {
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
+  '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
@@ -3017,7 +3025,7 @@ export interface FileRoutesById {
   '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
-  '/api/carrier/drivers': typeof ApiCarrierDriversRoute
+  '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/requests': typeof ApiCarrierRequestsRouteWithChildren
@@ -3098,6 +3106,7 @@ export interface FileRoutesById {
   '/api/carrier/activate/$token': typeof ApiCarrierActivateTokenRoute
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
+  '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
@@ -3443,6 +3452,7 @@ export interface FileRouteTypes {
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
     | '/api/carrier/documents/upload'
+    | '/api/carrier/drivers/$id'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/carrier/vehicles/$id'
@@ -3785,6 +3795,7 @@ export interface FileRouteTypes {
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
     | '/api/carrier/documents/upload'
+    | '/api/carrier/drivers/$id'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/carrier/vehicles/$id'
@@ -4128,6 +4139,7 @@ export interface FileRouteTypes {
     | '/api/carrier/activate/$token'
     | '/api/carrier/documents/$id'
     | '/api/carrier/documents/upload'
+    | '/api/carrier/drivers/$id'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
     | '/api/carrier/vehicles/$id'
@@ -4383,7 +4395,7 @@ export interface RootRouteChildren {
   ApiCarrierDealsRoute: typeof ApiCarrierDealsRouteWithChildren
   ApiCarrierDocumentsRoute: typeof ApiCarrierDocumentsRouteWithChildren
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
-  ApiCarrierDriversRoute: typeof ApiCarrierDriversRoute
+  ApiCarrierDriversRoute: typeof ApiCarrierDriversRouteWithChildren
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
   ApiCarrierOfferAcceptanceRoute: typeof ApiCarrierOfferAcceptanceRoute
   ApiCarrierRequestsRoute: typeof ApiCarrierRequestsRouteWithChildren
@@ -6555,6 +6567,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierFreightsSigningRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/drivers/$id': {
+      id: '/api/carrier/drivers/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/drivers/$id'
+      preLoaderRoute: typeof ApiCarrierDriversIdRouteImport
+      parentRoute: typeof ApiCarrierDriversRoute
+    }
     '/api/carrier/documents/upload': {
       id: '/api/carrier/documents/upload'
       path: '/upload'
@@ -7384,6 +7403,17 @@ const ApiCarrierDocumentsRouteChildren: ApiCarrierDocumentsRouteChildren = {
 const ApiCarrierDocumentsRouteWithChildren =
   ApiCarrierDocumentsRoute._addFileChildren(ApiCarrierDocumentsRouteChildren)
 
+interface ApiCarrierDriversRouteChildren {
+  ApiCarrierDriversIdRoute: typeof ApiCarrierDriversIdRoute
+}
+
+const ApiCarrierDriversRouteChildren: ApiCarrierDriversRouteChildren = {
+  ApiCarrierDriversIdRoute: ApiCarrierDriversIdRoute,
+}
+
+const ApiCarrierDriversRouteWithChildren =
+  ApiCarrierDriversRoute._addFileChildren(ApiCarrierDriversRouteChildren)
+
 interface ApiCarrierRequestsIdRouteChildren {
   ApiCarrierRequestsIdContractPreviewRoute: typeof ApiCarrierRequestsIdContractPreviewRoute
   ApiCarrierRequestsIdRespondRoute: typeof ApiCarrierRequestsIdRespondRoute
@@ -7970,7 +8000,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierDealsRoute: ApiCarrierDealsRouteWithChildren,
   ApiCarrierDocumentsRoute: ApiCarrierDocumentsRouteWithChildren,
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
-  ApiCarrierDriversRoute: ApiCarrierDriversRoute,
+  ApiCarrierDriversRoute: ApiCarrierDriversRouteWithChildren,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
   ApiCarrierOfferAcceptanceRoute: ApiCarrierOfferAcceptanceRoute,
   ApiCarrierRequestsRoute: ApiCarrierRequestsRouteWithChildren,
