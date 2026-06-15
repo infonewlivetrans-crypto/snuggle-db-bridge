@@ -49,6 +49,7 @@ const SORT_OPTIONS = [
 ];
 
 function VehiclesPage() {
+  const qc = useQueryClient();
   const [rows, setRows] = useState<VehicleDTO[]>([]);
   const [carriers, setCarriers] = useState<CarrierDTO[]>([]);
   const [drivers, setDrivers] = useState<DriverDTO[]>([]);
