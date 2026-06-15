@@ -1,111 +1,62 @@
-// Helper для кабинета перевозчика: определяет carrier текущего пользователя.
-// Используется во всех /api/carrier/* endpoints для жёсткой изоляции данных.
+// Helper для кабинета перевозчика: резолвит carrier_ext_id текущего пользователя
+// через SECURITY DEFINER RPC `carrier_my_ext_id()`. Никаких makeAdminClient
+// и SUPABASE_SERVICE_ROLE_KEY — всё через user-client + RLS / RPC.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { makeAdminClient, jsonResponse } from "@/server/api-helpers.server";
-import { ensureCarrierLink } from "@/server/carrier-autolink.server";
+import { jsonResponse } from "@/server/api-helpers.server";
 
 export interface CarrierCtx {
-  carrierId: string;
+  /** dispatcher_carrier_ext.id текущего пользователя. */
   dispatcherCarrierExtId: string;
+  /** carriers.id (если есть в ext), иначе совпадает с extId. */
+  carrierId: string;
+  /** user-client с Bearer-токеном текущего пользователя; RLS применяется. */
+  client: SupabaseClient<Database>;
+  userId: string;
+  /**
+   * Совместимость со старым кодом — alias для client.
+   * @deprecated используйте `client`.
+   */
   admin: SupabaseClient<Database>;
 }
 
-/**
- * Резолвит carrier контекст текущего пользователя.
- *
- * Порядок поиска связи user → dispatcher_carrier_ext:
- *  1) ensureCarrierLink — авто-связка по dispatcher_carrier_users,
- *     по уже использованному токену carrier_account_links или по
- *     отложенному токену в auth.user_metadata. Пользователь ничего
- *     не нажимает руками.
- *  2) Fallback на profiles.carrier_id (для уже существующих кабинетов,
- *     созданных через общую регистрацию /carrier/register).
- *
- * Если связи нет — возвращаем понятный no_carrier_linked, ничего не создавая.
- */
 export async function resolveCarrierCtx(
-  userId: string,
+  auth: { userId: string; client: SupabaseClient<Database> },
 ): Promise<CarrierCtx | Response> {
-  const admin = makeAdminClient();
-
-  // (1) Авто-связка
-  const auto = await ensureCarrierLink(admin, userId);
-  if (auto) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ext = await (admin.from("dispatcher_carrier_ext") as any)
-      .select("id, carrier_id")
-      .eq("id", auto.extId)
-      .maybeSingle();
-    if (ext?.data?.id) {
-      return {
-        carrierId: ext.data.carrier_id ?? auto.extId,
-        dispatcherCarrierExtId: ext.data.id,
-        admin,
-      };
-    }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: extId, error } = await (auth.client.rpc as any)("carrier_my_ext_id");
+  if (error) {
+    return jsonResponse(
+      { error: "rpc_failed", detail: error.message },
+      { status: 500 },
+    );
+  }
+  if (!extId) {
+    return jsonResponse(
+      {
+        error: "no_carrier_linked",
+        reason: "no_carrier_linked",
+        user_id: auth.userId,
+        detail:
+          "Пользователь не связан с карточкой перевозчика. Обратитесь к администратору.",
+      },
+      { status: 404 },
+    );
   }
 
-  // (2) Fallback: profiles.carrier_id.
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("carrier_id")
-    .eq("user_id", userId)
+  // Подтянем carrier_id из ext (теперь RLS разрешает carrier читать own).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: ext } = await (auth.client.from("dispatcher_carrier_ext") as any)
+    .select("id, carrier_id")
+    .eq("id", extId)
     .maybeSingle();
-  const profileCarrierId =
-    (profile as { carrier_id: string | null } | null)?.carrier_id ?? null;
 
-  if (profileCarrierId) {
-    // 2a) profile.carrier_id === dispatcher_carrier_ext.id
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const byExtId = await (admin.from("dispatcher_carrier_ext") as any)
-      .select("id, carrier_id")
-      .eq("id", profileCarrierId)
-      .maybeSingle();
-    if (byExtId.data?.id) {
-      return {
-        carrierId: byExtId.data.carrier_id ?? profileCarrierId,
-        dispatcherCarrierExtId: byExtId.data.id,
-        admin,
-      };
-    }
-    // 2b) profile.carrier_id === dispatcher_carrier_ext.carrier_id (carriers.id)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const byCarrierId = await (admin.from("dispatcher_carrier_ext") as any)
-      .select("id, carrier_id")
-      .eq("carrier_id", profileCarrierId)
-      .maybeSingle();
-    if (byCarrierId.data?.id) {
-      return {
-        carrierId: profileCarrierId,
-        dispatcherCarrierExtId: byCarrierId.data.id,
-        admin,
-      };
-    }
-    // 2c) profile.carrier_id === dispatcher_carrier_ext.production_carrier_id
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const byProd = await (admin.from("dispatcher_carrier_ext") as any)
-      .select("id, carrier_id")
-      .eq("production_carrier_id", profileCarrierId)
-      .maybeSingle();
-    if (byProd.data?.id) {
-      return {
-        carrierId: byProd.data.carrier_id ?? profileCarrierId,
-        dispatcherCarrierExtId: byProd.data.id,
-        admin,
-      };
-    }
-  }
-
-  return jsonResponse(
-    {
-      error: "no_carrier_linked",
-      reason: "no_carrier_linked",
-      user_id: userId,
-      profile_carrier_id: profileCarrierId,
-      detail:
-        "Пользователь не связан с карточкой перевозчика. Обратитесь к администратору.",
-    },
-    { status: 404 },
-  );
+  const carrierId = (ext?.carrier_id as string | null) ?? (extId as string);
+  return {
+    dispatcherCarrierExtId: extId as string,
+    carrierId,
+    client: auth.client,
+    admin: auth.client,
+    userId: auth.userId,
+  };
 }
