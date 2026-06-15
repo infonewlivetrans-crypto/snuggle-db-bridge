@@ -6,6 +6,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole, makeAdminClient } from "@/server/api-helpers.server";
 import { vehicleReadinessSchema } from "@/lib/dispatcher/schemas";
+import {
+  isServiceRoleUnavailable,
+  serviceRoleUnavailableResponse,
+} from "@/server/admin-errors";
 
 const SELECT =
   "id, vehicle_kind, body_type, payload_kg, volume_m3, length_m, width_m, height_m, " +
