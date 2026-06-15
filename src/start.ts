@@ -85,7 +85,7 @@ const serviceRoleGuardRequest = createMiddleware({ type: "request" }).server(
     } catch (err) {
       if (isServiceRoleUnavailable(err)) {
         console.warn(
-          "[service-role-guard] privileged operation attempted without SUPABASE_SERVICE_ROLE_KEY",
+          `[service-role-guard] privileged operation attempted without SUPABASE_SERVICE_ROLE_KEY | endpoint=${describeCurrentRequest()} | ${describeError(err)}`,
         );
         return serviceRoleUnavailableResponse();
       }
@@ -101,7 +101,7 @@ const serviceRoleGuardFunction = createMiddleware({ type: "function" }).server(
     } catch (err) {
       if (isServiceRoleUnavailable(err)) {
         console.warn(
-          "[service-role-guard] server fn requires service_role but it is not configured",
+          `[service-role-guard] server fn requires service_role but it is not configured | endpoint=${describeCurrentRequest()} | ${describeError(err)}`,
         );
         throw serviceRoleUnavailableResponse();
       }
