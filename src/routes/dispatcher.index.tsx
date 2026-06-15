@@ -294,7 +294,7 @@ function DispatcherHome() {
           )}
         </Section>
       </main>
-    </div>
+    </DispatcherShell>
   );
 }
 
