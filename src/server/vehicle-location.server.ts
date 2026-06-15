@@ -87,14 +87,55 @@ export async function enrichVehicleLocation(
   sb: Sb,
   update: Record<string, unknown>,
   callerRole: "admin" | "dispatcher" | "carrier" | "driver" = "dispatcher",
+  opts: { vehicleId?: string | null } = {},
 ): Promise<void> {
-  const hasExplicitCoords =
+  // Если нам передан id — подтягиваем текущее состояние, чтобы понять,
+  // менялся ли current_city и стоит ли явная фиксация ('manual'/'admin').
+  let existing:
+    | {
+        current_city: string | null;
+        current_lat: number | null;
+        current_lng: number | null;
+        location_source: string | null;
+      }
+    | null = null;
+  if (opts.vehicleId) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (sb.from("dispatcher_vehicle_ext" as never) as any)
+        .select("current_city,current_lat,current_lng,location_source")
+        .eq("id", opts.vehicleId)
+        .maybeSingle();
+      existing = data ?? null;
+    } catch (e) {
+      console.warn("[vehicle-location] load existing failed:", (e as Error).message);
+    }
+  }
+
+  const newCityRaw =
+    "current_city" in update && typeof update.current_city === "string"
+      ? (update.current_city as string).trim()
+      : null;
+  const cityProvided = "current_city" in update;
+  const cityChanged =
+    cityProvided &&
+    existing != null &&
+    (newCityRaw || null) !== ((existing.current_city ?? "").trim() || null);
+
+  const explicitCoordsInPayload =
     update.current_lat != null &&
     update.current_lng != null &&
     Number.isFinite(Number(update.current_lat)) &&
     Number.isFinite(Number(update.current_lng));
 
-  if (hasExplicitCoords) {
+  // Защита ручной фиксации: location_source='manual' (или 'admin') означает,
+  // что координаты выставлены вручную и не должны перетираться авто-геокодом.
+  // Исключение — пользователь явно меняет город ИЛИ присылает новые координаты.
+  const isManuallyLocked =
+    existing?.location_source === "manual" || existing?.location_source === "admin";
+
+  if (explicitCoordsInPayload) {
+    // Координаты выставлены явно — фиксируем как ручные.
     if (!update.location_source) {
       update.location_source = callerRole === "admin" ? "admin" : "manual";
     }
@@ -102,25 +143,52 @@ export async function enrichVehicleLocation(
     return;
   }
 
+  // Если город сменили — обязаны переехать: чистим старые координаты,
+  // снимаем ручную фиксацию и пробуем геокодить заново.
+  if (cityChanged) {
+    update.current_lat = null;
+    update.current_lng = null;
+    if (existing?.location_source === "manual" || existing?.location_source === "admin") {
+      // Город изменили вручную — старая ручная фиксация больше не актуальна.
+      update.location_source = null;
+    }
+  } else if (isManuallyLocked && !cityProvided) {
+    // Город не трогали, координаты зафиксированы вручную — ничего не делаем.
+    return;
+  }
+
   const currentCity =
-    typeof update.current_city === "string" && update.current_city.trim()
-      ? (update.current_city as string).trim()
-      : null;
+    newCityRaw && newCityRaw.length > 0
+      ? newCityRaw
+      : !cityProvided && existing?.current_city
+        ? existing.current_city
+        : null;
   const homeCity =
     typeof update.home_city === "string" && update.home_city.trim()
       ? (update.home_city as string).trim()
       : null;
 
-  // Берём ТОЛЬКО current_city / home_city — никаких ready_to_cities и т.п.
   const target = currentCity ?? homeCity;
-  if (!target) return;
+  if (!target) {
+    if (cityChanged) {
+      update.location_updated_at = new Date().toISOString();
+    }
+    return;
+  }
 
   const geo = await geocodeCityForVehicle(sb, target);
-  if (!geo) return;
+  if (!geo) {
+    if (cityChanged) {
+      // Не смогли геокодить новый город — оставляем без координат,
+      // машина уйдёт в блок «Без координат», но это лучше чем старая точка.
+      update.location_updated_at = new Date().toISOString();
+    }
+    return;
+  }
 
   update.current_lat = geo.lat;
   update.current_lng = geo.lng;
-  if (!update.location_source) {
+  if (!update.location_source || cityChanged) {
     if (currentCity) {
       update.location_source =
         callerRole === "carrier"
