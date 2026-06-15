@@ -309,6 +309,7 @@ import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/d
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
+import { Route as ApiCarrierVehiclesIdRouteImport } from './routes/api/carrier/vehicles.$id'
 import { Route as ApiCarrierRequestsIdRouteImport } from './routes/api/carrier/requests.$id'
 import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
 import { Route as ApiCarrierDocumentsUploadRouteImport } from './routes/api/carrier/documents.upload'
@@ -1900,6 +1901,11 @@ const ApiClientsIdPortalLinkRoute = ApiClientsIdPortalLinkRouteImport.update({
   path: '/$id/portal-link',
   getParentRoute: () => ApiClientsRoute,
 } as any)
+const ApiCarrierVehiclesIdRoute = ApiCarrierVehiclesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiCarrierVehiclesRoute,
+} as any)
 const ApiCarrierRequestsIdRoute = ApiCarrierRequestsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2069,9 +2075,9 @@ const ApiDispatcherCarrierRequestsIdContractPreviewRoute =
   } as any)
 const ApiCarrierVehiclesIdReadinessRoute =
   ApiCarrierVehiclesIdReadinessRouteImport.update({
-    id: '/$id/readiness',
-    path: '/$id/readiness',
-    getParentRoute: () => ApiCarrierVehiclesRoute,
+    id: '/readiness',
+    path: '/readiness',
+    getParentRoute: () => ApiCarrierVehiclesIdRoute,
   } as any)
 const ApiCarrierRequestsIdRespondRoute =
   ApiCarrierRequestsIdRespondRouteImport.update({
@@ -2401,6 +2407,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
+  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -2741,6 +2748,7 @@ export interface FileRoutesByTo {
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
+  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -3083,6 +3091,7 @@ export interface FileRoutesById {
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
+  '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
@@ -3426,6 +3435,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/upload'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
+    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -3766,6 +3776,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/upload'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
+    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -4107,6 +4118,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/upload'
     | '/api/carrier/freights/signing'
     | '/api/carrier/requests/$id'
+    | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
@@ -6509,6 +6521,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiClientsIdPortalLinkRouteImport
       parentRoute: typeof ApiClientsRoute
     }
+    '/api/carrier/vehicles/$id': {
+      id: '/api/carrier/vehicles/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/vehicles/$id'
+      preLoaderRoute: typeof ApiCarrierVehiclesIdRouteImport
+      parentRoute: typeof ApiCarrierVehiclesRoute
+    }
     '/api/carrier/requests/$id': {
       id: '/api/carrier/requests/$id'
       path: '/$id'
@@ -6714,10 +6733,10 @@ declare module '@tanstack/react-router' {
     }
     '/api/carrier/vehicles/$id/readiness': {
       id: '/api/carrier/vehicles/$id/readiness'
-      path: '/$id/readiness'
+      path: '/readiness'
       fullPath: '/api/carrier/vehicles/$id/readiness'
       preLoaderRoute: typeof ApiCarrierVehiclesIdReadinessRouteImport
-      parentRoute: typeof ApiCarrierVehiclesRoute
+      parentRoute: typeof ApiCarrierVehiclesIdRoute
     }
     '/api/carrier/requests/$id/respond': {
       id: '/api/carrier/requests/$id/respond'
@@ -7370,12 +7389,23 @@ const ApiCarrierRequestsRouteChildren: ApiCarrierRequestsRouteChildren = {
 const ApiCarrierRequestsRouteWithChildren =
   ApiCarrierRequestsRoute._addFileChildren(ApiCarrierRequestsRouteChildren)
 
-interface ApiCarrierVehiclesRouteChildren {
+interface ApiCarrierVehiclesIdRouteChildren {
   ApiCarrierVehiclesIdReadinessRoute: typeof ApiCarrierVehiclesIdReadinessRoute
 }
 
-const ApiCarrierVehiclesRouteChildren: ApiCarrierVehiclesRouteChildren = {
+const ApiCarrierVehiclesIdRouteChildren: ApiCarrierVehiclesIdRouteChildren = {
   ApiCarrierVehiclesIdReadinessRoute: ApiCarrierVehiclesIdReadinessRoute,
+}
+
+const ApiCarrierVehiclesIdRouteWithChildren =
+  ApiCarrierVehiclesIdRoute._addFileChildren(ApiCarrierVehiclesIdRouteChildren)
+
+interface ApiCarrierVehiclesRouteChildren {
+  ApiCarrierVehiclesIdRoute: typeof ApiCarrierVehiclesIdRouteWithChildren
+}
+
+const ApiCarrierVehiclesRouteChildren: ApiCarrierVehiclesRouteChildren = {
+  ApiCarrierVehiclesIdRoute: ApiCarrierVehiclesIdRouteWithChildren,
 }
 
 const ApiCarrierVehiclesRouteWithChildren =
