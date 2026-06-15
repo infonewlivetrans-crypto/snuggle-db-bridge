@@ -188,6 +188,17 @@ function CarrierVehiclesPage() {
                   )}
                   {v.source === "dispatcher" && (
                     <div className="space-y-2 pt-2">
+                      <div className="flex flex-wrap gap-2">
+                        <UpdateMyLocationButton vehicleId={v.id} />
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => archiveMut.mutate(v.id)}
+                          disabled={archiveMut.isPending}
+                        >
+                          <Archive className="mr-1 h-3 w-3" /> В архив
+                        </Button>
+                      </div>
                       <ReportReadinessBlock
                         endpoint={`/api/carrier/vehicles/${v.id}/readiness`}
                         invalidateKey={["carrier", "vehicles"]}
