@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AppHeader } from "@/components/AppHeader";
+import { DispatcherShell } from "@/components/dispatcher/DispatcherShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -91,8 +91,7 @@ function DispatcherHome() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppHeader />
+    <DispatcherShell>
       <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -295,7 +294,7 @@ function DispatcherHome() {
           )}
         </Section>
       </main>
-    </div>
+    </DispatcherShell>
   );
 }
 
