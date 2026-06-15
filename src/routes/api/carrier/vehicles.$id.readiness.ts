@@ -1,26 +1,21 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
-import { vehicleReadinessSchema } from "@/lib/dispatcher/schemas";
-import {
-  isServiceRoleUnavailable,
-  serviceRoleUnavailableResponse,
-} from "@/server/admin-errors";
-
 // PATCH /api/carrier/vehicles/:id/readiness
 // Перевозчик сообщает готовность своей машины.
-// Доступ: carrier/admin. Машина должна принадлежать carrier ctx.
-// Не меняет dispatcher_status / dispatcher_work_status / dispatcher_taken_by.
+//
+// Производственная схема: НЕ использует service_role.
+// Авторизация и запись идут через SECURITY DEFINER RPC:
+//   - vehicle_readiness_get(p_vehicle_id)        — чтение whitelisted полей,
+//   - vehicle_readiness_update(p_vehicle_id, p_patch) — запись whitelisted полей.
+// Принадлежность машины перевозчику проверяется внутри RPC через
+// user_owns_vehicle_as_carrier(auth.uid(), p_vehicle_id). Доступ к
+// машине чужого перевозчика вернёт 403.
+import { createFileRoute } from "@tanstack/react-router";
+import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
+import { vehicleReadinessSchema } from "@/lib/dispatcher/schemas";
 
-const SELECT =
-  "id, dispatcher_carrier_ext_id, current_city, current_lat, current_lng, " +
-  "location_updated_at, location_source, ready_to_cities, ready_comment, " +
-  "ready_date, ready_from, ready_radius_km, ready_mode, ready_weekdays, " +
-  "load_status, free_payload_kg, free_volume_m3, partial_route_from, " +
-  "partial_route_to, loading_restrictions";
-
-const ALLOWED_KEYS = [
+const READINESS_KEYS = [
   "current_city",
+  "current_lat",
+  "current_lng",
   "ready_to_cities",
   "ready_comment",
   "ready_date",
@@ -34,6 +29,8 @@ const ALLOWED_KEYS = [
   "partial_route_from",
   "partial_route_to",
   "loading_restrictions",
+  "location_source",
+  "location_updated_at",
 ] as const;
 
 export const Route = createFileRoute("/api/carrier/vehicles/$id/readiness")({
@@ -59,53 +56,54 @@ export const Route = createFileRoute("/api/carrier/vehicles/$id/readiness")({
           );
         }
 
-        try {
-          const ctx = await resolveCarrierCtx(auth.userId);
-          if (ctx instanceof Response) return ctx;
-
-          // Проверяем принадлежность машины carrier ctx
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const existing = await (ctx.admin.from("dispatcher_vehicle_ext" as never) as any)
-            .select("id, dispatcher_carrier_ext_id")
-            .eq("id", params.id)
-            .maybeSingle();
-          if (existing.error) {
-            return jsonResponse({ error: existing.error.message }, { status: 500 });
-          }
-          if (!existing.data) {
-            return jsonResponse({ error: "not_found" }, { status: 404 });
-          }
-          if (existing.data.dispatcher_carrier_ext_id !== ctx.dispatcherCarrierExtId) {
+        // Текущее состояние (через SECURITY DEFINER) — нужно enrich-у и
+        // одновременно служит проверкой принадлежности машины перевозчику.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const got = await (auth.client as any).rpc("vehicle_readiness_get", {
+          p_vehicle_id: params.id,
+        });
+        if (got.error) {
+          if (got.error.code === "42501") {
             return jsonResponse({ error: "forbidden" }, { status: 403 });
           }
-
-          const input = parsed.data as Record<string, unknown>;
-          const update: Record<string, unknown> = {};
-          for (const key of ALLOWED_KEYS) {
-            if (key in input) update[key] = input[key];
-          }
-
-          // Единая логика смены города: сбрасываем старые координаты,
-          // снимаем ручную фиксацию, заново геокодим. Источник — "carrier".
-          const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
-          await enrichVehicleLocation(ctx.admin, update, "carrier", { vehicleId: params.id });
-
-          if (!("location_updated_at" in update)) {
-            update.location_updated_at = new Date().toISOString();
-          }
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data, error } = await (ctx.admin.from("dispatcher_vehicle_ext" as never) as any)
-            .update(update as unknown as never)
-            .eq("id", params.id)
-            .select(SELECT)
-            .maybeSingle();
-          if (error) return jsonResponse({ error: error.message }, { status: 500 });
-          return jsonResponse({ ok: true, row: data });
-        } catch (err) {
-          if (isServiceRoleUnavailable(err)) return serviceRoleUnavailableResponse();
-          throw err;
+          return jsonResponse({ error: got.error.message }, { status: 500 });
         }
+        const existingRow = Array.isArray(got.data) ? got.data[0] ?? null : got.data;
+        if (!existingRow) return jsonResponse({ error: "not_found" }, { status: 404 });
+
+        const input = parsed.data as Record<string, unknown>;
+        const update: Record<string, unknown> = {};
+        for (const key of READINESS_KEYS) if (key in input) update[key] = input[key];
+
+        // Единая логика смены города: сбрасываем старые координаты,
+        // снимаем ручную фиксацию, заново геокодим. Источник — "carrier".
+        const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
+        await enrichVehicleLocation(auth.client, update, "carrier", {
+          vehicleId: params.id,
+          existing: {
+            current_city: existingRow.current_city ?? null,
+            current_lat: existingRow.current_lat ?? null,
+            current_lng: existingRow.current_lng ?? null,
+            location_source: existingRow.location_source ?? null,
+          },
+        });
+
+        if (!("location_updated_at" in update)) {
+          update.location_updated_at = new Date().toISOString();
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const upd = await (auth.client as any).rpc("vehicle_readiness_update", {
+          p_vehicle_id: params.id,
+          p_patch: update,
+        });
+        if (upd.error) {
+          const code = upd.error.code;
+          if (code === "42501") return jsonResponse({ error: "forbidden" }, { status: 403 });
+          if (code === "P0002") return jsonResponse({ error: "not_found" }, { status: 404 });
+          return jsonResponse({ error: upd.error.message }, { status: 500 });
+        }
+        return jsonResponse({ ok: true, row: upd.data });
       },
     },
   },
