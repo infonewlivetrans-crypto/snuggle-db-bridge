@@ -11,7 +11,7 @@ export const Route = createFileRoute(
       GET: async ({ request, params }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
         const res = await loadCarrierRequestContractPreview(
           ctx.admin,
