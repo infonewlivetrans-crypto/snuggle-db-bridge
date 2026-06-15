@@ -169,7 +169,8 @@ function CarrierVehiclesPage() {
                   {v.source === "dispatcher" && (
                     <div className="space-y-2 pt-2">
                       <ReportReadinessBlock
-                        vehicleId={v.id}
+                        endpoint={`/api/carrier/vehicles/${v.id}/readiness`}
+                        invalidateKey={["carrier", "vehicles"]}
                         initial={{
                           current_city: v.current_city ?? null,
                           ready_to_cities: v.ready_to_cities ?? null,
@@ -181,6 +182,11 @@ function CarrierVehiclesPage() {
                           partial_route_to: v.partial_route_to ?? null,
                           loading_restrictions: v.loading_restrictions ?? null,
                           ready_date: v.ready_date ?? null,
+                          ready_from: null,
+                          ready_radius_km: null,
+                          ready_mode: null,
+                          ready_weekdays: null,
+                          location_updated_at: v.location_updated_at ?? null,
                         }}
                       />
                       <CarrierDocumentsBlock ownerType="vehicle" ownerId={v.id} />
