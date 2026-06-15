@@ -1,12 +1,16 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Loader2, Users } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Users, Plus, Archive } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { apiGetAuth } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+import { apiDelete, apiGetAuth } from "@/lib/api-client";
 import { DRIVER_STATUS_LABELS, type DriverStatus } from "@/lib/dispatcher/statuses";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { CarrierDriverFormDialog } from "@/components/carrier/CarrierForms";
 
 export const Route = createFileRoute("/carrier/drivers")({
   head: () => ({ meta: [{ title: "Мои водители — кабинет перевозчика" }] }),
