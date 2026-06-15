@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/carrier/deals")({
       GET: async ({ request }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) {
           return jsonResponse({ ok: false, reason: "no_carrier_linked", rows: [], total: 0 });
         }

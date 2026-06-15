@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/carrier/deals/$id/progress")({
         if (auth instanceof Response) return auth;
         if (!params.id) return jsonResponse({ error: "id required" }, { status: 400 });
 
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
 
         let body: unknown;

@@ -69,7 +69,7 @@ export const Route = createFileRoute("/api/carrier/documents")({
       GET: async ({ request }) => {
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) {
           return jsonResponse({ ok: false, reason: "no_carrier_linked", rows: [] });
         }
@@ -95,7 +95,7 @@ export const Route = createFileRoute("/api/carrier/documents")({
       POST: async ({ request }) => {
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
 
         let body: unknown;

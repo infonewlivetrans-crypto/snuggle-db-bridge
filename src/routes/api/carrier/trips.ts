@@ -11,7 +11,7 @@ export const Route = createFileRoute("/api/carrier/trips")({
       GET: async ({ request }) => {
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) {
           return jsonResponse({
             ok: false,

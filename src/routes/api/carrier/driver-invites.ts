@@ -26,7 +26,7 @@ export const Route = createFileRoute("/api/carrier/driver-invites")({
       GET: async ({ request }) => {
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,7 +46,7 @@ export const Route = createFileRoute("/api/carrier/driver-invites")({
       POST: async ({ request }) => {
         const auth = await requireAnyRole(request, ["carrier", "admin"]);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
 
         const token = generateToken();

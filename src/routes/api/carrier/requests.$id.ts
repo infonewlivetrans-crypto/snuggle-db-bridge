@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/carrier/requests/$id")({
       GET: async ({ request, params }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
-        const ctx = await resolveCarrierCtx(auth.userId);
+        const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

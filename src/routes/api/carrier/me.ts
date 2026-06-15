@@ -1,115 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  jsonResponse,
-  makeAdminClient,
-  requireAnyRole,
-} from "@/server/api-helpers.server";
-import { ensureCarrierLink } from "@/server/carrier-autolink.server";
+import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 
-// GET /api/carrier/me
-// Возвращает данные текущего перевозчика для личного кабинета.
-// Доступно carrier и admin. При отсутствии связи — возвращает понятный
-// no_carrier_linked с user_id и profile_carrier_id (для админ-диагностики).
-
+// GET /api/carrier/me — данные кабинета перевозчика.
+// Работает БЕЗ SUPABASE_SERVICE_ROLE_KEY: вызывает SECURITY DEFINER RPC
+// `carrier_me_get()`, который сам проверяет auth.uid() и резолвит carrier.
 export const Route = createFileRoute("/api/carrier/me")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const auth = await requireAnyRole(request, ["carrier", "admin"]);
+        const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
 
-        const admin = makeAdminClient();
-
-        const { data: profile } = await admin
-          .from("profiles")
-          .select("carrier_id, full_name, email, phone")
-          .eq("user_id", auth.userId)
-          .maybeSingle();
-        const profileCarrierId =
-          (profile as { carrier_id: string | null } | null)?.carrier_id ?? null;
-
-        // (1) Авто-связка user → dispatcher_carrier_ext (ничего не нажимая руками).
-        const auto = await ensureCarrierLink(admin, auth.userId);
-        const linkExtId = auto?.extId;
-
-        // (2) Поиск ext-записи.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const tryFind = async (column: string, value: string) =>
-          (admin.from("dispatcher_carrier_ext") as any)
-            .select("*")
-            .eq(column, value)
-            .maybeSingle();
-
-        let extResult: { data: Record<string, unknown> | null } = { data: null };
-        if (linkExtId) extResult = await tryFind("id", linkExtId);
-        if (!extResult.data && profileCarrierId) {
-          extResult = await tryFind("id", profileCarrierId);
-          if (!extResult.data) extResult = await tryFind("carrier_id", profileCarrierId);
-          if (!extResult.data) extResult = await tryFind("production_carrier_id", profileCarrierId);
-        }
-
-        if (!extResult.data) {
+        const { data, error } = await (auth.client.rpc as any)("carrier_me_get");
+        if (error) {
           return jsonResponse(
-            {
-              ok: false,
-              error: "no_carrier_linked",
-              reason: "no_carrier_linked",
-              user_id: auth.userId,
-              profile_carrier_id: profileCarrierId,
-              profile,
-            },
-            { status: 200 },
+            { ok: false, error: "rpc_failed", detail: error.message },
+            { status: 500 },
           );
         }
-
-        const ext = extResult.data as Record<string, unknown>;
-        const carrierId =
-          ((ext?.carrier_id as string | undefined) ??
-            profileCarrierId ??
-            linkExtId) as string;
-
-        const { data: carrier } = await admin
-          .from("carriers")
-          .select("*")
-          .eq("id", carrierId)
-          .maybeSingle();
-
-        if (!ext && !carrier) {
-          return jsonResponse(
-            {
-              ok: false,
-              error: "no_carrier_linked",
-              reason: "no_carrier_linked",
-              user_id: auth.userId,
-              profile_carrier_id: profileCarrierId,
-              profile,
-            },
-            { status: 200 },
-          );
-        }
-
-
-        const { data: vehicles } = await admin
-          .from("vehicles")
-          .select("id, plate_number, brand, model, body_type, capacity_kg, volume_m3, is_active")
-          .eq("carrier_id", carrierId)
-          .order("created_at", { ascending: false });
-
-        const { data: drivers } = await admin
-          .from("drivers")
-          .select("id, full_name, phone, is_active")
-          .eq("carrier_id", carrierId)
-          .order("created_at", { ascending: false });
-
-        return jsonResponse({
-          ok: true,
-          profile,
-          carrier,
-          ext,
-          vehicles: vehicles ?? [],
-          drivers: drivers ?? [],
-          trips: [],
-        });
+        const payload = (data ?? { ok: false, error: "no_carrier_linked" }) as Record<
+          string,
+          unknown
+        >;
+        return jsonResponse(payload, { status: 200 });
       },
     },
   },
