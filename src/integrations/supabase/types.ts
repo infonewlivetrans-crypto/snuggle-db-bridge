@@ -5970,6 +5970,7 @@ export type Database = {
         Returns: Json
       }
       dispatcher_join_submit: { Args: { p_payload: Json }; Returns: Json }
+      driver_my_vehicle_ext_id: { Args: { _user_id: string }; Returns: string }
       driver_record_route_return: {
         Args: {
           p_actor_name?: string
@@ -6278,6 +6279,10 @@ export type Database = {
         Returns: undefined
       }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
+      user_owns_vehicle_as_carrier: {
+        Args: { _user_id: string; _vehicle_id: string }
+        Returns: boolean
+      }
       validate_invite_for_activation: {
         Args: { p_token: string }
         Returns: {
@@ -6288,6 +6293,124 @@ export type Database = {
         }[]
       }
       vehicle_busy_until: { Args: { _vehicle_id: string }; Returns: string }
+      vehicle_readiness_get: {
+        Args: { p_vehicle_id: string }
+        Returns: {
+          body_type: string | null
+          city_rate: number | null
+          created_at: string
+          current_city: string | null
+          current_lat: number | null
+          current_lng: number | null
+          dispatcher_carrier_ext_id: string | null
+          dispatcher_comment: string | null
+          dispatcher_driver_ext_id: string | null
+          dispatcher_status: string
+          dispatcher_taken_at: string | null
+          dispatcher_taken_by: string | null
+          dispatcher_work_status: string | null
+          docs_comment: string | null
+          docs_status: string
+          free_payload_kg: number | null
+          free_volume_m3: number | null
+          height_m: number | null
+          home_city: string | null
+          id: string
+          length_m: number | null
+          load_methods: string[] | null
+          load_status: string
+          loading_restrictions: string | null
+          location_source: string | null
+          location_updated_at: string | null
+          min_rate: number | null
+          minimum_km_rate: number | null
+          minimum_trip_rate: number | null
+          partial_route_from: string | null
+          partial_route_to: string | null
+          payload_kg: number | null
+          point_rate: number | null
+          production_vehicle_id: string | null
+          rate_comment: string | null
+          ready_city: string | null
+          ready_comment: string | null
+          ready_date: string | null
+          ready_from: string | null
+          ready_mode: string | null
+          ready_radius_km: number | null
+          ready_to_cities: string[] | null
+          ready_weekdays: number[] | null
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_kind: string | null
+          volume_m3: number | null
+          width_m: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "dispatcher_vehicle_ext"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      vehicle_readiness_update: {
+        Args: { p_patch: Json; p_vehicle_id: string }
+        Returns: {
+          body_type: string | null
+          city_rate: number | null
+          created_at: string
+          current_city: string | null
+          current_lat: number | null
+          current_lng: number | null
+          dispatcher_carrier_ext_id: string | null
+          dispatcher_comment: string | null
+          dispatcher_driver_ext_id: string | null
+          dispatcher_status: string
+          dispatcher_taken_at: string | null
+          dispatcher_taken_by: string | null
+          dispatcher_work_status: string | null
+          docs_comment: string | null
+          docs_status: string
+          free_payload_kg: number | null
+          free_volume_m3: number | null
+          height_m: number | null
+          home_city: string | null
+          id: string
+          length_m: number | null
+          load_methods: string[] | null
+          load_status: string
+          loading_restrictions: string | null
+          location_source: string | null
+          location_updated_at: string | null
+          min_rate: number | null
+          minimum_km_rate: number | null
+          minimum_trip_rate: number | null
+          partial_route_from: string | null
+          partial_route_to: string | null
+          payload_kg: number | null
+          point_rate: number | null
+          production_vehicle_id: string | null
+          rate_comment: string | null
+          ready_city: string | null
+          ready_comment: string | null
+          ready_date: string | null
+          ready_from: string | null
+          ready_mode: string | null
+          ready_radius_km: number | null
+          ready_to_cities: string[] | null
+          ready_weekdays: number[] | null
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_kind: string | null
+          volume_m3: number | null
+          width_m: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "dispatcher_vehicle_ext"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       app_role:
