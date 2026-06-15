@@ -105,10 +105,18 @@ function CarrierDriversPage() {
                 )}
                 {d.source === "dispatcher" && (
                   <>
-                    <div className="pt-1">
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
                       <Badge variant={d.docs_verified ? "outline" : "secondary"}>
                         {d.docs_verified ? "Документы проверены" : "Документы не проверены"}
                       </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => archiveMut.mutate(d.id)}
+                        disabled={archiveMut.isPending}
+                      >
+                        <Archive className="mr-1 h-3 w-3" /> В архив
+                      </Button>
                     </div>
                     <div className="pt-2">
                       <CarrierDocumentsBlock ownerType="driver" ownerId={d.id} />
