@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id")({
         }
         const updateBody: Record<string, unknown> = { ...(parsed.data as Record<string, unknown>) };
         const { enrichVehicleLocation } = await import("@/server/vehicle-location.server");
-        await enrichVehicleLocation(auth.client, updateBody, "dispatcher");
+        await enrichVehicleLocation(auth.client, updateBody, "dispatcher", { vehicleId: params.id });
         if (
           !("location_updated_at" in updateBody) &&
           ("current_lat" in updateBody || "current_lng" in updateBody || "current_city" in updateBody)
