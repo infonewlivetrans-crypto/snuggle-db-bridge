@@ -1,10 +1,32 @@
 import { createStart, createMiddleware, createIsomorphicFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { supabase } from "@/integrations/supabase/client";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 import {
   isServiceRoleUnavailable,
   serviceRoleUnavailableResponse,
 } from "@/server/admin-errors";
+
+function describeCurrentRequest(): string {
+  try {
+    const req = getRequest();
+    const url = new URL(req.url);
+    return `${req.method} ${url.pathname}${url.search}`;
+  } catch {
+    return "<no-request-context>";
+  }
+}
+
+function describeError(err: unknown): string {
+  if (!err) return "";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const e = err as any;
+  const msg = e?.message ?? String(err);
+  const stackLine = typeof e?.stack === "string"
+    ? (e.stack as string).split("\n").slice(0, 4).join(" | ")
+    : "";
+  return `msg="${msg}" stack="${stackLine}"`;
+}
 
 // Server-only env normalization. Mirrors VITE_SUPABASE_URL -> SUPABASE_URL and
 // PUBLISHABLE/ANON variants so the auto-generated supabaseAdmin lazy proxy
