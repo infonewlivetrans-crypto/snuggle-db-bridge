@@ -261,11 +261,22 @@ function VehicleMiniCard({
         <Truck className="mr-1 inline h-3 w-3" />
         {v.carrier?.name ?? "—"} · {v.driver?.full_name ?? "—"}
       </div>
+      {(v.driver?.phone || v.carrier?.phone) ? (
+        <div className="truncate text-muted-foreground">
+          <span className="text-foreground/70">Тел:</span>{" "}
+          {v.driver?.phone || v.carrier?.phone}
+        </div>
+      ) : null}
       {(v.minimum_km_rate || v.minimum_trip_rate) ? (
         <div className="text-muted-foreground">
           {v.minimum_km_rate ? <>За км: <span className="text-foreground">{fmtMoney(v.minimum_km_rate)}</span></> : null}
           {v.minimum_km_rate && v.minimum_trip_rate ? " · " : null}
           {v.minimum_trip_rate ? <>За рейс: <span className="text-foreground">{fmtMoney(v.minimum_trip_rate)}</span></> : null}
+        </div>
+      ) : null}
+      {v.ready_comment ? (
+        <div className="line-clamp-2 text-muted-foreground">
+          <span className="text-foreground/70">Готовность:</span> {v.ready_comment}
         </div>
       ) : null}
       <div className="mt-0.5 flex gap-1">
