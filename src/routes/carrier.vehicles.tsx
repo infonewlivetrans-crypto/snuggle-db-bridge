@@ -82,19 +82,35 @@ function featuresLabel(arr: string[] | null): string {
 }
 
 function CarrierVehiclesPage() {
+  const qc = useQueryClient();
+  const [addOpen, setAddOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "vehicles"],
     queryFn: () => apiGetAuth<{ rows: Vehicle[] }>("/api/carrier/vehicles", 10000),
   });
   const vehicles = data?.rows ?? [];
+  const archiveMut = useMutation({
+    mutationFn: (id: string) => apiDelete(`/api/carrier/vehicles/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["carrier", "vehicles"] });
+      toast.success("Машина архивирована");
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось архивировать"),
+  });
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium">Мой транспорт</h2>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-lg font-medium">Мой транспорт</h2>
+        <Button size="sm" onClick={() => setAddOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" /> Добавить машину
+        </Button>
+      </div>
       <p className="text-sm text-muted-foreground">
-        Список транспорта закреплён за вашей карточкой перевозчика. Изменения вносит
-        администратор/диспетчер.
+        Машины вашей компании. Можно добавить, редактировать и обновлять местоположение.
       </p>
+      <CarrierVehicleFormDialog open={addOpen} onOpenChange={setAddOpen} />
+
 
       {isLoading ? (
         <div className="flex items-center justify-center py-10 text-muted-foreground">
