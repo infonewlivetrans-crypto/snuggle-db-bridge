@@ -400,6 +400,7 @@ function VehiclesPage() {
             </div>
             );
           })()}
+          </div>
         </DialogContent>
       </Dialog>
     </EntityTableLayout>
