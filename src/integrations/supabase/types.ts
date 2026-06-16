@@ -2294,6 +2294,7 @@ export type Database = {
       drivers: {
         Row: {
           carrier_id: string
+          city: string | null
           comment: string | null
           company_id: string | null
           created_at: string
@@ -2318,6 +2319,7 @@ export type Database = {
         }
         Insert: {
           carrier_id: string
+          city?: string | null
           comment?: string | null
           company_id?: string | null
           created_at?: string
@@ -2342,6 +2344,7 @@ export type Database = {
         }
         Update: {
           carrier_id?: string
+          city?: string | null
           comment?: string | null
           company_id?: string | null
           created_at?: string
