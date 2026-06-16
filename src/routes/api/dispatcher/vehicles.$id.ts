@@ -73,6 +73,7 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id")({
           );
         }
         if (!data) return jsonResponse({ error: "not_found" }, { status: 404 });
+        return jsonResponse({ row: data });
       },
 
       DELETE: async ({ request, params }) => {
