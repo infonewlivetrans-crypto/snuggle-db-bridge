@@ -64,7 +64,14 @@ export const Route = createFileRoute("/api/dispatcher/vehicles/$id")({
           .eq("id", params.id)
           .select(SELECT)
           .maybeSingle();
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        if (error) {
+          const msg = String(error.message ?? "");
+          const isCheck = /check constraint|violates check/i.test(msg);
+          return jsonResponse(
+            { error: isCheck ? `validation_failed: ${msg}` : msg },
+            { status: isCheck ? 400 : 500 },
+          );
+        }
         if (!data) return jsonResponse({ error: "not_found" }, { status: 404 });
         return jsonResponse({ row: data });
       },

@@ -119,13 +119,22 @@ export const Route = createFileRoute("/api/public/carrier-register")({
 
           if (rpcErr) {
             console.error("[carrier-register] rpc_failed", rpcErr);
+            const msg = String(rpcErr.message ?? "");
+            let reason = "carrier_create_failed";
+            let userMessage = "Не удалось создать перевозчика. Обратитесь в поддержку.";
+            if (/duplicate key|unique constraint/i.test(msg)) {
+              reason = "already_exists";
+              userMessage = "Пользователь с такими данными уже зарегистрирован.";
+            } else if (/drivers/i.test(msg) && /column|does not exist/i.test(msg)) {
+              reason = "driver_create_failed";
+              userMessage = "Не удалось создать водителя. Обратитесь в поддержку.";
+            } else if (/phone/i.test(msg)) {
+              reason = "invalid_phone";
+              userMessage = "Проверьте номер телефона.";
+            }
             return jsonResponse(
-              {
-                ok: false,
-                reason: "carrier_create_failed",
-                details: rpcErr.message ?? null,
-              },
-              { status: 500 },
+              { ok: false, reason, message: userMessage, details: msg || null },
+              { status: 400 },
             );
           }
 
