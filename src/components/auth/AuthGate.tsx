@@ -43,6 +43,39 @@ export function AuthGate({ children }: { children: ReactNode }) {
     checkAdmin();
   }, [user, path]);
 
+  // Если у пользователя есть profile.carrier_id, но роли ещё не подтянулись —
+  // вызываем self-heal через /api/carrier/me и перезагружаем профиль/роли.
+  const [healAttempted, setHealAttempted] = useState(false);
+  useEffect(() => {
+    if (!user || loading) return;
+    if (roles.length > 0) return;
+    if (!profile?.carrier_id) return;
+    if (healAttempted) return;
+    setHealAttempted(true);
+    (async () => {
+      try {
+        await fetch("/api/carrier/me", { credentials: "same-origin" });
+      } catch {
+        // ignore
+      }
+      await refresh();
+    })();
+  }, [user, loading, roles, profile, healAttempted, refresh]);
+
+  // Автоматический редирект пользователя на его «домашний» раздел,
+  // если он попал на путь, к которому нет доступа. Не показываем «Нет доступа»
+  // до того, как роли загрузились.
+  useEffect(() => {
+    if (loading || !user || roles.length === 0) return;
+    if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return;
+    if (canAccess(path, roles)) return;
+    const target = landingPathForRoles(roles);
+    if (target && target !== path) {
+      navigate({ to: target, replace: true, search: target === "/" ? { orderId: undefined } : (undefined as never) });
+    }
+  }, [loading, user, roles, path, navigate]);
+
+
   // Публичные маршруты — без проверки
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
 
