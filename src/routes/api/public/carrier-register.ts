@@ -148,8 +148,20 @@ export const Route = createFileRoute("/api/public/carrier-register")({
           if (!result.ok) {
             const reason = result.reason ?? "carrier_create_failed";
             const status = reason === "unauthorized" ? 401 : 400;
+            console.warn(
+              "[carrier-register] rpc_returned_not_ok user=%s reason=%s",
+              auth.userId,
+              reason,
+            );
             return jsonResponse({ ok: false, reason }, { status });
           }
+
+          console.log(
+            "[carrier-register] success user=%s carrier=%s already_linked=%s",
+            auth.userId,
+            result.carrier_id ?? "null",
+            Boolean(result.already_linked),
+          );
 
           return jsonResponse({
             ok: true,
