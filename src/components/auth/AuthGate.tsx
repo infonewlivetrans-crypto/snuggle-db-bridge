@@ -131,7 +131,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Пока роли ещё не подтянулись — показываем splash, чтобы не мелькал «Нет доступа».
+  if (user && roles.length === 0 && !loadError) {
+    return <SplashScreen />;
+  }
+
   if (!canAccess(path, roles)) {
+    const target = landingPathForRoles(roles);
+    // Если есть валидный «домашний» раздел — мы уже редиректим через useEffect,
+    // показываем splash, чтобы не мелькала ошибка.
+    if (target && target !== path) {
+      return <SplashScreen />;
+    }
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
@@ -140,10 +151,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <p className="mt-2 text-sm text-muted-foreground">
             У вашей роли нет прав на просмотр этой страницы.
           </p>
+          {roles.includes("carrier") ? (
+            <Link
+              to="/carrier"
+              className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Перейти в кабинет перевозчика
+            </Link>
+          ) : null}
         </main>
       </div>
     );
   }
+
 
   // Модуль выключен в системных настройках — скрываем раздел даже при прямом переходе по URL
   const isCarrierCabinetPath = path === "/carrier" || path.startsWith("/carrier/");
