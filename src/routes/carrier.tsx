@@ -27,6 +27,24 @@ const TABS: Array<{
 function CarrierLayout() {
   const location = useLocation();
   const path = location.pathname;
+
+  // Публичные дочерние маршруты (регистрация, активация по токену) не должны
+  // монтировать кабинет и дёргать /api/carrier/* — это вызывало 401 у гостей.
+  const isPublicChild =
+    path.startsWith("/carrier/register") || path.startsWith("/carrier/activate");
+
+  if (isPublicChild) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Outlet />
+      </div>
+    );
+  }
+
+  return <CarrierLayoutInner path={path} />;
+}
+
+function CarrierLayoutInner({ path }: { path: string }) {
   const requestsQ = useCarrierRequestsQuery();
   const newCount = requestsQ.data?.counts?.sent ?? 0;
 
@@ -70,3 +88,4 @@ function CarrierLayout() {
     </div>
   );
 }
+
