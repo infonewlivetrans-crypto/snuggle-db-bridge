@@ -1,14 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate, Link } from "@tanstack/react-router";
 import { getAuthMode, useAuth } from "@/lib/auth/auth-context";
 import { LoginPage } from "@/components/auth/LoginPage";
 import { SplashScreen } from "@/components/SplashScreen";
 import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
-import { canAccess } from "@/lib/auth/roles";
+import { canAccess, landingPathForRoles } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
-const PUBLIC_PREFIXES = ["/d/", "/invite/", "/c/", "/dispatcher/register/", "/dispatcher/join", "/carrier/register", "/carrier/activate/", "/driver/register/"]; // публичные ссылки: /d/ — токен водителя, /invite/ — обмен инвайт-токена на сессию, /c/ — публичный кабинет клиента по portal_token, /dispatcher/register/ — индивидуальная регистрация по токену, /dispatcher/join — общая публичная регистрация AI-диспетчера, /carrier/register — общая публичная регистрация перевозчика, /carrier/activate/ — активация кабинета перевозчика по одноразовой ссылке, /driver/register/ — публичная регистрация водителя по приглашению перевозчика
+const PUBLIC_PREFIXES = ["/d/", "/invite/", "/c/", "/dispatcher/register/", "/dispatcher/join", "/carrier/register", "/carrier/activate/", "/driver/register/"]; // публичные ссылки
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, loadError, refresh } = useAuth();
