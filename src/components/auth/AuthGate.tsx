@@ -12,6 +12,7 @@ const PUBLIC_PREFIXES = ["/d/", "/invite/", "/c/", "/dispatcher/register/", "/di
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, loadError, refresh } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
   const enabledModules = useEnabledModules();
