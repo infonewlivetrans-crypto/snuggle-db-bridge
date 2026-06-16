@@ -1,17 +1,18 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate, Link } from "@tanstack/react-router";
 import { getAuthMode, useAuth } from "@/lib/auth/auth-context";
 import { LoginPage } from "@/components/auth/LoginPage";
 import { SplashScreen } from "@/components/SplashScreen";
 import { FirstAdminSetup } from "@/components/auth/FirstAdminSetup";
-import { canAccess } from "@/lib/auth/roles";
+import { canAccess, landingPathForRoles } from "@/lib/auth/roles";
 import { AppHeader } from "@/components/AppHeader";
 import { useEnabledModules, isPathEnabled, pathBelongsToModule, MODULE_LABELS, useLaunchMode, isPathVisibleInLaunchMode } from "@/lib/modules";
 
-const PUBLIC_PREFIXES = ["/d/", "/invite/", "/c/", "/dispatcher/register/", "/dispatcher/join", "/carrier/register", "/carrier/activate/", "/driver/register/"]; // публичные ссылки: /d/ — токен водителя, /invite/ — обмен инвайт-токена на сессию, /c/ — публичный кабинет клиента по portal_token, /dispatcher/register/ — индивидуальная регистрация по токену, /dispatcher/join — общая публичная регистрация AI-диспетчера, /carrier/register — общая публичная регистрация перевозчика, /carrier/activate/ — активация кабинета перевозчика по одноразовой ссылке, /driver/register/ — публичная регистрация водителя по приглашению перевозчика
+const PUBLIC_PREFIXES = ["/d/", "/invite/", "/c/", "/dispatcher/register/", "/dispatcher/join", "/carrier/register", "/carrier/activate/", "/driver/register/"]; // публичные ссылки
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const { loading, user, profile, roles, loadError, refresh } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
   const enabledModules = useEnabledModules();
@@ -41,6 +42,39 @@ export function AuthGate({ children }: { children: ReactNode }) {
     }
     checkAdmin();
   }, [user, path]);
+
+  // Если у пользователя есть profile.carrier_id, но роли ещё не подтянулись —
+  // вызываем self-heal через /api/carrier/me и перезагружаем профиль/роли.
+  const [healAttempted, setHealAttempted] = useState(false);
+  useEffect(() => {
+    if (!user || loading) return;
+    if (roles.length > 0) return;
+    if (!profile?.carrier_id) return;
+    if (healAttempted) return;
+    setHealAttempted(true);
+    (async () => {
+      try {
+        await fetch("/api/carrier/me", { credentials: "same-origin" });
+      } catch {
+        // ignore
+      }
+      await refresh();
+    })();
+  }, [user, loading, roles, profile, healAttempted, refresh]);
+
+  // Автоматический редирект пользователя на его «домашний» раздел,
+  // если он попал на путь, к которому нет доступа. Не показываем «Нет доступа»
+  // до того, как роли загрузились.
+  useEffect(() => {
+    if (loading || !user || roles.length === 0) return;
+    if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return;
+    if (canAccess(path, roles)) return;
+    const target = landingPathForRoles(roles);
+    if (target && target !== path) {
+      navigate({ to: target, replace: true, search: target === "/" ? { orderId: undefined } : (undefined as never) });
+    }
+  }, [loading, user, roles, path, navigate]);
+
 
   // Публичные маршруты — без проверки
   if (PUBLIC_PREFIXES.some((p) => path.startsWith(p))) return <>{children}</>;
@@ -97,7 +131,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
     );
   }
 
+  // Пока роли ещё не подтянулись — показываем splash, чтобы не мелькал «Нет доступа».
+  if (user && roles.length === 0 && !loadError) {
+    return <SplashScreen />;
+  }
+
   if (!canAccess(path, roles)) {
+    const target = landingPathForRoles(roles);
+    // Если есть валидный «домашний» раздел — мы уже редиректим через useEffect,
+    // показываем splash, чтобы не мелькала ошибка.
+    if (target && target !== path) {
+      return <SplashScreen />;
+    }
     return (
       <div className="min-h-screen bg-background">
         <AppHeader />
@@ -106,10 +151,19 @@ export function AuthGate({ children }: { children: ReactNode }) {
           <p className="mt-2 text-sm text-muted-foreground">
             У вашей роли нет прав на просмотр этой страницы.
           </p>
+          {roles.includes("carrier") ? (
+            <Link
+              to="/carrier"
+              className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Перейти в кабинет перевозчика
+            </Link>
+          ) : null}
         </main>
       </div>
     );
   }
+
 
   // Модуль выключен в системных настройках — скрываем раздел даже при прямом переходе по URL
   const isCarrierCabinetPath = path === "/carrier" || path.startsWith("/carrier/");
