@@ -297,6 +297,9 @@ import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$i
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
 import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
 import { Route as ApiInboundSignaturesAssetsIdRouteImport } from './routes/api/inbound-signatures/assets.$id'
+import { Route as ApiInboundSignaturesIdSignPreviewRouteImport } from './routes/api/inbound-signatures/$id.sign-preview'
+import { Route as ApiInboundSignaturesIdSignConfirmRouteImport } from './routes/api/inbound-signatures/$id.sign-confirm'
+import { Route as ApiInboundSignaturesIdManualUploadRouteImport } from './routes/api/inbound-signatures/$id.manual-upload'
 import { Route as ApiDriverTripsTripIdRouteImport } from './routes/api/driver/trips.$tripId'
 import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
 import { Route as ApiDispatcherTripsCreateRouteImport } from './routes/api/dispatcher/trips.create'
@@ -1857,6 +1860,24 @@ const ApiInboundSignaturesAssetsIdRoute =
     path: '/$id',
     getParentRoute: () => ApiInboundSignaturesAssetsRoute,
   } as any)
+const ApiInboundSignaturesIdSignPreviewRoute =
+  ApiInboundSignaturesIdSignPreviewRouteImport.update({
+    id: '/api/inbound-signatures/$id/sign-preview',
+    path: '/api/inbound-signatures/$id/sign-preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInboundSignaturesIdSignConfirmRoute =
+  ApiInboundSignaturesIdSignConfirmRouteImport.update({
+    id: '/api/inbound-signatures/$id/sign-confirm',
+    path: '/api/inbound-signatures/$id/sign-confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInboundSignaturesIdManualUploadRoute =
+  ApiInboundSignaturesIdManualUploadRouteImport.update({
+    id: '/api/inbound-signatures/$id/manual-upload',
+    path: '/api/inbound-signatures/$id/manual-upload',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDriverTripsTripIdRoute = ApiDriverTripsTripIdRouteImport.update({
   id: '/$tripId',
   path: '/$tripId',
@@ -2635,6 +2656,9 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
   '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
+  '/api/inbound-signatures/$id/manual-upload': typeof ApiInboundSignaturesIdManualUploadRoute
+  '/api/inbound-signatures/$id/sign-confirm': typeof ApiInboundSignaturesIdSignConfirmRoute
+  '/api/inbound-signatures/$id/sign-preview': typeof ApiInboundSignaturesIdSignPreviewRoute
   '/api/inbound-signatures/assets/$id': typeof ApiInboundSignaturesAssetsIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -3003,6 +3027,9 @@ export interface FileRoutesByTo {
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
   '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
+  '/api/inbound-signatures/$id/manual-upload': typeof ApiInboundSignaturesIdManualUploadRoute
+  '/api/inbound-signatures/$id/sign-confirm': typeof ApiInboundSignaturesIdSignConfirmRoute
+  '/api/inbound-signatures/$id/sign-preview': typeof ApiInboundSignaturesIdSignPreviewRoute
   '/api/inbound-signatures/assets/$id': typeof ApiInboundSignaturesAssetsIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -3373,6 +3400,9 @@ export interface FileRoutesById {
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
   '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
+  '/api/inbound-signatures/$id/manual-upload': typeof ApiInboundSignaturesIdManualUploadRoute
+  '/api/inbound-signatures/$id/sign-confirm': typeof ApiInboundSignaturesIdSignConfirmRoute
+  '/api/inbound-signatures/$id/sign-preview': typeof ApiInboundSignaturesIdSignPreviewRoute
   '/api/inbound-signatures/assets/$id': typeof ApiInboundSignaturesAssetsIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -3744,6 +3774,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
     | '/api/driver/trips/$tripId'
+    | '/api/inbound-signatures/$id/manual-upload'
+    | '/api/inbound-signatures/$id/sign-confirm'
+    | '/api/inbound-signatures/$id/sign-preview'
     | '/api/inbound-signatures/assets/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -4112,6 +4145,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
     | '/api/driver/trips/$tripId'
+    | '/api/inbound-signatures/$id/manual-upload'
+    | '/api/inbound-signatures/$id/sign-confirm'
+    | '/api/inbound-signatures/$id/sign-preview'
     | '/api/inbound-signatures/assets/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -4481,6 +4517,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
     | '/api/driver/trips/$tripId'
+    | '/api/inbound-signatures/$id/manual-upload'
+    | '/api/inbound-signatures/$id/sign-confirm'
+    | '/api/inbound-signatures/$id/sign-preview'
     | '/api/inbound-signatures/assets/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -4766,6 +4805,9 @@ export interface RootRouteChildren {
   ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   ApiDispatcherShipperEmailSendRoute: typeof ApiDispatcherShipperEmailSendRoute
   ApiDispatcherTripsCreateRoute: typeof ApiDispatcherTripsCreateRoute
+  ApiInboundSignaturesIdManualUploadRoute: typeof ApiInboundSignaturesIdManualUploadRoute
+  ApiInboundSignaturesIdSignConfirmRoute: typeof ApiInboundSignaturesIdSignConfirmRoute
+  ApiInboundSignaturesIdSignPreviewRoute: typeof ApiInboundSignaturesIdSignPreviewRoute
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
@@ -6792,6 +6834,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInboundSignaturesAssetsIdRouteImport
       parentRoute: typeof ApiInboundSignaturesAssetsRoute
     }
+    '/api/inbound-signatures/$id/sign-preview': {
+      id: '/api/inbound-signatures/$id/sign-preview'
+      path: '/api/inbound-signatures/$id/sign-preview'
+      fullPath: '/api/inbound-signatures/$id/sign-preview'
+      preLoaderRoute: typeof ApiInboundSignaturesIdSignPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/inbound-signatures/$id/sign-confirm': {
+      id: '/api/inbound-signatures/$id/sign-confirm'
+      path: '/api/inbound-signatures/$id/sign-confirm'
+      fullPath: '/api/inbound-signatures/$id/sign-confirm'
+      preLoaderRoute: typeof ApiInboundSignaturesIdSignConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/inbound-signatures/$id/manual-upload': {
+      id: '/api/inbound-signatures/$id/manual-upload'
+      path: '/api/inbound-signatures/$id/manual-upload'
+      fullPath: '/api/inbound-signatures/$id/manual-upload'
+      preLoaderRoute: typeof ApiInboundSignaturesIdManualUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/driver/trips/$tripId': {
       id: '/api/driver/trips/$tripId'
       path: '/$tripId'
@@ -8684,6 +8747,12 @@ const rootRouteChildren: RootRouteChildren = {
     ApiDispatcherPartnerCardSendsRouteWithChildren,
   ApiDispatcherShipperEmailSendRoute: ApiDispatcherShipperEmailSendRoute,
   ApiDispatcherTripsCreateRoute: ApiDispatcherTripsCreateRoute,
+  ApiInboundSignaturesIdManualUploadRoute:
+    ApiInboundSignaturesIdManualUploadRoute,
+  ApiInboundSignaturesIdSignConfirmRoute:
+    ApiInboundSignaturesIdSignConfirmRoute,
+  ApiInboundSignaturesIdSignPreviewRoute:
+    ApiInboundSignaturesIdSignPreviewRoute,
   ApiPublicCarrierActivateTokenRoute: ApiPublicCarrierActivateTokenRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:
@@ -8696,13 +8765,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
