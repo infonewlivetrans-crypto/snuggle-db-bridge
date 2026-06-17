@@ -1,103 +1,204 @@
-# Этап: Входящие подписанные заявки → разбор → задание водителю
 
-Объём огромный (миграции, IMAP-сбор, парсеры PDF/DOC/DOCX, OCR-заглушка, UI для перевозчика и диспетчера, привязка к рейсу, создание trip). Делю на проверяемые подэтапы, чтобы не сломать существующий кабинет перевозчика, диспетчера и водителя.
+# Подпись и печать перевозчика на входящих документах
 
-## 1. БД и storage
+Точечный этап поверх существующих «Входящих документов». Старые модули (склад, QR, ATI, AI-поиск, касса, nginx/PM2/DNS) не трогаю. Только user-client + RLS, без service_role / auth.admin.
 
-Миграция (идемпотентная):
-- `dispatcher_inbound_documents` со всеми полями из ТЗ (`carrier_ext_id`, ссылки на deal/freight/trip, email_*, attachment_*, storage_*, `processing_status`, `document_kind`, `extracted_text`, `parsed_payload jsonb`, `parse_confidence`, `parse_warnings text[]`, `error_message`, timestamps).
-- Уникальный индекс `(carrier_ext_id, email_message_id, attachment_hash)` для идемпотентности.
-- `dispatcher_carrier_email_accounts`: добавить `imap_host/port/secure/user/encrypted_password`, `last_inbox_check_at`, `last_inbox_uid` (расширение существующей SMTP-таблицы).
-- `dispatcher_carrier_email_messages_seen`: лог обработанных `email_message_id` per carrier (для скорости проверки дублей до скачивания вложений).
-- RLS: admin/dispatcher — всё; carrier — свои по `dispatcher_carrier_users`; driver — только документы своего назначенного `dispatcher_trip_id`.
-- GRANTs на `authenticated` и `service_role`.
-- Storage bucket `inbound-documents` (private), RLS policies на `storage.objects`.
+## 1. Миграции (одной supabase--migration)
 
-## 2. Парсер документов `src/server/inbound/parser.server.ts`
+### Таблица `carrier_signature_assets`
+- `carrier_ext_id uuid not null` (FK на `dispatcher_carrier_ext.id`)
+- `uploaded_by uuid` (auth user)
+- `source_file_path text` — исходный лист
+- `stamp_file_path text` — PNG печати с прозрачным фоном
+- `signature_file_path text` — PNG подписи с прозрачным фоном
+- `stamp_bbox jsonb`, `signature_bbox jsonb` — координаты кадра на исходнике
+- `bg_removal jsonb` — `{threshold, contrast}` для повторной обработки
+- `is_active boolean default true`
+- `consent_confirmed_at timestamptz`
+- `created_at`, `updated_at`
+- GRANT для `authenticated` + `service_role`; RLS:
+  - carrier (через `dispatcher_carrier_users` / `carrier_account_links`) видит/правит только свои;
+  - admin/dispatcher — все.
 
-- Универсальный конвейер: `parse(file, mime) → { text, warnings }` → `extractFields(text) → ParsedPayload`.
-- Извлечение текста:
-  - PDF: `pdf-parse` (pure JS, Worker-safe).
-  - DOCX: `mammoth` (extractRawText).
-  - DOC: попытка через `mammoth`; если падает — `needs_review`.
-  - JPG/PNG/HEIC: без OCR в MVP → `needs_review` со статусом «похоже на скан».
-  - TXT/EML body: напрямую.
-- `extractFields` — эвристики по русским синонимам (списки из ТЗ), regex-парсеры:
-  - даты (DD.MM.YYYY, «20 июня 2026»), время (HH:MM, диапазоны).
-  - ИНН (10/12 цифр), телефоны (+7…), email, госномер RU.
-  - вес (т/кг), объём (м3), ставка (с НДС/без НДС/НДС не облагается, наличные/безнал/предоплата/отсрочка N банковских дней).
-  - блоки «Погрузка/Выгрузка»: ищем секции, внутри — адрес/дата/контакт.
-  - заказчик/перевозчик по разделам и контексту вокруг ИНН.
-- Возврат строго по схеме из ТЗ, `null` если не найдено, `warnings[]` со списком пропущенных полей и `confidence` (доля найденных ключевых полей).
-- Match-логика: сопоставление с `dispatcher_deals/freights/dispatcher_carrier_requests` по email отправителя, ставке, маршруту, датам, госномеру → `matched_*_id` + `match_confidence` + `match_reasons[]`.
+### Таблица `dispatcher_document_signatures`
+- `inbound_document_id uuid` (FK `dispatcher_inbound_documents`)
+- `trip_id uuid null` (FK `dispatcher_trips`)
+- `carrier_ext_id uuid not null`
+- `source_document_path text not null`
+- `signed_document_path text` — авто-подписанный PDF
+- `manual_signed_document_path text` — ручной скан
+- `signature_asset_id uuid` (FK `carrier_signature_assets`)
+- `status text default 'draft'` — `draft|preview|signed|manual_uploaded|failed|cancelled`
+- `placement jsonb` — `{page, stamp:{x,y,w}, signature:{x,y,w}}`
+- `signed_by uuid`, `signed_at timestamptz`
+- `created_at`, `updated_at`
+- RLS: carrier — свои (по `carrier_ext_id`), admin/dispatcher — все, driver — только если `trip_id` назначен ему.
 
-## 3. IMAP-сбор `src/server/inbound/imap.server.ts`
+### Storage
+- Использую существующий приватный bucket `inbound-documents`, новый префикс `signatures/{carrier_ext_id}/...` и `signed/{carrier_ext_id}/{inbound_id}/...`.
+- Политики на `storage.objects` — по аналогии с уже существующими для `inbound-documents`.
 
-- `nodemailer` уже стоит; добавить `imapflow` + `mailparser` (оба Worker-совместимы через nodejs_compat).
-- `syncInbox(carrierExtId)`: подключается к IMAP перевозчика, читает последние 50 писем / 30 дней с вложениями PDF/DOC/DOCX/JPG/PNG, фильтрует по теме/телу (заявка/договор-заявк/рейс/маршрут/перевозк), для каждого вложения:
-  - sha256 hash → upsert в `dispatcher_inbound_documents` (skip при дубле).
-  - upload в `inbound-documents/{carrier_ext_id}/{yyyy}/{mm}/{hash}-{filename}`.
-  - status=`saved`.
-- После сохранения — фоновый вызов `parseInboundDocument(id)`: переводит в `parsing`→`parsed`/`needs_review`/`failed`.
-- Все секреты IMAP — зашифрованы тем же `EMAIL_ENCRYPTION_KEY`.
+## 2. Серверная обработка изображений (sharp недоступен в Worker)
 
-## 4. API (server functions + server routes)
+Worker-совместимый стек: `@jsquash/png` + чистый JS пиксельный проход.
+- Декодируем JPG/PNG/HEIC → RGBA (HEIC принимаем как PNG если браузер уже отдал, иначе сообщаем «не получилось»).
+- Кадрируем по `bbox`.
+- Удаляем белый/светло-серый фон: для каждого пикселя `luma = 0.299R+0.587G+0.114B`; если `luma > threshold` (по умолчанию 235) → `alpha=0`; в переходной зоне (210..235) → плавный alpha.
+- Опционально усиливаем контраст оставшихся пикселей (поднимаем насыщенность синего/фиолетового для печати).
+- Кодируем PNG с альфой.
+- Параметры `{threshold, contrast}` сохраняются в `bg_removal`, чтобы можно было пересчитать с UI.
 
-Защищённые (требуют `requireSupabaseAuth`):
-- `POST /api/carrier/inbound-documents/sync` — кнопка «Проверить почту» (carrier видит только свой carrier_ext_id).
-- `GET  /api/carrier/inbound-documents` — список своих.
-- `GET  /api/dispatcher/inbound-documents` + `/:id` — для admin/dispatcher.
-- `POST /api/dispatcher/inbound-documents/:id/parse` — перезапуск разбора.
-- `PATCH /api/dispatcher/inbound-documents/:id` — правки `parsed_payload`, статус, link к deal/trip.
-- `POST /api/dispatcher/inbound-documents/:id/link` — ручная привязка.
-- `POST /api/dispatcher/inbound-documents/:id/create-trip` — создаёт `dispatcher_trips` + `dispatcher_trip_points` + копирует вложения в `dispatcher_trip_documents` (idempotent через `client_request_id`).
-- `POST /api/dispatcher/inbound-documents/:id/ignore`.
+Файлы:
+- `src/server/signatures/image.server.ts` — `cropAndRemoveBackground(buffer, bbox, opts)`
+- `src/server/signatures/storage.server.ts` — загрузка/чтение из bucket через user-client.
+
+## 3. Серверная вставка в PDF
+
+`pdf-lib` (pure JS, Worker-safe, уже разрешён в проекте).
+
+Файл: `src/server/signatures/pdf-sign.server.ts`
+- `loadPdf(buffer)`, `embedPng(stamp)`, `embedPng(signature)`.
+- `findCarrierAnchor(parsedText, carrierName, carrierInn)` — ищет на каждой странице (через уже существующий `parser.server.ts` извлекатель текста с координатами; если координат нет — возвращает только номер страницы):
+  - якоря: «Перевозчик», «Исполнитель-перевозчик», «Исполнитель перевозчик», название компании, ИНН перевозчика, «М.П.», «подпись»;
+  - **критично**: «М.П.» сама по себе не используется, только в сочетании с якорем перевозчика; если на странице есть и «Заказчик», и «Перевозчик» — выбираем нижне-правый блок, ближайший к якорю «Перевозчик».
+- `placeSignature(pdf, placement)` — вставляет PNG'и (только альфа-канал, без белого прямоугольника) по координатам PDF user space.
+- Если уверенности нет → возвращаем `needs_manual_placement: true` с дефолтом (последняя страница, правый нижний угол).
+
+## 4. API (общие endpoints + проверка ролей)
+
+Все — `createServerFn`/server routes с `requireSupabaseAuth`. Carrier vs dispatcher решаем внутри по `has_role` и принадлежности `carrier_ext_id`.
+
+### Signature assets
+- `GET /api/carrier/signature-assets` — список своих (для carrier) или по `carrier_ext_id` query (для admin/dispatcher).
+- `POST /api/carrier/signature-assets` — `multipart`: `source_file`, `consent=true`. Возвращает запись + signed URL исходника.
+- `POST /api/carrier/signature-assets/:id/process` — `{stamp_bbox, signature_bbox, bg_removal}` → пересчитывает PNG'и, обновляет пути и bbox. Возвращает signed URL'ы предпросмотра.
+- `PATCH /api/carrier/signature-assets/:id` — `{is_active}`.
+- `DELETE /api/carrier/signature-assets/:id`.
+
+### Подписание входящего документа
+- `POST /api/dispatcher/inbound-documents/:id/sign-preview` — выбирает активный `signature_asset`, ищет якорь, возвращает `{placement, needs_manual_placement, preview_url}` (preview = PDF, сгенерированный с текущим placement; сохраняем под `signed_document_path` в статусе `preview`).
+- `POST /api/dispatcher/inbound-documents/:id/sign-confirm` — `{placement}` → финальный PDF, статус `signed`, привязка к `dispatcher_trip_documents`, если `trip_id` уже есть.
+- `POST /api/dispatcher/inbound-documents/:id/manual-signed-upload` — `multipart` (PDF/JPG/PNG/HEIC) → `manual_uploaded`, привязка к рейсу.
+- Те же три под `/api/carrier/inbound-documents/:id/...` (тонкие обёртки, делегируют общему хэндлеру, проверяя что документ принадлежит carrier'у пользователя).
+
+### Trip linkage
+При `sign-confirm` / `manual-signed-upload`, если у `dispatcher_inbound_documents.trip_id` уже есть значение — вставляем строку в `dispatcher_trip_documents` (`kind='signed_contract'`).
+При `create-trip` (существующий endpoint) — после создания рейса проверяем `dispatcher_document_signatures` со статусом `signed|manual_uploaded` и автоматически прикрепляем.
 
 ## 5. UI
 
-Перевозчик (`/carrier`):
-- Блок `CarrierInboundDocsBlock`: кнопка «Проверить почту», список последних входящих, статус, ссылка «Открыть».
+### `/carrier/signature-settings.tsx` (новая страница)
+- Инструкция «как сфотографировать лист».
+- Загрузка файла (drag&drop + camera input на мобиле).
+- После загрузки: канвас с исходным фото.
+- Два режима выделения: «Выделить печать», «Выделить подпись» — прямоугольное выделение мышью/тачем (используем существующие `@radix-ui` примитивы + кастомный canvas, без новых тяжёлых зависимостей).
+- Слайдеры `Порог фона (210–245)`, `Контраст`.
+- Кнопка «Обработать» → отправляет на `/process`.
+- Два предпросмотра PNG поверх условного «бумажного» белого фона документа.
+- Чекбокс «Подтверждаю, что имею право использовать эту печать и подпись» → активирует кнопку «Сохранить».
+- Список ранее загруженных, переключение активного.
 
-Диспетчер:
-- Новый роут `/dispatcher.inbound-documents.tsx`: список входящих, фильтры по статусу/перевозчику, бейджи «нужна ручная проверка», «привязано», «черновик готов».
-- Роут `/dispatcher.inbound-documents.$id.tsx` — экран «Проверка входящей заявки»:
-  - Слева: вложения (виьюер PDF/изображения через storage signed URL), исходный текст.
-  - Справа: форма с распознанными полями (точки загрузки/выгрузки, груз, оплата, контакты, машина/водитель), warnings, селекторы существующих сделки/перевозчика/машины/водителя.
-  - Кнопки: «Сохранить черновик», «Привязать к сделке», «Создать задание водителю», «Игнорировать», «Разобрать заново».
-- Вкладка в карточке сделки/рейса «Документы от грузовладельца» — список связанных inbound docs.
+В `/carrier` (dashboard) — карточка-статус: «Печать и подпись: загружены/не загружены», ссылка на страницу.
 
-## 6. Создание рейса
+### `/dispatcher/inbound-documents/:id` (расширяем существующую)
+Новый блок «Подписание документа перевозчиком». Состояния, как в ТЗ:
+1. Нет активной печати → CTA «Попросить перевозчика загрузить» (просто инструкция/копия ссылки) + «Загрузить вручную подписанный».
+2. Печать есть → «Подготовить подпись» (вызывает `sign-preview`) и «Загрузить уже подписанный».
+3. После preview → компонент `SignaturePlacementEditor`:
+   - iframe/`<object>` с preview PDF.
+   - Поверх — overlay-канвас с двумя draggable/resizable элементами (печать, подпись).
+   - На мобиле: переключатель «Жесты / Поля» — поля X/Y/размер и кнопки ←→↑↓/+/−, шаг 5pt.
+   - Селектор страницы.
+   - Кнопки «Сохранить подписанный документ» (→ `sign-confirm`), «Отменить».
+4. После `signed` → «Открыть подписанный PDF» (signed URL), кто/когда.
 
-`createTripFromInbound(inboundId, payload)`:
-- собирает `dispatcher_trips` (carrier_ext_id, vehicle_ext_id, driver_ext_id, статус `assigned`, груз/оплата/notes/special).
-- генерирует упорядоченные `dispatcher_trip_points` (loading → unloading), копирует контакты/время/способ.
-- копирует все привязанные вложения в `dispatcher_trip_documents` (storage move/copy).
-- ставит `dispatcher_inbound_documents.processing_status='linked'`, проставляет `dispatcher_trip_id`.
-- Водитель видит рейс в существующем `/driver` без изменений водительского кабинета.
+### `/carrier/inbound-documents/:id` (страница уже есть как часть `CarrierInboundDocsBlock` — расширяем)
+Упрощённая версия того же flow: «Открыть», «Подписать», «Загрузить скан», «Подтвердить».
 
-## 7. UX-сообщения, idempotency, безопасность
+### `/driver/trip/$tripId.tsx`
+Уже умеет показывать `dispatcher_trip_documents`. Просто убеждаемся, что подписанный документ виден как «Договор-заявка (подписан)», только просмотр/скачивание (signed URL).
 
-- Пользовательские сообщения как в ТЗ (без техники).
-- Лог сервера с requestId/carrier/email_message_id/hash/parse warnings.
-- Все запросы — только через `requireSupabaseAuth` + проверка роли/принадлежности carrier; никаких `supabaseAdmin` за пределами проверенных handler-ов.
-- Идемпотентность создания рейса: уникальный `client_request_id` в trips или проверка по `inbound_document_id`.
+### Создание рейса
+В существующем диалоге `create-trip` (на `/dispatcher/inbound-documents/:id`) добавляем баннер «Документ ещё не подписан перевозчиком. Можно создать задание, документ будет в статусе ожидает подписания». Кнопка остаётся активной — оба варианта разрешены.
 
-## 8. Технические детали
+## 6. Сообщения и аудит
 
-- Зависимости: `bun add imapflow mailparser pdf-parse mammoth` (все Worker-совместимы под `nodejs_compat`).
-- `inputValidator` с zod для всех server fn.
-- Никаких изменений в `auth-middleware.ts`, `client.ts`, `client.server.ts`, `types.ts` руками (типы перегенерятся миграцией).
-- Не трогаем nginx/PM2/DNS/складские маршруты/QR/кассу/orders.
+- Все user-facing сообщения — как в ТЗ, через `toast`.
+- Серверные логи: `requestId, inbound_document_id, carrier_ext_id, signature_asset_id, page, placement, error`.
+- В `dispatcher_document_signatures.updated_at` отражаем последнее действие; история по статусам = достаточная аудит-цепочка для MVP.
 
-## Что НЕ войдёт в MVP (по ТЗ)
+## 7. Зависимости
+- `pdf-lib` — добавляю, если не стоит (Worker-safe).
+- `@jsquash/png` — добавляю для PNG encode/decode с alpha (Worker-safe, без native).
+- HEIC: если браузер отдал готовый PNG/JPG — обрабатываем; чистый HEIC буфер на сервере не декодируем (нет Worker-safe библиотеки), показываем понятную ошибку.
 
-OCR-сервис, акты/счета, ЭДО, подпись, оплата, ATI, AI-поиск грузов, редизайн. Сканы → `needs_review` с понятным сообщением.
+## 8. Проверки
+- `tsc --noEmit` после правок.
+- `npm run build` (через harness).
+- Ручной smoke в preview: загрузка листа → выделение → удаление фона → подпись pdf → drag в редакторе → сохранение → видно в trip documents.
 
-## Проверка
+## 9. Out of scope
+ЭДО, КЭП/УКЭП, OCR сканов, авто-определение печати CV-моделью, batch-подписание, изменения в /carrier/register, /driver/* кроме просмотра документа, новые роли, изменения старой логистики/склада/QR/кассы/ATI/AI-поиска, nginx/PM2/DNS/storage proxy.
 
-- `tsc --noEmit` и `npm run build` после каждого шага.
-- Ручная проверка на radius-track.ru после деплоя (не считается готовым на preview).
+## 10. Готовность
+Только после переноса на VPS и ручной проверки на radius-track.ru.
 
-## Подтверждение
+---
 
-Объём ≈ 15–20 файлов + 1 миграция + 4 новых npm-пакета. Делать в одну итерацию или разбить на 2 PR (1: БД+парсер+IMAP+carrier-кнопка; 2: dispatcher UI + create-trip)?
+## Технические детали (для разработчика)
+
+### Структура файлов
+```
+src/server/signatures/
+  image.server.ts        // crop + bg removal (jsquash)
+  pdf-sign.server.ts     // pdf-lib: embed + place
+  storage.server.ts      // signed URLs, uploads через user-client
+src/lib/signatures/
+  schemas.ts             // zod: BBox, Placement, BgRemoval
+  api.ts                 // тонкие клиенты для fetch
+src/routes/api/carrier/signature-assets.ts
+src/routes/api/carrier/signature-assets.$id.ts
+src/routes/api/carrier/signature-assets.$id.process.ts
+src/routes/api/dispatcher/inbound-documents.$id.sign-preview.ts
+src/routes/api/dispatcher/inbound-documents.$id.sign-confirm.ts
+src/routes/api/dispatcher/inbound-documents.$id.manual-signed-upload.ts
+src/routes/api/carrier/inbound-documents.$id.sign-preview.ts
+src/routes/api/carrier/inbound-documents.$id.sign-confirm.ts
+src/routes/api/carrier/inbound-documents.$id.manual-signed-upload.ts
+src/routes/carrier.signature-settings.tsx
+src/components/signatures/SignatureAssetEditor.tsx   // canvas crop + bg sliders
+src/components/signatures/SignaturePlacementEditor.tsx // pdf overlay + drag/inputs
+src/components/dispatcher/InboundSignatureBlock.tsx
+src/components/carrier/CarrierSignatureStatusCard.tsx
+```
+
+### Схема placement
+```ts
+type Placement = {
+  page: number;          // 1-based
+  stamp:     { x: number; y: number; w: number }; // PDF pt, h = w * aspect
+  signature: { x: number; y: number; w: number };
+};
+```
+
+### Поиск якоря перевозчика (псевдокод)
+```
+for page in pages:
+  text = extractText(page)
+  hasCarrier  = matches(text, ["Перевозчик","Исполнитель-перевозчик", carrierName, carrierInn])
+  hasCustomer = matches(text, ["Заказчик","Грузовладелец"])
+  if hasCarrier:
+    side = (hasCustomer ? "bottom-right" : "bottom")
+    return { page, anchor: side, confidence: hasCarrier.score }
+return { page: lastPage, anchor: "bottom-right", needsManual: true }
+```
+
+### Удаление фона (псевдокод)
+```
+for each px (r,g,b):
+  l = 0.299r+0.587g+0.114b
+  if l >= hi(245):      a = 0
+  elif l >= lo(210):    a = round(255 * (hi - l)/(hi - lo))
+  else:                 a = 255; (r,g,b) = boostContrast(r,g,b, k)
+```
+
