@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { freeVehiclesApi, vehiclesApi, type FreeVehicleRow } from "@/lib/dispatcher/api";
 import { AddFoundFreightDialog } from "./AddFoundFreightDialog";
+import { BuildTripOfferDialog } from "./BuildTripOfferDialog";
 import { TimelineBlock } from "./TimelineBlock";
 import { VehicleFreightsBlock } from "./VehicleFreightsBlock";
 import { VehicleMapPanel } from "./VehicleMapPanel";
@@ -328,6 +329,7 @@ function VehicleDetailsDialog({
   releasing: boolean;
 }) {
   const [freightDialogOpen, setFreightDialogOpen] = useState(false);
+  const [tripOfferOpen, setTripOfferOpen] = useState(false);
   if (!row) return null;
   const v = row;
   const byMe = v.taken_by_self && v.dispatcher_work_status === "in_work";
@@ -464,6 +466,14 @@ function VehicleDetailsDialog({
 
         <DialogFooter className="flex-wrap gap-2">
 
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setTripOfferOpen(true)}
+          >
+            Собрать предложение рейса
+          </Button>
+
           {v.driver?.phone ? (
             <Button asChild variant="outline" size="sm">
               <a href={`tel:${v.driver.phone}`}>Позвонить водителю</a>
@@ -477,7 +487,7 @@ function VehicleDetailsDialog({
           {byMe ? (
             <>
               <Button
-                variant="default"
+                variant="secondary"
                 size="sm"
                 onClick={() => setFreightDialogOpen(true)}
                 disabled={!v.carrier?.id}
@@ -494,14 +504,9 @@ function VehicleDetailsDialog({
               В работе у другого
             </Button>
           ) : (
-            <>
-              <Button size="sm" variant="outline" disabled title="Сначала возьмите машину в работу">
-                Добавить найденный груз
-              </Button>
-              <Button size="sm" onClick={() => onTake(v.id)} disabled={taking}>
-                Взять в работу
-              </Button>
-            </>
+            <Button size="sm" onClick={() => onTake(v.id)} disabled={taking}>
+              Взять в работу
+            </Button>
           )}
         </DialogFooter>
         </div>
@@ -510,6 +515,11 @@ function VehicleDetailsDialog({
         vehicle={v}
         open={freightDialogOpen}
         onOpenChange={setFreightDialogOpen}
+      />
+      <BuildTripOfferDialog
+        vehicle={v}
+        open={tripOfferOpen}
+        onOpenChange={setTripOfferOpen}
       />
     </Dialog>
   );
