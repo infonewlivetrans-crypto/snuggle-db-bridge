@@ -1,55 +1,120 @@
-# MVP: перевозчик → водитель → предложение груза (без ATI)
 
-Объём слишком велик для одного безопасного прохода. Чтобы не сломать уже работающие части (кабинет, документы, RLS, AI-диспетчер), предлагаю выполнить как один **связанный** проход, разбитый на 4 коммита внутри одного прохода. Я ничего не пропускаю, но иду в порядке зависимостей.
+## Объединённый MVP-этап AI-диспетчера
 
-## Что уже есть и не трогаю
-- `/carrier/register`, `/carrier`, `/carrier/vehicles`, `/carrier/drivers` (формы и API)
-- RLS на `dispatcher_carrier_ext`, `dispatcher_vehicle_ext`, `dispatcher_driver_ext`, `dispatcher_documents` + storage
-- `CarrierDocumentsBlock`, `CarrierVehicleFormDialog`, `CarrierDriverFormDialog`
-- carrier_my_ext_id() RPC
+Работаем поверх существующих компонентов: `BuildOfferDialog`, `VehicleMapPanel`, `FreeVehiclesBlock`, `VehicleForm`, `CarrierVehicleForm`, `DriverForm`. Никаких новых разделов, никаких параллельных сущностей. Без `service_role`, без `auth.admin`, без ATI/AI/почты/звонков.
 
-## Коммит 1 — фиксы регистрации и транспорта (срочное)
-1. **401 на `/carrier/register`** — в `routes/carrier.register.tsx` и `__root`/layout убрать вызовы `/api/carrier/*` для гостей. На публичной странице рендерить только форму, не монтировать `<CarrierShell/>` и его loader.
-2. **500 `cannot extract elements from a scalar`** в `PATCH /api/carrier/vehicles/:id`:
-   - нормализация массивных полей на фронте (`CarrierVehicleFormDialog`): `load_methods`, `ready_to_cities`, `ready_weekdays`, `directions`, `body_type` → если строка → split, если null → [], если массив → as-is
-   - в server endpoint и RPC: перед `jsonb_array_elements_text` проверять `jsonb_typeof(x) = 'array'`; иначе 400 `validation_failed`
+---
 
-## Коммит 2 — карточка перевозчика, документы, GPS/город
-1. **Мои данные**: расширить форму `/carrier` всеми полями (тип, ИНН/КПП/ОГРН, юр./факт. адрес, контакты, мессенджеры, ATI ID, реквизиты, способ оплаты комиссии, комментарий). Поля уже есть в `dispatcher_carrier_ext` — добавить недостающие столбцы миграцией только если отсутствуют. Кнопка "Заполнить по ИНН" — `disabled`.
-2. **Документы компании**: расширить enum типов в `CarrierDocumentsBlock` (карточка, ИНН, ОГРН, паспорт, реквизиты, договор, согласие на комиссию, доверенность, прочий). Хранение: `dispatcher_documents.doc_type` + `comment` + `status`.
-3. **GPS-первый**: в `UpdateMyLocationButton` и `vehicles/:id/location` уже есть browser geolocation + Yandex reverse. Добавить поле `location_source` в `dispatcher_vehicle_ext` (`gps`/`yandex`/`manual`/`admin`) и показывать в карточке машины.
-4. **Документы транспорта**: `CarrierDocumentsBlock ownerType="vehicle"` уже есть — добавить в страницу `/carrier/vehicles` раскрытие машины с её документами (СТС, ПТС, ОСАГО, ДК, договор, фото, прочий).
-5. **Документы водителя**: то же для `ownerType="driver"` на `/carrier/drivers` (паспорт, ВУ, доверенность, медсправка, прочий).
+### Задача 1. Грузоподъёмность в тоннах
 
-## Коммит 3 — модерация комплектности + карта партнёра
-1. Добавить в `dispatcher_carrier_ext`/`_vehicle_ext`/`_driver_ext` поля:
-   - `moderation_status`: `pending` | `docs_missing` | `ready_to_work` | `rejected`
-   - `moderation_comment text`
-   - `ready_to_work boolean` (вычисляемое + апдейтится модератором)
-2. RPC `carrier_check_completeness(_carrier_id, _vehicle_id, _driver_id)` → возвращает чего не хватает; SECURITY DEFINER.
-3. На `/carrier` показывать блок "Что нужно исправить" с комментарием модератора.
-4. В `dispatcher_carriers`/`dispatcher_vehicles`/`dispatcher_drivers` (админская часть) добавить кнопки "Принят" / "Отклонён" с комментарием — на существующих страницах.
-5. **Карта партнёра**: компонент `PartnerCard` на `/carrier` (и preview для диспетчера) — собирает данные из существующих таблиц, без новой сущности. Только просмотр/печать.
+В БД остаётся `payload_kg` (kg) — старые данные не ломаем. Меняем только UI.
 
-## Коммит 4 — кабинет водителя + предложение груза
-1. **Driver invite**: использовать существующий `carrier/driver-invites` API. UI в `/carrier/drivers/:id` — кнопки create / copy / revoke.
-2. **Driver public link**: маршрут `/driver/invite/$token` — телефон + пароль → создаёт `auth.users` + связывает с `dispatcher_driver_ext` (через существующую RPC если есть, иначе новую `accept_driver_invite`).
-3. **`/driver`**: расширить существующий — свои данные, машина, готовность, рейсы, задачи по маршруту. Задачи: enum `trip_stage` (принять / прибыл загрузка / загружен / выехал / прибыл выгрузка / выгружен / фото / завершить). Использовать существующий `trip-stage.server.ts`.
-4. **GPS водителя**: тот же `UpdateMyLocationButton` подход на `/driver`.
-5. **Диспетчер: создать груз вручную** — на `/dispatcher/freights` уже есть форма; убедиться что работает без ATI; добавить кнопку "Предложить перевозчику" → выбор carrier+vehicle+driver с проверкой `ready_to_work` и совместимости (кузов/вес/объём).
-6. **Предложение перевозчику**: новая таблица `dispatcher_freight_offers` (freight_id, carrier_ext_id, vehicle_ext_id, driver_ext_id, status: `pending`/`accepted`/`declined`, rate, commission, comment, created_at, decided_at). RLS: перевозчик видит свои. На `/carrier` блок "Предложения" со списком + кнопки "Взять рейс" / "Отказаться".
-7. **После "Взять рейс"**: создаётся запись в `dispatcher_tasks` ("Позвонить заказчику", assignee=диспетчер, freight_id). Карта партнёра доступна диспетчеру.
+- Новый утиль `src/lib/units.ts`:
+  - `kgToTons(kg)`, `tonsToKg(t)`, `parseTons("1,5"|"1.5"|"3")`, `formatTons(kg)` → `"1,5 т"`, `"20 т"`.
+- В формах (`CarrierVehicleForm`, dispatcher `VehicleForm`) поле подписать «Грузоподъёмность, т», placeholder `1,5`. На submit → `tonsToKg`. При загрузке initial → `kgToTons`.
+- В отображении (`FreeVehiclesBlock` карточки + ряды, `VehicleMapPanel` боковая панель и popup, `dispatcher.vehicles.tsx` колонка, `carrier.vehicles.tsx`) заменить `fmtNum(payload_kg) + " кг"` на `formatTons(payload_kg)`. Свободный вес — тоже в тоннах. Объём — `м³` как было.
+- Колонки free_payload_kg/free_volume_m3 не трогаем в БД.
 
-## Технический контракт
-- Все эндпоинты — user-client + RLS / SECURITY DEFINER. Никакого `service_role`, `makeAdminClient`, `auth.admin`.
-- Все CREATE TABLE с GRANT + RLS + policies в одной миграции.
-- Никаких изменений в nginx/PM2/DNS/storage proxy/AI-карты.
-- `tsc --noEmit` и build обязательны зелёные.
+### Задача 2. Скролл модалок (Dialog/Sheet)
 
-## Что НЕ делаю в этом проходе (по требованию)
-ATI, AI-поиск, DaData, почта, отправка заказчику, акты, счета, банковские дни, оплата, редизайн, отчёты, склад.
+- В `BuildOfferDialog`: обернуть тело в `max-h-[90dvh] flex flex-col`, header `shrink-0`, контент `flex-1 overflow-y-auto overscroll-contain px-* pb-*`, footer-кнопки `shrink-0 sticky bottom-0 bg-background border-t`.
+- В `VehicleMapPanel` боковая `Sheet`/панель машины: тот же шаблон, отдельный `ScrollArea` для контента, нижние кнопки sticky.
+- В `FreeVehiclesBlock` модалка деталей: same.
+- На мобильном (`md:` breakpoint) — `Dialog` на весь экран: `w-screen h-[100dvh] max-w-none rounded-none sm:rounded-lg sm:h-auto sm:max-h-[90vh] sm:w-auto`.
+- Touch: `touch-action: pan-y` на scroll-контейнере.
 
-## Объём
-~25–35 файлов: 4 миграции, 8–10 новых/расширенных API эндпоинтов, 6–8 UI-компонентов, 2 новых маршрута (`/driver/invite/$token` расширение существующего, `/driver` расширение).
+### Задача 3. Карточка машины/водителя на карте
 
-Подтверди план — начну с Коммита 1 (срочные фиксы 401 и 500), дальше пойду по порядку без остановок.
+Расширяем `VehicleMapPanel` детальную панель (правую/Sheet), используя данные из `dispatcher_vehicle_ext` + JOIN на `dispatcher_carrier_ext`, `dispatcher_driver_ext` через существующий `/api/dispatcher/vehicles/:id` (если данных не хватает — расширить SELECT в этом эндпоинте, без новых RPC).
+
+Три блока: **Транспорт / Перевозчик / Водитель**. Для контактов — компонент `ContactLinks` (уже есть). Кнопки:
+- `tel:`, `https://wa.me/<digits>`, `https://t.me/<username>`, `https://max.ru/<id>` (или сырая ссылка, если поле уже URL). Если поле пустое — кнопка не рендерится.
+- Действия: «Собрать предложение рейса» (открывает `BuildOfferDialog` с `vehicleId`), «Открыть машину» → `/dispatcher/vehicles?id=…`, «Открыть перевозчика», «Открыть водителя».
+
+### Задача 4. Упрощённая форма «Собрать предложение рейса»
+
+Переписываем `BuildOfferDialog` под секционную форму (всё в одном компоненте, секции через `<section>`):
+
+1. **Транспорт** (readonly шапка — машина/водитель/перевозчик, тянем по `vehicleId` через существующий `/api/dispatcher/vehicles/:id`).
+2. **Помощник разбора текста** (см. задачу 5) — сверху.
+3. **Груз №1** + кнопка `+ добавить груз` → массив `cargo_items` в state.
+4. **Маршрут груза** + `+ точка загрузки / + точка выгрузки / + ехать через` → массив `route_points`.
+5. **Способы загрузки/выгрузки** — чекбоксы.
+6. **Ставка** — поля + select НДС, торг, оплата, банк. дни, прямой договор.
+7. **Контакты заказчика**.
+8. **Итог** — посчитанные суммы веса/объёма/ставки.
+
+Кнопки: «Сохранить черновик» (POST `/api/dispatcher/freights`), «Отправить перевозчику» — `disabled` с подписью «Будет доступно после следующего этапа», «Отмена».
+
+Валидация мягкая, ошибки: «Не хватает города загрузки», «Не хватает ставки», «Не выбран транспорт». Используем `sonner` toasts.
+
+### Задача 5. Парсер текста груза
+
+`src/lib/dispatcher/freight-parse.ts` уже существует — расширяем его (regex/эвристики, без AI):
+
+- Кузов: `/закр|тент|реф|изотерм|терм|контейнер|изотерм/i` → `body_type`.
+- Вес/объём: `/(\d+[.,]?\d*)\s*\/\s*(\d+[.,]?\d*)/` → `weight_t`, `volume_m3` (первая = тонны, вторая = м³).
+- Упаковка/места: `/палет[ыа]?\s*-?\s*(\d+)\s*шт/i`.
+- Догруз: `/догруз/i`.
+- Города/адреса: split по строкам — первая «крупная» строка после блока веса = город загрузки; следующая — регион; следующая = адрес; «готов <date> <time>».
+- Город выгрузки: ищем после «готов …» следующий блок «Город» + адресная строка.
+- Ставка: `/(\d[\d\s]*)\s*руб/`, `/без НДС|с НДС/i`, `/(\d+[.,]?\d*)\s*руб\/км/`, `/на выгр|после док|предопл|отсрочк/i`, `/без торга|торг/i`, `/прям\.?\s*дог/i`.
+- Контакты: телефоны `/\+?7[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-()]*\d{2}[\s\-()]*\d{2}/g`; ATI код `/Код:?\s*(\d{4,})/`; компания — строка перед «Код:»; ФИО — следующая после телефонов строка из 2 слов с заглавных.
+
+API: чистая функция `parseFreightText(text): Partial<OfferDraft>`. Кнопка «Разобрать текст» в форме вызывает её и `merge` в state (не перетирая уже изменённые поля). Toast: успех / частичный успех.
+
+### Задача 6. Хранение черновика
+
+Миграция (idempotent), добавляем в `dispatcher_freights`:
+- `source_text text`
+- `parsed_payload jsonb`
+- `cargo_items jsonb` (если ещё нет)
+- `route_points jsonb` (если ещё нет)
+- `offer_status text default 'draft'`
+- `assigned_vehicle_id uuid`, `assigned_driver_id uuid`, `assigned_carrier_id uuid`
+
+(Только `ADD COLUMN IF NOT EXISTS`. Никаких FK/constraint-замен.)
+
+API `/api/dispatcher/freights` (POST) расширить: принимает новые поля, сохраняет в jsonb. RLS — без изменений (диспетчер уже имеет write).
+
+### Задача 7. Мобильная адаптация
+
+Применяется через шаблон из задачи 2 + крупные кнопки (`h-11 text-base`), `inputMode="decimal"` для числовых, `type="tel"` для телефонов, `safe-area-inset-bottom` для sticky footer.
+
+### Задача 8. Понятные сообщения
+
+Toasts через `sonner` (уже подключён) — словарь в начале `BuildOfferDialog`. Технические ошибки логируются в console, пользователю — нейтральный текст.
+
+---
+
+### Файлы
+
+**Новые:**
+- `src/lib/units.ts`
+- (расширение) `src/lib/dispatcher/freight-parse.ts`
+
+**Меняем:**
+- `src/components/carrier/CarrierVehicleForm.tsx` — поле в тоннах
+- `src/components/dispatcher/VehicleForm.tsx` — поле в тоннах
+- `src/components/dispatcher/FreeVehiclesBlock.tsx` — отображение тонн
+- `src/components/dispatcher/VehicleMapPanel.tsx` — карточка + popup + контакты + кнопка «Собрать предложение»
+- `src/components/dispatcher/BuildOfferDialog.tsx` — полный рестайл формы + парсер + скролл
+- `src/routes/dispatcher.vehicles.tsx`, `src/routes/carrier.vehicles.tsx` — колонки тонн
+- `src/routes/api/dispatcher/vehicles.$id.ts` — расширить SELECT (carrier, driver контакты)
+- `src/routes/api/dispatcher/freights.ts` — принимать новые поля
+
+**Миграции:**
+- одна idempotent миграция с `ADD COLUMN IF NOT EXISTS` для `dispatcher_freights`.
+
+### Что не трогаем
+
+`/api/carrier/*` рабочие; nginx, PM2, DNS, storage; старые routes/orders; сделки/оплата; полный документооборот; ATI/AI/почта.
+
+### Проверка на production
+
+1. `/carrier/vehicles` — ввод `1,5` → сохраняется → отображается `1,5 т`.
+2. `/dispatcher/vehicles` колонка тонн.
+3. `/dispatcher/map` — клик по машине → панель скроллится на iPhone/Max; видны все блоки и контакты.
+4. Кнопка «Собрать предложение рейса» → диалог открывается, скролл работает, вставка примера ATI → поля заполняются, «Сохранить черновик» создаёт запись в `dispatcher_freights` с `offer_status='draft'`.
+5. На существующих машинах со старыми kg значениями отображение корректное.
+6. `tsc --noEmit` и `npm run build` — без ошибок.
