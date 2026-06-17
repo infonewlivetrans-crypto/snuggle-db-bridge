@@ -37,8 +37,8 @@ export const Route = createFileRoute("/api/inbound-signatures/assets/$id")({
         }
         return jsonResponse({ ok: true });
       },
-      DELETE: async ({ params }) => {
-        const auth = await requireAuth(new Request("https://x")); // not used — auth via cookie inside requireAuth
+      DELETE: async ({ request, params }) => {
+        const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
         const sb = auth.client;
         const del = await sb.from("carrier_signature_assets").delete().eq("id", params.id);
