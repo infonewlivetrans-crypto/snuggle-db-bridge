@@ -1,94 +1,103 @@
-# MVP: Предложения рейсов + отправка грузовладельцу с почты перевозчика
+# Этап: Входящие подписанные заявки → разбор → задание водителю
 
-Большой, но цельный этап. Делю на 4 блока, каждый — атомарная единица.
+Объём огромный (миграции, IMAP-сбор, парсеры PDF/DOC/DOCX, OCR-заглушка, UI для перевозчика и диспетчера, привязка к рейсу, создание trip). Делю на проверяемые подэтапы, чтобы не сломать существующий кабинет перевозчика, диспетчера и водителя.
 
-## Блок 1. SMTP-почта перевозчика
+## 1. БД и storage
 
-**Новые файлы**
-- `supabase/migrations/*_carrier_email.sql` — таблица `dispatcher_carrier_email_accounts`:
-  `id, carrier_ext_id (FK), email, from_name, smtp_host, smtp_port, smtp_secure, smtp_user, smtp_password_encrypted, ati_email, is_verified, is_active, last_test_at, last_error, created_at, updated_at`.
-  GRANT authenticated/service_role. RLS: owner перевозчика SELECT/INSERT/UPDATE (через carrier_ext → auth.uid). **Колонка `smtp_password_encrypted` исключена из SELECT для роли карриера через view**: создаю view `dispatcher_carrier_email_accounts_safe` без пароля, фронт читает из view, пишет в таблицу.
-- `src/lib/email/crypto.server.ts` — AES-256-GCM шифрование с `EMAIL_ENCRYPTION_KEY`. Если ключа нет — throw понятная ошибка.
-- `src/lib/email/smtp.server.ts` — отправка через nodemailer (Worker-совместимая альтернатива: используем `nodemailer` через nodejs_compat; если не запустится — `smtp-client` fallback). На всякий случай возьму `nodemailer` — он работает в workerd с nodejs_compat.
-- `src/lib/server-functions/carrier-email.functions.ts` — `getEmailAccount`, `saveEmailAccount`, `testEmailAccount` (с `requireSupabaseAuth`). Никогда не возвращает пароль.
-- `src/routes/carrier.email-settings.tsx` — форма с полями + кнопка «Проверить почту». Статусы: не подключена / не проверена / проверена / ошибка.
+Миграция (идемпотентная):
+- `dispatcher_inbound_documents` со всеми полями из ТЗ (`carrier_ext_id`, ссылки на deal/freight/trip, email_*, attachment_*, storage_*, `processing_status`, `document_kind`, `extracted_text`, `parsed_payload jsonb`, `parse_confidence`, `parse_warnings text[]`, `error_message`, timestamps).
+- Уникальный индекс `(carrier_ext_id, email_message_id, attachment_hash)` для идемпотентности.
+- `dispatcher_carrier_email_accounts`: добавить `imap_host/port/secure/user/encrypted_password`, `last_inbox_check_at`, `last_inbox_uid` (расширение существующей SMTP-таблицы).
+- `dispatcher_carrier_email_messages_seen`: лог обработанных `email_message_id` per carrier (для скорости проверки дублей до скачивания вложений).
+- RLS: admin/dispatcher — всё; carrier — свои по `dispatcher_carrier_users`; driver — только документы своего назначенного `dispatcher_trip_id`.
+- GRANTs на `authenticated` и `service_role`.
+- Storage bucket `inbound-documents` (private), RLS policies на `storage.objects`.
 
-**Edit**
-- `src/routes/carrier.index.tsx` — баннер «Подключите почту…» если аккаунта нет.
+## 2. Парсер документов `src/server/inbound/parser.server.ts`
 
-**Secret**: попрошу пользователя добавить `EMAIL_ENCRYPTION_KEY` (32 байта hex/base64) через secrets tool.
+- Универсальный конвейер: `parse(file, mime) → { text, warnings }` → `extractFields(text) → ParsedPayload`.
+- Извлечение текста:
+  - PDF: `pdf-parse` (pure JS, Worker-safe).
+  - DOCX: `mammoth` (extractRawText).
+  - DOC: попытка через `mammoth`; если падает — `needs_review`.
+  - JPG/PNG/HEIC: без OCR в MVP → `needs_review` со статусом «похоже на скан».
+  - TXT/EML body: напрямую.
+- `extractFields` — эвристики по русским синонимам (списки из ТЗ), regex-парсеры:
+  - даты (DD.MM.YYYY, «20 июня 2026»), время (HH:MM, диапазоны).
+  - ИНН (10/12 цифр), телефоны (+7…), email, госномер RU.
+  - вес (т/кг), объём (м3), ставка (с НДС/без НДС/НДС не облагается, наличные/безнал/предоплата/отсрочка N банковских дней).
+  - блоки «Погрузка/Выгрузка»: ищем секции, внутри — адрес/дата/контакт.
+  - заказчик/перевозчик по разделам и контексту вокруг ИНН.
+- Возврат строго по схеме из ТЗ, `null` если не найдено, `warnings[]` со списком пропущенных полей и `confidence` (доля найденных ключевых полей).
+- Match-логика: сопоставление с `dispatcher_deals/freights/dispatcher_carrier_requests` по email отправителя, ставке, маршруту, датам, госномеру → `matched_*_id` + `match_confidence` + `match_reasons[]`.
 
-## Блок 2. Предложение рейса (offer)
+## 3. IMAP-сбор `src/server/inbound/imap.server.ts`
 
-**Миграция** — `dispatcher_carrier_offers`:
-`id, freight_id, vehicle_ext_id, carrier_ext_id, driver_ext_id, dispatcher_id, offer_status (enum), source_text, parsed_payload jsonb, shipper_company, shipper_contact_name, shipper_phone, shipper_email, rate_amount numeric, rate_vat_mode, payment_terms, sent_at, viewed_at, responded_at, response_comment, created_at, updated_at`.
-Enum: `draft|sent_to_carrier|viewed_by_carrier|accepted_by_carrier|declined_by_carrier|cancelled|expired`.
-GRANT + RLS: диспетчер видит все (через has_role), перевозчик — только свои (carrier_ext.owner_user_id = auth.uid).
+- `nodemailer` уже стоит; добавить `imapflow` + `mailparser` (оба Worker-совместимы через nodejs_compat).
+- `syncInbox(carrierExtId)`: подключается к IMAP перевозчика, читает последние 50 писем / 30 дней с вложениями PDF/DOC/DOCX/JPG/PNG, фильтрует по теме/телу (заявка/договор-заявк/рейс/маршрут/перевозк), для каждого вложения:
+  - sha256 hash → upsert в `dispatcher_inbound_documents` (skip при дубле).
+  - upload в `inbound-documents/{carrier_ext_id}/{yyyy}/{mm}/{hash}-{filename}`.
+  - status=`saved`.
+- После сохранения — фоновый вызов `parseInboundDocument(id)`: переводит в `parsing`→`parsed`/`needs_review`/`failed`.
+- Все секреты IMAP — зашифрованы тем же `EMAIL_ENCRYPTION_KEY`.
 
-**API (server functions)** в `src/lib/server-functions/carrier-offers.functions.ts`:
-- `createOffer` (dispatcher) — из формы «Собрать предложение рейса».
-- `sendOfferToCarrier` (dispatcher) — статус → sent_to_carrier, sent_at.
-- `listCarrierOffers` (carrier) — для входящих.
-- `markOfferViewed` (carrier).
-- `acceptOffer` (carrier) → accepted_by_carrier + emit notification для диспетчера.
-- `declineOffer` (carrier) с причиной.
+## 4. API (server functions + server routes)
 
-**UI**
-- Edit `src/components/dispatcher/BuildOfferDialog.tsx` — добавить кнопку «Отправить перевозчику» рядом с «Собрать». Использовать существующий парсер `freight-parse.ts` для shipper_*.
-- Новый `src/routes/carrier.requests.tsx` — список входящих предложений + карточка с «Взять рейс / Отказаться».
+Защищённые (требуют `requireSupabaseAuth`):
+- `POST /api/carrier/inbound-documents/sync` — кнопка «Проверить почту» (carrier видит только свой carrier_ext_id).
+- `GET  /api/carrier/inbound-documents` — список своих.
+- `GET  /api/dispatcher/inbound-documents` + `/:id` — для admin/dispatcher.
+- `POST /api/dispatcher/inbound-documents/:id/parse` — перезапуск разбора.
+- `PATCH /api/dispatcher/inbound-documents/:id` — правки `parsed_payload`, статус, link к deal/trip.
+- `POST /api/dispatcher/inbound-documents/:id/link` — ручная привязка.
+- `POST /api/dispatcher/inbound-documents/:id/create-trip` — создаёт `dispatcher_trips` + `dispatcher_trip_points` + копирует вложения в `dispatcher_trip_documents` (idempotent через `client_request_id`).
+- `POST /api/dispatcher/inbound-documents/:id/ignore`.
 
-## Блок 3. Громкие уведомления
+## 5. UI
 
-**Новые**
-- `src/lib/notifications/loud-ring.ts` — singleton: запускает HTMLAudioElement в loop, кнопка «Отключить». Базовый звук — генерируем через WebAudio (короткий beep loop), не нужен бинарь. Учитываем autoplay-policy: при первом клике в кабинете «armed».
-- `src/components/IncomingOfferToast.tsx` — модалка/баннер с loud-ring при появлении новой записи через realtime.
-- `src/hooks/use-incoming-offers.ts` — подписка на supabase realtime по `dispatcher_carrier_offers` фильтр `carrier_ext_id`.
-- Аналогично для диспетчера: `use-offer-responses.ts` — слышит accepted/declined.
+Перевозчик (`/carrier`):
+- Блок `CarrierInboundDocsBlock`: кнопка «Проверить почту», список последних входящих, статус, ссылка «Открыть».
 
-**Edit**
-- `src/routes/carrier.tsx` — монтирует `IncomingOfferToast`.
-- `src/routes/dispatcher.tsx` (или layout) — слушатель ответов перевозчика.
+Диспетчер:
+- Новый роут `/dispatcher.inbound-documents.tsx`: список входящих, фильтры по статусу/перевозчику, бейджи «нужна ручная проверка», «привязано», «черновик готов».
+- Роут `/dispatcher.inbound-documents.$id.tsx` — экран «Проверка входящей заявки»:
+  - Слева: вложения (виьюер PDF/изображения через storage signed URL), исходный текст.
+  - Справа: форма с распознанными полями (точки загрузки/выгрузки, груз, оплата, контакты, машина/водитель), warnings, селекторы существующих сделки/перевозчика/машины/водителя.
+  - Кнопки: «Сохранить черновик», «Привязать к сделке», «Создать задание водителю», «Игнорировать», «Разобрать заново».
+- Вкладка в карточке сделки/рейса «Документы от грузовладельца» — список связанных inbound docs.
 
-## Блок 4. Отправка письма грузовладельцу
+## 6. Создание рейса
 
-**Миграция** — `dispatcher_email_messages`:
-`id, carrier_ext_id, offer_id, freight_id, deal_id, from_email, from_name, to_emails text[], cc_emails text[], subject, body, status (draft|sent|failed), provider text default 'carrier_smtp', error_message, sent_at, created_by uuid, created_at`.
-RLS: диспетчер всё, перевозчик — свои.
+`createTripFromInbound(inboundId, payload)`:
+- собирает `dispatcher_trips` (carrier_ext_id, vehicle_ext_id, driver_ext_id, статус `assigned`, груз/оплата/notes/special).
+- генерирует упорядоченные `dispatcher_trip_points` (loading → unloading), копирует контакты/время/способ.
+- копирует все привязанные вложения в `dispatcher_trip_documents` (storage move/copy).
+- ставит `dispatcher_inbound_documents.processing_status='linked'`, проставляет `dispatcher_trip_id`.
+- Водитель видит рейс в существующем `/driver` без изменений водительского кабинета.
 
-**API** `src/lib/server-functions/shipper-email.functions.ts`:
-- `prepareShipperEmail(offerId)` — собирает шаблон с подстановками.
-- `sendShipperEmail(offerId, { to, cc, subject, body })` — диспетчер; сервер вытаскивает carrier SMTP-аккаунт, отправляет через nodemailer, пишет в `dispatcher_email_messages`. Идемпотентность: уникальный `client_request_id`, чтоб двойной клик не дублировал.
+## 7. UX-сообщения, idempotency, безопасность
 
-**UI**
-- В карточке принятого offer у диспетчера — кнопка «Отправить данные грузовладельцу» → модалка с предзаполненным шаблоном (см. ТЗ).
-- Статус почты перевозчика в карточке: «Почта подключена / не подключена / не проверена».
-- В карточке offer/deal — таб «История»: события из offer полей + строки `dispatcher_email_messages`.
+- Пользовательские сообщения как в ТЗ (без техники).
+- Лог сервера с requestId/carrier/email_message_id/hash/parse warnings.
+- Все запросы — только через `requireSupabaseAuth` + проверка роли/принадлежности carrier; никаких `supabaseAdmin` за пределами проверенных handler-ов.
+- Идемпотентность создания рейса: уникальный `client_request_id` в trips или проверка по `inbound_document_id`.
 
-## Технические замечания
+## 8. Технические детали
 
-- **nodemailer в workerd**: проверю; если падает — переключусь на raw SMTP через `node:net + node:tls` (минимальный клиент, ~150 строк). Не блокатор.
-- **realtime**: уже включён для других таблиц, проверю `supabase/config.toml` и добавлю публикацию для новых таблиц в миграции (`alter publication supabase_realtime add table ...`).
-- **types.ts регенерируется** после миграции.
-- **routeTree.gen.ts** обновится автоматически на dev-сервере, не редактирую вручную.
+- Зависимости: `bun add imapflow mailparser pdf-parse mammoth` (все Worker-совместимы под `nodejs_compat`).
+- `inputValidator` с zod для всех server fn.
+- Никаких изменений в `auth-middleware.ts`, `client.ts`, `client.server.ts`, `types.ts` руками (типы перегенерятся миграцией).
+- Не трогаем nginx/PM2/DNS/складские маршруты/QR/кассу/orders.
 
-## Вне scope
-ATI API, AI-поиск, счета/акты, телефония, WhatsApp/Max автоотправка (только кнопки-deeplinks), массовые рассылки, редизайн.
+## Что НЕ войдёт в MVP (по ТЗ)
 
-## Порядок выполнения
-1. Спросить про `EMAIL_ENCRYPTION_KEY` (secret).
-2. Миграция 1 (email accounts) + миграция 2 (offers + messages + realtime publication) — двумя вызовами migration tool подряд.
-3. После approve миграций: server functions, UI карриера (email settings + requests), UI диспетчера (send offer + send shipper email), realtime toasts со звуком.
-4. Проверка через preview, отчёт.
+OCR-сервис, акты/счета, ЭДО, подпись, оплата, ATI, AI-поиск грузов, редизайн. Сканы → `needs_review` с понятным сообщением.
 
-## Файлы (оценка)
-- Новых: ~14 (2 миграции, 4 server functions, 3 route, 4 component/hook, 1 crypto helper)
-- Edit: ~5 (carrier.index, carrier.tsx, dispatcher layout, BuildOfferDialog, plan.md)
+## Проверка
 
-## Production проверка
-- /carrier/email-settings: ввести SMTP Яндекса/Mail.ru с app-password, нажать «Проверить» — письмо приходит.
-- Диспетчер: собрать offer → отправить → на втором браузере карриер слышит звонок → принимает.
-- Диспетчер слышит «принято» → отправляет письмо грузовладельцу → письмо реально приходит с адреса перевозчика, Reply-To корректный.
-- Двойной клик — один email в журнале.
-- tsc --noEmit и npm run build зелёные.
+- `tsc --noEmit` и `npm run build` после каждого шага.
+- Ручная проверка на radius-track.ru после деплоя (не считается готовым на preview).
 
-Готов начать с запроса `EMAIL_ENCRYPTION_KEY` и первой миграции?
+## Подтверждение
+
+Объём ≈ 15–20 файлов + 1 миграция + 4 новых npm-пакета. Делать в одну итерацию или разбить на 2 PR (1: БД+парсер+IMAP+carrier-кнопка; 2: dispatcher UI + create-trip)?
