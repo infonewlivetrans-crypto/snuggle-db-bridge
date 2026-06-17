@@ -25,6 +25,7 @@ import { VehicleMapPanel } from "./VehicleMapPanel";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
 import { CityCombobox } from "@/components/common/CityCombobox";
+import { formatTons } from "@/lib/units";
 
 const fmtNum = (n: number | null | undefined) =>
   n == null ? "—" : Number(n).toLocaleString("ru-RU");
@@ -256,12 +257,12 @@ function VehicleListCard({
       {v.load_status === "partial" ? (
         <div className="mt-2 rounded border border-amber-300/50 bg-amber-50 px-2 py-1 text-xs text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           Нужен догруз: {v.partial_route_from ?? "?"} → {v.partial_route_to ?? "?"}
-          {v.free_payload_kg != null ? ` · своб. ${fmtNum(v.free_payload_kg)} кг` : ""}
+          {v.free_payload_kg != null ? ` · своб. ${formatTons(v.free_payload_kg)}` : ""}
           {v.free_volume_m3 != null ? ` · ${fmtNum(v.free_volume_m3)} м³` : ""}
         </div>
       ) : null}
       <div className="mt-2 grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-        <div>Г/п: {fmtNum(v.payload_kg)} кг</div>
+        <div>Г/п: {formatTons(v.payload_kg)}</div>
         <div>V: {fmtNum(v.volume_m3)} м³</div>
         <div>Готов: {fmtDate(v.ready_date)}</div>
         <div>₽/км: {fmtNum(v.minimum_km_rate)}</div>
@@ -334,7 +335,8 @@ function VehicleDetailsDialog({
 
   return (
     <Dialog open={!!row} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-screen h-[100dvh] max-w-none rounded-none p-0 sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg flex flex-col gap-0 overflow-hidden">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4" style={{ touchAction: "pan-y" }}>
         <DialogHeader>
           <DialogTitle>
             {v.vehicle_kind ?? "Машина"}
@@ -348,7 +350,7 @@ function VehicleDetailsDialog({
         <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
           <Block title="Транспорт">
             <KV label="Кузов" v={v.body_type ? getVehicleBodyTypeLabel(v.body_type) : null} />
-            <KV label="Тоннаж, кг" v={fmtNum(v.payload_kg)} />
+            <KV label="Тоннаж" v={formatTons(v.payload_kg)} />
             <KV label="Объём, м³" v={fmtNum(v.volume_m3)} />
             <KV label="Габариты" v={`${fmtNum(v.length_m)}×${fmtNum(v.width_m)}×${fmtNum(v.height_m)} м`} />
             <KV label="Загрузка" v={v.load_methods?.join(", ") ?? null} />
@@ -410,7 +412,7 @@ function VehicleDetailsDialog({
                 <>
                   <KV label="Догруз откуда" v={v.partial_route_from} />
                   <KV label="Догруз куда" v={v.partial_route_to} />
-                  <KV label="Свободно, кг" v={fmtNum(v.free_payload_kg)} />
+                  <KV label="Свободно" v={formatTons(v.free_payload_kg)} />
                   <KV label="Свободно, м³" v={fmtNum(v.free_volume_m3)} />
                 </>
               ) : null}
