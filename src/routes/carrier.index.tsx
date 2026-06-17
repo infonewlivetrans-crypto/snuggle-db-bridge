@@ -168,6 +168,7 @@ function CarrierOverviewPage() {
   return (
     <div className="space-y-4">
       <OnboardingChecklist />
+      <CarrierEmailBanner />
       <CarrierIncomingOfferAlert />
       <CarrierInboxSummary />
       <div className="grid gap-4 lg:grid-cols-2">
