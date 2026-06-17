@@ -95,6 +95,7 @@ import { Route as CarriersVerificationRouteImport } from './routes/carriers.veri
 import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrierId'
 import { Route as CarrierVehiclesRouteImport } from './routes/carrier.vehicles'
 import { Route as CarrierTripsRouteImport } from './routes/carrier.trips'
+import { Route as CarrierSignatureSettingsRouteImport } from './routes/carrier.signature-settings'
 import { Route as CarrierRegisterRouteImport } from './routes/carrier.register'
 import { Route as CarrierOnboardingRouteImport } from './routes/carrier.onboarding'
 import { Route as CarrierEmailSettingsRouteImport } from './routes/carrier.email-settings'
@@ -228,6 +229,7 @@ import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
 import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
+import { Route as ApiInboundSignaturesHistoryRouteImport } from './routes/api/inbound-signatures/history'
 import { Route as ApiInboundSignaturesAssetsRouteImport } from './routes/api/inbound-signatures/assets'
 import { Route as ApiInboundShipmentsIdRouteImport } from './routes/api/inbound-shipments.$id'
 import { Route as ApiInboundShipmentItemsIdRouteImport } from './routes/api/inbound-shipment-items.$id'
@@ -297,6 +299,9 @@ import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$i
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
 import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
 import { Route as ApiInboundSignaturesAssetsIdRouteImport } from './routes/api/inbound-signatures/assets.$id'
+import { Route as ApiInboundSignaturesIdSignPreviewRouteImport } from './routes/api/inbound-signatures/$id.sign-preview'
+import { Route as ApiInboundSignaturesIdSignConfirmRouteImport } from './routes/api/inbound-signatures/$id.sign-confirm'
+import { Route as ApiInboundSignaturesIdManualUploadRouteImport } from './routes/api/inbound-signatures/$id.manual-upload'
 import { Route as ApiDriverTripsTripIdRouteImport } from './routes/api/driver/trips.$tripId'
 import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
 import { Route as ApiDispatcherTripsCreateRouteImport } from './routes/api/dispatcher/trips.create'
@@ -810,6 +815,12 @@ const CarrierTripsRoute = CarrierTripsRouteImport.update({
   path: '/trips',
   getParentRoute: () => CarrierRoute,
 } as any)
+const CarrierSignatureSettingsRoute =
+  CarrierSignatureSettingsRouteImport.update({
+    id: '/signature-settings',
+    path: '/signature-settings',
+    getParentRoute: () => CarrierRoute,
+  } as any)
 const CarrierRegisterRoute = CarrierRegisterRouteImport.update({
   id: '/register',
   path: '/register',
@@ -1489,6 +1500,12 @@ const ApiInvitesIdRoute = ApiInvitesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiInvitesRoute,
 } as any)
+const ApiInboundSignaturesHistoryRoute =
+  ApiInboundSignaturesHistoryRouteImport.update({
+    id: '/api/inbound-signatures/history',
+    path: '/api/inbound-signatures/history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInboundSignaturesAssetsRoute =
   ApiInboundSignaturesAssetsRouteImport.update({
     id: '/api/inbound-signatures/assets',
@@ -1856,6 +1873,24 @@ const ApiInboundSignaturesAssetsIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => ApiInboundSignaturesAssetsRoute,
+  } as any)
+const ApiInboundSignaturesIdSignPreviewRoute =
+  ApiInboundSignaturesIdSignPreviewRouteImport.update({
+    id: '/api/inbound-signatures/$id/sign-preview',
+    path: '/api/inbound-signatures/$id/sign-preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInboundSignaturesIdSignConfirmRoute =
+  ApiInboundSignaturesIdSignConfirmRouteImport.update({
+    id: '/api/inbound-signatures/$id/sign-confirm',
+    path: '/api/inbound-signatures/$id/sign-confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInboundSignaturesIdManualUploadRoute =
+  ApiInboundSignaturesIdManualUploadRouteImport.update({
+    id: '/api/inbound-signatures/$id/manual-upload',
+    path: '/api/inbound-signatures/$id/manual-upload',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiDriverTripsTripIdRoute = ApiDriverTripsTripIdRouteImport.update({
   id: '/$tripId',
@@ -2443,6 +2478,7 @@ export interface FileRoutesByFullPath {
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
+  '/carrier/signature-settings': typeof CarrierSignatureSettingsRoute
   '/carrier/trips': typeof CarrierTripsRoute
   '/carrier/vehicles': typeof CarrierVehiclesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -2552,6 +2588,7 @@ export interface FileRoutesByFullPath {
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/inbound-signatures/assets': typeof ApiInboundSignaturesAssetsRouteWithChildren
+  '/api/inbound-signatures/history': typeof ApiInboundSignaturesHistoryRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -2635,6 +2672,9 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
   '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
+  '/api/inbound-signatures/$id/manual-upload': typeof ApiInboundSignaturesIdManualUploadRoute
+  '/api/inbound-signatures/$id/sign-confirm': typeof ApiInboundSignaturesIdSignConfirmRoute
+  '/api/inbound-signatures/$id/sign-preview': typeof ApiInboundSignaturesIdSignPreviewRoute
   '/api/inbound-signatures/assets/$id': typeof ApiInboundSignaturesAssetsIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -2811,6 +2851,7 @@ export interface FileRoutesByTo {
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
+  '/carrier/signature-settings': typeof CarrierSignatureSettingsRoute
   '/carrier/trips': typeof CarrierTripsRoute
   '/carrier/vehicles': typeof CarrierVehiclesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -2920,6 +2961,7 @@ export interface FileRoutesByTo {
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/inbound-signatures/assets': typeof ApiInboundSignaturesAssetsRouteWithChildren
+  '/api/inbound-signatures/history': typeof ApiInboundSignaturesHistoryRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -3003,6 +3045,9 @@ export interface FileRoutesByTo {
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
   '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
+  '/api/inbound-signatures/$id/manual-upload': typeof ApiInboundSignaturesIdManualUploadRoute
+  '/api/inbound-signatures/$id/sign-confirm': typeof ApiInboundSignaturesIdSignConfirmRoute
+  '/api/inbound-signatures/$id/sign-preview': typeof ApiInboundSignaturesIdSignPreviewRoute
   '/api/inbound-signatures/assets/$id': typeof ApiInboundSignaturesAssetsIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -3181,6 +3226,7 @@ export interface FileRoutesById {
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
+  '/carrier/signature-settings': typeof CarrierSignatureSettingsRoute
   '/carrier/trips': typeof CarrierTripsRoute
   '/carrier/vehicles': typeof CarrierVehiclesRoute
   '/carriers/$carrierId': typeof CarriersCarrierIdRoute
@@ -3290,6 +3336,7 @@ export interface FileRoutesById {
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
   '/api/inbound-signatures/assets': typeof ApiInboundSignaturesAssetsRouteWithChildren
+  '/api/inbound-signatures/history': typeof ApiInboundSignaturesHistoryRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -3373,6 +3420,9 @@ export interface FileRoutesById {
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
   '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
+  '/api/inbound-signatures/$id/manual-upload': typeof ApiInboundSignaturesIdManualUploadRoute
+  '/api/inbound-signatures/$id/sign-confirm': typeof ApiInboundSignaturesIdSignConfirmRoute
+  '/api/inbound-signatures/$id/sign-preview': typeof ApiInboundSignaturesIdSignPreviewRoute
   '/api/inbound-signatures/assets/$id': typeof ApiInboundSignaturesAssetsIdRoute
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
@@ -3552,6 +3602,7 @@ export interface FileRouteTypes {
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
+    | '/carrier/signature-settings'
     | '/carrier/trips'
     | '/carrier/vehicles'
     | '/carriers/$carrierId'
@@ -3661,6 +3712,7 @@ export interface FileRouteTypes {
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
     | '/api/inbound-signatures/assets'
+    | '/api/inbound-signatures/history'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -3744,6 +3796,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
     | '/api/driver/trips/$tripId'
+    | '/api/inbound-signatures/$id/manual-upload'
+    | '/api/inbound-signatures/$id/sign-confirm'
+    | '/api/inbound-signatures/$id/sign-preview'
     | '/api/inbound-signatures/assets/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -3920,6 +3975,7 @@ export interface FileRouteTypes {
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
+    | '/carrier/signature-settings'
     | '/carrier/trips'
     | '/carrier/vehicles'
     | '/carriers/$carrierId'
@@ -4029,6 +4085,7 @@ export interface FileRouteTypes {
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
     | '/api/inbound-signatures/assets'
+    | '/api/inbound-signatures/history'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -4112,6 +4169,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
     | '/api/driver/trips/$tripId'
+    | '/api/inbound-signatures/$id/manual-upload'
+    | '/api/inbound-signatures/$id/sign-confirm'
+    | '/api/inbound-signatures/$id/sign-preview'
     | '/api/inbound-signatures/assets/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -4289,6 +4349,7 @@ export interface FileRouteTypes {
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
+    | '/carrier/signature-settings'
     | '/carrier/trips'
     | '/carrier/vehicles'
     | '/carriers/$carrierId'
@@ -4398,6 +4459,7 @@ export interface FileRouteTypes {
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
     | '/api/inbound-signatures/assets'
+    | '/api/inbound-signatures/history'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -4481,6 +4543,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
     | '/api/driver/trips/$tripId'
+    | '/api/inbound-signatures/$id/manual-upload'
+    | '/api/inbound-signatures/$id/sign-confirm'
+    | '/api/inbound-signatures/$id/sign-preview'
     | '/api/inbound-signatures/assets/$id'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
@@ -4747,6 +4812,7 @@ export interface RootRouteChildren {
   ApiDriverTripsRoute: typeof ApiDriverTripsRouteWithChildren
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiInboundSignaturesAssetsRoute: typeof ApiInboundSignaturesAssetsRouteWithChildren
+  ApiInboundSignaturesHistoryRoute: typeof ApiInboundSignaturesHistoryRoute
   ApiPublicCarrierRegisterRoute: typeof ApiPublicCarrierRegisterRoute
   ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
@@ -4766,6 +4832,9 @@ export interface RootRouteChildren {
   ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   ApiDispatcherShipperEmailSendRoute: typeof ApiDispatcherShipperEmailSendRoute
   ApiDispatcherTripsCreateRoute: typeof ApiDispatcherTripsCreateRoute
+  ApiInboundSignaturesIdManualUploadRoute: typeof ApiInboundSignaturesIdManualUploadRoute
+  ApiInboundSignaturesIdSignConfirmRoute: typeof ApiInboundSignaturesIdSignConfirmRoute
+  ApiInboundSignaturesIdSignPreviewRoute: typeof ApiInboundSignaturesIdSignPreviewRoute
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
@@ -5376,6 +5445,13 @@ declare module '@tanstack/react-router' {
       path: '/trips'
       fullPath: '/carrier/trips'
       preLoaderRoute: typeof CarrierTripsRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/signature-settings': {
+      id: '/carrier/signature-settings'
+      path: '/signature-settings'
+      fullPath: '/carrier/signature-settings'
+      preLoaderRoute: typeof CarrierSignatureSettingsRouteImport
       parentRoute: typeof CarrierRoute
     }
     '/carrier/register': {
@@ -6309,6 +6385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiInvitesIdRouteImport
       parentRoute: typeof ApiInvitesRoute
     }
+    '/api/inbound-signatures/history': {
+      id: '/api/inbound-signatures/history'
+      path: '/api/inbound-signatures/history'
+      fullPath: '/api/inbound-signatures/history'
+      preLoaderRoute: typeof ApiInboundSignaturesHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/inbound-signatures/assets': {
       id: '/api/inbound-signatures/assets'
       path: '/api/inbound-signatures/assets'
@@ -6791,6 +6874,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/inbound-signatures/assets/$id'
       preLoaderRoute: typeof ApiInboundSignaturesAssetsIdRouteImport
       parentRoute: typeof ApiInboundSignaturesAssetsRoute
+    }
+    '/api/inbound-signatures/$id/sign-preview': {
+      id: '/api/inbound-signatures/$id/sign-preview'
+      path: '/api/inbound-signatures/$id/sign-preview'
+      fullPath: '/api/inbound-signatures/$id/sign-preview'
+      preLoaderRoute: typeof ApiInboundSignaturesIdSignPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/inbound-signatures/$id/sign-confirm': {
+      id: '/api/inbound-signatures/$id/sign-confirm'
+      path: '/api/inbound-signatures/$id/sign-confirm'
+      fullPath: '/api/inbound-signatures/$id/sign-confirm'
+      preLoaderRoute: typeof ApiInboundSignaturesIdSignConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/inbound-signatures/$id/manual-upload': {
+      id: '/api/inbound-signatures/$id/manual-upload'
+      path: '/api/inbound-signatures/$id/manual-upload'
+      fullPath: '/api/inbound-signatures/$id/manual-upload'
+      preLoaderRoute: typeof ApiInboundSignaturesIdManualUploadRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/driver/trips/$tripId': {
       id: '/api/driver/trips/$tripId'
@@ -7353,6 +7457,7 @@ interface CarrierRouteChildren {
   CarrierEmailSettingsRoute: typeof CarrierEmailSettingsRoute
   CarrierOnboardingRoute: typeof CarrierOnboardingRoute
   CarrierRegisterRoute: typeof CarrierRegisterRoute
+  CarrierSignatureSettingsRoute: typeof CarrierSignatureSettingsRoute
   CarrierTripsRoute: typeof CarrierTripsRoute
   CarrierVehiclesRoute: typeof CarrierVehiclesRoute
   CarrierIndexRoute: typeof CarrierIndexRoute
@@ -7364,6 +7469,7 @@ const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierEmailSettingsRoute: CarrierEmailSettingsRoute,
   CarrierOnboardingRoute: CarrierOnboardingRoute,
   CarrierRegisterRoute: CarrierRegisterRoute,
+  CarrierSignatureSettingsRoute: CarrierSignatureSettingsRoute,
   CarrierTripsRoute: CarrierTripsRoute,
   CarrierVehiclesRoute: CarrierVehiclesRoute,
   CarrierIndexRoute: CarrierIndexRoute,
@@ -8662,6 +8768,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverTripsRoute: ApiDriverTripsRouteWithChildren,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiInboundSignaturesAssetsRoute: ApiInboundSignaturesAssetsRouteWithChildren,
+  ApiInboundSignaturesHistoryRoute: ApiInboundSignaturesHistoryRoute,
   ApiPublicCarrierRegisterRoute: ApiPublicCarrierRegisterRoute,
   ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
@@ -8684,6 +8791,12 @@ const rootRouteChildren: RootRouteChildren = {
     ApiDispatcherPartnerCardSendsRouteWithChildren,
   ApiDispatcherShipperEmailSendRoute: ApiDispatcherShipperEmailSendRoute,
   ApiDispatcherTripsCreateRoute: ApiDispatcherTripsCreateRoute,
+  ApiInboundSignaturesIdManualUploadRoute:
+    ApiInboundSignaturesIdManualUploadRoute,
+  ApiInboundSignaturesIdSignConfirmRoute:
+    ApiInboundSignaturesIdSignConfirmRoute,
+  ApiInboundSignaturesIdSignPreviewRoute:
+    ApiInboundSignaturesIdSignPreviewRoute,
   ApiPublicCarrierActivateTokenRoute: ApiPublicCarrierActivateTokenRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:

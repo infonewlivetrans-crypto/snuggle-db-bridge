@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
+import { InboundSignatureBlock } from "@/components/signatures/InboundSignatureBlock";
 
 export const Route = createFileRoute("/dispatcher/inbound-documents/$id")({
   head: () => ({ meta: [{ title: "Проверка входящей заявки — AI Диспетчер" }] }),
@@ -407,6 +408,12 @@ function InboundDocumentReviewPage() {
             </CardContent>
           </Card>
         </div>
+
+        <InboundSignatureBlock
+          inboundDocumentId={row.id}
+          carrierExtId={row.carrier_ext_id}
+          tripId={row.dispatcher_trip_id}
+        />
       </div>
     </DispatcherShell>
   );

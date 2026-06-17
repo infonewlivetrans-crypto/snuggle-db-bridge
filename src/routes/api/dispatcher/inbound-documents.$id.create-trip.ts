@@ -101,13 +101,35 @@ export const Route = createFileRoute("/api/dispatcher/inbound-documents/$id/crea
           return jsonResponse({ error: pRes.error.message }, { status: 500 });
         }
 
-        // Привязать документ к рейсу как dispatcher_trip_documents
-        if (row.data.storage_path) {
+        // Привязать документ к рейсу как dispatcher_trip_documents.
+        // Если на этот входящий уже есть подписанный (или вручную загруженный) PDF —
+        // прикрепляем именно его, а не исходник.
+        let attachPath: string | null = row.data.storage_path ?? null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sigRow: any = await sb
+          .from("dispatcher_document_signatures")
+          .select("signed_document_path, manual_signed_document_path, status")
+          .eq("inbound_document_id", params.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (sigRow.data) {
+          attachPath =
+            (sigRow.data.signed_document_path as string | null) ??
+            (sigRow.data.manual_signed_document_path as string | null) ??
+            attachPath;
+          // Подтянем trip_id в signatures, чтобы driver видел документ.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (sb.from("dispatcher_document_signatures") as any)
+            .update({ trip_id: tripId })
+            .eq("inbound_document_id", params.id);
+        }
+        if (attachPath) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await (sb.from("dispatcher_trip_documents") as any).insert({
             trip_id: tripId,
             kind: "signed_order",
-            storage_path: row.data.storage_path,
+            storage_path: attachPath,
             uploaded_by: auth.userId,
           });
         }
