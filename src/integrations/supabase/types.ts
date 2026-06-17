@@ -854,6 +854,7 @@ export type Database = {
       }
       dispatcher_carrier_ext: {
         Row: {
+          ati_code: string | null
           ati_email: string | null
           ati_id: string | null
           ati_phone: string | null
@@ -861,6 +862,7 @@ export type Database = {
           bank_bik: string | null
           bank_corr_account: string | null
           bank_name: string | null
+          bik: string | null
           carrier_id: string | null
           carrier_kind: string | null
           city: string | null
@@ -870,24 +872,32 @@ export type Database = {
           commission_agreement_text: string | null
           commission_payment_method: string | null
           commission_rate: number
+          correspondent_account: string | null
           created_at: string
           dispatcher_comment: string | null
           email: string | null
           id: string
           inn: string | null
+          legal_address: string | null
           max_messenger: string | null
           name: string | null
           ogrn: string | null
+          onboarding_completed_at: string | null
+          onboarding_progress: Json | null
+          onboarding_step: string | null
           payment_method: string | null
           phone: string | null
           production_carrier_id: string | null
+          settlement_account: string | null
           tax_regime: string | null
+          taxation_type: string | null
           telegram: string | null
           updated_at: string
           verification_status: string
           whatsapp: string | null
         }
         Insert: {
+          ati_code?: string | null
           ati_email?: string | null
           ati_id?: string | null
           ati_phone?: string | null
@@ -895,6 +905,7 @@ export type Database = {
           bank_bik?: string | null
           bank_corr_account?: string | null
           bank_name?: string | null
+          bik?: string | null
           carrier_id?: string | null
           carrier_kind?: string | null
           city?: string | null
@@ -904,24 +915,32 @@ export type Database = {
           commission_agreement_text?: string | null
           commission_payment_method?: string | null
           commission_rate?: number
+          correspondent_account?: string | null
           created_at?: string
           dispatcher_comment?: string | null
           email?: string | null
           id?: string
           inn?: string | null
+          legal_address?: string | null
           max_messenger?: string | null
           name?: string | null
           ogrn?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_progress?: Json | null
+          onboarding_step?: string | null
           payment_method?: string | null
           phone?: string | null
           production_carrier_id?: string | null
+          settlement_account?: string | null
           tax_regime?: string | null
+          taxation_type?: string | null
           telegram?: string | null
           updated_at?: string
           verification_status?: string
           whatsapp?: string | null
         }
         Update: {
+          ati_code?: string | null
           ati_email?: string | null
           ati_id?: string | null
           ati_phone?: string | null
@@ -929,6 +948,7 @@ export type Database = {
           bank_bik?: string | null
           bank_corr_account?: string | null
           bank_name?: string | null
+          bik?: string | null
           carrier_id?: string | null
           carrier_kind?: string | null
           city?: string | null
@@ -938,18 +958,25 @@ export type Database = {
           commission_agreement_text?: string | null
           commission_payment_method?: string | null
           commission_rate?: number
+          correspondent_account?: string | null
           created_at?: string
           dispatcher_comment?: string | null
           email?: string | null
           id?: string
           inn?: string | null
+          legal_address?: string | null
           max_messenger?: string | null
           name?: string | null
           ogrn?: string | null
+          onboarding_completed_at?: string | null
+          onboarding_progress?: Json | null
+          onboarding_step?: string | null
           payment_method?: string | null
           phone?: string | null
           production_carrier_id?: string | null
+          settlement_account?: string | null
           tax_regime?: string | null
+          taxation_type?: string | null
           telegram?: string | null
           updated_at?: string
           verification_status?: string
@@ -1468,13 +1495,21 @@ export type Database = {
           docs_verified: boolean
           driver_id: string | null
           email: string | null
+          experience_years: number | null
           full_name: string | null
+          has_dopog: boolean | null
+          has_med_book: boolean | null
           id: string
+          license_categories: string[] | null
+          license_number: string | null
           max_messenger: string | null
+          onboarding_completed_at: string | null
+          permissions: string[] | null
           phone: string | null
           production_driver_id: string | null
           telegram: string | null
           updated_at: string
+          user_id: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -1488,13 +1523,21 @@ export type Database = {
           docs_verified?: boolean
           driver_id?: string | null
           email?: string | null
+          experience_years?: number | null
           full_name?: string | null
+          has_dopog?: boolean | null
+          has_med_book?: boolean | null
           id?: string
+          license_categories?: string[] | null
+          license_number?: string | null
           max_messenger?: string | null
+          onboarding_completed_at?: string | null
+          permissions?: string[] | null
           phone?: string | null
           production_driver_id?: string | null
           telegram?: string | null
           updated_at?: string
+          user_id?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -1508,13 +1551,21 @@ export type Database = {
           docs_verified?: boolean
           driver_id?: string | null
           email?: string | null
+          experience_years?: number | null
           full_name?: string | null
+          has_dopog?: boolean | null
+          has_med_book?: boolean | null
           id?: string
+          license_categories?: string[] | null
+          license_number?: string | null
           max_messenger?: string | null
+          onboarding_completed_at?: string | null
+          permissions?: string[] | null
           phone?: string | null
           production_driver_id?: string | null
           telegram?: string | null
           updated_at?: string
+          user_id?: string | null
           whatsapp?: string | null
         }
         Relationships: [
@@ -2054,6 +2105,8 @@ export type Database = {
       }
       dispatcher_vehicle_ext: {
         Row: {
+          assigned_driver_ext_id: string | null
+          body_features: string[] | null
           body_type: string | null
           city_rate: number | null
           created_at: string
@@ -2083,6 +2136,7 @@ export type Database = {
           min_rate: number | null
           minimum_km_rate: number | null
           minimum_trip_rate: number | null
+          onboarding_completed_at: string | null
           partial_route_from: string | null
           partial_route_to: string | null
           payload_kg: number | null
@@ -2104,6 +2158,8 @@ export type Database = {
           width_m: number | null
         }
         Insert: {
+          assigned_driver_ext_id?: string | null
+          body_features?: string[] | null
           body_type?: string | null
           city_rate?: number | null
           created_at?: string
@@ -2133,6 +2189,7 @@ export type Database = {
           min_rate?: number | null
           minimum_km_rate?: number | null
           minimum_trip_rate?: number | null
+          onboarding_completed_at?: string | null
           partial_route_from?: string | null
           partial_route_to?: string | null
           payload_kg?: number | null
@@ -2154,6 +2211,8 @@ export type Database = {
           width_m?: number | null
         }
         Update: {
+          assigned_driver_ext_id?: string | null
+          body_features?: string[] | null
           body_type?: string | null
           city_rate?: number | null
           created_at?: string
@@ -2183,6 +2242,7 @@ export type Database = {
           min_rate?: number | null
           minimum_km_rate?: number | null
           minimum_trip_rate?: number | null
+          onboarding_completed_at?: string | null
           partial_route_from?: string | null
           partial_route_to?: string | null
           payload_kg?: number | null
@@ -6317,6 +6377,8 @@ export type Database = {
       vehicle_readiness_get: {
         Args: { p_vehicle_id: string }
         Returns: {
+          assigned_driver_ext_id: string | null
+          body_features: string[] | null
           body_type: string | null
           city_rate: number | null
           created_at: string
@@ -6346,6 +6408,7 @@ export type Database = {
           min_rate: number | null
           minimum_km_rate: number | null
           minimum_trip_rate: number | null
+          onboarding_completed_at: string | null
           partial_route_from: string | null
           partial_route_to: string | null
           payload_kg: number | null
@@ -6376,6 +6439,8 @@ export type Database = {
       vehicle_readiness_update: {
         Args: { p_patch: Json; p_vehicle_id: string }
         Returns: {
+          assigned_driver_ext_id: string | null
+          body_features: string[] | null
           body_type: string | null
           city_rate: number | null
           created_at: string
@@ -6405,6 +6470,7 @@ export type Database = {
           min_rate: number | null
           minimum_km_rate: number | null
           minimum_trip_rate: number | null
+          onboarding_completed_at: string | null
           partial_route_from: string | null
           partial_route_to: string | null
           payload_kg: number | null
