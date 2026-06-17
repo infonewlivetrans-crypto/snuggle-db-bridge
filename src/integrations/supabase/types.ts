@@ -852,6 +852,71 @@ export type Database = {
           },
         ]
       }
+      dispatcher_carrier_email_accounts: {
+        Row: {
+          ati_email: string | null
+          carrier_ext_id: string
+          created_at: string
+          email: string
+          from_name: string | null
+          id: string
+          is_active: boolean
+          is_verified: boolean
+          last_error: string | null
+          last_test_at: string | null
+          smtp_host: string
+          smtp_password_encrypted: string | null
+          smtp_port: number
+          smtp_secure: boolean
+          smtp_user: string
+          updated_at: string
+        }
+        Insert: {
+          ati_email?: string | null
+          carrier_ext_id: string
+          created_at?: string
+          email: string
+          from_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean
+          last_error?: string | null
+          last_test_at?: string | null
+          smtp_host: string
+          smtp_password_encrypted?: string | null
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_user: string
+          updated_at?: string
+        }
+        Update: {
+          ati_email?: string | null
+          carrier_ext_id?: string
+          created_at?: string
+          email?: string
+          from_name?: string | null
+          id?: string
+          is_active?: boolean
+          is_verified?: boolean
+          last_error?: string | null
+          last_test_at?: string | null
+          smtp_host?: string
+          smtp_password_encrypted?: string | null
+          smtp_port?: number
+          smtp_secure?: boolean
+          smtp_user?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_carrier_email_accounts_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: true
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_carrier_ext: {
         Row: {
           ati_code: string | null
@@ -1574,6 +1639,98 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_email_messages: {
+        Row: {
+          body: string
+          carrier_ext_id: string
+          carrier_request_id: string | null
+          cc_emails: string[]
+          client_request_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          error_message: string | null
+          freight_id: string | null
+          from_email: string
+          from_name: string | null
+          id: string
+          provider: string
+          sent_at: string | null
+          status: string
+          subject: string
+          to_emails: string[]
+        }
+        Insert: {
+          body: string
+          carrier_ext_id: string
+          carrier_request_id?: string | null
+          cc_emails?: string[]
+          client_request_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          error_message?: string | null
+          freight_id?: string | null
+          from_email: string
+          from_name?: string | null
+          id?: string
+          provider?: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_emails?: string[]
+        }
+        Update: {
+          body?: string
+          carrier_ext_id?: string
+          carrier_request_id?: string | null
+          cc_emails?: string[]
+          client_request_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          error_message?: string | null
+          freight_id?: string | null
+          from_email?: string
+          from_name?: string | null
+          id?: string
+          provider?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_emails?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_email_messages_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_email_messages_carrier_request_id_fkey"
+            columns: ["carrier_request_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_email_messages_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_email_messages_freight_id_fkey"
+            columns: ["freight_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_freights"
             referencedColumns: ["id"]
           },
         ]
@@ -6115,6 +6272,71 @@ export type Database = {
       }
     }
     Views: {
+      dispatcher_carrier_email_accounts_safe: {
+        Row: {
+          ati_email: string | null
+          carrier_ext_id: string | null
+          created_at: string | null
+          email: string | null
+          from_name: string | null
+          has_password: boolean | null
+          id: string | null
+          is_active: boolean | null
+          is_verified: boolean | null
+          last_error: string | null
+          last_test_at: string | null
+          smtp_host: string | null
+          smtp_port: number | null
+          smtp_secure: boolean | null
+          smtp_user: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ati_email?: string | null
+          carrier_ext_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          from_name?: string | null
+          has_password?: never
+          id?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_error?: string | null
+          last_test_at?: string | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_secure?: boolean | null
+          smtp_user?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ati_email?: string | null
+          carrier_ext_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          from_name?: string | null
+          has_password?: never
+          id?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_error?: string | null
+          last_test_at?: string | null
+          smtp_host?: string | null
+          smtp_port?: number | null
+          smtp_secure?: boolean | null
+          smtp_user?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_carrier_email_accounts_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: true
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_balances: {
         Row: {
           available: number | null
