@@ -1533,6 +1533,7 @@ export type Database = {
           assigned_driver_ext_id: string | null
           assigned_vehicle_ext_id: string | null
           body_type: string | null
+          cargo_items: Json | null
           cargo_name: string | null
           carrier_request_id: string | null
           comment: string | null
@@ -1561,12 +1562,15 @@ export type Database = {
           loading_city: string | null
           loading_date: string | null
           loading_method: string | null
+          offer_status: string | null
           parse_status: string
+          parsed_payload: Json | null
           payment_delay_days: number | null
           payment_term: string | null
           payment_type: string | null
           rate: number | null
           raw_text: string | null
+          route_points: Json | null
           signed_pdf_document_id: string | null
           signed_sent_at: string | null
           signed_sent_channel: string | null
@@ -1578,6 +1582,7 @@ export type Database = {
           source_email_from: string | null
           source_email_subject: string | null
           source_received_at: string | null
+          source_text: string | null
           source_type: string
           source_url: string | null
           status: string
@@ -1595,6 +1600,7 @@ export type Database = {
           assigned_driver_ext_id?: string | null
           assigned_vehicle_ext_id?: string | null
           body_type?: string | null
+          cargo_items?: Json | null
           cargo_name?: string | null
           carrier_request_id?: string | null
           comment?: string | null
@@ -1623,12 +1629,15 @@ export type Database = {
           loading_city?: string | null
           loading_date?: string | null
           loading_method?: string | null
+          offer_status?: string | null
           parse_status?: string
+          parsed_payload?: Json | null
           payment_delay_days?: number | null
           payment_term?: string | null
           payment_type?: string | null
           rate?: number | null
           raw_text?: string | null
+          route_points?: Json | null
           signed_pdf_document_id?: string | null
           signed_sent_at?: string | null
           signed_sent_channel?: string | null
@@ -1640,6 +1649,7 @@ export type Database = {
           source_email_from?: string | null
           source_email_subject?: string | null
           source_received_at?: string | null
+          source_text?: string | null
           source_type?: string
           source_url?: string | null
           status?: string
@@ -1657,6 +1667,7 @@ export type Database = {
           assigned_driver_ext_id?: string | null
           assigned_vehicle_ext_id?: string | null
           body_type?: string | null
+          cargo_items?: Json | null
           cargo_name?: string | null
           carrier_request_id?: string | null
           comment?: string | null
@@ -1685,12 +1696,15 @@ export type Database = {
           loading_city?: string | null
           loading_date?: string | null
           loading_method?: string | null
+          offer_status?: string | null
           parse_status?: string
+          parsed_payload?: Json | null
           payment_delay_days?: number | null
           payment_term?: string | null
           payment_type?: string | null
           rate?: number | null
           raw_text?: string | null
+          route_points?: Json | null
           signed_pdf_document_id?: string | null
           signed_sent_at?: string | null
           signed_sent_channel?: string | null
@@ -1702,6 +1716,7 @@ export type Database = {
           source_email_from?: string | null
           source_email_subject?: string | null
           source_received_at?: string | null
+          source_text?: string | null
           source_type?: string
           source_url?: string | null
           status?: string
