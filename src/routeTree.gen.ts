@@ -186,6 +186,7 @@ import { Route as ApiAnalyticsRouteImport } from './routes/api/analytics'
 import { Route as AdminTariffsRouteImport } from './routes/admin.tariffs'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminImpersonateRouteImport } from './routes/admin.impersonate'
+import { Route as DriverTripTripIdRouteImport } from './routes/driver.trip.$tripId'
 import { Route as DriverRegisterTokenRouteImport } from './routes/driver.register.$token'
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
@@ -1251,6 +1252,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const AdminImpersonateRoute = AdminImpersonateRouteImport.update({
   id: '/admin/impersonate',
   path: '/admin/impersonate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DriverTripTripIdRoute = DriverTripTripIdRouteImport.update({
+  id: '/driver/trip/$tripId',
+  path: '/driver/trip/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DriverRegisterTokenRoute = DriverRegisterTokenRouteImport.update({
@@ -2467,6 +2473,7 @@ export interface FileRoutesByFullPath {
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
+  '/driver/trip/$tripId': typeof DriverTripTripIdRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -2818,6 +2825,7 @@ export interface FileRoutesByTo {
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
+  '/driver/trip/$tripId': typeof DriverTripTripIdRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -3171,6 +3179,7 @@ export interface FileRoutesById {
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
+  '/driver/trip/$tripId': typeof DriverTripTripIdRoute
   '/api/driver/route/$id': typeof ApiDriverRouteIdRoute
   '/api/admin/users/cleanup': typeof ApiAdminUsersCleanupRoute
   '/api/backups/$id/restore': typeof ApiBackupsIdRestoreRoute
@@ -3525,6 +3534,7 @@ export interface FileRouteTypes {
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
+    | '/driver/trip/$tripId'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -3876,6 +3886,7 @@ export interface FileRouteTypes {
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
+    | '/driver/trip/$tripId'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -4228,6 +4239,7 @@ export interface FileRouteTypes {
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
+    | '/driver/trip/$tripId'
     | '/api/driver/route/$id'
     | '/api/admin/users/cleanup'
     | '/api/backups/$id/restore'
@@ -4530,6 +4542,7 @@ export interface RootRouteChildren {
   DispatcherInviteTokenRoute: typeof DispatcherInviteTokenRoute
   DispatcherRegisterTokenRoute: typeof DispatcherRegisterTokenRoute
   DriverRegisterTokenRoute: typeof DriverRegisterTokenRoute
+  DriverTripTripIdRoute: typeof DriverTripTripIdRoute
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
@@ -5787,6 +5800,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/impersonate'
       fullPath: '/admin/impersonate'
       preLoaderRoute: typeof AdminImpersonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/driver/trip/$tripId': {
+      id: '/driver/trip/$tripId'
+      path: '/driver/trip/$tripId'
+      fullPath: '/driver/trip/$tripId'
+      preLoaderRoute: typeof DriverTripTripIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/driver/register/$token': {
@@ -8223,6 +8243,7 @@ const rootRouteChildren: RootRouteChildren = {
   DispatcherInviteTokenRoute: DispatcherInviteTokenRoute,
   DispatcherRegisterTokenRoute: DispatcherRegisterTokenRoute,
   DriverRegisterTokenRoute: DriverRegisterTokenRoute,
+  DriverTripTripIdRoute: DriverTripTripIdRoute,
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
