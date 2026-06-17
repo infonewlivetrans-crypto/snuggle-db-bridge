@@ -18,6 +18,8 @@ import {
   type VehicleFeature,
 } from "@/lib/dispatcher/statuses";
 import { getVehicleBodyTypeLabel } from "@/lib/dispatcher/vehicle-options";
+import { computeVehicleReadiness } from "@/lib/dispatcher/vehicle-readiness";
+import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/carrier/vehicles")({
   head: () => ({ meta: [{ title: "Мой транспорт — кабинет перевозчика" }] }),
@@ -127,6 +129,16 @@ function CarrierVehiclesPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {vehicles.map((v) => {
             const ready = READY.has(v.dispatcher_status ?? "") && !!v.driver_id;
+            const mapReadiness = computeVehicleReadiness({
+              body_type: v.body_type,
+              payload_kg: v.payload_kg,
+              capacity_kg: v.capacity_kg,
+              home_city: v.home_city,
+              current_city: v.current_city,
+              driver_id: v.driver_id,
+              is_active: v.is_active,
+              dispatcher_status: v.dispatcher_status,
+            });
             return (
               <Card key={v.id}>
                 <CardContent className="space-y-1.5 p-4 text-sm">
@@ -187,6 +199,22 @@ function CarrierVehiclesPage() {
                   <div className="text-xs text-muted-foreground">
                     {ready ? "Готов к работе" : "Не готов к работе"}
                   </div>
+                  {mapReadiness.ready ? (
+                    <div className="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs text-emerald-800">
+                      <CheckCircle2 className="h-3 w-3" /> Готова к отображению на карте
+                    </div>
+                  ) : (
+                    <div className="rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-800">
+                      <div className="mb-0.5 flex items-center gap-1 font-medium">
+                        <AlertTriangle className="h-3 w-3" /> Ещё не на карте диспетчера
+                      </div>
+                      <ul className="ml-4 list-disc space-y-0.5">
+                        {mapReadiness.reasons.map((r) => (
+                          <li key={r}>{r}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {v.comment && (
                     <div className="text-xs text-muted-foreground">{v.comment}</div>
                   )}
