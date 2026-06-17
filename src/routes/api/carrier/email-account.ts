@@ -13,9 +13,14 @@ const bodySchema = z.object({
   smtp_port: z.number().int().min(1).max(65535),
   smtp_secure: z.boolean(),
   smtp_user: z.string().trim().min(1).max(200),
-  smtp_password: z.string().min(1).max(500).nullable().optional(), // null = не менять
+  smtp_password: z.string().min(1).max(500).nullable().optional(),
   ati_email: z.string().trim().max(200).nullable().optional(),
   is_active: z.boolean().optional(),
+  imap_host: z.string().trim().max(200).nullable().optional(),
+  imap_port: z.number().int().min(1).max(65535).nullable().optional(),
+  imap_secure: z.boolean().optional(),
+  imap_user: z.string().trim().max(200).nullable().optional(),
+  imap_password: z.string().min(1).max(500).nullable().optional(),
 });
 
 const VIEW = "dispatcher_carrier_email_accounts_safe" as const;
