@@ -320,6 +320,61 @@ function CarrierEmailSettingsPage() {
             </div>
           </div>
 
+          <div className="rounded border border-border p-3">
+            <div className="mb-2 text-sm font-semibold">IMAP — входящая почта</div>
+            <div className="mb-3 text-xs text-muted-foreground">
+              IMAP нужен, чтобы Радиус Трек мог получать входящие подписанные заявки от
+              грузовладельцев и прикреплять их к рейсам.
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field
+                label="IMAP host"
+                value={form.imap_host}
+                onChange={(v) => setForm({ ...form, imap_host: v })}
+                placeholder="imap.yandex.ru"
+              />
+              <Field
+                label="IMAP port"
+                value={String(form.imap_port)}
+                onChange={(v) => setForm({ ...form, imap_port: Number(v) || 993 })}
+                type="number"
+              />
+              <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Шифрование</div>
+                  <div className="font-medium">
+                    {form.imap_secure ? "SSL/TLS (993)" : "STARTTLS"}
+                  </div>
+                </div>
+                <Switch
+                  checked={form.imap_secure}
+                  onCheckedChange={(v) => setForm({ ...form, imap_secure: v })}
+                />
+              </div>
+              <Field
+                label="IMAP логин"
+                value={form.imap_user}
+                onChange={(v) => setForm({ ...form, imap_user: v })}
+                placeholder="обычно совпадает с email"
+              />
+              <Field
+                label={
+                  account?.has_imap_password
+                    ? "Новый IMAP-пароль (оставьте пустым — не менять)"
+                    : "IMAP пароль (пароль приложения)"
+                }
+                value={form.imap_password}
+                onChange={(v) => setForm({ ...form, imap_password: v })}
+                placeholder={
+                  account?.has_imap_password
+                    ? "Пароль сохранён. Введите новый, только если хотите заменить."
+                    : "16-значный код от приложения"
+                }
+                type="password"
+              />
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
               {saveMut.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
