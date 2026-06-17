@@ -58,8 +58,9 @@ export function SignatureAssetEditor({ carrierExtId, onSaved }: Props) {
     if (!ctx) return;
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.drawImage(src, 0, 0, c.width, c.height);
-    drawBox(ctx, stampBBox, "rgba(34,197,94,0.9)", "Печать");
-    drawBox(ctx, sigBBox, "rgba(59,130,246,0.9)", "Подпись");
+    const k = c.width / src.width;
+    drawBox(ctx, stampBBox, k, "rgba(34,197,94,0.95)", "Печать");
+    drawBox(ctx, sigBBox, k, "rgba(59,130,246,0.95)", "Подпись");
   }, [src, stampBBox, sigBBox]);
 
   const canvasToImageCoords = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -272,13 +273,16 @@ function PreviewCard({ title, url }: { title: string; url: string | null }) {
   );
 }
 
-function drawBox(ctx: CanvasRenderingContext2D, b: BBox | null, color: string, label: string) {
+function drawBox(ctx: CanvasRenderingContext2D, b: BBox | null, scale: number, color: string, label: string) {
   if (!b) return;
-  const c = ctx.canvas;
-  const sx = c.width / (b.w + b.x > c.width ? c.width : c.width);
-  // Канвас уже масштабирован под исходное изображение → пересчёт:
-  const srcW = (ctx as unknown as { _srcW?: number })._srcW ?? ctx.canvas.width;
-  void sx; void srcW;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(b.x * scale, b.y * scale, b.w * scale, b.h * scale);
+  ctx.fillStyle = color;
+  ctx.font = "12px sans-serif";
+  ctx.fillText(label, b.x * scale + 4, Math.max(12, b.y * scale - 4));
+  ctx.restore();
 }
 function clamp(n: number): number {
   return Math.max(0, Math.min(255, n));
