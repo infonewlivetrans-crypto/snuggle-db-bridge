@@ -12,6 +12,7 @@ import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBloc
 import { CarrierInboxSummary } from "@/components/carrier/CarrierInboxSummary";
 import { CarrierIncomingOfferAlert } from "@/components/carrier/CarrierIncomingOfferAlert";
 import { OnboardingChecklist } from "@/components/carrier/OnboardingChecklist";
+import { CarrierEmailBanner } from "@/components/carrier/CarrierEmailBanner";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
