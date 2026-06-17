@@ -23,6 +23,7 @@ const SELECT =
   "source_type, source_email_from, source_email_subject, source_email_body, " +
   "source_received_at, source_document_count, parse_status, " +
   "customer_email, customer_emails, customer_name, customer_phone, customer_send_comment, " +
+  "source_text, parsed_payload, cargo_items, route_points, offer_status, " +
   "created_at, updated_at";
 
 export const Route = createFileRoute("/api/dispatcher/freights")({

@@ -252,7 +252,7 @@ function VehiclesPage() {
                   <div className="text-xs text-muted-foreground">{getVehicleBodyTypeLabel(r.body_type)}</div>
                 </TableCell>
                 <TableCell>
-                  <div>{r.payload_kg != null ? `${r.payload_kg} кг` : "—"}</div>
+                  <div>{r.payload_kg != null ? `${(r.payload_kg / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} т` : "—"}</div>
                   <div className="text-xs text-muted-foreground">{r.volume_m3 != null ? `${r.volume_m3} м³` : ""}</div>
                 </TableCell>
                 <TableCell className="text-xs">{fmtDim(r)}</TableCell>
@@ -345,7 +345,7 @@ function VehiclesPage() {
             <div className="space-y-2 text-sm">
               <Row label="Тип" value={v.vehicle_kind ?? "—"} />
               <Row label="Кузов" value={v.body_type ? getVehicleBodyTypeLabel(v.body_type) : "—"} />
-              <Row label="Грузоподъёмность" value={v.payload_kg != null ? `${v.payload_kg} кг` : "—"} />
+              <Row label="Грузоподъёмность" value={v.payload_kg != null ? `${(v.payload_kg / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} т` : "—"} />
               <Row label="Объём" value={v.volume_m3 != null ? `${v.volume_m3} м³` : "—"} />
               <Row label="Габариты" value={fmtDim(v)} />
               <Row label="Способы загрузки" value={(v.load_methods ?? []).map((m) => LOAD_METHOD_LABELS[m as LoadMethod] ?? m).join(", ") || "—"} />

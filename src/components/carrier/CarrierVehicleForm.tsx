@@ -30,6 +30,7 @@ import {
   type VehicleStatus,
   type LoadMethod,
 } from "@/lib/dispatcher/statuses";
+import { kgToTonsInput, tonsInputToKg } from "@/lib/units";
 
 export interface CarrierVehicle {
   id: string;
@@ -78,7 +79,7 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
       ? {
           vehicle_kind: initial.vehicle_kind ?? "",
           body_type: initial.body_type ?? "",
-          payload_kg: initial.payload_kg?.toString() ?? "",
+          payload_kg: kgToTonsInput(initial.payload_kg),
           volume_m3: initial.volume_m3?.toString() ?? "",
           length_m: initial.length_m?.toString() ?? "",
           width_m: initial.width_m?.toString() ?? "",
@@ -116,7 +117,7 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
       const payload = {
         vehicle_kind: values.vehicle_kind || null,
         body_type: values.body_type || null,
-        payload_kg: values.payload_kg || null,
+        payload_kg: tonsInputToKg(values.payload_kg),
         volume_m3: values.volume_m3 || null,
         length_m: values.length_m || null,
         width_m: values.width_m || null,
@@ -173,10 +174,10 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
                 maxLength={120}
               />
             </Field>
-            <Field label="Грузоподъёмность, кг">
+            <Field label="Грузоподъёмность, т">
               <Input
-                type="number"
                 inputMode="decimal"
+                placeholder="1,5"
                 value={values.payload_kg}
                 onChange={(e) => set("payload_kg", e.target.value)}
               />

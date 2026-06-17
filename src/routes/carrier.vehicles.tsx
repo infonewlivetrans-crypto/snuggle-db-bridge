@@ -151,9 +151,13 @@ function CarrierVehiclesPage() {
                     ) : null}
                   </div>
                   <div className="text-muted-foreground">
-                    {v.payload_kg != null || v.capacity_kg != null
-                      ? `${v.payload_kg ?? v.capacity_kg} кг`
-                      : "—"}
+                    {(() => {
+                      const kg = v.payload_kg ?? v.capacity_kg;
+                      if (kg == null) return "—";
+                      const t = kg / 1000;
+                      const str = Math.abs(t - Math.round(t)) < 1e-6 ? String(Math.round(t)) : t.toLocaleString("ru-RU", { maximumFractionDigits: 2 });
+                      return `${str} т`;
+                    })()}
                     {v.volume_m3 != null ? ` · ${v.volume_m3} м³` : ""}
                     {v.home_city ? ` · ${v.home_city}` : ""}
                   </div>
