@@ -29,6 +29,7 @@ import { VehicleBodyTypeSelect } from "@/components/dispatcher/VehicleBodyTypeSe
 import { CityCombobox, CityMultiCombobox } from "@/components/common/CityCombobox";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { VehicleCreateInput } from "@/lib/dispatcher/schemas";
+import { kgToTonsInput, tonsInputToKg } from "@/lib/units";
 
 interface Props {
   initial?: VehicleDTO | null;
@@ -104,7 +105,7 @@ export function VehicleForm({
       setKind(empty(initial.vehicle_kind));
 
       setBodyType(empty(initial.body_type));
-      setPayload(numStr(initial.payload_kg));
+      setPayload(kgToTonsInput(initial.payload_kg));
       setVolume(numStr(initial.volume_m3));
       setLengthM(numStr(initial.length_m));
       setWidthM(numStr(initial.width_m));
@@ -171,7 +172,7 @@ export function VehicleForm({
     onSubmit({
       vehicle_kind: kind || null,
       body_type: bodyType || null,
-      payload_kg: toNum(payload),
+      payload_kg: tonsInputToKg(payload),
       volume_m3: toNum(volume),
       length_m: toNum(lengthM),
       width_m: toNum(widthM),
@@ -280,7 +281,7 @@ export function VehicleForm({
           <Label>Тип кузова</Label>
           <VehicleBodyTypeSelect value={bodyType} onChange={setBodyType} />
         </div>
-        <div><Label>Грузоподъёмность, кг</Label><Input value={payload} onChange={(e) => setPayload(e.target.value)} /></div>
+        <div><Label>Грузоподъёмность, т</Label><Input inputMode="decimal" placeholder="1,5" value={payload} onChange={(e) => setPayload(e.target.value)} /></div>
         <div><Label>Объём, м³</Label><Input value={volume} onChange={(e) => setVolume(e.target.value)} /></div>
         <div><Label>Длина, м</Label><Input value={lengthM} onChange={(e) => setLengthM(e.target.value)} /></div>
         <div><Label>Ширина, м</Label><Input value={widthM} onChange={(e) => setWidthM(e.target.value)} /></div>
