@@ -78,6 +78,7 @@ import { Route as DispatcherTasksRouteImport } from './routes/dispatcher.tasks'
 import { Route as DispatcherSettingsRouteImport } from './routes/dispatcher.settings'
 import { Route as DispatcherMapRouteImport } from './routes/dispatcher.map'
 import { Route as DispatcherJoinRouteImport } from './routes/dispatcher.join'
+import { Route as DispatcherInboundDocumentsRouteImport } from './routes/dispatcher.inbound-documents'
 import { Route as DispatcherFreightsRouteImport } from './routes/dispatcher.freights'
 import { Route as DispatcherDriversRouteImport } from './routes/dispatcher.drivers'
 import { Route as DispatcherDocumentsRouteImport } from './routes/dispatcher.documents'
@@ -191,6 +192,7 @@ import { Route as DriverTripTripIdRouteImport } from './routes/driver.trip.$trip
 import { Route as DriverRegisterTokenRouteImport } from './routes/driver.register.$token'
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
+import { Route as DispatcherInboundDocumentsIdRouteImport } from './routes/dispatcher.inbound-documents.$id'
 import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
@@ -719,6 +721,12 @@ const DispatcherJoinRoute = DispatcherJoinRouteImport.update({
   path: '/dispatcher/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DispatcherInboundDocumentsRoute =
+  DispatcherInboundDocumentsRouteImport.update({
+    id: '/dispatcher/inbound-documents',
+    path: '/dispatcher/inbound-documents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DispatcherFreightsRoute = DispatcherFreightsRouteImport.update({
   id: '/dispatcher/freights',
   path: '/dispatcher/freights',
@@ -1291,6 +1299,12 @@ const DispatcherInviteTokenRoute = DispatcherInviteTokenRouteImport.update({
   path: '/dispatcher/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DispatcherInboundDocumentsIdRoute =
+  DispatcherInboundDocumentsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => DispatcherInboundDocumentsRoute,
+  } as any)
 const CarrierActivateTokenRoute = CarrierActivateTokenRouteImport.update({
   id: '/activate/$token',
   path: '/activate/$token',
@@ -2431,6 +2445,7 @@ export interface FileRoutesByFullPath {
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
+  '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
   '/dispatcher/map': typeof DispatcherMapRoute
   '/dispatcher/settings': typeof DispatcherSettingsRoute
@@ -2557,6 +2572,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
@@ -2795,6 +2811,7 @@ export interface FileRoutesByTo {
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
+  '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
   '/dispatcher/map': typeof DispatcherMapRoute
   '/dispatcher/settings': typeof DispatcherSettingsRoute
@@ -2921,6 +2938,7 @@ export interface FileRoutesByTo {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
@@ -3161,6 +3179,7 @@ export interface FileRoutesById {
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
+  '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
   '/dispatcher/map': typeof DispatcherMapRoute
   '/dispatcher/settings': typeof DispatcherSettingsRoute
@@ -3287,6 +3306,7 @@ export interface FileRoutesById {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
   '/driver/register/$token': typeof DriverRegisterTokenRoute
@@ -3528,6 +3548,7 @@ export interface FileRouteTypes {
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
     | '/dispatcher/freights'
+    | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
     | '/dispatcher/map'
     | '/dispatcher/settings'
@@ -3654,6 +3675,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
@@ -3892,6 +3914,7 @@ export interface FileRouteTypes {
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
     | '/dispatcher/freights'
+    | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
     | '/dispatcher/map'
     | '/dispatcher/settings'
@@ -4018,6 +4041,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
@@ -4257,6 +4281,7 @@ export interface FileRouteTypes {
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
     | '/dispatcher/freights'
+    | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
     | '/dispatcher/map'
     | '/dispatcher/settings'
@@ -4383,6 +4408,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
     | '/driver/register/$token'
@@ -4616,6 +4642,7 @@ export interface RootRouteChildren {
   DispatcherDocumentsRoute: typeof DispatcherDocumentsRoute
   DispatcherDriversRoute: typeof DispatcherDriversRoute
   DispatcherFreightsRoute: typeof DispatcherFreightsRoute
+  DispatcherInboundDocumentsRoute: typeof DispatcherInboundDocumentsRouteWithChildren
   DispatcherJoinRoute: typeof DispatcherJoinRoute
   DispatcherMapRoute: typeof DispatcherMapRoute
   DispatcherSettingsRoute: typeof DispatcherSettingsRoute
@@ -5203,6 +5230,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/join'
       fullPath: '/dispatcher/join'
       preLoaderRoute: typeof DispatcherJoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/inbound-documents': {
+      id: '/dispatcher/inbound-documents'
+      path: '/dispatcher/inbound-documents'
+      fullPath: '/dispatcher/inbound-documents'
+      preLoaderRoute: typeof DispatcherInboundDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dispatcher/freights': {
@@ -5995,6 +6029,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dispatcher/invite/$token'
       preLoaderRoute: typeof DispatcherInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/inbound-documents/$id': {
+      id: '/dispatcher/inbound-documents/$id'
+      path: '/$id'
+      fullPath: '/dispatcher/inbound-documents/$id'
+      preLoaderRoute: typeof DispatcherInboundDocumentsIdRouteImport
+      parentRoute: typeof DispatcherInboundDocumentsRoute
     }
     '/carrier/activate/$token': {
       id: '/carrier/activate/$token'
@@ -7777,6 +7818,20 @@ const ApiWarehousesRouteWithChildren = ApiWarehousesRoute._addFileChildren(
   ApiWarehousesRouteChildren,
 )
 
+interface DispatcherInboundDocumentsRouteChildren {
+  DispatcherInboundDocumentsIdRoute: typeof DispatcherInboundDocumentsIdRoute
+}
+
+const DispatcherInboundDocumentsRouteChildren: DispatcherInboundDocumentsRouteChildren =
+  {
+    DispatcherInboundDocumentsIdRoute: DispatcherInboundDocumentsIdRoute,
+  }
+
+const DispatcherInboundDocumentsRouteWithChildren =
+  DispatcherInboundDocumentsRoute._addFileChildren(
+    DispatcherInboundDocumentsRouteChildren,
+  )
+
 interface ApiAdminDispatcherUserInvitesRouteChildren {
   ApiAdminDispatcherUserInvitesIdRevokeRoute: typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
 }
@@ -8470,6 +8525,7 @@ const rootRouteChildren: RootRouteChildren = {
   DispatcherDocumentsRoute: DispatcherDocumentsRoute,
   DispatcherDriversRoute: DispatcherDriversRoute,
   DispatcherFreightsRoute: DispatcherFreightsRoute,
+  DispatcherInboundDocumentsRoute: DispatcherInboundDocumentsRouteWithChildren,
   DispatcherJoinRoute: DispatcherJoinRoute,
   DispatcherMapRoute: DispatcherMapRoute,
   DispatcherSettingsRoute: DispatcherSettingsRoute,
