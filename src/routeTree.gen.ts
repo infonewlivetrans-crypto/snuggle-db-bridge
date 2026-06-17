@@ -95,6 +95,7 @@ import { Route as CarriersCarrierIdRouteImport } from './routes/carriers.$carrie
 import { Route as CarrierVehiclesRouteImport } from './routes/carrier.vehicles'
 import { Route as CarrierTripsRouteImport } from './routes/carrier.trips'
 import { Route as CarrierRegisterRouteImport } from './routes/carrier.register'
+import { Route as CarrierOnboardingRouteImport } from './routes/carrier.onboarding'
 import { Route as CarrierDriversRouteImport } from './routes/carrier.drivers'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
@@ -256,12 +257,14 @@ import { Route as ApiCarriersIdRouteImport } from './routes/api/carriers.$id'
 import { Route as ApiCarrierVehiclesRouteImport } from './routes/api/carrier/vehicles'
 import { Route as ApiCarrierTripsRouteImport } from './routes/api/carrier/trips'
 import { Route as ApiCarrierRequestsRouteImport } from './routes/api/carrier/requests'
+import { Route as ApiCarrierOnboardingStatusRouteImport } from './routes/api/carrier/onboarding-status'
 import { Route as ApiCarrierOfferAcceptanceRouteImport } from './routes/api/carrier/offer-acceptance'
 import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
 import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
 import { Route as ApiCarrierDriverInvitesRouteImport } from './routes/api/carrier/driver-invites'
 import { Route as ApiCarrierDocumentsRouteImport } from './routes/api/carrier/documents'
 import { Route as ApiCarrierDealsRouteImport } from './routes/api/carrier/deals'
+import { Route as ApiCarrierCarrierExtRouteImport } from './routes/api/carrier/carrier-ext'
 import { Route as ApiBackupsCreateRouteImport } from './routes/api/backups.create'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth.session'
 import { Route as ApiAuthMeRouteImport } from './routes/api/auth.me'
@@ -782,6 +785,11 @@ const CarrierTripsRoute = CarrierTripsRouteImport.update({
 const CarrierRegisterRoute = CarrierRegisterRouteImport.update({
   id: '/register',
   path: '/register',
+  getParentRoute: () => CarrierRoute,
+} as any)
+const CarrierOnboardingRoute = CarrierOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => CarrierRoute,
 } as any)
 const CarrierDriversRoute = CarrierDriversRouteImport.update({
@@ -1608,6 +1616,12 @@ const ApiCarrierRequestsRoute = ApiCarrierRequestsRouteImport.update({
   path: '/api/carrier/requests',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierOnboardingStatusRoute =
+  ApiCarrierOnboardingStatusRouteImport.update({
+    id: '/api/carrier/onboarding-status',
+    path: '/api/carrier/onboarding-status',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierOfferAcceptanceRoute =
   ApiCarrierOfferAcceptanceRouteImport.update({
     id: '/api/carrier/offer-acceptance',
@@ -1637,6 +1651,11 @@ const ApiCarrierDocumentsRoute = ApiCarrierDocumentsRouteImport.update({
 const ApiCarrierDealsRoute = ApiCarrierDealsRouteImport.update({
   id: '/api/carrier/deals',
   path: '/api/carrier/deals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCarrierCarrierExtRoute = ApiCarrierCarrierExtRouteImport.update({
+  id: '/api/carrier/carrier-ext',
+  path: '/api/carrier/carrier-ext',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiBackupsCreateRoute = ApiBackupsCreateRouteImport.update({
@@ -2272,6 +2291,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
   '/carrier/trips': typeof CarrierTripsRoute
   '/carrier/vehicles': typeof CarrierVehiclesRoute
@@ -2334,12 +2354,14 @@ export interface FileRoutesByFullPath {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/carrier-ext': typeof ApiCarrierCarrierExtRoute
   '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
+  '/api/carrier/onboarding-status': typeof ApiCarrierOnboardingStatusRoute
   '/api/carrier/requests': typeof ApiCarrierRequestsRouteWithChildren
   '/api/carrier/trips': typeof ApiCarrierTripsRoute
   '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
@@ -2615,6 +2637,7 @@ export interface FileRoutesByTo {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
   '/carrier/trips': typeof CarrierTripsRoute
   '/carrier/vehicles': typeof CarrierVehiclesRoute
@@ -2677,12 +2700,14 @@ export interface FileRoutesByTo {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/carrier-ext': typeof ApiCarrierCarrierExtRoute
   '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
+  '/api/carrier/onboarding-status': typeof ApiCarrierOnboardingStatusRoute
   '/api/carrier/requests': typeof ApiCarrierRequestsRouteWithChildren
   '/api/carrier/trips': typeof ApiCarrierTripsRoute
   '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
@@ -2960,6 +2985,7 @@ export interface FileRoutesById {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
   '/carrier/trips': typeof CarrierTripsRoute
   '/carrier/vehicles': typeof CarrierVehiclesRoute
@@ -3022,12 +3048,14 @@ export interface FileRoutesById {
   '/api/auth/me': typeof ApiAuthMeRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
   '/api/backups/create': typeof ApiBackupsCreateRoute
+  '/api/carrier/carrier-ext': typeof ApiCarrierCarrierExtRoute
   '/api/carrier/deals': typeof ApiCarrierDealsRouteWithChildren
   '/api/carrier/documents': typeof ApiCarrierDocumentsRouteWithChildren
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
+  '/api/carrier/onboarding-status': typeof ApiCarrierOnboardingStatusRoute
   '/api/carrier/requests': typeof ApiCarrierRequestsRouteWithChildren
   '/api/carrier/trips': typeof ApiCarrierTripsRoute
   '/api/carrier/vehicles': typeof ApiCarrierVehiclesRouteWithChildren
@@ -3306,6 +3334,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/onboarding'
     | '/carrier/register'
     | '/carrier/trips'
     | '/carrier/vehicles'
@@ -3368,12 +3397,14 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/carrier-ext'
     | '/api/carrier/deals'
     | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
+    | '/api/carrier/onboarding-status'
     | '/api/carrier/requests'
     | '/api/carrier/trips'
     | '/api/carrier/vehicles'
@@ -3649,6 +3680,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/onboarding'
     | '/carrier/register'
     | '/carrier/trips'
     | '/carrier/vehicles'
@@ -3711,12 +3743,14 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/carrier-ext'
     | '/api/carrier/deals'
     | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
+    | '/api/carrier/onboarding-status'
     | '/api/carrier/requests'
     | '/api/carrier/trips'
     | '/api/carrier/vehicles'
@@ -3993,6 +4027,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/onboarding'
     | '/carrier/register'
     | '/carrier/trips'
     | '/carrier/vehicles'
@@ -4055,12 +4090,14 @@ export interface FileRouteTypes {
     | '/api/auth/me'
     | '/api/auth/session'
     | '/api/backups/create'
+    | '/api/carrier/carrier-ext'
     | '/api/carrier/deals'
     | '/api/carrier/documents'
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
+    | '/api/carrier/onboarding-status'
     | '/api/carrier/requests'
     | '/api/carrier/trips'
     | '/api/carrier/vehicles'
@@ -4392,12 +4429,14 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthMeRoute: typeof ApiAuthMeRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiCarrierCarrierExtRoute: typeof ApiCarrierCarrierExtRoute
   ApiCarrierDealsRoute: typeof ApiCarrierDealsRouteWithChildren
   ApiCarrierDocumentsRoute: typeof ApiCarrierDocumentsRouteWithChildren
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRouteWithChildren
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
   ApiCarrierOfferAcceptanceRoute: typeof ApiCarrierOfferAcceptanceRoute
+  ApiCarrierOnboardingStatusRoute: typeof ApiCarrierOnboardingStatusRoute
   ApiCarrierRequestsRoute: typeof ApiCarrierRequestsRouteWithChildren
   ApiCarrierTripsRoute: typeof ApiCarrierTripsRoute
   ApiCarrierVehiclesRoute: typeof ApiCarrierVehiclesRouteWithChildren
@@ -5046,6 +5085,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/carrier/register'
       preLoaderRoute: typeof CarrierRegisterRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/onboarding': {
+      id: '/carrier/onboarding'
+      path: '/onboarding'
+      fullPath: '/carrier/onboarding'
+      preLoaderRoute: typeof CarrierOnboardingRouteImport
       parentRoute: typeof CarrierRoute
     }
     '/carrier/drivers': {
@@ -6175,6 +6221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierRequestsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/onboarding-status': {
+      id: '/api/carrier/onboarding-status'
+      path: '/api/carrier/onboarding-status'
+      fullPath: '/api/carrier/onboarding-status'
+      preLoaderRoute: typeof ApiCarrierOnboardingStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/offer-acceptance': {
       id: '/api/carrier/offer-acceptance'
       path: '/api/carrier/offer-acceptance'
@@ -6215,6 +6268,13 @@ declare module '@tanstack/react-router' {
       path: '/api/carrier/deals'
       fullPath: '/api/carrier/deals'
       preLoaderRoute: typeof ApiCarrierDealsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/carrier/carrier-ext': {
+      id: '/api/carrier/carrier-ext'
+      path: '/api/carrier/carrier-ext'
+      fullPath: '/api/carrier/carrier-ext'
+      preLoaderRoute: typeof ApiCarrierCarrierExtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/backups/create': {
@@ -6845,6 +6905,7 @@ declare module '@tanstack/react-router' {
 
 interface CarrierRouteChildren {
   CarrierDriversRoute: typeof CarrierDriversRoute
+  CarrierOnboardingRoute: typeof CarrierOnboardingRoute
   CarrierRegisterRoute: typeof CarrierRegisterRoute
   CarrierTripsRoute: typeof CarrierTripsRoute
   CarrierVehiclesRoute: typeof CarrierVehiclesRoute
@@ -6854,6 +6915,7 @@ interface CarrierRouteChildren {
 
 const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierDriversRoute: CarrierDriversRoute,
+  CarrierOnboardingRoute: CarrierOnboardingRoute,
   CarrierRegisterRoute: CarrierRegisterRoute,
   CarrierTripsRoute: CarrierTripsRoute,
   CarrierVehiclesRoute: CarrierVehiclesRoute,
@@ -7997,12 +8059,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthMeRoute: ApiAuthMeRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiCarrierCarrierExtRoute: ApiCarrierCarrierExtRoute,
   ApiCarrierDealsRoute: ApiCarrierDealsRouteWithChildren,
   ApiCarrierDocumentsRoute: ApiCarrierDocumentsRouteWithChildren,
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
   ApiCarrierDriversRoute: ApiCarrierDriversRouteWithChildren,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
   ApiCarrierOfferAcceptanceRoute: ApiCarrierOfferAcceptanceRoute,
+  ApiCarrierOnboardingStatusRoute: ApiCarrierOnboardingStatusRoute,
   ApiCarrierRequestsRoute: ApiCarrierRequestsRouteWithChildren,
   ApiCarrierTripsRoute: ApiCarrierTripsRoute,
   ApiCarrierVehiclesRoute: ApiCarrierVehiclesRouteWithChildren,
