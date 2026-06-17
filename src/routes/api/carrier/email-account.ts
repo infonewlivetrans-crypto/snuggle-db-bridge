@@ -41,7 +41,24 @@ export const Route = createFileRoute("/api/carrier/email-account")({
           .eq("carrier_ext_id", ctx.dispatcherCarrierExtId)
           .maybeSingle();
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse({ row: data ?? null });
+        // Подтянуть IMAP-поля + флаг has_imap_password из основной таблицы.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const imapRes = await (ctx.client.from(TABLE as never) as any)
+          .select("imap_host, imap_port, imap_secure, imap_user, imap_password_encrypted")
+          .eq("carrier_ext_id", ctx.dispatcherCarrierExtId)
+          .maybeSingle();
+        const imap = imapRes.data ?? null;
+        const row = data
+          ? {
+              ...data,
+              imap_host: imap?.imap_host ?? null,
+              imap_port: imap?.imap_port ?? null,
+              imap_secure: imap?.imap_secure ?? true,
+              imap_user: imap?.imap_user ?? null,
+              has_imap_password: !!imap?.imap_password_encrypted,
+            }
+          : null;
+        return jsonResponse({ row });
       },
 
       PUT: async ({ request }) => {
@@ -75,11 +92,28 @@ export const Route = createFileRoute("/api/carrier/email-account")({
           // is_verified сбрасываем при изменении конфигурации
           is_verified: false,
           last_error: null,
+          imap_host: body.imap_host ?? null,
+          imap_port: body.imap_port ?? null,
+          imap_secure: body.imap_secure ?? true,
+          imap_user: body.imap_user ?? null,
         };
 
         if (body.smtp_password != null && body.smtp_password.length > 0) {
           try {
             update.smtp_password_encrypted = encryptPassword(body.smtp_password);
+          } catch (e) {
+            if (e instanceof EmailEncryptionKeyMissing) {
+              return jsonResponse(
+                { error: "encryption_key_missing", detail: e.message },
+                { status: 500 },
+              );
+            }
+            throw e;
+          }
+        }
+        if (body.imap_password != null && body.imap_password.length > 0) {
+          try {
+            update.imap_password_encrypted = encryptPassword(body.imap_password);
           } catch (e) {
             if (e instanceof EmailEncryptionKeyMissing) {
               return jsonResponse(
