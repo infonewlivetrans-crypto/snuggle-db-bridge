@@ -148,6 +148,22 @@ export const Route = createFileRoute("/api/carrier/drivers")({
           return jsonResponse({ error: "invalid_json" }, { status: 400 });
         }
 
+        const isSelf = body.is_self === true;
+
+        // Если "Я сам водитель" — проверяем, нет ли уже такого driver_ext
+        // у этого перевозчика, чтобы не плодить дубли.
+        if (isSelf) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const existing = await (ctx.admin.from("dispatcher_driver_ext" as never) as any)
+            .select("id")
+            .eq("dispatcher_carrier_ext_id", ctx.dispatcherCarrierExtId)
+            .eq("user_id", auth.userId)
+            .maybeSingle();
+          if (existing.data?.id) {
+            return jsonResponse({ ok: true, id: existing.data.id, existed: true });
+          }
+        }
+
         const insert: Record<string, unknown> = {
           dispatcher_carrier_ext_id: ctx.dispatcherCarrierExtId,
           dispatcher_status: "new",
@@ -158,6 +174,13 @@ export const Route = createFileRoute("/api/carrier/drivers")({
           CARRIER_DRIVER_STATUSES.has(body.dispatcher_status)
         ) {
           insert.dispatcher_status = body.dispatcher_status;
+        }
+        if (isSelf) {
+          insert.user_id = auth.userId;
+          insert.is_owner_driver = true;
+          if (!insert.full_name && typeof body.full_name === "string") {
+            insert.full_name = body.full_name;
+          }
         }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
