@@ -516,6 +516,11 @@ function VehicleDetailsDialog({
         open={freightDialogOpen}
         onOpenChange={setFreightDialogOpen}
       />
+      <BuildTripOfferDialog
+        vehicle={v}
+        open={tripOfferOpen}
+        onOpenChange={setTripOfferOpen}
+      />
     </Dialog>
   );
 }
