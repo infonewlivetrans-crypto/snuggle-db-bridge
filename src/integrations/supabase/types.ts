@@ -2061,6 +2061,256 @@ export type Database = {
           },
         ]
       }
+      dispatcher_trip_documents: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          point_id: string | null
+          required: boolean
+          storage_path: string
+          trip_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          point_id?: string | null
+          required?: boolean
+          storage_path: string
+          trip_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          point_id?: string | null
+          required?: boolean
+          storage_path?: string
+          trip_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_trip_documents_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trip_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_trip_documents_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_trip_events: {
+        Row: {
+          actor_user_id: string | null
+          at: string
+          event: string
+          id: string
+          payload: Json | null
+          point_id: string | null
+          trip_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          at?: string
+          event: string
+          id?: string
+          payload?: Json | null
+          point_id?: string | null
+          trip_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          at?: string
+          event?: string
+          id?: string
+          payload?: Json | null
+          point_id?: string | null
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_trip_events_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trip_points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_trip_events_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_trip_points: {
+        Row: {
+          address: string | null
+          arrived_at: string | null
+          city: string | null
+          comment: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          done_at: string | null
+          id: string
+          idx: number
+          kind: string
+          lat: number | null
+          lng: number | null
+          scheduled_at: string | null
+          status: string
+          trip_id: string
+        }
+        Insert: {
+          address?: string | null
+          arrived_at?: string | null
+          city?: string | null
+          comment?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          done_at?: string | null
+          id?: string
+          idx: number
+          kind: string
+          lat?: number | null
+          lng?: number | null
+          scheduled_at?: string | null
+          status?: string
+          trip_id: string
+        }
+        Update: {
+          address?: string | null
+          arrived_at?: string | null
+          city?: string | null
+          comment?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          done_at?: string | null
+          id?: string
+          idx?: number
+          kind?: string
+          lat?: number | null
+          lng?: number | null
+          scheduled_at?: string | null
+          status?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_trip_points_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_trips: {
+        Row: {
+          body_type: string | null
+          cargo_summary: string | null
+          carrier_ext_id: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          current_point_idx: number
+          deal_id: string | null
+          dispatcher_contact: string | null
+          driver_ext_id: string | null
+          id: string
+          rate: number | null
+          rate_visible_to_driver: boolean
+          status: string
+          updated_at: string
+          vehicle_ext_id: string | null
+          volume_m3: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          body_type?: string | null
+          cargo_summary?: string | null
+          carrier_ext_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_point_idx?: number
+          deal_id?: string | null
+          dispatcher_contact?: string | null
+          driver_ext_id?: string | null
+          id?: string
+          rate?: number | null
+          rate_visible_to_driver?: boolean
+          status?: string
+          updated_at?: string
+          vehicle_ext_id?: string | null
+          volume_m3?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          body_type?: string | null
+          cargo_summary?: string | null
+          carrier_ext_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          current_point_idx?: number
+          deal_id?: string | null
+          dispatcher_contact?: string | null
+          driver_ext_id?: string | null
+          id?: string
+          rate?: number | null
+          rate_visible_to_driver?: boolean
+          status?: string
+          updated_at?: string
+          vehicle_ext_id?: string | null
+          volume_m3?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_trips_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_trips_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_trips_driver_ext_id_fkey"
+            columns: ["driver_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_driver_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_trips_vehicle_ext_id_fkey"
+            columns: ["vehicle_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_vehicle_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_user_invites: {
         Row: {
           activated_at: string | null
