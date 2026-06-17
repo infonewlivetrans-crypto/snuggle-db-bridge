@@ -59,10 +59,10 @@ export const Route = createFileRoute("/api/inbound-signatures/$id/sign-preview")
         // Имя/ИНН перевозчика для поиска якоря.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const cRes = await (sb.from("dispatcher_carrier_ext") as any)
-          .select("display_name, inn, legal_name")
+          .select("name, inn")
           .eq("id", doc.carrier_ext_id)
           .maybeSingle();
-        const cName = cRes.data?.display_name ?? cRes.data?.legal_name ?? null;
+        const cName = cRes.data?.name ?? null;
         const cInn = cRes.data?.inn ?? null;
 
         const dl = await sb.storage.from(doc.storage_bucket ?? BUCKET).download(doc.storage_path);
