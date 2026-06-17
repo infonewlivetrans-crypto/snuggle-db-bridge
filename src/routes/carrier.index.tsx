@@ -12,6 +12,7 @@ import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBloc
 import { CarrierInboxSummary } from "@/components/carrier/CarrierInboxSummary";
 import { CarrierIncomingOfferAlert } from "@/components/carrier/CarrierIncomingOfferAlert";
 import { OnboardingChecklist } from "@/components/carrier/OnboardingChecklist";
+import { CarrierEmailBanner } from "@/components/carrier/CarrierEmailBanner";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
@@ -167,6 +168,7 @@ function CarrierOverviewPage() {
   return (
     <div className="space-y-4">
       <OnboardingChecklist />
+      <CarrierEmailBanner />
       <CarrierIncomingOfferAlert />
       <CarrierInboxSummary />
       <div className="grid gap-4 lg:grid-cols-2">

@@ -36,6 +36,7 @@ import {
   CARRIER_REQUESTS_QUERY_KEY,
   useCarrierRequestsQuery,
 } from "@/components/carrier/CarrierRequestsBlock";
+import { startLoudRing, stopLoudRing } from "@/lib/notifications/loud-ring";
 
 const DECLINE_REASONS = [
   "Низкая ставка",
@@ -112,12 +113,16 @@ export function CarrierIncomingOfferAlert() {
   const [declineReason, setDeclineReason] = useState<string>(DECLINE_REASONS[0]);
   const [declineComment, setDeclineComment] = useState("");
 
-  // auto-open modal once per session per request id
+  // auto-open modal once per session per request id + громкий звук
   useEffect(() => {
     if (!top) return;
     if (dismissed.has(top.id)) return;
     setModalOpen(true);
+    startLoudRing();
   }, [top, dismissed]);
+
+  // Останавливаем звук при размонтировании
+  useEffect(() => () => stopLoudRing(), []);
 
   // sent → viewed
   useEffect(() => {
@@ -146,6 +151,7 @@ export function CarrierIncomingOfferAlert() {
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: CARRIER_REQUESTS_QUERY_KEY });
       toast.success(vars.status === "accepted" ? "Рейс принят" : "Отказ отправлен");
+      stopLoudRing();
       setModalOpen(false);
       setDeclineOpen(false);
       setDeclineComment("");
@@ -163,6 +169,7 @@ export function CarrierIncomingOfferAlert() {
     next.add(top.id);
     setDismissed(next);
     writeDismissed(next);
+    stopLoudRing();
     setModalOpen(false);
   };
 

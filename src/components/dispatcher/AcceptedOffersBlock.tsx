@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Handshake, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Handshake, Loader2, ChevronDown, ChevronUp, Mail, BellRing, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth, apiPost } from "@/lib/api-client";
+import { SendShipperEmailDialog } from "@/components/dispatcher/SendShipperEmailDialog";
+import { startLoudRing, stopLoudRing } from "@/lib/notifications/loud-ring";
 
 interface FreightLite {
   id: string;
@@ -59,6 +61,8 @@ export function AcceptedOffersBlock() {
   const qc = useQueryClient();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [emailDialogRow, setEmailDialogRow] = useState<AcceptedOfferRow | null>(null);
+  const [ringActive, setRingActive] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["dispatcher-accepted-offers"],
@@ -66,6 +70,36 @@ export function AcceptedOffersBlock() {
       apiGetAuth<{ rows: AcceptedOfferRow[] }>("/api/dispatcher/carrier-requests/accepted"),
     refetchInterval: 60_000,
   });
+
+  // Звук диспетчеру, когда перевозчик только что принял предложение.
+  // Первая успешная загрузка только заполняет seenIds; новые id после этого
+  // включают «громкий» сигнал до явной остановки или открытия письма.
+  const seenIds = useRef<Set<string>>(new Set());
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (!data?.rows) return;
+    if (!initialized.current) {
+      data.rows.forEach((r) => seenIds.current.add(r.id));
+      initialized.current = true;
+      return;
+    }
+    const fresh = data.rows.filter((r) => !seenIds.current.has(r.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((r) => seenIds.current.add(r.id));
+    const started = startLoudRing();
+    if (started) setRingActive(true);
+    const top = fresh[0];
+    toast.info("Перевозчик принял предложение", {
+      description: `${top.carrier?.name ?? "Перевозчик"}: ${top.loading_city ?? "—"} → ${top.unloading_city ?? "—"}`,
+      duration: 8000,
+    });
+  }, [data]);
+  useEffect(() => () => stopLoudRing(), []);
+
+  const stopRing = () => {
+    stopLoudRing();
+    setRingActive(false);
+  };
 
   const createDeal = useMutation({
     mutationFn: async (id: string) =>
@@ -97,11 +131,23 @@ export function AcceptedOffersBlock() {
 
   return (
     <section className="mb-6">
-      <div className="mb-3 flex items-center gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <Handshake className="h-5 w-5 text-primary" />
         <h2 className="text-lg font-semibold">Принятые предложения перевозчиков</h2>
         <Badge variant="secondary">{rows.length}</Badge>
+        {ringActive ? (
+          <Button size="sm" variant="outline" className="ml-auto gap-1" onClick={stopRing}>
+            <VolumeX className="h-3.5 w-3.5" /> Остановить сигнал
+          </Button>
+        ) : null}
       </div>
+
+      {ringActive ? (
+        <div className="mb-3 flex items-center gap-2 rounded-md border border-primary/50 bg-primary/10 p-2 text-sm">
+          <BellRing className="h-4 w-4 animate-pulse text-primary" />
+          <span className="font-medium">Новый принятый рейс — проверьте список ниже.</span>
+        </div>
+      ) : null}
 
       {error ? (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -193,6 +239,17 @@ export function AcceptedOffersBlock() {
                   </Button>
                   <Button
                     size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      stopRing();
+                      setEmailDialogRow(r);
+                    }}
+                    disabled={!r.dispatcher_carrier_ext_id}
+                  >
+                    <Mail className="mr-1 h-3 w-3" /> Отправить грузовладельцу
+                  </Button>
+                  <Button
+                    size="sm"
                     variant="ghost"
                     onClick={() => setExpandedId(expanded ? null : r.id)}
                   >
@@ -212,6 +269,14 @@ export function AcceptedOffersBlock() {
           })}
         </div>
       )}
+
+      {emailDialogRow ? (
+        <SendShipperEmailDialog
+          open={!!emailDialogRow}
+          onOpenChange={(o) => { if (!o) setEmailDialogRow(null); }}
+          row={emailDialogRow}
+        />
+      ) : null}
     </section>
   );
 }
