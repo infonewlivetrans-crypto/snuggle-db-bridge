@@ -466,6 +466,14 @@ function VehicleDetailsDialog({
 
         <DialogFooter className="flex-wrap gap-2">
 
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setTripOfferOpen(true)}
+          >
+            Собрать предложение рейса
+          </Button>
+
           {v.driver?.phone ? (
             <Button asChild variant="outline" size="sm">
               <a href={`tel:${v.driver.phone}`}>Позвонить водителю</a>
@@ -479,7 +487,7 @@ function VehicleDetailsDialog({
           {byMe ? (
             <>
               <Button
-                variant="default"
+                variant="secondary"
                 size="sm"
                 onClick={() => setFreightDialogOpen(true)}
                 disabled={!v.carrier?.id}
@@ -496,14 +504,9 @@ function VehicleDetailsDialog({
               В работе у другого
             </Button>
           ) : (
-            <>
-              <Button size="sm" variant="outline" disabled title="Сначала возьмите машину в работу">
-                Добавить найденный груз
-              </Button>
-              <Button size="sm" onClick={() => onTake(v.id)} disabled={taking}>
-                Взять в работу
-              </Button>
-            </>
+            <Button size="sm" onClick={() => onTake(v.id)} disabled={taking}>
+              Взять в работу
+            </Button>
           )}
         </DialogFooter>
         </div>
