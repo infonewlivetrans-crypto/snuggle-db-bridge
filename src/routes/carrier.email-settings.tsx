@@ -38,6 +38,11 @@ interface AccountRow {
   last_test_at: string | null;
   last_error: string | null;
   has_password: boolean;
+  imap_host: string | null;
+  imap_port: number | null;
+  imap_secure: boolean;
+  imap_user: string | null;
+  has_imap_password: boolean;
 }
 
 interface FormState {
@@ -50,6 +55,11 @@ interface FormState {
   smtp_password: string; // вводимое значение; не отправлять, если пусто и has_password=true
   ati_email: string;
   is_active: boolean;
+  imap_host: string;
+  imap_port: number;
+  imap_secure: boolean;
+  imap_user: string;
+  imap_password: string;
 }
 
 const EMPTY: FormState = {
@@ -62,6 +72,11 @@ const EMPTY: FormState = {
   smtp_password: "",
   ati_email: "",
   is_active: true,
+  imap_host: "",
+  imap_port: 993,
+  imap_secure: true,
+  imap_user: "",
+  imap_password: "",
 };
 
 const PRESETS: Array<{ label: string; host: string; port: number; secure: boolean }> = [
@@ -93,6 +108,11 @@ function CarrierEmailSettingsPage() {
         smtp_password: "",
         ati_email: account.ati_email ?? "",
         is_active: account.is_active,
+        imap_host: account.imap_host ?? "",
+        imap_port: account.imap_port ?? 993,
+        imap_secure: account.imap_secure ?? true,
+        imap_user: account.imap_user ?? "",
+        imap_password: "",
       });
     } else {
       setForm(EMPTY);
@@ -110,9 +130,14 @@ function CarrierEmailSettingsPage() {
         smtp_user: form.smtp_user.trim(),
         ati_email: form.ati_email.trim() || null,
         is_active: form.is_active,
+        imap_host: form.imap_host.trim() || null,
+        imap_port: Number(form.imap_port) || 993,
+        imap_secure: form.imap_secure,
+        imap_user: form.imap_user.trim() || null,
       };
-      // Пароль шлём только если введён.
+      // Пароли шлём только если введены.
       if (form.smtp_password.length > 0) body.smtp_password = form.smtp_password;
+      if (form.imap_password.length > 0) body.imap_password = form.imap_password;
       const r = await fetch("/api/carrier/email-account", {
         method: "PUT",
         credentials: "include",
@@ -125,11 +150,11 @@ function CarrierEmailSettingsPage() {
     },
     onSuccess: () => {
       toast.success("Настройки почты сохранены");
-      setForm((f) => ({ ...f, smtp_password: "" }));
+      setForm((f) => ({ ...f, smtp_password: "", imap_password: "" }));
       qc.invalidateQueries({ queryKey: ["carrier", "email-account"] });
     },
     onError: (e: unknown) =>
-      toast.error("Не удалось сохранить", {
+      toast.error("Проверьте IMAP host, логин или пароль", {
         description: e instanceof Error ? e.message : undefined,
       }),
   });
