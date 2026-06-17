@@ -14,6 +14,7 @@ import { CarrierIncomingOfferAlert } from "@/components/carrier/CarrierIncomingO
 import { OnboardingChecklist } from "@/components/carrier/OnboardingChecklist";
 import { CarrierEmailBanner } from "@/components/carrier/CarrierEmailBanner";
 import { CarrierInboundDocsBlock } from "@/components/carrier/CarrierInboundDocsBlock";
+import { CarrierSignatureCard } from "@/components/carrier/CarrierSignatureCard";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
@@ -223,13 +224,16 @@ function CarrierOverviewPage() {
       </Card>
 
       {ext?.id && (
-        <div className="lg:col-span-2">
-          <CarrierDocumentsBlock
-            ownerType="carrier"
-            ownerId={ext.id}
-            title="Документы перевозчика"
-          />
-        </div>
+        <>
+          <CarrierSignatureCard carrierExtId={ext.id} />
+          <div className="lg:col-span-2">
+            <CarrierDocumentsBlock
+              ownerType="carrier"
+              ownerId={ext.id}
+              title="Документы перевозчика"
+            />
+          </div>
+        </>
       )}
       </div>
     </div>
