@@ -73,11 +73,11 @@ function CarrierOnboardingPage() {
     queryKey: ["carrier", "ext", extId],
     enabled: !!extId,
     queryFn: async () => {
-      // Достаём расширенные поля через generic endpoint? Используем onboarding-status
-      // как источник, а сами поля редактируем через PATCH /api/carrier/me-ext.
-      // Здесь короткий путь: через /api/carrier/me нет всех полей — поэтому
-      // подтянем напрямую через PATCH-only форму (Pre-fill из status недоступен).
-      return null;
+      const r = await apiGetAuth<{ ok: boolean; row: CarrierExt | null }>(
+        "/api/carrier/carrier-ext",
+        10000,
+      );
+      return r.row;
     },
   });
 

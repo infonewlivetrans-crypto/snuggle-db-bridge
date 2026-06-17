@@ -29,6 +29,22 @@ const ALLOWED = new Set([
 export const Route = createFileRoute("/api/carrier/carrier-ext")({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const auth = await requireAuth(request);
+        if (auth instanceof Response) return auth;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: extId } = await (auth.client.rpc as any)("carrier_my_ext_id");
+        if (!extId) return jsonResponse({ ok: false, error: "no_carrier" }, { status: 404 });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (auth.client.from("dispatcher_carrier_ext") as any)
+          .select(
+            "id, name, inn, phone, email, city, whatsapp, telegram, max_messenger, ati_code, ati_email, taxation_type, bank_name, bik, settlement_account, correspondent_account, legal_address, commission_agreed, onboarding_step",
+          )
+          .eq("id", extId)
+          .maybeSingle();
+        if (error) return jsonResponse({ error: error.message }, { status: 500 });
+        return jsonResponse({ ok: true, row: data });
+      },
       PATCH: async ({ request }) => {
         const auth = await requireAuth(request);
         if (auth instanceof Response) return auth;
