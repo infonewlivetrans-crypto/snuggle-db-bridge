@@ -27,8 +27,11 @@ import {
   VEHICLE_STATUS_LABELS,
   LOAD_METHODS,
   LOAD_METHOD_LABELS,
+  VEHICLE_FEATURES,
+  VEHICLE_FEATURE_LABELS,
   type VehicleStatus,
   type LoadMethod,
+  type VehicleFeature,
 } from "@/lib/dispatcher/statuses";
 import { kgToTonsInput, tonsInputToKg } from "@/lib/units";
 
@@ -42,6 +45,7 @@ export interface CarrierVehicle {
   width_m: number | null;
   height_m: number | null;
   load_methods: string[] | null;
+  body_features?: string[] | null;
   home_city: string | null;
   ready_date: string | null;
   dispatcher_status: string;
@@ -66,6 +70,7 @@ const EMPTY = {
   width_m: "",
   height_m: "",
   load_methods: [] as LoadMethod[],
+  body_features: [] as VehicleFeature[],
   home_city: "",
   ready_date: "",
   dispatcher_status: "new" as VehicleStatus,
@@ -85,6 +90,7 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
           width_m: initial.width_m?.toString() ?? "",
           height_m: initial.height_m?.toString() ?? "",
           load_methods: (initial.load_methods ?? []) as LoadMethod[],
+          body_features: (initial.body_features ?? []) as VehicleFeature[],
           home_city: initial.home_city ?? "",
           ready_date: initial.ready_date ?? "",
           dispatcher_status: (initial.dispatcher_status ?? "new") as VehicleStatus,
@@ -106,6 +112,14 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
         : [...p.load_methods, m],
     }));
 
+  const toggleBodyFeature = (f: VehicleFeature) =>
+    setValues((p) => ({
+      ...p,
+      body_features: p.body_features.includes(f)
+        ? p.body_features.filter((x) => x !== f)
+        : [...p.body_features, f],
+    }));
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!values.vehicle_kind.trim()) {
@@ -123,6 +137,7 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
         width_m: values.width_m || null,
         height_m: values.height_m || null,
         load_methods: values.load_methods.length ? values.load_methods : null,
+        body_features: values.body_features.length ? values.body_features : null,
         home_city: values.home_city || null,
         ready_date: values.ready_date || null,
         dispatcher_status: values.dispatcher_status,
@@ -282,6 +297,25 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
                     onClick={() => toggleLoadMethod(m)}
                   >
                     {LOAD_METHOD_LABELS[m]}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <Label className="mb-1.5 block text-sm">Особенности кузова</Label>
+            <div className="flex flex-wrap gap-2">
+              {VEHICLE_FEATURES.map((f) => {
+                const on = values.body_features.includes(f);
+                return (
+                  <Button
+                    key={f}
+                    type="button"
+                    size="sm"
+                    variant={on ? "default" : "outline"}
+                    onClick={() => toggleBodyFeature(f)}
+                  >
+                    {VEHICLE_FEATURE_LABELS[f]}
                   </Button>
                 );
               })}

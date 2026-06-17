@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Users, Plus, Archive } from "lucide-react";
+import { Loader2, Users, Plus, Archive, UserPlus, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { apiDelete, apiGetAuth } from "@/lib/api-client";
+import { apiDelete, apiGetAuth, apiPost } from "@/lib/api-client";
 import { DRIVER_STATUS_LABELS, type DriverStatus } from "@/lib/dispatcher/statuses";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { CarrierDriverFormDialog } from "@/components/carrier/CarrierForms";
+import { InviteDriverDialog } from "@/components/carrier/InviteDriverDialog";
 
 export const Route = createFileRoute("/carrier/drivers")({
   head: () => ({ meta: [{ title: "Мои водители — кабинет перевозчика" }] }),
@@ -38,6 +39,7 @@ function statusLabel(s: string | null): string {
 function CarrierDriversPage() {
   const qc = useQueryClient();
   const [addOpen, setAddOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "drivers"],
     queryFn: () => apiGetAuth<{ rows: Driver[] }>("/api/carrier/drivers", 10000),
@@ -51,19 +53,42 @@ function CarrierDriversPage() {
     },
     onError: (e: Error) => toast.error(e.message || "Не удалось архивировать"),
   });
+  const selfMut = useMutation({
+    mutationFn: () =>
+      apiPost<{ ok: boolean; id?: string; existed?: boolean }>(
+        "/api/carrier/drivers",
+        { is_self: true, dispatcher_status: "ready_to_work" },
+      ),
+    onSuccess: (r) => {
+      qc.invalidateQueries({ queryKey: ["carrier", "drivers"] });
+      qc.invalidateQueries({ queryKey: ["carrier", "onboarding-status"] });
+      toast.success(r.existed ? "Вы уже в списке водителей" : "Добавлено: вы как водитель");
+    },
+    onError: (e: Error) => toast.error(e.message || "Не удалось добавить"),
+  });
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-3 pb-[env(safe-area-inset-bottom)]">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-lg font-medium">Мои водители</h2>
-        <Button size="sm" onClick={() => setAddOpen(true)}>
-          <Plus className="mr-1 h-4 w-4" /> Добавить водителя
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={() => selfMut.mutate()} disabled={selfMut.isPending}>
+            <UserPlus className="mr-1 h-4 w-4" /> Я сам водитель
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setInviteOpen(true)}>
+            <Link2 className="mr-1 h-4 w-4" /> Ссылка водителю
+          </Button>
+          <Button size="sm" onClick={() => setAddOpen(true)}>
+            <Plus className="mr-1 h-4 w-4" /> Добавить водителя
+          </Button>
+        </div>
       </div>
       <p className="text-sm text-muted-foreground">
-        Водители вашей компании. Можно добавить, редактировать и привязать к машине.
+        Водители вашей компании. Можно добавить, редактировать и привязать к машине. Один водитель может быть закреплён за несколькими машинами.
       </p>
       <CarrierDriverFormDialog open={addOpen} onOpenChange={setAddOpen} />
+      <InviteDriverDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+
 
 
       {isLoading ? (
