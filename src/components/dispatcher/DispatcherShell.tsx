@@ -24,6 +24,7 @@ import {
   LogOut,
   Menu,
   X,
+  Inbox,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -42,6 +43,7 @@ const NAV: readonly NavItem[] = [
   { to: "/dispatcher", label: "Обзор", icon: LayoutDashboard, match: (p) => p === "/dispatcher" || p === "/dispatcher/" },
   { to: "/dispatcher/map", label: "Карта машин", icon: MapPin },
   { to: "/dispatcher/freights", label: "Найденные грузы", icon: PackageSearch },
+  { to: "/dispatcher/inbound-documents", label: "Входящие заявки", icon: Inbox },
   { to: "/dispatcher/carriers", label: "Перевозчики", icon: Building2 },
   { to: "/dispatcher/drivers", label: "Водители", icon: User },
   { to: "/dispatcher/vehicles", label: "Транспорт", icon: Truck },
