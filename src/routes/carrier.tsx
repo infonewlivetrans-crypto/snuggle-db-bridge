@@ -14,11 +14,17 @@ export const Route = createFileRoute("/carrier")({
 });
 
 const TABS: Array<{
-  to: "/carrier" | "/carrier/vehicles" | "/carrier/drivers" | "/carrier/trips";
+  to:
+    | "/carrier"
+    | "/carrier/vehicles"
+    | "/carrier/drivers"
+    | "/carrier/trips"
+    | "/carrier/email-settings";
   label: string;
   exact: boolean;
 }> = [
   { to: "/carrier", label: "Мои данные", exact: true },
+  { to: "/carrier/email-settings", label: "Почта", exact: false },
   { to: "/carrier/vehicles", label: "Мой транспорт", exact: false },
   { to: "/carrier/drivers", label: "Мои водители", exact: false },
   { to: "/carrier/trips", label: "Задания / рейсы", exact: false },
