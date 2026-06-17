@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/carrier/onboarding-status")({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: carrierExt } = await (client.from("dispatcher_carrier_ext") as any)
           .select(
-            "id, name, inn, phone, city, ati_code, taxation_type, bank_name, bik, settlement_account, commission_agreed, onboarding_step",
+            "id, name, inn, phone, city, ati_code, taxation_type, bank_name, bik, settlement_account, commission_agreed, onboarding_step, onboarding_completed_at",
           )
           .eq("id", ext.id)
           .maybeSingle();
@@ -179,6 +179,17 @@ export const Route = createFileRoute("/api/carrier/onboarding-status")({
           "location",
         ];
         const nextStep = missing.find((m) => order.includes(m)) ?? "done";
+        const savedStep = (ce.onboarding_step as string | null) ?? null;
+        const completedAt = (ce.onboarding_completed_at as string | null) ?? null;
+        const currentStep = canAppearOnMap ? "done" : (savedStep && missing.includes(savedStep) ? savedStep : nextStep);
+
+        // Авто-проставление завершения, если всё готово и ещё не отмечено.
+        if (canAppearOnMap && !completedAt) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (client.from("dispatcher_carrier_ext") as any)
+            .update({ onboarding_completed_at: new Date().toISOString(), onboarding_step: "done" })
+            .eq("id", ext.id);
+        }
 
         return jsonResponse({
           ok: true,
@@ -198,6 +209,8 @@ export const Route = createFileRoute("/api/carrier/onboarding-status")({
           canAppearOnMap,
           missing,
           nextStep,
+          currentStep,
+          completedAt,
           counts: {
             drivers: drvList.length,
             vehicles: vehList.length,
