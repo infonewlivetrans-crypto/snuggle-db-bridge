@@ -96,6 +96,7 @@ import { Route as CarrierVehiclesRouteImport } from './routes/carrier.vehicles'
 import { Route as CarrierTripsRouteImport } from './routes/carrier.trips'
 import { Route as CarrierRegisterRouteImport } from './routes/carrier.register'
 import { Route as CarrierOnboardingRouteImport } from './routes/carrier.onboarding'
+import { Route as CarrierEmailSettingsRouteImport } from './routes/carrier.email-settings'
 import { Route as CarrierDriversRouteImport } from './routes/carrier.drivers'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
@@ -294,6 +295,7 @@ import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispat
 import { Route as ApiDispatcherTripsCreateRouteImport } from './routes/api/dispatcher/trips.create'
 import { Route as ApiDispatcherTasksGenerateDailyRouteImport } from './routes/api/dispatcher/tasks.generate-daily'
 import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
+import { Route as ApiDispatcherShipperEmailSendRouteImport } from './routes/api/dispatcher/shipper-email.send'
 import { Route as ApiDispatcherPartnerCardSendsRouteImport } from './routes/api/dispatcher/partner-card.sends'
 import { Route as ApiDispatcherPartnerCardPreviewRouteImport } from './routes/api/dispatcher/partner-card.preview'
 import { Route as ApiDispatcherIncomingEmailSyncRouteImport } from './routes/api/dispatcher/incoming-email.sync'
@@ -798,6 +800,11 @@ const CarrierRegisterRoute = CarrierRegisterRouteImport.update({
 const CarrierOnboardingRoute = CarrierOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => CarrierRoute,
+} as any)
+const CarrierEmailSettingsRoute = CarrierEmailSettingsRouteImport.update({
+  id: '/email-settings',
+  path: '/email-settings',
   getParentRoute: () => CarrierRoute,
 } as any)
 const CarrierDriversRoute = CarrierDriversRouteImport.update({
@@ -1823,6 +1830,12 @@ const ApiDispatcherTasksIdRoute = ApiDispatcherTasksIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherTasksRoute,
 } as any)
+const ApiDispatcherShipperEmailSendRoute =
+  ApiDispatcherShipperEmailSendRouteImport.update({
+    id: '/api/dispatcher/shipper-email/send',
+    path: '/api/dispatcher/shipper-email/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherPartnerCardSendsRoute =
   ApiDispatcherPartnerCardSendsRouteImport.update({
     id: '/api/dispatcher/partner-card/sends',
@@ -2343,6 +2356,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
   '/carrier/trips': typeof CarrierTripsRoute
@@ -2523,6 +2537,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
+  '/api/dispatcher/shipper-email/send': typeof ApiDispatcherShipperEmailSendRoute
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
@@ -2697,6 +2712,7 @@ export interface FileRoutesByTo {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
   '/carrier/trips': typeof CarrierTripsRoute
@@ -2877,6 +2893,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
+  '/api/dispatcher/shipper-email/send': typeof ApiDispatcherShipperEmailSendRoute
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
@@ -3053,6 +3070,7 @@ export interface FileRoutesById {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
   '/carrier/trips': typeof CarrierTripsRoute
@@ -3233,6 +3251,7 @@ export interface FileRoutesById {
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
+  '/api/dispatcher/shipper-email/send': typeof ApiDispatcherShipperEmailSendRoute
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
   '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
@@ -3410,6 +3429,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
     | '/carrier/trips'
@@ -3590,6 +3610,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
+    | '/api/dispatcher/shipper-email/send'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
     | '/api/dispatcher/trips/create'
@@ -3764,6 +3785,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
     | '/carrier/trips'
@@ -3944,6 +3966,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
+    | '/api/dispatcher/shipper-email/send'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
     | '/api/dispatcher/trips/create'
@@ -4119,6 +4142,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
     | '/carrier/trips'
@@ -4299,6 +4323,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
+    | '/api/dispatcher/shipper-email/send'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
     | '/api/dispatcher/trips/create'
@@ -4578,6 +4603,7 @@ export interface RootRouteChildren {
   ApiDispatcherIncomingEmailSyncRoute: typeof ApiDispatcherIncomingEmailSyncRoute
   ApiDispatcherPartnerCardPreviewRoute: typeof ApiDispatcherPartnerCardPreviewRoute
   ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRouteWithChildren
+  ApiDispatcherShipperEmailSendRoute: typeof ApiDispatcherShipperEmailSendRoute
   ApiDispatcherTripsCreateRoute: typeof ApiDispatcherTripsCreateRoute
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
@@ -5196,6 +5222,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/carrier/onboarding'
       preLoaderRoute: typeof CarrierOnboardingRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/email-settings': {
+      id: '/carrier/email-settings'
+      path: '/email-settings'
+      fullPath: '/carrier/email-settings'
+      preLoaderRoute: typeof CarrierEmailSettingsRouteImport
       parentRoute: typeof CarrierRoute
     }
     '/carrier/drivers': {
@@ -6584,6 +6617,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherTasksIdRouteImport
       parentRoute: typeof ApiDispatcherTasksRoute
     }
+    '/api/dispatcher/shipper-email/send': {
+      id: '/api/dispatcher/shipper-email/send'
+      path: '/api/dispatcher/shipper-email/send'
+      fullPath: '/api/dispatcher/shipper-email/send'
+      preLoaderRoute: typeof ApiDispatcherShipperEmailSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/partner-card/sends': {
       id: '/api/dispatcher/partner-card/sends'
       path: '/api/dispatcher/partner-card/sends'
@@ -7065,6 +7105,7 @@ declare module '@tanstack/react-router' {
 
 interface CarrierRouteChildren {
   CarrierDriversRoute: typeof CarrierDriversRoute
+  CarrierEmailSettingsRoute: typeof CarrierEmailSettingsRoute
   CarrierOnboardingRoute: typeof CarrierOnboardingRoute
   CarrierRegisterRoute: typeof CarrierRegisterRoute
   CarrierTripsRoute: typeof CarrierTripsRoute
@@ -7075,6 +7116,7 @@ interface CarrierRouteChildren {
 
 const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierDriversRoute: CarrierDriversRoute,
+  CarrierEmailSettingsRoute: CarrierEmailSettingsRoute,
   CarrierOnboardingRoute: CarrierOnboardingRoute,
   CarrierRegisterRoute: CarrierRegisterRoute,
   CarrierTripsRoute: CarrierTripsRoute,
@@ -8311,6 +8353,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherPartnerCardPreviewRoute: ApiDispatcherPartnerCardPreviewRoute,
   ApiDispatcherPartnerCardSendsRoute:
     ApiDispatcherPartnerCardSendsRouteWithChildren,
+  ApiDispatcherShipperEmailSendRoute: ApiDispatcherShipperEmailSendRoute,
   ApiDispatcherTripsCreateRoute: ApiDispatcherTripsCreateRoute,
   ApiPublicCarrierActivateTokenRoute: ApiPublicCarrierActivateTokenRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
