@@ -228,6 +228,7 @@ import { Route as ApiManagersListRouteImport } from './routes/api/managers.list'
 import { Route as ApiManagersImportRouteImport } from './routes/api/managers.import'
 import { Route as ApiManagersIdRouteImport } from './routes/api/managers.$id'
 import { Route as ApiInvitesIdRouteImport } from './routes/api/invites.$id'
+import { Route as ApiInboundSignaturesAssetsRouteImport } from './routes/api/inbound-signatures/assets'
 import { Route as ApiInboundShipmentsIdRouteImport } from './routes/api/inbound-shipments.$id'
 import { Route as ApiInboundShipmentItemsIdRouteImport } from './routes/api/inbound-shipment-items.$id'
 import { Route as ApiImportLogsIdRouteImport } from './routes/api/import-logs.$id'
@@ -1487,6 +1488,12 @@ const ApiInvitesIdRoute = ApiInvitesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiInvitesRoute,
 } as any)
+const ApiInboundSignaturesAssetsRoute =
+  ApiInboundSignaturesAssetsRouteImport.update({
+    id: '/api/inbound-signatures/assets',
+    path: '/api/inbound-signatures/assets',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiInboundShipmentsIdRoute = ApiInboundShipmentsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2537,6 +2544,7 @@ export interface FileRoutesByFullPath {
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
+  '/api/inbound-signatures/assets': typeof ApiInboundSignaturesAssetsRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -2903,6 +2911,7 @@ export interface FileRoutesByTo {
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
+  '/api/inbound-signatures/assets': typeof ApiInboundSignaturesAssetsRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -3271,6 +3280,7 @@ export interface FileRoutesById {
   '/api/import-logs/$id': typeof ApiImportLogsIdRoute
   '/api/inbound-shipment-items/$id': typeof ApiInboundShipmentItemsIdRoute
   '/api/inbound-shipments/$id': typeof ApiInboundShipmentsIdRoute
+  '/api/inbound-signatures/assets': typeof ApiInboundSignaturesAssetsRoute
   '/api/invites/$id': typeof ApiInvitesIdRoute
   '/api/managers/$id': typeof ApiManagersIdRoute
   '/api/managers/import': typeof ApiManagersImportRoute
@@ -3640,6 +3650,7 @@ export interface FileRouteTypes {
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
+    | '/api/inbound-signatures/assets'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -4006,6 +4017,7 @@ export interface FileRouteTypes {
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
+    | '/api/inbound-signatures/assets'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -4373,6 +4385,7 @@ export interface FileRouteTypes {
     | '/api/import-logs/$id'
     | '/api/inbound-shipment-items/$id'
     | '/api/inbound-shipments/$id'
+    | '/api/inbound-signatures/assets'
     | '/api/invites/$id'
     | '/api/managers/$id'
     | '/api/managers/import'
@@ -4720,6 +4733,7 @@ export interface RootRouteChildren {
   ApiDriverMyVehicleRoute: typeof ApiDriverMyVehicleRoute
   ApiDriverTripsRoute: typeof ApiDriverTripsRouteWithChildren
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
+  ApiInboundSignaturesAssetsRoute: typeof ApiInboundSignaturesAssetsRoute
   ApiPublicCarrierRegisterRoute: typeof ApiPublicCarrierRegisterRoute
   ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
   ApiStorageUploadRoute: typeof ApiStorageUploadRoute
@@ -6281,6 +6295,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/invites/$id'
       preLoaderRoute: typeof ApiInvitesIdRouteImport
       parentRoute: typeof ApiInvitesRoute
+    }
+    '/api/inbound-signatures/assets': {
+      id: '/api/inbound-signatures/assets'
+      path: '/api/inbound-signatures/assets'
+      fullPath: '/api/inbound-signatures/assets'
+      preLoaderRoute: typeof ApiInboundSignaturesAssetsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/inbound-shipments/$id': {
       id: '/api/inbound-shipments/$id'
@@ -8606,6 +8627,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverMyVehicleRoute: ApiDriverMyVehicleRoute,
   ApiDriverTripsRoute: ApiDriverTripsRouteWithChildren,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
+  ApiInboundSignaturesAssetsRoute: ApiInboundSignaturesAssetsRoute,
   ApiPublicCarrierRegisterRoute: ApiPublicCarrierRegisterRoute,
   ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
   ApiStorageUploadRoute: ApiStorageUploadRoute,
