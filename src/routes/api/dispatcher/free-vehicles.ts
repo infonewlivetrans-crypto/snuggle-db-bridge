@@ -58,7 +58,13 @@ export const Route = createFileRoute("/api/dispatcher/free-vehicles")({
             .or(
               "dispatcher_work_status.is.null,dispatcher_work_status.eq.free,dispatcher_work_status.eq.released",
             )
-            .in("load_status", ["empty", "partial"]);
+            .in("load_status", ["empty", "partial"])
+            // Onboarding gate: машина показывается только если есть
+            // закреплённый водитель и указано местоположение (город или
+            // координаты). Перевозчик видит «в подборе» в своём кабинете
+            // только после завершения этих шагов.
+            .not("dispatcher_driver_ext_id", "is", null)
+            .or("current_city.not.is.null,current_lat.not.is.null");
         } else if (status === "in_work") {
           q = q.in("dispatcher_work_status", ["in_work", "offered", "accepted"]);
         } else if (status === "mine") {
