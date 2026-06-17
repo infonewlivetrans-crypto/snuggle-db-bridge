@@ -860,9 +860,16 @@ export type Database = {
           email: string
           from_name: string | null
           id: string
+          imap_host: string | null
+          imap_password_encrypted: string | null
+          imap_port: number | null
+          imap_secure: boolean | null
+          imap_user: string | null
           is_active: boolean
           is_verified: boolean
           last_error: string | null
+          last_inbox_check_at: string | null
+          last_inbox_uid: number | null
           last_test_at: string | null
           smtp_host: string
           smtp_password_encrypted: string | null
@@ -878,9 +885,16 @@ export type Database = {
           email: string
           from_name?: string | null
           id?: string
+          imap_host?: string | null
+          imap_password_encrypted?: string | null
+          imap_port?: number | null
+          imap_secure?: boolean | null
+          imap_user?: string | null
           is_active?: boolean
           is_verified?: boolean
           last_error?: string | null
+          last_inbox_check_at?: string | null
+          last_inbox_uid?: number | null
           last_test_at?: string | null
           smtp_host: string
           smtp_password_encrypted?: string | null
@@ -896,9 +910,16 @@ export type Database = {
           email?: string
           from_name?: string | null
           id?: string
+          imap_host?: string | null
+          imap_password_encrypted?: string | null
+          imap_port?: number | null
+          imap_secure?: boolean | null
+          imap_user?: string | null
           is_active?: boolean
           is_verified?: boolean
           last_error?: string | null
+          last_inbox_check_at?: string | null
+          last_inbox_uid?: number | null
           last_test_at?: string | null
           smtp_host?: string
           smtp_password_encrypted?: string | null
@@ -1978,6 +1999,116 @@ export type Database = {
             columns: ["signed_pdf_document_id"]
             isOneToOne: false
             referencedRelation: "dispatcher_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_inbound_documents: {
+        Row: {
+          attachment_filename: string | null
+          attachment_hash: string | null
+          attachment_mime_type: string | null
+          attachment_size: number | null
+          carrier_ext_id: string
+          created_at: string
+          dispatcher_deal_id: string | null
+          dispatcher_freight_id: string | null
+          dispatcher_trip_id: string | null
+          document_kind: string | null
+          email_date: string | null
+          email_from: string | null
+          email_message_id: string | null
+          email_subject: string | null
+          error_message: string | null
+          extracted_text: string | null
+          id: string
+          parse_confidence: number | null
+          parse_warnings: string[] | null
+          parsed_payload: Json | null
+          processing_status: string
+          storage_bucket: string | null
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          attachment_filename?: string | null
+          attachment_hash?: string | null
+          attachment_mime_type?: string | null
+          attachment_size?: number | null
+          carrier_ext_id: string
+          created_at?: string
+          dispatcher_deal_id?: string | null
+          dispatcher_freight_id?: string | null
+          dispatcher_trip_id?: string | null
+          document_kind?: string | null
+          email_date?: string | null
+          email_from?: string | null
+          email_message_id?: string | null
+          email_subject?: string | null
+          error_message?: string | null
+          extracted_text?: string | null
+          id?: string
+          parse_confidence?: number | null
+          parse_warnings?: string[] | null
+          parsed_payload?: Json | null
+          processing_status?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attachment_filename?: string | null
+          attachment_hash?: string | null
+          attachment_mime_type?: string | null
+          attachment_size?: number | null
+          carrier_ext_id?: string
+          created_at?: string
+          dispatcher_deal_id?: string | null
+          dispatcher_freight_id?: string | null
+          dispatcher_trip_id?: string | null
+          document_kind?: string | null
+          email_date?: string | null
+          email_from?: string | null
+          email_message_id?: string | null
+          email_subject?: string | null
+          error_message?: string | null
+          extracted_text?: string | null
+          id?: string
+          parse_confidence?: number | null
+          parse_warnings?: string[] | null
+          parsed_payload?: Json | null
+          processing_status?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_inbound_documents_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_inbound_documents_dispatcher_deal_id_fkey"
+            columns: ["dispatcher_deal_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_inbound_documents_dispatcher_freight_id_fkey"
+            columns: ["dispatcher_freight_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_freights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_inbound_documents_dispatcher_trip_id_fkey"
+            columns: ["dispatcher_trip_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trips"
             referencedColumns: ["id"]
           },
         ]
