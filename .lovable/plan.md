@@ -1,111 +1,94 @@
+# MVP: Предложения рейсов + отправка грузовладельцу с почты перевозчика
 
-# Driver cabinet for AI-dispatcher trips (MVP)
+Большой, но цельный этап. Делю на 4 блока, каждый — атомарная единица.
 
-Reuse what's already in `src/routes/driver.*` + `src/components/Driver*`. Don't fork or rewrite the old delivery_routes flow. Add a parallel, lightweight "dispatcher trip" view that lives alongside it.
+## Блок 1. SMTP-почта перевозчика
 
-## What I will reuse (no rewrite)
-- `src/routes/driver.index.tsx` — extend list with a second section "Рейсы AI-диспетчера".
-- `src/routes/driver.vehicle.tsx`, `driver.register.$token.tsx` — untouched.
-- `src/components/DriverOrderCard.tsx`, `DriverGeoTracker`, `DeliveryPointsBlock`, photo/file upload utils (`src/lib/uploads.ts`, `offlinePhotoStore`) — reused inside the new trip page where applicable.
-- Existing auth/RLS via `requireSupabaseAuth` + `apiGetAuth/apiPostAuth`.
-- `src/lib/units.ts`, `vehicle-readiness.ts` already in place.
+**Новые файлы**
+- `supabase/migrations/*_carrier_email.sql` — таблица `dispatcher_carrier_email_accounts`:
+  `id, carrier_ext_id (FK), email, from_name, smtp_host, smtp_port, smtp_secure, smtp_user, smtp_password_encrypted, ati_email, is_verified, is_active, last_test_at, last_error, created_at, updated_at`.
+  GRANT authenticated/service_role. RLS: owner перевозчика SELECT/INSERT/UPDATE (через carrier_ext → auth.uid). **Колонка `smtp_password_encrypted` исключена из SELECT для роли карриера через view**: создаю view `dispatcher_carrier_email_accounts_safe` без пароля, фронт читает из view, пишет в таблицу.
+- `src/lib/email/crypto.server.ts` — AES-256-GCM шифрование с `EMAIL_ENCRYPTION_KEY`. Если ключа нет — throw понятная ошибка.
+- `src/lib/email/smtp.server.ts` — отправка через nodemailer (Worker-совместимая альтернатива: используем `nodemailer` через nodejs_compat; если не запустится — `smtp-client` fallback). На всякий случай возьму `nodemailer` — он работает в workerd с nodejs_compat.
+- `src/lib/server-functions/carrier-email.functions.ts` — `getEmailAccount`, `saveEmailAccount`, `testEmailAccount` (с `requireSupabaseAuth`). Никогда не возвращает пароль.
+- `src/routes/carrier.email-settings.tsx` — форма с полями + кнопка «Проверить почту». Статусы: не подключена / не проверена / проверена / ошибка.
 
-## Data model — one new table, no churn on old logistics
+**Edit**
+- `src/routes/carrier.index.tsx` — баннер «Подключите почту…» если аккаунта нет.
 
-Migration `dispatcher_trips` + `dispatcher_trip_points` + `dispatcher_trip_events`:
-- `dispatcher_trips`: `id`, `deal_id` (nullable fk → dispatcher_deals), `carrier_ext_id`, `vehicle_ext_id`, `driver_ext_id`, `status` enum (`assigned`,`to_pickup`,`at_pickup`,`loaded`,`to_dropoff`,`at_dropoff`,`unloaded`,`delivered`,`cancelled`), `current_point_idx`, `comment`, `rate_visible_to_driver`, timestamps.
-- `dispatcher_trip_points`: `id`, `trip_id`, `idx`, `kind` (`pickup`|`dropoff`|`waypoint`), `city`, `address`, `lat`, `lng`, `contact_name`, `contact_phone`, `scheduled_at`, `comment`, `status` (`pending`|`arrived`|`done`), `arrived_at`, `done_at`.
-- `dispatcher_trip_events`: `id`, `trip_id`, `point_id` nullable, `event`, `payload jsonb`, `at`, `actor_user_id`.
-- File attachments reuse existing storage via a `dispatcher_trip_documents` table (`trip_id`, `point_id` nullable, `kind`, `storage_path`, `required boolean default false`).
+**Secret**: попрошу пользователя добавить `EMAIL_ENCRYPTION_KEY` (32 байта hex/base64) через secrets tool.
 
-All four tables: GRANT to authenticated + service_role, RLS:
-- driver may SELECT trips where `driver_ext.user_id = auth.uid()`;
-- driver may UPDATE only own trip status + point status + insert events/docs;
-- carrier owner may SELECT trips of own carrier_ext; dispatcher (has_role) all.
+## Блок 2. Предложение рейса (offer)
 
-## API (server functions + 1 server route)
-All under `src/lib/server-functions/driver-trips.functions.ts` with `requireSupabaseAuth`:
-- `listDriverTrips()` → active + recent for current user's driver_ext.
-- `getDriverTrip({ tripId })` → trip + points + docs + events.
-- `advanceTripStatus({ tripId, next })` → validates legal transition, updates trip + current point status, writes event, on `delivered` flips `dispatcher_vehicle_ext.status` → `ready_to_work` and `dispatcher_driver_ext.status` → `ready_to_work` (only if they were busy on this trip).
-- `uploadTripDocument({ tripId, pointId?, kind, storagePath })` — records row; file upload uses existing storage helpers.
-- `createTripFromDeal({ dealId })` — dispatcher-only (has_role check), seeds points from deal/freight `loading_city`/`unloading_city`/addons; used by existing "назначить рейс" flow.
+**Миграция** — `dispatcher_carrier_offers`:
+`id, freight_id, vehicle_ext_id, carrier_ext_id, driver_ext_id, dispatcher_id, offer_status (enum), source_text, parsed_payload jsonb, shipper_company, shipper_contact_name, shipper_phone, shipper_email, rate_amount numeric, rate_vat_mode, payment_terms, sent_at, viewed_at, responded_at, response_comment, created_at, updated_at`.
+Enum: `draft|sent_to_carrier|viewed_by_carrier|accepted_by_carrier|declined_by_carrier|cancelled|expired`.
+GRANT + RLS: диспетчер видит все (через has_role), перевозчик — только свои (carrier_ext.owner_user_id = auth.uid).
 
-No service-role usage. No edge functions.
+**API (server functions)** в `src/lib/server-functions/carrier-offers.functions.ts`:
+- `createOffer` (dispatcher) — из формы «Собрать предложение рейса».
+- `sendOfferToCarrier` (dispatcher) — статус → sent_to_carrier, sent_at.
+- `listCarrierOffers` (carrier) — для входящих.
+- `markOfferViewed` (carrier).
+- `acceptOffer` (carrier) → accepted_by_carrier + emit notification для диспетчера.
+- `declineOffer` (carrier) с причиной.
 
-## UI
+**UI**
+- Edit `src/components/dispatcher/BuildOfferDialog.tsx` — добавить кнопку «Отправить перевозчику» рядом с «Собрать». Использовать существующий парсер `freight-parse.ts` для shipper_*.
+- Новый `src/routes/carrier.requests.tsx` — список входящих предложений + карточка с «Взять рейс / Отказаться».
 
-### `src/routes/driver.index.tsx`
-Add a section above old routes:
-- "Активный рейс" card (if any trip not in `delivered`/`cancelled`): route from → to, points count, cargo summary, big primary CTA "Открыть задание".
-- "История рейсов" collapsed list.
-- Existing "Мои маршруты" (старая логистика) section is kept below, only rendered if there are old routes — header changes to "Складские маршруты".
-- Empty state when neither: "Пока нет активных заданий…".
+## Блок 3. Громкие уведомления
 
-### New `src/routes/driver.trip.$tripId.tsx`
-Mobile-first, sectioned, sticky bottom action bar with `pb-[env(safe-area-inset-bottom)]`:
-1. Header — номер, статус-чип, откуда → куда.
-2. **Маршрут** — ordered list of points with kind icon (загрузка/выгрузка), city/address, time, contact (tap to call), comment, point status. "Открыть в навигаторе" → `yandexnavi://`/`geo:` fallback.
-3. **Груз** — weight (kg → tons via `formatTons`), volume, body type, comment.
-4. **Контакты** — диспетчер + контакты точек.
-5. **Документы** — upload buttons grouped by kind; required marked with red asterisk; optional otherwise; reuse `src/lib/uploads.ts`.
-6. **История статусов** — events list.
-7. Sticky CTA — next-action button per `nextActionFor(status, currentPointKind)`:
-   - assigned → "Поехал на загрузку"
-   - to_pickup → "Я на загрузке"
-   - at_pickup → "Загрузился" (advances point; if more pickups → back to to_pickup for next)
-   - loaded → "Поехал на выгрузку"
-   - to_dropoff → "Я на выгрузке"
-   - at_dropoff → "Выгрузился"
-   - unloaded (more dropoffs) → "Поехал на следующую выгрузку"
-   - last unload → "Сдал груз / завершить рейс"
-   - delivered → no CTA, banner "Рейс завершён".
+**Новые**
+- `src/lib/notifications/loud-ring.ts` — singleton: запускает HTMLAudioElement в loop, кнопка «Отключить». Базовый звук — генерируем через WebAudio (короткий beep loop), не нужен бинарь. Учитываем autoplay-policy: при первом клике в кабинете «armed».
+- `src/components/IncomingOfferToast.tsx` — модалка/баннер с loud-ring при появлении новой записи через realtime.
+- `src/hooks/use-incoming-offers.ts` — подписка на supabase realtime по `dispatcher_carrier_offers` фильтр `carrier_ext_id`.
+- Аналогично для диспетчера: `use-offer-responses.ts` — слышит accepted/declined.
 
-Errors render friendly Russian strings ("Не удалось…"), real error goes to console + server log.
+**Edit**
+- `src/routes/carrier.tsx` — монтирует `IncomingOfferToast`.
+- `src/routes/dispatcher.tsx` (или layout) — слушатель ответов перевозчика.
 
-### Hiding old-logistics blocks for dispatcher trips
-The new trip page is a separate route — old `driver.$deliveryRouteId.tsx` is not touched, so cash/QR/warehouse/return blocks never render here. The old route stays for складская логистика as-is.
+## Блок 4. Отправка письма грузовладельцу
 
-### Owner-driver
-`/carrier/drivers` already has "Я сам водитель" (idempotent — looks up by `user_id` first). Add a small banner on `/carrier` if `is_owner_driver=true`: "У вас есть доступ к водительскому кабинету →" link to `/driver`.
+**Миграция** — `dispatcher_email_messages`:
+`id, carrier_ext_id, offer_id, freight_id, deal_id, from_email, from_name, to_emails text[], cc_emails text[], subject, body, status (draft|sent|failed), provider text default 'carrier_smtp', error_message, sent_at, created_by uuid, created_at`.
+RLS: диспетчер всё, перевозчик — свои.
 
-## Status flips
-`advanceTripStatus` to `delivered`:
-- `update dispatcher_vehicle_ext set status='ready_to_work', updated_at=now() where id=$vehicle and assigned_driver_ext_id=$driver` — uses existing allowed status value (already in CHECK list).
-- `update dispatcher_driver_ext set status='ready_to_work' where id=$driver and user_id=auth.uid()`.
-- If `deal_id` set, update `dispatcher_deals.deal_status='delivered'`, `delivered_at=now()`.
+**API** `src/lib/server-functions/shipper-email.functions.ts`:
+- `prepareShipperEmail(offerId)` — собирает шаблон с подстановками.
+- `sendShipperEmail(offerId, { to, cc, subject, body })` — диспетчер; сервер вытаскивает carrier SMTP-аккаунт, отправляет через nodemailer, пишет в `dispatcher_email_messages`. Идемпотентность: уникальный `client_request_id`, чтоб двойной клик не дублировал.
 
-I'll first read the existing CHECK on both `status` columns and reuse one of the allowed free values (`ready_to_work` / `free` / `available`) — whichever already exists.
+**UI**
+- В карточке принятого offer у диспетчера — кнопка «Отправить данные грузовладельцу» → модалка с предзаполненным шаблоном (см. ТЗ).
+- Статус почты перевозчика в карточке: «Почта подключена / не подключена / не проверена».
+- В карточке offer/deal — таб «История»: события из offer полей + строки `dispatcher_email_messages`.
 
-## Out of scope (explicitly NOT doing)
-ATI parsing, cash, warehouse, returns, QR, kassa, AI freight search, emails/calls/invoices, redesign, nginx/PM2/DNS.
+## Технические замечания
 
-## Files
+- **nodemailer в workerd**: проверю; если падает — переключусь на raw SMTP через `node:net + node:tls` (минимальный клиент, ~150 строк). Не блокатор.
+- **realtime**: уже включён для других таблиц, проверю `supabase/config.toml` и добавлю публикацию для новых таблиц в миграции (`alter publication supabase_realtime add table ...`).
+- **types.ts регенерируется** после миграции.
+- **routeTree.gen.ts** обновится автоматически на dev-сервере, не редактирую вручную.
 
-New:
-- `supabase/migrations/<ts>_dispatcher_trips.sql`
-- `src/lib/server-functions/driver-trips.functions.ts`
-- `src/lib/server-functions/driver-trips.server.ts` (helpers)
-- `src/lib/dispatcher/trip-status.ts` (pure transitions + labels)
-- `src/routes/driver.trip.$tripId.tsx`
-- `src/components/driver/DriverTripCard.tsx`
-- `src/components/driver/DriverTripPointList.tsx`
-- `src/components/driver/DriverTripDocuments.tsx`
-- `src/components/driver/DriverTripActionBar.tsx`
+## Вне scope
+ATI API, AI-поиск, счета/акты, телефония, WhatsApp/Max автоотправка (только кнопки-deeplinks), массовые рассылки, редизайн.
 
-Edited:
-- `src/routes/driver.index.tsx` — add dispatcher-trips section, keep old.
-- `src/routes/carrier.index.tsx` — owner-driver banner.
-- `.lovable/plan.md` — append progress notes.
-- `src/integrations/supabase/types.ts` — regenerated after migration.
+## Порядок выполнения
+1. Спросить про `EMAIL_ENCRYPTION_KEY` (secret).
+2. Миграция 1 (email accounts) + миграция 2 (offers + messages + realtime publication) — двумя вызовами migration tool подряд.
+3. После approve миграций: server functions, UI карриера (email settings + requests), UI диспетчера (send offer + send shipper email), realtime toasts со звуком.
+4. Проверка через preview, отчёт.
 
-## What to verify on production (radius-track.ru)
-1. Dispatcher assigns a deal to vehicle+driver → trip auto-created → appears in `/driver`.
-2. Owner-driver sees same trip in `/driver` after using "Я сам водитель".
-3. Multi-pickup + multi-dropoff trip walks through statuses in order.
-4. Photo upload to a point works from Max Messenger and Telegram in-app browser.
-5. After "Сдал груз", vehicle reappears as free on `/dispatcher/map`.
-6. Old `/driver/$deliveryRouteId` warehouse trip still shows cash/QR/warehouse blocks as before.
-7. `tsc --noEmit` and `npm run build` pass locally.
+## Файлы (оценка)
+- Новых: ~14 (2 миграции, 4 server functions, 3 route, 4 component/hook, 1 crypto helper)
+- Edit: ~5 (carrier.index, carrier.tsx, dispatcher layout, BuildOfferDialog, plan.md)
 
-Approve and I'll implement in one batch (migration first, then code).
+## Production проверка
+- /carrier/email-settings: ввести SMTP Яндекса/Mail.ru с app-password, нажать «Проверить» — письмо приходит.
+- Диспетчер: собрать offer → отправить → на втором браузере карриер слышит звонок → принимает.
+- Диспетчер слышит «принято» → отправляет письмо грузовладельцу → письмо реально приходит с адреса перевозчика, Reply-To корректный.
+- Двойной клик — один email в журнале.
+- tsc --noEmit и npm run build зелёные.
+
+Готов начать с запроса `EMAIL_ENCRYPTION_KEY` и первой миграции?
