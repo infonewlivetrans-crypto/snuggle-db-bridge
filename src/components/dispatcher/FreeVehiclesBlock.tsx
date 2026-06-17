@@ -504,6 +504,7 @@ function VehicleDetailsDialog({
             </>
           )}
         </DialogFooter>
+        </div>
       </DialogContent>
       <AddFoundFreightDialog
         vehicle={v}

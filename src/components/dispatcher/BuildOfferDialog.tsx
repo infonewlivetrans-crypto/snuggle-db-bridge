@@ -104,7 +104,8 @@ export function BuildOfferDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-screen h-[100dvh] max-w-none rounded-none p-0 sm:max-w-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg flex flex-col gap-0 overflow-hidden">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4" style={{ touchAction: "pan-y" }}>
         <DialogHeader>
           <DialogTitle>Предложение рейса перевозчику</DialogTitle>
           <DialogDescription>
@@ -211,6 +212,7 @@ export function BuildOfferDialog({
             Отправить предложение
           </Button>
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -247,7 +247,7 @@ function VehicleMiniCard({
         </span>
       </div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-muted-foreground">
-        <div><span className="text-foreground/70">Тоннаж:</span> {fmtNum(v.payload_kg, " кг")}</div>
+        <div><span className="text-foreground/70">Тоннаж:</span> {v.payload_kg != null ? `${(v.payload_kg / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 2 })} т` : "—"}</div>
         <div><span className="text-foreground/70">Объём:</span> {fmtNum(v.volume_m3, " м³")}</div>
       </div>
       <div className="flex items-center gap-1 truncate text-muted-foreground">
@@ -527,7 +527,7 @@ function renderPopupHtml(v: FreeVehicleRow, st: Status): string {
         </span>
       </div>
       <div style="color:#475569;font-size:12px;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px">
-        <div><b style="color:#334155">Тоннаж:</b> ${v.payload_kg != null ? formatNum(v.payload_kg) + " кг" : "—"}</div>
+        <div><b style="color:#334155">Тоннаж:</b> ${v.payload_kg != null ? (v.payload_kg / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 2 }) + " т" : "—"}</div>
         <div><b style="color:#334155">Объём:</b> ${v.volume_m3 != null ? formatNum(v.volume_m3) + " м³" : "—"}</div>
       </div>
       <div style="margin-top:4px;color:#475569;font-size:12px">
