@@ -232,6 +232,7 @@ import { Route as ApiGeoGeocodeRouteImport } from './routes/api/geo.geocode'
 import { Route as ApiDriversImportRouteImport } from './routes/api/drivers.import'
 import { Route as ApiDriversIdRouteImport } from './routes/api/drivers.$id'
 import { Route as ApiDriverUnreadClientMessagesRouteImport } from './routes/api/driver.unread-client-messages'
+import { Route as ApiDriverTripsRouteImport } from './routes/api/driver/trips'
 import { Route as ApiDriverMyVehicleRouteImport } from './routes/api/driver.my-vehicle'
 import { Route as ApiDriverMyRoutesRouteImport } from './routes/api/driver.my-routes'
 import { Route as ApiDockLoadingConfirmRouteImport } from './routes/api/dock-loading.confirm'
@@ -286,7 +287,9 @@ import { Route as ApiPilotTasksTaskIdCommentsRouteImport } from './routes/api/pi
 import { Route as ApiOrdersIdRouteLinkRouteImport } from './routes/api/orders.$id.route-link'
 import { Route as ApiOrdersIdDriverClientMessagesRouteImport } from './routes/api/orders.$id.driver-client-messages'
 import { Route as ApiOrdersIdClientMessagesRouteImport } from './routes/api/orders.$id.client-messages'
+import { Route as ApiDriverTripsTripIdRouteImport } from './routes/api/driver/trips.$tripId'
 import { Route as ApiDispatcherVehiclesIdRouteImport } from './routes/api/dispatcher/vehicles.$id'
+import { Route as ApiDispatcherTripsCreateRouteImport } from './routes/api/dispatcher/trips.create'
 import { Route as ApiDispatcherTasksGenerateDailyRouteImport } from './routes/api/dispatcher/tasks.generate-daily'
 import { Route as ApiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/tasks.$id'
 import { Route as ApiDispatcherPartnerCardSendsRouteImport } from './routes/api/dispatcher/partner-card.sends'
@@ -327,6 +330,8 @@ import { Route as ApiPublicDriverInviteTokenRegisterRouteImport } from './routes
 import { Route as ApiPublicDispatcherInviteTokenCompleteRouteImport } from './routes/api/public/dispatcher-invite.$token.complete'
 import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
 import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
+import { Route as ApiDriverTripsTripIdDocumentsRouteImport } from './routes/api/driver/trips.$tripId.documents'
+import { Route as ApiDriverTripsTripIdAdvanceRouteImport } from './routes/api/driver/trips.$tripId.advance'
 import { Route as ApiDispatcherVehiclesIdTakeWorkRouteImport } from './routes/api/dispatcher/vehicles.$id.take-work'
 import { Route as ApiDispatcherVehiclesIdReleaseWorkRouteImport } from './routes/api/dispatcher/vehicles.$id.release-work'
 import { Route as ApiDispatcherTasksIdCompleteRouteImport } from './routes/api/dispatcher/tasks.$id.complete'
@@ -1487,6 +1492,11 @@ const ApiDriverUnreadClientMessagesRoute =
     path: '/api/driver/unread-client-messages',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDriverTripsRoute = ApiDriverTripsRouteImport.update({
+  id: '/api/driver/trips',
+  path: '/api/driver/trips',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDriverMyVehicleRoute = ApiDriverMyVehicleRouteImport.update({
   id: '/api/driver/my-vehicle',
   path: '/api/driver/my-vehicle',
@@ -1773,11 +1783,22 @@ const ApiOrdersIdClientMessagesRoute =
     path: '/client-messages',
     getParentRoute: () => ApiOrdersIdRoute,
   } as any)
+const ApiDriverTripsTripIdRoute = ApiDriverTripsTripIdRouteImport.update({
+  id: '/$tripId',
+  path: '/$tripId',
+  getParentRoute: () => ApiDriverTripsRoute,
+} as any)
 const ApiDispatcherVehiclesIdRoute = ApiDispatcherVehiclesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => ApiDispatcherVehiclesRoute,
 } as any)
+const ApiDispatcherTripsCreateRoute =
+  ApiDispatcherTripsCreateRouteImport.update({
+    id: '/api/dispatcher/trips/create',
+    path: '/api/dispatcher/trips/create',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherTasksGenerateDailyRoute =
   ApiDispatcherTasksGenerateDailyRouteImport.update({
     id: '/generate-daily',
@@ -2002,6 +2023,18 @@ const ApiOrdersIdClientMessagesMarkReadRoute =
     id: '/mark-read',
     path: '/mark-read',
     getParentRoute: () => ApiOrdersIdClientMessagesRoute,
+  } as any)
+const ApiDriverTripsTripIdDocumentsRoute =
+  ApiDriverTripsTripIdDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
+    getParentRoute: () => ApiDriverTripsTripIdRoute,
+  } as any)
+const ApiDriverTripsTripIdAdvanceRoute =
+  ApiDriverTripsTripIdAdvanceRouteImport.update({
+    id: '/advance',
+    path: '/advance',
+    getParentRoute: () => ApiDriverTripsTripIdRoute,
   } as any)
 const ApiDispatcherVehiclesIdTakeWorkRoute =
   ApiDispatcherVehiclesIdTakeWorkRouteImport.update({
@@ -2387,6 +2420,7 @@ export interface FileRoutesByFullPath {
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/driver/my-vehicle': typeof ApiDriverMyVehicleRoute
+  '/api/driver/trips': typeof ApiDriverTripsRouteWithChildren
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -2469,7 +2503,9 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
+  '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
+  '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -2504,6 +2540,8 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
   '/api/dispatcher/vehicles/$id/release-work': typeof ApiDispatcherVehiclesIdReleaseWorkRoute
   '/api/dispatcher/vehicles/$id/take-work': typeof ApiDispatcherVehiclesIdTakeWorkRoute
+  '/api/driver/trips/$tripId/advance': typeof ApiDriverTripsTripIdAdvanceRoute
+  '/api/driver/trips/$tripId/documents': typeof ApiDriverTripsTripIdDocumentsRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
@@ -2733,6 +2771,7 @@ export interface FileRoutesByTo {
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/driver/my-vehicle': typeof ApiDriverMyVehicleRoute
+  '/api/driver/trips': typeof ApiDriverTripsRouteWithChildren
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -2815,7 +2854,9 @@ export interface FileRoutesByTo {
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
+  '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
+  '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -2850,6 +2891,8 @@ export interface FileRoutesByTo {
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
   '/api/dispatcher/vehicles/$id/release-work': typeof ApiDispatcherVehiclesIdReleaseWorkRoute
   '/api/dispatcher/vehicles/$id/take-work': typeof ApiDispatcherVehiclesIdTakeWorkRoute
+  '/api/driver/trips/$tripId/advance': typeof ApiDriverTripsTripIdAdvanceRoute
+  '/api/driver/trips/$tripId/documents': typeof ApiDriverTripsTripIdDocumentsRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
@@ -3081,6 +3124,7 @@ export interface FileRoutesById {
   '/api/dock-loading/confirm': typeof ApiDockLoadingConfirmRoute
   '/api/driver/my-routes': typeof ApiDriverMyRoutesRoute
   '/api/driver/my-vehicle': typeof ApiDriverMyVehicleRoute
+  '/api/driver/trips': typeof ApiDriverTripsRouteWithChildren
   '/api/driver/unread-client-messages': typeof ApiDriverUnreadClientMessagesRoute
   '/api/drivers/$id': typeof ApiDriversIdRoute
   '/api/drivers/import': typeof ApiDriversImportRoute
@@ -3163,7 +3207,9 @@ export interface FileRoutesById {
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
   '/api/dispatcher/tasks/$id': typeof ApiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/tasks/generate-daily': typeof ApiDispatcherTasksGenerateDailyRoute
+  '/api/dispatcher/trips/create': typeof ApiDispatcherTripsCreateRoute
   '/api/dispatcher/vehicles/$id': typeof ApiDispatcherVehiclesIdRouteWithChildren
+  '/api/driver/trips/$tripId': typeof ApiDriverTripsTripIdRouteWithChildren
   '/api/orders/$id/client-messages': typeof ApiOrdersIdClientMessagesRouteWithChildren
   '/api/orders/$id/driver-client-messages': typeof ApiOrdersIdDriverClientMessagesRouteWithChildren
   '/api/orders/$id/route-link': typeof ApiOrdersIdRouteLinkRoute
@@ -3198,6 +3244,8 @@ export interface FileRoutesById {
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
   '/api/dispatcher/vehicles/$id/release-work': typeof ApiDispatcherVehiclesIdReleaseWorkRoute
   '/api/dispatcher/vehicles/$id/take-work': typeof ApiDispatcherVehiclesIdTakeWorkRoute
+  '/api/driver/trips/$tripId/advance': typeof ApiDriverTripsTripIdAdvanceRoute
+  '/api/driver/trips/$tripId/documents': typeof ApiDriverTripsTripIdDocumentsRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
@@ -3430,6 +3478,7 @@ export interface FileRouteTypes {
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/driver/my-vehicle'
+    | '/api/driver/trips'
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -3512,7 +3561,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
+    | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
+    | '/api/driver/trips/$tripId'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
@@ -3547,6 +3598,8 @@ export interface FileRouteTypes {
     | '/api/dispatcher/tasks/$id/complete'
     | '/api/dispatcher/vehicles/$id/release-work'
     | '/api/dispatcher/vehicles/$id/take-work'
+    | '/api/driver/trips/$tripId/advance'
+    | '/api/driver/trips/$tripId/documents'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
@@ -3776,6 +3829,7 @@ export interface FileRouteTypes {
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/driver/my-vehicle'
+    | '/api/driver/trips'
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -3858,7 +3912,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
+    | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
+    | '/api/driver/trips/$tripId'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
@@ -3893,6 +3949,8 @@ export interface FileRouteTypes {
     | '/api/dispatcher/tasks/$id/complete'
     | '/api/dispatcher/vehicles/$id/release-work'
     | '/api/dispatcher/vehicles/$id/take-work'
+    | '/api/driver/trips/$tripId/advance'
+    | '/api/driver/trips/$tripId/documents'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
@@ -4123,6 +4181,7 @@ export interface FileRouteTypes {
     | '/api/dock-loading/confirm'
     | '/api/driver/my-routes'
     | '/api/driver/my-vehicle'
+    | '/api/driver/trips'
     | '/api/driver/unread-client-messages'
     | '/api/drivers/$id'
     | '/api/drivers/import'
@@ -4205,7 +4264,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/partner-card/sends'
     | '/api/dispatcher/tasks/$id'
     | '/api/dispatcher/tasks/generate-daily'
+    | '/api/dispatcher/trips/create'
     | '/api/dispatcher/vehicles/$id'
+    | '/api/driver/trips/$tripId'
     | '/api/orders/$id/client-messages'
     | '/api/orders/$id/driver-client-messages'
     | '/api/orders/$id/route-link'
@@ -4240,6 +4301,8 @@ export interface FileRouteTypes {
     | '/api/dispatcher/tasks/$id/complete'
     | '/api/dispatcher/vehicles/$id/release-work'
     | '/api/dispatcher/vehicles/$id/take-work'
+    | '/api/driver/trips/$tripId/advance'
+    | '/api/driver/trips/$tripId/documents'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
@@ -4458,6 +4521,7 @@ export interface RootRouteChildren {
   ApiDockLoadingConfirmRoute: typeof ApiDockLoadingConfirmRoute
   ApiDriverMyRoutesRoute: typeof ApiDriverMyRoutesRoute
   ApiDriverMyVehicleRoute: typeof ApiDriverMyVehicleRoute
+  ApiDriverTripsRoute: typeof ApiDriverTripsRouteWithChildren
   ApiDriverUnreadClientMessagesRoute: typeof ApiDriverUnreadClientMessagesRoute
   ApiPublicCarrierRegisterRoute: typeof ApiPublicCarrierRegisterRoute
   ApiPublicDispatcherJoinRoute: typeof ApiPublicDispatcherJoinRoute
@@ -4475,6 +4539,7 @@ export interface RootRouteChildren {
   ApiDispatcherIncomingEmailSyncRoute: typeof ApiDispatcherIncomingEmailSyncRoute
   ApiDispatcherPartnerCardPreviewRoute: typeof ApiDispatcherPartnerCardPreviewRoute
   ApiDispatcherPartnerCardSendsRoute: typeof ApiDispatcherPartnerCardSendsRouteWithChildren
+  ApiDispatcherTripsCreateRoute: typeof ApiDispatcherTripsCreateRoute
   ApiPublicCarrierActivateTokenRoute: typeof ApiPublicCarrierActivateTokenRoute
   ApiPublicClientPortalTokenRoute: typeof ApiPublicClientPortalTokenRouteWithChildren
   ApiPublicDispatcherInviteTokenRoute: typeof ApiPublicDispatcherInviteTokenRouteWithChildren
@@ -6046,6 +6111,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDriverUnreadClientMessagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/driver/trips': {
+      id: '/api/driver/trips'
+      path: '/api/driver/trips'
+      fullPath: '/api/driver/trips'
+      preLoaderRoute: typeof ApiDriverTripsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/driver/my-vehicle': {
       id: '/api/driver/my-vehicle'
       path: '/api/driver/my-vehicle'
@@ -6424,12 +6496,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersIdClientMessagesRouteImport
       parentRoute: typeof ApiOrdersIdRoute
     }
+    '/api/driver/trips/$tripId': {
+      id: '/api/driver/trips/$tripId'
+      path: '/$tripId'
+      fullPath: '/api/driver/trips/$tripId'
+      preLoaderRoute: typeof ApiDriverTripsTripIdRouteImport
+      parentRoute: typeof ApiDriverTripsRoute
+    }
     '/api/dispatcher/vehicles/$id': {
       id: '/api/dispatcher/vehicles/$id'
       path: '/$id'
       fullPath: '/api/dispatcher/vehicles/$id'
       preLoaderRoute: typeof ApiDispatcherVehiclesIdRouteImport
       parentRoute: typeof ApiDispatcherVehiclesRoute
+    }
+    '/api/dispatcher/trips/create': {
+      id: '/api/dispatcher/trips/create'
+      path: '/api/dispatcher/trips/create'
+      fullPath: '/api/dispatcher/trips/create'
+      preLoaderRoute: typeof ApiDispatcherTripsCreateRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/dispatcher/tasks/generate-daily': {
       id: '/api/dispatcher/tasks/generate-daily'
@@ -6710,6 +6796,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/$id/client-messages/mark-read'
       preLoaderRoute: typeof ApiOrdersIdClientMessagesMarkReadRouteImport
       parentRoute: typeof ApiOrdersIdClientMessagesRoute
+    }
+    '/api/driver/trips/$tripId/documents': {
+      id: '/api/driver/trips/$tripId/documents'
+      path: '/documents'
+      fullPath: '/api/driver/trips/$tripId/documents'
+      preLoaderRoute: typeof ApiDriverTripsTripIdDocumentsRouteImport
+      parentRoute: typeof ApiDriverTripsTripIdRoute
+    }
+    '/api/driver/trips/$tripId/advance': {
+      id: '/api/driver/trips/$tripId/advance'
+      path: '/advance'
+      fullPath: '/api/driver/trips/$tripId/advance'
+      preLoaderRoute: typeof ApiDriverTripsTripIdAdvanceRouteImport
+      parentRoute: typeof ApiDriverTripsTripIdRoute
     }
     '/api/dispatcher/vehicles/$id/take-work': {
       id: '/api/dispatcher/vehicles/$id/take-work'
@@ -7787,6 +7887,31 @@ const ApiDispatcherVehiclesRouteWithChildren =
     ApiDispatcherVehiclesRouteChildren,
   )
 
+interface ApiDriverTripsTripIdRouteChildren {
+  ApiDriverTripsTripIdAdvanceRoute: typeof ApiDriverTripsTripIdAdvanceRoute
+  ApiDriverTripsTripIdDocumentsRoute: typeof ApiDriverTripsTripIdDocumentsRoute
+}
+
+const ApiDriverTripsTripIdRouteChildren: ApiDriverTripsTripIdRouteChildren = {
+  ApiDriverTripsTripIdAdvanceRoute: ApiDriverTripsTripIdAdvanceRoute,
+  ApiDriverTripsTripIdDocumentsRoute: ApiDriverTripsTripIdDocumentsRoute,
+}
+
+const ApiDriverTripsTripIdRouteWithChildren =
+  ApiDriverTripsTripIdRoute._addFileChildren(ApiDriverTripsTripIdRouteChildren)
+
+interface ApiDriverTripsRouteChildren {
+  ApiDriverTripsTripIdRoute: typeof ApiDriverTripsTripIdRouteWithChildren
+}
+
+const ApiDriverTripsRouteChildren: ApiDriverTripsRouteChildren = {
+  ApiDriverTripsTripIdRoute: ApiDriverTripsTripIdRouteWithChildren,
+}
+
+const ApiDriverTripsRouteWithChildren = ApiDriverTripsRoute._addFileChildren(
+  ApiDriverTripsRouteChildren,
+)
+
 interface ApiDispatcherCommissionsEarningsRouteChildren {
   ApiDispatcherCommissionsEarningsDealIdPayoutRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
 }
@@ -8089,6 +8214,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDockLoadingConfirmRoute: ApiDockLoadingConfirmRoute,
   ApiDriverMyRoutesRoute: ApiDriverMyRoutesRoute,
   ApiDriverMyVehicleRoute: ApiDriverMyVehicleRoute,
+  ApiDriverTripsRoute: ApiDriverTripsRouteWithChildren,
   ApiDriverUnreadClientMessagesRoute: ApiDriverUnreadClientMessagesRoute,
   ApiPublicCarrierRegisterRoute: ApiPublicCarrierRegisterRoute,
   ApiPublicDispatcherJoinRoute: ApiPublicDispatcherJoinRoute,
@@ -8109,6 +8235,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherPartnerCardPreviewRoute: ApiDispatcherPartnerCardPreviewRoute,
   ApiDispatcherPartnerCardSendsRoute:
     ApiDispatcherPartnerCardSendsRouteWithChildren,
+  ApiDispatcherTripsCreateRoute: ApiDispatcherTripsCreateRoute,
   ApiPublicCarrierActivateTokenRoute: ApiPublicCarrierActivateTokenRoute,
   ApiPublicClientPortalTokenRoute: ApiPublicClientPortalTokenRouteWithChildren,
   ApiPublicDispatcherInviteTokenRoute:
