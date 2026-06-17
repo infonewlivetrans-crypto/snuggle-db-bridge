@@ -299,6 +299,11 @@ export const freightCreateSchema = z.object({
   assigned_carrier_ext_id: optionalUuid.optional(),
   assigned_driver_ext_id: optionalUuid.optional(),
   assigned_vehicle_ext_id: optionalUuid.optional(),
+  source_text: nullableText(20000).optional(),
+  parsed_payload: z.any().optional().nullable(),
+  cargo_items: z.array(z.any()).optional().nullable(),
+  route_points: z.array(z.any()).optional().nullable(),
+  offer_status: nullableText(32).optional(),
 });
 export type FreightCreateInput = z.infer<typeof freightCreateSchema>;
 
