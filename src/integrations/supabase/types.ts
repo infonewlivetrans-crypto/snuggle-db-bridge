@@ -286,6 +286,62 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_signature_assets: {
+        Row: {
+          bg_removal: Json | null
+          carrier_ext_id: string
+          consent_confirmed_at: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          signature_bbox: Json | null
+          signature_file_path: string | null
+          source_file_path: string | null
+          stamp_bbox: Json | null
+          stamp_file_path: string | null
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          bg_removal?: Json | null
+          carrier_ext_id: string
+          consent_confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          signature_bbox?: Json | null
+          signature_file_path?: string | null
+          source_file_path?: string | null
+          stamp_bbox?: Json | null
+          stamp_file_path?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          bg_removal?: Json | null
+          carrier_ext_id?: string
+          consent_confirmed_at?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          signature_bbox?: Json | null
+          signature_file_path?: string | null
+          source_file_path?: string | null
+          stamp_bbox?: Json | null
+          stamp_file_path?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_signature_assets_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carriers: {
         Row: {
           bank_account: string | null
@@ -1502,6 +1558,86 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "dispatcher_vehicle_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dispatcher_document_signatures: {
+        Row: {
+          carrier_ext_id: string
+          created_at: string
+          id: string
+          inbound_document_id: string | null
+          manual_signed_document_path: string | null
+          placement: Json | null
+          signature_asset_id: string | null
+          signed_at: string | null
+          signed_by: string | null
+          signed_document_path: string | null
+          source_document_path: string
+          status: string
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_ext_id: string
+          created_at?: string
+          id?: string
+          inbound_document_id?: string | null
+          manual_signed_document_path?: string | null
+          placement?: Json | null
+          signature_asset_id?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          signed_document_path?: string | null
+          source_document_path: string
+          status?: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_ext_id?: string
+          created_at?: string
+          id?: string
+          inbound_document_id?: string | null
+          manual_signed_document_path?: string | null
+          placement?: Json | null
+          signature_asset_id?: string | null
+          signed_at?: string | null
+          signed_by?: string | null
+          signed_document_path?: string | null
+          source_document_path?: string
+          status?: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispatcher_document_signatures_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_document_signatures_inbound_document_id_fkey"
+            columns: ["inbound_document_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_inbound_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_document_signatures_signature_asset_id_fkey"
+            columns: ["signature_asset_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_signature_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispatcher_document_signatures_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trips"
             referencedColumns: ["id"]
           },
         ]
@@ -6961,6 +7097,10 @@ export type Database = {
           p_ttl_days?: number
         }
         Returns: undefined
+      }
+      user_belongs_to_carrier_ext: {
+        Args: { _carrier_ext_id: string }
+        Returns: boolean
       }
       user_company_ids: { Args: { _user_id: string }; Returns: string[] }
       user_owns_vehicle_as_carrier: {
