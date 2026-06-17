@@ -242,6 +242,7 @@ import { Route as ApiDispatcherVehiclesRouteImport } from './routes/api/dispatch
 import { Route as ApiDispatcherTimelineRouteImport } from './routes/api/dispatcher/timeline'
 import { Route as ApiDispatcherTasksRouteImport } from './routes/api/dispatcher/tasks'
 import { Route as ApiDispatcherInvitesRouteImport } from './routes/api/dispatcher/invites'
+import { Route as ApiDispatcherInboundDocumentsRouteImport } from './routes/api/dispatcher/inbound-documents'
 import { Route as ApiDispatcherFreightsRouteImport } from './routes/api/dispatcher/freights'
 import { Route as ApiDispatcherFreeVehiclesRouteImport } from './routes/api/dispatcher/free-vehicles'
 import { Route as ApiDispatcherDriversRouteImport } from './routes/api/dispatcher/drivers'
@@ -264,6 +265,7 @@ import { Route as ApiCarrierRequestsRouteImport } from './routes/api/carrier/req
 import { Route as ApiCarrierOnboardingStatusRouteImport } from './routes/api/carrier/onboarding-status'
 import { Route as ApiCarrierOfferAcceptanceRouteImport } from './routes/api/carrier/offer-acceptance'
 import { Route as ApiCarrierMeRouteImport } from './routes/api/carrier/me'
+import { Route as ApiCarrierInboundDocumentsRouteImport } from './routes/api/carrier/inbound-documents'
 import { Route as ApiCarrierEmailAccountRouteImport } from './routes/api/carrier/email-account'
 import { Route as ApiCarrierDriversRouteImport } from './routes/api/carrier/drivers'
 import { Route as ApiCarrierDriverInvitesRouteImport } from './routes/api/carrier/driver-invites'
@@ -300,6 +302,7 @@ import { Route as ApiDispatcherShipperEmailSendRouteImport } from './routes/api/
 import { Route as ApiDispatcherPartnerCardSendsRouteImport } from './routes/api/dispatcher/partner-card.sends'
 import { Route as ApiDispatcherPartnerCardPreviewRouteImport } from './routes/api/dispatcher/partner-card.preview'
 import { Route as ApiDispatcherIncomingEmailSyncRouteImport } from './routes/api/dispatcher/incoming-email.sync'
+import { Route as ApiDispatcherInboundDocumentsIdRouteImport } from './routes/api/dispatcher/inbound-documents.$id'
 import { Route as ApiDispatcherFreightsFromEmailRouteImport } from './routes/api/dispatcher/freights.from-email'
 import { Route as ApiDispatcherFreightsCreateCarrierRequestBatchRouteImport } from './routes/api/dispatcher/freights.create-carrier-request-batch'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
@@ -322,6 +325,7 @@ import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './route
 import { Route as ApiClientsIdPortalLinkRouteImport } from './routes/api/clients.$id.portal-link'
 import { Route as ApiCarrierVehiclesIdRouteImport } from './routes/api/carrier/vehicles.$id'
 import { Route as ApiCarrierRequestsIdRouteImport } from './routes/api/carrier/requests.$id'
+import { Route as ApiCarrierInboundDocumentsSyncRouteImport } from './routes/api/carrier/inbound-documents.sync'
 import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
 import { Route as ApiCarrierEmailAccountTestRouteImport } from './routes/api/carrier/email-account.test'
 import { Route as ApiCarrierDriversIdRouteImport } from './routes/api/carrier/drivers.$id'
@@ -343,6 +347,9 @@ import { Route as ApiDispatcherVehiclesIdReleaseWorkRouteImport } from './routes
 import { Route as ApiDispatcherTasksIdCompleteRouteImport } from './routes/api/dispatcher/tasks.$id.complete'
 import { Route as ApiDispatcherPartnerCardSendsIdRouteImport } from './routes/api/dispatcher/partner-card.sends.$id'
 import { Route as ApiDispatcherInvitesIdRevokeRouteImport } from './routes/api/dispatcher/invites.$id.revoke'
+import { Route as ApiDispatcherInboundDocumentsIdParseRouteImport } from './routes/api/dispatcher/inbound-documents.$id.parse'
+import { Route as ApiDispatcherInboundDocumentsIdIgnoreRouteImport } from './routes/api/dispatcher/inbound-documents.$id.ignore'
+import { Route as ApiDispatcherInboundDocumentsIdCreateTripRouteImport } from './routes/api/dispatcher/inbound-documents.$id.create-trip'
 import { Route as ApiDispatcherFreightsIdMatchVehiclesRouteImport } from './routes/api/dispatcher/freights.$id.match-vehicles'
 import { Route as ApiDispatcherFreightsIdCreateCarrierRequestRouteImport } from './routes/api/dispatcher/freights.$id.create-carrier-request'
 import { Route as ApiDispatcherDocumentsIdDownloadRouteImport } from './routes/api/dispatcher/documents.$id.download'
@@ -1548,6 +1555,12 @@ const ApiDispatcherInvitesRoute = ApiDispatcherInvitesRouteImport.update({
   path: '/api/dispatcher/invites',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDispatcherInboundDocumentsRoute =
+  ApiDispatcherInboundDocumentsRouteImport.update({
+    id: '/api/dispatcher/inbound-documents',
+    path: '/api/dispatcher/inbound-documents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherFreightsRoute = ApiDispatcherFreightsRouteImport.update({
   id: '/api/dispatcher/freights',
   path: '/api/dispatcher/freights',
@@ -1665,6 +1678,12 @@ const ApiCarrierMeRoute = ApiCarrierMeRouteImport.update({
   path: '/api/carrier/me',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierInboundDocumentsRoute =
+  ApiCarrierInboundDocumentsRouteImport.update({
+    id: '/api/carrier/inbound-documents',
+    path: '/api/carrier/inbound-documents',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierEmailAccountRoute = ApiCarrierEmailAccountRouteImport.update({
   id: '/api/carrier/email-account',
   path: '/api/carrier/email-account',
@@ -1861,6 +1880,12 @@ const ApiDispatcherIncomingEmailSyncRoute =
     path: '/api/dispatcher/incoming-email/sync',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherInboundDocumentsIdRoute =
+  ApiDispatcherInboundDocumentsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiDispatcherInboundDocumentsRoute,
+  } as any)
 const ApiDispatcherFreightsFromEmailRoute =
   ApiDispatcherFreightsFromEmailRouteImport.update({
     id: '/from-email',
@@ -1986,6 +2011,12 @@ const ApiCarrierRequestsIdRoute = ApiCarrierRequestsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiCarrierRequestsRoute,
 } as any)
+const ApiCarrierInboundDocumentsSyncRoute =
+  ApiCarrierInboundDocumentsSyncRouteImport.update({
+    id: '/sync',
+    path: '/sync',
+    getParentRoute: () => ApiCarrierInboundDocumentsRoute,
+  } as any)
 const ApiCarrierFreightsSigningRoute =
   ApiCarrierFreightsSigningRouteImport.update({
     id: '/api/carrier/freights/signing',
@@ -2104,6 +2135,24 @@ const ApiDispatcherInvitesIdRevokeRoute =
     id: '/$id/revoke',
     path: '/$id/revoke',
     getParentRoute: () => ApiDispatcherInvitesRoute,
+  } as any)
+const ApiDispatcherInboundDocumentsIdParseRoute =
+  ApiDispatcherInboundDocumentsIdParseRouteImport.update({
+    id: '/parse',
+    path: '/parse',
+    getParentRoute: () => ApiDispatcherInboundDocumentsIdRoute,
+  } as any)
+const ApiDispatcherInboundDocumentsIdIgnoreRoute =
+  ApiDispatcherInboundDocumentsIdIgnoreRouteImport.update({
+    id: '/ignore',
+    path: '/ignore',
+    getParentRoute: () => ApiDispatcherInboundDocumentsIdRoute,
+  } as any)
+const ApiDispatcherInboundDocumentsIdCreateTripRoute =
+  ApiDispatcherInboundDocumentsIdCreateTripRouteImport.update({
+    id: '/create-trip',
+    path: '/create-trip',
+    getParentRoute: () => ApiDispatcherInboundDocumentsIdRoute,
   } as any)
 const ApiDispatcherFreightsIdMatchVehiclesRoute =
   ApiDispatcherFreightsIdMatchVehiclesRouteImport.update({
@@ -2433,6 +2482,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/email-account': typeof ApiCarrierEmailAccountRouteWithChildren
+  '/api/carrier/inbound-documents': typeof ApiCarrierInboundDocumentsRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/onboarding-status': typeof ApiCarrierOnboardingStatusRoute
@@ -2455,6 +2505,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/free-vehicles': typeof ApiDispatcherFreeVehiclesRoute
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
+  '/api/dispatcher/inbound-documents': typeof ApiDispatcherInboundDocumentsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
   '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
   '/api/dispatcher/timeline': typeof ApiDispatcherTimelineRoute
@@ -2520,6 +2571,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
+  '/api/carrier/inbound-documents/sync': typeof ApiCarrierInboundDocumentsSyncRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
@@ -2542,6 +2594,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
+  '/api/dispatcher/inbound-documents/$id': typeof ApiDispatcherInboundDocumentsIdRouteWithChildren
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
@@ -2580,6 +2633,9 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
+  '/api/dispatcher/inbound-documents/$id/create-trip': typeof ApiDispatcherInboundDocumentsIdCreateTripRoute
+  '/api/dispatcher/inbound-documents/$id/ignore': typeof ApiDispatcherInboundDocumentsIdIgnoreRoute
+  '/api/dispatcher/inbound-documents/$id/parse': typeof ApiDispatcherInboundDocumentsIdParseRoute
   '/api/dispatcher/invites/$id/revoke': typeof ApiDispatcherInvitesIdRevokeRoute
   '/api/dispatcher/partner-card/sends/$id': typeof ApiDispatcherPartnerCardSendsIdRoute
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
@@ -2790,6 +2846,7 @@ export interface FileRoutesByTo {
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/email-account': typeof ApiCarrierEmailAccountRouteWithChildren
+  '/api/carrier/inbound-documents': typeof ApiCarrierInboundDocumentsRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/onboarding-status': typeof ApiCarrierOnboardingStatusRoute
@@ -2812,6 +2869,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/free-vehicles': typeof ApiDispatcherFreeVehiclesRoute
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
+  '/api/dispatcher/inbound-documents': typeof ApiDispatcherInboundDocumentsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
   '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
   '/api/dispatcher/timeline': typeof ApiDispatcherTimelineRoute
@@ -2877,6 +2935,7 @@ export interface FileRoutesByTo {
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
+  '/api/carrier/inbound-documents/sync': typeof ApiCarrierInboundDocumentsSyncRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
@@ -2899,6 +2958,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
+  '/api/dispatcher/inbound-documents/$id': typeof ApiDispatcherInboundDocumentsIdRouteWithChildren
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
@@ -2937,6 +2997,9 @@ export interface FileRoutesByTo {
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
+  '/api/dispatcher/inbound-documents/$id/create-trip': typeof ApiDispatcherInboundDocumentsIdCreateTripRoute
+  '/api/dispatcher/inbound-documents/$id/ignore': typeof ApiDispatcherInboundDocumentsIdIgnoreRoute
+  '/api/dispatcher/inbound-documents/$id/parse': typeof ApiDispatcherInboundDocumentsIdParseRoute
   '/api/dispatcher/invites/$id/revoke': typeof ApiDispatcherInvitesIdRevokeRoute
   '/api/dispatcher/partner-card/sends/$id': typeof ApiDispatcherPartnerCardSendsIdRoute
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
@@ -3149,6 +3212,7 @@ export interface FileRoutesById {
   '/api/carrier/driver-invites': typeof ApiCarrierDriverInvitesRoute
   '/api/carrier/drivers': typeof ApiCarrierDriversRouteWithChildren
   '/api/carrier/email-account': typeof ApiCarrierEmailAccountRouteWithChildren
+  '/api/carrier/inbound-documents': typeof ApiCarrierInboundDocumentsRouteWithChildren
   '/api/carrier/me': typeof ApiCarrierMeRoute
   '/api/carrier/offer-acceptance': typeof ApiCarrierOfferAcceptanceRoute
   '/api/carrier/onboarding-status': typeof ApiCarrierOnboardingStatusRoute
@@ -3171,6 +3235,7 @@ export interface FileRoutesById {
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
   '/api/dispatcher/free-vehicles': typeof ApiDispatcherFreeVehiclesRoute
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
+  '/api/dispatcher/inbound-documents': typeof ApiDispatcherInboundDocumentsRouteWithChildren
   '/api/dispatcher/invites': typeof ApiDispatcherInvitesRouteWithChildren
   '/api/dispatcher/tasks': typeof ApiDispatcherTasksRouteWithChildren
   '/api/dispatcher/timeline': typeof ApiDispatcherTimelineRoute
@@ -3236,6 +3301,7 @@ export interface FileRoutesById {
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
+  '/api/carrier/inbound-documents/sync': typeof ApiCarrierInboundDocumentsSyncRoute
   '/api/carrier/requests/$id': typeof ApiCarrierRequestsIdRouteWithChildren
   '/api/carrier/vehicles/$id': typeof ApiCarrierVehiclesIdRouteWithChildren
   '/api/clients/$id/portal-link': typeof ApiClientsIdPortalLinkRoute
@@ -3258,6 +3324,7 @@ export interface FileRoutesById {
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
+  '/api/dispatcher/inbound-documents/$id': typeof ApiDispatcherInboundDocumentsIdRouteWithChildren
   '/api/dispatcher/incoming-email/sync': typeof ApiDispatcherIncomingEmailSyncRoute
   '/api/dispatcher/partner-card/preview': typeof ApiDispatcherPartnerCardPreviewRoute
   '/api/dispatcher/partner-card/sends': typeof ApiDispatcherPartnerCardSendsRouteWithChildren
@@ -3296,6 +3363,9 @@ export interface FileRoutesById {
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
+  '/api/dispatcher/inbound-documents/$id/create-trip': typeof ApiDispatcherInboundDocumentsIdCreateTripRoute
+  '/api/dispatcher/inbound-documents/$id/ignore': typeof ApiDispatcherInboundDocumentsIdIgnoreRoute
+  '/api/dispatcher/inbound-documents/$id/parse': typeof ApiDispatcherInboundDocumentsIdParseRoute
   '/api/dispatcher/invites/$id/revoke': typeof ApiDispatcherInvitesIdRevokeRoute
   '/api/dispatcher/partner-card/sends/$id': typeof ApiDispatcherPartnerCardSendsIdRoute
   '/api/dispatcher/tasks/$id/complete': typeof ApiDispatcherTasksIdCompleteRoute
@@ -3509,6 +3579,7 @@ export interface FileRouteTypes {
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/email-account'
+    | '/api/carrier/inbound-documents'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
     | '/api/carrier/onboarding-status'
@@ -3531,6 +3602,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers'
     | '/api/dispatcher/free-vehicles'
     | '/api/dispatcher/freights'
+    | '/api/dispatcher/inbound-documents'
     | '/api/dispatcher/invites'
     | '/api/dispatcher/tasks'
     | '/api/dispatcher/timeline'
@@ -3596,6 +3668,7 @@ export interface FileRouteTypes {
     | '/api/carrier/drivers/$id'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
+    | '/api/carrier/inbound-documents/sync'
     | '/api/carrier/requests/$id'
     | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
@@ -3618,6 +3691,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
+    | '/api/dispatcher/inbound-documents/$id'
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
@@ -3656,6 +3730,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/create-carrier-request'
     | '/api/dispatcher/freights/$id/match-vehicles'
+    | '/api/dispatcher/inbound-documents/$id/create-trip'
+    | '/api/dispatcher/inbound-documents/$id/ignore'
+    | '/api/dispatcher/inbound-documents/$id/parse'
     | '/api/dispatcher/invites/$id/revoke'
     | '/api/dispatcher/partner-card/sends/$id'
     | '/api/dispatcher/tasks/$id/complete'
@@ -3866,6 +3943,7 @@ export interface FileRouteTypes {
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/email-account'
+    | '/api/carrier/inbound-documents'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
     | '/api/carrier/onboarding-status'
@@ -3888,6 +3966,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers'
     | '/api/dispatcher/free-vehicles'
     | '/api/dispatcher/freights'
+    | '/api/dispatcher/inbound-documents'
     | '/api/dispatcher/invites'
     | '/api/dispatcher/tasks'
     | '/api/dispatcher/timeline'
@@ -3953,6 +4032,7 @@ export interface FileRouteTypes {
     | '/api/carrier/drivers/$id'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
+    | '/api/carrier/inbound-documents/sync'
     | '/api/carrier/requests/$id'
     | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
@@ -3975,6 +4055,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
+    | '/api/dispatcher/inbound-documents/$id'
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
@@ -4013,6 +4094,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/create-carrier-request'
     | '/api/dispatcher/freights/$id/match-vehicles'
+    | '/api/dispatcher/inbound-documents/$id/create-trip'
+    | '/api/dispatcher/inbound-documents/$id/ignore'
+    | '/api/dispatcher/inbound-documents/$id/parse'
     | '/api/dispatcher/invites/$id/revoke'
     | '/api/dispatcher/partner-card/sends/$id'
     | '/api/dispatcher/tasks/$id/complete'
@@ -4224,6 +4308,7 @@ export interface FileRouteTypes {
     | '/api/carrier/driver-invites'
     | '/api/carrier/drivers'
     | '/api/carrier/email-account'
+    | '/api/carrier/inbound-documents'
     | '/api/carrier/me'
     | '/api/carrier/offer-acceptance'
     | '/api/carrier/onboarding-status'
@@ -4246,6 +4331,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/drivers'
     | '/api/dispatcher/free-vehicles'
     | '/api/dispatcher/freights'
+    | '/api/dispatcher/inbound-documents'
     | '/api/dispatcher/invites'
     | '/api/dispatcher/tasks'
     | '/api/dispatcher/timeline'
@@ -4311,6 +4397,7 @@ export interface FileRouteTypes {
     | '/api/carrier/drivers/$id'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
+    | '/api/carrier/inbound-documents/sync'
     | '/api/carrier/requests/$id'
     | '/api/carrier/vehicles/$id'
     | '/api/clients/$id/portal-link'
@@ -4333,6 +4420,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
+    | '/api/dispatcher/inbound-documents/$id'
     | '/api/dispatcher/incoming-email/sync'
     | '/api/dispatcher/partner-card/preview'
     | '/api/dispatcher/partner-card/sends'
@@ -4371,6 +4459,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/$id/download'
     | '/api/dispatcher/freights/$id/create-carrier-request'
     | '/api/dispatcher/freights/$id/match-vehicles'
+    | '/api/dispatcher/inbound-documents/$id/create-trip'
+    | '/api/dispatcher/inbound-documents/$id/ignore'
+    | '/api/dispatcher/inbound-documents/$id/parse'
     | '/api/dispatcher/invites/$id/revoke'
     | '/api/dispatcher/partner-card/sends/$id'
     | '/api/dispatcher/tasks/$id/complete'
@@ -4573,6 +4664,7 @@ export interface RootRouteChildren {
   ApiCarrierDriverInvitesRoute: typeof ApiCarrierDriverInvitesRoute
   ApiCarrierDriversRoute: typeof ApiCarrierDriversRouteWithChildren
   ApiCarrierEmailAccountRoute: typeof ApiCarrierEmailAccountRouteWithChildren
+  ApiCarrierInboundDocumentsRoute: typeof ApiCarrierInboundDocumentsRouteWithChildren
   ApiCarrierMeRoute: typeof ApiCarrierMeRoute
   ApiCarrierOfferAcceptanceRoute: typeof ApiCarrierOfferAcceptanceRoute
   ApiCarrierOnboardingStatusRoute: typeof ApiCarrierOnboardingStatusRoute
@@ -4591,6 +4683,7 @@ export interface RootRouteChildren {
   ApiDispatcherDriversRoute: typeof ApiDispatcherDriversRouteWithChildren
   ApiDispatcherFreeVehiclesRoute: typeof ApiDispatcherFreeVehiclesRoute
   ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRouteWithChildren
+  ApiDispatcherInboundDocumentsRoute: typeof ApiDispatcherInboundDocumentsRouteWithChildren
   ApiDispatcherInvitesRoute: typeof ApiDispatcherInvitesRouteWithChildren
   ApiDispatcherTasksRoute: typeof ApiDispatcherTasksRouteWithChildren
   ApiDispatcherTimelineRoute: typeof ApiDispatcherTimelineRoute
@@ -6260,6 +6353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherInvitesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/inbound-documents': {
+      id: '/api/dispatcher/inbound-documents'
+      path: '/api/dispatcher/inbound-documents'
+      fullPath: '/api/dispatcher/inbound-documents'
+      preLoaderRoute: typeof ApiDispatcherInboundDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/freights': {
       id: '/api/dispatcher/freights'
       path: '/api/dispatcher/freights'
@@ -6412,6 +6512,13 @@ declare module '@tanstack/react-router' {
       path: '/api/carrier/me'
       fullPath: '/api/carrier/me'
       preLoaderRoute: typeof ApiCarrierMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/carrier/inbound-documents': {
+      id: '/api/carrier/inbound-documents'
+      path: '/api/carrier/inbound-documents'
+      fullPath: '/api/carrier/inbound-documents'
+      preLoaderRoute: typeof ApiCarrierInboundDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/carrier/email-account': {
@@ -6666,6 +6773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherIncomingEmailSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/inbound-documents/$id': {
+      id: '/api/dispatcher/inbound-documents/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/inbound-documents/$id'
+      preLoaderRoute: typeof ApiDispatcherInboundDocumentsIdRouteImport
+      parentRoute: typeof ApiDispatcherInboundDocumentsRoute
+    }
     '/api/dispatcher/freights/from-email': {
       id: '/api/dispatcher/freights/from-email'
       path: '/from-email'
@@ -6820,6 +6934,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierRequestsIdRouteImport
       parentRoute: typeof ApiCarrierRequestsRoute
     }
+    '/api/carrier/inbound-documents/sync': {
+      id: '/api/carrier/inbound-documents/sync'
+      path: '/sync'
+      fullPath: '/api/carrier/inbound-documents/sync'
+      preLoaderRoute: typeof ApiCarrierInboundDocumentsSyncRouteImport
+      parentRoute: typeof ApiCarrierInboundDocumentsRoute
+    }
     '/api/carrier/freights/signing': {
       id: '/api/carrier/freights/signing'
       path: '/api/carrier/freights/signing'
@@ -6966,6 +7087,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/dispatcher/invites/$id/revoke'
       preLoaderRoute: typeof ApiDispatcherInvitesIdRevokeRouteImport
       parentRoute: typeof ApiDispatcherInvitesRoute
+    }
+    '/api/dispatcher/inbound-documents/$id/parse': {
+      id: '/api/dispatcher/inbound-documents/$id/parse'
+      path: '/parse'
+      fullPath: '/api/dispatcher/inbound-documents/$id/parse'
+      preLoaderRoute: typeof ApiDispatcherInboundDocumentsIdParseRouteImport
+      parentRoute: typeof ApiDispatcherInboundDocumentsIdRoute
+    }
+    '/api/dispatcher/inbound-documents/$id/ignore': {
+      id: '/api/dispatcher/inbound-documents/$id/ignore'
+      path: '/ignore'
+      fullPath: '/api/dispatcher/inbound-documents/$id/ignore'
+      preLoaderRoute: typeof ApiDispatcherInboundDocumentsIdIgnoreRouteImport
+      parentRoute: typeof ApiDispatcherInboundDocumentsIdRoute
+    }
+    '/api/dispatcher/inbound-documents/$id/create-trip': {
+      id: '/api/dispatcher/inbound-documents/$id/create-trip'
+      path: '/create-trip'
+      fullPath: '/api/dispatcher/inbound-documents/$id/create-trip'
+      preLoaderRoute: typeof ApiDispatcherInboundDocumentsIdCreateTripRouteImport
+      parentRoute: typeof ApiDispatcherInboundDocumentsIdRoute
     }
     '/api/dispatcher/freights/$id/match-vehicles': {
       id: '/api/dispatcher/freights/$id/match-vehicles'
@@ -7713,6 +7855,20 @@ const ApiCarrierEmailAccountRouteWithChildren =
     ApiCarrierEmailAccountRouteChildren,
   )
 
+interface ApiCarrierInboundDocumentsRouteChildren {
+  ApiCarrierInboundDocumentsSyncRoute: typeof ApiCarrierInboundDocumentsSyncRoute
+}
+
+const ApiCarrierInboundDocumentsRouteChildren: ApiCarrierInboundDocumentsRouteChildren =
+  {
+    ApiCarrierInboundDocumentsSyncRoute: ApiCarrierInboundDocumentsSyncRoute,
+  }
+
+const ApiCarrierInboundDocumentsRouteWithChildren =
+  ApiCarrierInboundDocumentsRoute._addFileChildren(
+    ApiCarrierInboundDocumentsRouteChildren,
+  )
+
 interface ApiCarrierRequestsIdRouteChildren {
   ApiCarrierRequestsIdContractPreviewRoute: typeof ApiCarrierRequestsIdContractPreviewRoute
   ApiCarrierRequestsIdRespondRoute: typeof ApiCarrierRequestsIdRespondRoute
@@ -7957,6 +8113,42 @@ const ApiDispatcherFreightsRouteChildren: ApiDispatcherFreightsRouteChildren = {
 const ApiDispatcherFreightsRouteWithChildren =
   ApiDispatcherFreightsRoute._addFileChildren(
     ApiDispatcherFreightsRouteChildren,
+  )
+
+interface ApiDispatcherInboundDocumentsIdRouteChildren {
+  ApiDispatcherInboundDocumentsIdCreateTripRoute: typeof ApiDispatcherInboundDocumentsIdCreateTripRoute
+  ApiDispatcherInboundDocumentsIdIgnoreRoute: typeof ApiDispatcherInboundDocumentsIdIgnoreRoute
+  ApiDispatcherInboundDocumentsIdParseRoute: typeof ApiDispatcherInboundDocumentsIdParseRoute
+}
+
+const ApiDispatcherInboundDocumentsIdRouteChildren: ApiDispatcherInboundDocumentsIdRouteChildren =
+  {
+    ApiDispatcherInboundDocumentsIdCreateTripRoute:
+      ApiDispatcherInboundDocumentsIdCreateTripRoute,
+    ApiDispatcherInboundDocumentsIdIgnoreRoute:
+      ApiDispatcherInboundDocumentsIdIgnoreRoute,
+    ApiDispatcherInboundDocumentsIdParseRoute:
+      ApiDispatcherInboundDocumentsIdParseRoute,
+  }
+
+const ApiDispatcherInboundDocumentsIdRouteWithChildren =
+  ApiDispatcherInboundDocumentsIdRoute._addFileChildren(
+    ApiDispatcherInboundDocumentsIdRouteChildren,
+  )
+
+interface ApiDispatcherInboundDocumentsRouteChildren {
+  ApiDispatcherInboundDocumentsIdRoute: typeof ApiDispatcherInboundDocumentsIdRouteWithChildren
+}
+
+const ApiDispatcherInboundDocumentsRouteChildren: ApiDispatcherInboundDocumentsRouteChildren =
+  {
+    ApiDispatcherInboundDocumentsIdRoute:
+      ApiDispatcherInboundDocumentsIdRouteWithChildren,
+  }
+
+const ApiDispatcherInboundDocumentsRouteWithChildren =
+  ApiDispatcherInboundDocumentsRoute._addFileChildren(
+    ApiDispatcherInboundDocumentsRouteChildren,
   )
 
 interface ApiDispatcherInvitesRouteChildren {
@@ -8327,6 +8519,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierDriverInvitesRoute: ApiCarrierDriverInvitesRoute,
   ApiCarrierDriversRoute: ApiCarrierDriversRouteWithChildren,
   ApiCarrierEmailAccountRoute: ApiCarrierEmailAccountRouteWithChildren,
+  ApiCarrierInboundDocumentsRoute: ApiCarrierInboundDocumentsRouteWithChildren,
   ApiCarrierMeRoute: ApiCarrierMeRoute,
   ApiCarrierOfferAcceptanceRoute: ApiCarrierOfferAcceptanceRoute,
   ApiCarrierOnboardingStatusRoute: ApiCarrierOnboardingStatusRoute,
@@ -8346,6 +8539,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherDriversRoute: ApiDispatcherDriversRouteWithChildren,
   ApiDispatcherFreeVehiclesRoute: ApiDispatcherFreeVehiclesRoute,
   ApiDispatcherFreightsRoute: ApiDispatcherFreightsRouteWithChildren,
+  ApiDispatcherInboundDocumentsRoute:
+    ApiDispatcherInboundDocumentsRouteWithChildren,
   ApiDispatcherInvitesRoute: ApiDispatcherInvitesRouteWithChildren,
   ApiDispatcherTasksRoute: ApiDispatcherTasksRouteWithChildren,
   ApiDispatcherTimelineRoute: ApiDispatcherTimelineRoute,
@@ -8389,13 +8584,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
