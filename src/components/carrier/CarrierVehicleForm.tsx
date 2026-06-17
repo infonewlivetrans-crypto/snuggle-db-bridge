@@ -302,6 +302,25 @@ export function CarrierVehicleForm({ open, onOpenChange, initial, drivers = [], 
               })}
             </div>
           </div>
+          <div>
+            <Label className="mb-1.5 block text-sm">Особенности кузова</Label>
+            <div className="flex flex-wrap gap-2">
+              {VEHICLE_FEATURES.map((f) => {
+                const on = values.body_features.includes(f);
+                return (
+                  <Button
+                    key={f}
+                    type="button"
+                    size="sm"
+                    variant={on ? "default" : "outline"}
+                    onClick={() => toggleBodyFeature(f)}
+                  >
+                    {VEHICLE_FEATURE_LABELS[f]}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
           <Field label="Комментарий">
             <Textarea
               value={values.dispatcher_comment}
