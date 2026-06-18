@@ -241,19 +241,96 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
     }));
   }
 
-  function onParseClick() {
+  interface ServerParsedPoint {
+    kind: "loading" | "unloading";
+    index: number;
+    city: string | null;
+    date: string | null;
+    weight_kg: number | null;
+    volume_m3: number | null;
+    pallets: number | null;
+    cargo_name: string | null;
+    is_additional: boolean;
+  }
+  interface ServerParsed {
+    loading_city: string | null;
+    unloading_city: string | null;
+    loading_date: string | null;
+    unloading_date: string | null;
+    weight_kg: number | null;
+    volume_m3: number | null;
+    pallets: number | null;
+    rate_amount: number | null;
+    cargo_name: string | null;
+    body_type: string | null;
+    points: ServerParsedPoint[];
+    warnings: string[];
+    hits: string[];
+  }
+  const [serverParsed, setServerParsed] = useState<ServerParsed | null>(null);
+  const [parsing, setParsing] = useState(false);
+
+  function applyServerParsed(p: ServerParsed) {
+    setServerParsed(p);
+    const compat: ParsedFreightFields = {
+      cargo_name: p.cargo_name ?? null,
+      weight_kg: p.weight_kg ?? null,
+      volume_m3: p.volume_m3 ?? null,
+      packages_count: p.pallets ?? null,
+      loading_city: p.loading_city ?? null,
+      loading_date: p.loading_date ?? null,
+      unloading_city: p.unloading_city ?? null,
+      unloading_date: p.unloading_date ?? null,
+      body_type: p.body_type ?? null,
+      rate: p.rate_amount ?? null,
+    } as ParsedFreightFields;
+    applyParsed(compat);
+
+    // Заполнить доп. точки из server.points (вторая и далее загрузка/выгрузка)
+    const loads = p.points.filter((x) => x.kind === "loading");
+    const unloads = p.points.filter((x) => x.kind === "unloading");
+    const extra: RoutePoint[] = [];
+    loads.slice(1).forEach((pt) => {
+      extra.push({ ...emptyPoint("load"), city: pt.city ?? "", date: pt.date ?? "" });
+    });
+    unloads.slice(1).forEach((pt) => {
+      extra.push({ ...emptyPoint("unload"), city: pt.city ?? "", date: pt.date ?? "" });
+    });
+    if (extra.length > 0) setExtraPoints(extra);
+  }
+
+  async function onParseClick() {
     if (!sourceText.trim()) {
       toast.error("Вставьте текст груза");
       return;
     }
-    const res = parseIncomingFreightText(sourceText);
-    if (!res.has_any) {
-      toast.warning("Ничего не распознано. Заполните поля вручную.");
-      return;
+    setParsing(true);
+    try {
+      const resp = await apiPost<{ ok: boolean; parsed: ServerParsed }>(
+        "/api/dispatcher/ai/parse-freight-text",
+        { text: sourceText },
+      );
+      if (resp?.parsed) {
+        applyServerParsed(resp.parsed);
+        const hits = resp.parsed.hits?.length ?? 0;
+        if (hits === 0) toast.warning("Ничего не распознано. Заполните вручную.");
+        else toast.success(`Разобрано. Распознано: ${hits} полей`);
+        return;
+      }
+    } catch (e) {
+      // fallback: локальный парсер
+      const res = parseIncomingFreightText(sourceText);
+      if (res.has_any) {
+        applyParsed(res.fields);
+        toast.success("Разобрано (локально)");
+      } else {
+        toast.error("Не удалось разобрать текст", {
+          description: e instanceof Error ? e.message : undefined,
+        });
+      }
+    } finally {
+      setParsing(false);
     }
-    applyParsed(res.fields);
-    if (res.missing.length === 0) toast.success("Текст разобран");
-    else toast.success(`Разобрано частично. Проверьте: ${res.missing.join(", ")}`);
   }
 
   /* ----------------- Итоги ----------------- */
@@ -447,14 +524,44 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
               rows={6}
               value={sourceText}
               onChange={(e) => setSourceText(e.target.value)}
-              placeholder="Вставьте сюда текст из ATI / письма / мессенджера и нажмите «Разобрать текст»"
+              placeholder="Например: «Погрузка в Краснодаре 2 т 16 м³ 16 числа, потом забрать в Ростове 2 палеты 300 кг и отвезти в Москву первый, второй в Домодедово»"
               className="text-sm"
             />
             <div className="flex justify-end pt-2">
-              <Button type="button" onClick={onParseClick} variant="secondary" size="sm">
-                <Wand2 className="mr-1 h-4 w-4" /> Разобрать текст
+              <Button type="button" onClick={() => void onParseClick()} variant="secondary" size="sm" disabled={parsing}>
+                <Wand2 className="mr-1 h-4 w-4" /> {parsing ? "Разбираем…" : "Разобрать текст"}
               </Button>
             </div>
+            {serverParsed && (
+              <div className="mt-3 space-y-1 rounded border border-border bg-muted/40 p-2 text-xs">
+                <div className="font-semibold">Распознано — проверьте:</div>
+                {serverParsed.points
+                  .filter((p) => p.kind === "loading")
+                  .map((p, i) => (
+                    <div key={`l${i}`}>
+                      Загрузка {p.index}: <strong>{p.city ?? "город?"}</strong>
+                      {p.weight_kg ? `, ${(p.weight_kg / 1000).toLocaleString("ru-RU")} т` : ""}
+                      {p.volume_m3 ? `, ${p.volume_m3} м³` : ""}
+                      {p.pallets ? `, ${p.pallets} пал.` : ""}
+                      {p.date ? `, ${p.date}` : ""}
+                      {p.is_additional ? " (догруз)" : ""}
+                    </div>
+                  ))}
+                {serverParsed.points
+                  .filter((p) => p.kind === "unloading")
+                  .map((p, i) => (
+                    <div key={`u${i}`}>
+                      Выгрузка {p.index}: <strong>{p.city ?? "город?"}</strong>
+                      {p.date ? `, ${p.date}` : ""}
+                    </div>
+                  ))}
+                {serverParsed.warnings.length > 0 && (
+                  <div className="pt-1 text-amber-700">
+                    Нужно проверить: {serverParsed.warnings.join("; ")}
+                  </div>
+                )}
+              </div>
+            )}
           </Section>
 
           {/* Cargos */}
