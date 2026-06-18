@@ -137,10 +137,18 @@ function CarrierDriversPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => archiveMut.mutate(d.id)}
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              "Водитель будет уволен и скрыт из активного списка. Его история и документы сохранятся. Продолжить?",
+                            )
+                          ) {
+                            archiveMut.mutate(d.id);
+                          }
+                        }}
                         disabled={archiveMut.isPending}
                       >
-                        <Archive className="mr-1 h-3 w-3" /> В архив
+                        <Archive className="mr-1 h-3 w-3" /> Уволить
                       </Button>
                     </div>
                     <div className="pt-2">
