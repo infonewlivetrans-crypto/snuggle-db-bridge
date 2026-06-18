@@ -20,6 +20,7 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { VehicleForm } from "@/components/dispatcher/VehicleForm";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { CityCombobox } from "@/components/common/CityCombobox";
+import { VehicleReadinessEditor } from "@/components/vehicles/VehicleReadinessEditor";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { vehiclesApi, driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
