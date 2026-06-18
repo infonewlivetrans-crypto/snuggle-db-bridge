@@ -79,6 +79,7 @@ export function CarrierVehicleFormDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Редактировать машину" : "Добавить машину"}</DialogTitle>
+          <DialogDescription>Заполните данные машины и при необходимости назначьте водителя.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="sm:col-span-2">
