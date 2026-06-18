@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { apiDelete, apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
-import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
+import { VehicleReadinessEditor } from "@/components/vehicles/VehicleReadinessEditor";
 import { CarrierVehicleFormDialog, UpdateMyLocationButton } from "@/components/carrier/CarrierForms";
 import { AssignDriverButton } from "@/components/carrier/AssignDriverButton";
 import {
