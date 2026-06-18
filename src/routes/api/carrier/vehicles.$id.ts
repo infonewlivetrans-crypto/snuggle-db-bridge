@@ -26,6 +26,7 @@ const MUTABLE_FIELDS = [
   "loading_restrictions",
   "dispatcher_comment",
   "dispatcher_driver_ext_id",
+  "assigned_driver_ext_id",
   "min_rate",
   "minimum_trip_rate",
   "minimum_km_rate",
