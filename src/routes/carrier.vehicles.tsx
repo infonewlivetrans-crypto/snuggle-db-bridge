@@ -10,6 +10,7 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
 import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
 import { CarrierVehicleFormDialog, UpdateMyLocationButton } from "@/components/carrier/CarrierForms";
+import { AssignDriverButton } from "@/components/carrier/AssignDriverButton";
 import {
   VEHICLE_STATUS_LABELS,
   LOAD_METHOD_LABELS,
@@ -220,6 +221,11 @@ function CarrierVehiclesPage() {
                   )}
                   {v.source === "dispatcher" && (
                     <div className="space-y-2 pt-2">
+                      <AssignDriverButton
+                        vehicleId={v.id}
+                        currentDriverId={v.driver_id}
+                        currentDriverName={v.driver_name}
+                      />
                       <div className="flex flex-wrap gap-2">
                         <UpdateMyLocationButton vehicleId={v.id} />
                         <Button

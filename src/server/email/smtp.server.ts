@@ -2,6 +2,15 @@
 // Использует расшифрованный SMTP-пароль (никогда не возвращается на клиент).
 
 import nodemailer from "nodemailer";
+import dns from "node:dns";
+
+// Mail.ru и часть провайдеров отдают AAAA-записи, до которых из Worker нет IPv6
+// маршрута (ENETUNREACH 2a00:...). Принудительно используем IPv4 в DNS-резолве.
+try {
+  dns.setDefaultResultOrder?.("ipv4first");
+} catch {
+  /* old node, ignore */
+}
 
 export interface SmtpAccount {
   email: string;
@@ -29,16 +38,19 @@ export interface SendEmailResult {
 }
 
 function buildTransport(acc: SmtpAccount) {
+  // family:4 — IPv4-only, иначе на части провайдеров (mail.ru) валится ENETUNREACH.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return nodemailer.createTransport({
     host: acc.smtp_host,
     port: acc.smtp_port,
-    secure: acc.smtp_secure, // true=465; false=587 + STARTTLS
+    secure: acc.smtp_secure,
     auth: { user: acc.smtp_user, pass: acc.smtp_password },
-    requireTLS: !acc.smtp_secure, // STARTTLS обязателен при secure=false
+    requireTLS: !acc.smtp_secure,
     connectionTimeout: 15_000,
     greetingTimeout: 15_000,
     socketTimeout: 20_000,
-  });
+    family: 4,
+  } as any);
 }
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
