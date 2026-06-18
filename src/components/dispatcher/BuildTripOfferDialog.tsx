@@ -268,55 +268,137 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
 
   /* ----------------- Сохранение ----------------- */
 
+  // Маппинг значений UI оплаты на канонические enum-значения схемы.
+  const PAYMENT_MAP: Record<string, string | null> = {
+    on_unloading: "on_unload",
+    after_docs: "deferred",
+    delayed: "deferred",
+    prepayment: "advance",
+    agreed: "other",
+  };
+
+  const nz = (s: string | null | undefined): string | null => {
+    const v = (s ?? "").toString().trim();
+    return v === "" ? null : v;
+  };
+  const nnum = (s: string | null | undefined): number | null => {
+    const v = nz(s);
+    if (v == null) return null;
+    const n = Number(v.replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // Идентификатор сохранённого черновика — пока null, кнопка отправки
+  // перевозчику покажет понятную причину блокировки.
+  const [draftId, setDraftId] = useState<string | null>(null);
+
+  // Причина, по которой нельзя сейчас отправлять перевозчику.
+  // Возвращает null, если всё ок.
+  const blockReason = useMemo<string | null>(() => {
+    if (!vehicle.id) return "Не выбрана машина";
+    if (!vehicle.carrier?.id) return "У машины не указан перевозчик";
+    if (!nz(loadPoint.city)) return "Не заполнен город загрузки";
+    if (!nz(unloadPoint.city)) return "Не заполнен город выгрузки";
+    if (!nnum(rate.rate)) return "Не указана ставка";
+    const cargoTitle = nz(cargos[0]?.cargo_name) ?? `${loadPoint.city || ""} → ${unloadPoint.city || ""}`;
+    if (!cargoTitle.trim()) return "Не указано название груза";
+    return null;
+  }, [
+    vehicle.id,
+    vehicle.carrier?.id,
+    loadPoint.city,
+    unloadPoint.city,
+    rate.rate,
+    cargos,
+  ]);
+
+  function buildPayload() {
+    const points: RoutePoint[] = [loadPoint, ...extraPoints, unloadPoint];
+    const firstCargo = cargos[0];
+    const weightT = nnum(firstCargo?.weight_t);
+    return {
+      title: nz(`${loadPoint.city || ""} → ${unloadPoint.city || ""}`.replace(/^ → $/, "")),
+      loading_city: nz(loadPoint.city),
+      loading_date: nz(loadPoint.date),
+      unloading_city: nz(unloadPoint.city),
+      unloading_date: nz(unloadPoint.date),
+      cargo_name: nz(firstCargo?.cargo_name),
+      weight_kg: weightT != null ? Math.round(weightT * 1000) : null,
+      volume_m3: nnum(firstCargo?.volume_m3),
+      body_type: nz(firstCargo?.body_type),
+      load_methods: loadPoint.load_method ? [loadPoint.load_method] : [],
+      rate: nnum(rate.rate),
+      payment_type: rate.payment ? (PAYMENT_MAP[rate.payment] ?? null) : null,
+      payment_delay_days: nnum(rate.delay_days),
+      contact_name: nz(contacts.contact_name),
+      contact_phone: nz(contacts.phone1),
+      comment: nz(rate.comment) ?? nz(contacts.comment),
+      customer_name: nz(contacts.company),
+      customer_phone: nz(contacts.phone1),
+      customer_email: nz(contacts.email),
+      freight_kind: "main" as const,
+      dispatcher_status: "new" as const,
+      assigned_vehicle_ext_id: vehicle.id,
+      assigned_carrier_ext_id: vehicle.carrier?.id ?? null,
+      assigned_driver_ext_id: vehicle.driver?.id ?? null,
+      source_text: nz(sourceText),
+      parsed_payload: parsedSnapshot ?? null,
+      cargo_items: cargos,
+      route_points: points,
+      offer_status: "draft",
+    };
+  }
+
   const saveDraft = useMutation({
     mutationFn: async () => {
-      const points: RoutePoint[] = [loadPoint, ...extraPoints, unloadPoint];
-      const firstCargo = cargos[0];
-      const body = {
-        title: `${loadPoint.city || "—"} → ${unloadPoint.city || "—"}`,
-        loading_city: loadPoint.city || null,
-        loading_address: loadPoint.address || null,
-        loading_date: loadPoint.date || null,
-        unloading_city: unloadPoint.city || null,
-        unloading_address: unloadPoint.address || null,
-        unloading_date: unloadPoint.date || null,
-        cargo_name: firstCargo?.cargo_name || null,
-        weight_kg: firstCargo?.weight_t
-          ? Math.round(Number(firstCargo.weight_t.replace(",", ".")) * 1000)
-          : null,
-        volume_m3: firstCargo?.volume_m3 ? Number(firstCargo.volume_m3.replace(",", ".")) : null,
-        body_type: firstCargo?.body_type || null,
-        load_methods: loadPoint.load_method ? [loadPoint.load_method] : [],
-        rate: rate.rate ? Number(rate.rate.replace(",", ".")) : null,
-        payment_type: rate.payment || null,
-        payment_delay_days: rate.delay_days ? Number(rate.delay_days) : null,
-        contact_name: contacts.contact_name || null,
-        contact_phone: contacts.phone1 || null,
-        comment: rate.comment || contacts.comment || null,
-        customer_name: contacts.company || null,
-        customer_phone: contacts.phone1 || null,
-        customer_email: contacts.email || null,
-        freight_kind: "found",
-        dispatcher_status: "new",
-        assigned_vehicle_ext_id: vehicle.id,
-        assigned_carrier_ext_id: vehicle.carrier?.id ?? null,
-        assigned_driver_ext_id: vehicle.driver?.id ?? null,
-        source_text: sourceText || null,
-        parsed_payload: parsedSnapshot ?? null,
-        cargo_items: cargos,
-        route_points: points,
-        offer_status: "draft",
-      };
-      return apiPost<{ row: { id: string } }>("/api/dispatcher/freights", body);
+      return apiPost<{ row: { id: string } }>(
+        "/api/dispatcher/freights",
+        buildPayload(),
+      );
     },
-    onSuccess: () => {
-      toast.success("Черновик предложения сохранён");
+    onSuccess: (resp) => {
+      setDraftId(resp.row.id);
+      toast.success("Черновик сохранён");
       qc.invalidateQueries({ queryKey: ["dispatcher-freights"] });
       qc.invalidateQueries({ queryKey: ["vehicle-freights", vehicle.id] });
+    },
+    onError: (e: unknown) =>
+      toast.error("Не удалось сохранить черновик. Проверьте маршрут и ставку.", {
+        description: e instanceof Error ? e.message : undefined,
+      }),
+  });
+
+  const sendOffer = useMutation({
+    mutationFn: async () => {
+      let id = draftId;
+      if (!id) {
+        const created = await apiPost<{ row: { id: string } }>(
+          "/api/dispatcher/freights",
+          buildPayload(),
+        );
+        id = created.row.id;
+        setDraftId(id);
+      }
+      const carrierId = vehicle.carrier?.id;
+      if (!carrierId) throw new Error("У машины не указан перевозчик");
+      return apiPost(
+        `/api/dispatcher/freights/${id}/create-carrier-request`,
+        {
+          dispatcher_carrier_ext_id: carrierId,
+          dispatcher_vehicle_ext_id: vehicle.id,
+          dispatcher_driver_ext_id: vehicle.driver?.id ?? null,
+        },
+      );
+    },
+    onSuccess: () => {
+      toast.success("Предложение отправлено перевозчику");
+      qc.invalidateQueries({ queryKey: ["dispatcher-freights"] });
+      qc.invalidateQueries({ queryKey: ["vehicle-freights", vehicle.id] });
+      qc.invalidateQueries({ queryKey: ["carrier-requests"] });
       onOpenChange(false);
     },
     onError: (e: unknown) =>
-      toast.error("Не удалось сохранить", {
+      toast.error("Не удалось отправить предложение", {
         description: e instanceof Error ? e.message : undefined,
       }),
   });
@@ -655,25 +737,37 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
         </div>
 
         <DialogFooter
-          className="flex-wrap gap-2 border-t bg-background px-4 py-3 sm:px-6"
+          className="flex-col gap-2 border-t bg-background px-4 py-3 sm:px-6 sm:flex-row sm:flex-wrap"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
+          {blockReason ? (
+            <div className="w-full text-xs text-amber-600 sm:order-first">
+              {blockReason}
+            </div>
+          ) : null}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
           <Button
             variant="default"
             onClick={() => saveDraft.mutate()}
-            disabled={saveDraft.isPending}
+            disabled={saveDraft.isPending || sendOffer.isPending}
           >
-            {saveDraft.isPending ? "Сохранение…" : "Сохранить черновик"}
+            {saveDraft.isPending ? "Сохранение…" : draftId ? "Обновить черновик" : "Сохранить черновик"}
           </Button>
           <Button
             variant="secondary"
-            disabled
-            title="Будет доступно после следующего этапа"
+            onClick={() => {
+              if (blockReason) {
+                toast.warning(blockReason);
+                return;
+              }
+              sendOffer.mutate();
+            }}
+            disabled={sendOffer.isPending || saveDraft.isPending || blockReason !== null}
+            title={blockReason ?? "Отправить предложение перевозчику"}
           >
-            Отправить предложение перевозчику
+            {sendOffer.isPending ? "Отправка…" : "Отправить предложение перевозчику"}
           </Button>
         </DialogFooter>
       </DialogContent>
