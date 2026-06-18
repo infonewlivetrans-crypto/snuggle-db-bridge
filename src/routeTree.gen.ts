@@ -328,6 +328,7 @@ import { Route as ApiDispatcherCarrierRequestsIdRouteImport } from './routes/api
 import { Route as ApiDispatcherCarrierLinkUsersRouteImport } from './routes/api/dispatcher/carrier-link.users'
 import { Route as ApiDispatcherCarrierLinkInvitesRouteImport } from './routes/api/dispatcher/carrier-link.invites'
 import { Route as ApiDispatcherCarrierLinkCreateUserRouteImport } from './routes/api/dispatcher/carrier-link.create-user'
+import { Route as ApiDispatcherAiParseFreightTextRouteImport } from './routes/api/dispatcher/ai.parse-freight-text'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -2041,6 +2042,12 @@ const ApiDispatcherCarrierLinkCreateUserRoute =
     path: '/create-user',
     getParentRoute: () => ApiDispatcherCarrierLinkRoute,
   } as any)
+const ApiDispatcherAiParseFreightTextRoute =
+  ApiDispatcherAiParseFreightTextRouteImport.update({
+    id: '/api/dispatcher/ai/parse-freight-text',
+    path: '/api/dispatcher/ai/parse-freight-text',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -2646,6 +2653,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/ai/parse-freight-text': typeof ApiDispatcherAiParseFreightTextRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
@@ -3019,6 +3027,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/ai/parse-freight-text': typeof ApiDispatcherAiParseFreightTextRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
@@ -3394,6 +3403,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/ai/parse-freight-text': typeof ApiDispatcherAiParseFreightTextRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
   '/api/dispatcher/carrier-link/users': typeof ApiDispatcherCarrierLinkUsersRoute
@@ -3770,6 +3780,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/ai/parse-freight-text'
     | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/invites'
     | '/api/dispatcher/carrier-link/users'
@@ -4143,6 +4154,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/ai/parse-freight-text'
     | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/invites'
     | '/api/dispatcher/carrier-link/users'
@@ -4517,6 +4529,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/ai/parse-freight-text'
     | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/invites'
     | '/api/dispatcher/carrier-link/users'
@@ -4825,6 +4838,7 @@ export interface RootRouteChildren {
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
+  ApiDispatcherAiParseFreightTextRoute: typeof ApiDispatcherAiParseFreightTextRoute
   ApiDispatcherCommissionsEarningsRoute: typeof ApiDispatcherCommissionsEarningsRouteWithChildren
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
   ApiDispatcherIncomingEmailSyncRoute: typeof ApiDispatcherIncomingEmailSyncRoute
@@ -7078,6 +7092,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCarrierLinkCreateUserRouteImport
       parentRoute: typeof ApiDispatcherCarrierLinkRoute
     }
+    '/api/dispatcher/ai/parse-freight-text': {
+      id: '/api/dispatcher/ai/parse-freight-text'
+      path: '/api/dispatcher/ai/parse-freight-text'
+      fullPath: '/api/dispatcher/ai/parse-freight-text'
+      preLoaderRoute: typeof ApiDispatcherAiParseFreightTextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-routes/$id/driver-geo': {
       id: '/api/delivery-routes/$id/driver-geo'
       path: '/driver-geo'
@@ -8781,6 +8802,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
+  ApiDispatcherAiParseFreightTextRoute: ApiDispatcherAiParseFreightTextRoute,
   ApiDispatcherCommissionsEarningsRoute:
     ApiDispatcherCommissionsEarningsRouteWithChildren,
   ApiDispatcherContractsCarrierOfferRoute:
