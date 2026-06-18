@@ -64,7 +64,20 @@ export const Route = createFileRoute("/api/carrier/vehicles/$id")({
         }
 
         const update: Record<string, unknown> = {};
-        for (const k of MUTABLE_FIELDS) if (k in body) update[k] = body[k];
+        for (const k of MUTABLE_FIELDS) if (k in body) {
+          const val = body[k];
+          // Не отправляем пустую строку в uuid-колонки.
+          if ((k === "dispatcher_driver_ext_id" || k === "assigned_driver_ext_id") && val === "") {
+            update[k] = null;
+          } else {
+            update[k] = val;
+          }
+        }
+        // Зеркалим dispatcher_driver_ext_id ↔ assigned_driver_ext_id, чтобы карта
+        // диспетчера и readiness корректно подтянули водителя.
+        if ("dispatcher_driver_ext_id" in update && !("assigned_driver_ext_id" in update)) {
+          update.assigned_driver_ext_id = update.dispatcher_driver_ext_id;
+        }
         if (
           typeof body.dispatcher_status === "string" &&
           CARRIER_STATUS_WHITELIST.has(body.dispatcher_status)
