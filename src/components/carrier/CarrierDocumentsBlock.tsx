@@ -148,6 +148,14 @@ export function CarrierDocumentsBlock({ ownerType, ownerId, title }: Props) {
         onOpenChange={setAddOpen}
         ownerType={ownerType}
         ownerId={ownerId}
+        existingTypes={docs
+          .filter(
+            (d) =>
+              d.document_status !== "archived" &&
+              d.document_status !== "rejected" &&
+              d.document_status !== "expired",
+          )
+          .map((d) => d.document_type)}
         onCreated={load}
       />
     </div>
@@ -159,15 +167,19 @@ function AddDialog({
   onOpenChange,
   ownerType,
   ownerId,
+  existingTypes,
   onCreated,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   ownerType: DocumentOwnerType;
   ownerId: string;
+  existingTypes: string[];
   onCreated: () => void;
 }) {
-  const types = documentTypesFor(ownerType);
+  const allTypes = documentTypesFor(ownerType);
+  // "other" всегда доступен; остальные типы скрываем, если уже есть активный документ этого типа.
+  const types = allTypes.filter((t) => t === "other" || !existingTypes.includes(t));
   const [docType, setDocType] = useState<string>(types[0] ?? "other");
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
@@ -181,7 +193,8 @@ function AddDialog({
       setComment("");
       if (fileRef.current) fileRef.current.value = "";
     }
-  }, [open, types]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const submit = async () => {
     setSubmitting(true);
