@@ -305,34 +305,44 @@ function RequestCard({
           </div>
         )}
 
-        <div className="grid gap-1 text-xs sm:grid-cols-2">
-          <div>
-            <span className="text-muted-foreground">Загрузка: </span>
-            {[row.loading_address, row.loading_date].filter(Boolean).join(" / ") || "—"}
-          </div>
-          <div>
-            <span className="text-muted-foreground">Выгрузка: </span>
-            {[row.unloading_address, row.unloading_date].filter(Boolean).join(" / ") || "—"}
-          </div>
-          <div>
-            <span className="text-muted-foreground">Ставка заказчика: </span>
-            {row.rate_amount == null ? "—" : `${row.rate_amount} ${currency}`}
-          </div>
-          <div>
-            <span className="text-muted-foreground">Оплата: </span>
-            {paymentLabel(row.payment_type, row.payment_delay_days)}
-          </div>
-          <div>
-            <span className="text-muted-foreground">Комиссия сервиса: </span>
-            {row.commission_amount == null
-              ? "—"
-              : `${row.commission_amount} ${currency} (${row.commission_percent ?? 5}%)`}
-          </div>
-          <div className="font-medium">
-            <span className="text-muted-foreground font-normal">К выплате перевозчику: </span>
-            {payout == null ? "—" : `${payout} ${currency}`}
-          </div>
-        </div>
+        {(() => {
+          const items: Array<{ label: string; value: string; bold?: boolean }> = [];
+          const loadingParts = [row.loading_address, row.loading_date].filter(Boolean);
+          if (loadingParts.length)
+            items.push({ label: "Загрузка", value: loadingParts.join(" / ") });
+          const unloadingParts = [row.unloading_address, row.unloading_date].filter(Boolean);
+          if (unloadingParts.length)
+            items.push({ label: "Выгрузка", value: unloadingParts.join(" / ") });
+          if (row.rate_amount != null)
+            items.push({ label: "Ставка заказчика", value: `${row.rate_amount} ${currency}` });
+          if (row.payment_type)
+            items.push({
+              label: "Оплата",
+              value: paymentLabel(row.payment_type, row.payment_delay_days),
+            });
+          if (row.commission_amount != null)
+            items.push({
+              label: "Комиссия сервиса",
+              value: `${row.commission_amount} ${currency} (${row.commission_percent ?? 5}%)`,
+            });
+          if (payout != null)
+            items.push({
+              label: "К выплате перевозчику",
+              value: `${payout} ${currency}`,
+              bold: true,
+            });
+          if (!items.length) return null;
+          return (
+            <div className="grid gap-1 text-xs sm:grid-cols-2">
+              {items.map((it) => (
+                <div key={it.label} className={it.bold ? "font-medium" : undefined}>
+                  <span className="font-normal text-muted-foreground">{it.label}: </span>
+                  {it.value}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {row.dispatcher_comment && (
           <div className="rounded-md border bg-muted/30 p-2 text-xs">
