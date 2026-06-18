@@ -524,14 +524,44 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
               rows={6}
               value={sourceText}
               onChange={(e) => setSourceText(e.target.value)}
-              placeholder="Вставьте сюда текст из ATI / письма / мессенджера и нажмите «Разобрать текст»"
+              placeholder="Например: «Погрузка в Краснодаре 2 т 16 м³ 16 числа, потом забрать в Ростове 2 палеты 300 кг и отвезти в Москву первый, второй в Домодедово»"
               className="text-sm"
             />
             <div className="flex justify-end pt-2">
-              <Button type="button" onClick={onParseClick} variant="secondary" size="sm">
-                <Wand2 className="mr-1 h-4 w-4" /> Разобрать текст
+              <Button type="button" onClick={() => void onParseClick()} variant="secondary" size="sm" disabled={parsing}>
+                <Wand2 className="mr-1 h-4 w-4" /> {parsing ? "Разбираем…" : "Разобрать текст"}
               </Button>
             </div>
+            {serverParsed && (
+              <div className="mt-3 space-y-1 rounded border border-border bg-muted/40 p-2 text-xs">
+                <div className="font-semibold">Распознано — проверьте:</div>
+                {serverParsed.points
+                  .filter((p) => p.kind === "loading")
+                  .map((p, i) => (
+                    <div key={`l${i}`}>
+                      Загрузка {p.index}: <strong>{p.city ?? "город?"}</strong>
+                      {p.weight_kg ? `, ${(p.weight_kg / 1000).toLocaleString("ru-RU")} т` : ""}
+                      {p.volume_m3 ? `, ${p.volume_m3} м³` : ""}
+                      {p.pallets ? `, ${p.pallets} пал.` : ""}
+                      {p.date ? `, ${p.date}` : ""}
+                      {p.is_additional ? " (догруз)" : ""}
+                    </div>
+                  ))}
+                {serverParsed.points
+                  .filter((p) => p.kind === "unloading")
+                  .map((p, i) => (
+                    <div key={`u${i}`}>
+                      Выгрузка {p.index}: <strong>{p.city ?? "город?"}</strong>
+                      {p.date ? `, ${p.date}` : ""}
+                    </div>
+                  ))}
+                {serverParsed.warnings.length > 0 && (
+                  <div className="pt-1 text-amber-700">
+                    Нужно проверить: {serverParsed.warnings.join("; ")}
+                  </div>
+                )}
+              </div>
+            )}
           </Section>
 
           {/* Cargos */}
