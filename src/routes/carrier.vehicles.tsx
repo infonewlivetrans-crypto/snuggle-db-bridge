@@ -58,6 +58,9 @@ type Vehicle = {
   partial_route_to?: string | null;
   loading_restrictions?: string | null;
   location_updated_at?: string | null;
+  ready_radius_km?: number | null;
+  ready_mode?: string | null;
+  ready_from?: string | null;
 };
 
 const READY = new Set(["ready_to_work", "available", "free"]);
