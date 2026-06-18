@@ -223,32 +223,9 @@ function CarrierEmailSettingsPage() {
             </div>
           )}
 
-          <div>
-            <Label className="text-xs">Готовая конфигурация</Label>
-            <Select
-              onValueChange={(v) => {
-                const p = PRESETS[Number(v)];
-                if (!p) return;
-                setForm((f) => ({
-                  ...f,
-                  smtp_host: p.host || f.smtp_host,
-                  smtp_port: p.port,
-                  smtp_secure: p.secure,
-                }));
-              }}
-            >
-              <SelectTrigger><SelectValue placeholder="Выберите провайдера" /></SelectTrigger>
-              <SelectContent>
-                {PRESETS.map((p, i) => (
-                  <SelectItem key={p.label} value={String(i)}>{p.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
-              label="Email отправителя"
+              label="Email для связи"
               value={form.email}
               onChange={(v) => setForm({ ...form, email: v })}
               placeholder="vasya@yandex.ru"
@@ -260,120 +237,167 @@ function CarrierEmailSettingsPage() {
               onChange={(v) => setForm({ ...form, from_name: v })}
               placeholder="ИП Иванов В.В."
             />
-            <Field
-              label="SMTP-хост"
-              value={form.smtp_host}
-              onChange={(v) => setForm({ ...form, smtp_host: v })}
-              placeholder="smtp.yandex.ru"
-            />
-            <Field
-              label="SMTP-порт"
-              value={String(form.smtp_port)}
-              onChange={(v) => setForm({ ...form, smtp_port: Number(v) || 465 })}
-              type="number"
-            />
-            <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2">
-              <div>
-                <div className="text-xs text-muted-foreground">Шифрование</div>
-                <div className="font-medium">
-                  {form.smtp_secure ? "SSL/TLS (465)" : "STARTTLS (587)"}
-                </div>
-              </div>
-              <Switch
-                checked={form.smtp_secure}
-                onCheckedChange={(v) => setForm({ ...form, smtp_secure: v })}
-              />
-            </div>
-            <Field
-              label="SMTP-логин"
-              value={form.smtp_user}
-              onChange={(v) => setForm({ ...form, smtp_user: v })}
-              placeholder="обычно совпадает с email"
-            />
-            <Field
-              label={
-                account?.has_password
-                  ? "Новый SMTP-пароль (оставьте пустым — не менять)"
-                  : "Пароль приложения / SMTP-пароль"
-              }
-              value={form.smtp_password}
-              onChange={(v) => setForm({ ...form, smtp_password: v })}
-              placeholder={account?.has_password ? "••••••••" : "16-значный код от приложения"}
-              type="password"
-            />
-            <Field
-              label="Email для ATI (необязательно)"
-              value={form.ati_email}
-              onChange={(v) => setForm({ ...form, ati_email: v })}
-              placeholder="если ATI-кабинет на другом ящике"
-            />
-            <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2 sm:col-span-2">
-              <div>
-                <div className="font-medium">Использовать для отправки</div>
-                <div className="text-xs text-muted-foreground">
-                  Если выключено, диспетчер не будет отправлять грузовладельцам с вашей почты.
-                </div>
-              </div>
-              <Switch
-                checked={form.is_active}
-                onCheckedChange={(v) => setForm({ ...form, is_active: v })}
-              />
-            </div>
           </div>
 
-          <div className="rounded border border-border p-3">
-            <div className="mb-2 text-sm font-semibold">IMAP — входящая почта</div>
-            <div className="mb-3 text-xs text-muted-foreground">
-              IMAP нужен, чтобы Радиус Трек мог получать входящие подписанные заявки от
-              грузовладельцев и прикреплять их к рейсам.
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field
-                label="IMAP host"
-                value={form.imap_host}
-                onChange={(v) => setForm({ ...form, imap_host: v })}
-                placeholder="imap.yandex.ru"
-              />
-              <Field
-                label="IMAP port"
-                value={String(form.imap_port)}
-                onChange={(v) => setForm({ ...form, imap_port: Number(v) || 993 })}
-                type="number"
-              />
-              <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2">
+          <div className="rounded border border-border">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm font-medium"
+            >
+              <span>Дополнительно — SMTP/IMAP</span>
+              <span className="text-xs text-muted-foreground">{showAdvanced ? "Скрыть" : "Показать"}</span>
+            </button>
+            {showAdvanced && (
+              <div className="space-y-4 border-t border-border p-3">
+                <div className="rounded bg-muted/40 p-2 text-xs text-muted-foreground">
+                  Эти настройки нужны только для автоматической обработки входящих заявок
+                  и автоматической отправки писем грузовладельцу. Если не знаете, что
+                  это — оставьте пустым. Диспетчер всё равно сможет работать, а
+                  заявку/договор можно загрузить вручную в рейс.
+                </div>
+
                 <div>
-                  <div className="text-xs text-muted-foreground">Шифрование</div>
-                  <div className="font-medium">
-                    {form.imap_secure ? "SSL/TLS (993)" : "STARTTLS"}
+                  <Label className="text-xs">Готовая конфигурация</Label>
+                  <Select
+                    onValueChange={(v) => {
+                      const p = PRESETS[Number(v)];
+                      if (!p) return;
+                      setForm((f) => ({
+                        ...f,
+                        smtp_host: p.host || f.smtp_host,
+                        smtp_port: p.port,
+                        smtp_secure: p.secure,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Выберите провайдера" /></SelectTrigger>
+                    <SelectContent>
+                      {PRESETS.map((p, i) => (
+                        <SelectItem key={p.label} value={String(i)}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field
+                    label="SMTP-хост"
+                    value={form.smtp_host}
+                    onChange={(v) => setForm({ ...form, smtp_host: v })}
+                    placeholder="smtp.yandex.ru"
+                  />
+                  <Field
+                    label="SMTP-порт"
+                    value={String(form.smtp_port)}
+                    onChange={(v) => setForm({ ...form, smtp_port: Number(v) || 465 })}
+                    type="number"
+                  />
+                  <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Шифрование</div>
+                      <div className="font-medium">
+                        {form.smtp_secure ? "SSL/TLS (465)" : "STARTTLS (587)"}
+                      </div>
+                    </div>
+                    <Switch
+                      checked={form.smtp_secure}
+                      onCheckedChange={(v) => setForm({ ...form, smtp_secure: v })}
+                    />
+                  </div>
+                  <Field
+                    label="SMTP-логин"
+                    value={form.smtp_user}
+                    onChange={(v) => setForm({ ...form, smtp_user: v })}
+                    placeholder="обычно совпадает с email"
+                  />
+                  <Field
+                    label={
+                      account?.has_password
+                        ? "Новый SMTP-пароль (оставьте пустым — не менять)"
+                        : "Пароль приложения / SMTP-пароль"
+                    }
+                    value={form.smtp_password}
+                    onChange={(v) => setForm({ ...form, smtp_password: v })}
+                    placeholder={account?.has_password ? "••••••••" : "16-значный код от приложения"}
+                    type="password"
+                  />
+                  <Field
+                    label="Email для ATI (необязательно)"
+                    value={form.ati_email}
+                    onChange={(v) => setForm({ ...form, ati_email: v })}
+                    placeholder="если ATI-кабинет на другом ящике"
+                  />
+                  <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2 sm:col-span-2">
+                    <div>
+                      <div className="font-medium">Использовать для отправки</div>
+                      <div className="text-xs text-muted-foreground">
+                        Если выключено, диспетчер не будет отправлять грузовладельцам с вашей почты.
+                      </div>
+                    </div>
+                    <Switch
+                      checked={form.is_active}
+                      onCheckedChange={(v) => setForm({ ...form, is_active: v })}
+                    />
                   </div>
                 </div>
-                <Switch
-                  checked={form.imap_secure}
-                  onCheckedChange={(v) => setForm({ ...form, imap_secure: v })}
-                />
+
+                <div className="rounded border border-border p-3">
+                  <div className="mb-2 text-sm font-semibold">IMAP — входящая почта</div>
+                  <div className="mb-3 text-xs text-muted-foreground">
+                    IMAP нужен, чтобы Радиус Трек мог получать входящие подписанные заявки от
+                    грузовладельцев и прикреплять их к рейсам.
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field
+                      label="IMAP host"
+                      value={form.imap_host}
+                      onChange={(v) => setForm({ ...form, imap_host: v })}
+                      placeholder="imap.yandex.ru"
+                    />
+                    <Field
+                      label="IMAP port"
+                      value={String(form.imap_port)}
+                      onChange={(v) => setForm({ ...form, imap_port: Number(v) || 993 })}
+                      type="number"
+                    />
+                    <div className="flex items-center justify-between gap-2 rounded border border-border px-3 py-2">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Шифрование</div>
+                        <div className="font-medium">
+                          {form.imap_secure ? "SSL/TLS (993)" : "STARTTLS"}
+                        </div>
+                      </div>
+                      <Switch
+                        checked={form.imap_secure}
+                        onCheckedChange={(v) => setForm({ ...form, imap_secure: v })}
+                      />
+                    </div>
+                    <Field
+                      label="IMAP логин"
+                      value={form.imap_user}
+                      onChange={(v) => setForm({ ...form, imap_user: v })}
+                      placeholder="обычно совпадает с email"
+                    />
+                    <Field
+                      label={
+                        account?.has_imap_password
+                          ? "Новый IMAP-пароль (оставьте пустым — не менять)"
+                          : "IMAP пароль (пароль приложения)"
+                      }
+                      value={form.imap_password}
+                      onChange={(v) => setForm({ ...form, imap_password: v })}
+                      placeholder={
+                        account?.has_imap_password
+                          ? "Пароль сохранён. Введите новый, только если хотите заменить."
+                          : "16-значный код от приложения"
+                      }
+                      type="password"
+                    />
+                  </div>
+                </div>
               </div>
-              <Field
-                label="IMAP логин"
-                value={form.imap_user}
-                onChange={(v) => setForm({ ...form, imap_user: v })}
-                placeholder="обычно совпадает с email"
-              />
-              <Field
-                label={
-                  account?.has_imap_password
-                    ? "Новый IMAP-пароль (оставьте пустым — не менять)"
-                    : "IMAP пароль (пароль приложения)"
-                }
-                value={form.imap_password}
-                onChange={(v) => setForm({ ...form, imap_password: v })}
-                placeholder={
-                  account?.has_imap_password
-                    ? "Пароль сохранён. Введите новый, только если хотите заменить."
-                    : "16-значный код от приложения"
-                }
-                type="password"
-              />
-            </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
