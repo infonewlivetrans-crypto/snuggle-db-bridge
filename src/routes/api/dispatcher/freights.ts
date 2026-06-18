@@ -97,8 +97,24 @@ export const Route = createFileRoute("/api/dispatcher/freights")({
         }
         const parsed = freightCreateSchema.safeParse(body);
         if (!parsed.success) {
+          // Лог для диагностики 400 — какое поле упало и какое значение пришло.
+          const recv = (body ?? {}) as Record<string, unknown>;
+          const issues = parsed.error.issues.map((i) => ({
+            path: i.path.join("."),
+            message: i.message,
+            code: i.code,
+            received: i.path.length ? recv[i.path[0] as string] : undefined,
+          }));
+          console.error("[freights.POST] validation_failed", JSON.stringify(issues));
+          const first = issues[0];
           return jsonResponse(
-            { error: "validation_failed", issues: parsed.error.issues },
+            {
+              error: "validation_failed",
+              message: first
+                ? `Поле ${first.path}: ${first.message}`
+                : "Проверьте поля формы",
+              issues,
+            },
             { status: 400 },
           );
         }

@@ -9,12 +9,6 @@ import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
 
 const PUBLIC_APP_URL = "https://radius-track.ru";
 
-function generateToken(): string {
-  // 32 hex chars из crypto. На Worker есть crypto.getRandomValues.
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 function inviteUrl(token: string): string {
   return `${PUBLIC_APP_URL.replace(/\/+$/, "")}/driver/register/${token}`;
@@ -49,21 +43,37 @@ export const Route = createFileRoute("/api/carrier/driver-invites")({
         const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
 
-        const token = generateToken();
-        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        // SECURITY DEFINER RPC обходит RLS carrier_invites, но проверяет,
+        // что текущий пользователь — перевозчик (carrier_my_ext_id()).
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (ctx.admin.from("carrier_invites" as never) as any)
-          .insert({
-            token,
-            invite_type: "driver",
-            carrier_id: ctx.carrierId,
-            status: "active",
-            expires_at: expiresAt,
-          } as never)
-          .select("id, token, invite_type, status, expires_at, created_at")
-          .single();
-        if (error) return jsonResponse({ error: error.message }, { status: 500 });
-        return jsonResponse({ row: { ...data, invite_url: inviteUrl(data.token) } }, { status: 201 });
+        const { data, error } = await (ctx.client.rpc as any)(
+          "carrier_create_driver_invite",
+          { p_ttl_days: 30 },
+        );
+        if (error) {
+          return jsonResponse(
+            { error: "rpc_failed", detail: error.message },
+            { status: 400 },
+          );
+        }
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row?.token) {
+          return jsonResponse({ error: "no_invite_returned" }, { status: 500 });
+        }
+        return jsonResponse(
+          {
+            row: {
+              id: row.id,
+              token: row.token,
+              invite_type: "driver",
+              status: row.status,
+              expires_at: row.expires_at,
+              created_at: row.created_at,
+              invite_url: inviteUrl(row.token),
+            },
+          },
+          { status: 201 },
+        );
       },
     },
   },

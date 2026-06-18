@@ -69,7 +69,7 @@ export function DriverForm({
       setTelegram(empty(initial.telegram));
       setMaxId(empty(initial.max_messenger));
       setCity(empty(initial.city));
-      setCarrierId(initial.dispatcher_carrier_ext_id ?? "none");
+      setCarrierId(initial.dispatcher_carrier_ext_id || "none");
       // Статус берём из БД; пустую строку нормализуем в "new".
       const s = (initial.dispatcher_status || "new") as DriverStatus;
       setStatus(
@@ -121,7 +121,7 @@ export function DriverForm({
             <SelectTrigger><SelectValue placeholder="— не привязан —" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— не привязан —</SelectItem>
-              {carrierId !== "none" && !carriers.find((c) => c.id === carrierId) && (
+              {carrierId !== "none" && carrierId !== "" && !carriers.find((c) => c.id === carrierId) && (
                 <SelectItem value={carrierId}>
                   {initial?.dispatcher_carrier_ext_id === carrierId
                     ? "Текущий перевозчик (загрузка…)"

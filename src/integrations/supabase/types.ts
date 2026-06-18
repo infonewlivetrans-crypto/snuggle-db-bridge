@@ -1722,6 +1722,7 @@ export type Database = {
           has_dopog: boolean | null
           has_med_book: boolean | null
           id: string
+          is_owner_driver: boolean
           license_categories: string[] | null
           license_number: string | null
           max_messenger: string | null
@@ -1750,6 +1751,7 @@ export type Database = {
           has_dopog?: boolean | null
           has_med_book?: boolean | null
           id?: string
+          is_owner_driver?: boolean
           license_categories?: string[] | null
           license_number?: string | null
           max_messenger?: string | null
@@ -1778,6 +1780,7 @@ export type Database = {
           has_dopog?: boolean | null
           has_med_book?: boolean | null
           id?: string
+          is_owner_driver?: boolean
           license_categories?: string[] | null
           license_number?: string | null
           max_messenger?: string | null
@@ -6773,6 +6776,17 @@ export type Database = {
       calc_order_delivery_cost: {
         Args: { p_order_id: string }
         Returns: number
+      }
+      carrier_create_driver_invite: {
+        Args: { p_ttl_days?: number }
+        Returns: {
+          carrier_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          status: string
+          token: string
+        }[]
       }
       carrier_me_get: { Args: never; Returns: Json }
       carrier_my_ext_id: { Args: never; Returns: string }
