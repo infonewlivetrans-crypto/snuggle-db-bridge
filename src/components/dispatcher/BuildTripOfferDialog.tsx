@@ -737,25 +737,37 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
         </div>
 
         <DialogFooter
-          className="flex-wrap gap-2 border-t bg-background px-4 py-3 sm:px-6"
+          className="flex-col gap-2 border-t bg-background px-4 py-3 sm:px-6 sm:flex-row sm:flex-wrap"
           style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
         >
+          {blockReason ? (
+            <div className="w-full text-xs text-amber-600 sm:order-first">
+              {blockReason}
+            </div>
+          ) : null}
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
           <Button
             variant="default"
             onClick={() => saveDraft.mutate()}
-            disabled={saveDraft.isPending}
+            disabled={saveDraft.isPending || sendOffer.isPending}
           >
-            {saveDraft.isPending ? "Сохранение…" : "Сохранить черновик"}
+            {saveDraft.isPending ? "Сохранение…" : draftId ? "Обновить черновик" : "Сохранить черновик"}
           </Button>
           <Button
             variant="secondary"
-            disabled
-            title="Будет доступно после следующего этапа"
+            onClick={() => {
+              if (blockReason) {
+                toast.warning(blockReason);
+                return;
+              }
+              sendOffer.mutate();
+            }}
+            disabled={sendOffer.isPending || saveDraft.isPending || blockReason !== null}
+            title={blockReason ?? "Отправить предложение перевозчику"}
           >
-            Отправить предложение перевозчику
+            {sendOffer.isPending ? "Отправка…" : "Отправить предложение перевозчику"}
           </Button>
         </DialogFooter>
       </DialogContent>
