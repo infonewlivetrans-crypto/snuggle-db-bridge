@@ -69,7 +69,7 @@ export function DriverForm({
       setTelegram(empty(initial.telegram));
       setMaxId(empty(initial.max_messenger));
       setCity(empty(initial.city));
-      setCarrierId(initial.dispatcher_carrier_ext_id ?? "none");
+      setCarrierId(initial.dispatcher_carrier_ext_id || "none");
       // Статус берём из БД; пустую строку нормализуем в "new".
       const s = (initial.dispatcher_status || "new") as DriverStatus;
       setStatus(

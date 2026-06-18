@@ -2,7 +2,15 @@
 // Использует уже зашифрованные креды из dispatcher_carrier_email_accounts.
 
 import { createHash } from "node:crypto";
+import dns from "node:dns";
 import { decryptPassword } from "@/server/email/crypto.server";
+
+// IPv4-first: Mail.ru возвращает AAAA, до которых нет IPv6-маршрута (ENETUNREACH).
+try {
+  dns.setDefaultResultOrder?.("ipv4first");
+} catch {
+  /* old node */
+}
 
 export interface CarrierImapAccount {
   imap_host: string;
@@ -55,6 +63,8 @@ export async function fetchInbox(
     secure: acc.imap_secure,
     auth: { user: acc.imap_user, pass },
     logger: false,
+    // IPv4-only — обход ENETUNREACH на IPv6.
+    socketOptions: { family: 4 },
   });
 
   const result: InboundEmail[] = [];
@@ -111,3 +121,32 @@ export async function fetchInbox(
   }
   return result;
 }
+
+/** Лёгкая проверка подключения: open/list/logout. Не качает письма. */
+export async function verifyImap(
+  acc: CarrierImapAccount,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { ImapFlow } = (await import("imapflow")) as any;
+    const pass = decryptPassword(acc.imap_password_encrypted);
+    const client = new ImapFlow({
+      host: acc.imap_host,
+      port: acc.imap_port,
+      secure: acc.imap_secure,
+      auth: { user: acc.imap_user, pass },
+      logger: false,
+      socketOptions: { family: 4 },
+    });
+    await client.connect();
+    try {
+      await client.mailboxOpen("INBOX");
+    } finally {
+      await client.logout().catch(() => undefined);
+    }
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+

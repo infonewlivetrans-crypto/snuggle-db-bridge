@@ -122,8 +122,8 @@ export function VehicleForm({
       setCurrentLat(init.current_lat == null ? "" : String(init.current_lat));
       setCurrentLng(init.current_lng == null ? "" : String(init.current_lng));
       setLocationUpdatedAt((init.location_updated_at as string | null) ?? null);
-      setDriverId(initial.dispatcher_driver_ext_id ?? "none");
-      setCarrierId(initial.dispatcher_carrier_ext_id ?? initialCarrierId ?? "none");
+      setDriverId(initial.dispatcher_driver_ext_id || "none");
+      setCarrierId(initial.dispatcher_carrier_ext_id || initialCarrierId || "none");
       setStatus(
         (VEHICLE_STATUSES as readonly string[]).includes(initial.dispatcher_status ?? "")
           ? (initial.dispatcher_status as VehicleStatus)
@@ -233,7 +233,7 @@ export function VehicleForm({
             <SelectTrigger><SelectValue placeholder="Выберите перевозчика" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— не выбран —</SelectItem>
-              {carrierId !== "none" && !carriers.find((c) => c.id === carrierId) && (
+              {carrierId !== "none" && carrierId !== "" && !carriers.find((c) => c.id === carrierId) && (
                 <SelectItem value={carrierId}>
                   {initial?.dispatcher_carrier_ext_id === carrierId
                     ? "Текущий перевозчик (загрузка…)"
@@ -254,7 +254,7 @@ export function VehicleForm({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">— без водителя —</SelectItem>
-              {driverId !== "none" && !filteredDrivers.find((d) => d.id === driverId) && (
+              {driverId !== "none" && driverId !== "" && !filteredDrivers.find((d) => d.id === driverId) && (
                 <SelectItem value={driverId}>
                   {initial?.dispatcher_driver_ext_id === driverId
                     ? "Текущий водитель (загрузка…)"
