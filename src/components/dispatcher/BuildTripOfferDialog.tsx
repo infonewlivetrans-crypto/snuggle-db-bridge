@@ -241,19 +241,96 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
     }));
   }
 
-  function onParseClick() {
+  interface ServerParsedPoint {
+    kind: "loading" | "unloading";
+    index: number;
+    city: string | null;
+    date: string | null;
+    weight_kg: number | null;
+    volume_m3: number | null;
+    pallets: number | null;
+    cargo_name: string | null;
+    is_additional: boolean;
+  }
+  interface ServerParsed {
+    loading_city: string | null;
+    unloading_city: string | null;
+    loading_date: string | null;
+    unloading_date: string | null;
+    weight_kg: number | null;
+    volume_m3: number | null;
+    pallets: number | null;
+    rate_amount: number | null;
+    cargo_name: string | null;
+    body_type: string | null;
+    points: ServerParsedPoint[];
+    warnings: string[];
+    hits: string[];
+  }
+  const [serverParsed, setServerParsed] = useState<ServerParsed | null>(null);
+  const [parsing, setParsing] = useState(false);
+
+  function applyServerParsed(p: ServerParsed) {
+    setServerParsed(p);
+    const compat: ParsedFreightFields = {
+      cargo_name: p.cargo_name ?? null,
+      weight_kg: p.weight_kg ?? null,
+      volume_m3: p.volume_m3 ?? null,
+      packages_count: p.pallets ?? null,
+      loading_city: p.loading_city ?? null,
+      loading_date: p.loading_date ?? null,
+      unloading_city: p.unloading_city ?? null,
+      unloading_date: p.unloading_date ?? null,
+      body_type: p.body_type ?? null,
+      rate: p.rate_amount ?? null,
+    } as ParsedFreightFields;
+    applyParsed(compat);
+
+    // Заполнить доп. точки из server.points (вторая и далее загрузка/выгрузка)
+    const loads = p.points.filter((x) => x.kind === "loading");
+    const unloads = p.points.filter((x) => x.kind === "unloading");
+    const extra: RoutePoint[] = [];
+    loads.slice(1).forEach((pt) => {
+      extra.push({ ...emptyPoint("load"), city: pt.city ?? "", date: pt.date ?? "" });
+    });
+    unloads.slice(1).forEach((pt) => {
+      extra.push({ ...emptyPoint("unload"), city: pt.city ?? "", date: pt.date ?? "" });
+    });
+    if (extra.length > 0) setExtraPoints(extra);
+  }
+
+  async function onParseClick() {
     if (!sourceText.trim()) {
       toast.error("Вставьте текст груза");
       return;
     }
-    const res = parseIncomingFreightText(sourceText);
-    if (!res.has_any) {
-      toast.warning("Ничего не распознано. Заполните поля вручную.");
-      return;
+    setParsing(true);
+    try {
+      const resp = await apiPost<{ ok: boolean; parsed: ServerParsed }>(
+        "/api/dispatcher/ai/parse-freight-text",
+        { text: sourceText },
+      );
+      if (resp?.parsed) {
+        applyServerParsed(resp.parsed);
+        const hits = resp.parsed.hits?.length ?? 0;
+        if (hits === 0) toast.warning("Ничего не распознано. Заполните вручную.");
+        else toast.success(`Разобрано. Распознано: ${hits} полей`);
+        return;
+      }
+    } catch (e) {
+      // fallback: локальный парсер
+      const res = parseIncomingFreightText(sourceText);
+      if (res.has_any) {
+        applyParsed(res.fields);
+        toast.success("Разобрано (локально)");
+      } else {
+        toast.error("Не удалось разобрать текст", {
+          description: e instanceof Error ? e.message : undefined,
+        });
+      }
+    } finally {
+      setParsing(false);
     }
-    applyParsed(res.fields);
-    if (res.missing.length === 0) toast.success("Текст разобран");
-    else toast.success(`Разобрано частично. Проверьте: ${res.missing.join(", ")}`);
   }
 
   /* ----------------- Итоги ----------------- */
