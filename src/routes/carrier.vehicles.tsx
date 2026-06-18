@@ -221,6 +221,11 @@ function CarrierVehiclesPage() {
                   )}
                   {v.source === "dispatcher" && (
                     <div className="space-y-2 pt-2">
+                      <AssignDriverButton
+                        vehicleId={v.id}
+                        currentDriverId={v.driver_id}
+                        currentDriverName={v.driver_name}
+                      />
                       <div className="flex flex-wrap gap-2">
                         <UpdateMyLocationButton vehicleId={v.id} />
                         <Button
