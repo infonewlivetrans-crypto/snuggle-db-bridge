@@ -20,6 +20,7 @@ import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { VehicleForm } from "@/components/dispatcher/VehicleForm";
 import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocumentsBlock";
 import { CityCombobox } from "@/components/common/CityCombobox";
+import { VehicleReadinessEditor } from "@/components/vehicles/VehicleReadinessEditor";
 import { DispatcherPartnerCardBlock } from "@/components/dispatcher/DispatcherPartnerCardBlock";
 import { vehiclesApi, driversApi, carriersApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
@@ -359,12 +360,28 @@ function VehiclesPage() {
                   )}
                 </span>
               } />
-              <Row label="Радиус готовности" value={v.ready_radius_km != null ? `${v.ready_radius_km} км` : "—"} />
               <Row label="Режим готовности" value={readyModeLabel} />
-              {v.ready_from && <Row label="Готов с даты" value={v.ready_from} />}
               {weekdays && <Row label="Дни недели" value={weekdays} />}
-              <Row label="Куда готов ехать" value={(v.ready_to_cities ?? []).join(", ") || "—"} />
-              <Row label="Дата готовности" value={v.ready_date ?? "—"} />
+              <div className="pt-2">
+                <VehicleReadinessEditor
+                  endpoint={`/api/dispatcher/vehicles/${v.id}`}
+                  invalidateKey={["dispatcher-vehicles"]}
+                  initial={{
+                    current_city: v.current_city ?? null,
+                    ready_to_cities: v.ready_to_cities ?? null,
+                    ready_radius_km: v.ready_radius_km ?? null,
+                    ready_mode: v.ready_mode ?? null,
+                    ready_from: v.ready_from ?? null,
+                    ready_date: v.ready_date ?? null,
+                    dispatcher_driver_ext_id: v.dispatcher_driver_ext_id ?? null,
+                    dispatcher_status: v.dispatcher_status ?? null,
+                    body_type: v.body_type ?? null,
+                    payload_kg: v.payload_kg ?? null,
+                    home_city: v.home_city ?? null,
+                  }}
+                />
+              </div>
+
               <Row label="Перевозчик" value={
                 carrier
                   ? `${carrier.name ?? "—"}${carrier.phone ? " · " + carrier.phone : ""}`

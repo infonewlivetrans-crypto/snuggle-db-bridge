@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { apiDelete, apiGetAuth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/dispatcher/StatusBadge";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
-import { ReportReadinessBlock } from "@/components/carrier/ReportReadinessBlock";
+import { VehicleReadinessEditor } from "@/components/vehicles/VehicleReadinessEditor";
 import { CarrierVehicleFormDialog, UpdateMyLocationButton } from "@/components/carrier/CarrierForms";
 import { AssignDriverButton } from "@/components/carrier/AssignDriverButton";
 import {
@@ -58,6 +58,9 @@ type Vehicle = {
   partial_route_to?: string | null;
   loading_restrictions?: string | null;
   location_updated_at?: string | null;
+  ready_radius_km?: number | null;
+  ready_mode?: string | null;
+  ready_from?: string | null;
 };
 
 const READY = new Set(["ready_to_work", "available", "free"]);
@@ -237,27 +240,27 @@ function CarrierVehiclesPage() {
                           <Archive className="mr-1 h-3 w-3" /> В архив
                         </Button>
                       </div>
-                      <ReportReadinessBlock
+                      <VehicleReadinessEditor
                         endpoint={`/api/carrier/vehicles/${v.id}/readiness`}
                         invalidateKey={["carrier", "vehicles"]}
                         initial={{
                           current_city: v.current_city ?? null,
                           ready_to_cities: v.ready_to_cities ?? null,
-                          ready_comment: v.ready_comment ?? null,
-                          load_status: v.load_status ?? null,
-                          free_payload_kg: v.free_payload_kg ?? null,
-                          free_volume_m3: v.free_volume_m3 ?? null,
-                          partial_route_from: v.partial_route_from ?? null,
-                          partial_route_to: v.partial_route_to ?? null,
-                          loading_restrictions: v.loading_restrictions ?? null,
+                          ready_radius_km: v.ready_radius_km ?? null,
+                          ready_mode: v.ready_mode ?? null,
+                          ready_from: v.ready_from ?? null,
                           ready_date: v.ready_date ?? null,
-                          ready_from: null,
-                          ready_radius_km: null,
-                          ready_mode: null,
-                          ready_weekdays: null,
-                          location_updated_at: v.location_updated_at ?? null,
+                          load_status: v.load_status ?? null,
+                          driver_id: v.driver_id ?? null,
+                          is_active: v.is_active ?? null,
+                          dispatcher_status: v.dispatcher_status ?? null,
+                          body_type: v.body_type ?? null,
+                          payload_kg: v.payload_kg ?? null,
+                          capacity_kg: v.capacity_kg ?? null,
+                          home_city: v.home_city ?? null,
                         }}
                       />
+
                       <CarrierDocumentsBlock ownerType="vehicle" ownerId={v.id} />
                     </div>
                   )}
