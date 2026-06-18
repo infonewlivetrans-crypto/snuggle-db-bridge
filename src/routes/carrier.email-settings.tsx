@@ -88,6 +88,7 @@ const PRESETS: Array<{ label: string; host: string; port: number; secure: boolea
 
 function CarrierEmailSettingsPage() {
   const qc = useQueryClient();
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["carrier", "email-account"],
     queryFn: () => apiGetAuth<{ row: AccountRow | null }>("/api/carrier/email-account", 10000),
