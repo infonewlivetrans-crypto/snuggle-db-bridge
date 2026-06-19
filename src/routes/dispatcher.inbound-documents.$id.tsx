@@ -116,6 +116,7 @@ function InboundDocumentReviewPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const signatureEnabled = useDocumentSignatureEnabled();
 
   const { data, isLoading } = useQuery({
     queryKey: ["dispatcher", "inbound-document", id],
