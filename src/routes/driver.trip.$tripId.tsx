@@ -25,6 +25,7 @@ import {
   Camera,
   Loader2,
 } from "lucide-react";
+import { useDriverTripExecutionEnabled } from "@/lib/mvp-features";
 
 export const Route = createFileRoute("/driver/trip/$tripId")({
   head: () => ({
