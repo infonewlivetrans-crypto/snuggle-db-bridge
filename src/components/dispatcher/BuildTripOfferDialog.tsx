@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { apiPost } from "@/lib/api-client";
+import { apiPost, apiPatch } from "@/lib/api-client";
 import {
   parseIncomingFreightText,
   type ParsedFreightFields,
