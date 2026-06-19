@@ -411,11 +411,17 @@ function InboundDocumentReviewPage() {
           </Card>
         </div>
 
-        <InboundSignatureBlock
-          inboundDocumentId={row.id}
-          carrierExtId={row.carrier_ext_id}
-          tripId={row.dispatcher_trip_id}
-        />
+        {signatureEnabled ? (
+          <InboundSignatureBlock
+            inboundDocumentId={row.id}
+            carrierExtId={row.carrier_ext_id}
+            tripId={row.dispatcher_trip_id}
+          />
+        ) : (
+          <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Подписание документов будет подключено позже. Сейчас можно отправлять документы без автоматической подписи или загрузить вручную.
+          </div>
+        )}
       </div>
     </DispatcherShell>
   );
