@@ -403,7 +403,8 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
     const points: RoutePoint[] = [loadPoint, ...extraPoints, unloadPoint];
     const firstCargo = cargos[0];
     const weightT = nnum(firstCargo?.weight_t);
-    return {
+    const mappedPayment = rate.payment ? (PAYMENT_MAP[rate.payment] ?? null) : null;
+    const raw: Record<string, unknown> = {
       title: nz(`${loadPoint.city || ""} → ${unloadPoint.city || ""}`.replace(/^ → $/, "")),
       loading_city: nz(loadPoint.city),
       loading_date: nz(loadPoint.date),
@@ -414,8 +415,9 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
       volume_m3: nnum(firstCargo?.volume_m3),
       body_type: nz(firstCargo?.body_type),
       load_methods: loadPoint.load_method ? [loadPoint.load_method] : [],
-      rate: nnum(rate.rate),
-      payment_type: rate.payment ? (PAYMENT_MAP[rate.payment] ?? null) : null,
+      // Если "Ставка уточняется" — отправляем null, не пустую строку.
+      rate: rate.rate_tbd ? null : nnum(rate.rate),
+      payment_type: mappedPayment,
       payment_delay_days: nnum(rate.delay_days),
       contact_name: nz(contacts.contact_name),
       contact_phone: nz(contacts.phone1),
@@ -423,17 +425,22 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
       customer_name: nz(contacts.company),
       customer_phone: nz(contacts.phone1),
       customer_email: nz(contacts.email),
-      freight_kind: "main" as const,
-      dispatcher_status: "new" as const,
-      assigned_vehicle_ext_id: vehicle.id,
-      assigned_carrier_ext_id: vehicle.carrier?.id ?? null,
-      assigned_driver_ext_id: vehicle.driver?.id ?? null,
+      freight_kind: "main",
+      dispatcher_status: "new",
+      assigned_vehicle_ext_id: nz(vehicle.id),
+      assigned_carrier_ext_id: nz(vehicle.carrier?.id ?? null),
+      assigned_driver_ext_id: nz(vehicle.driver?.id ?? null),
       source_text: nz(sourceText),
       parsed_payload: parsedSnapshot ?? null,
-      cargo_items: cargos,
-      route_points: points,
+      cargo_items: Array.isArray(cargos) ? cargos : [],
+      route_points: Array.isArray(points) ? points : [],
       offer_status: "draft",
     };
+    // Удаляем undefined — оставляем null там, где он осмысленен (схема его принимает).
+    for (const k of Object.keys(raw)) {
+      if (raw[k] === undefined) delete raw[k];
+    }
+    return raw;
   }
 
   const saveDraft = useMutation({
