@@ -15,6 +15,7 @@ import { OnboardingChecklist } from "@/components/carrier/OnboardingChecklist";
 import { CarrierEmailBanner } from "@/components/carrier/CarrierEmailBanner";
 import { CarrierInboundDocsBlock } from "@/components/carrier/CarrierInboundDocsBlock";
 import { CarrierSignatureCard } from "@/components/carrier/CarrierSignatureCard";
+import { useDocumentSignatureEnabled } from "@/lib/mvp-features";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
