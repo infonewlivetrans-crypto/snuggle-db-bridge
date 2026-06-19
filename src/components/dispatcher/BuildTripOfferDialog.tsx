@@ -380,16 +380,22 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
     if (!vehicle.carrier?.id) return "У машины не указан перевозчик";
     if (!nz(loadPoint.city)) return "Не заполнен город загрузки";
     if (!nz(unloadPoint.city)) return "Не заполнен город выгрузки";
-    if (!nnum(rate.rate)) return "Не указана ставка";
-    const cargoTitle = nz(cargos[0]?.cargo_name) ?? `${loadPoint.city || ""} → ${unloadPoint.city || ""}`;
-    if (!cargoTitle.trim()) return "Не указано название груза";
+    if (!nz(loadPoint.date)) return "Не указана дата загрузки";
+    const hasCargo =
+      nz(cargos[0]?.cargo_name) ||
+      nnum(cargos[0]?.weight_t) ||
+      nnum(cargos[0]?.volume_m3);
+    if (!hasCargo) return "Опишите груз: название, вес или объём";
+    if (!rate.rate_tbd && !nnum(rate.rate)) return "Укажите ставку или отметьте «Ставка уточняется»";
     return null;
   }, [
     vehicle.id,
     vehicle.carrier?.id,
     loadPoint.city,
+    loadPoint.date,
     unloadPoint.city,
     rate.rate,
+    rate.rate_tbd,
     cargos,
   ]);
 
