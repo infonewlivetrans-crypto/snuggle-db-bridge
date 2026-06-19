@@ -25,6 +25,7 @@ import {
   Camera,
   Loader2,
 } from "lucide-react";
+import { useDriverTripExecutionEnabled } from "@/lib/mvp-features";
 
 export const Route = createFileRoute("/driver/trip/$tripId")({
   head: () => ({
@@ -82,6 +83,7 @@ function TripDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const tripExecutionEnabled = useDriverTripExecutionEnabled();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["driver-trip", tripId],
@@ -149,6 +151,42 @@ function TripDetailPage() {
   const next = nextDriverAction(trip.status, points);
   const fromCity = points.find((p) => p.kind === "pickup")?.city;
   const toCity = [...points].reverse().find((p) => p.kind === "dropoff")?.city;
+
+  if (!tripExecutionEnabled) {
+    return (
+      <div className="min-h-[100dvh] bg-background p-4">
+        <header className="mb-4 flex items-center gap-2">
+          <Link to="/driver">
+            <Button variant="ghost" size="icon">
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold">
+              {fromCity ?? "—"} → {toCity ?? "—"}
+            </div>
+            <Badge className={`mt-0.5 ${TRIP_STATUS_BADGE[trip.status]}`} variant="outline">
+              {TRIP_STATUS_LABEL[trip.status]}
+            </Badge>
+          </div>
+        </header>
+        <div className="mx-auto max-w-2xl space-y-3">
+          <div className="rounded-lg border border-border bg-card p-4 text-sm">
+            <div className="mb-2 font-semibold">Перевозчик принял груз, ожидайте задание от диспетчера.</div>
+            <p className="text-muted-foreground">
+              Сейчас полный сценарий выполнения рейса временно отключён. Передайте подтверждение готовности перевозчику или нажмите «Свободен / Готов к работе» в кабинете водителя.
+            </p>
+          </div>
+          {trip.dispatcher_contact && (
+            <div className="rounded-lg border border-border bg-card p-3 text-sm">
+              <div className="text-xs text-muted-foreground">Диспетчер</div>
+              <div className="font-medium">{trip.dispatcher_contact}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] bg-background pb-[calc(env(safe-area-inset-bottom)+96px)]">

@@ -15,6 +15,7 @@ import { OnboardingChecklist } from "@/components/carrier/OnboardingChecklist";
 import { CarrierEmailBanner } from "@/components/carrier/CarrierEmailBanner";
 import { CarrierInboundDocsBlock } from "@/components/carrier/CarrierInboundDocsBlock";
 import { CarrierSignatureCard } from "@/components/carrier/CarrierSignatureCard";
+import { useDocumentSignatureEnabled } from "@/lib/mvp-features";
 
 const PENDING_KEY = "rt-carrier-activate-token";
 
@@ -64,6 +65,7 @@ const STATUS_LABEL: Record<string, string> = {
 function CarrierOverviewPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
+  const signatureEnabled = useDocumentSignatureEnabled();
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["carrier", "me"],
@@ -225,7 +227,7 @@ function CarrierOverviewPage() {
 
       {ext?.id && (
         <>
-          <CarrierSignatureCard carrierExtId={ext.id} />
+          {signatureEnabled && <CarrierSignatureCard carrierExtId={ext.id} />}
           <div className="lg:col-span-2">
             <CarrierDocumentsBlock
               ownerType="carrier"

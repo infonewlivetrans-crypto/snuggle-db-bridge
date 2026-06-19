@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { InboundSignatureBlock } from "@/components/signatures/InboundSignatureBlock";
+import { useDocumentSignatureEnabled } from "@/lib/mvp-features";
 
 export const Route = createFileRoute("/dispatcher/inbound-documents/$id")({
   head: () => ({ meta: [{ title: "Проверка входящей заявки — AI Диспетчер" }] }),
@@ -115,6 +116,7 @@ function InboundDocumentReviewPage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const signatureEnabled = useDocumentSignatureEnabled();
 
   const { data, isLoading } = useQuery({
     queryKey: ["dispatcher", "inbound-document", id],
@@ -409,11 +411,17 @@ function InboundDocumentReviewPage() {
           </Card>
         </div>
 
-        <InboundSignatureBlock
-          inboundDocumentId={row.id}
-          carrierExtId={row.carrier_ext_id}
-          tripId={row.dispatcher_trip_id}
-        />
+        {signatureEnabled ? (
+          <InboundSignatureBlock
+            inboundDocumentId={row.id}
+            carrierExtId={row.carrier_ext_id}
+            tripId={row.dispatcher_trip_id}
+          />
+        ) : (
+          <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Подписание документов будет подключено позже. Сейчас можно отправлять документы без автоматической подписи или загрузить вручную.
+          </div>
+        )}
       </div>
     </DispatcherShell>
   );
