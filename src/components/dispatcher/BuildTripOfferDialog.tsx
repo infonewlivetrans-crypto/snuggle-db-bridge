@@ -174,6 +174,7 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
   const [extraPoints, setExtraPoints] = useState<RoutePoint[]>([]);
   const [rate, setRate] = useState<RateInfo>({
     rate: "",
+    rate_tbd: false,
     rate_per_km: "",
     vat: "",
     bargain: "",
@@ -182,6 +183,8 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
     direct_contract: false,
     comment: "",
   });
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [carrierRequestId, setCarrierRequestId] = useState<string | null>(null);
   const [contacts, setContacts] = useState<CustomerContacts>({
     company: "",
     ati_id: "",
