@@ -65,6 +65,7 @@ const STATUS_LABEL: Record<string, string> = {
 function CarrierOverviewPage() {
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin");
+  const signatureEnabled = useDocumentSignatureEnabled();
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
     queryKey: ["carrier", "me"],
