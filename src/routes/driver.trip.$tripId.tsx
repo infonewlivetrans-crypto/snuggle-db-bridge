@@ -83,6 +83,7 @@ function TripDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const tripExecutionEnabled = useDriverTripExecutionEnabled();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["driver-trip", tripId],
