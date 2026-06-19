@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { apiGetAuth, apiPatch, apiPost } from "@/lib/api-client";
 import { InboundSignatureBlock } from "@/components/signatures/InboundSignatureBlock";
+import { useDocumentSignatureEnabled } from "@/lib/mvp-features";
 
 export const Route = createFileRoute("/dispatcher/inbound-documents/$id")({
   head: () => ({ meta: [{ title: "Проверка входящей заявки — AI Диспетчер" }] }),
