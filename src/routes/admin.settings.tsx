@@ -18,6 +18,8 @@ import {
   type AppVersion,
 } from "@/lib/system-settings";
 import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules, LAUNCH_MODE_LABELS, type LaunchMode } from "@/lib/modules";
+import { MVP_FEATURE_KEYS } from "@/lib/mvp-features";
+import { apiPost } from "@/lib/api-client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/settings")({
@@ -88,6 +90,7 @@ function AdminSettingsPage() {
             <LaunchModePanel items={data.settings} onChanged={invalidate} />
             <DemoModePanel items={data.settings} onChanged={invalidate} />
             <DriverDocumentPhotosPanel items={data.settings} onChanged={invalidate} />
+            <MvpFeaturesPanel items={data.settings} onChanged={invalidate} />
             <ModuleTogglesPanel items={data.settings} onChanged={invalidate} />
           </TabsContent>
 
@@ -350,6 +353,97 @@ function ModuleTogglesPanel({
                 checked={enabled}
                 disabled={busy === k}
                 onCheckedChange={(v) => toggle(k, v)}
+              />
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
+const MVP_FEATURES: { key: string; title: string; description: string }[] = [
+  {
+    key: MVP_FEATURE_KEYS.driverTripExecution,
+    title: "Выполнение рейса водителем",
+    description: "Полный сценарий: этапы, фото, подтверждения по точкам.",
+  },
+  {
+    key: MVP_FEATURE_KEYS.documentSignature,
+    title: "Подпись документов и заявок",
+    description: "Печать/подпись на заявках и входящих документах.",
+  },
+  {
+    key: MVP_FEATURE_KEYS.carrierEmailAdvanced,
+    title: "Расширенные настройки почты перевозчика",
+    description: "Ручные IMAP/SMTP-настройки в кабинете перевозчика.",
+  },
+  {
+    key: MVP_FEATURE_KEYS.driverFullRouteWorkflow,
+    title: "Полный маршрутный workflow водителя",
+    description: "Точки маршрута, документы и события у водителя.",
+  },
+];
+
+function MvpFeaturesPanel({
+  items,
+  onChanged,
+}: {
+  items: SystemSetting[];
+  onChanged: () => void;
+}) {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const toggle = async (key: string, next: boolean) => {
+    setBusy(key);
+    try {
+      const existing = items.find((s) => s.setting_key === key);
+      if (existing) {
+        await updateSetting(existing.id, next);
+      } else {
+        await apiPost("/api/system-settings", {
+          setting_key: key,
+          setting_value: next,
+          category: "mvp",
+          is_public: false,
+        });
+      }
+      toast.success(`${next ? "Включено" : "Выключено"}`);
+      qc.invalidateQueries({ queryKey: ["system-settings"] });
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка сохранения");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">MVP-функции</CardTitle>
+        <CardDescription>
+          Эти функции временно отключаются для запуска MVP. Не удаляют код,
+          а только скрывают незавершённые блоки.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="divide-y divide-border">
+        {MVP_FEATURES.map((f) => {
+          const setting = items.find((s) => s.setting_key === f.key);
+          const raw = setting?.setting_value as unknown;
+          const enabled = raw === true || raw === "true" || raw === 1 || raw === "1";
+          return (
+            <div key={f.key} className="flex items-start justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <div className="font-medium">{f.title}</div>
+                <div className="text-xs text-muted-foreground">{f.description}</div>
+                <div className="text-[10px] font-mono text-muted-foreground/70 mt-1">{f.key}</div>
+              </div>
+              <Switch
+                checked={enabled}
+                disabled={busy === f.key}
+                onCheckedChange={(v) => toggle(f.key, v)}
               />
             </div>
           );
