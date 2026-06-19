@@ -70,15 +70,15 @@ function writeDismissed(ids: Set<string>) {
   }
 }
 
-function fmtMoney(n: number | string | null | undefined, currency = "RUB"): string {
-  if (n == null || n === "") return "—";
+function fmtMoney(n: number | string | null | undefined, currency = "RUB"): string | null {
+  if (n == null || n === "") return null;
   const v = Number(n);
-  if (!Number.isFinite(v)) return "—";
+  if (!Number.isFinite(v)) return null;
   return `${v.toLocaleString("ru-RU")} ${currency === "RUB" ? "₽" : currency}`;
 }
 
-function fmtDate(d: string | null | undefined): string {
-  if (!d) return "—";
+function fmtDate(d: string | null | undefined): string | null {
+  if (!d) return null;
   try {
     return new Date(d).toLocaleDateString("ru-RU");
   } catch {
