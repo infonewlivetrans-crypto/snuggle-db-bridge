@@ -690,158 +690,192 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
             <PointFields value={unloadPoint} onChange={setUnloadPoint} kind="unload" />
           </Section>
 
-          {/* Rate */}
-          <Section title="Ставка и оплата">
+          {/* Rate — минимум */}
+          <Section title="Ставка">
             <div className="grid grid-cols-2 gap-2">
               <Field label="Ставка, руб">
                 <Input
                   inputMode="decimal"
                   value={rate.rate}
-                  onChange={(e) => setRate({ ...rate, rate: e.target.value })}
+                  onChange={(e) => setRate({ ...rate, rate: e.target.value, rate_tbd: false })}
                   placeholder="20000"
                   className="h-10"
+                  disabled={rate.rate_tbd}
                 />
               </Field>
-              <Field label="Ставка руб/км">
-                <Input
-                  inputMode="decimal"
-                  value={rate.rate_per_km}
-                  onChange={(e) => setRate({ ...rate, rate_per_km: e.target.value })}
-                  placeholder="20,5"
-                  className="h-10"
-                />
-              </Field>
-              <Field label="НДС / оплата">
-                <Select value={rate.vat} onValueChange={(v) => setRate({ ...rate, vat: v })}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="—" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VAT_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Торг">
-                <Select value={rate.bargain} onValueChange={(v) => setRate({ ...rate, bargain: v })}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="—" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BARGAIN_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Условия оплаты">
-                <Select value={rate.payment} onValueChange={(v) => setRate({ ...rate, payment: v })}>
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="—" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Банковских дней">
-                <Input
-                  inputMode="numeric"
-                  value={rate.delay_days}
-                  onChange={(e) => setRate({ ...rate, delay_days: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <div className="col-span-2 flex items-center gap-2">
-                <Checkbox
-                  id="direct"
-                  checked={rate.direct_contract}
-                  onCheckedChange={(v) => setRate({ ...rate, direct_contract: v === true })}
-                />
-                <Label htmlFor="direct" className="text-sm">
-                  Прямой договор
-                </Label>
-              </div>
-              <div className="col-span-2">
-                <Field label="Комментарий по оплате">
-                  <Textarea
-                    rows={2}
-                    value={rate.comment}
-                    onChange={(e) => setRate({ ...rate, comment: e.target.value })}
+              <div className="flex items-end gap-2">
+                <div className="flex items-center gap-2 pb-2">
+                  <Checkbox
+                    id="rate-tbd"
+                    checked={rate.rate_tbd}
+                    onCheckedChange={(v) =>
+                      setRate({ ...rate, rate_tbd: v === true, rate: v === true ? "" : rate.rate })
+                    }
                   />
-                </Field>
+                  <Label htmlFor="rate-tbd" className="text-sm">
+                    Ставка уточняется
+                  </Label>
+                </div>
               </div>
             </div>
           </Section>
 
-          {/* Contacts */}
-          <Section title="Контакты заказчика">
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Компания">
-                <Input
-                  value={contacts.company}
-                  onChange={(e) => setContacts({ ...contacts, company: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <Field label="ATI код / ID">
-                <Input
-                  value={contacts.ati_id}
-                  onChange={(e) => setContacts({ ...contacts, ati_id: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <Field label="Контактное лицо">
-                <Input
-                  value={contacts.contact_name}
-                  onChange={(e) => setContacts({ ...contacts, contact_name: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <Field label="Email">
-                <Input
-                  type="email"
-                  value={contacts.email}
-                  onChange={(e) => setContacts({ ...contacts, email: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <Field label="Телефон 1">
-                <Input
-                  type="tel"
-                  value={contacts.phone1}
-                  onChange={(e) => setContacts({ ...contacts, phone1: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <Field label="Телефон 2">
-                <Input
-                  type="tel"
-                  value={contacts.phone2}
-                  onChange={(e) => setContacts({ ...contacts, phone2: e.target.value })}
-                  className="h-10"
-                />
-              </Field>
-              <div className="col-span-2">
-                <Field label="Комментарий">
-                  <Textarea
-                    rows={2}
-                    value={contacts.comment}
-                    onChange={(e) => setContacts({ ...contacts, comment: e.target.value })}
-                  />
-                </Field>
+          {/* Дополнительно — сворачиваемый блок */}
+          <div className="rounded-lg border border-dashed border-border bg-card/30 p-3">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="w-full text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground"
+            >
+              {showAdvanced ? "▾ Скрыть дополнительно" : "▸ Дополнительно (необязательно)"}
+            </button>
+            {showAdvanced ? (
+              <div className="mt-3 space-y-3">
+                <Section title="Условия оплаты">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Ставка руб/км">
+                      <Input
+                        inputMode="decimal"
+                        value={rate.rate_per_km}
+                        onChange={(e) => setRate({ ...rate, rate_per_km: e.target.value })}
+                        placeholder="20,5"
+                        className="h-10"
+                      />
+                    </Field>
+                    <Field label="НДС / оплата">
+                      <Select value={rate.vat} onValueChange={(v) => setRate({ ...rate, vat: v })}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VAT_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label="Торг">
+                      <Select value={rate.bargain} onValueChange={(v) => setRate({ ...rate, bargain: v })}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BARGAIN_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label="Условия оплаты">
+                      <Select value={rate.payment} onValueChange={(v) => setRate({ ...rate, payment: v })}>
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="—" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_OPTIONS.map((o) => (
+                            <SelectItem key={o.value} value={o.value}>
+                              {o.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label="Банковских дней">
+                      <Input
+                        inputMode="numeric"
+                        value={rate.delay_days}
+                        onChange={(e) => setRate({ ...rate, delay_days: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <div className="col-span-2 flex items-center gap-2">
+                      <Checkbox
+                        id="direct"
+                        checked={rate.direct_contract}
+                        onCheckedChange={(v) => setRate({ ...rate, direct_contract: v === true })}
+                      />
+                      <Label htmlFor="direct" className="text-sm">
+                        Прямой договор
+                      </Label>
+                    </div>
+                    <div className="col-span-2">
+                      <Field label="Комментарий по оплате">
+                        <Textarea
+                          rows={2}
+                          value={rate.comment}
+                          onChange={(e) => setRate({ ...rate, comment: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </Section>
+
+                <Section title="Контакты заказчика">
+                  <div className="grid grid-cols-2 gap-2">
+                    <Field label="Компания">
+                      <Input
+                        value={contacts.company}
+                        onChange={(e) => setContacts({ ...contacts, company: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <Field label="ATI код / ID">
+                      <Input
+                        value={contacts.ati_id}
+                        onChange={(e) => setContacts({ ...contacts, ati_id: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <Field label="Контактное лицо">
+                      <Input
+                        value={contacts.contact_name}
+                        onChange={(e) => setContacts({ ...contacts, contact_name: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <Field label="Email">
+                      <Input
+                        type="email"
+                        value={contacts.email}
+                        onChange={(e) => setContacts({ ...contacts, email: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <Field label="Телефон 1">
+                      <Input
+                        type="tel"
+                        value={contacts.phone1}
+                        onChange={(e) => setContacts({ ...contacts, phone1: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <Field label="Телефон 2">
+                      <Input
+                        type="tel"
+                        value={contacts.phone2}
+                        onChange={(e) => setContacts({ ...contacts, phone2: e.target.value })}
+                        className="h-10"
+                      />
+                    </Field>
+                    <div className="col-span-2">
+                      <Field label="Комментарий">
+                        <Textarea
+                          rows={2}
+                          value={contacts.comment}
+                          onChange={(e) => setContacts({ ...contacts, comment: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </Section>
               </div>
-            </div>
-          </Section>
+            ) : null}
+          </div>
+
 
           {/* Totals */}
           <Section title="Итог">
