@@ -70,15 +70,15 @@ function writeDismissed(ids: Set<string>) {
   }
 }
 
-function fmtMoney(n: number | string | null | undefined, currency = "RUB"): string {
-  if (n == null || n === "") return "—";
+function fmtMoney(n: number | string | null | undefined, currency = "RUB"): string | null {
+  if (n == null || n === "") return null;
   const v = Number(n);
-  if (!Number.isFinite(v)) return "—";
+  if (!Number.isFinite(v)) return null;
   return `${v.toLocaleString("ru-RU")} ${currency === "RUB" ? "₽" : currency}`;
 }
 
-function fmtDate(d: string | null | undefined): string {
-  if (!d) return "—";
+function fmtDate(d: string | null | undefined): string | null {
+  if (!d) return null;
   try {
     return new Date(d).toLocaleDateString("ru-RU");
   } catch {
@@ -184,55 +184,68 @@ export function CarrierIncomingOfferAlert() {
   };
 
   const currency = top.rate_currency ?? "RUB";
+  const rateLabel = fmtMoney(top.rate_amount, currency) ?? "Ставка уточняется";
   const payout =
     top.rate_amount != null && top.commission_amount != null
       ? Number(top.rate_amount) - Number(top.commission_amount)
       : null;
+  const loadingDate = fmtDate(top.loading_date);
+  const commissionLabel = fmtMoney(top.commission_amount, currency);
+  const payoutLabel = fmtMoney(payout, currency);
+  const route = `${top.loading_city ?? ""}${top.unloading_city ? ` → ${top.unloading_city}` : ""}`.trim();
   const freights = top.freights ?? [];
 
   const Summary = (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <Badge className="bg-primary text-primary-foreground">Новое предложение</Badge>
-        <span className="text-xs text-muted-foreground">
-          {top.request_number ? `№ ${top.request_number}` : ""}
-          {top.sent_at ? ` · ${new Date(top.sent_at).toLocaleString("ru-RU")}` : ""}
-        </span>
+        {top.request_number ? (
+          <span className="text-xs text-muted-foreground">№ {top.request_number}</span>
+        ) : null}
+        {top.sent_at ? (
+          <span className="text-xs text-muted-foreground">
+            · {new Date(top.sent_at).toLocaleString("ru-RU")}
+          </span>
+        ) : null}
       </div>
 
-      <div className="flex items-start gap-2 text-base font-semibold">
-        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <span>
-          {top.loading_city ?? "—"} → {top.unloading_city ?? "—"}
-        </span>
-      </div>
+      {route ? (
+        <div className="flex items-start gap-2 text-base font-semibold">
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span>{route}</span>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-md border p-2">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <CalendarDays className="h-3 w-3" /> Загрузка
+        {loadingDate ? (
+          <div className="rounded-md border p-2">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <CalendarDays className="h-3 w-3" /> Загрузка
+            </div>
+            <div className="font-medium">{loadingDate}</div>
           </div>
-          <div className="font-medium">{fmtDate(top.loading_date)}</div>
-        </div>
+        ) : null}
         <div className="rounded-md border p-2">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Wallet className="h-3 w-3" /> Ставка
           </div>
-          <div className="font-medium">{fmtMoney(top.rate_amount, currency)}</div>
+          <div className="font-medium">{rateLabel}</div>
         </div>
-        <div className="rounded-md border p-2">
-          <div className="text-xs text-muted-foreground">Комиссия сервиса</div>
-          <div className="font-medium">
-            {fmtMoney(top.commission_amount, currency)}
-            {top.commission_percent != null ? ` (${top.commission_percent}%)` : ""}
+        {commissionLabel ? (
+          <div className="rounded-md border p-2">
+            <div className="text-xs text-muted-foreground">Комиссия сервиса</div>
+            <div className="font-medium">
+              {commissionLabel}
+              {top.commission_percent != null ? ` (${top.commission_percent}%)` : ""}
+            </div>
           </div>
-        </div>
-        <div className="rounded-md border bg-primary/5 p-2">
-          <div className="text-xs text-muted-foreground">К выплате</div>
-          <div className="text-base font-semibold text-primary">
-            {fmtMoney(payout, currency)}
+        ) : null}
+        {payoutLabel ? (
+          <div className="rounded-md border bg-primary/5 p-2">
+            <div className="text-xs text-muted-foreground">К выплате</div>
+            <div className="text-base font-semibold text-primary">{payoutLabel}</div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       {freights.length > 0 && (
@@ -241,7 +254,10 @@ export function CarrierIncomingOfferAlert() {
           <ul className="space-y-0.5">
             {freights.slice(0, 4).map((f) => (
               <li key={f.id} className="truncate text-muted-foreground">
-                • {f.cargo_name ?? "Груз"} · {f.loading_city ?? "—"} → {f.unloading_city ?? "—"}
+                • {f.cargo_name ?? "Груз"}
+                {f.loading_city || f.unloading_city
+                  ? ` · ${f.loading_city ?? "—"} → ${f.unloading_city ?? "—"}`
+                  : ""}
               </li>
             ))}
             {freights.length > 4 && (
