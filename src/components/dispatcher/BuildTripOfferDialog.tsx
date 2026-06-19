@@ -457,7 +457,7 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
       qc.invalidateQueries({ queryKey: ["vehicle-freights", vehicle.id] });
     },
     onError: (e: unknown) =>
-      toast.error("Не удалось сохранить черновик. Проверьте маршрут и ставку.", {
+      toast.error("Не удалось сохранить груз. Проверьте обязательные поля.", {
         description: e instanceof Error ? e.message : undefined,
       }),
   });
