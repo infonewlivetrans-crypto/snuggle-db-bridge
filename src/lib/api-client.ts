@@ -236,9 +236,16 @@ async function apiSend<T>(
   let parsed: unknown = null;
   try { parsed = text ? JSON.parse(text) : null; } catch { parsed = text; }
   if (!res.ok) {
-    const msg =
-      (parsed && typeof parsed === "object" && (parsed as { error?: string }).error) ||
-      `HTTP ${res.status}`;
+    const obj = (parsed && typeof parsed === "object" ? parsed : null) as
+      | { error?: string; message?: string; issues?: Array<{ path?: string; message?: string }> }
+      | null;
+    let msg = obj?.message || obj?.error || `HTTP ${res.status}`;
+    if (obj?.issues && obj.issues.length) {
+      const first = obj.issues[0];
+      if (first?.path || first?.message) {
+        msg = `${obj?.message || obj?.error || "Ошибка валидации"}: ${first?.path ?? ""} ${first?.message ?? ""}`.trim();
+      }
+    }
     throw new Error(typeof msg === "string" ? msg : `HTTP ${res.status}`);
   }
   return parsed as T;
