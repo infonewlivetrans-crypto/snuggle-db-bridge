@@ -117,6 +117,7 @@ interface CustomerContacts {
 
 interface RateInfo {
   rate: string;
+  rate_tbd: boolean;
   rate_per_km: string;
   vat: string;
   bargain: string;
