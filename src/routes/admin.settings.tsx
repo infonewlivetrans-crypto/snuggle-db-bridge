@@ -18,6 +18,8 @@ import {
   type AppVersion,
 } from "@/lib/system-settings";
 import { MODULE_LABELS, MODULE_DESCRIPTIONS, type ModuleKey, type EnabledModules, LAUNCH_MODE_LABELS, type LaunchMode } from "@/lib/modules";
+import { MVP_FEATURE_KEYS } from "@/lib/mvp-features";
+import { apiPost } from "@/lib/api-client";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/settings")({
