@@ -457,18 +457,25 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
 
   const sendOffer = useMutation({
     mutationFn: async () => {
+      if (carrierRequestId) {
+        return { id: carrierRequestId, reused: true as const };
+      }
       let id = draftId;
       if (!id) {
-        const created = await apiPost<{ row: { id: string } }>(
+        const created = await apiPost<{ row: { id: string; carrier_request_id?: string | null } }>(
           "/api/dispatcher/freights",
           buildPayload(),
         );
         id = created.row.id;
         setDraftId(id);
+        if (created.row.carrier_request_id) {
+          setCarrierRequestId(created.row.carrier_request_id);
+          return { id: created.row.carrier_request_id, reused: true as const };
+        }
       }
       const carrierId = vehicle.carrier?.id;
       if (!carrierId) throw new Error("У машины не указан перевозчик");
-      return apiPost(
+      const created = await apiPost<{ row: { id: string } }>(
         `/api/dispatcher/freights/${id}/create-carrier-request`,
         {
           dispatcher_carrier_ext_id: carrierId,
@@ -476,9 +483,15 @@ export function BuildTripOfferDialog({ open, onOpenChange, vehicle }: BuildTripO
           dispatcher_driver_ext_id: vehicle.driver?.id ?? null,
         },
       );
+      setCarrierRequestId(created.row.id);
+      // Перевод в sent — карточка появится у перевозчика.
+      await apiPatch(`/api/dispatcher/carrier-requests/${created.row.id}`, {
+        request_status: "sent",
+      });
+      return { id: created.row.id, reused: false as const };
     },
-    onSuccess: () => {
-      toast.success("Предложение отправлено перевозчику");
+    onSuccess: (res) => {
+      toast.success(res.reused ? "Предложение уже было отправлено" : "Предложение отправлено перевозчику");
       qc.invalidateQueries({ queryKey: ["dispatcher-freights"] });
       qc.invalidateQueries({ queryKey: ["vehicle-freights", vehicle.id] });
       qc.invalidateQueries({ queryKey: ["carrier-requests"] });
