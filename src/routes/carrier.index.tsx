@@ -225,7 +225,7 @@ function CarrierOverviewPage() {
 
       {ext?.id && (
         <>
-          <CarrierSignatureCard carrierExtId={ext.id} />
+          {signatureEnabled && <CarrierSignatureCard carrierExtId={ext.id} />}
           <div className="lg:col-span-2">
             <CarrierDocumentsBlock
               ownerType="carrier"
