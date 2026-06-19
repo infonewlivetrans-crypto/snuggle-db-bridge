@@ -90,6 +90,7 @@ function AdminSettingsPage() {
             <LaunchModePanel items={data.settings} onChanged={invalidate} />
             <DemoModePanel items={data.settings} onChanged={invalidate} />
             <DriverDocumentPhotosPanel items={data.settings} onChanged={invalidate} />
+            <MvpFeaturesPanel items={data.settings} onChanged={invalidate} />
             <ModuleTogglesPanel items={data.settings} onChanged={invalidate} />
           </TabsContent>
 
