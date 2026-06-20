@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAuth } from "@/server/api-helpers.server";
 import { resolveCarrierCtx } from "@/server/carrier-cabinet.server";
 import {
-  getCarrierConnectionSafe,
+  listCarrierConnections,
   upsertCarrierConnection,
 } from "@/server/edo/carrier-edo.server";
 import type { EdoProvider } from "@/server/edo/providers/types";
@@ -16,6 +16,7 @@ async function handleUpsert(request: Request): Promise<Response> {
   const provider = (body.provider as EdoProvider) ?? "internal_mock";
   try {
     const { id } = await upsertCarrierConnection(ctx.client, ctx.dispatcherCarrierExtId, {
+      id: (body.id as string | null) ?? null,
       provider,
       environment: (body.environment as "test" | "production") ?? "test",
       organization_name: (body.organization_name as string | null) ?? null,
@@ -29,6 +30,7 @@ async function handleUpsert(request: Request): Promise<Response> {
       refresh_token: (body.refresh_token as string | null) ?? null,
       certificate_id: (body.certificate_id as string | null) ?? null,
       comment: (body.comment as string | null) ?? null,
+      is_default: body.is_default === true,
     });
     return jsonResponse({ id });
   } catch (e) {
@@ -48,8 +50,12 @@ export const Route = createFileRoute("/api/carrier/edo/connection")({
         const ctx = await resolveCarrierCtx(auth);
         if (ctx instanceof Response) return ctx;
         try {
-          const conn = await getCarrierConnectionSafe(ctx.client, ctx.dispatcherCarrierExtId);
-          return jsonResponse({ connection: conn });
+          const connections = await listCarrierConnections(
+            ctx.client, ctx.dispatcherCarrierExtId,
+          );
+          // Совместимость со старым клиентом: connection = основное.
+          const primary = connections.find(c => c.is_default) ?? connections[0] ?? null;
+          return jsonResponse({ connections, connection: primary });
         } catch (e) {
           return jsonResponse(
             { error: "load_failed", detail: e instanceof Error ? e.message : String(e) },
