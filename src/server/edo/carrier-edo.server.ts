@@ -19,6 +19,7 @@ export interface CarrierEdoConnectionSafe {
   provider_title: string | null;
   status: string;
   environment: "test" | "production";
+  is_default: boolean;
   organization_name: string | null;
   organization_inn: string | null;
   external_org_id: string | null;
@@ -36,19 +37,31 @@ export interface CarrierEdoConnectionSafe {
   updated_at: string;
 }
 
-/** Возвращает безопасную проекцию подключения перевозчика (без секретов). */
-export async function getCarrierConnectionSafe(
+/** Возвращает все подключения перевозчика (без секретов). */
+export async function listCarrierConnections(
   client: AnyClient,
   carrierExtId: string,
-): Promise<CarrierEdoConnectionSafe | null> {
+): Promise<CarrierEdoConnectionSafe[]> {
   const { data, error } = await client
     .from("carrier_edo_connections_safe")
     .select("*")
     .eq("carrier_ext_id", carrierExtId)
-    .maybeSingle();
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
-  return (data ?? null) as CarrierEdoConnectionSafe | null;
+  return (data ?? []) as CarrierEdoConnectionSafe[];
 }
+
+/** Возвращает первое (или default) подключение перевозчика. Совместимо со старым API. */
+export async function getCarrierConnectionSafe(
+  client: AnyClient,
+  carrierExtId: string,
+): Promise<CarrierEdoConnectionSafe | null> {
+  const all = await listCarrierConnections(client, carrierExtId);
+  if (all.length === 0) return null;
+  return all.find(c => c.is_default) ?? all[0];
+}
+
 
 export interface UpsertConnectionInput {
   provider: EdoProvider;
