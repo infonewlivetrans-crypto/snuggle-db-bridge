@@ -99,6 +99,7 @@ import { Route as CarrierSignatureSettingsRouteImport } from './routes/carrier.s
 import { Route as CarrierRegisterRouteImport } from './routes/carrier.register'
 import { Route as CarrierOnboardingRouteImport } from './routes/carrier.onboarding'
 import { Route as CarrierEmailSettingsRouteImport } from './routes/carrier.email-settings'
+import { Route as CarrierEdoRouteImport } from './routes/carrier.edo'
 import { Route as CarrierDriversRouteImport } from './routes/carrier.drivers'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
@@ -194,6 +195,7 @@ import { Route as DriverRegisterTokenRouteImport } from './routes/driver.registe
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
 import { Route as DispatcherInboundDocumentsIdRouteImport } from './routes/dispatcher.inbound-documents.$id'
+import { Route as CarrierEdoIdRouteImport } from './routes/carrier.edo.$id'
 import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
@@ -842,6 +844,11 @@ const CarrierEmailSettingsRoute = CarrierEmailSettingsRouteImport.update({
   path: '/email-settings',
   getParentRoute: () => CarrierRoute,
 } as any)
+const CarrierEdoRoute = CarrierEdoRouteImport.update({
+  id: '/edo',
+  path: '/edo',
+  getParentRoute: () => CarrierRoute,
+} as any)
 const CarrierDriversRoute = CarrierDriversRouteImport.update({
   id: '/drivers',
   path: '/drivers',
@@ -1324,6 +1331,11 @@ const DispatcherInboundDocumentsIdRoute =
     path: '/$id',
     getParentRoute: () => DispatcherInboundDocumentsRoute,
   } as any)
+const CarrierEdoIdRoute = CarrierEdoIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CarrierEdoRoute,
+} as any)
 const CarrierActivateTokenRoute = CarrierActivateTokenRouteImport.update({
   id: '/activate/$token',
   path: '/activate/$token',
@@ -2515,6 +2527,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/edo': typeof CarrierEdoRouteWithChildren
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
@@ -2664,6 +2677,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/carrier/edo/$id': typeof CarrierEdoIdRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -2894,6 +2908,7 @@ export interface FileRoutesByTo {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/edo': typeof CarrierEdoRouteWithChildren
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
@@ -3043,6 +3058,7 @@ export interface FileRoutesByTo {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/carrier/edo/$id': typeof CarrierEdoIdRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3275,6 +3291,7 @@ export interface FileRoutesById {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/edo': typeof CarrierEdoRouteWithChildren
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
@@ -3424,6 +3441,7 @@ export interface FileRoutesById {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/carrier/edo/$id': typeof CarrierEdoIdRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3657,6 +3675,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/edo'
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
@@ -3806,6 +3825,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/carrier/edo/$id'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4036,6 +4056,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/edo'
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
@@ -4185,6 +4206,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/carrier/edo/$id'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4416,6 +4438,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/edo'
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
@@ -4565,6 +4588,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/carrier/edo/$id'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -5554,6 +5578,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarrierEmailSettingsRouteImport
       parentRoute: typeof CarrierRoute
     }
+    '/carrier/edo': {
+      id: '/carrier/edo'
+      path: '/edo'
+      fullPath: '/carrier/edo'
+      preLoaderRoute: typeof CarrierEdoRouteImport
+      parentRoute: typeof CarrierRoute
+    }
     '/carrier/drivers': {
       id: '/carrier/drivers'
       path: '/drivers'
@@ -6218,6 +6249,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dispatcher/inbound-documents/$id'
       preLoaderRoute: typeof DispatcherInboundDocumentsIdRouteImport
       parentRoute: typeof DispatcherInboundDocumentsRoute
+    }
+    '/carrier/edo/$id': {
+      id: '/carrier/edo/$id'
+      path: '/$id'
+      fullPath: '/carrier/edo/$id'
+      preLoaderRoute: typeof CarrierEdoIdRouteImport
+      parentRoute: typeof CarrierEdoRoute
     }
     '/carrier/activate/$token': {
       id: '/carrier/activate/$token'
@@ -7573,8 +7611,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CarrierEdoRouteChildren {
+  CarrierEdoIdRoute: typeof CarrierEdoIdRoute
+}
+
+const CarrierEdoRouteChildren: CarrierEdoRouteChildren = {
+  CarrierEdoIdRoute: CarrierEdoIdRoute,
+}
+
+const CarrierEdoRouteWithChildren = CarrierEdoRoute._addFileChildren(
+  CarrierEdoRouteChildren,
+)
+
 interface CarrierRouteChildren {
   CarrierDriversRoute: typeof CarrierDriversRoute
+  CarrierEdoRoute: typeof CarrierEdoRouteWithChildren
   CarrierEmailSettingsRoute: typeof CarrierEmailSettingsRoute
   CarrierOnboardingRoute: typeof CarrierOnboardingRoute
   CarrierRegisterRoute: typeof CarrierRegisterRoute
@@ -7587,6 +7638,7 @@ interface CarrierRouteChildren {
 
 const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierDriversRoute: CarrierDriversRoute,
+  CarrierEdoRoute: CarrierEdoRouteWithChildren,
   CarrierEmailSettingsRoute: CarrierEmailSettingsRoute,
   CarrierOnboardingRoute: CarrierOnboardingRoute,
   CarrierRegisterRoute: CarrierRegisterRoute,

@@ -19,11 +19,13 @@ const TABS: Array<{
     | "/carrier/vehicles"
     | "/carrier/drivers"
     | "/carrier/trips"
+    | "/carrier/edo"
     | "/carrier/email-settings";
   label: string;
   exact: boolean;
 }> = [
   { to: "/carrier", label: "Мои данные", exact: true },
+  { to: "/carrier/edo", label: "ЭТрН / ЭДО", exact: false },
   { to: "/carrier/email-settings", label: "Почта", exact: false },
   { to: "/carrier/vehicles", label: "Мой транспорт", exact: false },
   { to: "/carrier/drivers", label: "Мои водители", exact: false },
