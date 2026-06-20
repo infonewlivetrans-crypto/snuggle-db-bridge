@@ -13,6 +13,9 @@ export const MVP_FEATURE_KEYS = {
   documentSignature: "dispatcher.features.document_signature_enabled",
   carrierEmailAdvanced: "dispatcher.features.carrier_email_advanced_settings_enabled",
   driverFullRouteWorkflow: "dispatcher.features.driver_full_route_workflow_enabled",
+  edoModule: "dispatcher.features.edo_module_enabled",
+  edoRealOperator: "dispatcher.features.edo_real_operator_enabled",
+  edoMock: "dispatcher.features.edo_mock_enabled",
 } as const;
 
 function asBool(v: unknown, fallback = false): boolean {
@@ -40,4 +43,19 @@ export function useCarrierEmailAdvancedEnabled(): boolean {
 /** Полный маршрутный workflow водителя (точки, документы, события). */
 export function useDriverFullRouteWorkflowEnabled(): boolean {
   return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.driverFullRouteWorkflow, false));
+}
+
+/** Включён ли модуль ЭТрН/ЭДО для перевозчика. По умолчанию ВКЛЮЧЁН. */
+export function useEdoModuleEnabled(): boolean {
+  return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.edoModule, true), true);
+}
+
+/** Включены ли реальные операторы ЭДО. По умолчанию ВЫКЛЮЧЕНО (mock). */
+export function useEdoRealOperatorEnabled(): boolean {
+  return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.edoRealOperator, false));
+}
+
+/** Включён ли внутренний mock-режим ЭДО. По умолчанию ВКЛЮЧЁН. */
+export function useEdoMockEnabled(): boolean {
+  return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.edoMock, true), true);
 }

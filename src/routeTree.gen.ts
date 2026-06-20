@@ -99,6 +99,7 @@ import { Route as CarrierSignatureSettingsRouteImport } from './routes/carrier.s
 import { Route as CarrierRegisterRouteImport } from './routes/carrier.register'
 import { Route as CarrierOnboardingRouteImport } from './routes/carrier.onboarding'
 import { Route as CarrierEmailSettingsRouteImport } from './routes/carrier.email-settings'
+import { Route as CarrierEdoRouteImport } from './routes/carrier.edo'
 import { Route as CarrierDriversRouteImport } from './routes/carrier.drivers'
 import { Route as CTokenRouteImport } from './routes/c.$token'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
@@ -194,6 +195,7 @@ import { Route as DriverRegisterTokenRouteImport } from './routes/driver.registe
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
 import { Route as DispatcherInboundDocumentsIdRouteImport } from './routes/dispatcher.inbound-documents.$id'
+import { Route as CarrierEdoIdRouteImport } from './routes/carrier.edo.$id'
 import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
 import { Route as ApiWarehousesIdRouteImport } from './routes/api/warehouses.$id'
@@ -338,6 +340,8 @@ import { Route as ApiCarrierRequestsIdRouteImport } from './routes/api/carrier/r
 import { Route as ApiCarrierInboundDocumentsSyncRouteImport } from './routes/api/carrier/inbound-documents.sync'
 import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
 import { Route as ApiCarrierEmailAccountTestRouteImport } from './routes/api/carrier/email-account.test'
+import { Route as ApiCarrierEdoDocumentsRouteImport } from './routes/api/carrier/edo/documents'
+import { Route as ApiCarrierEdoConnectionRouteImport } from './routes/api/carrier/edo/connection'
 import { Route as ApiCarrierDriversIdRouteImport } from './routes/api/carrier/drivers.$id'
 import { Route as ApiCarrierDocumentsUploadRouteImport } from './routes/api/carrier/documents.upload'
 import { Route as ApiCarrierDocumentsIdRouteImport } from './routes/api/carrier/documents.$id'
@@ -375,11 +379,14 @@ import { Route as ApiCarrierVehiclesIdReadinessRouteImport } from './routes/api/
 import { Route as ApiCarrierVehiclesIdLocationRouteImport } from './routes/api/carrier/vehicles.$id.location'
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
+import { Route as ApiCarrierEdoDocumentsIdRouteImport } from './routes/api/carrier/edo/documents.$id'
+import { Route as ApiCarrierEdoConnectionTestRouteImport } from './routes/api/carrier/edo/connection.test'
 import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
 import { Route as ApiCarrierDealsIdProgressRouteImport } from './routes/api/carrier/deals.$id.progress'
 import { Route as ApiAdminDispatcherUserInvitesIdRevokeRouteImport } from './routes/api/admin/dispatcher-user-invites.$id.revoke'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
+import { Route as ApiCarrierEdoDocumentsIdActionsRouteImport } from './routes/api/carrier/edo/documents.$id.actions'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
 
@@ -835,6 +842,11 @@ const CarrierOnboardingRoute = CarrierOnboardingRouteImport.update({
 const CarrierEmailSettingsRoute = CarrierEmailSettingsRouteImport.update({
   id: '/email-settings',
   path: '/email-settings',
+  getParentRoute: () => CarrierRoute,
+} as any)
+const CarrierEdoRoute = CarrierEdoRouteImport.update({
+  id: '/edo',
+  path: '/edo',
   getParentRoute: () => CarrierRoute,
 } as any)
 const CarrierDriversRoute = CarrierDriversRouteImport.update({
@@ -1319,6 +1331,11 @@ const DispatcherInboundDocumentsIdRoute =
     path: '/$id',
     getParentRoute: () => DispatcherInboundDocumentsRoute,
   } as any)
+const CarrierEdoIdRoute = CarrierEdoIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CarrierEdoRoute,
+} as any)
 const CarrierActivateTokenRoute = CarrierActivateTokenRouteImport.update({
   id: '/activate/$token',
   path: '/activate/$token',
@@ -2099,6 +2116,16 @@ const ApiCarrierEmailAccountTestRoute =
     path: '/test',
     getParentRoute: () => ApiCarrierEmailAccountRoute,
   } as any)
+const ApiCarrierEdoDocumentsRoute = ApiCarrierEdoDocumentsRouteImport.update({
+  id: '/api/carrier/edo/documents',
+  path: '/api/carrier/edo/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCarrierEdoConnectionRoute = ApiCarrierEdoConnectionRouteImport.update({
+  id: '/api/carrier/edo/connection',
+  path: '/api/carrier/edo/connection',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCarrierDriversIdRoute = ApiCarrierDriversIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2314,6 +2341,18 @@ const ApiCarrierRequestsIdContractPreviewRoute =
     path: '/contract-preview',
     getParentRoute: () => ApiCarrierRequestsIdRoute,
   } as any)
+const ApiCarrierEdoDocumentsIdRoute =
+  ApiCarrierEdoDocumentsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiCarrierEdoDocumentsRoute,
+  } as any)
+const ApiCarrierEdoConnectionTestRoute =
+  ApiCarrierEdoConnectionTestRouteImport.update({
+    id: '/test',
+    path: '/test',
+    getParentRoute: () => ApiCarrierEdoConnectionRoute,
+  } as any)
 const ApiCarrierDocumentsIdDownloadRoute =
   ApiCarrierDocumentsIdDownloadRouteImport.update({
     id: '/download',
@@ -2343,6 +2382,12 @@ const ApiDispatcherCommissionsEarningsDealIdPayoutRoute =
     id: '/$dealId/payout',
     path: '/$dealId/payout',
     getParentRoute: () => ApiDispatcherCommissionsEarningsRoute,
+  } as any)
+const ApiCarrierEdoDocumentsIdActionsRoute =
+  ApiCarrierEdoDocumentsIdActionsRouteImport.update({
+    id: '/actions',
+    path: '/actions',
+    getParentRoute: () => ApiCarrierEdoDocumentsIdRoute,
   } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute =
   ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport.update({
@@ -2482,6 +2527,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/edo': typeof CarrierEdoRouteWithChildren
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
@@ -2631,6 +2677,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/carrier/edo/$id': typeof CarrierEdoIdRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -2644,6 +2691,8 @@ export interface FileRoutesByFullPath {
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
+  '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
+  '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/inbound-documents/sync': typeof ApiCarrierInboundDocumentsSyncRoute
@@ -2698,6 +2747,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
+  '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
+  '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
@@ -2727,6 +2778,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
@@ -2856,6 +2908,7 @@ export interface FileRoutesByTo {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/edo': typeof CarrierEdoRouteWithChildren
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
@@ -3005,6 +3058,7 @@ export interface FileRoutesByTo {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/carrier/edo/$id': typeof CarrierEdoIdRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3018,6 +3072,8 @@ export interface FileRoutesByTo {
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
+  '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
+  '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/inbound-documents/sync': typeof ApiCarrierInboundDocumentsSyncRoute
@@ -3072,6 +3128,8 @@ export interface FileRoutesByTo {
   '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
+  '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
+  '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
@@ -3101,6 +3159,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
@@ -3232,6 +3291,7 @@ export interface FileRoutesById {
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
+  '/carrier/edo': typeof CarrierEdoRouteWithChildren
   '/carrier/email-settings': typeof CarrierEmailSettingsRoute
   '/carrier/onboarding': typeof CarrierOnboardingRoute
   '/carrier/register': typeof CarrierRegisterRoute
@@ -3381,6 +3441,7 @@ export interface FileRoutesById {
   '/api/warehouses/$id': typeof ApiWarehousesIdRoute
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
+  '/carrier/edo/$id': typeof CarrierEdoIdRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3394,6 +3455,8 @@ export interface FileRoutesById {
   '/api/carrier/documents/$id': typeof ApiCarrierDocumentsIdRouteWithChildren
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
+  '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
+  '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
   '/api/carrier/inbound-documents/sync': typeof ApiCarrierInboundDocumentsSyncRoute
@@ -3448,6 +3511,8 @@ export interface FileRoutesById {
   '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
+  '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
+  '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
@@ -3477,6 +3542,7 @@ export interface FileRoutesById {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
@@ -3609,6 +3675,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/edo'
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
@@ -3758,6 +3825,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/carrier/edo/$id'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -3771,6 +3839,8 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/$id'
     | '/api/carrier/documents/upload'
     | '/api/carrier/drivers/$id'
+    | '/api/carrier/edo/connection'
+    | '/api/carrier/edo/documents'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
     | '/api/carrier/inbound-documents/sync'
@@ -3825,6 +3895,8 @@ export interface FileRouteTypes {
     | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
+    | '/api/carrier/edo/connection/test'
+    | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
@@ -3854,6 +3926,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/carrier/edo/documents/$id/actions'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
@@ -3983,6 +4056,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/edo'
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
@@ -4132,6 +4206,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/carrier/edo/$id'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4145,6 +4220,8 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/$id'
     | '/api/carrier/documents/upload'
     | '/api/carrier/drivers/$id'
+    | '/api/carrier/edo/connection'
+    | '/api/carrier/edo/documents'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
     | '/api/carrier/inbound-documents/sync'
@@ -4199,6 +4276,8 @@ export interface FileRouteTypes {
     | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
+    | '/api/carrier/edo/connection/test'
+    | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
@@ -4228,6 +4307,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/carrier/edo/documents/$id/actions'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
@@ -4358,6 +4438,7 @@ export interface FileRouteTypes {
     | '/api/warehouses'
     | '/c/$token'
     | '/carrier/drivers'
+    | '/carrier/edo'
     | '/carrier/email-settings'
     | '/carrier/onboarding'
     | '/carrier/register'
@@ -4507,6 +4588,7 @@ export interface FileRouteTypes {
     | '/api/warehouses/$id'
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
+    | '/carrier/edo/$id'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4520,6 +4602,8 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/$id'
     | '/api/carrier/documents/upload'
     | '/api/carrier/drivers/$id'
+    | '/api/carrier/edo/connection'
+    | '/api/carrier/edo/documents'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
     | '/api/carrier/inbound-documents/sync'
@@ -4574,6 +4658,8 @@ export interface FileRouteTypes {
     | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
+    | '/api/carrier/edo/connection/test'
+    | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
@@ -4603,6 +4689,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/carrier/edo/documents/$id/actions'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
@@ -4837,6 +4924,8 @@ export interface RootRouteChildren {
   ApiDriverRouteIdRoute: typeof ApiDriverRouteIdRoute
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
+  ApiCarrierEdoConnectionRoute: typeof ApiCarrierEdoConnectionRouteWithChildren
+  ApiCarrierEdoDocumentsRoute: typeof ApiCarrierEdoDocumentsRouteWithChildren
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
   ApiDispatcherAiParseFreightTextRoute: typeof ApiDispatcherAiParseFreightTextRoute
   ApiDispatcherCommissionsEarningsRoute: typeof ApiDispatcherCommissionsEarningsRouteWithChildren
@@ -5487,6 +5576,13 @@ declare module '@tanstack/react-router' {
       path: '/email-settings'
       fullPath: '/carrier/email-settings'
       preLoaderRoute: typeof CarrierEmailSettingsRouteImport
+      parentRoute: typeof CarrierRoute
+    }
+    '/carrier/edo': {
+      id: '/carrier/edo'
+      path: '/edo'
+      fullPath: '/carrier/edo'
+      preLoaderRoute: typeof CarrierEdoRouteImport
       parentRoute: typeof CarrierRoute
     }
     '/carrier/drivers': {
@@ -6153,6 +6249,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dispatcher/inbound-documents/$id'
       preLoaderRoute: typeof DispatcherInboundDocumentsIdRouteImport
       parentRoute: typeof DispatcherInboundDocumentsRoute
+    }
+    '/carrier/edo/$id': {
+      id: '/carrier/edo/$id'
+      path: '/$id'
+      fullPath: '/carrier/edo/$id'
+      preLoaderRoute: typeof CarrierEdoIdRouteImport
+      parentRoute: typeof CarrierEdoRoute
     }
     '/carrier/activate/$token': {
       id: '/carrier/activate/$token'
@@ -7162,6 +7265,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierEmailAccountTestRouteImport
       parentRoute: typeof ApiCarrierEmailAccountRoute
     }
+    '/api/carrier/edo/documents': {
+      id: '/api/carrier/edo/documents'
+      path: '/api/carrier/edo/documents'
+      fullPath: '/api/carrier/edo/documents'
+      preLoaderRoute: typeof ApiCarrierEdoDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/carrier/edo/connection': {
+      id: '/api/carrier/edo/connection'
+      path: '/api/carrier/edo/connection'
+      fullPath: '/api/carrier/edo/connection'
+      preLoaderRoute: typeof ApiCarrierEdoConnectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/drivers/$id': {
       id: '/api/carrier/drivers/$id'
       path: '/$id'
@@ -7421,6 +7538,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierRequestsIdContractPreviewRouteImport
       parentRoute: typeof ApiCarrierRequestsIdRoute
     }
+    '/api/carrier/edo/documents/$id': {
+      id: '/api/carrier/edo/documents/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/edo/documents/$id'
+      preLoaderRoute: typeof ApiCarrierEdoDocumentsIdRouteImport
+      parentRoute: typeof ApiCarrierEdoDocumentsRoute
+    }
+    '/api/carrier/edo/connection/test': {
+      id: '/api/carrier/edo/connection/test'
+      path: '/test'
+      fullPath: '/api/carrier/edo/connection/test'
+      preLoaderRoute: typeof ApiCarrierEdoConnectionTestRouteImport
+      parentRoute: typeof ApiCarrierEdoConnectionRoute
+    }
     '/api/carrier/documents/$id/download': {
       id: '/api/carrier/documents/$id/download'
       path: '/download'
@@ -7456,6 +7587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport
       parentRoute: typeof ApiDispatcherCommissionsEarningsRoute
     }
+    '/api/carrier/edo/documents/$id/actions': {
+      id: '/api/carrier/edo/documents/$id/actions'
+      path: '/actions'
+      fullPath: '/api/carrier/edo/documents/$id/actions'
+      preLoaderRoute: typeof ApiCarrierEdoDocumentsIdActionsRouteImport
+      parentRoute: typeof ApiCarrierEdoDocumentsIdRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId/timeline': {
       id: '/api/public/client-portal/$token/orders/$orderId/timeline'
       path: '/timeline'
@@ -7473,8 +7611,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CarrierEdoRouteChildren {
+  CarrierEdoIdRoute: typeof CarrierEdoIdRoute
+}
+
+const CarrierEdoRouteChildren: CarrierEdoRouteChildren = {
+  CarrierEdoIdRoute: CarrierEdoIdRoute,
+}
+
+const CarrierEdoRouteWithChildren = CarrierEdoRoute._addFileChildren(
+  CarrierEdoRouteChildren,
+)
+
 interface CarrierRouteChildren {
   CarrierDriversRoute: typeof CarrierDriversRoute
+  CarrierEdoRoute: typeof CarrierEdoRouteWithChildren
   CarrierEmailSettingsRoute: typeof CarrierEmailSettingsRoute
   CarrierOnboardingRoute: typeof CarrierOnboardingRoute
   CarrierRegisterRoute: typeof CarrierRegisterRoute
@@ -7487,6 +7638,7 @@ interface CarrierRouteChildren {
 
 const CarrierRouteChildren: CarrierRouteChildren = {
   CarrierDriversRoute: CarrierDriversRoute,
+  CarrierEdoRoute: CarrierEdoRouteWithChildren,
   CarrierEmailSettingsRoute: CarrierEmailSettingsRoute,
   CarrierOnboardingRoute: CarrierOnboardingRoute,
   CarrierRegisterRoute: CarrierRegisterRoute,
@@ -8478,6 +8630,48 @@ const ApiInboundSignaturesAssetsRouteWithChildren =
     ApiInboundSignaturesAssetsRouteChildren,
   )
 
+interface ApiCarrierEdoConnectionRouteChildren {
+  ApiCarrierEdoConnectionTestRoute: typeof ApiCarrierEdoConnectionTestRoute
+}
+
+const ApiCarrierEdoConnectionRouteChildren: ApiCarrierEdoConnectionRouteChildren =
+  {
+    ApiCarrierEdoConnectionTestRoute: ApiCarrierEdoConnectionTestRoute,
+  }
+
+const ApiCarrierEdoConnectionRouteWithChildren =
+  ApiCarrierEdoConnectionRoute._addFileChildren(
+    ApiCarrierEdoConnectionRouteChildren,
+  )
+
+interface ApiCarrierEdoDocumentsIdRouteChildren {
+  ApiCarrierEdoDocumentsIdActionsRoute: typeof ApiCarrierEdoDocumentsIdActionsRoute
+}
+
+const ApiCarrierEdoDocumentsIdRouteChildren: ApiCarrierEdoDocumentsIdRouteChildren =
+  {
+    ApiCarrierEdoDocumentsIdActionsRoute: ApiCarrierEdoDocumentsIdActionsRoute,
+  }
+
+const ApiCarrierEdoDocumentsIdRouteWithChildren =
+  ApiCarrierEdoDocumentsIdRoute._addFileChildren(
+    ApiCarrierEdoDocumentsIdRouteChildren,
+  )
+
+interface ApiCarrierEdoDocumentsRouteChildren {
+  ApiCarrierEdoDocumentsIdRoute: typeof ApiCarrierEdoDocumentsIdRouteWithChildren
+}
+
+const ApiCarrierEdoDocumentsRouteChildren: ApiCarrierEdoDocumentsRouteChildren =
+  {
+    ApiCarrierEdoDocumentsIdRoute: ApiCarrierEdoDocumentsIdRouteWithChildren,
+  }
+
+const ApiCarrierEdoDocumentsRouteWithChildren =
+  ApiCarrierEdoDocumentsRoute._addFileChildren(
+    ApiCarrierEdoDocumentsRouteChildren,
+  )
+
 interface ApiDispatcherCommissionsEarningsRouteChildren {
   ApiDispatcherCommissionsEarningsDealIdPayoutRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
 }
@@ -8801,6 +8995,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDriverRouteIdRoute: ApiDriverRouteIdRoute,
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
+  ApiCarrierEdoConnectionRoute: ApiCarrierEdoConnectionRouteWithChildren,
+  ApiCarrierEdoDocumentsRoute: ApiCarrierEdoDocumentsRouteWithChildren,
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
   ApiDispatcherAiParseFreightTextRoute: ApiDispatcherAiParseFreightTextRoute,
   ApiDispatcherCommissionsEarningsRoute:
