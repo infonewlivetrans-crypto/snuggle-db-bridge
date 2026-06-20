@@ -56,9 +56,9 @@ export const Route = createFileRoute("/api/carrier/edo/connection")({
           );
         }
       },
-      PATCH: async ({ request }) => {
-        // PATCH = тот же upsert; оставлено для совместимости.
-        return Route.options.server!.handlers!.POST!({ request } as never);
+      PATCH: async (ctx) => {
+        // PATCH = тот же upsert.
+        return new Response(null, { status: 307, headers: { location: "/api/carrier/edo/connection" } }) as never ?? ctx;
       },
     },
   },
