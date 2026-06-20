@@ -232,11 +232,19 @@ export async function updateConnectionCheckStatus(
 // ============ DOCUMENTS ============
 
 export interface CreateDocInput {
+  direction?: "incoming" | "outgoing" | "internal";
+  document_type?: "etrn" | "upd" | "act" | "contract" | "invoice" | "transport_waybill" | "other";
+  title?: string | null;
+  document_date?: string | null;
   shipper_name?: string | null;
   shipper_inn?: string | null;
+  shipper_provider?: EdoProvider | null;
   consignee_name?: string | null;
   consignee_inn?: string | null;
+  consignee_provider?: EdoProvider | null;
   route_summary?: string | null;
+  loading_city?: string | null;
+  unloading_city?: string | null;
   cargo_summary?: string | null;
   vehicle_label?: string | null;
   driver_label?: string | null;
@@ -246,6 +254,8 @@ export interface CreateDocInput {
   doc_number?: string | null;
   freight_id?: string | null;
   trip_id?: string | null;
+  connection_id?: string | null;
+  comment?: string | null;
 }
 
 export async function createCarrierDoc(
@@ -253,21 +263,22 @@ export async function createCarrierDoc(
   carrierExtId: string,
   input: CreateDocInput,
 ): Promise<{ id: string }> {
-  const conn = await loadConnectionConfig(client, carrierExtId);
+  const conn = await loadConnectionConfig(client, carrierExtId, input.connection_id ?? null);
   const provider: EdoProvider = conn?.cfg.provider ?? "internal_mock";
   const adapter = getEdoAdapter(provider);
+  const direction = input.direction ?? "outgoing";
+  const documentType = input.document_type ?? "etrn";
 
   let externalId: string | null = null;
-  let status = "draft";
-  if (provider === "internal_mock") {
-    const r = await adapter.createEtrn(
-      conn?.cfg ?? buildMockCfg(),
-      input,
-    );
+  let status: string = direction === "incoming" ? "waiting_carrier_signature" : "draft";
+  if (provider === "internal_mock" && direction === "outgoing") {
+    const r = await adapter.createEtrn(conn?.cfg ?? buildMockCfg(), input);
     if (r.ok && r.data) {
       externalId = (r.data as { external_id?: string }).external_id ?? null;
       status = "created";
     }
+  } else if (provider === "internal_mock" && direction === "incoming") {
+    externalId = `mock-in-${Date.now()}`;
   }
 
   const { data, error } = await client
@@ -278,12 +289,18 @@ export async function createCarrierDoc(
       provider,
       external_id: externalId,
       status,
+      direction,
+      document_type: documentType,
+      title: input.title ?? null,
+      document_date: input.document_date ?? null,
       doc_number: input.doc_number ?? null,
       shipper_name: input.shipper_name ?? null,
       shipper_inn: input.shipper_inn ?? null,
       consignee_name: input.consignee_name ?? null,
       consignee_inn: input.consignee_inn ?? null,
       route_summary: input.route_summary ?? null,
+      loading_city: input.loading_city ?? null,
+      unloading_city: input.unloading_city ?? null,
       cargo_summary: input.cargo_summary ?? null,
       vehicle_label: input.vehicle_label ?? null,
       driver_label: input.driver_label ?? null,
@@ -292,20 +309,40 @@ export async function createCarrierDoc(
       rate_amount: input.rate_amount ?? null,
       freight_id: input.freight_id ?? null,
       trip_id: input.trip_id ?? null,
-      awaiting_role: status === "created" ? "carrier" : null,
+      awaiting_role:
+        direction === "incoming" ? "carrier" :
+        status === "created" ? "carrier" : null,
     })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
   const id = (data as { id: string }).id;
 
-  // Сразу заводим стандартных участников.
-  const participants = [
-    { role: "shipper", name: input.shipper_name ?? null, inn: input.shipper_inn ?? null },
-    { role: "carrier", name: conn?.cfg.organization_name ?? null, inn: conn?.cfg.organization_inn ?? null,
-      participant_operator_provider: provider },
+  // Заводим стандартных участников. Для входящего — сразу помечаем грузоотправителя подписавшим.
+  const shipperSigned = direction === "incoming";
+  const participants: Array<Record<string, unknown>> = [
+    {
+      role: "shipper",
+      name: input.shipper_name ?? null,
+      inn: input.shipper_inn ?? null,
+      participant_operator_provider: input.shipper_provider ?? null,
+      participant_signature_status: shipperSigned ? "signed" : "pending",
+      participant_sign_method: shipperSigned ? "mock" : null,
+      signed_at: shipperSigned ? new Date().toISOString() : null,
+    },
+    {
+      role: "carrier",
+      name: conn?.cfg.organization_name ?? null,
+      inn: conn?.cfg.organization_inn ?? null,
+      participant_operator_provider: provider,
+    },
     { role: "driver", name: input.driver_label ?? null },
-    { role: "consignee", name: input.consignee_name ?? null, inn: input.consignee_inn ?? null },
+    {
+      role: "consignee",
+      name: input.consignee_name ?? null,
+      inn: input.consignee_inn ?? null,
+      participant_operator_provider: input.consignee_provider ?? null,
+    },
   ];
   for (const p of participants) {
     await client.from("carrier_edo_document_participants").insert({
@@ -314,9 +351,14 @@ export async function createCarrierDoc(
     });
   }
 
-  await logDocEvent(client, id, "created", "Документ создан");
+  await logDocEvent(
+    client, id,
+    direction === "incoming" ? "received" : "created",
+    direction === "incoming" ? "Получен входящий документ" : "Документ создан",
+  );
   return { id };
 }
+
 
 function buildMockCfg(): EdoConnectionConfig {
   return {
