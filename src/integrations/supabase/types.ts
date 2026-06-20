@@ -250,6 +250,7 @@ export type Database = {
           error_message: string | null
           external_org_id: string | null
           id: string
+          is_default: boolean
           last_check_at: string | null
           last_check_status: string | null
           organization_inn: string | null
@@ -274,6 +275,7 @@ export type Database = {
           error_message?: string | null
           external_org_id?: string | null
           id?: string
+          is_default?: boolean
           last_check_at?: string | null
           last_check_status?: string | null
           organization_inn?: string | null
@@ -298,6 +300,7 @@ export type Database = {
           error_message?: string | null
           external_org_id?: string | null
           id?: string
+          is_default?: boolean
           last_check_at?: string | null
           last_check_status?: string | null
           organization_inn?: string | null
@@ -312,7 +315,7 @@ export type Database = {
           {
             foreignKeyName: "carrier_edo_connections_carrier_ext_id_fkey"
             columns: ["carrier_ext_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "dispatcher_carrier_ext"
             referencedColumns: ["id"]
           },
@@ -432,11 +435,15 @@ export type Database = {
             | null
           cargo_summary: string | null
           carrier_ext_id: string
+          closed_at: string | null
           connection_id: string | null
           consignee_inn: string | null
           consignee_name: string | null
           created_at: string
+          direction: Database["public"]["Enums"]["edo_doc_direction"]
           doc_number: string | null
+          document_date: string | null
+          document_type: Database["public"]["Enums"]["edo_doc_type"]
           driver_label: string | null
           error_message: string | null
           external_id: string | null
@@ -445,7 +452,10 @@ export type Database = {
           last_sync_status: string | null
           last_synced_at: string | null
           loading_at: string | null
+          loading_city: string | null
           meta: Json
+          operator_response_json: Json
+          payload_json: Json
           pdf_path: string | null
           provider: Database["public"]["Enums"]["edo_provider"]
           rate_amount: number | null
@@ -454,8 +464,10 @@ export type Database = {
           shipper_inn: string | null
           shipper_name: string | null
           status: Database["public"]["Enums"]["edo_doc_status"]
+          title: string | null
           trip_id: string | null
           unloading_at: string | null
+          unloading_city: string | null
           updated_at: string
           vehicle_label: string | null
           xml_path: string | null
@@ -466,11 +478,15 @@ export type Database = {
             | null
           cargo_summary?: string | null
           carrier_ext_id: string
+          closed_at?: string | null
           connection_id?: string | null
           consignee_inn?: string | null
           consignee_name?: string | null
           created_at?: string
+          direction?: Database["public"]["Enums"]["edo_doc_direction"]
           doc_number?: string | null
+          document_date?: string | null
+          document_type?: Database["public"]["Enums"]["edo_doc_type"]
           driver_label?: string | null
           error_message?: string | null
           external_id?: string | null
@@ -479,7 +495,10 @@ export type Database = {
           last_sync_status?: string | null
           last_synced_at?: string | null
           loading_at?: string | null
+          loading_city?: string | null
           meta?: Json
+          operator_response_json?: Json
+          payload_json?: Json
           pdf_path?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
           rate_amount?: number | null
@@ -488,8 +507,10 @@ export type Database = {
           shipper_inn?: string | null
           shipper_name?: string | null
           status?: Database["public"]["Enums"]["edo_doc_status"]
+          title?: string | null
           trip_id?: string | null
           unloading_at?: string | null
+          unloading_city?: string | null
           updated_at?: string
           vehicle_label?: string | null
           xml_path?: string | null
@@ -500,11 +521,15 @@ export type Database = {
             | null
           cargo_summary?: string | null
           carrier_ext_id?: string
+          closed_at?: string | null
           connection_id?: string | null
           consignee_inn?: string | null
           consignee_name?: string | null
           created_at?: string
+          direction?: Database["public"]["Enums"]["edo_doc_direction"]
           doc_number?: string | null
+          document_date?: string | null
+          document_type?: Database["public"]["Enums"]["edo_doc_type"]
           driver_label?: string | null
           error_message?: string | null
           external_id?: string | null
@@ -513,7 +538,10 @@ export type Database = {
           last_sync_status?: string | null
           last_synced_at?: string | null
           loading_at?: string | null
+          loading_city?: string | null
           meta?: Json
+          operator_response_json?: Json
+          payload_json?: Json
           pdf_path?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
           rate_amount?: number | null
@@ -522,8 +550,10 @@ export type Database = {
           shipper_inn?: string | null
           shipper_name?: string | null
           status?: Database["public"]["Enums"]["edo_doc_status"]
+          title?: string | null
           trip_id?: string | null
           unloading_at?: string | null
+          unloading_city?: string | null
           updated_at?: string
           vehicle_label?: string | null
           xml_path?: string | null
@@ -3463,6 +3493,68 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edo_counterparties: {
+        Row: {
+          box_id: string | null
+          carrier_ext_id: string | null
+          comment: string | null
+          created_at: string
+          edo_provider: Database["public"]["Enums"]["edo_provider"] | null
+          edo_provider_title: string | null
+          email: string | null
+          external_org_id: string | null
+          id: string
+          inn: string | null
+          kpp: string | null
+          name: string
+          phone: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          box_id?: string | null
+          carrier_ext_id?: string | null
+          comment?: string | null
+          created_at?: string
+          edo_provider?: Database["public"]["Enums"]["edo_provider"] | null
+          edo_provider_title?: string | null
+          email?: string | null
+          external_org_id?: string | null
+          id?: string
+          inn?: string | null
+          kpp?: string | null
+          name: string
+          phone?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          box_id?: string | null
+          carrier_ext_id?: string | null
+          comment?: string | null
+          created_at?: string
+          edo_provider?: Database["public"]["Enums"]["edo_provider"] | null
+          edo_provider_title?: string | null
+          email?: string | null
+          external_org_id?: string | null
+          id?: string
+          inn?: string | null
+          kpp?: string | null
+          name?: string
+          phone?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edo_counterparties_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
             referencedColumns: ["id"]
           },
         ]
@@ -6888,6 +6980,7 @@ export type Database = {
           has_client_id: boolean | null
           has_client_secret: boolean | null
           id: string | null
+          is_default: boolean | null
           last_check_at: string | null
           last_check_status: string | null
           organization_inn: string | null
@@ -6911,6 +7004,7 @@ export type Database = {
           has_client_id?: never
           has_client_secret?: never
           id?: string | null
+          is_default?: boolean | null
           last_check_at?: string | null
           last_check_status?: string | null
           organization_inn?: string | null
@@ -6934,6 +7028,7 @@ export type Database = {
           has_client_id?: never
           has_client_secret?: never
           id?: string | null
+          is_default?: boolean | null
           last_check_at?: string | null
           last_check_status?: string | null
           organization_inn?: string | null
@@ -6947,7 +7042,7 @@ export type Database = {
           {
             foreignKeyName: "carrier_edo_connections_carrier_ext_id_fkey"
             columns: ["carrier_ext_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "dispatcher_carrier_ext"
             referencedColumns: ["id"]
           },
@@ -7755,6 +7850,7 @@ export type Database = {
         | "connected"
         | "error"
         | "disabled"
+      edo_doc_direction: "incoming" | "outgoing" | "internal"
       edo_doc_status:
         | "draft"
         | "created"
@@ -7769,6 +7865,14 @@ export type Database = {
         | "error"
         | "closed"
         | "cancelled"
+      edo_doc_type:
+        | "etrn"
+        | "upd"
+        | "act"
+        | "contract"
+        | "invoice"
+        | "transport_waybill"
+        | "other"
       edo_environment: "test" | "production"
       edo_participant_role:
         | "shipper"
@@ -8097,6 +8201,7 @@ export const Constants = {
         "error",
         "disabled",
       ],
+      edo_doc_direction: ["incoming", "outgoing", "internal"],
       edo_doc_status: [
         "draft",
         "created",
@@ -8111,6 +8216,15 @@ export const Constants = {
         "error",
         "closed",
         "cancelled",
+      ],
+      edo_doc_type: [
+        "etrn",
+        "upd",
+        "act",
+        "contract",
+        "invoice",
+        "transport_waybill",
+        "other",
       ],
       edo_environment: ["test", "production"],
       edo_participant_role: [

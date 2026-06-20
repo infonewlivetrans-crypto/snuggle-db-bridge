@@ -381,6 +381,7 @@ import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/ca
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
 import { Route as ApiCarrierEdoDocumentsIdRouteImport } from './routes/api/carrier/edo/documents.$id'
 import { Route as ApiCarrierEdoConnectionTestRouteImport } from './routes/api/carrier/edo/connection.test'
+import { Route as ApiCarrierEdoConnectionIdRouteImport } from './routes/api/carrier/edo/connection.$id'
 import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
 import { Route as ApiCarrierDealsIdProgressRouteImport } from './routes/api/carrier/deals.$id.progress'
 import { Route as ApiAdminDispatcherUserInvitesIdRevokeRouteImport } from './routes/api/admin/dispatcher-user-invites.$id.revoke'
@@ -2353,6 +2354,12 @@ const ApiCarrierEdoConnectionTestRoute =
     path: '/test',
     getParentRoute: () => ApiCarrierEdoConnectionRoute,
   } as any)
+const ApiCarrierEdoConnectionIdRoute =
+  ApiCarrierEdoConnectionIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiCarrierEdoConnectionRoute,
+  } as any)
 const ApiCarrierDocumentsIdDownloadRoute =
   ApiCarrierDocumentsIdDownloadRouteImport.update({
     id: '/download',
@@ -2747,6 +2754,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
+  '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
@@ -3128,6 +3136,7 @@ export interface FileRoutesByTo {
   '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
+  '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
@@ -3511,6 +3520,7 @@ export interface FileRoutesById {
   '/api/admin/dispatcher-user-invites/$id/revoke': typeof ApiAdminDispatcherUserInvitesIdRevokeRoute
   '/api/carrier/deals/$id/progress': typeof ApiCarrierDealsIdProgressRoute
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
+  '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
@@ -3895,6 +3905,7 @@ export interface FileRouteTypes {
     | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
+    | '/api/carrier/edo/connection/$id'
     | '/api/carrier/edo/connection/test'
     | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
@@ -4276,6 +4287,7 @@ export interface FileRouteTypes {
     | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
+    | '/api/carrier/edo/connection/$id'
     | '/api/carrier/edo/connection/test'
     | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
@@ -4658,6 +4670,7 @@ export interface FileRouteTypes {
     | '/api/admin/dispatcher-user-invites/$id/revoke'
     | '/api/carrier/deals/$id/progress'
     | '/api/carrier/documents/$id/download'
+    | '/api/carrier/edo/connection/$id'
     | '/api/carrier/edo/connection/test'
     | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
@@ -7552,6 +7565,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierEdoConnectionTestRouteImport
       parentRoute: typeof ApiCarrierEdoConnectionRoute
     }
+    '/api/carrier/edo/connection/$id': {
+      id: '/api/carrier/edo/connection/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/edo/connection/$id'
+      preLoaderRoute: typeof ApiCarrierEdoConnectionIdRouteImport
+      parentRoute: typeof ApiCarrierEdoConnectionRoute
+    }
     '/api/carrier/documents/$id/download': {
       id: '/api/carrier/documents/$id/download'
       path: '/download'
@@ -8631,11 +8651,13 @@ const ApiInboundSignaturesAssetsRouteWithChildren =
   )
 
 interface ApiCarrierEdoConnectionRouteChildren {
+  ApiCarrierEdoConnectionIdRoute: typeof ApiCarrierEdoConnectionIdRoute
   ApiCarrierEdoConnectionTestRoute: typeof ApiCarrierEdoConnectionTestRoute
 }
 
 const ApiCarrierEdoConnectionRouteChildren: ApiCarrierEdoConnectionRouteChildren =
   {
+    ApiCarrierEdoConnectionIdRoute: ApiCarrierEdoConnectionIdRoute,
     ApiCarrierEdoConnectionTestRoute: ApiCarrierEdoConnectionTestRoute,
   }
 
