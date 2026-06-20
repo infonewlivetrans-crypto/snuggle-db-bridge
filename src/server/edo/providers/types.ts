@@ -26,7 +26,8 @@ export interface EdoConnectionConfig {
   organization_inn: string | null;
 }
 
-export interface EdoResult<T = unknown> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface EdoResult<T = any> {
   ok: boolean;
   data?: T;
   error?: string;
