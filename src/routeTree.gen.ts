@@ -195,6 +195,7 @@ import { Route as DriverRegisterTokenRouteImport } from './routes/driver.registe
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
 import { Route as DispatcherInboundDocumentsIdRouteImport } from './routes/dispatcher.inbound-documents.$id'
+import { Route as CarrierEdoCounterpartiesRouteImport } from './routes/carrier.edo.counterparties'
 import { Route as CarrierEdoIdRouteImport } from './routes/carrier.edo.$id'
 import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
@@ -1333,6 +1334,12 @@ const DispatcherInboundDocumentsIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => DispatcherInboundDocumentsRoute,
+  } as any)
+const CarrierEdoCounterpartiesRoute =
+  CarrierEdoCounterpartiesRouteImport.update({
+    id: '/counterparties',
+    path: '/counterparties',
+    getParentRoute: () => CarrierEdoRoute,
   } as any)
 const CarrierEdoIdRoute = CarrierEdoIdRouteImport.update({
   id: '/$id',
@@ -2699,6 +2706,7 @@ export interface FileRoutesByFullPath {
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/carrier/edo/$id': typeof CarrierEdoIdRoute
+  '/carrier/edo/counterparties': typeof CarrierEdoCounterpartiesRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3083,6 +3091,7 @@ export interface FileRoutesByTo {
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/carrier/edo/$id': typeof CarrierEdoIdRoute
+  '/carrier/edo/counterparties': typeof CarrierEdoCounterpartiesRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3469,6 +3478,7 @@ export interface FileRoutesById {
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/carrier/edo/$id': typeof CarrierEdoIdRoute
+  '/carrier/edo/counterparties': typeof CarrierEdoCounterpartiesRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3856,6 +3866,7 @@ export interface FileRouteTypes {
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
     | '/carrier/edo/$id'
+    | '/carrier/edo/counterparties'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4240,6 +4251,7 @@ export interface FileRouteTypes {
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
     | '/carrier/edo/$id'
+    | '/carrier/edo/counterparties'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4625,6 +4637,7 @@ export interface FileRouteTypes {
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
     | '/carrier/edo/$id'
+    | '/carrier/edo/counterparties'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -6290,6 +6303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DispatcherInboundDocumentsIdRouteImport
       parentRoute: typeof DispatcherInboundDocumentsRoute
     }
+    '/carrier/edo/counterparties': {
+      id: '/carrier/edo/counterparties'
+      path: '/counterparties'
+      fullPath: '/carrier/edo/counterparties'
+      preLoaderRoute: typeof CarrierEdoCounterpartiesRouteImport
+      parentRoute: typeof CarrierEdoRoute
+    }
     '/carrier/edo/$id': {
       id: '/carrier/edo/$id'
       path: '/$id'
@@ -7674,10 +7694,12 @@ declare module '@tanstack/react-router' {
 
 interface CarrierEdoRouteChildren {
   CarrierEdoIdRoute: typeof CarrierEdoIdRoute
+  CarrierEdoCounterpartiesRoute: typeof CarrierEdoCounterpartiesRoute
 }
 
 const CarrierEdoRouteChildren: CarrierEdoRouteChildren = {
   CarrierEdoIdRoute: CarrierEdoIdRoute,
+  CarrierEdoCounterpartiesRoute: CarrierEdoCounterpartiesRoute,
 }
 
 const CarrierEdoRouteWithChildren = CarrierEdoRoute._addFileChildren(
