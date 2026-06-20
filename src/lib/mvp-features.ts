@@ -44,3 +44,18 @@ export function useCarrierEmailAdvancedEnabled(): boolean {
 export function useDriverFullRouteWorkflowEnabled(): boolean {
   return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.driverFullRouteWorkflow, false));
 }
+
+/** Включён ли модуль ЭТрН/ЭДО для перевозчика. По умолчанию ВКЛЮЧЁН. */
+export function useEdoModuleEnabled(): boolean {
+  return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.edoModule, true), true);
+}
+
+/** Включены ли реальные операторы ЭДО. По умолчанию ВЫКЛЮЧЕНО (mock). */
+export function useEdoRealOperatorEnabled(): boolean {
+  return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.edoRealOperator, false));
+}
+
+/** Включён ли внутренний mock-режим ЭДО. По умолчанию ВКЛЮЧЁН. */
+export function useEdoMockEnabled(): boolean {
+  return asBool(useSetting<unknown>(MVP_FEATURE_KEYS.edoMock, true), true);
+}
