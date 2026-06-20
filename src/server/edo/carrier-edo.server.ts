@@ -1,0 +1,321 @@
+// Серверный слой ЭТрН/ЭДО. Работает через user-client (RLS), а для чтения
+// и установки секретов подключения — через service-role (но возвращает
+// клиенту только безопасную проекцию без секретов).
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { getEdoAdapter } from "./providers/registry";
+import type {
+  EdoProvider,
+  EdoConnectionConfig,
+  EdoProviderAdapter,
+} from "./providers/types";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyClient = SupabaseClient<any>;
+
+export interface CarrierEdoConnectionSafe {
+  id: string;
+  carrier_ext_id: string;
+  provider: EdoProvider;
+  provider_title: string | null;
+  status: string;
+  environment: "test" | "production";
+  organization_name: string | null;
+  organization_inn: string | null;
+  external_org_id: string | null;
+  box_id: string | null;
+  has_client_id: boolean;
+  has_client_secret: boolean;
+  has_api_key: boolean;
+  has_access_token: boolean;
+  has_certificate: boolean;
+  comment: string | null;
+  last_check_at: string | null;
+  last_check_status: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Возвращает безопасную проекцию подключения перевозчика (без секретов). */
+export async function getCarrierConnectionSafe(
+  client: AnyClient,
+  carrierExtId: string,
+): Promise<CarrierEdoConnectionSafe | null> {
+  const { data, error } = await client
+    .from("carrier_edo_connections_safe")
+    .select("*")
+    .eq("carrier_ext_id", carrierExtId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data ?? null) as CarrierEdoConnectionSafe | null;
+}
+
+export interface UpsertConnectionInput {
+  provider: EdoProvider;
+  environment?: "test" | "production";
+  organization_name?: string | null;
+  organization_inn?: string | null;
+  external_org_id?: string | null;
+  box_id?: string | null;
+  client_id?: string | null;
+  client_secret?: string | null;
+  api_key?: string | null;
+  access_token?: string | null;
+  refresh_token?: string | null;
+  certificate_id?: string | null;
+  comment?: string | null;
+  status?: string;
+}
+
+/** Создаёт/обновляет подключение перевозчика. Пишет в RLS-клиент. */
+export async function upsertCarrierConnection(
+  client: AnyClient,
+  carrierExtId: string,
+  input: UpsertConnectionInput,
+): Promise<{ id: string }> {
+  const existing = await getCarrierConnectionSafe(client, carrierExtId);
+  const provider = input.provider;
+  const adapter = getEdoAdapter(provider);
+  const defaultStatus =
+    provider === "internal_mock"
+      ? "connected"
+      : provider === "other"
+        ? "setup_required"
+        : "setup_required";
+  const patch: Record<string, unknown> = {
+    carrier_ext_id: carrierExtId,
+    provider,
+    provider_title: adapter.title,
+    environment: input.environment ?? "test",
+    organization_name: input.organization_name ?? null,
+    organization_inn: input.organization_inn ?? null,
+    external_org_id: input.external_org_id ?? null,
+    box_id: input.box_id ?? null,
+    comment: input.comment ?? null,
+    status: input.status ?? defaultStatus,
+  };
+  // Секреты пишем только если переданы (не затираем пустыми).
+  for (const k of [
+    "client_id",
+    "client_secret",
+    "api_key",
+    "access_token",
+    "refresh_token",
+    "certificate_id",
+  ] as const) {
+    if (input[k] !== undefined && input[k] !== "") patch[k] = input[k];
+  }
+  if (existing) {
+    const { error } = await client
+      .from("carrier_edo_connections")
+      .update(patch)
+      .eq("id", existing.id);
+    if (error) throw new Error(error.message);
+    return { id: existing.id };
+  }
+  const { data, error } = await client
+    .from("carrier_edo_connections")
+    .insert(patch)
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return { id: (data as { id: string }).id };
+}
+
+/** Загружает полный конфиг (с секретами) — только из серверного контекста с user-client.
+ *  RLS гарантирует, что вернётся только своя строка. */
+export async function loadConnectionConfig(
+  client: AnyClient,
+  carrierExtId: string,
+): Promise<{ id: string; cfg: EdoConnectionConfig; adapter: EdoProviderAdapter } | null> {
+  const { data, error } = await client
+    .from("carrier_edo_connections")
+    .select("*")
+    .eq("carrier_ext_id", carrierExtId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const row = data as Record<string, unknown>;
+  const provider = (row.provider as EdoProvider) ?? "internal_mock";
+  return {
+    id: row.id as string,
+    adapter: getEdoAdapter(provider),
+    cfg: {
+      provider,
+      environment: (row.environment as "test" | "production") ?? "test",
+      client_id: (row.client_id as string | null) ?? null,
+      client_secret: (row.client_secret as string | null) ?? null,
+      api_key: (row.api_key as string | null) ?? null,
+      access_token: (row.access_token as string | null) ?? null,
+      refresh_token: (row.refresh_token as string | null) ?? null,
+      certificate_id: (row.certificate_id as string | null) ?? null,
+      external_org_id: (row.external_org_id as string | null) ?? null,
+      box_id: (row.box_id as string | null) ?? null,
+      organization_name: (row.organization_name as string | null) ?? null,
+      organization_inn: (row.organization_inn as string | null) ?? null,
+    },
+  };
+}
+
+export async function updateConnectionCheckStatus(
+  client: AnyClient,
+  id: string,
+  result: { ok: boolean; error?: string },
+) {
+  await client
+    .from("carrier_edo_connections")
+    .update({
+      last_check_at: new Date().toISOString(),
+      last_check_status: result.ok ? "ok" : "error",
+      error_message: result.ok ? null : (result.error ?? null),
+      status: result.ok ? "connected" : "error",
+    })
+    .eq("id", id);
+}
+
+// ============ DOCUMENTS ============
+
+export interface CreateDocInput {
+  shipper_name?: string | null;
+  shipper_inn?: string | null;
+  consignee_name?: string | null;
+  consignee_inn?: string | null;
+  route_summary?: string | null;
+  cargo_summary?: string | null;
+  vehicle_label?: string | null;
+  driver_label?: string | null;
+  loading_at?: string | null;
+  unloading_at?: string | null;
+  rate_amount?: number | null;
+  doc_number?: string | null;
+  freight_id?: string | null;
+  trip_id?: string | null;
+}
+
+export async function createCarrierDoc(
+  client: AnyClient,
+  carrierExtId: string,
+  input: CreateDocInput,
+): Promise<{ id: string }> {
+  const conn = await loadConnectionConfig(client, carrierExtId);
+  const provider: EdoProvider = conn?.cfg.provider ?? "internal_mock";
+  const adapter = getEdoAdapter(provider);
+
+  let externalId: string | null = null;
+  let status = "draft";
+  if (provider === "internal_mock") {
+    const r = await adapter.createEtrn(
+      conn?.cfg ?? buildMockCfg(),
+      input,
+    );
+    if (r.ok && r.data) {
+      externalId = (r.data as { external_id?: string }).external_id ?? null;
+      status = "created";
+    }
+  }
+
+  const { data, error } = await client
+    .from("carrier_edo_documents")
+    .insert({
+      carrier_ext_id: carrierExtId,
+      connection_id: conn?.id ?? null,
+      provider,
+      external_id: externalId,
+      status,
+      doc_number: input.doc_number ?? null,
+      shipper_name: input.shipper_name ?? null,
+      shipper_inn: input.shipper_inn ?? null,
+      consignee_name: input.consignee_name ?? null,
+      consignee_inn: input.consignee_inn ?? null,
+      route_summary: input.route_summary ?? null,
+      cargo_summary: input.cargo_summary ?? null,
+      vehicle_label: input.vehicle_label ?? null,
+      driver_label: input.driver_label ?? null,
+      loading_at: input.loading_at ?? null,
+      unloading_at: input.unloading_at ?? null,
+      rate_amount: input.rate_amount ?? null,
+      freight_id: input.freight_id ?? null,
+      trip_id: input.trip_id ?? null,
+      awaiting_role: status === "created" ? "carrier" : null,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  const id = (data as { id: string }).id;
+
+  // Сразу заводим стандартных участников.
+  const participants = [
+    { role: "shipper", name: input.shipper_name ?? null, inn: input.shipper_inn ?? null },
+    { role: "carrier", name: conn?.cfg.organization_name ?? null, inn: conn?.cfg.organization_inn ?? null,
+      participant_operator_provider: provider },
+    { role: "driver", name: input.driver_label ?? null },
+    { role: "consignee", name: input.consignee_name ?? null, inn: input.consignee_inn ?? null },
+  ];
+  for (const p of participants) {
+    await client.from("carrier_edo_document_participants").insert({
+      document_id: id,
+      ...p,
+    });
+  }
+
+  await logDocEvent(client, id, "created", "Документ создан");
+  return { id };
+}
+
+function buildMockCfg(): EdoConnectionConfig {
+  return {
+    provider: "internal_mock",
+    environment: "test",
+    client_id: null, client_secret: null, api_key: null,
+    access_token: null, refresh_token: null, certificate_id: null,
+    external_org_id: null, box_id: null,
+    organization_name: null, organization_inn: null,
+  };
+}
+
+export async function logDocEvent(
+  client: AnyClient,
+  documentId: string,
+  eventType: string,
+  message?: string,
+  actorRole?: string,
+) {
+  await client.from("carrier_edo_document_events").insert({
+    document_id: documentId,
+    event_type: eventType,
+    message: message ?? null,
+    actor_role: actorRole ?? null,
+  });
+}
+
+export async function setDocStatus(
+  client: AnyClient,
+  documentId: string,
+  status: string,
+  awaitingRole: string | null,
+  message?: string,
+) {
+  const { error } = await client
+    .from("carrier_edo_documents")
+    .update({ status, awaiting_role: awaitingRole })
+    .eq("id", documentId);
+  if (error) throw new Error(error.message);
+  await logDocEvent(client, documentId, `status:${status}`, message);
+}
+
+export async function setParticipantSigned(
+  client: AnyClient,
+  documentId: string,
+  role: string,
+  method: string,
+) {
+  await client
+    .from("carrier_edo_document_participants")
+    .update({
+      participant_signature_status: "signed",
+      participant_sign_method: method,
+      signed_at: new Date().toISOString(),
+    })
+    .eq("document_id", documentId)
+    .eq("role", role);
+}
