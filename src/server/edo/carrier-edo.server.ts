@@ -64,6 +64,7 @@ export async function getCarrierConnectionSafe(
 
 
 export interface UpsertConnectionInput {
+  id?: string | null;
   provider: EdoProvider;
   environment?: "test" | "production";
   organization_name?: string | null;
@@ -78,23 +79,18 @@ export interface UpsertConnectionInput {
   certificate_id?: string | null;
   comment?: string | null;
   status?: string;
+  is_default?: boolean;
 }
 
-/** Создаёт/обновляет подключение перевозчика. Пишет в RLS-клиент. */
+/** Создаёт новое или обновляет существующее (по id) подключение перевозчика. */
 export async function upsertCarrierConnection(
   client: AnyClient,
   carrierExtId: string,
   input: UpsertConnectionInput,
 ): Promise<{ id: string }> {
-  const existing = await getCarrierConnectionSafe(client, carrierExtId);
   const provider = input.provider;
   const adapter = getEdoAdapter(provider);
-  const defaultStatus =
-    provider === "internal_mock"
-      ? "connected"
-      : provider === "other"
-        ? "setup_required"
-        : "setup_required";
+  const defaultStatus = provider === "internal_mock" ? "connected" : "setup_required";
   const patch: Record<string, unknown> = {
     carrier_ext_id: carrierExtId,
     provider,
@@ -107,33 +103,73 @@ export async function upsertCarrierConnection(
     comment: input.comment ?? null,
     status: input.status ?? defaultStatus,
   };
-  // Секреты пишем только если переданы (не затираем пустыми).
   for (const k of [
-    "client_id",
-    "client_secret",
-    "api_key",
-    "access_token",
-    "refresh_token",
-    "certificate_id",
+    "client_id", "client_secret", "api_key", "access_token",
+    "refresh_token", "certificate_id",
   ] as const) {
     if (input[k] !== undefined && input[k] !== "") patch[k] = input[k];
   }
-  if (existing) {
+
+  let resultId: string;
+  if (input.id) {
     const { error } = await client
       .from("carrier_edo_connections")
       .update(patch)
-      .eq("id", existing.id);
+      .eq("id", input.id)
+      .eq("carrier_ext_id", carrierExtId);
     if (error) throw new Error(error.message);
-    return { id: existing.id };
+    resultId = input.id;
+  } else {
+    const existing = await listCarrierConnections(client, carrierExtId);
+    // первое подключение перевозчика становится основным автоматически
+    if (existing.length === 0) patch.is_default = true;
+    const { data, error } = await client
+      .from("carrier_edo_connections")
+      .insert(patch)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    resultId = (data as { id: string }).id;
   }
-  const { data, error } = await client
-    .from("carrier_edo_connections")
-    .insert(patch)
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  return { id: (data as { id: string }).id };
+
+  if (input.is_default === true) {
+    await setDefaultConnection(client, carrierExtId, resultId);
+  }
+  return { id: resultId };
 }
+
+/** Делает указанное подключение основным (снимает флаг у остальных). */
+export async function setDefaultConnection(
+  client: AnyClient,
+  carrierExtId: string,
+  connectionId: string,
+): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c = client as any;
+  await c.from("carrier_edo_connections")
+    .update({ is_default: false })
+    .eq("carrier_ext_id", carrierExtId)
+    .neq("id", connectionId);
+  const { error } = await c.from("carrier_edo_connections")
+    .update({ is_default: true })
+    .eq("id", connectionId)
+    .eq("carrier_ext_id", carrierExtId);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCarrierConnection(
+  client: AnyClient,
+  carrierExtId: string,
+  connectionId: string,
+): Promise<void> {
+  const { error } = await client
+    .from("carrier_edo_connections")
+    .delete()
+    .eq("id", connectionId)
+    .eq("carrier_ext_id", carrierExtId);
+  if (error) throw new Error(error.message);
+}
+
 
 /** Загружает полный конфиг (с секретами) — только из серверного контекста с user-client.
  *  RLS гарантирует, что вернётся только своя строка. */
