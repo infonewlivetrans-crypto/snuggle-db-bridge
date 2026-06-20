@@ -383,6 +383,21 @@ const MVP_FEATURES: { key: string; title: string; description: string }[] = [
     title: "Полный маршрутный workflow водителя",
     description: "Точки маршрута, документы и события у водителя.",
   },
+  {
+    key: MVP_FEATURE_KEYS.edoModule,
+    title: "Модуль ЭТрН / ЭДО",
+    description: "Раздел /carrier/edo и API для работы с операторами ЭДО. По умолчанию включён.",
+  },
+  {
+    key: MVP_FEATURE_KEYS.edoRealOperator,
+    title: "Реальные операторы ЭДО",
+    description: "Если выключен, все вызовы идут во внутренний mock-режим.",
+  },
+  {
+    key: MVP_FEATURE_KEYS.edoMock,
+    title: "Внутренний mock-режим ЭДО",
+    description: "Позволяет проходить весь сценарий без договора с оператором.",
+  },
 ];
 
 function MvpFeaturesPanel({
