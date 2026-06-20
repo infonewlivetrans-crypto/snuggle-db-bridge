@@ -112,6 +112,14 @@ function CarrierEdoPage() {
 
   return (
     <div className="space-y-5">
+      <div className="flex flex-wrap gap-2">
+        <Link
+          to="/carrier/edo/counterparties"
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted/40"
+        >
+          <FileText className="h-4 w-4" />Контрагенты ЭДО
+        </Link>
+      </div>
       {/* Connections */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
