@@ -58,14 +58,14 @@ export interface EdoProviderAdapter {
   readonly provider: EdoProvider;
   readonly title: string;
   testConnection(cfg: EdoConnectionConfig): Promise<EdoResult>;
-  getOrganizationInfo(cfg: EdoConnectionConfig): Promise<EdoResult<EdoOrgInfo>>;
-  createEtrn(cfg: EdoConnectionConfig, draft: EdoEtrnDraft): Promise<EdoResult<{ external_id: string }>>;
-  getEtrnStatus(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult<{ status: string }>>;
+  getOrganizationInfo(cfg: EdoConnectionConfig): Promise<EdoResult>;
+  createEtrn(cfg: EdoConnectionConfig, draft: EdoEtrnDraft): Promise<EdoResult>;
+  getEtrnStatus(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult>;
   sendForSignature(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult>;
   signAsCarrier(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult>;
   confirmDriverAction(cfg: EdoConnectionConfig, externalId: string, action: string): Promise<EdoResult>;
-  getIncomingDocuments(cfg: EdoConnectionConfig): Promise<EdoResult<unknown[]>>;
-  downloadDocument(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult<{ url: string }>>;
+  getIncomingDocuments(cfg: EdoConnectionConfig): Promise<EdoResult>;
+  downloadDocument(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult>;
   cancelDocument(cfg: EdoConnectionConfig, externalId: string, reason: string): Promise<EdoResult>;
   closeDocument(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult>;
 }
