@@ -195,6 +195,7 @@ import { Route as DriverRegisterTokenRouteImport } from './routes/driver.registe
 import { Route as DispatcherRegisterTokenRouteImport } from './routes/dispatcher.register.$token'
 import { Route as DispatcherInviteTokenRouteImport } from './routes/dispatcher.invite.$token'
 import { Route as DispatcherInboundDocumentsIdRouteImport } from './routes/dispatcher.inbound-documents.$id'
+import { Route as CarrierEdoCounterpartiesRouteImport } from './routes/carrier.edo.counterparties'
 import { Route as CarrierEdoIdRouteImport } from './routes/carrier.edo.$id'
 import { Route as CarrierActivateTokenRouteImport } from './routes/carrier.activate.$token'
 import { Route as ApiWorkspaceSummaryRouteImport } from './routes/api/workspace.summary'
@@ -341,6 +342,7 @@ import { Route as ApiCarrierInboundDocumentsSyncRouteImport } from './routes/api
 import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carrier/freights.signing'
 import { Route as ApiCarrierEmailAccountTestRouteImport } from './routes/api/carrier/email-account.test'
 import { Route as ApiCarrierEdoDocumentsRouteImport } from './routes/api/carrier/edo/documents'
+import { Route as ApiCarrierEdoCounterpartiesRouteImport } from './routes/api/carrier/edo/counterparties'
 import { Route as ApiCarrierEdoConnectionRouteImport } from './routes/api/carrier/edo/connection'
 import { Route as ApiCarrierDriversIdRouteImport } from './routes/api/carrier/drivers.$id'
 import { Route as ApiCarrierDocumentsUploadRouteImport } from './routes/api/carrier/documents.upload'
@@ -380,6 +382,7 @@ import { Route as ApiCarrierVehiclesIdLocationRouteImport } from './routes/api/c
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
 import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './routes/api/carrier/requests.$id.contract-preview'
 import { Route as ApiCarrierEdoDocumentsIdRouteImport } from './routes/api/carrier/edo/documents.$id'
+import { Route as ApiCarrierEdoCounterpartiesIdRouteImport } from './routes/api/carrier/edo/counterparties.$id'
 import { Route as ApiCarrierEdoConnectionTestRouteImport } from './routes/api/carrier/edo/connection.test'
 import { Route as ApiCarrierEdoConnectionIdRouteImport } from './routes/api/carrier/edo/connection.$id'
 import { Route as ApiCarrierDocumentsIdDownloadRouteImport } from './routes/api/carrier/documents.$id.download'
@@ -1332,6 +1335,12 @@ const DispatcherInboundDocumentsIdRoute =
     path: '/$id',
     getParentRoute: () => DispatcherInboundDocumentsRoute,
   } as any)
+const CarrierEdoCounterpartiesRoute =
+  CarrierEdoCounterpartiesRouteImport.update({
+    id: '/counterparties',
+    path: '/counterparties',
+    getParentRoute: () => CarrierEdoRoute,
+  } as any)
 const CarrierEdoIdRoute = CarrierEdoIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2122,6 +2131,12 @@ const ApiCarrierEdoDocumentsRoute = ApiCarrierEdoDocumentsRouteImport.update({
   path: '/api/carrier/edo/documents',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierEdoCounterpartiesRoute =
+  ApiCarrierEdoCounterpartiesRouteImport.update({
+    id: '/api/carrier/edo/counterparties',
+    path: '/api/carrier/edo/counterparties',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierEdoConnectionRoute = ApiCarrierEdoConnectionRouteImport.update({
   id: '/api/carrier/edo/connection',
   path: '/api/carrier/edo/connection',
@@ -2347,6 +2362,12 @@ const ApiCarrierEdoDocumentsIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => ApiCarrierEdoDocumentsRoute,
+  } as any)
+const ApiCarrierEdoCounterpartiesIdRoute =
+  ApiCarrierEdoCounterpartiesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiCarrierEdoCounterpartiesRoute,
   } as any)
 const ApiCarrierEdoConnectionTestRoute =
   ApiCarrierEdoConnectionTestRouteImport.update({
@@ -2685,6 +2706,7 @@ export interface FileRoutesByFullPath {
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/carrier/edo/$id': typeof CarrierEdoIdRoute
+  '/carrier/edo/counterparties': typeof CarrierEdoCounterpartiesRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -2699,6 +2721,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
+  '/api/carrier/edo/counterparties': typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
@@ -2756,6 +2779,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
+  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRoute
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -3067,6 +3091,7 @@ export interface FileRoutesByTo {
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/carrier/edo/$id': typeof CarrierEdoIdRoute
+  '/carrier/edo/counterparties': typeof CarrierEdoCounterpartiesRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3081,6 +3106,7 @@ export interface FileRoutesByTo {
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
+  '/api/carrier/edo/counterparties': typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
@@ -3138,6 +3164,7 @@ export interface FileRoutesByTo {
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
+  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRoute
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -3451,6 +3478,7 @@ export interface FileRoutesById {
   '/api/workspace/summary': typeof ApiWorkspaceSummaryRoute
   '/carrier/activate/$token': typeof CarrierActivateTokenRoute
   '/carrier/edo/$id': typeof CarrierEdoIdRoute
+  '/carrier/edo/counterparties': typeof CarrierEdoCounterpartiesRoute
   '/dispatcher/inbound-documents/$id': typeof DispatcherInboundDocumentsIdRoute
   '/dispatcher/invite/$token': typeof DispatcherInviteTokenRoute
   '/dispatcher/register/$token': typeof DispatcherRegisterTokenRoute
@@ -3465,6 +3493,7 @@ export interface FileRoutesById {
   '/api/carrier/documents/upload': typeof ApiCarrierDocumentsUploadRoute
   '/api/carrier/drivers/$id': typeof ApiCarrierDriversIdRoute
   '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
+  '/api/carrier/edo/counterparties': typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
   '/api/carrier/freights/signing': typeof ApiCarrierFreightsSigningRoute
@@ -3522,6 +3551,7 @@ export interface FileRoutesById {
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
+  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRoute
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -3836,6 +3866,7 @@ export interface FileRouteTypes {
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
     | '/carrier/edo/$id'
+    | '/carrier/edo/counterparties'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -3850,6 +3881,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/upload'
     | '/api/carrier/drivers/$id'
     | '/api/carrier/edo/connection'
+    | '/api/carrier/edo/counterparties'
     | '/api/carrier/edo/documents'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
@@ -3907,6 +3939,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/edo/connection/$id'
     | '/api/carrier/edo/connection/test'
+    | '/api/carrier/edo/counterparties/$id'
     | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
@@ -4218,6 +4251,7 @@ export interface FileRouteTypes {
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
     | '/carrier/edo/$id'
+    | '/carrier/edo/counterparties'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4232,6 +4266,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/upload'
     | '/api/carrier/drivers/$id'
     | '/api/carrier/edo/connection'
+    | '/api/carrier/edo/counterparties'
     | '/api/carrier/edo/documents'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
@@ -4289,6 +4324,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/edo/connection/$id'
     | '/api/carrier/edo/connection/test'
+    | '/api/carrier/edo/counterparties/$id'
     | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
@@ -4601,6 +4637,7 @@ export interface FileRouteTypes {
     | '/api/workspace/summary'
     | '/carrier/activate/$token'
     | '/carrier/edo/$id'
+    | '/carrier/edo/counterparties'
     | '/dispatcher/inbound-documents/$id'
     | '/dispatcher/invite/$token'
     | '/dispatcher/register/$token'
@@ -4615,6 +4652,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/upload'
     | '/api/carrier/drivers/$id'
     | '/api/carrier/edo/connection'
+    | '/api/carrier/edo/counterparties'
     | '/api/carrier/edo/documents'
     | '/api/carrier/email-account/test'
     | '/api/carrier/freights/signing'
@@ -4672,6 +4710,7 @@ export interface FileRouteTypes {
     | '/api/carrier/documents/$id/download'
     | '/api/carrier/edo/connection/$id'
     | '/api/carrier/edo/connection/test'
+    | '/api/carrier/edo/counterparties/$id'
     | '/api/carrier/edo/documents/$id'
     | '/api/carrier/requests/$id/contract-preview'
     | '/api/carrier/requests/$id/respond'
@@ -4938,6 +4977,7 @@ export interface RootRouteChildren {
   ApiAdminUsersCleanupRoute: typeof ApiAdminUsersCleanupRoute
   ApiCarrierActivateTokenRoute: typeof ApiCarrierActivateTokenRoute
   ApiCarrierEdoConnectionRoute: typeof ApiCarrierEdoConnectionRouteWithChildren
+  ApiCarrierEdoCounterpartiesRoute: typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   ApiCarrierEdoDocumentsRoute: typeof ApiCarrierEdoDocumentsRouteWithChildren
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
   ApiDispatcherAiParseFreightTextRoute: typeof ApiDispatcherAiParseFreightTextRoute
@@ -6263,6 +6303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DispatcherInboundDocumentsIdRouteImport
       parentRoute: typeof DispatcherInboundDocumentsRoute
     }
+    '/carrier/edo/counterparties': {
+      id: '/carrier/edo/counterparties'
+      path: '/counterparties'
+      fullPath: '/carrier/edo/counterparties'
+      preLoaderRoute: typeof CarrierEdoCounterpartiesRouteImport
+      parentRoute: typeof CarrierEdoRoute
+    }
     '/carrier/edo/$id': {
       id: '/carrier/edo/$id'
       path: '/$id'
@@ -7285,6 +7332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierEdoDocumentsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/edo/counterparties': {
+      id: '/api/carrier/edo/counterparties'
+      path: '/api/carrier/edo/counterparties'
+      fullPath: '/api/carrier/edo/counterparties'
+      preLoaderRoute: typeof ApiCarrierEdoCounterpartiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/edo/connection': {
       id: '/api/carrier/edo/connection'
       path: '/api/carrier/edo/connection'
@@ -7558,6 +7612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierEdoDocumentsIdRouteImport
       parentRoute: typeof ApiCarrierEdoDocumentsRoute
     }
+    '/api/carrier/edo/counterparties/$id': {
+      id: '/api/carrier/edo/counterparties/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/edo/counterparties/$id'
+      preLoaderRoute: typeof ApiCarrierEdoCounterpartiesIdRouteImport
+      parentRoute: typeof ApiCarrierEdoCounterpartiesRoute
+    }
     '/api/carrier/edo/connection/test': {
       id: '/api/carrier/edo/connection/test'
       path: '/test'
@@ -7633,10 +7694,12 @@ declare module '@tanstack/react-router' {
 
 interface CarrierEdoRouteChildren {
   CarrierEdoIdRoute: typeof CarrierEdoIdRoute
+  CarrierEdoCounterpartiesRoute: typeof CarrierEdoCounterpartiesRoute
 }
 
 const CarrierEdoRouteChildren: CarrierEdoRouteChildren = {
   CarrierEdoIdRoute: CarrierEdoIdRoute,
+  CarrierEdoCounterpartiesRoute: CarrierEdoCounterpartiesRoute,
 }
 
 const CarrierEdoRouteWithChildren = CarrierEdoRoute._addFileChildren(
@@ -8666,6 +8729,20 @@ const ApiCarrierEdoConnectionRouteWithChildren =
     ApiCarrierEdoConnectionRouteChildren,
   )
 
+interface ApiCarrierEdoCounterpartiesRouteChildren {
+  ApiCarrierEdoCounterpartiesIdRoute: typeof ApiCarrierEdoCounterpartiesIdRoute
+}
+
+const ApiCarrierEdoCounterpartiesRouteChildren: ApiCarrierEdoCounterpartiesRouteChildren =
+  {
+    ApiCarrierEdoCounterpartiesIdRoute: ApiCarrierEdoCounterpartiesIdRoute,
+  }
+
+const ApiCarrierEdoCounterpartiesRouteWithChildren =
+  ApiCarrierEdoCounterpartiesRoute._addFileChildren(
+    ApiCarrierEdoCounterpartiesRouteChildren,
+  )
+
 interface ApiCarrierEdoDocumentsIdRouteChildren {
   ApiCarrierEdoDocumentsIdActionsRoute: typeof ApiCarrierEdoDocumentsIdActionsRoute
 }
@@ -9018,6 +9095,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminUsersCleanupRoute: ApiAdminUsersCleanupRoute,
   ApiCarrierActivateTokenRoute: ApiCarrierActivateTokenRoute,
   ApiCarrierEdoConnectionRoute: ApiCarrierEdoConnectionRouteWithChildren,
+  ApiCarrierEdoCounterpartiesRoute:
+    ApiCarrierEdoCounterpartiesRouteWithChildren,
   ApiCarrierEdoDocumentsRoute: ApiCarrierEdoDocumentsRouteWithChildren,
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
   ApiDispatcherAiParseFreightTextRoute: ApiDispatcherAiParseFreightTextRoute,

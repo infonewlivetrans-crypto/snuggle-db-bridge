@@ -417,3 +417,156 @@ export async function setParticipantSigned(
     .eq("document_id", documentId)
     .eq("role", role);
 }
+
+// ============ COUNTERPARTIES (Этап 1: справочник контрагентов ЭДО) ============
+
+export type EdoCpVerificationStatus = "unknown" | "verified" | "not_found" | "error";
+
+export interface EdoCounterpartyDTO {
+  id: string;
+  carrier_ext_id: string | null;
+  name: string;
+  company_name: string | null;
+  inn: string | null;
+  kpp: string | null;
+  type: string;
+  edo_operator: string | null;
+  edo_provider: string | null;
+  edo_provider_title: string | null;
+  participant_id: string | null;
+  external_org_id: string | null;
+  box_id: string | null;
+  email: string | null;
+  phone: string | null;
+  comment: string | null;
+  verification_status: EdoCpVerificationStatus;
+  last_sync_at: string | null;
+  archived_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CounterpartyListParams {
+  search?: string | null;
+  verification_status?: EdoCpVerificationStatus | null;
+  include_archived?: boolean;
+}
+
+export interface CounterpartyInput {
+  company_name?: string | null;
+  name?: string | null;
+  inn?: string | null;
+  kpp?: string | null;
+  edo_operator?: string | null;
+  participant_id?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  comment?: string | null;
+  verification_status?: EdoCpVerificationStatus | null;
+}
+
+function cpRow(r: Record<string, unknown>): EdoCounterpartyDTO {
+  return r as unknown as EdoCounterpartyDTO;
+}
+
+export async function listCounterparties(
+  client: AnyClient,
+  carrierExtId: string,
+  params: CounterpartyListParams = {},
+): Promise<EdoCounterpartyDTO[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q = (client.from("edo_counterparties") as any)
+    .select("*")
+    .eq("carrier_ext_id", carrierExtId);
+  if (!params.include_archived) q = q.is("archived_at", null);
+  if (params.verification_status) q = q.eq("verification_status", params.verification_status);
+  if (params.search && params.search.trim()) {
+    const s = params.search.trim().replace(/[%,]/g, " ");
+    q = q.or(`company_name.ilike.%${s}%,name.ilike.%${s}%,inn.ilike.%${s}%`);
+  }
+  q = q.order("created_at", { ascending: false }).limit(500);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as Array<Record<string, unknown>>).map(cpRow);
+}
+
+export async function getCounterparty(
+  client: AnyClient,
+  carrierExtId: string,
+  id: string,
+): Promise<EdoCounterpartyDTO | null> {
+  const { data, error } = await client
+    .from("edo_counterparties")
+    .select("*")
+    .eq("carrier_ext_id", carrierExtId)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? cpRow(data as Record<string, unknown>) : null;
+}
+
+function normalizeCpPatch(input: CounterpartyInput): Record<string, unknown> {
+  const displayName = (input.company_name ?? input.name ?? "").trim();
+  const patch: Record<string, unknown> = {
+    company_name: input.company_name?.trim() || null,
+    inn: input.inn?.trim() || null,
+    kpp: input.kpp?.trim() || null,
+    edo_operator: input.edo_operator?.trim() || null,
+    participant_id: input.participant_id?.trim() || null,
+    email: input.email?.trim() || null,
+    phone: input.phone?.trim() || null,
+    comment: input.comment?.trim() || null,
+  };
+  if (input.verification_status) patch.verification_status = input.verification_status;
+  if (displayName) patch.name = displayName;
+  return patch;
+}
+
+export async function createCounterparty(
+  client: AnyClient,
+  carrierExtId: string,
+  input: CounterpartyInput,
+): Promise<{ id: string }> {
+  const displayName = (input.company_name ?? input.name ?? "").trim();
+  if (!displayName) throw new Error("Не указано наименование контрагента");
+  const patch = normalizeCpPatch(input);
+  patch.carrier_ext_id = carrierExtId;
+  patch.name = displayName;
+  if (!patch.verification_status) patch.verification_status = "unknown";
+  const { data, error } = await client
+    .from("edo_counterparties")
+    .insert(patch)
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return { id: (data as { id: string }).id };
+}
+
+export async function updateCounterparty(
+  client: AnyClient,
+  carrierExtId: string,
+  id: string,
+  input: CounterpartyInput,
+): Promise<void> {
+  const patch = normalizeCpPatch(input);
+  patch.updated_at = new Date().toISOString();
+  const { error } = await client
+    .from("edo_counterparties")
+    .update(patch)
+    .eq("id", id)
+    .eq("carrier_ext_id", carrierExtId);
+  if (error) throw new Error(error.message);
+}
+
+export async function archiveCounterparty(
+  client: AnyClient,
+  carrierExtId: string,
+  id: string,
+): Promise<void> {
+  const { error } = await client
+    .from("edo_counterparties")
+    .update({ archived_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("carrier_ext_id", carrierExtId);
+  if (error) throw new Error(error.message);
+}

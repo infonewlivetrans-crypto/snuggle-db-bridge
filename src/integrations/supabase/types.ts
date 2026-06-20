@@ -3499,10 +3499,13 @@ export type Database = {
       }
       edo_counterparties: {
         Row: {
+          archived_at: string | null
           box_id: string | null
           carrier_ext_id: string | null
           comment: string | null
+          company_name: string | null
           created_at: string
+          edo_operator: string | null
           edo_provider: Database["public"]["Enums"]["edo_provider"] | null
           edo_provider_title: string | null
           email: string | null
@@ -3510,16 +3513,22 @@ export type Database = {
           id: string
           inn: string | null
           kpp: string | null
+          last_sync_at: string | null
           name: string
+          participant_id: string | null
           phone: string | null
           type: string
           updated_at: string
+          verification_status: string
         }
         Insert: {
+          archived_at?: string | null
           box_id?: string | null
           carrier_ext_id?: string | null
           comment?: string | null
+          company_name?: string | null
           created_at?: string
+          edo_operator?: string | null
           edo_provider?: Database["public"]["Enums"]["edo_provider"] | null
           edo_provider_title?: string | null
           email?: string | null
@@ -3527,16 +3536,22 @@ export type Database = {
           id?: string
           inn?: string | null
           kpp?: string | null
+          last_sync_at?: string | null
           name: string
+          participant_id?: string | null
           phone?: string | null
           type?: string
           updated_at?: string
+          verification_status?: string
         }
         Update: {
+          archived_at?: string | null
           box_id?: string | null
           carrier_ext_id?: string | null
           comment?: string | null
+          company_name?: string | null
           created_at?: string
+          edo_operator?: string | null
           edo_provider?: Database["public"]["Enums"]["edo_provider"] | null
           edo_provider_title?: string | null
           email?: string | null
@@ -3544,10 +3559,13 @@ export type Database = {
           id?: string
           inn?: string | null
           kpp?: string | null
+          last_sync_at?: string | null
           name?: string
+          participant_id?: string | null
           phone?: string | null
           type?: string
           updated_at?: string
+          verification_status?: string
         }
         Relationships: [
           {
