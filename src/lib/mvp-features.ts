@@ -13,6 +13,9 @@ export const MVP_FEATURE_KEYS = {
   documentSignature: "dispatcher.features.document_signature_enabled",
   carrierEmailAdvanced: "dispatcher.features.carrier_email_advanced_settings_enabled",
   driverFullRouteWorkflow: "dispatcher.features.driver_full_route_workflow_enabled",
+  edoModule: "dispatcher.features.edo_module_enabled",
+  edoRealOperator: "dispatcher.features.edo_real_operator_enabled",
+  edoMock: "dispatcher.features.edo_mock_enabled",
 } as const;
 
 function asBool(v: unknown, fallback = false): boolean {
