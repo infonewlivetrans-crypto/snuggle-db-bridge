@@ -172,16 +172,22 @@ export async function deleteCarrierConnection(
 
 
 /** Загружает полный конфиг (с секретами) — только из серверного контекста с user-client.
- *  RLS гарантирует, что вернётся только своя строка. */
+ *  Если передан connectionId — берёт его; иначе — основной (is_default) или первый. */
 export async function loadConnectionConfig(
   client: AnyClient,
   carrierExtId: string,
+  connectionId?: string | null,
 ): Promise<{ id: string; cfg: EdoConnectionConfig; adapter: EdoProviderAdapter } | null> {
-  const { data, error } = await client
-    .from("carrier_edo_connections")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q = (client.from("carrier_edo_connections") as any)
     .select("*")
-    .eq("carrier_ext_id", carrierExtId)
-    .maybeSingle();
+    .eq("carrier_ext_id", carrierExtId);
+  if (connectionId) {
+    q = q.eq("id", connectionId);
+  } else {
+    q = q.order("is_default", { ascending: false }).order("created_at", { ascending: true });
+  }
+  const { data, error } = await q.limit(1).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
   const row = data as Record<string, unknown>;
@@ -205,6 +211,7 @@ export async function loadConnectionConfig(
     },
   };
 }
+
 
 export async function updateConnectionCheckStatus(
   client: AnyClient,
