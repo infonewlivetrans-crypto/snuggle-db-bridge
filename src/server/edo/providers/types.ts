@@ -69,7 +69,7 @@ export interface EdoProviderAdapter {
   closeDocument(cfg: EdoConnectionConfig, externalId: string): Promise<EdoResult>;
 }
 
-export function notConfigured(provider: string): EdoResult {
+export function notConfigured<T = unknown>(provider: string): EdoResult<T> {
   return {
     ok: false,
     status: 501,
