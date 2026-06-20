@@ -1,5 +1,30 @@
 // Клиентские константы модуля ЭТрН/ЭДО (без секретов, без сетевых вызовов).
 
+export type EdoDocDirection = "incoming" | "outgoing" | "internal";
+export type EdoDocType =
+  | "etrn" | "upd" | "act" | "contract" | "invoice" | "transport_waybill" | "other";
+
+export const EDO_DOC_DIRECTION_LABEL: Record<EdoDocDirection, string> = {
+  incoming: "Входящий",
+  outgoing: "Исходящий",
+  internal: "Внутренний",
+};
+
+export const EDO_DOC_TYPE_OPTIONS: { value: EdoDocType; label: string }[] = [
+  { value: "etrn", label: "ЭТрН (электронная транспортная накладная)" },
+  { value: "upd", label: "УПД" },
+  { value: "act", label: "Акт" },
+  { value: "contract", label: "Договор" },
+  { value: "invoice", label: "Счёт" },
+  { value: "transport_waybill", label: "Транспортная накладная" },
+  { value: "other", label: "Прочее" },
+];
+
+export const EDO_DOC_TYPE_LABEL: Record<EdoDocType, string> = Object.fromEntries(
+  EDO_DOC_TYPE_OPTIONS.map(o => [o.value, o.label]),
+) as Record<EdoDocType, string>;
+
+
 export type EdoProvider =
   | "diadoc" | "sbis" | "taxcom" | "astral" | "sberkorus" | "other" | "internal_mock";
 
