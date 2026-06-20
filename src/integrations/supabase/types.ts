@@ -235,6 +235,337 @@ export type Database = {
         }
         Relationships: []
       }
+      carrier_edo_connections: {
+        Row: {
+          access_token: string | null
+          api_key: string | null
+          box_id: string | null
+          carrier_ext_id: string
+          certificate_id: string | null
+          client_id: string | null
+          client_secret: string | null
+          comment: string | null
+          created_at: string
+          environment: Database["public"]["Enums"]["edo_environment"]
+          error_message: string | null
+          external_org_id: string | null
+          id: string
+          last_check_at: string | null
+          last_check_status: string | null
+          organization_inn: string | null
+          organization_name: string | null
+          provider: Database["public"]["Enums"]["edo_provider"]
+          provider_title: string | null
+          refresh_token: string | null
+          status: Database["public"]["Enums"]["edo_connection_status"]
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          api_key?: string | null
+          box_id?: string | null
+          carrier_ext_id: string
+          certificate_id?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          comment?: string | null
+          created_at?: string
+          environment?: Database["public"]["Enums"]["edo_environment"]
+          error_message?: string | null
+          external_org_id?: string | null
+          id?: string
+          last_check_at?: string | null
+          last_check_status?: string | null
+          organization_inn?: string | null
+          organization_name?: string | null
+          provider?: Database["public"]["Enums"]["edo_provider"]
+          provider_title?: string | null
+          refresh_token?: string | null
+          status?: Database["public"]["Enums"]["edo_connection_status"]
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          api_key?: string | null
+          box_id?: string | null
+          carrier_ext_id?: string
+          certificate_id?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          comment?: string | null
+          created_at?: string
+          environment?: Database["public"]["Enums"]["edo_environment"]
+          error_message?: string | null
+          external_org_id?: string | null
+          id?: string
+          last_check_at?: string | null
+          last_check_status?: string | null
+          organization_inn?: string | null
+          organization_name?: string | null
+          provider?: Database["public"]["Enums"]["edo_provider"]
+          provider_title?: string | null
+          refresh_token?: string | null
+          status?: Database["public"]["Enums"]["edo_connection_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_edo_connections_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: true
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_edo_document_events: {
+        Row: {
+          actor_role: Database["public"]["Enums"]["edo_participant_role"] | null
+          actor_user_id: string | null
+          created_at: string
+          document_id: string
+          event_type: string
+          id: string
+          message: string | null
+          payload: Json
+        }
+        Insert: {
+          actor_role?:
+            | Database["public"]["Enums"]["edo_participant_role"]
+            | null
+          actor_user_id?: string | null
+          created_at?: string
+          document_id: string
+          event_type: string
+          id?: string
+          message?: string | null
+          payload?: Json
+        }
+        Update: {
+          actor_role?:
+            | Database["public"]["Enums"]["edo_participant_role"]
+            | null
+          actor_user_id?: string | null
+          created_at?: string
+          document_id?: string
+          event_type?: string
+          id?: string
+          message?: string | null
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_edo_document_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_edo_document_participants: {
+        Row: {
+          created_at: string
+          document_id: string
+          error_message: string | null
+          id: string
+          inn: string | null
+          name: string | null
+          participant_external_id: string | null
+          participant_operator_provider:
+            | Database["public"]["Enums"]["edo_provider"]
+            | null
+          participant_sign_method: string | null
+          participant_signature_status: string
+          role: Database["public"]["Enums"]["edo_participant_role"]
+          signed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          error_message?: string | null
+          id?: string
+          inn?: string | null
+          name?: string | null
+          participant_external_id?: string | null
+          participant_operator_provider?:
+            | Database["public"]["Enums"]["edo_provider"]
+            | null
+          participant_sign_method?: string | null
+          participant_signature_status?: string
+          role: Database["public"]["Enums"]["edo_participant_role"]
+          signed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          error_message?: string | null
+          id?: string
+          inn?: string | null
+          name?: string | null
+          participant_external_id?: string | null
+          participant_operator_provider?:
+            | Database["public"]["Enums"]["edo_provider"]
+            | null
+          participant_sign_method?: string | null
+          participant_signature_status?: string
+          role?: Database["public"]["Enums"]["edo_participant_role"]
+          signed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_edo_document_participants_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_edo_documents: {
+        Row: {
+          awaiting_role:
+            | Database["public"]["Enums"]["edo_participant_role"]
+            | null
+          cargo_summary: string | null
+          carrier_ext_id: string
+          connection_id: string | null
+          consignee_inn: string | null
+          consignee_name: string | null
+          created_at: string
+          doc_number: string | null
+          driver_label: string | null
+          error_message: string | null
+          external_id: string | null
+          freight_id: string | null
+          id: string
+          last_sync_status: string | null
+          last_synced_at: string | null
+          loading_at: string | null
+          meta: Json
+          pdf_path: string | null
+          provider: Database["public"]["Enums"]["edo_provider"]
+          rate_amount: number | null
+          rate_currency: string | null
+          route_summary: string | null
+          shipper_inn: string | null
+          shipper_name: string | null
+          status: Database["public"]["Enums"]["edo_doc_status"]
+          trip_id: string | null
+          unloading_at: string | null
+          updated_at: string
+          vehicle_label: string | null
+          xml_path: string | null
+        }
+        Insert: {
+          awaiting_role?:
+            | Database["public"]["Enums"]["edo_participant_role"]
+            | null
+          cargo_summary?: string | null
+          carrier_ext_id: string
+          connection_id?: string | null
+          consignee_inn?: string | null
+          consignee_name?: string | null
+          created_at?: string
+          doc_number?: string | null
+          driver_label?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          freight_id?: string | null
+          id?: string
+          last_sync_status?: string | null
+          last_synced_at?: string | null
+          loading_at?: string | null
+          meta?: Json
+          pdf_path?: string | null
+          provider?: Database["public"]["Enums"]["edo_provider"]
+          rate_amount?: number | null
+          rate_currency?: string | null
+          route_summary?: string | null
+          shipper_inn?: string | null
+          shipper_name?: string | null
+          status?: Database["public"]["Enums"]["edo_doc_status"]
+          trip_id?: string | null
+          unloading_at?: string | null
+          updated_at?: string
+          vehicle_label?: string | null
+          xml_path?: string | null
+        }
+        Update: {
+          awaiting_role?:
+            | Database["public"]["Enums"]["edo_participant_role"]
+            | null
+          cargo_summary?: string | null
+          carrier_ext_id?: string
+          connection_id?: string | null
+          consignee_inn?: string | null
+          consignee_name?: string | null
+          created_at?: string
+          doc_number?: string | null
+          driver_label?: string | null
+          error_message?: string | null
+          external_id?: string | null
+          freight_id?: string | null
+          id?: string
+          last_sync_status?: string | null
+          last_synced_at?: string | null
+          loading_at?: string | null
+          meta?: Json
+          pdf_path?: string | null
+          provider?: Database["public"]["Enums"]["edo_provider"]
+          rate_amount?: number | null
+          rate_currency?: string | null
+          route_summary?: string | null
+          shipper_inn?: string | null
+          shipper_name?: string | null
+          status?: Database["public"]["Enums"]["edo_doc_status"]
+          trip_id?: string | null
+          unloading_at?: string | null
+          updated_at?: string
+          vehicle_label?: string | null
+          xml_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_edo_documents_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_edo_documents_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_edo_documents_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_connections_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_edo_documents_freight_id_fkey"
+            columns: ["freight_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_freights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_edo_documents_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carrier_invites: {
         Row: {
           carrier_id: string | null
@@ -6542,6 +6873,86 @@ export type Database = {
       }
     }
     Views: {
+      carrier_edo_connections_safe: {
+        Row: {
+          box_id: string | null
+          carrier_ext_id: string | null
+          comment: string | null
+          created_at: string | null
+          environment: Database["public"]["Enums"]["edo_environment"] | null
+          error_message: string | null
+          external_org_id: string | null
+          has_access_token: boolean | null
+          has_api_key: boolean | null
+          has_certificate: boolean | null
+          has_client_id: boolean | null
+          has_client_secret: boolean | null
+          id: string | null
+          last_check_at: string | null
+          last_check_status: string | null
+          organization_inn: string | null
+          organization_name: string | null
+          provider: Database["public"]["Enums"]["edo_provider"] | null
+          provider_title: string | null
+          status: Database["public"]["Enums"]["edo_connection_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          box_id?: string | null
+          carrier_ext_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          environment?: Database["public"]["Enums"]["edo_environment"] | null
+          error_message?: string | null
+          external_org_id?: string | null
+          has_access_token?: never
+          has_api_key?: never
+          has_certificate?: never
+          has_client_id?: never
+          has_client_secret?: never
+          id?: string | null
+          last_check_at?: string | null
+          last_check_status?: string | null
+          organization_inn?: string | null
+          organization_name?: string | null
+          provider?: Database["public"]["Enums"]["edo_provider"] | null
+          provider_title?: string | null
+          status?: Database["public"]["Enums"]["edo_connection_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          box_id?: string | null
+          carrier_ext_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          environment?: Database["public"]["Enums"]["edo_environment"] | null
+          error_message?: string | null
+          external_org_id?: string | null
+          has_access_token?: never
+          has_api_key?: never
+          has_certificate?: never
+          has_client_id?: never
+          has_client_secret?: never
+          id?: string | null
+          last_check_at?: string | null
+          last_check_status?: string | null
+          organization_inn?: string | null
+          organization_name?: string | null
+          provider?: Database["public"]["Enums"]["edo_provider"] | null
+          provider_title?: string | null
+          status?: Database["public"]["Enums"]["edo_connection_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_edo_connections_carrier_ext_id_fkey"
+            columns: ["carrier_ext_id"]
+            isOneToOne: true
+            referencedRelation: "dispatcher_carrier_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dispatcher_carrier_email_accounts_safe: {
         Row: {
           ati_email: string | null
@@ -7338,6 +7749,41 @@ export type Database = {
         | "loaded"
         | "done"
         | "cancelled"
+      edo_connection_status:
+        | "not_connected"
+        | "setup_required"
+        | "connected"
+        | "error"
+        | "disabled"
+      edo_doc_status:
+        | "draft"
+        | "created"
+        | "waiting_shipper_signature"
+        | "waiting_carrier_signature"
+        | "waiting_driver_action"
+        | "waiting_consignee_signature"
+        | "signed"
+        | "sent_to_operator"
+        | "accepted_by_operator"
+        | "rejected_by_operator"
+        | "error"
+        | "closed"
+        | "cancelled"
+      edo_environment: "test" | "production"
+      edo_participant_role:
+        | "shipper"
+        | "carrier"
+        | "driver"
+        | "consignee"
+        | "operator"
+      edo_provider:
+        | "diadoc"
+        | "sbis"
+        | "taxcom"
+        | "astral"
+        | "sberkorus"
+        | "other"
+        | "internal_mock"
       eta_risk_level: "on_time" | "tight" | "late" | "unknown"
       idle_reason:
         | "client_absent"
@@ -7643,6 +8089,45 @@ export const Constants = {
         "loaded",
         "done",
         "cancelled",
+      ],
+      edo_connection_status: [
+        "not_connected",
+        "setup_required",
+        "connected",
+        "error",
+        "disabled",
+      ],
+      edo_doc_status: [
+        "draft",
+        "created",
+        "waiting_shipper_signature",
+        "waiting_carrier_signature",
+        "waiting_driver_action",
+        "waiting_consignee_signature",
+        "signed",
+        "sent_to_operator",
+        "accepted_by_operator",
+        "rejected_by_operator",
+        "error",
+        "closed",
+        "cancelled",
+      ],
+      edo_environment: ["test", "production"],
+      edo_participant_role: [
+        "shipper",
+        "carrier",
+        "driver",
+        "consignee",
+        "operator",
+      ],
+      edo_provider: [
+        "diadoc",
+        "sbis",
+        "taxcom",
+        "astral",
+        "sberkorus",
+        "other",
+        "internal_mock",
       ],
       eta_risk_level: ["on_time", "tight", "late", "unknown"],
       idle_reason: [
