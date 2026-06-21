@@ -7,6 +7,7 @@ import { apiGetAuth } from "@/lib/api-client";
 import { CarrierRequestsBlock } from "@/components/carrier/CarrierRequestsBlock";
 import { CarrierTripProgressBlock } from "@/components/carrier/CarrierTripProgressBlock";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { CarrierTripEdoBlock } from "@/components/carrier/CarrierTripEdoBlock";
 import {
   DEAL_STATUS_LABELS,
   type DealStatus,
