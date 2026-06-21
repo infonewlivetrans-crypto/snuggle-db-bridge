@@ -310,6 +310,7 @@ export async function createCarrierDoc(
       rate_amount: input.rate_amount ?? null,
       freight_id: input.freight_id ?? null,
       trip_id: input.trip_id ?? null,
+      meta: input.meta ?? {},
       awaiting_role:
         direction === "incoming" ? "carrier" :
         status === "created" ? "carrier" : null,
