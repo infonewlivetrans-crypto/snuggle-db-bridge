@@ -14,6 +14,8 @@ export const Route = createFileRoute("/api/carrier/edo/documents")({
         const url = new URL(request.url);
         const status = url.searchParams.get("status");
         const direction = url.searchParams.get("direction");
+        const dealId = url.searchParams.get("deal_id");
+        const tripId = url.searchParams.get("trip_id");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let q = (ctx.client.from("carrier_edo_documents") as any)
           .select("*")
@@ -22,6 +24,8 @@ export const Route = createFileRoute("/api/carrier/edo/documents")({
           .limit(200);
         if (status) q = q.eq("status", status);
         if (direction) q = q.eq("direction", direction);
+        if (tripId) q = q.eq("trip_id", tripId);
+        if (dealId) q = q.contains("meta", { deal_id: dealId });
         const { data, error } = await q;
         if (error) return jsonResponse({ error: error.message }, { status: 500 });
         return jsonResponse({ rows: data ?? [] });
