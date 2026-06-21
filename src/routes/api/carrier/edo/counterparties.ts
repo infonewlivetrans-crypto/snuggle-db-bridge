@@ -59,6 +59,9 @@ export const Route = createFileRoute("/api/carrier/edo/counterparties")({
             participant_id: (body.participant_id as string | null) ?? null,
             email: (body.email as string | null) ?? null,
             phone: (body.phone as string | null) ?? null,
+            contact_person: (body.contact_person as string | null) ?? null,
+            address: (body.address as string | null) ?? null,
+            role: (body.role as EdoCpRole | null) ?? null,
             comment: (body.comment as string | null) ?? null,
           });
           return jsonResponse({ id });
