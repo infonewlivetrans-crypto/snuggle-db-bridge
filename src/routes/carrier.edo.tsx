@@ -59,6 +59,7 @@ interface DocRow {
   provider: EdoProvider;
   awaiting_role: EdoParticipantRole | null;
   created_at: string;
+  meta?: Record<string, unknown> | null;
 }
 
 function CarrierEdoPage() {
