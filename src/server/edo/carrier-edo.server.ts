@@ -256,6 +256,7 @@ export interface CreateDocInput {
   trip_id?: string | null;
   connection_id?: string | null;
   comment?: string | null;
+  meta?: Record<string, unknown> | null;
 }
 
 export async function createCarrierDoc(
