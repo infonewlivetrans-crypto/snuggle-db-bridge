@@ -391,6 +391,7 @@ import { Route as ApiAdminDispatcherUserInvitesIdRevokeRouteImport } from './rou
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
 import { Route as ApiCarrierEdoDocumentsIdActionsRouteImport } from './routes/api/carrier/edo/documents.$id.actions'
+import { Route as ApiCarrierEdoCounterpartiesIdVerifyRouteImport } from './routes/api/carrier/edo/counterparties.$id.verify'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
 
@@ -2417,6 +2418,12 @@ const ApiCarrierEdoDocumentsIdActionsRoute =
     path: '/actions',
     getParentRoute: () => ApiCarrierEdoDocumentsIdRoute,
   } as any)
+const ApiCarrierEdoCounterpartiesIdVerifyRoute =
+  ApiCarrierEdoCounterpartiesIdVerifyRouteImport.update({
+    id: '/verify',
+    path: '/verify',
+    getParentRoute: () => ApiCarrierEdoCounterpartiesIdRoute,
+  } as any)
 const ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute =
   ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport.update({
     id: '/timeline',
@@ -2779,7 +2786,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
-  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRoute
+  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -2810,6 +2817,7 @@ export interface FileRoutesByFullPath {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
   '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -3164,7 +3172,7 @@ export interface FileRoutesByTo {
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
-  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRoute
+  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -3195,6 +3203,7 @@ export interface FileRoutesByTo {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
   '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -3551,7 +3560,7 @@ export interface FileRoutesById {
   '/api/carrier/documents/$id/download': typeof ApiCarrierDocumentsIdDownloadRoute
   '/api/carrier/edo/connection/$id': typeof ApiCarrierEdoConnectionIdRoute
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
-  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRoute
+  '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
   '/api/carrier/requests/$id/contract-preview': typeof ApiCarrierRequestsIdContractPreviewRoute
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
@@ -3582,6 +3591,7 @@ export interface FileRoutesById {
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
+  '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
   '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
@@ -3970,6 +3980,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/carrier/edo/counterparties/$id/verify'
     | '/api/carrier/edo/documents/$id/actions'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -4355,6 +4366,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/carrier/edo/counterparties/$id/verify'
     | '/api/carrier/edo/documents/$id/actions'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -4741,6 +4753,7 @@ export interface FileRouteTypes {
     | '/api/orders/$id/driver-client-messages/mark-read'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
+    | '/api/carrier/edo/counterparties/$id/verify'
     | '/api/carrier/edo/documents/$id/actions'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
@@ -7675,6 +7688,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierEdoDocumentsIdActionsRouteImport
       parentRoute: typeof ApiCarrierEdoDocumentsIdRoute
     }
+    '/api/carrier/edo/counterparties/$id/verify': {
+      id: '/api/carrier/edo/counterparties/$id/verify'
+      path: '/verify'
+      fullPath: '/api/carrier/edo/counterparties/$id/verify'
+      preLoaderRoute: typeof ApiCarrierEdoCounterpartiesIdVerifyRouteImport
+      parentRoute: typeof ApiCarrierEdoCounterpartiesIdRoute
+    }
     '/api/public/client-portal/$token/orders/$orderId/timeline': {
       id: '/api/public/client-portal/$token/orders/$orderId/timeline'
       path: '/timeline'
@@ -8729,13 +8749,29 @@ const ApiCarrierEdoConnectionRouteWithChildren =
     ApiCarrierEdoConnectionRouteChildren,
   )
 
+interface ApiCarrierEdoCounterpartiesIdRouteChildren {
+  ApiCarrierEdoCounterpartiesIdVerifyRoute: typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
+}
+
+const ApiCarrierEdoCounterpartiesIdRouteChildren: ApiCarrierEdoCounterpartiesIdRouteChildren =
+  {
+    ApiCarrierEdoCounterpartiesIdVerifyRoute:
+      ApiCarrierEdoCounterpartiesIdVerifyRoute,
+  }
+
+const ApiCarrierEdoCounterpartiesIdRouteWithChildren =
+  ApiCarrierEdoCounterpartiesIdRoute._addFileChildren(
+    ApiCarrierEdoCounterpartiesIdRouteChildren,
+  )
+
 interface ApiCarrierEdoCounterpartiesRouteChildren {
-  ApiCarrierEdoCounterpartiesIdRoute: typeof ApiCarrierEdoCounterpartiesIdRoute
+  ApiCarrierEdoCounterpartiesIdRoute: typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
 }
 
 const ApiCarrierEdoCounterpartiesRouteChildren: ApiCarrierEdoCounterpartiesRouteChildren =
   {
-    ApiCarrierEdoCounterpartiesIdRoute: ApiCarrierEdoCounterpartiesIdRoute,
+    ApiCarrierEdoCounterpartiesIdRoute:
+      ApiCarrierEdoCounterpartiesIdRouteWithChildren,
   }
 
 const ApiCarrierEdoCounterpartiesRouteWithChildren =

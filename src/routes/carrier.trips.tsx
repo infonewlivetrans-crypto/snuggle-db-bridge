@@ -7,6 +7,7 @@ import { apiGetAuth } from "@/lib/api-client";
 import { CarrierRequestsBlock } from "@/components/carrier/CarrierRequestsBlock";
 import { CarrierTripProgressBlock } from "@/components/carrier/CarrierTripProgressBlock";
 import { CarrierDocumentsBlock } from "@/components/carrier/CarrierDocumentsBlock";
+import { CarrierTripEdoBlock } from "@/components/carrier/CarrierTripEdoBlock";
 import {
   DEAL_STATUS_LABELS,
   type DealStatus,
@@ -179,6 +180,23 @@ function CarrierTripsPage() {
                   ownerId={d.id}
                   title="Документы по рейсу"
                 />
+                <CarrierTripEdoBlock
+                  deal={{
+                    id: d.id,
+                    deal_number: d.deal_number,
+                    route_from: d.route_from,
+                    route_to: d.route_to,
+                    loading_date: d.loading_date,
+                    unloading_date: d.unloading_date,
+                    total_rate: d.total_rate,
+                    driver_name: d.driver_name,
+                    vehicle_plate: d.vehicle_plate,
+                    source_request_number: d.source_request_number,
+                  }}
+                />
+
+
+
 
 
               </CardContent>

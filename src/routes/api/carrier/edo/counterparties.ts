@@ -6,6 +6,7 @@ import {
   listCounterparties,
   createCounterparty,
   type EdoCpVerificationStatus,
+  type EdoCpRole,
 } from "@/server/edo/carrier-edo.server";
 
 export const Route = createFileRoute("/api/carrier/edo/counterparties")({
@@ -18,13 +19,19 @@ export const Route = createFileRoute("/api/carrier/edo/counterparties")({
         if (ctx instanceof Response) return ctx;
         const url = new URL(request.url);
         const status = url.searchParams.get("status");
+        const role = url.searchParams.get("role");
         const allowed: EdoCpVerificationStatus[] = ["unknown", "verified", "not_found", "error"];
+        const allowedRoles: EdoCpRole[] = ["shipper", "consignee", "both"];
         try {
           const rows = await listCounterparties(ctx.client, ctx.dispatcherCarrierExtId, {
             search: url.searchParams.get("q"),
             verification_status:
               status && (allowed as string[]).includes(status)
                 ? (status as EdoCpVerificationStatus)
+                : null,
+            role:
+              role && (allowedRoles as string[]).includes(role)
+                ? (role as EdoCpRole)
                 : null,
             include_archived: url.searchParams.get("archived") === "1",
           });
@@ -52,6 +59,9 @@ export const Route = createFileRoute("/api/carrier/edo/counterparties")({
             participant_id: (body.participant_id as string | null) ?? null,
             email: (body.email as string | null) ?? null,
             phone: (body.phone as string | null) ?? null,
+            contact_person: (body.contact_person as string | null) ?? null,
+            address: (body.address as string | null) ?? null,
+            role: (body.role as EdoCpRole | null) ?? null,
             comment: (body.comment as string | null) ?? null,
           });
           return jsonResponse({ id });

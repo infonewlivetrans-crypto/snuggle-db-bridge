@@ -127,3 +127,18 @@ export function edoAwaitingLabel(role: EdoParticipantRole | null | undefined): s
     case "operator": return "Сейчас ожидается ответ оператора";
   }
 }
+
+// Этап 2: роли контрагентов ЭДО.
+export type EdoCounterpartyRole = "shipper" | "consignee" | "both";
+
+export const EDO_CP_ROLE_LABEL: Record<EdoCounterpartyRole, string> = {
+  shipper: "Грузоотправитель",
+  consignee: "Грузополучатель",
+  both: "Универсальный",
+};
+
+export const EDO_CP_ROLE_OPTIONS: { value: EdoCounterpartyRole; label: string }[] = [
+  { value: "both", label: "Универсальный (отправитель и получатель)" },
+  { value: "shipper", label: "Грузоотправитель" },
+  { value: "consignee", label: "Грузополучатель" },
+];

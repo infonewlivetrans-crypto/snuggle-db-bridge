@@ -256,6 +256,7 @@ export interface CreateDocInput {
   trip_id?: string | null;
   connection_id?: string | null;
   comment?: string | null;
+  meta?: Record<string, unknown> | null;
 }
 
 export async function createCarrierDoc(
@@ -309,6 +310,7 @@ export async function createCarrierDoc(
       rate_amount: input.rate_amount ?? null,
       freight_id: input.freight_id ?? null,
       trip_id: input.trip_id ?? null,
+      meta: input.meta ?? {},
       awaiting_role:
         direction === "incoming" ? "carrier" :
         status === "created" ? "carrier" : null,
@@ -418,9 +420,10 @@ export async function setParticipantSigned(
     .eq("role", role);
 }
 
-// ============ COUNTERPARTIES (Этап 1: справочник контрагентов ЭДО) ============
+// ============ COUNTERPARTIES (Этап 1 + Этап 2: роли и проверка по ИНН) ============
 
 export type EdoCpVerificationStatus = "unknown" | "verified" | "not_found" | "error";
+export type EdoCpRole = "shipper" | "consignee" | "both";
 
 export interface EdoCounterpartyDTO {
   id: string;
@@ -438,6 +441,9 @@ export interface EdoCounterpartyDTO {
   box_id: string | null;
   email: string | null;
   phone: string | null;
+  contact_person: string | null;
+  address: string | null;
+  role: EdoCpRole;
   comment: string | null;
   verification_status: EdoCpVerificationStatus;
   last_sync_at: string | null;
@@ -449,6 +455,7 @@ export interface EdoCounterpartyDTO {
 export interface CounterpartyListParams {
   search?: string | null;
   verification_status?: EdoCpVerificationStatus | null;
+  role?: EdoCpRole | null;
   include_archived?: boolean;
 }
 
@@ -461,6 +468,9 @@ export interface CounterpartyInput {
   participant_id?: string | null;
   email?: string | null;
   phone?: string | null;
+  contact_person?: string | null;
+  address?: string | null;
+  role?: EdoCpRole | null;
   comment?: string | null;
   verification_status?: EdoCpVerificationStatus | null;
 }
@@ -480,6 +490,11 @@ export async function listCounterparties(
     .eq("carrier_ext_id", carrierExtId);
   if (!params.include_archived) q = q.is("archived_at", null);
   if (params.verification_status) q = q.eq("verification_status", params.verification_status);
+  if (params.role) {
+    if (params.role === "shipper") q = q.in("role", ["shipper", "both"]);
+    else if (params.role === "consignee") q = q.in("role", ["consignee", "both"]);
+    else q = q.eq("role", "both");
+  }
   if (params.search && params.search.trim()) {
     const s = params.search.trim().replace(/[%,]/g, " ");
     q = q.or(`company_name.ilike.%${s}%,name.ilike.%${s}%,inn.ilike.%${s}%`);
@@ -515,8 +530,13 @@ function normalizeCpPatch(input: CounterpartyInput): Record<string, unknown> {
     participant_id: input.participant_id?.trim() || null,
     email: input.email?.trim() || null,
     phone: input.phone?.trim() || null,
+    contact_person: input.contact_person?.trim() || null,
+    address: input.address?.trim() || null,
     comment: input.comment?.trim() || null,
   };
+  if (input.role && ["shipper", "consignee", "both"].includes(input.role)) {
+    patch.role = input.role;
+  }
   if (input.verification_status) patch.verification_status = input.verification_status;
   if (displayName) patch.name = displayName;
   return patch;
@@ -533,6 +553,7 @@ export async function createCounterparty(
   patch.carrier_ext_id = carrierExtId;
   patch.name = displayName;
   if (!patch.verification_status) patch.verification_status = "unknown";
+  if (!patch.role) patch.role = "both";
   const { data, error } = await client
     .from("edo_counterparties")
     .insert(patch)
@@ -570,3 +591,89 @@ export async function archiveCounterparty(
     .eq("carrier_ext_id", carrierExtId);
   if (error) throw new Error(error.message);
 }
+
+// ===== Этап 2: mock-проверка контрагента по ИНН =====
+// Архитектурно — обёртка, которую позже можно заменить на реальные адаптеры
+// операторов ЭДО (СБИС, Диадок, Такском, Астрал) без изменения UI/API.
+
+export interface VerifyCounterpartyResult {
+  ok: boolean;
+  status: EdoCpVerificationStatus;
+  message?: string;
+  edo_operator?: string | null;
+  participant_id?: string | null;
+}
+
+function mockVerifyByInn(
+  inn: string,
+  current: { edo_operator: string | null; participant_id: string | null },
+): VerifyCounterpartyResult {
+  const clean = inn.trim();
+  if (!clean) {
+    return { ok: false, status: "error", message: "ИНН не указан" };
+  }
+  if (!/^\d{10}$|^\d{12}$/.test(clean)) {
+    return { ok: false, status: "error", message: "ИНН должен содержать 10 или 12 цифр" };
+  }
+  const first = clean[0];
+  if (first === "7" || first === "8") {
+    return {
+      ok: true,
+      status: "verified",
+      edo_operator: "mock_operator",
+      participant_id: `MOCK-${clean}`,
+      message: "Контрагент найден (mock-проверка)",
+    };
+  }
+  if (first === "0") {
+    return {
+      ok: true,
+      status: "not_found",
+      edo_operator: null,
+      participant_id: null,
+      message: "Контрагент не найден в реестре операторов (mock)",
+    };
+  }
+  return {
+    ok: true,
+    status: "error",
+    edo_operator: current.edo_operator,
+    participant_id: current.participant_id,
+    message: "Не удалось проверить контрагента (mock)",
+  };
+}
+
+export async function verifyCounterparty(
+  client: AnyClient,
+  carrierExtId: string,
+  id: string,
+): Promise<VerifyCounterpartyResult> {
+  const cp = await getCounterparty(client, carrierExtId, id);
+  if (!cp) throw new Error("Контрагент не найден");
+  const result = mockVerifyByInn(cp.inn ?? "", {
+    edo_operator: cp.edo_operator,
+    participant_id: cp.participant_id,
+  });
+
+  const patch: Record<string, unknown> = {
+    verification_status: result.status,
+    last_sync_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  if (result.status === "verified") {
+    if (result.edo_operator !== undefined) patch.edo_operator = result.edo_operator;
+    if (result.participant_id !== undefined) patch.participant_id = result.participant_id;
+  } else if (result.status === "not_found") {
+    // Не затираем ручные значения — оставляем как есть.
+  }
+
+  const { error } = await client
+    .from("edo_counterparties")
+    .update(patch)
+    .eq("id", id)
+    .eq("carrier_ext_id", carrierExtId);
+  if (error) throw new Error(error.message);
+
+  return result;
+}
+

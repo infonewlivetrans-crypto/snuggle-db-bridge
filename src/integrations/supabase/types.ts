@@ -3499,11 +3499,13 @@ export type Database = {
       }
       edo_counterparties: {
         Row: {
+          address: string | null
           archived_at: string | null
           box_id: string | null
           carrier_ext_id: string | null
           comment: string | null
           company_name: string | null
+          contact_person: string | null
           created_at: string
           edo_operator: string | null
           edo_provider: Database["public"]["Enums"]["edo_provider"] | null
@@ -3517,16 +3519,19 @@ export type Database = {
           name: string
           participant_id: string | null
           phone: string | null
+          role: string
           type: string
           updated_at: string
           verification_status: string
         }
         Insert: {
+          address?: string | null
           archived_at?: string | null
           box_id?: string | null
           carrier_ext_id?: string | null
           comment?: string | null
           company_name?: string | null
+          contact_person?: string | null
           created_at?: string
           edo_operator?: string | null
           edo_provider?: Database["public"]["Enums"]["edo_provider"] | null
@@ -3540,16 +3545,19 @@ export type Database = {
           name: string
           participant_id?: string | null
           phone?: string | null
+          role?: string
           type?: string
           updated_at?: string
           verification_status?: string
         }
         Update: {
+          address?: string | null
           archived_at?: string | null
           box_id?: string | null
           carrier_ext_id?: string | null
           comment?: string | null
           company_name?: string | null
+          contact_person?: string | null
           created_at?: string
           edo_operator?: string | null
           edo_provider?: Database["public"]["Enums"]["edo_provider"] | null
@@ -3563,6 +3571,7 @@ export type Database = {
           name?: string
           participant_id?: string | null
           phone?: string | null
+          role?: string
           type?: string
           updated_at?: string
           verification_status?: string
