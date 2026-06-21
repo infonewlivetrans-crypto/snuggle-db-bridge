@@ -6,10 +6,6 @@ import {
   listCounterparties,
   createCounterparty,
   type EdoCpVerificationStatus,
-import {
-  listCounterparties,
-  createCounterparty,
-  type EdoCpVerificationStatus,
   type EdoCpRole,
 } from "@/server/edo/carrier-edo.server";
 
