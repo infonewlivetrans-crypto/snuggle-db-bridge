@@ -62,6 +62,7 @@ export const Route = createFileRoute("/api/carrier/edo/documents")({
             trip_id: (body.trip_id as string | null) ?? null,
             connection_id: (body.connection_id as string | null) ?? null,
             comment: (body.comment as string | null) ?? null,
+            meta: (body.meta as Record<string, unknown> | null) ?? null,
           });
           return jsonResponse({ id });
         } catch (e) {
