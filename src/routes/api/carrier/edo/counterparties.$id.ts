@@ -43,6 +43,10 @@ export const Route = createFileRoute("/api/carrier/edo/counterparties/$id")({
             participant_id: (body.participant_id as string | null) ?? null,
             email: (body.email as string | null) ?? null,
             phone: (body.phone as string | null) ?? null,
+            contact_person: (body.contact_person as string | null) ?? null,
+            address: (body.address as string | null) ?? null,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            role: (body.role as any) ?? null,
             comment: (body.comment as string | null) ?? null,
           });
           return jsonResponse({ ok: true });
