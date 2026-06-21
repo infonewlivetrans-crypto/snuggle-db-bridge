@@ -182,40 +182,53 @@ function DocList({ rows, loading }: { rows: DocRow[]; loading: boolean }) {
   if (rows.length === 0) return <div className="text-sm text-muted-foreground">Документов нет.</div>;
   return (
     <div className="space-y-2">
-      {rows.map(d => (
-        <Link
-          key={d.id}
-          to="/carrier/edo/$id" params={{ id: d.id }}
-          className="block rounded-md border p-3 text-sm hover:bg-muted/40 transition"
-        >
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              {d.direction === "incoming"
-                ? <Inbox className="h-4 w-4 text-muted-foreground" />
-                : <FileText className="h-4 w-4 text-muted-foreground" />}
-              <span className="font-medium">
-                {d.title ?? d.doc_number ?? `${EDO_DOC_TYPE_LABEL[d.document_type]} ${d.id.slice(0, 8)}`}
-              </span>
-              <Badge variant="outline" className="text-[10px]">
-                {EDO_DOC_DIRECTION_LABEL[d.direction]}
-              </Badge>
-              <Badge variant={edoDocStatusVariant(d.status)}>{EDO_DOC_STATUS_LABEL[d.status]}</Badge>
+      {rows.map(d => {
+        const meta = (d.meta ?? {}) as Record<string, unknown>;
+        const fromRoute = meta.created_from_route === true;
+        const routeNumber = (meta.route_number as string | null | undefined) ?? null;
+        return (
+          <Link
+            key={d.id}
+            to="/carrier/edo/$id" params={{ id: d.id }}
+            className="block rounded-md border p-3 text-sm hover:bg-muted/40 transition"
+          >
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                {d.direction === "incoming"
+                  ? <Inbox className="h-4 w-4 text-muted-foreground" />
+                  : <FileText className="h-4 w-4 text-muted-foreground" />}
+                <span className="font-medium">
+                  {d.title ?? d.doc_number ?? `${EDO_DOC_TYPE_LABEL[d.document_type]} ${d.id.slice(0, 8)}`}
+                </span>
+                <Badge variant="outline" className="text-[10px]">
+                  {EDO_DOC_DIRECTION_LABEL[d.direction]}
+                </Badge>
+                <Badge variant="secondary" className="text-[10px]">
+                  {EDO_DOC_TYPE_LABEL[d.document_type]}
+                </Badge>
+                {fromRoute && (
+                  <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
+                    Создан из рейса{routeNumber ? ` ${routeNumber}` : ""}
+                  </Badge>
+                )}
+                <Badge variant={edoDocStatusVariant(d.status)}>{EDO_DOC_STATUS_LABEL[d.status]}</Badge>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(d.created_at).toLocaleString("ru-RU")}
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {new Date(d.created_at).toLocaleString("ru-RU")}
+            <div className="mt-1 text-xs text-muted-foreground">
+              {EDO_PROVIDER_LABEL[d.provider]}
+              {d.shipper_name ? ` · от ${d.shipper_name}` : ""}
+              {d.consignee_name ? ` → ${d.consignee_name}` : ""}
+              {d.route_summary ? ` · ${d.route_summary}` : ""}
             </div>
-          </div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {EDO_PROVIDER_LABEL[d.provider]}
-            {d.shipper_name ? ` · от ${d.shipper_name}` : ""}
-            {d.consignee_name ? ` → ${d.consignee_name}` : ""}
-            {d.route_summary ? ` · ${d.route_summary}` : ""}
-          </div>
-          {d.awaiting_role && (
-            <div className="mt-1 text-xs text-amber-700">{edoAwaitingLabel(d.awaiting_role)}</div>
-          )}
-        </Link>
-      ))}
+            {d.awaiting_role && (
+              <div className="mt-1 text-xs text-amber-700">{edoAwaitingLabel(d.awaiting_role)}</div>
+            )}
+          </Link>
+        );
+      })}
     </div>
   );
 }
