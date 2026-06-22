@@ -440,6 +440,7 @@ export type Database = {
           consignee_inn: string | null
           consignee_name: string | null
           created_at: string
+          delivered_at: string | null
           direction: Database["public"]["Enums"]["edo_doc_direction"]
           doc_number: string | null
           document_date: string | null
@@ -454,15 +455,20 @@ export type Database = {
           loading_at: string | null
           loading_city: string | null
           meta: Json
+          operator_document_id: string | null
           operator_response_json: Json
+          operator_status: string | null
           payload_json: Json
           pdf_path: string | null
           provider: Database["public"]["Enums"]["edo_provider"]
           rate_amount: number | null
           rate_currency: string | null
+          rejected_at: string | null
           route_summary: string | null
+          sent_at: string | null
           shipper_inn: string | null
           shipper_name: string | null
+          signed_at: string | null
           status: Database["public"]["Enums"]["edo_doc_status"]
           title: string | null
           trip_id: string | null
@@ -483,6 +489,7 @@ export type Database = {
           consignee_inn?: string | null
           consignee_name?: string | null
           created_at?: string
+          delivered_at?: string | null
           direction?: Database["public"]["Enums"]["edo_doc_direction"]
           doc_number?: string | null
           document_date?: string | null
@@ -497,15 +504,20 @@ export type Database = {
           loading_at?: string | null
           loading_city?: string | null
           meta?: Json
+          operator_document_id?: string | null
           operator_response_json?: Json
+          operator_status?: string | null
           payload_json?: Json
           pdf_path?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
           rate_amount?: number | null
           rate_currency?: string | null
+          rejected_at?: string | null
           route_summary?: string | null
+          sent_at?: string | null
           shipper_inn?: string | null
           shipper_name?: string | null
+          signed_at?: string | null
           status?: Database["public"]["Enums"]["edo_doc_status"]
           title?: string | null
           trip_id?: string | null
@@ -526,6 +538,7 @@ export type Database = {
           consignee_inn?: string | null
           consignee_name?: string | null
           created_at?: string
+          delivered_at?: string | null
           direction?: Database["public"]["Enums"]["edo_doc_direction"]
           doc_number?: string | null
           document_date?: string | null
@@ -540,15 +553,20 @@ export type Database = {
           loading_at?: string | null
           loading_city?: string | null
           meta?: Json
+          operator_document_id?: string | null
           operator_response_json?: Json
+          operator_status?: string | null
           payload_json?: Json
           pdf_path?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
           rate_amount?: number | null
           rate_currency?: string | null
+          rejected_at?: string | null
           route_summary?: string | null
+          sent_at?: string | null
           shipper_inn?: string | null
           shipper_name?: string | null
+          signed_at?: string | null
           status?: Database["public"]["Enums"]["edo_doc_status"]
           title?: string | null
           trip_id?: string | null
@@ -7892,6 +7910,8 @@ export type Database = {
         | "error"
         | "closed"
         | "cancelled"
+        | "ready_to_send"
+        | "sending"
       edo_doc_type:
         | "etrn"
         | "upd"
@@ -8243,6 +8263,8 @@ export const Constants = {
         "error",
         "closed",
         "cancelled",
+        "ready_to_send",
+        "sending",
       ],
       edo_doc_type: [
         "etrn",
