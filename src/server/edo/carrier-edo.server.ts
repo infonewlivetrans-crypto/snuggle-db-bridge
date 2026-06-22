@@ -677,3 +677,232 @@ export async function verifyCounterparty(
   return result;
 }
 
+
+// ============ Этап: реальный контур оператора ЭДО (prepare/send/status) ============
+import { getOperatorAdapter } from "./operators/registry";
+import type {
+  OperatorCode,
+  OperatorConfig,
+  CreateDocumentDraft,
+} from "./operators/types";
+
+export interface PrepareCheckResult {
+  ok: boolean;
+  missing: string[];
+  status: string;
+}
+
+/** Проверяет обязательные поля документа и переводит его в ready_to_send. */
+export async function prepareCarrierDoc(
+  client: AnyClient,
+  carrierExtId: string,
+  docId: string,
+): Promise<PrepareCheckResult> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c = client as any;
+  const { data: doc, error } = await c
+    .from("carrier_edo_documents")
+    .select("*")
+    .eq("id", docId)
+    .eq("carrier_ext_id", carrierExtId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!doc) throw new Error("Документ не найден");
+
+  const missing: string[] = [];
+  if (!doc.connection_id) missing.push("Не выбран оператор отправки");
+  if (!doc.shipper_name) missing.push("Не указан грузоотправитель");
+  if (!doc.shipper_inn) missing.push("Не указан ИНН грузоотправителя");
+  if (!doc.consignee_name) missing.push("Не указан грузополучатель");
+  if (!doc.consignee_inn) missing.push("Не указан ИНН грузополучателя");
+  // Водитель/транспорт — обязательны только если документ создан из рейса
+  const meta = (doc.meta ?? {}) as Record<string, unknown>;
+  const fromTrip = Boolean(meta.created_from_route || meta.deal_id || doc.trip_id);
+  if (fromTrip) {
+    if (!doc.driver_label) missing.push("Не указан водитель");
+    if (!doc.vehicle_label) missing.push("Не указан транспорт");
+  }
+
+  if (missing.length > 0) {
+    return { ok: false, missing, status: doc.status as string };
+  }
+
+  await c
+    .from("carrier_edo_documents")
+    .update({ status: "ready_to_send", error_message: null })
+    .eq("id", docId)
+    .eq("carrier_ext_id", carrierExtId);
+  await logDocEvent(client, docId, "status:ready_to_send", "Документ подготовлен к отправке");
+  return { ok: true, missing: [], status: "ready_to_send" };
+}
+
+function buildOperatorCfg(
+  provider: EdoProvider,
+  full: EdoConnectionConfig | null,
+): OperatorConfig {
+  return {
+    code: provider as OperatorCode,
+    environment: full?.environment ?? "test",
+    client_id: full?.client_id ?? null,
+    client_secret: full?.client_secret ?? null,
+    api_key: full?.api_key ?? null,
+    access_token: full?.access_token ?? null,
+    certificate_id: full?.certificate_id ?? null,
+    external_org_id: full?.external_org_id ?? null,
+    box_id: full?.box_id ?? null,
+    organization_name: full?.organization_name ?? null,
+    organization_inn: full?.organization_inn ?? null,
+  };
+}
+
+/** Отправляет документ оператору через адаптер. Пока — через mock. */
+export async function sendCarrierDoc(
+  client: AnyClient,
+  carrierExtId: string,
+  docId: string,
+): Promise<{ ok: boolean; status: string; operator_document_id?: string | null; error?: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c = client as any;
+  const { data: doc, error } = await c
+    .from("carrier_edo_documents")
+    .select("*")
+    .eq("id", docId)
+    .eq("carrier_ext_id", carrierExtId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!doc) throw new Error("Документ не найден");
+
+  if (doc.status !== "ready_to_send" && doc.status !== "error" && doc.status !== "failed") {
+    // Разрешаем повторную отправку из ошибки, в остальных статусах — требуем prepare.
+    if (doc.status !== "draft" && doc.status !== "created") {
+      throw new Error("Документ нельзя отправить в текущем статусе. Сначала «Подготовить к отправке».");
+    }
+  }
+
+  const conn = await loadConnectionConfig(client, carrierExtId, doc.connection_id ?? null);
+  const provider: EdoProvider = (conn?.cfg.provider ?? "internal_mock") as EdoProvider;
+  const adapter = getOperatorAdapter(provider);
+  const cfg = buildOperatorCfg(provider, conn?.cfg ?? null);
+
+  // Переводим в sending
+  await c.from("carrier_edo_documents")
+    .update({ status: "sending", error_message: null })
+    .eq("id", docId);
+  await logDocEvent(client, docId, "status:sending", `Отправка оператору ${adapter.title}`);
+
+  // Если оператор ещё не привязан — создаём документ у оператора
+  let operatorDocId: string | null = doc.operator_document_id ?? null;
+  if (!operatorDocId) {
+    const draft: CreateDocumentDraft = {
+      document_type: doc.document_type ?? "etrn",
+      doc_number: doc.doc_number,
+      shipper_name: doc.shipper_name,
+      shipper_inn: doc.shipper_inn,
+      consignee_name: doc.consignee_name,
+      consignee_inn: doc.consignee_inn,
+      route_summary: doc.route_summary,
+      cargo_summary: doc.cargo_summary,
+      vehicle_label: doc.vehicle_label,
+      driver_label: doc.driver_label,
+      loading_at: doc.loading_at,
+      unloading_at: doc.unloading_at,
+      payload: (doc.payload_json ?? null) as Record<string, unknown> | null,
+    };
+    const created = await adapter.createDocument(cfg, draft);
+    if (!created.ok || !created.data) {
+      const msg = created.error ?? "Не удалось создать документ у оператора";
+      await c.from("carrier_edo_documents")
+        .update({ status: "error", error_message: msg })
+        .eq("id", docId);
+      await logDocEvent(client, docId, "status:error", msg);
+      return { ok: false, status: "error", error: msg };
+    }
+    operatorDocId = created.data.operator_document_id;
+    await c.from("carrier_edo_documents")
+      .update({
+        operator_document_id: operatorDocId,
+        operator_status: created.data.operator_status,
+      })
+      .eq("id", docId);
+  }
+
+  const sent = await adapter.sendDocument(cfg, operatorDocId ?? "");
+  if (!sent.ok || !sent.data) {
+    const msg = sent.error ?? "Не удалось отправить документ оператору";
+    await c.from("carrier_edo_documents")
+      .update({ status: "error", error_message: msg })
+      .eq("id", docId);
+    await logDocEvent(client, docId, "status:error", msg);
+    return { ok: false, status: "error", error: msg };
+  }
+
+  await c.from("carrier_edo_documents")
+    .update({
+      status: "sent_to_operator",
+      operator_document_id: sent.data.operator_document_id,
+      operator_status: sent.data.operator_status,
+      sent_at: sent.data.sent_at,
+      external_id: sent.data.operator_document_id,
+      error_message: null,
+    })
+    .eq("id", docId);
+  await logDocEvent(
+    client, docId, "status:sent_to_operator",
+    `Документ отправлен оператору ${adapter.title}: ${sent.data.operator_document_id}`,
+  );
+
+  return {
+    ok: true,
+    status: "sent_to_operator",
+    operator_document_id: sent.data.operator_document_id,
+  };
+}
+
+/** Запрашивает у оператора текущий статус документа. */
+export async function refreshCarrierDocStatus(
+  client: AnyClient,
+  carrierExtId: string,
+  docId: string,
+): Promise<{ ok: boolean; operator_status?: string | null; error?: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c = client as any;
+  const { data: doc, error } = await c
+    .from("carrier_edo_documents")
+    .select("*")
+    .eq("id", docId)
+    .eq("carrier_ext_id", carrierExtId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!doc) throw new Error("Документ не найден");
+
+  const conn = await loadConnectionConfig(client, carrierExtId, doc.connection_id ?? null);
+  const provider: EdoProvider = (conn?.cfg.provider ?? "internal_mock") as EdoProvider;
+  const adapter = getOperatorAdapter(provider);
+  const cfg = buildOperatorCfg(provider, conn?.cfg ?? null);
+  const externalId = (doc.operator_document_id ?? doc.external_id ?? "") as string;
+
+  const r = await adapter.getDocumentStatus(cfg, externalId);
+  if (!r.ok || !r.data) {
+    const msg = r.error ?? "Не удалось получить статус у оператора";
+    await logDocEvent(client, docId, "sync:error", msg);
+    return { ok: false, error: msg };
+  }
+
+  const patch: Record<string, unknown> = {
+    operator_status: r.data.operator_status,
+    last_synced_at: new Date().toISOString(),
+    last_sync_status: "ok",
+  };
+  if (r.data.delivered_at) patch.delivered_at = r.data.delivered_at;
+  if (r.data.signed_at) patch.signed_at = r.data.signed_at;
+  if (r.data.rejected_at) {
+    patch.rejected_at = r.data.rejected_at;
+    patch.status = "rejected_by_operator";
+  }
+  await c.from("carrier_edo_documents").update(patch).eq("id", docId);
+  await logDocEvent(
+    client, docId, "sync",
+    `Оператор: ${r.data.operator_status}${r.data.message ? ` (${r.data.message})` : ""}`,
+  );
+  return { ok: true, operator_status: r.data.operator_status };
+}
