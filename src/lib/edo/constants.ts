@@ -72,6 +72,8 @@ export const EDO_CONNECTION_STATUS_LABEL: Record<EdoConnectionStatus, string> = 
 export const EDO_DOC_STATUS_LABEL: Record<EdoDocStatus, string> = {
   draft: "Черновик",
   created: "Документ создан",
+  ready_to_send: "Готов к отправке",
+  sending: "Отправляется",
   waiting_shipper_signature: "Ожидает подписи грузоотправителя",
   waiting_carrier_signature: "Ожидает подписи перевозчика",
   waiting_driver_action: "Ожидает действия водителя",
