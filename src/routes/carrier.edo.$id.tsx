@@ -65,19 +65,6 @@ interface DocFull {
     actor_role: EdoParticipantRole | null; created_at: string;
   }>;
 }
-  participants: Array<{
-    id: string; role: EdoParticipantRole; name: string | null; inn: string | null;
-    participant_operator_provider: EdoProvider | null;
-    participant_signature_status: string;
-    participant_sign_method: string | null;
-    signed_at: string | null;
-    error_message: string | null;
-  }>;
-  events: Array<{
-    id: string; event_type: string; message: string | null;
-    actor_role: EdoParticipantRole | null; created_at: string;
-  }>;
-}
 
 function CarrierEdoDocPage() {
   const { id } = Route.useParams();
