@@ -23,6 +23,9 @@ interface DocFull {
     doc_number: string | null;
     status: EdoDocStatus;
     provider: EdoProvider;
+    direction: "incoming" | "outgoing" | "internal" | null;
+    document_type: string | null;
+    title: string | null;
     route_summary: string | null;
     shipper_name: string | null;
     shipper_inn: string | null;
@@ -36,9 +39,32 @@ interface DocFull {
     rate_amount: number | null;
     awaiting_role: EdoParticipantRole | null;
     external_id: string | null;
+    operator_document_id: string | null;
+    operator_status: string | null;
+    sent_at: string | null;
+    delivered_at: string | null;
+    signed_at: string | null;
+    rejected_at: string | null;
     error_message: string | null;
+    payload_json: Record<string, unknown> | null;
+    meta: Record<string, unknown> | null;
+    trip_id: string | null;
+    freight_id: string | null;
     created_at: string;
   };
+  participants: Array<{
+    id: string; role: EdoParticipantRole; name: string | null; inn: string | null;
+    participant_operator_provider: EdoProvider | null;
+    participant_signature_status: string;
+    participant_sign_method: string | null;
+    signed_at: string | null;
+    error_message: string | null;
+  }>;
+  events: Array<{
+    id: string; event_type: string; message: string | null;
+    actor_role: EdoParticipantRole | null; created_at: string;
+  }>;
+}
   participants: Array<{
     id: string; role: EdoParticipantRole; name: string | null; inn: string | null;
     participant_operator_provider: EdoProvider | null;
