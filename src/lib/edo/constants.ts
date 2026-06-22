@@ -102,6 +102,9 @@ export function edoDocStatusVariant(
     case "draft":
     case "created":
       return "secondary";
+    case "ready_to_send":
+    case "sending":
+    case "sent_to_operator":
     case "waiting_shipper_signature":
     case "waiting_carrier_signature":
     case "waiting_driver_action":
