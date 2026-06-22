@@ -33,6 +33,7 @@ export type EdoConnectionStatus =
 
 export type EdoDocStatus =
   | "draft" | "created"
+  | "ready_to_send" | "sending"
   | "waiting_shipper_signature" | "waiting_carrier_signature"
   | "waiting_driver_action" | "waiting_consignee_signature"
   | "signed" | "sent_to_operator" | "accepted_by_operator" | "rejected_by_operator"
@@ -71,6 +72,8 @@ export const EDO_CONNECTION_STATUS_LABEL: Record<EdoConnectionStatus, string> = 
 export const EDO_DOC_STATUS_LABEL: Record<EdoDocStatus, string> = {
   draft: "Черновик",
   created: "Документ создан",
+  ready_to_send: "Готов к отправке",
+  sending: "Отправляется",
   waiting_shipper_signature: "Ожидает подписи грузоотправителя",
   waiting_carrier_signature: "Ожидает подписи перевозчика",
   waiting_driver_action: "Ожидает действия водителя",
@@ -99,6 +102,9 @@ export function edoDocStatusVariant(
     case "draft":
     case "created":
       return "secondary";
+    case "ready_to_send":
+    case "sending":
+    case "sent_to_operator":
     case "waiting_shipper_signature":
     case "waiting_carrier_signature":
     case "waiting_driver_action":
