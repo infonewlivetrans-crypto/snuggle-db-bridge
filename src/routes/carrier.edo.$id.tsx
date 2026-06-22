@@ -105,18 +105,94 @@ function CarrierEdoDocPage() {
           )}
         </CardHeader>
         <CardContent className="text-sm space-y-1">
+          <div><span className="text-muted-foreground">Тип:</span> {d.document_type ?? "—"}</div>
+          <div><span className="text-muted-foreground">Направление:</span> {d.direction ?? "—"}</div>
           <div><span className="text-muted-foreground">Оператор:</span> {EDO_PROVIDER_LABEL[d.provider]}</div>
           {d.route_summary && <div><span className="text-muted-foreground">Маршрут:</span> {d.route_summary}</div>}
           {d.cargo_summary && <div><span className="text-muted-foreground">Груз:</span> {d.cargo_summary}</div>}
           {d.vehicle_label && <div><span className="text-muted-foreground">Машина:</span> {d.vehicle_label}</div>}
           {d.driver_label && <div><span className="text-muted-foreground">Водитель:</span> {d.driver_label}</div>}
+          {d.shipper_name && <div><span className="text-muted-foreground">Грузоотправитель:</span> {d.shipper_name}{d.shipper_inn ? ` · ИНН ${d.shipper_inn}` : ""}</div>}
+          {d.consignee_name && <div><span className="text-muted-foreground">Грузополучатель:</span> {d.consignee_name}{d.consignee_inn ? ` · ИНН ${d.consignee_inn}` : ""}</div>}
           {d.rate_amount != null && <div><span className="text-muted-foreground">Ставка:</span> {d.rate_amount} ₽</div>}
+          {d.operator_document_id && <div><span className="text-muted-foreground">ID у оператора:</span> {d.operator_document_id}</div>}
+          {d.operator_status && <div><span className="text-muted-foreground">Статус оператора:</span> {d.operator_status}</div>}
+          {d.sent_at && <div><span className="text-muted-foreground">Отправлен:</span> {new Date(d.sent_at).toLocaleString("ru-RU")}</div>}
+          {d.delivered_at && <div><span className="text-muted-foreground">Доставлен:</span> {new Date(d.delivered_at).toLocaleString("ru-RU")}</div>}
+          {d.signed_at && <div><span className="text-muted-foreground">Подписан:</span> {new Date(d.signed_at).toLocaleString("ru-RU")}</div>}
+          {d.rejected_at && <div><span className="text-muted-foreground">Отклонён:</span> {new Date(d.rejected_at).toLocaleString("ru-RU")}</div>}
+          {d.error_message && <div className="text-destructive">Ошибка: {d.error_message}</div>}
           {d.external_id && <div className="text-xs text-muted-foreground">Внешний ID: {d.external_id}</div>}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-base">Действия</CardTitle></CardHeader>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Отправка оператору</CardTitle></CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              try {
+                const r = await apiPost<{ ok: boolean; missing?: string[]; error?: string }>(
+                  `/api/carrier/edo/documents/${id}/prepare`, {},
+                );
+                if (r.ok) {
+                  toast.success("Документ готов к отправке");
+                  qc.invalidateQueries({ queryKey: ["edo", "doc", id] });
+                } else {
+                  toast.error("Не хватает данных", {
+                    description: (r.missing ?? []).join("\n") || r.error,
+                  });
+                }
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Ошибка");
+              }
+            }}
+          >
+            <ClipboardCheck className="h-4 w-4 mr-1.5" />Подготовить к отправке
+          </Button>
+          <Button
+            size="sm"
+            onClick={async () => {
+              try {
+                const r = await apiPost<{ ok: boolean; error?: string }>(
+                  `/api/carrier/edo/documents/${id}/send`, {},
+                );
+                if (r.ok) toast.success("Документ отправлен оператору");
+                else toast.error(r.error ?? "Не удалось отправить");
+                qc.invalidateQueries({ queryKey: ["edo", "doc", id] });
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Ошибка");
+              }
+            }}
+            disabled={d.status !== "ready_to_send" && d.status !== "error"}
+          >
+            <Send className="h-4 w-4 mr-1.5" />Отправить оператору
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              try {
+                const r = await apiGetAuth<{ ok: boolean; operator_status?: string | null; error?: string }>(
+                  `/api/carrier/edo/documents/${id}/status`,
+                );
+                if (r.ok) toast.success(`Статус: ${r.operator_status ?? "—"}`);
+                else toast.error(r.error ?? "Ошибка");
+                qc.invalidateQueries({ queryKey: ["edo", "doc", id] });
+              } catch (e) {
+                toast.error(e instanceof Error ? e.message : "Ошибка");
+              }
+            }}
+          >
+            <RefreshCcw className="h-4 w-4 mr-1.5" />Обновить статус
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2"><CardTitle className="text-base">Подписание и закрытие</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => act.mutate({ op: "sign-carrier" })}
             disabled={act.isPending || d.status === "closed" || d.status === "cancelled"}>
@@ -131,15 +207,23 @@ function CarrierEdoDocPage() {
           <Button size="sm" variant="outline" onClick={() => act.mutate({ op: "mock-consignee-sign" })}>
             Mock: подпись грузополучателя
           </Button>
-          <Button size="sm" variant="outline" onClick={() => act.mutate({ op: "sync" })}>
-            <RefreshCcw className="h-4 w-4 mr-1.5" />Обновить статус
-          </Button>
           <Button size="sm" variant="outline" onClick={() => act.mutate({ op: "close" })}>Закрыть</Button>
           <Button size="sm" variant="destructive" onClick={() => act.mutate({ op: "cancel", body: { reason: "carrier" } })}>
             <X className="h-4 w-4 mr-1.5" />Отменить
           </Button>
         </CardContent>
       </Card>
+
+      {d.payload_json && Object.keys(d.payload_json).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2"><CardTitle className="text-base">Payload (без секретов)</CardTitle></CardHeader>
+          <CardContent>
+            <pre className="text-xs whitespace-pre-wrap break-all bg-muted/40 rounded-md p-2">
+              {JSON.stringify(d.payload_json, null, 2)}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">Участники</CardTitle></CardHeader>
