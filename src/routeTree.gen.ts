@@ -390,6 +390,9 @@ import { Route as ApiCarrierDealsIdProgressRouteImport } from './routes/api/carr
 import { Route as ApiAdminDispatcherUserInvitesIdRevokeRouteImport } from './routes/api/admin/dispatcher-user-invites.$id.revoke'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
+import { Route as ApiCarrierEdoDocumentsIdStatusRouteImport } from './routes/api/carrier/edo/documents.$id.status'
+import { Route as ApiCarrierEdoDocumentsIdSendRouteImport } from './routes/api/carrier/edo/documents.$id.send'
+import { Route as ApiCarrierEdoDocumentsIdPrepareRouteImport } from './routes/api/carrier/edo/documents.$id.prepare'
 import { Route as ApiCarrierEdoDocumentsIdActionsRouteImport } from './routes/api/carrier/edo/documents.$id.actions'
 import { Route as ApiCarrierEdoCounterpartiesIdVerifyRouteImport } from './routes/api/carrier/edo/counterparties.$id.verify'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
@@ -2412,6 +2415,24 @@ const ApiDispatcherCommissionsEarningsDealIdPayoutRoute =
     path: '/$dealId/payout',
     getParentRoute: () => ApiDispatcherCommissionsEarningsRoute,
   } as any)
+const ApiCarrierEdoDocumentsIdStatusRoute =
+  ApiCarrierEdoDocumentsIdStatusRouteImport.update({
+    id: '/status',
+    path: '/status',
+    getParentRoute: () => ApiCarrierEdoDocumentsIdRoute,
+  } as any)
+const ApiCarrierEdoDocumentsIdSendRoute =
+  ApiCarrierEdoDocumentsIdSendRouteImport.update({
+    id: '/send',
+    path: '/send',
+    getParentRoute: () => ApiCarrierEdoDocumentsIdRoute,
+  } as any)
+const ApiCarrierEdoDocumentsIdPrepareRoute =
+  ApiCarrierEdoDocumentsIdPrepareRouteImport.update({
+    id: '/prepare',
+    path: '/prepare',
+    getParentRoute: () => ApiCarrierEdoDocumentsIdRoute,
+  } as any)
 const ApiCarrierEdoDocumentsIdActionsRoute =
   ApiCarrierEdoDocumentsIdActionsRouteImport.update({
     id: '/actions',
@@ -2819,6 +2840,9 @@ export interface FileRoutesByFullPath {
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
   '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
+  '/api/carrier/edo/documents/$id/prepare': typeof ApiCarrierEdoDocumentsIdPrepareRoute
+  '/api/carrier/edo/documents/$id/send': typeof ApiCarrierEdoDocumentsIdSendRoute
+  '/api/carrier/edo/documents/$id/status': typeof ApiCarrierEdoDocumentsIdStatusRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
@@ -3205,6 +3229,9 @@ export interface FileRoutesByTo {
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
   '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
+  '/api/carrier/edo/documents/$id/prepare': typeof ApiCarrierEdoDocumentsIdPrepareRoute
+  '/api/carrier/edo/documents/$id/send': typeof ApiCarrierEdoDocumentsIdSendRoute
+  '/api/carrier/edo/documents/$id/status': typeof ApiCarrierEdoDocumentsIdStatusRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
@@ -3593,6 +3620,9 @@ export interface FileRoutesById {
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
   '/api/carrier/edo/documents/$id/actions': typeof ApiCarrierEdoDocumentsIdActionsRoute
+  '/api/carrier/edo/documents/$id/prepare': typeof ApiCarrierEdoDocumentsIdPrepareRoute
+  '/api/carrier/edo/documents/$id/send': typeof ApiCarrierEdoDocumentsIdSendRoute
+  '/api/carrier/edo/documents/$id/status': typeof ApiCarrierEdoDocumentsIdStatusRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/public/client-portal/$token/orders/$orderId': typeof ApiPublicClientPortalTokenOrdersOrderIdRouteWithChildren
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
@@ -3982,6 +4012,9 @@ export interface FileRouteTypes {
     | '/api/public/driver-invite/$token/register'
     | '/api/carrier/edo/counterparties/$id/verify'
     | '/api/carrier/edo/documents/$id/actions'
+    | '/api/carrier/edo/documents/$id/prepare'
+    | '/api/carrier/edo/documents/$id/send'
+    | '/api/carrier/edo/documents/$id/status'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
@@ -4368,6 +4401,9 @@ export interface FileRouteTypes {
     | '/api/public/driver-invite/$token/register'
     | '/api/carrier/edo/counterparties/$id/verify'
     | '/api/carrier/edo/documents/$id/actions'
+    | '/api/carrier/edo/documents/$id/prepare'
+    | '/api/carrier/edo/documents/$id/send'
+    | '/api/carrier/edo/documents/$id/status'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
@@ -4755,6 +4791,9 @@ export interface FileRouteTypes {
     | '/api/public/driver-invite/$token/register'
     | '/api/carrier/edo/counterparties/$id/verify'
     | '/api/carrier/edo/documents/$id/actions'
+    | '/api/carrier/edo/documents/$id/prepare'
+    | '/api/carrier/edo/documents/$id/send'
+    | '/api/carrier/edo/documents/$id/status'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/public/client-portal/$token/orders/$orderId'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
@@ -7681,6 +7720,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport
       parentRoute: typeof ApiDispatcherCommissionsEarningsRoute
     }
+    '/api/carrier/edo/documents/$id/status': {
+      id: '/api/carrier/edo/documents/$id/status'
+      path: '/status'
+      fullPath: '/api/carrier/edo/documents/$id/status'
+      preLoaderRoute: typeof ApiCarrierEdoDocumentsIdStatusRouteImport
+      parentRoute: typeof ApiCarrierEdoDocumentsIdRoute
+    }
+    '/api/carrier/edo/documents/$id/send': {
+      id: '/api/carrier/edo/documents/$id/send'
+      path: '/send'
+      fullPath: '/api/carrier/edo/documents/$id/send'
+      preLoaderRoute: typeof ApiCarrierEdoDocumentsIdSendRouteImport
+      parentRoute: typeof ApiCarrierEdoDocumentsIdRoute
+    }
+    '/api/carrier/edo/documents/$id/prepare': {
+      id: '/api/carrier/edo/documents/$id/prepare'
+      path: '/prepare'
+      fullPath: '/api/carrier/edo/documents/$id/prepare'
+      preLoaderRoute: typeof ApiCarrierEdoDocumentsIdPrepareRouteImport
+      parentRoute: typeof ApiCarrierEdoDocumentsIdRoute
+    }
     '/api/carrier/edo/documents/$id/actions': {
       id: '/api/carrier/edo/documents/$id/actions'
       path: '/actions'
@@ -8781,11 +8841,17 @@ const ApiCarrierEdoCounterpartiesRouteWithChildren =
 
 interface ApiCarrierEdoDocumentsIdRouteChildren {
   ApiCarrierEdoDocumentsIdActionsRoute: typeof ApiCarrierEdoDocumentsIdActionsRoute
+  ApiCarrierEdoDocumentsIdPrepareRoute: typeof ApiCarrierEdoDocumentsIdPrepareRoute
+  ApiCarrierEdoDocumentsIdSendRoute: typeof ApiCarrierEdoDocumentsIdSendRoute
+  ApiCarrierEdoDocumentsIdStatusRoute: typeof ApiCarrierEdoDocumentsIdStatusRoute
 }
 
 const ApiCarrierEdoDocumentsIdRouteChildren: ApiCarrierEdoDocumentsIdRouteChildren =
   {
     ApiCarrierEdoDocumentsIdActionsRoute: ApiCarrierEdoDocumentsIdActionsRoute,
+    ApiCarrierEdoDocumentsIdPrepareRoute: ApiCarrierEdoDocumentsIdPrepareRoute,
+    ApiCarrierEdoDocumentsIdSendRoute: ApiCarrierEdoDocumentsIdSendRoute,
+    ApiCarrierEdoDocumentsIdStatusRoute: ApiCarrierEdoDocumentsIdStatusRoute,
   }
 
 const ApiCarrierEdoDocumentsIdRouteWithChildren =

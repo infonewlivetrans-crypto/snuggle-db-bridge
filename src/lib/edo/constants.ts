@@ -33,6 +33,7 @@ export type EdoConnectionStatus =
 
 export type EdoDocStatus =
   | "draft" | "created"
+  | "ready_to_send" | "sending"
   | "waiting_shipper_signature" | "waiting_carrier_signature"
   | "waiting_driver_action" | "waiting_consignee_signature"
   | "signed" | "sent_to_operator" | "accepted_by_operator" | "rejected_by_operator"
