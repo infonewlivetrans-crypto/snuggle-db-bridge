@@ -9,6 +9,7 @@ export type OperatorCode =
   | "taxcom"
   | "astral"
   | "sberkorus"
+  | "saby_tms"
   | "other";
 
 export interface OperatorConfig {
