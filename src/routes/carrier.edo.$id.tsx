@@ -203,6 +203,9 @@ function CarrierEdoDocPage() {
         </CardContent>
       </Card>
 
+      <SabyAnd1cBlock id={id} d={d} qc={qc} />
+
+
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">Подписание и закрытие</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
