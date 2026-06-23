@@ -7,6 +7,7 @@ import { taxcomAdapter } from "./taxcom";
 import { astralAdapter } from "./astral";
 import { sberkorusAdapter } from "./sberkorus";
 import { otherAdapter } from "./other";
+import { sabyTmsAdapter } from "./saby-tms";
 
 const REGISTRY: Record<EdoProvider, EdoProviderAdapter> = {
   diadoc: diadocAdapter,
@@ -14,6 +15,7 @@ const REGISTRY: Record<EdoProvider, EdoProviderAdapter> = {
   taxcom: taxcomAdapter,
   astral: astralAdapter,
   sberkorus: sberkorusAdapter,
+  saby_tms: sabyTmsAdapter,
   other: otherAdapter,
   internal_mock: internalMockAdapter,
 };
@@ -28,6 +30,7 @@ export const EDO_PROVIDERS: { value: EdoProvider; label: string }[] = [
   { value: "taxcom", label: "Такском" },
   { value: "astral", label: "Калуга Астрал" },
   { value: "sberkorus", label: "СберКорус" },
+  { value: "saby_tms", label: "Saby TMS" },
   { value: "other", label: "Другой оператор" },
   { value: "internal_mock", label: "Внутренний режим Радиус Трек" },
 ];
