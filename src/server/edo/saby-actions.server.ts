@@ -69,7 +69,7 @@ export async function sabySendDocument(
   const conn = await loadConnectionConfig(client, carrierExtId);
   const settings = settingsFromConnection(conn);
   const { draft } = mapRadiusDocToSaby(doc as RadiusDocLike);
-  const created = await sabyOperatorAdapter.createDocument(settings as unknown as Record<string, unknown>, {
+  const created = await sabyOperatorAdapter.createDocument({ code: "saby_tms", ...settings } as any, {
     document_type: draft.document_type,
     doc_number: draft.doc_number ?? null,
     shipper_name: draft.shipper?.name ?? null,
@@ -88,7 +88,7 @@ export async function sabySendDocument(
     return { ok: false, error: created.error ?? "saby_create_failed" };
   }
   const sent = await sabyOperatorAdapter.sendDocument(
-    settings as unknown as Record<string, unknown>,
+    { code: "saby_tms", ...settings } as any,
     created.data.operator_document_id,
   );
   if (!sent.ok || !sent.data) {
@@ -130,7 +130,7 @@ export async function sabyGetStatus(
   const opDocId = (doc.saby_document_id as string) ?? (doc.operator_document_id as string) ?? "";
   if (!opDocId) return { ok: true, operator_status: (doc.operator_status as string) ?? null };
   const r = await sabyOperatorAdapter.getDocumentStatus(
-    settings as unknown as Record<string, unknown>, opDocId,
+    { code: "saby_tms", ...settings } as any, opDocId,
   );
   if (!r.ok || !r.data) return { ok: false, error: r.error ?? "saby_status_failed" };
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
