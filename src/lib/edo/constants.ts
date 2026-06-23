@@ -105,6 +105,7 @@ export const EDO_PARTICIPANT_LABEL: Record<EdoParticipantRole, string> = {
   driver: "Водитель",
   consignee: "Грузополучатель",
   operator: "Оператор ЭДО",
+  forwarder: "Экспедитор",
 };
 
 export function edoDocStatusVariant(
