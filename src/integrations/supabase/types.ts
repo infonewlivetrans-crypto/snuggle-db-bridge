@@ -238,77 +238,107 @@ export type Database = {
       carrier_edo_connections: {
         Row: {
           access_token: string | null
+          api_base_url: string | null
           api_key: string | null
+          app_client_id: string | null
+          app_secret: string | null
           box_id: string | null
           carrier_ext_id: string
           certificate_id: string | null
+          certificate_thumbprint: string | null
           client_id: string | null
           client_secret: string | null
           comment: string | null
           created_at: string
+          edo_box_id: string | null
           environment: Database["public"]["Enums"]["edo_environment"]
           error_message: string | null
           external_org_id: string | null
           id: string
+          integration_mode: string | null
           is_default: boolean
           last_check_at: string | null
           last_check_status: string | null
+          login: string | null
           organization_inn: string | null
           organization_name: string | null
+          password: string | null
           provider: Database["public"]["Enums"]["edo_provider"]
           provider_title: string | null
           refresh_token: string | null
+          signing_mode: string | null
           status: Database["public"]["Enums"]["edo_connection_status"]
+          token: string | null
           updated_at: string
         }
         Insert: {
           access_token?: string | null
+          api_base_url?: string | null
           api_key?: string | null
+          app_client_id?: string | null
+          app_secret?: string | null
           box_id?: string | null
           carrier_ext_id: string
           certificate_id?: string | null
+          certificate_thumbprint?: string | null
           client_id?: string | null
           client_secret?: string | null
           comment?: string | null
           created_at?: string
+          edo_box_id?: string | null
           environment?: Database["public"]["Enums"]["edo_environment"]
           error_message?: string | null
           external_org_id?: string | null
           id?: string
+          integration_mode?: string | null
           is_default?: boolean
           last_check_at?: string | null
           last_check_status?: string | null
+          login?: string | null
           organization_inn?: string | null
           organization_name?: string | null
+          password?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
           provider_title?: string | null
           refresh_token?: string | null
+          signing_mode?: string | null
           status?: Database["public"]["Enums"]["edo_connection_status"]
+          token?: string | null
           updated_at?: string
         }
         Update: {
           access_token?: string | null
+          api_base_url?: string | null
           api_key?: string | null
+          app_client_id?: string | null
+          app_secret?: string | null
           box_id?: string | null
           carrier_ext_id?: string
           certificate_id?: string | null
+          certificate_thumbprint?: string | null
           client_id?: string | null
           client_secret?: string | null
           comment?: string | null
           created_at?: string
+          edo_box_id?: string | null
           environment?: Database["public"]["Enums"]["edo_environment"]
           error_message?: string | null
           external_org_id?: string | null
           id?: string
+          integration_mode?: string | null
           is_default?: boolean
           last_check_at?: string | null
           last_check_status?: string | null
+          login?: string | null
           organization_inn?: string | null
           organization_name?: string | null
+          password?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
           provider_title?: string | null
           refresh_token?: string | null
+          signing_mode?: string | null
           status?: Database["public"]["Enums"]["edo_connection_status"]
+          token?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -447,17 +477,24 @@ export type Database = {
           document_type: Database["public"]["Enums"]["edo_doc_type"]
           driver_label: string | null
           error_message: string | null
+          export_to_1c_error: string | null
+          export_to_1c_status: string | null
+          exported_to_1c_at: string | null
+          external_1c_id: string | null
           external_id: string | null
           freight_id: string | null
           id: string
+          integration_mode: string | null
           last_sync_status: string | null
           last_synced_at: string | null
           loading_at: string | null
           loading_city: string | null
           meta: Json
+          onec_exchange_direction: string | null
           operator_document_id: string | null
           operator_response_json: Json
           operator_status: string | null
+          participant_links: Json | null
           payload_json: Json
           pdf_path: string | null
           provider: Database["public"]["Enums"]["edo_provider"]
@@ -465,10 +502,14 @@ export type Database = {
           rate_currency: string | null
           rejected_at: string | null
           route_summary: string | null
+          saby_attachment_id: string | null
+          saby_document_id: string | null
+          saby_flk_errors: Json | null
           sent_at: string | null
           shipper_inn: string | null
           shipper_name: string | null
           signed_at: string | null
+          signing_mode: string | null
           status: Database["public"]["Enums"]["edo_doc_status"]
           title: string | null
           trip_id: string | null
@@ -496,17 +537,24 @@ export type Database = {
           document_type?: Database["public"]["Enums"]["edo_doc_type"]
           driver_label?: string | null
           error_message?: string | null
+          export_to_1c_error?: string | null
+          export_to_1c_status?: string | null
+          exported_to_1c_at?: string | null
+          external_1c_id?: string | null
           external_id?: string | null
           freight_id?: string | null
           id?: string
+          integration_mode?: string | null
           last_sync_status?: string | null
           last_synced_at?: string | null
           loading_at?: string | null
           loading_city?: string | null
           meta?: Json
+          onec_exchange_direction?: string | null
           operator_document_id?: string | null
           operator_response_json?: Json
           operator_status?: string | null
+          participant_links?: Json | null
           payload_json?: Json
           pdf_path?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
@@ -514,10 +562,14 @@ export type Database = {
           rate_currency?: string | null
           rejected_at?: string | null
           route_summary?: string | null
+          saby_attachment_id?: string | null
+          saby_document_id?: string | null
+          saby_flk_errors?: Json | null
           sent_at?: string | null
           shipper_inn?: string | null
           shipper_name?: string | null
           signed_at?: string | null
+          signing_mode?: string | null
           status?: Database["public"]["Enums"]["edo_doc_status"]
           title?: string | null
           trip_id?: string | null
@@ -545,17 +597,24 @@ export type Database = {
           document_type?: Database["public"]["Enums"]["edo_doc_type"]
           driver_label?: string | null
           error_message?: string | null
+          export_to_1c_error?: string | null
+          export_to_1c_status?: string | null
+          exported_to_1c_at?: string | null
+          external_1c_id?: string | null
           external_id?: string | null
           freight_id?: string | null
           id?: string
+          integration_mode?: string | null
           last_sync_status?: string | null
           last_synced_at?: string | null
           loading_at?: string | null
           loading_city?: string | null
           meta?: Json
+          onec_exchange_direction?: string | null
           operator_document_id?: string | null
           operator_response_json?: Json
           operator_status?: string | null
+          participant_links?: Json | null
           payload_json?: Json
           pdf_path?: string | null
           provider?: Database["public"]["Enums"]["edo_provider"]
@@ -563,10 +622,14 @@ export type Database = {
           rate_currency?: string | null
           rejected_at?: string | null
           route_summary?: string | null
+          saby_attachment_id?: string | null
+          saby_document_id?: string | null
+          saby_flk_errors?: Json | null
           sent_at?: string | null
           shipper_inn?: string | null
           shipper_name?: string | null
           signed_at?: string | null
+          signing_mode?: string | null
           status?: Database["public"]["Enums"]["edo_doc_status"]
           title?: string | null
           trip_id?: string | null
@@ -7818,6 +7881,7 @@ export type Database = {
         | "driver"
         | "carrier"
         | "dispatcher"
+        | "forwarder"
       body_type:
         | "tent"
         | "isotherm"
@@ -7912,6 +7976,11 @@ export type Database = {
         | "cancelled"
         | "ready_to_send"
         | "sending"
+        | "prepared"
+        | "waiting_sender_signature"
+        | "waiting_forwarder_signature"
+        | "rejected"
+        | "failed"
       edo_doc_type:
         | "etrn"
         | "upd"
@@ -7927,6 +7996,7 @@ export type Database = {
         | "driver"
         | "consignee"
         | "operator"
+        | "forwarder"
       edo_provider:
         | "diadoc"
         | "sbis"
@@ -7935,6 +8005,7 @@ export type Database = {
         | "sberkorus"
         | "other"
         | "internal_mock"
+        | "saby_tms"
       eta_risk_level: "on_time" | "tight" | "late" | "unknown"
       idle_reason:
         | "client_absent"
@@ -8161,6 +8232,7 @@ export const Constants = {
         "driver",
         "carrier",
         "dispatcher",
+        "forwarder",
       ],
       body_type: [
         "tent",
@@ -8265,6 +8337,11 @@ export const Constants = {
         "cancelled",
         "ready_to_send",
         "sending",
+        "prepared",
+        "waiting_sender_signature",
+        "waiting_forwarder_signature",
+        "rejected",
+        "failed",
       ],
       edo_doc_type: [
         "etrn",
@@ -8282,6 +8359,7 @@ export const Constants = {
         "driver",
         "consignee",
         "operator",
+        "forwarder",
       ],
       edo_provider: [
         "diadoc",
@@ -8291,6 +8369,7 @@ export const Constants = {
         "sberkorus",
         "other",
         "internal_mock",
+        "saby_tms",
       ],
       eta_risk_level: ["on_time", "tight", "late", "unknown"],
       idle_reason: [
