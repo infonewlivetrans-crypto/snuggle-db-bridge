@@ -8,6 +8,7 @@ export type EdoProvider =
   | "taxcom"
   | "astral"
   | "sberkorus"
+  | "saby_tms"
   | "other"
   | "internal_mock";
 

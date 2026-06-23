@@ -51,6 +51,18 @@ interface DocFull {
     trip_id: string | null;
     freight_id: string | null;
     created_at: string;
+    saby_document_id: string | null;
+    saby_attachment_id: string | null;
+    saby_flk_errors: Record<string, unknown> | null;
+    participant_links: Record<string, string | null> | null;
+    signing_mode: string | null;
+    integration_mode: string | null;
+    export_to_1c_status: string | null;
+    exported_to_1c_at: string | null;
+    export_to_1c_error: string | null;
+    external_1c_id: string | null;
+    onec_exchange_direction: string | null;
+    last_synced_at: string | null;
   };
   participants: Array<{
     id: string; role: EdoParticipantRole; name: string | null; inn: string | null;
@@ -191,6 +203,9 @@ function CarrierEdoDocPage() {
         </CardContent>
       </Card>
 
+      <SabyAnd1cBlock id={id} d={d} qc={qc} />
+
+
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">Подписание и закрытие</CardTitle></CardHeader>
         <CardContent className="flex flex-wrap gap-2">
@@ -263,5 +278,152 @@ function CarrierEdoDocPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+const PARTICIPANT_LINK_LABELS: Record<string, string> = {
+  sender_link: "Отправителю",
+  shipper_link: "Грузоотправителю",
+  carrier_link: "Перевозчику",
+  driver_link: "Водителю",
+  consignee_link: "Грузополучателю",
+  forwarder_link: "Экспедитору",
+  customer_link: "Заказчику",
+};
+
+function SabyAnd1cBlock({
+  id, d, qc,
+}: {
+  id: string;
+  d: DocFull["document"];
+  qc: ReturnType<typeof useQueryClient>;
+}) {
+  const refresh = () => qc.invalidateQueries({ queryKey: ["edo", "doc", id] });
+  const isSaby = d.provider === "saby_tms";
+  const links = d.participant_links ?? {};
+
+  async function call(url: string, method: "POST" | "GET" = "POST") {
+    try {
+      const r = method === "GET"
+        ? await apiGetAuth<{ ok: boolean; error?: string }>(url)
+        : await apiPost<{ ok: boolean; error?: string; missing?: string[] }>(url, {});
+      if (r.ok) toast.success("Готово");
+      else toast.error(r.error ?? "Ошибка", {
+        description: (r as { missing?: string[] }).missing?.join("\n"),
+      });
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Ошибка");
+    }
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Saby TMS</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm space-y-2">
+          <div className="text-xs text-muted-foreground">
+            Оператор: {EDO_PROVIDER_LABEL[d.provider]}
+            {d.integration_mode ? ` · режим ${d.integration_mode}` : ""}
+            {d.signing_mode ? ` · подпись ${d.signing_mode}` : ""}
+          </div>
+          {d.saby_document_id && <div>Saby ID документа: {d.saby_document_id}</div>}
+          {d.saby_attachment_id && <div>Saby ID вложения: {d.saby_attachment_id}</div>}
+          {d.last_synced_at && (
+            <div className="text-xs text-muted-foreground">
+              Последняя синхронизация: {new Date(d.last_synced_at).toLocaleString("ru-RU")}
+            </div>
+          )}
+          {d.saby_flk_errors && Object.keys(d.saby_flk_errors).length > 0 && (
+            <div className="text-destructive text-xs">
+              Ошибки ФЛК: {JSON.stringify(d.saby_flk_errors)}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button size="sm" variant="outline" disabled={!isSaby}
+              onClick={() => call(`/api/carrier/edo/documents/${id}/saby/prepare`)}>
+              Подготовить (Saby)
+            </Button>
+            <Button size="sm" variant="outline" disabled={!isSaby}
+              onClick={() => call(`/api/carrier/edo/documents/${id}/saby/send`)}>
+              Отправить в Saby
+            </Button>
+            <Button size="sm" variant="outline" disabled={!isSaby}
+              onClick={() => call(`/api/carrier/edo/documents/${id}/saby/status`, "GET")}>
+              Обновить статус Saby
+            </Button>
+            <Button size="sm" variant="outline" disabled={!isSaby}
+              onClick={() => call(`/api/carrier/edo/documents/${id}/saby/generate-links`)}>
+              Сгенерировать ссылки
+            </Button>
+          </div>
+          {!isSaby && (
+            <p className="text-xs text-muted-foreground">
+              Действия Saby доступны для документов с оператором Saby TMS.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Ссылки участникам</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm space-y-1.5">
+          {Object.keys(links).length === 0 ? (
+            <div className="text-muted-foreground">Ссылки ещё не сгенерированы.</div>
+          ) : (
+            Object.entries(links).map(([k, v]) => v ? (
+              <div key={k} className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="text-xs">
+                  <span className="text-muted-foreground">{PARTICIPANT_LINK_LABELS[k] ?? k}: </span>
+                  <span className="break-all">{v}</span>
+                </div>
+                <Button size="sm" variant="ghost"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(v);
+                    toast.success("Ссылка скопирована");
+                  }}>
+                  Скопировать
+                </Button>
+              </div>
+            ) : null)
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Выгрузка в 1С</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm space-y-1">
+          <div>
+            <span className="text-muted-foreground">Статус:</span> {d.export_to_1c_status ?? "—"}
+          </div>
+          {d.exported_to_1c_at && (
+            <div className="text-xs text-muted-foreground">
+              Выгружен: {new Date(d.exported_to_1c_at).toLocaleString("ru-RU")}
+            </div>
+          )}
+          {d.external_1c_id && <div className="text-xs">ID в 1С: {d.external_1c_id}</div>}
+          {d.onec_exchange_direction && (
+            <div className="text-xs text-muted-foreground">
+              Направление обмена: {d.onec_exchange_direction}
+            </div>
+          )}
+          {d.export_to_1c_error && (
+            <div className="text-xs text-destructive">Ошибка: {d.export_to_1c_error}</div>
+          )}
+          <div className="pt-1">
+            <Button size="sm" variant="outline"
+              onClick={() => call(`/api/carrier/edo/documents/${id}/export-1c`)}>
+              Поставить на выгрузку в 1С
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </>
   );
 }

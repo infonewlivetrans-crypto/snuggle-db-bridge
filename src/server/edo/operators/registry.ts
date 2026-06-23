@@ -1,17 +1,15 @@
-// Реестр адаптеров операторов ЭДО (новый контур отправки).
-// Пока зарегистрирован только mock. Реальные операторы добавляются
-// отдельными файлами без изменения UI и основного carrier-edo.server.ts.
+// Дополнительный реестр серверных адаптеров операторов ЭДО (нового контура отправки).
+// Это отдельный слой от src/server/edo/providers — он принимает operator_code и
+// возвращает адаптер из mock-семейства. Saby здесь представлен как saby-tms.
 import type { EdoOperatorAdapter, OperatorCode } from "./types";
 import { mockOperatorAdapter } from "./mock-operator";
+import { sabyOperatorAdapter } from "./saby-tms";
 
 const REGISTRY: Partial<Record<OperatorCode, EdoOperatorAdapter>> = {
   internal_mock: mockOperatorAdapter,
+  saby_tms: sabyOperatorAdapter,
 };
 
-/**
- * Возвращает адаптер по operator_code. Если оператор неизвестен или
- * ещё не реализован — возвращает mock-адаптер, чтобы UI не ломался.
- */
 export function getOperatorAdapter(code: OperatorCode | string | null | undefined): EdoOperatorAdapter {
   const key = (code ?? "internal_mock") as OperatorCode;
   return REGISTRY[key] ?? mockOperatorAdapter;

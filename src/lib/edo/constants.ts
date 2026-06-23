@@ -26,20 +26,25 @@ export const EDO_DOC_TYPE_LABEL: Record<EdoDocType, string> = Object.fromEntries
 
 
 export type EdoProvider =
-  | "diadoc" | "sbis" | "taxcom" | "astral" | "sberkorus" | "other" | "internal_mock";
+  | "diadoc" | "sbis" | "taxcom" | "astral" | "sberkorus" | "saby_tms" | "other" | "internal_mock";
 
 export type EdoConnectionStatus =
   | "not_connected" | "setup_required" | "connected" | "error" | "disabled";
 
 export type EdoDocStatus =
   | "draft" | "created"
+  | "prepared"
   | "ready_to_send" | "sending"
+  | "waiting_sender_signature"
   | "waiting_shipper_signature" | "waiting_carrier_signature"
   | "waiting_driver_action" | "waiting_consignee_signature"
+  | "waiting_forwarder_signature"
   | "signed" | "sent_to_operator" | "accepted_by_operator" | "rejected_by_operator"
+  | "rejected" | "failed"
   | "error" | "closed" | "cancelled";
 
-export type EdoParticipantRole = "shipper" | "carrier" | "driver" | "consignee" | "operator";
+export type EdoParticipantRole =
+  | "shipper" | "carrier" | "driver" | "consignee" | "operator" | "forwarder";
 
 export const EDO_PROVIDER_OPTIONS: { value: EdoProvider; label: string }[] = [
   { value: "diadoc", label: "Контур Диадок" },
@@ -47,6 +52,7 @@ export const EDO_PROVIDER_OPTIONS: { value: EdoProvider; label: string }[] = [
   { value: "taxcom", label: "Такском" },
   { value: "astral", label: "Калуга Астрал" },
   { value: "sberkorus", label: "СберКорус" },
+  { value: "saby_tms", label: "Saby TMS" },
   { value: "other", label: "Другой оператор" },
   { value: "internal_mock", label: "Пока не подключен (внутренний режим)" },
 ];
@@ -57,6 +63,7 @@ export const EDO_PROVIDER_LABEL: Record<EdoProvider, string> = {
   taxcom: "Такском",
   astral: "Калуга Астрал",
   sberkorus: "СберКорус",
+  saby_tms: "Saby TMS",
   other: "Другой оператор",
   internal_mock: "Внутренний режим Радиус Трек",
 };
@@ -72,16 +79,21 @@ export const EDO_CONNECTION_STATUS_LABEL: Record<EdoConnectionStatus, string> = 
 export const EDO_DOC_STATUS_LABEL: Record<EdoDocStatus, string> = {
   draft: "Черновик",
   created: "Документ создан",
+  prepared: "Подготовлен",
   ready_to_send: "Готов к отправке",
   sending: "Отправляется",
+  waiting_sender_signature: "Ожидает подписи отправителя",
   waiting_shipper_signature: "Ожидает подписи грузоотправителя",
   waiting_carrier_signature: "Ожидает подписи перевозчика",
   waiting_driver_action: "Ожидает действия водителя",
   waiting_consignee_signature: "Ожидает подписи грузополучателя",
+  waiting_forwarder_signature: "Ожидает подписи экспедитора",
   signed: "Подписан",
   sent_to_operator: "Отправлен оператору",
   accepted_by_operator: "Принят оператором",
   rejected_by_operator: "Отклонён оператором",
+  rejected: "Отклонён",
+  failed: "Ошибка отправки",
   error: "Ошибка",
   closed: "Закрыт",
   cancelled: "Отменён",
@@ -93,6 +105,7 @@ export const EDO_PARTICIPANT_LABEL: Record<EdoParticipantRole, string> = {
   driver: "Водитель",
   consignee: "Грузополучатель",
   operator: "Оператор ЭДО",
+  forwarder: "Экспедитор",
 };
 
 export function edoDocStatusVariant(
@@ -131,6 +144,8 @@ export function edoAwaitingLabel(role: EdoParticipantRole | null | undefined): s
     case "driver":  return "Сейчас ожидается действие водителя";
     case "consignee": return "Сейчас ожидается подпись грузополучателя";
     case "operator": return "Сейчас ожидается ответ оператора";
+    case "forwarder": return "Сейчас ожидается подпись экспедитора";
+    default: return null;
   }
 }
 
