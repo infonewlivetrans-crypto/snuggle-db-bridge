@@ -51,6 +51,18 @@ interface DocFull {
     trip_id: string | null;
     freight_id: string | null;
     created_at: string;
+    saby_document_id: string | null;
+    saby_attachment_id: string | null;
+    saby_flk_errors: Record<string, unknown> | null;
+    participant_links: Record<string, string | null> | null;
+    signing_mode: string | null;
+    integration_mode: string | null;
+    export_to_1c_status: string | null;
+    exported_to_1c_at: string | null;
+    export_to_1c_error: string | null;
+    external_1c_id: string | null;
+    onec_exchange_direction: string | null;
+    last_synced_at: string | null;
   };
   participants: Array<{
     id: string; role: EdoParticipantRole; name: string | null; inn: string | null;
