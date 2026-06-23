@@ -143,6 +143,8 @@ export function edoAwaitingLabel(role: EdoParticipantRole | null | undefined): s
     case "driver":  return "Сейчас ожидается действие водителя";
     case "consignee": return "Сейчас ожидается подпись грузополучателя";
     case "operator": return "Сейчас ожидается ответ оператора";
+    case "forwarder": return "Сейчас ожидается подпись экспедитора";
+    default: return null;
   }
 }
 
