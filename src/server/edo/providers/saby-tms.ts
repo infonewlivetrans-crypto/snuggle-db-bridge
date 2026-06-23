@@ -9,8 +9,8 @@ function genId(prefix: string): string {
   return `${prefix}_${Date.now()}_${rand}`;
 }
 
-function mode(cfg: { provider: string } & Record<string, unknown>): "mock" | "api_ready" | "live" {
-  const m = (cfg as Record<string, unknown>).integration_mode;
+function mode(cfg: Record<string, unknown>): "mock" | "api_ready" | "live" {
+  const m = cfg.integration_mode;
   if (m === "api_ready" || m === "live") return m;
   return "mock";
 }
