@@ -25,7 +25,7 @@ export interface GoslogRow {
   updated_at: string;
 }
 
-export type GoslogPatch = Partial<Omit<GoslogRow, "id" | "updated_at">>;
+export type GoslogPatch = Partial<Omit<GoslogRow, "updated_at">>;
 
 export async function listGoslog(client: AnyClient): Promise<GoslogRow[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
