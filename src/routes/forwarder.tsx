@@ -2,11 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppHeader } from "@/components/AppHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Truck, Users, FileSignature, Link2, ClipboardList } from "lucide-react";
-
-// Минимальный кабинет экспедитора. Расширяется по мере подключения
-// сценариев (заявки, договоры, ЭТрН, подписи). AI-диспетчер сюда не
-// переносится, dispatcher-контур не меняется.
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  FileText, Truck, Users, FileSignature, Link2, ClipboardList,
+} from "lucide-react";
+import { ForwarderGoslogBlock } from "@/components/edo/ForwarderGoslogBlock";
+import { EpdTrainingBlock } from "@/components/edo/EpdTrainingBlock";
 
 export const Route = createFileRoute("/forwarder")({
   head: () => ({ meta: [{ title: "Кабинет экспедитора — Радиус Трек" }] }),
@@ -16,11 +17,9 @@ export const Route = createFileRoute("/forwarder")({
 const BLOCKS: Array<{ icon: typeof FileText; title: string; desc: string; href?: string }> = [
   { icon: ClipboardList, title: "Заявки", desc: "Входящие заявки от заказчиков и привлечённые перевозчики." },
   { icon: Truck, title: "Перевозчики", desc: "Сеть привлечённых перевозчиков и их транспорт." },
-  { icon: FileText, title: "Документы", desc: "Договоры, заявки, акты, УПД, ЭТрН.",
-    href: "/carrier/edo" },
+  { icon: FileText, title: "Документы", desc: "Договоры, заявки, акты, УПД, ЭТрН.", href: "/carrier/edo" },
   { icon: FileSignature, title: "ЭТрН и подписи", desc: "Статусы подписания и роли участников." },
-  { icon: Users, title: "Грузоотправители / получатели", desc: "Справочник контрагентов ЭДО.",
-    href: "/carrier/edo/counterparties" },
+  { icon: Users, title: "Грузоотправители / получатели", desc: "Справочник контрагентов ЭДО.", href: "/carrier/edo/counterparties" },
   { icon: Link2, title: "Ссылки участникам", desc: "Готовые ссылки для отправителя, водителя, получателя." },
 ];
 
@@ -40,25 +39,62 @@ function ForwarderPage() {
             <Badge variant="outline">Этап подготовки · mock / api_ready</Badge>
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {BLOCKS.map(b => {
-            const Icon = b.icon;
-            const inner = (
-              <Card className="h-full transition hover:bg-muted/40">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    {b.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">{b.desc}</CardContent>
-              </Card>
-            );
-            return b.href
-              ? <Link key={b.title} to={b.href}>{inner}</Link>
-              : <div key={b.title}>{inner}</div>;
-          })}
-        </div>
+
+        <Tabs defaultValue="overview">
+          <TabsList>
+            <TabsTrigger value="overview">Обзор</TabsTrigger>
+            <TabsTrigger value="goslog">ГосЛог</TabsTrigger>
+            <TabsTrigger value="epd">ЭПД-готовность</TabsTrigger>
+            <TabsTrigger value="training">Тренажёр</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {BLOCKS.map(b => {
+                const Icon = b.icon;
+                const inner = (
+                  <Card className="h-full transition hover:bg-muted/40">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        {b.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm text-muted-foreground">{b.desc}</CardContent>
+                  </Card>
+                );
+                return b.href
+                  ? <Link key={b.title} to={b.href}>{inner}</Link>
+                  : <div key={b.title}>{inner}</div>;
+              })}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="goslog" className="mt-3">
+            <ForwarderGoslogBlock />
+          </TabsContent>
+
+          <TabsContent value="epd" className="mt-3">
+            <Card>
+              <CardHeader className="pb-2"><CardTitle className="text-base">ЭПД у экспедитора</CardTitle></CardHeader>
+              <CardContent className="text-sm space-y-2">
+                <p>
+                  Если экспедитор принимает груз во владение, меняется схема документов и подписания.
+                  Если экспедитор не принимает груз во владение, он не должен автоматически становиться
+                  подписантом грузовых титулов.
+                </p>
+                <p className="text-muted-foreground">
+                  Работа с заявками и ЭТрН ведётся в общем разделе «Документы». Полноценный
+                  кабинет ЭПД экспедитора подключим в следующем этапе.
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="training" className="mt-3">
+            <EpdTrainingBlock role="forwarder" />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
