@@ -96,6 +96,9 @@ export async function sabySendDocument(
 ): Promise<{ ok: boolean; error?: string; operator_status?: string }> {
   const doc = await loadDoc(client, carrierExtId, docId);
   if (!doc) return { ok: false, error: "not_found" };
+  if ((doc as { is_training?: boolean }).is_training) {
+    return { ok: false, error: "training_document_blocked" };
+  }
   const conn = await loadConnectionConfig(client, carrierExtId);
   const settings = settingsFromConnection(conn);
   const { draft } = mapRadiusDocToSaby(doc as RadiusDocLike);
