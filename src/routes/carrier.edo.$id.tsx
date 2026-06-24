@@ -105,6 +105,9 @@ function CarrierEdoDocPage() {
         <ArrowLeft className="h-4 w-4" />Назад к списку
       </Link>
 
+      <EpdScenarioWizard documentId={id} tripId={d.trip_id} />
+
+
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
