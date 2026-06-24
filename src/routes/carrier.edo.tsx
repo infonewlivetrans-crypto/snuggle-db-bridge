@@ -173,6 +173,9 @@ function CarrierEdoPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <CarrierEpdReadinessBlock />
+      <EpdTrainingBlock role="carrier" />
     </div>
   );
 }
