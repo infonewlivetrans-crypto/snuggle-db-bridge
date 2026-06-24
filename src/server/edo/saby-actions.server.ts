@@ -46,15 +46,45 @@ function settingsFromConnection(conn: Awaited<ReturnType<typeof loadConnectionCo
 
 export async function sabyPrepareDocument(
   client: AnyClient, carrierExtId: string, docId: string,
-): Promise<{ ok: boolean; missing?: string[]; error?: string }> {
+): Promise<{ ok: boolean; missing?: string[]; error?: string; epd_errors?: string[] }> {
   const doc = await loadDoc(client, carrierExtId, docId);
   if (!doc) return { ok: false, error: "not_found" };
+  if ((doc as { is_training?: boolean }).is_training) {
+    return { ok: false, error: "training_document_blocked" };
+  }
+
+  // Проверка ЭПД-сценария: если он привязан — валидируем.
+  const scenarioId = (doc as { scenario_id?: string | null }).scenario_id ?? null;
+  let epdContext: Record<string, unknown> | null = null;
+  if (scenarioId) {
+    const { validateScenario, getScenario } = await import("@/server/edo/scenarios.server");
+    const v = await validateScenario(client, carrierExtId, scenarioId);
+    if (v.errors.length) return { ok: false, error: "scenario_invalid", epd_errors: v.errors };
+    const s = await getScenario(client, carrierExtId, scenarioId);
+    if (s) {
+      epdContext = {
+        scenario_type: s.scenario_type,
+        forwarder_possession_mode: s.forwarder_possession_mode,
+        cargo_holder_role: s.cargo_holder_role,
+        required_documents: s.required_documents,
+        signing_plan: s.signing_plan_json,
+        validation_warnings: v.warnings,
+        is_training: s.is_training,
+      };
+    }
+  }
+
   const { draft, missing } = mapRadiusDocToSaby(doc as RadiusDocLike);
   if (missing.length) return { ok: false, missing };
   const payload = buildSabyDocumentPayload(draft);
+  if (epdContext) (payload as Record<string, unknown>).epd_context = epdContext;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (client.from("carrier_edo_documents") as any)
-    .update({ status: "prepared", payload_json: payload })
+    .update({
+      status: "prepared",
+      payload_json: payload,
+      epd_context_snapshot: epdContext,
+    })
     .eq("id", docId)
     .eq("carrier_ext_id", carrierExtId);
   await logDocEvent(client, docId, "saby:prepare", "Документ подготовлен для Saby (mock)");
@@ -66,6 +96,9 @@ export async function sabySendDocument(
 ): Promise<{ ok: boolean; error?: string; operator_status?: string }> {
   const doc = await loadDoc(client, carrierExtId, docId);
   if (!doc) return { ok: false, error: "not_found" };
+  if ((doc as { is_training?: boolean }).is_training) {
+    return { ok: false, error: "training_document_blocked" };
+  }
   const conn = await loadConnectionConfig(client, carrierExtId);
   const settings = settingsFromConnection(conn);
   const { draft } = mapRadiusDocToSaby(doc as RadiusDocLike);

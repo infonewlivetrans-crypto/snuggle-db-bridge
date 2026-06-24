@@ -24,9 +24,9 @@ import {
   type EdoDocDirection, type EdoDocType,
 } from "@/lib/edo/constants";
 import { useEdoModuleEnabled } from "@/lib/mvp-features";
-import {
-  FileText, Plus, RefreshCcw, Settings2, Trash2, Star, Inbox, Send, Download,
-} from "lucide-react";
+import { FileText, Plus, RefreshCcw, Settings2, Trash2, Star, Inbox, Send, Download } from "lucide-react";
+import { CarrierEpdReadinessBlock } from "@/components/edo/CarrierEpdReadinessBlock";
+import { EpdTrainingBlock } from "@/components/edo/EpdTrainingBlock";
 
 export const Route = createFileRoute("/carrier/edo")({
   head: () => ({ meta: [{ title: "ЭТрН / ЭДО — Радиус Трек" }] }),
@@ -173,6 +173,9 @@ function CarrierEdoPage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      <CarrierEpdReadinessBlock />
+      <EpdTrainingBlock role="carrier" />
     </div>
   );
 }

@@ -1,204 +1,105 @@
+## Этап «ЭПД-мастер сценариев» — план реализации
 
-# Подпись и печать перевозчика на входящих документах
+Большой этап, выполняем одним пакетом в dev-режиме Lovable (без VPS, без live-вызовов Saby/1С/ГосЛог).
 
-Точечный этап поверх существующих «Входящих документов». Старые модули (склад, QR, ATI, AI-поиск, касса, nginx/PM2/DNS) не трогаю. Только user-client + RLS, без service_role / auth.admin.
+### 1. Миграции БД
 
-## 1. Миграции (одной supabase--migration)
+Создаю 3 новые таблицы (RLS включён, GRANT для authenticated/service_role, без anon):
 
-### Таблица `carrier_signature_assets`
-- `carrier_ext_id uuid not null` (FK на `dispatcher_carrier_ext.id`)
-- `uploaded_by uuid` (auth user)
-- `source_file_path text` — исходный лист
-- `stamp_file_path text` — PNG печати с прозрачным фоном
-- `signature_file_path text` — PNG подписи с прозрачным фоном
-- `stamp_bbox jsonb`, `signature_bbox jsonb` — координаты кадра на исходнике
-- `bg_removal jsonb` — `{threshold, contrast}` для повторной обработки
-- `is_active boolean default true`
-- `consent_confirmed_at timestamptz`
-- `created_at`, `updated_at`
-- GRANT для `authenticated` + `service_role`; RLS:
-  - carrier (через `dispatcher_carrier_users` / `carrier_account_links`) видит/правит только свои;
-  - admin/dispatcher — все.
+- `edo_scenarios` — сценарий ЭПД, привязан к `carrier_ext_id` + опционально `trip_id`/`deal_id`/`document_id`. Поля: `scenario_type`, `forwarder_id`, `forwarder_possession_mode`, `cargo_holder_role`, `required_documents jsonb`, `participants_json jsonb`, `signing_plan_json jsonb`, `readiness_status`, `validation_errors jsonb`, `validation_warnings jsonb`, `is_training bool`.
+- `carrier_epd_readiness` — одна строка на carrier_ext_id: `edo_operator`, `has_1c`, `has_1c_edo`, `has_1c_epd`, `onec_epd_tariff`, `edo_participant_id`, `has_director_kep`, `has_mchd`, `responsible_person`, `driver_has_smartphone`, `driver_qr_ready`, `readiness_status`, `last_checked_at`, `notes`.
+- `forwarder_goslog_status` — `forwarder_id` (ссылка на carriers/companies, опционально), `inn`, `ogrn`, `company_name`, `okved_codes jsonb`, `has_okved_5229`, `goslog_status`, `registry_number`, `application_number`, `application_date`, `included_at`, `source_url`, `verified_by`, `verified_at`, `verification_comment`.
+- `edo_training_sessions` — `user_id`, `role`, `scenario_type`, `current_step`, `status`, `progress_percent`, `mistakes_json`, `completed_at`.
 
-### Таблица `dispatcher_document_signatures`
-- `inbound_document_id uuid` (FK `dispatcher_inbound_documents`)
-- `trip_id uuid null` (FK `dispatcher_trips`)
-- `carrier_ext_id uuid not null`
-- `source_document_path text not null`
-- `signed_document_path text` — авто-подписанный PDF
-- `manual_signed_document_path text` — ручной скан
-- `signature_asset_id uuid` (FK `carrier_signature_assets`)
-- `status text default 'draft'` — `draft|preview|signed|manual_uploaded|failed|cancelled`
-- `placement jsonb` — `{page, stamp:{x,y,w}, signature:{x,y,w}}`
-- `signed_by uuid`, `signed_at timestamptz`
-- `created_at`, `updated_at`
-- RLS: carrier — свои (по `carrier_ext_id`), admin/dispatcher — все, driver — только если `trip_id` назначен ему.
+Поля `carrier_epd_readiness_snapshot`, `scenario_id` добавляются в `carrier_edo_documents` (jsonb + uuid nullable) — для связи со сценарием и snapshot готовности на момент отправки.
 
-### Storage
-- Использую существующий приватный bucket `inbound-documents`, новый префикс `signatures/{carrier_ext_id}/...` и `signed/{carrier_ext_id}/{inbound_id}/...`.
-- Политики на `storage.objects` — по аналогии с уже существующими для `inbound-documents`.
+RLS: всё через `carrier_my_ext_id()` и `auth.uid()`. Без service_role.
 
-## 2. Серверная обработка изображений (sharp недоступен в Worker)
+### 2. Серверный слой (`src/server/edo/`)
 
-Worker-совместимый стек: `@jsquash/png` + чистый JS пиксельный проход.
-- Декодируем JPG/PNG/HEIC → RGBA (HEIC принимаем как PNG если браузер уже отдал, иначе сообщаем «не получилось»).
-- Кадрируем по `bbox`.
-- Удаляем белый/светло-серый фон: для каждого пикселя `luma = 0.299R+0.587G+0.114B`; если `luma > threshold` (по умолчанию 235) → `alpha=0`; в переходной зоне (210..235) → плавный alpha.
-- Опционально усиливаем контраст оставшихся пикселей (поднимаем насыщенность синего/фиолетового для печати).
-- Кодируем PNG с альфой.
-- Параметры `{threshold, contrast}` сохраняются в `bg_removal`, чтобы можно было пересчитать с UI.
+- `scenarios.server.ts` — CRUD сценариев, `validateScenario` (возвращает errors/warnings), `createDocumentsFromScenario` (заготовки документов по списку required_documents).
+- `epd-readiness.server.ts` — GET/PATCH готовности перевозчика, вычисление `readiness_status`.
+- `goslog.server.ts` — ручная фиксация статуса ГосЛог (без live).
+- `training.server.ts` — start/step/complete; жёсткий `is_training=true`.
+- `scenario-catalog.ts` — справочник 8 сценариев, для каждого: required_documents, signing_plan, участники, риски.
 
-Файлы:
-- `src/server/signatures/image.server.ts` — `cropAndRemoveBackground(buffer, bbox, opts)`
-- `src/server/signatures/storage.server.ts` — загрузка/чтение из bucket через user-client.
+В `saby-actions.server.ts` (`sabyPrepareDocument`) — добавить чтение `scenario_id` документа, вызвать `validateScenario`, в payload передавать `scenario_type`, `forwarder_possession_mode`, `required_documents`, `signing_plan`, `cargo_holder_role`, `goslog_status_snapshot`, `epd_readiness_snapshot`, `is_training`. При наличии критических ошибок — вернуть `{ ok:false, errors }` и НЕ переводить в `prepared`.
 
-## 3. Серверная вставка в PDF
+### 3. API (TanStack server routes под `src/routes/api/`)
 
-`pdf-lib` (pure JS, Worker-safe, уже разрешён в проекте).
+Перевозчик:
+- `carrier/edo/readiness.ts` (GET/PATCH)
+- `carrier/edo/scenarios.ts` (GET/POST)
+- `carrier/edo/scenarios.$id.ts` (GET/PATCH)
+- `carrier/edo/scenarios.$id.validate.ts` (POST)
+- `carrier/edo/scenarios.$id.create-documents.ts` (POST)
+- `carrier/edo/training.start.ts`, `training.$id.step.ts`, `training.$id.complete.ts`
 
-Файл: `src/server/signatures/pdf-sign.server.ts`
-- `loadPdf(buffer)`, `embedPng(stamp)`, `embedPng(signature)`.
-- `findCarrierAnchor(parsedText, carrierName, carrierInn)` — ищет на каждой странице (через уже существующий `parser.server.ts` извлекатель текста с координатами; если координат нет — возвращает только номер страницы):
-  - якоря: «Перевозчик», «Исполнитель-перевозчик», «Исполнитель перевозчик», название компании, ИНН перевозчика, «М.П.», «подпись»;
-  - **критично**: «М.П.» сама по себе не используется, только в сочетании с якорем перевозчика; если на странице есть и «Заказчик», и «Перевозчик» — выбираем нижне-правый блок, ближайший к якорю «Перевозчик».
-- `placeSignature(pdf, placement)` — вставляет PNG'и (только альфа-канал, без белого прямоугольника) по координатам PDF user space.
-- Если уверенности нет → возвращаем `needs_manual_placement: true` с дефолтом (последняя страница, правый нижний угол).
+Экспедитор:
+- `forwarder/epd.ts`, `forwarder/goslog-status.ts`, `forwarder/epd.training.start.ts`
 
-## 4. API (общие endpoints + проверка ролей)
+Диспетчер:
+- `dispatcher/epd/readiness.ts`, `dispatcher/forwarders.goslog-status.ts`, `dispatcher/forwarders.$id.goslog-status.ts`, `dispatcher/carriers.$id.epd-readiness.ts`
 
-Все — `createServerFn`/server routes с `requireSupabaseAuth`. Carrier vs dispatcher решаем внутри по `has_role` и принадлежности `carrier_ext_id`.
+### 4. UI
 
-### Signature assets
-- `GET /api/carrier/signature-assets` — список своих (для carrier) или по `carrier_ext_id` query (для admin/dispatcher).
-- `POST /api/carrier/signature-assets` — `multipart`: `source_file`, `consent=true`. Возвращает запись + signed URL исходника.
-- `POST /api/carrier/signature-assets/:id/process` — `{stamp_bbox, signature_bbox, bg_removal}` → пересчитывает PNG'и, обновляет пути и bbox. Возвращает signed URL'ы предпросмотра.
-- `PATCH /api/carrier/signature-assets/:id` — `{is_active}`.
-- `DELETE /api/carrier/signature-assets/:id`.
+Константы и каталог сценариев — `src/lib/edo/scenarios.ts` (тексты на русском, метки документов, статусы).
 
-### Подписание входящего документа
-- `POST /api/dispatcher/inbound-documents/:id/sign-preview` — выбирает активный `signature_asset`, ищет якорь, возвращает `{placement, needs_manual_placement, preview_url}` (preview = PDF, сгенерированный с текущим placement; сохраняем под `signed_document_path` в статусе `preview`).
-- `POST /api/dispatcher/inbound-documents/:id/sign-confirm` — `{placement}` → финальный PDF, статус `signed`, привязка к `dispatcher_trip_documents`, если `trip_id` уже есть.
-- `POST /api/dispatcher/inbound-documents/:id/manual-signed-upload` — `multipart` (PDF/JPG/PNG/HEIC) → `manual_uploaded`, привязка к рейсу.
-- Те же три под `/api/carrier/inbound-documents/:id/...` (тонкие обёртки, делегируют общему хэндлеру, проверяя что документ принадлежит carrier'у пользователя).
+Компоненты в `src/components/edo/`:
+- `EpdScenarioWizard` (12 шагов, шаг = отдельный sub-component)
+- `EpdScenarioStepParticipants`, `EpdScenarioStepDocuments`, `EpdScenarioStepSigningPlan`
+- `EpdReadinessBadge`, `CarrierEpdReadinessBlock`
+- `ForwarderGoslogBadge`, `ForwarderGoslogBlock`
+- `EpdValidationPanel`, `EpdDocumentTimeline`, `DriverQrMockBlock`, `CargoRemarksBlock`, `EpdTrainingBlock`
 
-### Trip linkage
-При `sign-confirm` / `manual-signed-upload`, если у `dispatcher_inbound_documents.trip_id` уже есть значение — вставляем строку в `dispatcher_trip_documents` (`kind='signed_contract'`).
-При `create-trip` (существующий endpoint) — после создания рейса проверяем `dispatcher_document_signatures` со статусом `signed|manual_uploaded` и автоматически прикрепляем.
+Встраивание:
+- `carrier.edo.$id.tsx` — сверху блок «Сценарий ЭПД» + EpdValidationPanel; кнопки Saby оборачиваются проверкой scenario_id.
+- `carrier.edo.tsx` — вкладка/секция «Готовность к ЭПД» + «Тренажёр».
+- `carrier.trips.tsx` (`CarrierTripEdoBlock`) — кнопка «Открыть Мастер ЭПД».
+- `forwarder.tsx` — две секции `/forwarder/epd` и `/forwarder/goslog` (как табы внутри одного маршрута, чтобы не плодить страницы).
+- В карточке перевозчика (`carriers.$carrierId.tsx`) — блок `CarrierEpdReadinessBlock` (read-only для диспетчера + кнопка ручной правки).
 
-## 5. UI
+Тренажёр — отдельный flow `EpdTrainingBlock` с явным баннером «Учебный режим, документы не отправляются оператору».
 
-### `/carrier/signature-settings.tsx` (новая страница)
-- Инструкция «как сфотографировать лист».
-- Загрузка файла (drag&drop + camera input на мобиле).
-- После загрузки: канвас с исходным фото.
-- Два режима выделения: «Выделить печать», «Выделить подпись» — прямоугольное выделение мышью/тачем (используем существующие `@radix-ui` примитивы + кастомный canvas, без новых тяжёлых зависимостей).
-- Слайдеры `Порог фона (210–245)`, `Контраст`.
-- Кнопка «Обработать» → отправляет на `/process`.
-- Два предпросмотра PNG поверх условного «бумажного» белого фона документа.
-- Чекбокс «Подтверждаю, что имею право использовать эту печать и подпись» → активирует кнопку «Сохранить».
-- Список ранее загруженных, переключение активного.
+### 5. Saby интеграция
 
-В `/carrier` (dashboard) — карточка-статус: «Печать и подпись: загружены/не загружены», ссылка на страницу.
+`sabyPrepareDocument`:
+1. Загружает doc → ищет `scenario_id`. Если нет — возвращает `{ ok:false, error:"scenario_required" }`.
+2. Зовёт `validateScenario` → если есть `errors` — `{ ok:false, errors }`.
+3. Иначе строит payload + дополнительный `meta.epd_context = { scenario_type, forwarder_possession_mode, ... }`.
 
-### `/dispatcher/inbound-documents/:id` (расширяем существующую)
-Новый блок «Подписание документа перевозчиком». Состояния, как в ТЗ:
-1. Нет активной печати → CTA «Попросить перевозчика загрузить» (просто инструкция/копия ссылки) + «Загрузить вручную подписанный».
-2. Печать есть → «Подготовить подпись» (вызывает `sign-preview`) и «Загрузить уже подписанный».
-3. После preview → компонент `SignaturePlacementEditor`:
-   - iframe/`<object>` с preview PDF.
-   - Поверх — overlay-канвас с двумя draggable/resizable элементами (печать, подпись).
-   - На мобиле: переключатель «Жесты / Поля» — поля X/Y/размер и кнопки ←→↑↓/+/−, шаг 5pt.
-   - Селектор страницы.
-   - Кнопки «Сохранить подписанный документ» (→ `sign-confirm`), «Отменить».
-4. После `signed` → «Открыть подписанный PDF» (signed URL), кто/когда.
+`sabySendDocument` — блокируется тем же чеком; для `is_training=true` документов отправка явно запрещена.
 
-### `/carrier/inbound-documents/:id` (страница уже есть как часть `CarrierInboundDocsBlock` — расширяем)
-Упрощённая версия того же flow: «Открыть», «Подписать», «Загрузить скан», «Подтвердить».
+### 6. Что НЕ делаем (явные ограничения)
 
-### `/driver/trip/$tripId.tsx`
-Уже умеет показывать `dispatcher_trip_documents`. Просто убеждаемся, что подписанный документ виден как «Договор-заявка (подписан)», только просмотр/скачивание (signed URL).
+- Реальной подписи КЭП/МЧД/Госключ нет.
+- Live HTTP в Saby/1С/ГосЛог нет.
+- QR — mock UID с пометкой «тестовый».
+- Парсинг сайтов не делаем.
+- Логины Госуслуг и закрытые ключи нигде не хранятся.
+- Никаких VPS/nginx/PM2.
 
-### Создание рейса
-В существующем диалоге `create-trip` (на `/dispatcher/inbound-documents/:id`) добавляем баннер «Документ ещё не подписан перевозчиком. Можно создать задание, документ будет в статусе ожидает подписания». Кнопка остаётся активной — оба варианта разрешены.
+### 7. Проверка
 
-## 6. Сообщения и аудит
+`npx tsc --noEmit` в конце. Проверяю, что старые страницы (carrier.edo.$id, carrier.trips, forwarder, dispatcher) открываются и mock Saby не сломан.
 
-- Все user-facing сообщения — как в ТЗ, через `toast`.
-- Серверные логи: `requestId, inbound_document_id, carrier_ext_id, signature_asset_id, page, placement, error`.
-- В `dispatcher_document_signatures.updated_at` отражаем последнее действие; история по статусам = достаточная аудит-цепочка для MVP.
+### Технические детали
 
-## 7. Зависимости
-- `pdf-lib` — добавляю, если не стоит (Worker-safe).
-- `@jsquash/png` — добавляю для PNG encode/decode с alpha (Worker-safe, без native).
-- HEIC: если браузер отдал готовый PNG/JPG — обрабатываем; чистый HEIC буфер на сервере не декодируем (нет Worker-safe библиотеки), показываем понятную ошибку.
+- Все серверные модули — через `resolveCarrierCtx` (user-client + RLS).
+- `*.server.ts` импортируется только внутри API-роутов; UI ничего серверного не тянет.
+- `process.env.*` — только внутри handler'ов.
+- `carrier_my_ext_id()` RPC переиспользуем.
+- Для forwarder/dispatcher API — новые helpers `resolveForwarderCtx`, `resolveDispatcherCtx` (минимальные, по аналогии).
+- В новых таблицах — `update_updated_at_column` триггер.
 
-## 8. Проверки
-- `tsc --noEmit` после правок.
-- `npm run build` (через harness).
-- Ручной smoke в preview: загрузка листа → выделение → удаление фона → подпись pdf → drag в редакторе → сохранение → видно в trip documents.
+### Объём
 
-## 9. Out of scope
-ЭДО, КЭП/УКЭП, OCR сканов, авто-определение печати CV-моделью, batch-подписание, изменения в /carrier/register, /driver/* кроме просмотра документа, новые роли, изменения старой логистики/склада/QR/кассы/ATI/AI-поиска, nginx/PM2/DNS/storage proxy.
+Примерно: 1 миграция, ~6 серверных модулей, ~15 API-роутов, ~13 UI-компонентов, изменения в 5-6 существующих файлах. Один пакет.
 
-## 10. Готовность
-Только после переноса на VPS и ручной проверки на radius-track.ru.
+### На следующий этап остаётся
 
----
-
-## Технические детали (для разработчика)
-
-### Структура файлов
-```
-src/server/signatures/
-  image.server.ts        // crop + bg removal (jsquash)
-  pdf-sign.server.ts     // pdf-lib: embed + place
-  storage.server.ts      // signed URLs, uploads через user-client
-src/lib/signatures/
-  schemas.ts             // zod: BBox, Placement, BgRemoval
-  api.ts                 // тонкие клиенты для fetch
-src/routes/api/carrier/signature-assets.ts
-src/routes/api/carrier/signature-assets.$id.ts
-src/routes/api/carrier/signature-assets.$id.process.ts
-src/routes/api/dispatcher/inbound-documents.$id.sign-preview.ts
-src/routes/api/dispatcher/inbound-documents.$id.sign-confirm.ts
-src/routes/api/dispatcher/inbound-documents.$id.manual-signed-upload.ts
-src/routes/api/carrier/inbound-documents.$id.sign-preview.ts
-src/routes/api/carrier/inbound-documents.$id.sign-confirm.ts
-src/routes/api/carrier/inbound-documents.$id.manual-signed-upload.ts
-src/routes/carrier.signature-settings.tsx
-src/components/signatures/SignatureAssetEditor.tsx   // canvas crop + bg sliders
-src/components/signatures/SignaturePlacementEditor.tsx // pdf overlay + drag/inputs
-src/components/dispatcher/InboundSignatureBlock.tsx
-src/components/carrier/CarrierSignatureStatusCard.tsx
-```
-
-### Схема placement
-```ts
-type Placement = {
-  page: number;          // 1-based
-  stamp:     { x: number; y: number; w: number }; // PDF pt, h = w * aspect
-  signature: { x: number; y: number; w: number };
-};
-```
-
-### Поиск якоря перевозчика (псевдокод)
-```
-for page in pages:
-  text = extractText(page)
-  hasCarrier  = matches(text, ["Перевозчик","Исполнитель-перевозчик", carrierName, carrierInn])
-  hasCustomer = matches(text, ["Заказчик","Грузовладелец"])
-  if hasCarrier:
-    side = (hasCustomer ? "bottom-right" : "bottom")
-    return { page, anchor: side, confidence: hasCarrier.score }
-return { page: lastPage, anchor: "bottom-right", needsManual: true }
-```
-
-### Удаление фона (псевдокод)
-```
-for each px (r,g,b):
-  l = 0.299r+0.587g+0.114b
-  if l >= hi(245):      a = 0
-  elif l >= lo(210):    a = round(255 * (hi - l)/(hi - lo))
-  else:                 a = 255; (r,g,b) = boostContrast(r,g,b, k)
-```
-
+- Реальная live-интеграция Saby (HTTP, OAuth).
+- Реальный 1С-коннектор.
+- Реальная подпись КЭП/Госключ/МЧД.
+- Реальный QR ГИС ЭПД.
+- Live-проверка ГосЛог по официальному API.

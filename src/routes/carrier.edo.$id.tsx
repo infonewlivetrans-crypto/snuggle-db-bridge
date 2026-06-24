@@ -11,6 +11,7 @@ import {
   type EdoDocStatus, type EdoParticipantRole, type EdoProvider,
 } from "@/lib/edo/constants";
 import { ArrowLeft, CheckCircle2, X, RefreshCcw, Send, ClipboardCheck } from "lucide-react";
+import { EpdScenarioWizard } from "@/components/edo/EpdScenarioWizard";
 
 export const Route = createFileRoute("/carrier/edo/$id")({
   head: () => ({ meta: [{ title: "Документ ЭТрН — Радиус Трек" }] }),
@@ -103,6 +104,9 @@ function CarrierEdoDocPage() {
       <Link to="/carrier/edo" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" />Назад к списку
       </Link>
+
+      <EpdScenarioWizard documentId={id} tripId={d.trip_id} />
+
 
       <Card>
         <CardHeader className="pb-2">

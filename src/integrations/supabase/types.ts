@@ -476,6 +476,7 @@ export type Database = {
           document_date: string | null
           document_type: Database["public"]["Enums"]["edo_doc_type"]
           driver_label: string | null
+          epd_context_snapshot: Json | null
           error_message: string | null
           export_to_1c_error: string | null
           export_to_1c_status: string | null
@@ -485,6 +486,7 @@ export type Database = {
           freight_id: string | null
           id: string
           integration_mode: string | null
+          is_training: boolean
           last_sync_status: string | null
           last_synced_at: string | null
           loading_at: string | null
@@ -505,6 +507,7 @@ export type Database = {
           saby_attachment_id: string | null
           saby_document_id: string | null
           saby_flk_errors: Json | null
+          scenario_id: string | null
           sent_at: string | null
           shipper_inn: string | null
           shipper_name: string | null
@@ -536,6 +539,7 @@ export type Database = {
           document_date?: string | null
           document_type?: Database["public"]["Enums"]["edo_doc_type"]
           driver_label?: string | null
+          epd_context_snapshot?: Json | null
           error_message?: string | null
           export_to_1c_error?: string | null
           export_to_1c_status?: string | null
@@ -545,6 +549,7 @@ export type Database = {
           freight_id?: string | null
           id?: string
           integration_mode?: string | null
+          is_training?: boolean
           last_sync_status?: string | null
           last_synced_at?: string | null
           loading_at?: string | null
@@ -565,6 +570,7 @@ export type Database = {
           saby_attachment_id?: string | null
           saby_document_id?: string | null
           saby_flk_errors?: Json | null
+          scenario_id?: string | null
           sent_at?: string | null
           shipper_inn?: string | null
           shipper_name?: string | null
@@ -596,6 +602,7 @@ export type Database = {
           document_date?: string | null
           document_type?: Database["public"]["Enums"]["edo_doc_type"]
           driver_label?: string | null
+          epd_context_snapshot?: Json | null
           error_message?: string | null
           export_to_1c_error?: string | null
           export_to_1c_status?: string | null
@@ -605,6 +612,7 @@ export type Database = {
           freight_id?: string | null
           id?: string
           integration_mode?: string | null
+          is_training?: boolean
           last_sync_status?: string | null
           last_synced_at?: string | null
           loading_at?: string | null
@@ -625,6 +633,7 @@ export type Database = {
           saby_attachment_id?: string | null
           saby_document_id?: string | null
           saby_flk_errors?: Json | null
+          scenario_id?: string | null
           sent_at?: string | null
           shipper_inn?: string | null
           shipper_name?: string | null
@@ -676,6 +685,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      carrier_epd_readiness: {
+        Row: {
+          carrier_ext_id: string
+          created_at: string
+          driver_has_smartphone: boolean
+          driver_qr_ready: boolean
+          edo_operator: string | null
+          edo_participant_id: string | null
+          has_1c: boolean
+          has_1c_edo: boolean
+          has_1c_epd: boolean
+          has_director_kep: boolean
+          has_mchd: boolean
+          id: string
+          last_checked_at: string | null
+          notes: string | null
+          onec_config: string | null
+          onec_epd_tariff: string | null
+          readiness_status: string
+          responsible_person: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_ext_id: string
+          created_at?: string
+          driver_has_smartphone?: boolean
+          driver_qr_ready?: boolean
+          edo_operator?: string | null
+          edo_participant_id?: string | null
+          has_1c?: boolean
+          has_1c_edo?: boolean
+          has_1c_epd?: boolean
+          has_director_kep?: boolean
+          has_mchd?: boolean
+          id?: string
+          last_checked_at?: string | null
+          notes?: string | null
+          onec_config?: string | null
+          onec_epd_tariff?: string | null
+          readiness_status?: string
+          responsible_person?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_ext_id?: string
+          created_at?: string
+          driver_has_smartphone?: boolean
+          driver_qr_ready?: boolean
+          edo_operator?: string | null
+          edo_participant_id?: string | null
+          has_1c?: boolean
+          has_1c_edo?: boolean
+          has_1c_epd?: boolean
+          has_director_kep?: boolean
+          has_mchd?: boolean
+          id?: string
+          last_checked_at?: string | null
+          notes?: string | null
+          onec_config?: string | null
+          onec_epd_tariff?: string | null
+          readiness_status?: string
+          responsible_person?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       carrier_invites: {
         Row: {
@@ -3667,6 +3742,114 @@ export type Database = {
           },
         ]
       }
+      edo_scenarios: {
+        Row: {
+          cargo_holder_role: string | null
+          carrier_ext_id: string
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          document_id: string | null
+          forwarder_id: string | null
+          forwarder_possession_mode: string | null
+          id: string
+          is_training: boolean
+          participants_json: Json
+          readiness_status: string
+          required_documents: Json
+          scenario_type: string
+          signing_plan_json: Json
+          trip_id: string | null
+          updated_at: string
+          validation_errors: Json
+          validation_warnings: Json
+        }
+        Insert: {
+          cargo_holder_role?: string | null
+          carrier_ext_id: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          document_id?: string | null
+          forwarder_id?: string | null
+          forwarder_possession_mode?: string | null
+          id?: string
+          is_training?: boolean
+          participants_json?: Json
+          readiness_status?: string
+          required_documents?: Json
+          scenario_type: string
+          signing_plan_json?: Json
+          trip_id?: string | null
+          updated_at?: string
+          validation_errors?: Json
+          validation_warnings?: Json
+        }
+        Update: {
+          cargo_holder_role?: string | null
+          carrier_ext_id?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          document_id?: string | null
+          forwarder_id?: string | null
+          forwarder_possession_mode?: string | null
+          id?: string
+          is_training?: boolean
+          participants_json?: Json
+          readiness_status?: string
+          required_documents?: Json
+          scenario_type?: string
+          signing_plan_json?: Json
+          trip_id?: string | null
+          updated_at?: string
+          validation_errors?: Json
+          validation_warnings?: Json
+        }
+        Relationships: []
+      }
+      edo_training_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          mistakes_json: Json
+          progress_percent: number
+          role: string
+          scenario_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          mistakes_json?: Json
+          progress_percent?: number
+          role: string
+          scenario_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          mistakes_json?: Json
+          progress_percent?: number
+          role?: string
+          scenario_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       external_refs: {
         Row: {
           created_at: string
@@ -3770,6 +3953,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      forwarder_goslog_status: {
+        Row: {
+          application_date: string | null
+          application_number: string | null
+          company_name: string | null
+          created_at: string
+          forwarder_id: string | null
+          goslog_status: string
+          has_okved_5229: boolean
+          id: string
+          included_at: string | null
+          inn: string | null
+          ogrn: string | null
+          okved_codes: Json
+          registry_number: string | null
+          source_url: string | null
+          updated_at: string
+          verification_comment: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          application_date?: string | null
+          application_number?: string | null
+          company_name?: string | null
+          created_at?: string
+          forwarder_id?: string | null
+          goslog_status?: string
+          has_okved_5229?: boolean
+          id?: string
+          included_at?: string | null
+          inn?: string | null
+          ogrn?: string | null
+          okved_codes?: Json
+          registry_number?: string | null
+          source_url?: string | null
+          updated_at?: string
+          verification_comment?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          application_date?: string | null
+          application_number?: string | null
+          company_name?: string | null
+          created_at?: string
+          forwarder_id?: string | null
+          goslog_status?: string
+          has_okved_5229?: boolean
+          id?: string
+          included_at?: string | null
+          inn?: string | null
+          ogrn?: string | null
+          okved_codes?: Json
+          registry_number?: string | null
+          source_url?: string | null
+          updated_at?: string
+          verification_comment?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
       }
       geocode_cache: {
         Row: {
