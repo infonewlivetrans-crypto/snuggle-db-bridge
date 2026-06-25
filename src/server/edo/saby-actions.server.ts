@@ -74,6 +74,40 @@ export async function sabyPrepareDocument(
     }
   }
 
+  // Снимок практических данных по ЭПД для аналитики/оператора (mock).
+  try {
+    const { summariseRemarks } = await import("@/server/edo/remarks.server");
+    const { countChanges } = await import("@/server/edo/changes.server");
+    const { getQrForDocument } = await import("@/server/edo/qr.server");
+    const remarks = await summariseRemarks(client, docId);
+    const changesCount = await countChanges(client, docId);
+    const qr = await getQrForDocument(client, docId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: readiness } = await (client.from("carrier_epd_readiness") as any)
+      .select("readiness_status").eq("carrier_ext_id", carrierExtId).maybeSingle();
+    let forwarderGoslog: string | null = null;
+    const forwarderId = (doc as { forwarder_id?: string | null }).forwarder_id ?? null;
+    if (forwarderId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: g } = await (client.from("forwarder_goslog_status") as any)
+        .select("goslog_status").eq("forwarder_id", forwarderId)
+        .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+      forwarderGoslog = (g?.goslog_status as string | null) ?? null;
+    }
+    const practice = {
+      cargo_remarks_count: remarks.total,
+      critical_remarks_count: remarks.critical,
+      route_changes_count: changesCount,
+      qr_mock_status: qr?.qr_status ?? null,
+      carrier_readiness_status: (readiness?.readiness_status as string | null) ?? null,
+      forwarder_goslog_status: forwarderGoslog,
+    };
+    epdContext = { ...(epdContext ?? {}), practice };
+  } catch {
+    /* practice snapshot — best-effort, не должен ломать prepare */
+  }
+
+
   const { draft, missing } = mapRadiusDocToSaby(doc as RadiusDocLike);
   if (missing.length) return { ok: false, missing };
   const payload = buildSabyDocumentPayload(draft);
