@@ -420,3 +420,19 @@ function TripDetailPage() {
     </div>
   );
 }
+
+// Mock QR-блок для водителя: ищет первый ЭПД-документ по trip_id.
+function DriverTripQrSection({ tripId }: { tripId: string }) {
+  const q = useQuery({
+    queryKey: ["driver", "edo-qr-list"],
+    queryFn: () => apiGetAuth<{ rows: Array<{ document_id: string; trip_id: string | null }> }>("/api/driver/edo/qr"),
+  });
+  const docId = q.data?.rows.find((r) => r.trip_id === tripId)?.document_id ?? null;
+  if (q.isLoading) return null;
+  if (!docId) return null;
+  return (
+    <section className="rounded-lg border border-border bg-card p-3">
+      <DriverQrMockBlock documentId={docId} />
+    </section>
+  );
+}
