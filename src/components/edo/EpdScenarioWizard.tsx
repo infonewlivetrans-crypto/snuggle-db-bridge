@@ -1,6 +1,7 @@
 // Мастер ЭПД — компактный мульти-шаг для выбора сценария, участников,
 // валидации и создания заготовок документов. Встраивается в карточку ЭДО.
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
