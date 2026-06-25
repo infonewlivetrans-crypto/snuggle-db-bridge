@@ -338,6 +338,9 @@ function TripDetailPage() {
           </section>
         )}
 
+        {/* QR для проверки ГИБДД (тестовый, без ГИС ЭПД) */}
+        <DriverTripQrSection tripId={trip.id} />
+
         {/* Документы */}
         <section className="rounded-lg border border-border bg-card p-3">
           <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
