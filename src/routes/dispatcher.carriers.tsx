@@ -25,6 +25,7 @@ import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocu
 import { DispatcherCarrierRequestsBlock } from "@/components/dispatcher/DispatcherCarrierRequestsBlock";
 import { CityCombobox } from "@/components/common/CityCombobox";
 import { CarrierContractAcceptanceBlock } from "@/components/dispatcher/CarrierContractAcceptanceBlock";
+import { DispatcherCarrierEpdReadinessSummary } from "@/components/edo/DispatcherCarrierEpdReadinessSummary";
 import { carriersApi, driversApi, vehiclesApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
@@ -462,6 +463,12 @@ function CarrierViewBody({
       <Section title="Документы">
         <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
       </Section>
+
+      {/* ЭПД-готовность перевозчика (read-only) */}
+      <Section title="Готовность к ЭПД">
+        <DispatcherCarrierEpdReadinessSummary carrierExtId={row.id} />
+      </Section>
+
 
       {/* 8. Водители перевозчика */}
       <Section title={`Водители (${drivers.length})`}>

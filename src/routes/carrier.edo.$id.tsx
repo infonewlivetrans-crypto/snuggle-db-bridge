@@ -12,6 +12,8 @@ import {
 } from "@/lib/edo/constants";
 import { ArrowLeft, CheckCircle2, X, RefreshCcw, Send, ClipboardCheck } from "lucide-react";
 import { EpdScenarioWizard } from "@/components/edo/EpdScenarioWizard";
+import { CargoAcceptanceRemarksBlock } from "@/components/edo/CargoAcceptanceRemarksBlock";
+import { EpdRouteChangesBlock } from "@/components/edo/EpdRouteChangesBlock";
 
 export const Route = createFileRoute("/carrier/edo/$id")({
   head: () => ({ meta: [{ title: "Документ ЭТрН — Радиус Трек" }] }),
@@ -106,6 +108,18 @@ function CarrierEdoDocPage() {
       </Link>
 
       <EpdScenarioWizard documentId={id} tripId={d.trip_id} />
+
+      <CargoAcceptanceRemarksBlock
+        documentId={id}
+        isTraining={Boolean((d as unknown as { is_training?: boolean }).is_training)}
+      />
+
+      <EpdRouteChangesBlock
+        documentId={id}
+        isTraining={Boolean((d as unknown as { is_training?: boolean }).is_training)}
+      />
+
+
 
 
       <Card>

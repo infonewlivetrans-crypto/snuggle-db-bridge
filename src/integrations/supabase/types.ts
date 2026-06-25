@@ -3742,6 +3742,201 @@ export type Database = {
           },
         ]
       }
+      edo_document_changes: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          carrier_ext_id: string
+          change_type: string
+          created_at: string
+          document_id: string
+          id: string
+          is_training: boolean
+          new_value_json: Json
+          old_value_json: Json
+          operator_status: string | null
+          reason: string | null
+          requested_by: string | null
+          requested_by_role: string | null
+          saby_action_hint: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          carrier_ext_id: string
+          change_type: string
+          created_at?: string
+          document_id: string
+          id?: string
+          is_training?: boolean
+          new_value_json?: Json
+          old_value_json?: Json
+          operator_status?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          requested_by_role?: string | null
+          saby_action_hint?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          carrier_ext_id?: string
+          change_type?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          is_training?: boolean
+          new_value_json?: Json
+          old_value_json?: Json
+          operator_status?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          requested_by_role?: string | null
+          saby_action_hint?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edo_document_changes_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edo_document_qr_mock: {
+        Row: {
+          carrier_ext_id: string
+          created_at: string
+          document_id: string
+          driver_id: string | null
+          id: string
+          is_mock: boolean
+          last_opened_by_driver_at: string | null
+          qr_cached_at: string | null
+          qr_generated_at: string
+          qr_offline_available: boolean
+          qr_payload: Json
+          qr_status: string
+          qr_uid: string
+          trip_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_ext_id: string
+          created_at?: string
+          document_id: string
+          driver_id?: string | null
+          id?: string
+          is_mock?: boolean
+          last_opened_by_driver_at?: string | null
+          qr_cached_at?: string | null
+          qr_generated_at?: string
+          qr_offline_available?: boolean
+          qr_payload?: Json
+          qr_status?: string
+          qr_uid: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_ext_id?: string
+          created_at?: string
+          document_id?: string
+          driver_id?: string | null
+          id?: string
+          is_mock?: boolean
+          last_opened_by_driver_at?: string | null
+          qr_cached_at?: string | null
+          qr_generated_at?: string
+          qr_offline_available?: boolean
+          qr_payload?: Json
+          qr_status?: string
+          qr_uid?: string
+          trip_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edo_document_qr_mock_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edo_document_remarks: {
+        Row: {
+          attachments_json: Json
+          carrier_ext_id: string
+          created_at: string
+          created_by: string | null
+          created_by_role: string | null
+          document_id: string
+          id: string
+          is_training: boolean
+          quantity_actual: number | null
+          quantity_expected: number | null
+          remark_text: string | null
+          remark_type: string
+          severity: string
+          updated_at: string
+          weight_actual: number | null
+          weight_expected: number | null
+        }
+        Insert: {
+          attachments_json?: Json
+          carrier_ext_id: string
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          document_id: string
+          id?: string
+          is_training?: boolean
+          quantity_actual?: number | null
+          quantity_expected?: number | null
+          remark_text?: string | null
+          remark_type: string
+          severity?: string
+          updated_at?: string
+          weight_actual?: number | null
+          weight_expected?: number | null
+        }
+        Update: {
+          attachments_json?: Json
+          carrier_ext_id?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_role?: string | null
+          document_id?: string
+          id?: string
+          is_training?: boolean
+          quantity_actual?: number | null
+          quantity_expected?: number | null
+          remark_text?: string | null
+          remark_type?: string
+          severity?: string
+          updated_at?: string
+          weight_actual?: number | null
+          weight_expected?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edo_document_remarks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edo_scenarios: {
         Row: {
           cargo_holder_role: string | null

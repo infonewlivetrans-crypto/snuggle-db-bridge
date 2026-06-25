@@ -26,6 +26,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useDriverTripExecutionEnabled } from "@/lib/mvp-features";
+import { DriverQrMockBlock } from "@/components/edo/DriverQrMockBlock";
 
 export const Route = createFileRoute("/driver/trip/$tripId")({
   head: () => ({
@@ -337,6 +338,9 @@ function TripDetailPage() {
           </section>
         )}
 
+        {/* QR для проверки ГИБДД (тестовый, без ГИС ЭПД) */}
+        <DriverTripQrSection tripId={trip.id} />
+
         {/* Документы */}
         <section className="rounded-lg border border-border bg-card p-3">
           <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
@@ -414,5 +418,21 @@ function TripDetailPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Mock QR-блок для водителя: ищет первый ЭПД-документ по trip_id.
+function DriverTripQrSection({ tripId }: { tripId: string }) {
+  const q = useQuery({
+    queryKey: ["driver", "edo-qr-list"],
+    queryFn: () => apiGetAuth<{ rows: Array<{ document_id: string; trip_id: string | null }> }>("/api/driver/edo/qr"),
+  });
+  const docId = q.data?.rows.find((r) => r.trip_id === tripId)?.document_id ?? null;
+  if (q.isLoading) return null;
+  if (!docId) return null;
+  return (
+    <section className="rounded-lg border border-border bg-card p-3">
+      <DriverQrMockBlock documentId={docId} />
+    </section>
   );
 }
