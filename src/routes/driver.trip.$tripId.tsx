@@ -26,6 +26,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useDriverTripExecutionEnabled } from "@/lib/mvp-features";
+import { DriverQrMockBlock } from "@/components/edo/DriverQrMockBlock";
 
 export const Route = createFileRoute("/driver/trip/$tripId")({
   head: () => ({
