@@ -232,10 +232,13 @@ export function EpdScenarioWizard({
           }
         </div>
 
+        {scenarioId && documentId && <PracticeSummary documentId={documentId} />}
+
         <p className="text-xs text-muted-foreground">
           ЭДО/ЭПД — это не просто подпись. Нужны оператор, КЭП/МЧД, участники, документы и понятный процесс.
           1С-ЭПД — один из вариантов, если компания работает через 1С.
         </p>
+
       </CardContent>
     </Card>
   );
