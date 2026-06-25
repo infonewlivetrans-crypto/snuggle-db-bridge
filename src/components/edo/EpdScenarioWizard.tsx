@@ -245,3 +245,49 @@ export function EpdScenarioWizard({
 }
 
 export { EPD_SCENARIO_CATALOG };
+
+// Сводка по практическим блокам после выбора сценария.
+function PracticeSummary({ documentId }: { documentId: string }) {
+  const remarks = useQuery({
+    queryKey: ["edo", "remarks", documentId],
+    queryFn: () =>
+      apiGetAuth<{ rows: Array<{ severity: "info" | "warning" | "critical" }> }>(
+        `/api/carrier/edo/documents/${documentId}/remarks`,
+      ),
+  });
+  const changes = useQuery({
+    queryKey: ["edo", "changes", documentId],
+    queryFn: () =>
+      apiGetAuth<{ rows: Array<{ id: string }> }>(
+        `/api/carrier/edo/documents/${documentId}/changes`,
+      ),
+  });
+  const qr = useQuery({
+    queryKey: ["edo", "qr-carrier", documentId],
+    queryFn: () =>
+      apiGetAuth<{ row: { qr_status: string } | null }>(
+        `/api/carrier/edo/documents/${documentId}/qr`,
+      ),
+  });
+  const total = remarks.data?.rows.length ?? 0;
+  const critical = (remarks.data?.rows ?? []).filter(r => r.severity === "critical").length;
+  const changeCount = changes.data?.rows.length ?? 0;
+  const qrStatus = qr.data?.row?.qr_status ?? null;
+  return (
+    <div className="rounded-md border p-2 text-xs space-y-1 bg-muted/30">
+      <div className="font-medium">Практические блоки</div>
+      <div className="flex flex-wrap gap-1.5">
+        <Badge variant={critical > 0 ? "destructive" : "outline"}>
+          Замечания: {total}{critical ? ` (крит. ${critical})` : ""}
+        </Badge>
+        <Badge variant="outline">Изменения по рейсу: {changeCount}</Badge>
+        <Badge variant={qrStatus ? "default" : "outline"}>
+          QR водителю: {qrStatus ?? "нет"}
+        </Badge>
+      </div>
+      <p className="text-muted-foreground">
+        Готовность перевозчика и ГосЛог экспедитора проверьте в соответствующих разделах.
+      </p>
+    </div>
+  );
+}
