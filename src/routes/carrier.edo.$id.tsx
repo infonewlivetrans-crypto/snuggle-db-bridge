@@ -109,6 +109,18 @@ function CarrierEdoDocPage() {
 
       <EpdScenarioWizard documentId={id} tripId={d.trip_id} />
 
+      <CargoAcceptanceRemarksBlock
+        documentId={id}
+        isTraining={Boolean((d as unknown as { is_training?: boolean }).is_training)}
+      />
+
+      <EpdRouteChangesBlock
+        documentId={id}
+        isTraining={Boolean((d as unknown as { is_training?: boolean }).is_training)}
+      />
+
+
+
 
       <Card>
         <CardHeader className="pb-2">
