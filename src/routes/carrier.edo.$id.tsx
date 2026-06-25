@@ -12,6 +12,8 @@ import {
 } from "@/lib/edo/constants";
 import { ArrowLeft, CheckCircle2, X, RefreshCcw, Send, ClipboardCheck } from "lucide-react";
 import { EpdScenarioWizard } from "@/components/edo/EpdScenarioWizard";
+import { CargoAcceptanceRemarksBlock } from "@/components/edo/CargoAcceptanceRemarksBlock";
+import { EpdRouteChangesBlock } from "@/components/edo/EpdRouteChangesBlock";
 
 export const Route = createFileRoute("/carrier/edo/$id")({
   head: () => ({ meta: [{ title: "Документ ЭТрН — Радиус Трек" }] }),
