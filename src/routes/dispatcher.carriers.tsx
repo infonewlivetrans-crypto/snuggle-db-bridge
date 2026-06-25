@@ -464,6 +464,12 @@ function CarrierViewBody({
         <DispatcherDocumentsBlock ownerType="carrier" ownerId={row.id} />
       </Section>
 
+      {/* ЭПД-готовность перевозчика (read-only) */}
+      <Section title="Готовность к ЭПД">
+        <DispatcherCarrierEpdReadinessSummary carrierExtId={row.id} />
+      </Section>
+
+
       {/* 8. Водители перевозчика */}
       <Section title={`Водители (${drivers.length})`}>
         {drivers.length === 0 ? (
