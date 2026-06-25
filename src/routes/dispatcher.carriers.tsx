@@ -25,6 +25,7 @@ import { DispatcherDocumentsBlock } from "@/components/dispatcher/DispatcherDocu
 import { DispatcherCarrierRequestsBlock } from "@/components/dispatcher/DispatcherCarrierRequestsBlock";
 import { CityCombobox } from "@/components/common/CityCombobox";
 import { CarrierContractAcceptanceBlock } from "@/components/dispatcher/CarrierContractAcceptanceBlock";
+import { DispatcherCarrierEpdReadinessSummary } from "@/components/edo/DispatcherCarrierEpdReadinessSummary";
 import { carriersApi, driversApi, vehiclesApi } from "@/lib/dispatcher/api";
 import type { CarrierDTO, DriverDTO, VehicleDTO } from "@/lib/dispatcher/types";
 import type { CarrierCreateInput } from "@/lib/dispatcher/schemas";
