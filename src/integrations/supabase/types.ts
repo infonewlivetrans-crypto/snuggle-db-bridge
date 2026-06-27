@@ -2412,6 +2412,69 @@ export type Database = {
           },
         ]
       }
+      dispatcher_forwarder_ext: {
+        Row: {
+          archived_at: string | null
+          city: string | null
+          company_name: string
+          contact_person: string | null
+          created_at: string
+          created_by: string | null
+          dispatcher_comment: string | null
+          email: string | null
+          has_okved_5229: boolean
+          id: string
+          inn: string | null
+          legal_form: string | null
+          ogrn: string | null
+          okved_codes: Json
+          phone: string | null
+          status: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          city?: string | null
+          company_name: string
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          dispatcher_comment?: string | null
+          email?: string | null
+          has_okved_5229?: boolean
+          id?: string
+          inn?: string | null
+          legal_form?: string | null
+          ogrn?: string | null
+          okved_codes?: Json
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          city?: string | null
+          company_name?: string
+          contact_person?: string | null
+          created_at?: string
+          created_by?: string | null
+          dispatcher_comment?: string | null
+          email?: string | null
+          has_okved_5229?: boolean
+          id?: string
+          inn?: string | null
+          legal_form?: string | null
+          ogrn?: string | null
+          okved_codes?: Json
+          phone?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       dispatcher_freights: {
         Row: {
           assigned_carrier_ext_id: string | null
