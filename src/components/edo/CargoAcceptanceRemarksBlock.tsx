@@ -249,9 +249,40 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
               <Label>Комментарий</Label>
               <Textarea value={text} onChange={e => setText(e.target.value)} rows={2} />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Фото будет добавлено на следующем этапе.
-            </p>
+            <div className="space-y-1.5">
+              <Label>Фото / вложения</Label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={e => onPickFiles(e.target.files)}
+                className="block text-xs"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Фото помогает подтвердить состояние груза при приёмке и может пригодиться при споре.
+                Загрузка фото пока выполняется в mock-режиме (без storage) — будет подключена через storage на следующем этапе.
+              </p>
+              {photos.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {photos.map((p, i) => (
+                    <div key={i} className="border rounded p-1 bg-background text-[10px] relative">
+                      {p.preview_data_url ? (
+                        <img src={p.preview_data_url} alt={p.name}
+                          className="h-14 w-14 object-cover rounded" />
+                      ) : (
+                        <div className="h-14 w-14 flex items-center justify-center bg-muted rounded">📎</div>
+                      )}
+                      <div className="max-w-[80px] truncate" title={p.name}>{p.name}</div>
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full h-5 w-5 text-xs"
+                        onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <Button size="sm" onClick={() => create.mutate()} disabled={create.isPending}>
               Добавить замечание
             </Button>
