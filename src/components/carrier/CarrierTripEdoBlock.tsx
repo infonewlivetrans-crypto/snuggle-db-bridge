@@ -105,35 +105,35 @@ export function CarrierTripEdoBlock({ deal }: Props) {
             Пока нет ЭДО-документов по этому рейсу.
           </div>
         ) : (
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {docs.map(d => (
-              <Link
-                key={d.id}
-                to="/carrier/edo/$id"
-                params={{ id: d.id }}
-                className="block rounded-md border bg-background p-2 hover:bg-muted/40 transition-colors"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="secondary">
-                      {d.document_type === "etrn" ? "ЭТрН" : (d.document_type ?? "Документ")}
-                    </Badge>
-                    <Badge variant={edoDocStatusVariant(d.status)}>
-                      {EDO_DOC_STATUS_LABEL[d.status] ?? d.status}
-                    </Badge>
-                    <Badge variant="outline">Создан из рейса</Badge>
-                    <span className="font-medium">
-                      {d.title ?? "ЭТрН"}
-                    </span>
+              <div key={d.id} className="space-y-1.5">
+                <Link
+                  to="/carrier/edo/$id"
+                  params={{ id: d.id }}
+                  className="block rounded-md border bg-background p-2 hover:bg-muted/40 transition-colors"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="secondary">
+                        {d.document_type === "etrn" ? "ЭТрН" : (d.document_type ?? "Документ")}
+                      </Badge>
+                      <Badge variant={edoDocStatusVariant(d.status)}>
+                        {EDO_DOC_STATUS_LABEL[d.status] ?? d.status}
+                      </Badge>
+                      <Badge variant="outline">Создан из рейса</Badge>
+                      <span className="font-medium">{d.title ?? "ЭТрН"}</span>
+                    </div>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
                   </div>
-                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
-                </div>
-                <div className="mt-1 text-[11px] text-muted-foreground">
-                  {d.shipper_name ?? "—"} → {d.consignee_name ?? "—"}
-                  {" · "}
-                  {new Date(d.created_at).toLocaleString("ru-RU")}
-                </div>
-              </Link>
+                  <div className="mt-1 text-[11px] text-muted-foreground">
+                    {d.shipper_name ?? "—"} → {d.consignee_name ?? "—"}
+                    {" · "}
+                    {new Date(d.created_at).toLocaleString("ru-RU")}
+                  </div>
+                </Link>
+                <TripEpdPracticeSummary documentId={d.id} title={d.title} />
+              </div>
             ))}
           </div>
         )}
