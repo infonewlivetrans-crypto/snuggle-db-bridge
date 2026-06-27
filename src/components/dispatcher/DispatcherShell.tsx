@@ -45,6 +45,7 @@ const NAV: readonly NavItem[] = [
   { to: "/dispatcher/freights", label: "Найденные грузы", icon: PackageSearch },
   { to: "/dispatcher/inbound-documents", label: "Входящие заявки", icon: Inbox },
   { to: "/dispatcher/carriers", label: "Перевозчики", icon: Building2 },
+  { to: "/dispatcher/forwarders", label: "Экспедиторы", icon: Building2 },
   { to: "/dispatcher/drivers", label: "Водители", icon: User },
   { to: "/dispatcher/vehicles", label: "Транспорт", icon: Truck },
   { to: "/dispatcher/deals", label: "Рейсы / Сделки", icon: Briefcase },

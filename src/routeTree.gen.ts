@@ -81,6 +81,7 @@ import { Route as DispatcherMapRouteImport } from './routes/dispatcher.map'
 import { Route as DispatcherJoinRouteImport } from './routes/dispatcher.join'
 import { Route as DispatcherInboundDocumentsRouteImport } from './routes/dispatcher.inbound-documents'
 import { Route as DispatcherFreightsRouteImport } from './routes/dispatcher.freights'
+import { Route as DispatcherForwardersRouteImport } from './routes/dispatcher.forwarders'
 import { Route as DispatcherDriversRouteImport } from './routes/dispatcher.drivers'
 import { Route as DispatcherDocumentsRouteImport } from './routes/dispatcher.documents'
 import { Route as DispatcherDealsRouteImport } from './routes/dispatcher.deals'
@@ -256,6 +257,7 @@ import { Route as ApiDispatcherInvitesRouteImport } from './routes/api/dispatche
 import { Route as ApiDispatcherInboundDocumentsRouteImport } from './routes/api/dispatcher/inbound-documents'
 import { Route as ApiDispatcherFreightsRouteImport } from './routes/api/dispatcher/freights'
 import { Route as ApiDispatcherFreeVehiclesRouteImport } from './routes/api/dispatcher/free-vehicles'
+import { Route as ApiDispatcherForwardersExtRouteImport } from './routes/api/dispatcher/forwarders-ext'
 import { Route as ApiDispatcherDriversRouteImport } from './routes/api/dispatcher/drivers'
 import { Route as ApiDispatcherDocumentsRouteImport } from './routes/api/dispatcher/documents'
 import { Route as ApiDispatcherDocsRouteImport } from './routes/api/dispatcher/docs'
@@ -322,6 +324,7 @@ import { Route as ApiDispatcherInboundDocumentsIdRouteImport } from './routes/ap
 import { Route as ApiDispatcherFreightsFromEmailRouteImport } from './routes/api/dispatcher/freights.from-email'
 import { Route as ApiDispatcherFreightsCreateCarrierRequestBatchRouteImport } from './routes/api/dispatcher/freights.create-carrier-request-batch'
 import { Route as ApiDispatcherFreightsIdRouteImport } from './routes/api/dispatcher/freights.$id'
+import { Route as ApiDispatcherForwardersExtIdRouteImport } from './routes/api/dispatcher/forwarders-ext.$id'
 import { Route as ApiDispatcherDriversIdRouteImport } from './routes/api/dispatcher/drivers.$id'
 import { Route as ApiDispatcherDocumentsUploadRouteImport } from './routes/api/dispatcher/documents.upload'
 import { Route as ApiDispatcherDocumentsIdRouteImport } from './routes/api/dispatcher/documents.$id'
@@ -786,6 +789,11 @@ const DispatcherInboundDocumentsRoute =
 const DispatcherFreightsRoute = DispatcherFreightsRouteImport.update({
   id: '/dispatcher/freights',
   path: '/dispatcher/freights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DispatcherForwardersRoute = DispatcherForwardersRouteImport.update({
+  id: '/dispatcher/forwarders',
+  path: '/dispatcher/forwarders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DispatcherDriversRoute = DispatcherDriversRouteImport.update({
@@ -1687,6 +1695,12 @@ const ApiDispatcherFreeVehiclesRoute =
     path: '/api/dispatcher/free-vehicles',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherForwardersExtRoute =
+  ApiDispatcherForwardersExtRouteImport.update({
+    id: '/api/dispatcher/forwarders-ext',
+    path: '/api/dispatcher/forwarders-ext',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherDriversRoute = ApiDispatcherDriversRouteImport.update({
   id: '/api/dispatcher/drivers',
   path: '/api/dispatcher/drivers',
@@ -2047,6 +2061,12 @@ const ApiDispatcherFreightsIdRoute = ApiDispatcherFreightsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiDispatcherFreightsRoute,
 } as any)
+const ApiDispatcherForwardersExtIdRoute =
+  ApiDispatcherForwardersExtIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiDispatcherForwardersExtRoute,
+  } as any)
 const ApiDispatcherDriversIdRoute = ApiDispatcherDriversIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -2794,6 +2814,7 @@ export interface FileRoutesByFullPath {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
+  '/dispatcher/forwarders': typeof DispatcherForwardersRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
   '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
@@ -2868,6 +2889,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/docs': typeof ApiDispatcherDocsRoute
   '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
+  '/api/dispatcher/forwarders-ext': typeof ApiDispatcherForwardersExtRouteWithChildren
   '/api/dispatcher/free-vehicles': typeof ApiDispatcherFreeVehiclesRoute
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/inbound-documents': typeof ApiDispatcherInboundDocumentsRouteWithChildren
@@ -2969,6 +2991,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
@@ -3211,6 +3234,7 @@ export interface FileRoutesByTo {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
+  '/dispatcher/forwarders': typeof DispatcherForwardersRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
   '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
@@ -3285,6 +3309,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/docs': typeof ApiDispatcherDocsRoute
   '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
+  '/api/dispatcher/forwarders-ext': typeof ApiDispatcherForwardersExtRouteWithChildren
   '/api/dispatcher/free-vehicles': typeof ApiDispatcherFreeVehiclesRoute
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/inbound-documents': typeof ApiDispatcherInboundDocumentsRouteWithChildren
@@ -3386,6 +3411,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
@@ -3630,6 +3656,7 @@ export interface FileRoutesById {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
+  '/dispatcher/forwarders': typeof DispatcherForwardersRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
   '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
@@ -3704,6 +3731,7 @@ export interface FileRoutesById {
   '/api/dispatcher/docs': typeof ApiDispatcherDocsRoute
   '/api/dispatcher/documents': typeof ApiDispatcherDocumentsRouteWithChildren
   '/api/dispatcher/drivers': typeof ApiDispatcherDriversRouteWithChildren
+  '/api/dispatcher/forwarders-ext': typeof ApiDispatcherForwardersExtRouteWithChildren
   '/api/dispatcher/free-vehicles': typeof ApiDispatcherFreeVehiclesRoute
   '/api/dispatcher/freights': typeof ApiDispatcherFreightsRouteWithChildren
   '/api/dispatcher/inbound-documents': typeof ApiDispatcherInboundDocumentsRouteWithChildren
@@ -3805,6 +3833,7 @@ export interface FileRoutesById {
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
+  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRoute
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
@@ -4050,6 +4079,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
+    | '/dispatcher/forwarders'
     | '/dispatcher/freights'
     | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
@@ -4124,6 +4154,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/docs'
     | '/api/dispatcher/documents'
     | '/api/dispatcher/drivers'
+    | '/api/dispatcher/forwarders-ext'
     | '/api/dispatcher/free-vehicles'
     | '/api/dispatcher/freights'
     | '/api/dispatcher/inbound-documents'
@@ -4225,6 +4256,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/$id'
     | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/forwarders-ext/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
@@ -4467,6 +4499,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
+    | '/dispatcher/forwarders'
     | '/dispatcher/freights'
     | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
@@ -4541,6 +4574,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/docs'
     | '/api/dispatcher/documents'
     | '/api/dispatcher/drivers'
+    | '/api/dispatcher/forwarders-ext'
     | '/api/dispatcher/free-vehicles'
     | '/api/dispatcher/freights'
     | '/api/dispatcher/inbound-documents'
@@ -4642,6 +4676,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/$id'
     | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/forwarders-ext/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
@@ -4885,6 +4920,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
+    | '/dispatcher/forwarders'
     | '/dispatcher/freights'
     | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
@@ -4959,6 +4995,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/docs'
     | '/api/dispatcher/documents'
     | '/api/dispatcher/drivers'
+    | '/api/dispatcher/forwarders-ext'
     | '/api/dispatcher/free-vehicles'
     | '/api/dispatcher/freights'
     | '/api/dispatcher/inbound-documents'
@@ -5060,6 +5097,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/documents/$id'
     | '/api/dispatcher/documents/upload'
     | '/api/dispatcher/drivers/$id'
+    | '/api/dispatcher/forwarders-ext/$id'
     | '/api/dispatcher/freights/$id'
     | '/api/dispatcher/freights/create-carrier-request-batch'
     | '/api/dispatcher/freights/from-email'
@@ -5295,6 +5333,7 @@ export interface RootRouteChildren {
   DispatcherDealsRoute: typeof DispatcherDealsRoute
   DispatcherDocumentsRoute: typeof DispatcherDocumentsRoute
   DispatcherDriversRoute: typeof DispatcherDriversRoute
+  DispatcherForwardersRoute: typeof DispatcherForwardersRoute
   DispatcherFreightsRoute: typeof DispatcherFreightsRoute
   DispatcherInboundDocumentsRoute: typeof DispatcherInboundDocumentsRouteWithChildren
   DispatcherJoinRoute: typeof DispatcherJoinRoute
@@ -5362,6 +5401,7 @@ export interface RootRouteChildren {
   ApiDispatcherDocsRoute: typeof ApiDispatcherDocsRoute
   ApiDispatcherDocumentsRoute: typeof ApiDispatcherDocumentsRouteWithChildren
   ApiDispatcherDriversRoute: typeof ApiDispatcherDriversRouteWithChildren
+  ApiDispatcherForwardersExtRoute: typeof ApiDispatcherForwardersExtRouteWithChildren
   ApiDispatcherFreeVehiclesRoute: typeof ApiDispatcherFreeVehiclesRoute
   ApiDispatcherFreightsRoute: typeof ApiDispatcherFreightsRouteWithChildren
   ApiDispatcherInboundDocumentsRoute: typeof ApiDispatcherInboundDocumentsRouteWithChildren
@@ -5925,6 +5965,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/freights'
       fullPath: '/dispatcher/freights'
       preLoaderRoute: typeof DispatcherFreightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/forwarders': {
+      id: '/dispatcher/forwarders'
+      path: '/dispatcher/forwarders'
+      fullPath: '/dispatcher/forwarders'
+      preLoaderRoute: typeof DispatcherForwardersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dispatcher/drivers': {
@@ -7152,6 +7199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherFreeVehiclesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/forwarders-ext': {
+      id: '/api/dispatcher/forwarders-ext'
+      path: '/api/dispatcher/forwarders-ext'
+      fullPath: '/api/dispatcher/forwarders-ext'
+      preLoaderRoute: typeof ApiDispatcherForwardersExtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/drivers': {
       id: '/api/dispatcher/drivers'
       path: '/api/dispatcher/drivers'
@@ -7613,6 +7667,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/dispatcher/freights/$id'
       preLoaderRoute: typeof ApiDispatcherFreightsIdRouteImport
       parentRoute: typeof ApiDispatcherFreightsRoute
+    }
+    '/api/dispatcher/forwarders-ext/$id': {
+      id: '/api/dispatcher/forwarders-ext/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/forwarders-ext/$id'
+      preLoaderRoute: typeof ApiDispatcherForwardersExtIdRouteImport
+      parentRoute: typeof ApiDispatcherForwardersExtRoute
     }
     '/api/dispatcher/drivers/$id': {
       id: '/api/dispatcher/drivers/$id'
@@ -9186,6 +9247,20 @@ const ApiDispatcherDriversRouteChildren: ApiDispatcherDriversRouteChildren = {
 const ApiDispatcherDriversRouteWithChildren =
   ApiDispatcherDriversRoute._addFileChildren(ApiDispatcherDriversRouteChildren)
 
+interface ApiDispatcherForwardersExtRouteChildren {
+  ApiDispatcherForwardersExtIdRoute: typeof ApiDispatcherForwardersExtIdRoute
+}
+
+const ApiDispatcherForwardersExtRouteChildren: ApiDispatcherForwardersExtRouteChildren =
+  {
+    ApiDispatcherForwardersExtIdRoute: ApiDispatcherForwardersExtIdRoute,
+  }
+
+const ApiDispatcherForwardersExtRouteWithChildren =
+  ApiDispatcherForwardersExtRoute._addFileChildren(
+    ApiDispatcherForwardersExtRouteChildren,
+  )
+
 interface ApiDispatcherFreightsIdRouteChildren {
   ApiDispatcherFreightsIdCreateCarrierRequestRoute: typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   ApiDispatcherFreightsIdMatchVehiclesRoute: typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -9762,6 +9837,7 @@ const rootRouteChildren: RootRouteChildren = {
   DispatcherDealsRoute: DispatcherDealsRoute,
   DispatcherDocumentsRoute: DispatcherDocumentsRoute,
   DispatcherDriversRoute: DispatcherDriversRoute,
+  DispatcherForwardersRoute: DispatcherForwardersRoute,
   DispatcherFreightsRoute: DispatcherFreightsRoute,
   DispatcherInboundDocumentsRoute: DispatcherInboundDocumentsRouteWithChildren,
   DispatcherJoinRoute: DispatcherJoinRoute,
@@ -9831,6 +9907,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiDispatcherDocsRoute: ApiDispatcherDocsRoute,
   ApiDispatcherDocumentsRoute: ApiDispatcherDocumentsRouteWithChildren,
   ApiDispatcherDriversRoute: ApiDispatcherDriversRouteWithChildren,
+  ApiDispatcherForwardersExtRoute: ApiDispatcherForwardersExtRouteWithChildren,
   ApiDispatcherFreeVehiclesRoute: ApiDispatcherFreeVehiclesRoute,
   ApiDispatcherFreightsRoute: ApiDispatcherFreightsRouteWithChildren,
   ApiDispatcherInboundDocumentsRoute:

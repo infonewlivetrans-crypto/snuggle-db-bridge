@@ -24,6 +24,14 @@ const SEVERITY_LABEL: Record<RemarkSeverity, string> = {
   critical: "Критично",
 };
 
+interface AttachmentMeta {
+  name: string;
+  size: number;
+  type: string;
+  preview_data_url?: string;
+  is_mock: true;
+}
+
 interface RemarkRow {
   id: string;
   remark_type: RemarkType;
@@ -33,6 +41,7 @@ interface RemarkRow {
   quantity_actual: number | null;
   weight_expected: number | null;
   weight_actual: number | null;
+  attachments_json: AttachmentMeta[] | unknown;
   is_training: boolean;
   created_at: string;
 }
@@ -61,6 +70,26 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
   const [qAct, setQAct] = useState("");
   const [wExp, setWExp] = useState("");
   const [wAct, setWAct] = useState("");
+  const [photos, setPhotos] = useState<AttachmentMeta[]>([]);
+
+  async function onPickFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    const added: AttachmentMeta[] = [];
+    for (const f of Array.from(files).slice(0, 6)) {
+      const isImg = f.type.startsWith("image/");
+      let preview: string | undefined;
+      if (isImg && f.size <= 512 * 1024) {
+        preview = await new Promise<string | undefined>(resolve => {
+          const r = new FileReader();
+          r.onload = () => resolve(typeof r.result === "string" ? r.result : undefined);
+          r.onerror = () => resolve(undefined);
+          r.readAsDataURL(f);
+        });
+      }
+      added.push({ name: f.name, size: f.size, type: f.type, preview_data_url: preview, is_mock: true });
+    }
+    setPhotos(prev => [...prev, ...added]);
+  }
 
   const create = useMutation({
     mutationFn: () => apiPost(`/api/carrier/edo/documents/${documentId}/remarks`, {
@@ -71,11 +100,12 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
       quantity_actual: qAct ? Number(qAct) : null,
       weight_expected: wExp ? Number(wExp) : null,
       weight_actual: wAct ? Number(wAct) : null,
+      attachments_json: photos,
       is_training: Boolean(isTraining),
     }),
     onSuccess: () => {
       toast.success("Замечание сохранено");
-      setText(""); setQExp(""); setQAct(""); setWExp(""); setWAct("");
+      setText(""); setQExp(""); setQAct(""); setWExp(""); setWAct(""); setPhotos([]);
       qc.invalidateQueries({ queryKey: ["edo", "remarks", documentId] });
       qc.invalidateQueries({ queryKey: ["edo", "doc", documentId] });
     },
@@ -137,6 +167,24 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
                   {(r.weight_expected != null || r.weight_actual != null) && (
                     <div className="text-xs text-muted-foreground">
                       Вес: {r.weight_expected ?? "—"} / факт {r.weight_actual ?? "—"}
+                    </div>
+                  )}
+                  {Array.isArray(r.attachments_json) && r.attachments_json.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {(r.attachments_json as AttachmentMeta[]).map((a, i) => (
+                        <div key={i} className="border rounded p-1 bg-background text-[10px]">
+                          {a.preview_data_url ? (
+                            <img src={a.preview_data_url} alt={a.name}
+                              className="h-12 w-12 object-cover rounded" />
+                          ) : (
+                            <div className="h-12 w-12 flex items-center justify-center bg-muted rounded">
+                              📎
+                            </div>
+                          )}
+                          <div className="max-w-[80px] truncate" title={a.name}>{a.name}</div>
+                          <Badge variant="outline" className="text-[9px] px-1 py-0">mock</Badge>
+                        </div>
+                      ))}
                     </div>
                   )}
                   <div className="text-xs text-muted-foreground">
@@ -201,9 +249,40 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
               <Label>Комментарий</Label>
               <Textarea value={text} onChange={e => setText(e.target.value)} rows={2} />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Фото будет добавлено на следующем этапе.
-            </p>
+            <div className="space-y-1.5">
+              <Label>Фото / вложения</Label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={e => onPickFiles(e.target.files)}
+                className="block text-xs"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Фото помогает подтвердить состояние груза при приёмке и может пригодиться при споре.
+                Загрузка фото пока выполняется в mock-режиме (без storage) — будет подключена через storage на следующем этапе.
+              </p>
+              {photos.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {photos.map((p, i) => (
+                    <div key={i} className="border rounded p-1 bg-background text-[10px] relative">
+                      {p.preview_data_url ? (
+                        <img src={p.preview_data_url} alt={p.name}
+                          className="h-14 w-14 object-cover rounded" />
+                      ) : (
+                        <div className="h-14 w-14 flex items-center justify-center bg-muted rounded">📎</div>
+                      )}
+                      <div className="max-w-[80px] truncate" title={p.name}>{p.name}</div>
+                      <button
+                        type="button"
+                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full h-5 w-5 text-xs"
+                        onClick={() => setPhotos(prev => prev.filter((_, j) => j !== i))}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <Button size="sm" onClick={() => create.mutate()} disabled={create.isPending}>
               Добавить замечание
             </Button>

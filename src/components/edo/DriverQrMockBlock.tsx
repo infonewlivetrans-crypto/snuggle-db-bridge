@@ -1,15 +1,15 @@
-// Mock QR-блок для водителя. Реальный QR ГИС ЭПД не делаем.
-// Может работать в двух режимах:
-//  1) Передан documentId — компонент сам подтянет QR и зафиксирует открытие.
-//  2) Переданы поля вручную (qrUid и т.п.) — рендер без сетевого запроса.
-import { useEffect } from "react";
+// Mock QR-блок для водителя. Графический QR через локальную библиотеку 'qrcode'.
+// Реальный ГИС ЭПД здесь не используется.
+import { useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiGetAuth, apiPost } from "@/lib/api-client";
+import { QrCodeMockVisual } from "./QrCodeMockVisual";
 
 interface QrRow {
   qr_uid: string;
+  qr_payload?: unknown;
   qr_status: string;
   qr_generated_at: string;
   qr_cached_at: string | null;
@@ -19,15 +19,17 @@ interface QrRow {
 }
 
 interface Props {
-  /** Авто-режим: подтянуть QR по document_id и зафиксировать открытие. */
   documentId?: string | null;
-  /** Ручной режим: готовые значения. */
   qrUid?: string | null;
   generatedAt?: string | null;
   offlineAvailable?: boolean;
+  /** Произвольная метка рейса/документа для подписи под QR. */
+  tripLabel?: string | null;
 }
 
-export function DriverQrMockBlock({ documentId, qrUid, generatedAt, offlineAvailable }: Props) {
+export function DriverQrMockBlock({
+  documentId, qrUid, generatedAt, offlineAvailable, tripLabel,
+}: Props) {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["driver", "edo-qr", documentId],
@@ -37,7 +39,7 @@ export function DriverQrMockBlock({ documentId, qrUid, generatedAt, offlineAvail
     enabled: Boolean(documentId),
   });
   const open = useMutation({
-    mutationFn: () => apiPost(`/api/driver/edo/documents/${documentId}/qr/opened`, {}),
+    mutationFn: () => apiPost(`/api/driver/edo/documents/${documentId}/qr`, {}),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["driver", "edo-qr", documentId] }),
   });
 
@@ -45,6 +47,14 @@ export function DriverQrMockBlock({ documentId, qrUid, generatedAt, offlineAvail
   const effectiveUid = row?.qr_uid ?? qrUid ?? null;
   const effectiveGenAt = row?.qr_generated_at ?? generatedAt ?? null;
   const effectiveOffline = row?.qr_offline_available ?? Boolean(offlineAvailable);
+  const status = row?.qr_status ?? "mock";
+
+  const qrValue = useMemo(() => {
+    if (row?.qr_payload) {
+      try { return JSON.stringify(row.qr_payload); } catch { /* noop */ }
+    }
+    return effectiveUid ?? "";
+  }, [row?.qr_payload, effectiveUid]);
 
   useEffect(() => {
     if (documentId && row && !row.last_opened_by_driver_at && !open.isPending) {
@@ -62,15 +72,21 @@ export function DriverQrMockBlock({ documentId, qrUid, generatedAt, offlineAvail
         </div>
       </CardHeader>
       <CardContent className="text-sm space-y-2">
-        {effectiveUid ? (
+        {effectiveUid && qrValue ? (
           <>
-            <div className="rounded-md border bg-muted/40 p-3 flex flex-col items-center justify-center">
-              <div className="font-mono text-base tracking-wider break-all text-center">
-                {effectiveUid}
+            <div className="flex flex-col items-center gap-2 rounded-md border bg-white p-3">
+              <QrCodeMockVisual value={qrValue} size={220} />
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                MOCK — тестовый QR
               </div>
-              <div className="text-[10px] text-muted-foreground pt-1">QR-код будет сгенерирован графически на следующем этапе.</div>
             </div>
-            <div className="text-xs">UID: <span className="font-mono">{effectiveUid}</span></div>
+            <div className="text-xs">
+              УИД: <span className="font-mono break-all">{effectiveUid}</span>
+            </div>
+            {tripLabel && (
+              <div className="text-xs text-muted-foreground">Рейс/документ: {tripLabel}</div>
+            )}
+            <div className="text-xs text-muted-foreground">Статус: {status}</div>
           </>
         ) : (
           <div className="text-xs text-muted-foreground">
@@ -89,10 +105,10 @@ export function DriverQrMockBlock({ documentId, qrUid, generatedAt, offlineAvail
           </div>
         )}
         <p className="text-xs text-muted-foreground">
-          Перед рейсом откройте QR при наличии интернета, чтобы он сохранился на устройстве.
+          Перед рейсом откройте QR при наличии интернета — он сохранится на устройстве и будет доступен офлайн.
         </p>
         <p className="text-xs text-muted-foreground">
-          QR сейчас тестовый. Реальный QR/УИД появится после live-интеграции с оператором и ГИС ЭПД.
+          Это тестовый QR. Реальный QR/УИД появится после регистрации ЭПД у оператора и в ГИС ЭПД.
         </p>
       </CardContent>
     </Card>
