@@ -24,6 +24,14 @@ const SEVERITY_LABEL: Record<RemarkSeverity, string> = {
   critical: "Критично",
 };
 
+interface AttachmentMeta {
+  name: string;
+  size: number;
+  type: string;
+  preview_data_url?: string;
+  is_mock: true;
+}
+
 interface RemarkRow {
   id: string;
   remark_type: RemarkType;
@@ -33,6 +41,7 @@ interface RemarkRow {
   quantity_actual: number | null;
   weight_expected: number | null;
   weight_actual: number | null;
+  attachments_json: AttachmentMeta[] | unknown;
   is_training: boolean;
   created_at: string;
 }
