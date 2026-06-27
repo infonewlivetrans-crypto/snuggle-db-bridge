@@ -100,11 +100,12 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
       quantity_actual: qAct ? Number(qAct) : null,
       weight_expected: wExp ? Number(wExp) : null,
       weight_actual: wAct ? Number(wAct) : null,
+      attachments_json: photos,
       is_training: Boolean(isTraining),
     }),
     onSuccess: () => {
       toast.success("Замечание сохранено");
-      setText(""); setQExp(""); setQAct(""); setWExp(""); setWAct("");
+      setText(""); setQExp(""); setQAct(""); setWExp(""); setWAct(""); setPhotos([]);
       qc.invalidateQueries({ queryKey: ["edo", "remarks", documentId] });
       qc.invalidateQueries({ queryKey: ["edo", "doc", documentId] });
     },
