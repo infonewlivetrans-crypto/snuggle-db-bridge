@@ -70,6 +70,26 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
   const [qAct, setQAct] = useState("");
   const [wExp, setWExp] = useState("");
   const [wAct, setWAct] = useState("");
+  const [photos, setPhotos] = useState<AttachmentMeta[]>([]);
+
+  async function onPickFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    const added: AttachmentMeta[] = [];
+    for (const f of Array.from(files).slice(0, 6)) {
+      const isImg = f.type.startsWith("image/");
+      let preview: string | undefined;
+      if (isImg && f.size <= 512 * 1024) {
+        preview = await new Promise<string | undefined>(resolve => {
+          const r = new FileReader();
+          r.onload = () => resolve(typeof r.result === "string" ? r.result : undefined);
+          r.onerror = () => resolve(undefined);
+          r.readAsDataURL(f);
+        });
+      }
+      added.push({ name: f.name, size: f.size, type: f.type, preview_data_url: preview, is_mock: true });
+    }
+    setPhotos(prev => [...prev, ...added]);
+  }
 
   const create = useMutation({
     mutationFn: () => apiPost(`/api/carrier/edo/documents/${documentId}/remarks`, {
