@@ -22,6 +22,7 @@ import {
   EDO_DOC_STATUS_LABEL, edoDocStatusVariant,
   type EdoDocStatus,
 } from "@/lib/edo/constants";
+import { TripEpdPracticeSummary } from "@/components/edo/TripEpdPracticeSummary";
 
 type DealLite = {
   id: string;
