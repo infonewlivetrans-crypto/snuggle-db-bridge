@@ -81,6 +81,7 @@ import { Route as DispatcherMapRouteImport } from './routes/dispatcher.map'
 import { Route as DispatcherJoinRouteImport } from './routes/dispatcher.join'
 import { Route as DispatcherInboundDocumentsRouteImport } from './routes/dispatcher.inbound-documents'
 import { Route as DispatcherFreightsRouteImport } from './routes/dispatcher.freights'
+import { Route as DispatcherForwardersRouteImport } from './routes/dispatcher.forwarders'
 import { Route as DispatcherDriversRouteImport } from './routes/dispatcher.drivers'
 import { Route as DispatcherDocumentsRouteImport } from './routes/dispatcher.documents'
 import { Route as DispatcherDealsRouteImport } from './routes/dispatcher.deals'
@@ -788,6 +789,11 @@ const DispatcherInboundDocumentsRoute =
 const DispatcherFreightsRoute = DispatcherFreightsRouteImport.update({
   id: '/dispatcher/freights',
   path: '/dispatcher/freights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DispatcherForwardersRoute = DispatcherForwardersRouteImport.update({
+  id: '/dispatcher/forwarders',
+  path: '/dispatcher/forwarders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DispatcherDriversRoute = DispatcherDriversRouteImport.update({
@@ -2808,6 +2814,7 @@ export interface FileRoutesByFullPath {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
+  '/dispatcher/forwarders': typeof DispatcherForwardersRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
   '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
@@ -3227,6 +3234,7 @@ export interface FileRoutesByTo {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
+  '/dispatcher/forwarders': typeof DispatcherForwardersRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
   '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
@@ -3648,6 +3656,7 @@ export interface FileRoutesById {
   '/dispatcher/deals': typeof DispatcherDealsRoute
   '/dispatcher/documents': typeof DispatcherDocumentsRoute
   '/dispatcher/drivers': typeof DispatcherDriversRoute
+  '/dispatcher/forwarders': typeof DispatcherForwardersRoute
   '/dispatcher/freights': typeof DispatcherFreightsRoute
   '/dispatcher/inbound-documents': typeof DispatcherInboundDocumentsRouteWithChildren
   '/dispatcher/join': typeof DispatcherJoinRoute
@@ -4070,6 +4079,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
+    | '/dispatcher/forwarders'
     | '/dispatcher/freights'
     | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
@@ -4489,6 +4499,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
+    | '/dispatcher/forwarders'
     | '/dispatcher/freights'
     | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
@@ -4909,6 +4920,7 @@ export interface FileRouteTypes {
     | '/dispatcher/deals'
     | '/dispatcher/documents'
     | '/dispatcher/drivers'
+    | '/dispatcher/forwarders'
     | '/dispatcher/freights'
     | '/dispatcher/inbound-documents'
     | '/dispatcher/join'
@@ -5321,6 +5333,7 @@ export interface RootRouteChildren {
   DispatcherDealsRoute: typeof DispatcherDealsRoute
   DispatcherDocumentsRoute: typeof DispatcherDocumentsRoute
   DispatcherDriversRoute: typeof DispatcherDriversRoute
+  DispatcherForwardersRoute: typeof DispatcherForwardersRoute
   DispatcherFreightsRoute: typeof DispatcherFreightsRoute
   DispatcherInboundDocumentsRoute: typeof DispatcherInboundDocumentsRouteWithChildren
   DispatcherJoinRoute: typeof DispatcherJoinRoute
@@ -5952,6 +5965,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/freights'
       fullPath: '/dispatcher/freights'
       preLoaderRoute: typeof DispatcherFreightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/forwarders': {
+      id: '/dispatcher/forwarders'
+      path: '/dispatcher/forwarders'
+      fullPath: '/dispatcher/forwarders'
+      preLoaderRoute: typeof DispatcherForwardersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dispatcher/drivers': {
@@ -9817,6 +9837,7 @@ const rootRouteChildren: RootRouteChildren = {
   DispatcherDealsRoute: DispatcherDealsRoute,
   DispatcherDocumentsRoute: DispatcherDocumentsRoute,
   DispatcherDriversRoute: DispatcherDriversRoute,
+  DispatcherForwardersRoute: DispatcherForwardersRoute,
   DispatcherFreightsRoute: DispatcherFreightsRoute,
   DispatcherInboundDocumentsRoute: DispatcherInboundDocumentsRouteWithChildren,
   DispatcherJoinRoute: DispatcherJoinRoute,
