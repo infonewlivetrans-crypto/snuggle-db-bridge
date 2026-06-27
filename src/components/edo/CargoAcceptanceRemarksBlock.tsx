@@ -169,6 +169,24 @@ export function CargoAcceptanceRemarksBlock({ documentId, isTraining, readOnly }
                       Вес: {r.weight_expected ?? "—"} / факт {r.weight_actual ?? "—"}
                     </div>
                   )}
+                  {Array.isArray(r.attachments_json) && r.attachments_json.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {(r.attachments_json as AttachmentMeta[]).map((a, i) => (
+                        <div key={i} className="border rounded p-1 bg-background text-[10px]">
+                          {a.preview_data_url ? (
+                            <img src={a.preview_data_url} alt={a.name}
+                              className="h-12 w-12 object-cover rounded" />
+                          ) : (
+                            <div className="h-12 w-12 flex items-center justify-center bg-muted rounded">
+                              📎
+                            </div>
+                          )}
+                          <div className="max-w-[80px] truncate" title={a.name}>{a.name}</div>
+                          <Badge variant="outline" className="text-[9px] px-1 py-0">mock</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div className="text-xs text-muted-foreground">
                     {new Date(r.created_at).toLocaleString("ru-RU")}
                   </div>
