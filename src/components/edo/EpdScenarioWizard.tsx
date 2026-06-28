@@ -54,7 +54,8 @@ export function EpdScenarioWizard({
   const [consignee, setConsignee] = useState("");
   const [carrier, setCarrier] = useState("");
   const [driver, setDriver] = useState("");
-  const [forwarder, setForwarder] = useState("");
+  const [forwarder, setForwarder] = useState<string>("");
+  const [forwarderName, setForwarderName] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   const def = getScenarioDef(type);
