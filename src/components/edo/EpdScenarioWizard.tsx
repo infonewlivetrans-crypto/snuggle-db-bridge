@@ -65,11 +65,14 @@ export function EpdScenarioWizard({
     setRow(r.row);
     setType(r.row.scenario_type);
     setPoss((r.row.forwarder_possession_mode ?? "unknown") as ForwarderPossessionMode);
-    const p = r.row.participants_json as Record<string, string>;
-    setShipper(p?.shipper ?? "");
-    setConsignee(p?.consignee ?? "");
-    setCarrier(p?.carrier ?? "");
-    setDriver(p?.driver ?? "");
+    const p = r.row.participants_json as Record<string, unknown>;
+    setShipper((p?.shipper as string) ?? "");
+    setConsignee((p?.consignee as string) ?? "");
+    setCarrier((p?.carrier as string) ?? "");
+    setDriver((p?.driver as string) ?? "");
+    setForwarder(r.row.forwarder_id ?? "");
+    const snap = p?.forwarder_snapshot as { forwarder_name?: string } | undefined;
+    setForwarderName(snap?.forwarder_name ?? "");
   }
 
   async function create() {
