@@ -160,17 +160,16 @@ export function EpdScenarioWizard({
         </div>
 
         {def?.requires_forwarder && (
-          <div>
-            <Label>Режим экспедитора</Label>
-            <Select value={poss} onValueChange={v => setPoss(v as ForwarderPossessionMode)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(["not_accepting_cargo", "accepting_cargo_possession", "warehouse_storage", "agent_only", "unknown"] as ForwarderPossessionMode[]).map(v => (
-                  <SelectItem key={v} value={v}>{EPD_POSSESSION_LABEL[v]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ForwarderPickerBlock
+            scenarioType={type}
+            value={forwarder || null}
+            possessionMode={poss}
+            onChange={(id, name) => {
+              setForwarder(id ?? "");
+              setForwarderName(name ?? "");
+            }}
+            onPossessionChange={m => setPoss(m)}
+          />
         )}
 
         <div className="grid gap-2 sm:grid-cols-2">
@@ -181,9 +180,6 @@ export function EpdScenarioWizard({
           )}
           {def?.participants.includes("driver") && (
             <div><Label>Водитель</Label><Input value={driver} onChange={e => setDriver(e.target.value)} /></div>
-          )}
-          {def?.requires_forwarder && (
-            <div><Label>Экспедитор (ID или название)</Label><Input value={forwarder} onChange={e => setForwarder(e.target.value)} /></div>
           )}
         </div>
 
