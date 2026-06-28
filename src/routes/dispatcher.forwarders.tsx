@@ -309,13 +309,134 @@ function ForwarderDetail({
       </Card>
 
       <DispatcherForwarderGoslogSummary forwarderId={row.id} />
-
-      <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">ЭПД-документы экспедитора</CardTitle></CardHeader>
-        <CardContent className="text-xs text-muted-foreground">
-          Будет подключено на следующем этапе.
-        </CardContent>
-      </Card>
+      <GoslogLinkBlock forwarderId={row.id} />
+      <ForwarderEpdDocumentsBlock forwarderId={row.id} />
     </div>
+  );
+}
+
+interface GoslogLinkInfo {
+  linked: boolean;
+  goslog_id: string | null;
+  goslog_status: string | null;
+  registry_number: string | null;
+  application_number: string | null;
+  source_url: string | null;
+  verified_at: string | null;
+}
+
+function GoslogLinkBlock({ forwarderId }: { forwarderId: string }) {
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["dispatcher", "forwarders-ext", forwarderId, "link-goslog"],
+    queryFn: () =>
+      apiGetAuth<{ info: GoslogLinkInfo }>(
+        `/api/dispatcher/forwarders-ext/${forwarderId}/link-goslog`,
+      ),
+  });
+  const link = useMutation({
+    mutationFn: () => apiPost(`/api/dispatcher/forwarders-ext/${forwarderId}/link-goslog`, {}),
+    onSuccess: () => {
+      toast.success("Запись ГосЛог связана");
+      qc.invalidateQueries({ queryKey: ["dispatcher", "forwarders-ext", forwarderId] });
+    },
+    onError: e => toast.error(e instanceof Error ? e.message : "Ошибка связки"),
+  });
+  const create = useMutation({
+    mutationFn: () => apiPost(`/api/dispatcher/forwarders-ext/${forwarderId}/create-goslog-status`, {}),
+    onSuccess: () => {
+      toast.success("Создана запись ГосЛог по данным экспедитора");
+      qc.invalidateQueries({ queryKey: ["dispatcher", "forwarders-ext", forwarderId] });
+    },
+    onError: e => toast.error(e instanceof Error ? e.message : "Ошибка создания"),
+  });
+  const info = q.data?.info;
+  return (
+    <Card>
+      <CardHeader className="pb-2"><CardTitle className="text-sm">Связать с ГосЛог</CardTitle></CardHeader>
+      <CardContent className="text-xs space-y-2">
+        {q.isLoading && <div className="text-muted-foreground">Загрузка…</div>}
+        {info && info.goslog_id && (
+          <div className="space-y-1">
+            <div>Найдена запись ГосЛог по ИНН: <span className="font-mono">{info.goslog_id.slice(0, 8)}…</span></div>
+            <div>Статус: <Badge variant="outline">{info.goslog_status ?? "—"}</Badge></div>
+            {info.registry_number && <div>Реестр: {info.registry_number}</div>}
+            {info.linked
+              ? <Badge variant="default">Связана с этим экспедитором</Badge>
+              : <Button size="sm" variant="outline" onClick={() => link.mutate()} disabled={link.isPending}>
+                  Связать с этим экспедитором
+                </Button>}
+          </div>
+        )}
+        {info && !info.goslog_id && (
+          <div className="space-y-1">
+            <div className="text-muted-foreground">Записи ГосЛог по ИНН не найдено.</div>
+            <Button size="sm" variant="outline" onClick={() => create.mutate()} disabled={create.isPending}>
+              Создать запись ГосЛог по данным экспедитора
+            </Button>
+          </div>
+        )}
+        <p className="text-muted-foreground">
+          Радиус Трек не делает live-проверку ГосЛог. Источник, дату и автора проверки
+          фиксируйте вручную после визита на официальный реестр.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface EpdDocRow {
+  scenario_id: string;
+  scenario_type: string;
+  forwarder_possession_mode: string | null;
+  is_training: boolean;
+  trip_id: string | null;
+  deal_id: string | null;
+  document_id: string | null;
+  document_status: string | null;
+  document_title: string | null;
+  document_type: string | null;
+  created_at: string;
+  goslog_status_snapshot: string | null;
+  has_snapshot: boolean;
+}
+
+function ForwarderEpdDocumentsBlock({ forwarderId }: { forwarderId: string }) {
+  const q = useQuery({
+    queryKey: ["dispatcher", "forwarders-ext", forwarderId, "epd-documents"],
+    queryFn: () =>
+      apiGetAuth<{ rows: EpdDocRow[] }>(
+        `/api/dispatcher/forwarders-ext/${forwarderId}/epd-documents`,
+      ),
+  });
+  const rows = q.data?.rows ?? [];
+  return (
+    <Card>
+      <CardHeader className="pb-2"><CardTitle className="text-sm">ЭПД-документы экспедитора</CardTitle></CardHeader>
+      <CardContent className="text-xs space-y-2">
+        {q.isLoading && <div className="text-muted-foreground">Загрузка…</div>}
+        {!q.isLoading && rows.length === 0 && (
+          <div className="text-muted-foreground">Пока нет связанных ЭПД-документов.</div>
+        )}
+        {rows.map((r, i) => (
+          <div key={`${r.scenario_id}:${r.document_id ?? i}`} className="rounded-md border p-2 space-y-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Badge variant="outline">{r.scenario_type}</Badge>
+              {r.forwarder_possession_mode && <Badge variant="outline">{r.forwarder_possession_mode}</Badge>}
+              {r.is_training && <Badge variant="secondary">Учебный</Badge>}
+              {r.has_snapshot && <Badge variant="default">Snapshot ✓</Badge>}
+              {r.goslog_status_snapshot && <Badge variant="outline">ГосЛог: {r.goslog_status_snapshot}</Badge>}
+            </div>
+            <div className="text-muted-foreground">
+              {r.document_title ?? "(сценарий без документов)"}
+              {r.document_status ? ` · ${r.document_status}` : ""}
+              {r.trip_id ? ` · trip: ${r.trip_id.slice(0, 8)}…` : ""}
+              {r.deal_id ? ` · deal: ${r.deal_id.slice(0, 8)}…` : ""}
+            </div>
+            <div className="text-muted-foreground">{new Date(r.created_at).toLocaleString()}</div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
