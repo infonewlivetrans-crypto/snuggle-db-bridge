@@ -56,12 +56,15 @@ export async function sabyPrepareDocument(
   // Проверка ЭПД-сценария: если он привязан — валидируем.
   const scenarioId = (doc as { scenario_id?: string | null }).scenario_id ?? null;
   let epdContext: Record<string, unknown> | null = null;
+  let forwarderSnapshot: Record<string, unknown> | null = null;
   if (scenarioId) {
-    const { validateScenario, getScenario } = await import("@/server/edo/scenarios.server");
+    const { validateScenario, getScenario, getForwarderSnapshotFromScenario } =
+      await import("@/server/edo/scenarios.server");
     const v = await validateScenario(client, carrierExtId, scenarioId);
     if (v.errors.length) return { ok: false, error: "scenario_invalid", epd_errors: v.errors };
     const s = await getScenario(client, carrierExtId, scenarioId);
     if (s) {
+      forwarderSnapshot = getForwarderSnapshotFromScenario(s) as Record<string, unknown> | null;
       epdContext = {
         scenario_type: s.scenario_type,
         forwarder_possession_mode: s.forwarder_possession_mode,
@@ -70,6 +73,7 @@ export async function sabyPrepareDocument(
         signing_plan: s.signing_plan_json,
         validation_warnings: v.warnings,
         is_training: s.is_training,
+        forwarder: forwarderSnapshot,
       };
     }
   }
@@ -85,22 +89,16 @@ export async function sabyPrepareDocument(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: readiness } = await (client.from("carrier_epd_readiness") as any)
       .select("readiness_status").eq("carrier_ext_id", carrierExtId).maybeSingle();
-    let forwarderGoslog: string | null = null;
-    const forwarderId = (doc as { forwarder_id?: string | null }).forwarder_id ?? null;
-    if (forwarderId) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: g } = await (client.from("forwarder_goslog_status") as any)
-        .select("goslog_status").eq("forwarder_id", forwarderId)
-        .order("updated_at", { ascending: false }).limit(1).maybeSingle();
-      forwarderGoslog = (g?.goslog_status as string | null) ?? null;
-    }
+    const fs = forwarderSnapshot as Record<string, unknown> | null;
     const practice = {
       cargo_remarks_count: remarks.total,
       critical_remarks_count: remarks.critical,
       route_changes_count: changesCount,
       qr_mock_status: qr?.qr_status ?? null,
       carrier_readiness_status: (readiness?.readiness_status as string | null) ?? null,
-      forwarder_goslog_status: forwarderGoslog,
+      forwarder_selected: Boolean(fs?.forwarder_id),
+      forwarder_goslog_status: (fs?.goslog_status as string | null) ?? null,
+      forwarder_possession_mode: (fs?.forwarder_possession_mode as string | null) ?? null,
     };
     epdContext = { ...(epdContext ?? {}), practice };
   } catch {

@@ -14,11 +14,12 @@ import { apiGetAuth, apiPost, apiPatch } from "@/lib/api-client";
 import { toast } from "sonner";
 import {
   EPD_SCENARIO_CATALOG, EPD_SCENARIO_OPTIONS, getScenarioDef,
-  EPD_DOCUMENT_LABEL, EPD_PARTICIPANT_LABEL, EPD_POSSESSION_LABEL,
+  EPD_DOCUMENT_LABEL, EPD_POSSESSION_LABEL,
   EPD_TITLE_SIGNER_LABEL, EPD_READINESS_STATUS_LABEL,
   type EpdScenarioType, type ForwarderPossessionMode,
   type EpdReadinessStatus,
 } from "@/lib/edo/scenarios";
+import { ForwarderPickerBlock } from "@/components/edo/ForwarderPickerBlock";
 
 interface ScenarioRow {
   id: string;
@@ -53,7 +54,8 @@ export function EpdScenarioWizard({
   const [consignee, setConsignee] = useState("");
   const [carrier, setCarrier] = useState("");
   const [driver, setDriver] = useState("");
-  const [forwarder, setForwarder] = useState("");
+  const [forwarder, setForwarder] = useState<string>("");
+  const [forwarderName, setForwarderName] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   const def = getScenarioDef(type);
@@ -63,11 +65,14 @@ export function EpdScenarioWizard({
     setRow(r.row);
     setType(r.row.scenario_type);
     setPoss((r.row.forwarder_possession_mode ?? "unknown") as ForwarderPossessionMode);
-    const p = r.row.participants_json as Record<string, string>;
-    setShipper(p?.shipper ?? "");
-    setConsignee(p?.consignee ?? "");
-    setCarrier(p?.carrier ?? "");
-    setDriver(p?.driver ?? "");
+    const p = r.row.participants_json as Record<string, unknown>;
+    setShipper((p?.shipper as string) ?? "");
+    setConsignee((p?.consignee as string) ?? "");
+    setCarrier((p?.carrier as string) ?? "");
+    setDriver((p?.driver as string) ?? "");
+    setForwarder(r.row.forwarder_id ?? "");
+    const snap = p?.forwarder_snapshot as { forwarder_name?: string } | undefined;
+    setForwarderName(snap?.forwarder_name ?? "");
   }
 
   async function create() {
@@ -155,17 +160,16 @@ export function EpdScenarioWizard({
         </div>
 
         {def?.requires_forwarder && (
-          <div>
-            <Label>Режим экспедитора</Label>
-            <Select value={poss} onValueChange={v => setPoss(v as ForwarderPossessionMode)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(["not_accepting_cargo", "accepting_cargo_possession", "warehouse_storage", "agent_only", "unknown"] as ForwarderPossessionMode[]).map(v => (
-                  <SelectItem key={v} value={v}>{EPD_POSSESSION_LABEL[v]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <ForwarderPickerBlock
+            scenarioType={type}
+            value={forwarder || null}
+            possessionMode={poss}
+            onChange={(id, name) => {
+              setForwarder(id ?? "");
+              setForwarderName(name ?? "");
+            }}
+            onPossessionChange={m => setPoss(m)}
+          />
         )}
 
         <div className="grid gap-2 sm:grid-cols-2">
@@ -176,9 +180,6 @@ export function EpdScenarioWizard({
           )}
           {def?.participants.includes("driver") && (
             <div><Label>Водитель</Label><Input value={driver} onChange={e => setDriver(e.target.value)} /></div>
-          )}
-          {def?.requires_forwarder && (
-            <div><Label>Экспедитор (ID или название)</Label><Input value={forwarder} onChange={e => setForwarder(e.target.value)} /></div>
           )}
         </div>
 

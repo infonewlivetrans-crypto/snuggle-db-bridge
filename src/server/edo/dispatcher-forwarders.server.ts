@@ -131,3 +131,181 @@ export async function archiveForwarderExt(
     .eq("id", id);
   if (error) throw new Error(error.message);
 }
+
+export interface GoslogLinkInfo {
+  linked: boolean;
+  goslog_id: string | null;
+  goslog_status: string | null;
+  registry_number: string | null;
+  application_number: string | null;
+  source_url: string | null;
+  verified_at: string | null;
+}
+
+async function findGoslogByLink(
+  client: SupabaseClient<Database>, forwarderId: string, inn: string | null,
+) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const direct = await (client.from("forwarder_goslog_status") as any)
+    .select("*").eq("dispatcher_forwarder_ext_id", forwarderId)
+    .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+  if (direct.data) return direct.data as Record<string, unknown>;
+  if (!inn) return null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const byInn = await (client.from("forwarder_goslog_status") as any)
+    .select("*").eq("inn", inn)
+    .order("updated_at", { ascending: false }).limit(1).maybeSingle();
+  return (byInn.data as Record<string, unknown> | null) ?? null;
+}
+
+export async function describeGoslogLink(
+  client: SupabaseClient<Database>, forwarderId: string,
+): Promise<GoslogLinkInfo> {
+  const fw = await getForwarderExt(client, forwarderId);
+  if (!fw) return {
+    linked: false, goslog_id: null, goslog_status: null,
+    registry_number: null, application_number: null, source_url: null, verified_at: null,
+  };
+  const g = await findGoslogByLink(client, forwarderId, fw.inn);
+  if (!g) return {
+    linked: false, goslog_id: null, goslog_status: null,
+    registry_number: null, application_number: null, source_url: null, verified_at: null,
+  };
+  return {
+    linked: (g.dispatcher_forwarder_ext_id as string | null) === forwarderId,
+    goslog_id: (g.id as string) ?? null,
+    goslog_status: (g.goslog_status as string) ?? null,
+    registry_number: (g.registry_number as string | null) ?? null,
+    application_number: (g.application_number as string | null) ?? null,
+    source_url: (g.source_url as string | null) ?? null,
+    verified_at: (g.verified_at as string | null) ?? null,
+  };
+}
+
+export async function linkGoslogToForwarder(
+  client: SupabaseClient<Database>, forwarderId: string,
+): Promise<GoslogLinkInfo> {
+  const fw = await getForwarderExt(client, forwarderId);
+  if (!fw) throw new Error("forwarder_not_found");
+  const g = await findGoslogByLink(client, forwarderId, fw.inn);
+  if (!g) throw new Error("goslog_not_found");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (client.from("forwarder_goslog_status") as any)
+    .update({ dispatcher_forwarder_ext_id: forwarderId })
+    .eq("id", g.id as string);
+  if (error) throw new Error(error.message);
+  return describeGoslogLink(client, forwarderId);
+}
+
+export async function createGoslogStatusFromForwarder(
+  client: SupabaseClient<Database>, userId: string, forwarderId: string,
+): Promise<GoslogLinkInfo> {
+  const fw = await getForwarderExt(client, forwarderId);
+  if (!fw) throw new Error("forwarder_not_found");
+  const ex = await findGoslogByLink(client, forwarderId, fw.inn);
+  if (ex) {
+    if ((ex.dispatcher_forwarder_ext_id as string | null) !== forwarderId) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (client.from("forwarder_goslog_status") as any)
+        .update({ dispatcher_forwarder_ext_id: forwarderId }).eq("id", ex.id as string);
+    }
+    return describeGoslogLink(client, forwarderId);
+  }
+  const row = {
+    dispatcher_forwarder_ext_id: forwarderId,
+    inn: fw.inn, ogrn: fw.ogrn, company_name: fw.company_name,
+    okved_codes: fw.okved_codes ?? [],
+    has_okved_5229: Boolean(fw.has_okved_5229),
+    goslog_status: "unknown",
+    verified_by: userId,
+  };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (client.from("forwarder_goslog_status") as any).insert(row);
+  if (error) throw new Error(error.message);
+  return describeGoslogLink(client, forwarderId);
+}
+
+export interface ForwarderEpdDocumentRow {
+  scenario_id: string;
+  scenario_type: string;
+  forwarder_possession_mode: string | null;
+  is_training: boolean;
+  trip_id: string | null;
+  deal_id: string | null;
+  document_id: string | null;
+  document_status: string | null;
+  document_title: string | null;
+  document_type: string | null;
+  created_at: string;
+  goslog_status_snapshot: string | null;
+  has_snapshot: boolean;
+}
+
+export async function listForwarderEpdDocuments(
+  client: SupabaseClient<Database>, forwarderId: string,
+): Promise<ForwarderEpdDocumentRow[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: scenarios, error } = await (client.from("edo_scenarios") as any)
+    .select("id, scenario_type, forwarder_possession_mode, is_training, trip_id, deal_id, participants_json, created_at")
+    .eq("forwarder_id", forwarderId)
+    .order("created_at", { ascending: false }).limit(100);
+  if (error) throw new Error(error.message);
+  const scenarioRows = (scenarios ?? []) as Array<Record<string, unknown>>;
+  if (scenarioRows.length === 0) return [];
+  const scenarioIds = scenarioRows.map(s => s.id as string);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: docs } = await (client.from("carrier_edo_documents") as any)
+    .select("id, scenario_id, status, title, document_type, created_at, epd_context_snapshot")
+    .in("scenario_id", scenarioIds)
+    .order("created_at", { ascending: false });
+  const byScenario = new Map<string, Array<Record<string, unknown>>>();
+  for (const d of (docs ?? []) as Array<Record<string, unknown>>) {
+    const sid = d.scenario_id as string;
+    const arr = byScenario.get(sid) ?? [];
+    arr.push(d);
+    byScenario.set(sid, arr);
+  }
+  const out: ForwarderEpdDocumentRow[] = [];
+  for (const s of scenarioRows) {
+    const sid = s.id as string;
+    const snap = ((s.participants_json as Record<string, unknown> | null) ?? {})
+      .forwarder_snapshot as Record<string, unknown> | undefined;
+    const goslog = (snap?.goslog_status as string | null) ?? null;
+    const docList = byScenario.get(sid) ?? [];
+    if (docList.length === 0) {
+      out.push({
+        scenario_id: sid,
+        scenario_type: (s.scenario_type as string) ?? "",
+        forwarder_possession_mode: (s.forwarder_possession_mode as string | null) ?? null,
+        is_training: Boolean(s.is_training),
+        trip_id: (s.trip_id as string | null) ?? null,
+        deal_id: (s.deal_id as string | null) ?? null,
+        document_id: null, document_status: null, document_title: null, document_type: null,
+        created_at: (s.created_at as string) ?? "",
+        goslog_status_snapshot: goslog,
+        has_snapshot: Boolean(snap),
+      });
+    } else {
+      for (const d of docList) {
+        const dSnap = (d.epd_context_snapshot as Record<string, unknown> | null) ?? null;
+        const dFwd = dSnap?.forwarder as Record<string, unknown> | undefined;
+        out.push({
+          scenario_id: sid,
+          scenario_type: (s.scenario_type as string) ?? "",
+          forwarder_possession_mode: (s.forwarder_possession_mode as string | null) ?? null,
+          is_training: Boolean(s.is_training),
+          trip_id: (s.trip_id as string | null) ?? null,
+          deal_id: (s.deal_id as string | null) ?? null,
+          document_id: (d.id as string) ?? null,
+          document_status: (d.status as string | null) ?? null,
+          document_title: (d.title as string | null) ?? null,
+          document_type: (d.document_type as string | null) ?? null,
+          created_at: (d.created_at as string) ?? (s.created_at as string) ?? "",
+          goslog_status_snapshot: (dFwd?.goslog_status as string | null) ?? goslog,
+          has_snapshot: Boolean(dSnap),
+        });
+      }
+    }
+  }
+  return out;
+}
