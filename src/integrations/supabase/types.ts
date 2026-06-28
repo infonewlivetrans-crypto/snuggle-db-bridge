@@ -4218,6 +4218,7 @@ export type Database = {
           application_number: string | null
           company_name: string | null
           created_at: string
+          dispatcher_forwarder_ext_id: string | null
           forwarder_id: string | null
           goslog_status: string
           has_okved_5229: boolean
@@ -4238,6 +4239,7 @@ export type Database = {
           application_number?: string | null
           company_name?: string | null
           created_at?: string
+          dispatcher_forwarder_ext_id?: string | null
           forwarder_id?: string | null
           goslog_status?: string
           has_okved_5229?: boolean
@@ -4258,6 +4260,7 @@ export type Database = {
           application_number?: string | null
           company_name?: string | null
           created_at?: string
+          dispatcher_forwarder_ext_id?: string | null
           forwarder_id?: string | null
           goslog_status?: string
           has_okved_5229?: boolean
@@ -4273,7 +4276,15 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "forwarder_goslog_status_dispatcher_forwarder_ext_id_fkey"
+            columns: ["dispatcher_forwarder_ext_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_forwarder_ext"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       geocode_cache: {
         Row: {
@@ -7996,6 +8007,7 @@ export type Database = {
           id: string
         }[]
       }
+      get_forwarder_for_carrier: { Args: { p_id: string }; Returns: Json }
       get_invite_public: {
         Args: { p_token: string }
         Returns: {
@@ -8172,6 +8184,23 @@ export type Database = {
           full_name: string
           id: string
           phone: string
+        }[]
+      }
+      search_forwarders_for_carrier: {
+        Args: { p_query: string }
+        Returns: {
+          city: string
+          company_name: string
+          contact_person: string
+          email: string
+          has_okved_5229: boolean
+          id: string
+          inn: string
+          legal_form: string
+          ogrn: string
+          okved_codes: Json
+          phone: string
+          status: string
         }[]
       }
       staff_rotate_portal_token: {

@@ -350,6 +350,7 @@ import { Route as ApiCarrierFreightsSigningRouteImport } from './routes/api/carr
 import { Route as ApiCarrierEmailAccountTestRouteImport } from './routes/api/carrier/email-account.test'
 import { Route as ApiCarrierEdoScenariosRouteImport } from './routes/api/carrier/edo/scenarios'
 import { Route as ApiCarrierEdoReadinessRouteImport } from './routes/api/carrier/edo/readiness'
+import { Route as ApiCarrierEdoForwardersRouteImport } from './routes/api/carrier/edo/forwarders'
 import { Route as ApiCarrierEdoDocumentsRouteImport } from './routes/api/carrier/edo/documents'
 import { Route as ApiCarrierEdoCounterpartiesRouteImport } from './routes/api/carrier/edo/counterparties'
 import { Route as ApiCarrierEdoConnectionRouteImport } from './routes/api/carrier/edo/connection'
@@ -378,6 +379,9 @@ import { Route as ApiDispatcherInboundDocumentsIdCreateTripRouteImport } from '.
 import { Route as ApiDispatcherFreightsIdMatchVehiclesRouteImport } from './routes/api/dispatcher/freights.$id.match-vehicles'
 import { Route as ApiDispatcherFreightsIdCreateCarrierRequestRouteImport } from './routes/api/dispatcher/freights.$id.create-carrier-request'
 import { Route as ApiDispatcherForwardersIdGoslogStatusRouteImport } from './routes/api/dispatcher/forwarders.$id.goslog-status'
+import { Route as ApiDispatcherForwardersExtIdLinkGoslogRouteImport } from './routes/api/dispatcher/forwarders-ext.$id.link-goslog'
+import { Route as ApiDispatcherForwardersExtIdEpdDocumentsRouteImport } from './routes/api/dispatcher/forwarders-ext.$id.epd-documents'
+import { Route as ApiDispatcherForwardersExtIdCreateGoslogStatusRouteImport } from './routes/api/dispatcher/forwarders-ext.$id.create-goslog-status'
 import { Route as ApiDispatcherDocumentsIdDownloadRouteImport } from './routes/api/dispatcher/documents.$id.download'
 import { Route as ApiDispatcherDealsIdStatusRouteImport } from './routes/api/dispatcher/deals.$id.status'
 import { Route as ApiDispatcherDealsIdCustomerSendPreviewRouteImport } from './routes/api/dispatcher/deals.$id.customer-send-preview'
@@ -395,6 +399,7 @@ import { Route as ApiCarrierRequestsIdContractPreviewRouteImport } from './route
 import { Route as ApiCarrierEdoTrainingStartRouteImport } from './routes/api/carrier/edo/training.start'
 import { Route as ApiCarrierEdoScenariosIdRouteImport } from './routes/api/carrier/edo/scenarios.$id'
 import { Route as ApiCarrierEdoSabySyncRouteImport } from './routes/api/carrier/edo/saby.sync'
+import { Route as ApiCarrierEdoForwardersIdRouteImport } from './routes/api/carrier/edo/forwarders.$id'
 import { Route as ApiCarrierEdoDocumentsIdRouteImport } from './routes/api/carrier/edo/documents.$id'
 import { Route as ApiCarrierEdoCounterpartiesIdRouteImport } from './routes/api/carrier/edo/counterparties.$id'
 import { Route as ApiCarrierEdoConnectionTestRouteImport } from './routes/api/carrier/edo/connection.test'
@@ -2209,6 +2214,11 @@ const ApiCarrierEdoReadinessRoute = ApiCarrierEdoReadinessRouteImport.update({
   path: '/api/carrier/edo/readiness',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierEdoForwardersRoute = ApiCarrierEdoForwardersRouteImport.update({
+  id: '/api/carrier/edo/forwarders',
+  path: '/api/carrier/edo/forwarders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCarrierEdoDocumentsRoute = ApiCarrierEdoDocumentsRouteImport.update({
   id: '/api/carrier/edo/documents',
   path: '/api/carrier/edo/documents',
@@ -2368,6 +2378,24 @@ const ApiDispatcherForwardersIdGoslogStatusRoute =
     path: '/api/dispatcher/forwarders/$id/goslog-status',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherForwardersExtIdLinkGoslogRoute =
+  ApiDispatcherForwardersExtIdLinkGoslogRouteImport.update({
+    id: '/link-goslog',
+    path: '/link-goslog',
+    getParentRoute: () => ApiDispatcherForwardersExtIdRoute,
+  } as any)
+const ApiDispatcherForwardersExtIdEpdDocumentsRoute =
+  ApiDispatcherForwardersExtIdEpdDocumentsRouteImport.update({
+    id: '/epd-documents',
+    path: '/epd-documents',
+    getParentRoute: () => ApiDispatcherForwardersExtIdRoute,
+  } as any)
+const ApiDispatcherForwardersExtIdCreateGoslogStatusRoute =
+  ApiDispatcherForwardersExtIdCreateGoslogStatusRouteImport.update({
+    id: '/create-goslog-status',
+    path: '/create-goslog-status',
+    getParentRoute: () => ApiDispatcherForwardersExtIdRoute,
+  } as any)
 const ApiDispatcherDocumentsIdDownloadRoute =
   ApiDispatcherDocumentsIdDownloadRouteImport.update({
     id: '/download',
@@ -2469,6 +2497,12 @@ const ApiCarrierEdoSabySyncRoute = ApiCarrierEdoSabySyncRouteImport.update({
   path: '/api/carrier/edo/saby/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCarrierEdoForwardersIdRoute =
+  ApiCarrierEdoForwardersIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiCarrierEdoForwardersRoute,
+  } as any)
 const ApiCarrierEdoDocumentsIdRoute =
   ApiCarrierEdoDocumentsIdRouteImport.update({
     id: '/$id',
@@ -2966,6 +3000,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
   '/api/carrier/edo/counterparties': typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
+  '/api/carrier/edo/forwarders': typeof ApiCarrierEdoForwardersRouteWithChildren
   '/api/carrier/edo/readiness': typeof ApiCarrierEdoReadinessRoute
   '/api/carrier/edo/scenarios': typeof ApiCarrierEdoScenariosRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
@@ -2991,7 +3026,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
-  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRoute
+  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRouteWithChildren
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
@@ -3028,6 +3063,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
   '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
+  '/api/carrier/edo/forwarders/$id': typeof ApiCarrierEdoForwardersIdRoute
   '/api/carrier/edo/saby/sync': typeof ApiCarrierEdoSabySyncRoute
   '/api/carrier/edo/scenarios/$id': typeof ApiCarrierEdoScenariosIdRouteWithChildren
   '/api/carrier/edo/training/start': typeof ApiCarrierEdoTrainingStartRoute
@@ -3045,6 +3081,9 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/deals/$id/customer-send-preview': typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
   '/api/dispatcher/deals/$id/status': typeof ApiDispatcherDealsIdStatusRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
+  '/api/dispatcher/forwarders-ext/$id/create-goslog-status': typeof ApiDispatcherForwardersExtIdCreateGoslogStatusRoute
+  '/api/dispatcher/forwarders-ext/$id/epd-documents': typeof ApiDispatcherForwardersExtIdEpdDocumentsRoute
+  '/api/dispatcher/forwarders-ext/$id/link-goslog': typeof ApiDispatcherForwardersExtIdLinkGoslogRoute
   '/api/dispatcher/forwarders/$id/goslog-status': typeof ApiDispatcherForwardersIdGoslogStatusRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -3386,6 +3425,7 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
   '/api/carrier/edo/counterparties': typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
+  '/api/carrier/edo/forwarders': typeof ApiCarrierEdoForwardersRouteWithChildren
   '/api/carrier/edo/readiness': typeof ApiCarrierEdoReadinessRoute
   '/api/carrier/edo/scenarios': typeof ApiCarrierEdoScenariosRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
@@ -3411,7 +3451,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
-  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRoute
+  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRouteWithChildren
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
@@ -3448,6 +3488,7 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
   '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
+  '/api/carrier/edo/forwarders/$id': typeof ApiCarrierEdoForwardersIdRoute
   '/api/carrier/edo/saby/sync': typeof ApiCarrierEdoSabySyncRoute
   '/api/carrier/edo/scenarios/$id': typeof ApiCarrierEdoScenariosIdRouteWithChildren
   '/api/carrier/edo/training/start': typeof ApiCarrierEdoTrainingStartRoute
@@ -3465,6 +3506,9 @@ export interface FileRoutesByTo {
   '/api/dispatcher/deals/$id/customer-send-preview': typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
   '/api/dispatcher/deals/$id/status': typeof ApiDispatcherDealsIdStatusRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
+  '/api/dispatcher/forwarders-ext/$id/create-goslog-status': typeof ApiDispatcherForwardersExtIdCreateGoslogStatusRoute
+  '/api/dispatcher/forwarders-ext/$id/epd-documents': typeof ApiDispatcherForwardersExtIdEpdDocumentsRoute
+  '/api/dispatcher/forwarders-ext/$id/link-goslog': typeof ApiDispatcherForwardersExtIdLinkGoslogRoute
   '/api/dispatcher/forwarders/$id/goslog-status': typeof ApiDispatcherForwardersIdGoslogStatusRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -3808,6 +3852,7 @@ export interface FileRoutesById {
   '/api/carrier/edo/connection': typeof ApiCarrierEdoConnectionRouteWithChildren
   '/api/carrier/edo/counterparties': typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   '/api/carrier/edo/documents': typeof ApiCarrierEdoDocumentsRouteWithChildren
+  '/api/carrier/edo/forwarders': typeof ApiCarrierEdoForwardersRouteWithChildren
   '/api/carrier/edo/readiness': typeof ApiCarrierEdoReadinessRoute
   '/api/carrier/edo/scenarios': typeof ApiCarrierEdoScenariosRouteWithChildren
   '/api/carrier/email-account/test': typeof ApiCarrierEmailAccountTestRoute
@@ -3833,7 +3878,7 @@ export interface FileRoutesById {
   '/api/dispatcher/documents/$id': typeof ApiDispatcherDocumentsIdRouteWithChildren
   '/api/dispatcher/documents/upload': typeof ApiDispatcherDocumentsUploadRoute
   '/api/dispatcher/drivers/$id': typeof ApiDispatcherDriversIdRoute
-  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRoute
+  '/api/dispatcher/forwarders-ext/$id': typeof ApiDispatcherForwardersExtIdRouteWithChildren
   '/api/dispatcher/freights/$id': typeof ApiDispatcherFreightsIdRouteWithChildren
   '/api/dispatcher/freights/create-carrier-request-batch': typeof ApiDispatcherFreightsCreateCarrierRequestBatchRoute
   '/api/dispatcher/freights/from-email': typeof ApiDispatcherFreightsFromEmailRoute
@@ -3870,6 +3915,7 @@ export interface FileRoutesById {
   '/api/carrier/edo/connection/test': typeof ApiCarrierEdoConnectionTestRoute
   '/api/carrier/edo/counterparties/$id': typeof ApiCarrierEdoCounterpartiesIdRouteWithChildren
   '/api/carrier/edo/documents/$id': typeof ApiCarrierEdoDocumentsIdRouteWithChildren
+  '/api/carrier/edo/forwarders/$id': typeof ApiCarrierEdoForwardersIdRoute
   '/api/carrier/edo/saby/sync': typeof ApiCarrierEdoSabySyncRoute
   '/api/carrier/edo/scenarios/$id': typeof ApiCarrierEdoScenariosIdRouteWithChildren
   '/api/carrier/edo/training/start': typeof ApiCarrierEdoTrainingStartRoute
@@ -3887,6 +3933,9 @@ export interface FileRoutesById {
   '/api/dispatcher/deals/$id/customer-send-preview': typeof ApiDispatcherDealsIdCustomerSendPreviewRoute
   '/api/dispatcher/deals/$id/status': typeof ApiDispatcherDealsIdStatusRoute
   '/api/dispatcher/documents/$id/download': typeof ApiDispatcherDocumentsIdDownloadRoute
+  '/api/dispatcher/forwarders-ext/$id/create-goslog-status': typeof ApiDispatcherForwardersExtIdCreateGoslogStatusRoute
+  '/api/dispatcher/forwarders-ext/$id/epd-documents': typeof ApiDispatcherForwardersExtIdEpdDocumentsRoute
+  '/api/dispatcher/forwarders-ext/$id/link-goslog': typeof ApiDispatcherForwardersExtIdLinkGoslogRoute
   '/api/dispatcher/forwarders/$id/goslog-status': typeof ApiDispatcherForwardersIdGoslogStatusRoute
   '/api/dispatcher/freights/$id/create-carrier-request': typeof ApiDispatcherFreightsIdCreateCarrierRequestRoute
   '/api/dispatcher/freights/$id/match-vehicles': typeof ApiDispatcherFreightsIdMatchVehiclesRoute
@@ -4231,6 +4280,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/connection'
     | '/api/carrier/edo/counterparties'
     | '/api/carrier/edo/documents'
+    | '/api/carrier/edo/forwarders'
     | '/api/carrier/edo/readiness'
     | '/api/carrier/edo/scenarios'
     | '/api/carrier/email-account/test'
@@ -4293,6 +4343,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/connection/test'
     | '/api/carrier/edo/counterparties/$id'
     | '/api/carrier/edo/documents/$id'
+    | '/api/carrier/edo/forwarders/$id'
     | '/api/carrier/edo/saby/sync'
     | '/api/carrier/edo/scenarios/$id'
     | '/api/carrier/edo/training/start'
@@ -4310,6 +4361,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/$id/customer-send-preview'
     | '/api/dispatcher/deals/$id/status'
     | '/api/dispatcher/documents/$id/download'
+    | '/api/dispatcher/forwarders-ext/$id/create-goslog-status'
+    | '/api/dispatcher/forwarders-ext/$id/epd-documents'
+    | '/api/dispatcher/forwarders-ext/$id/link-goslog'
     | '/api/dispatcher/forwarders/$id/goslog-status'
     | '/api/dispatcher/freights/$id/create-carrier-request'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -4651,6 +4705,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/connection'
     | '/api/carrier/edo/counterparties'
     | '/api/carrier/edo/documents'
+    | '/api/carrier/edo/forwarders'
     | '/api/carrier/edo/readiness'
     | '/api/carrier/edo/scenarios'
     | '/api/carrier/email-account/test'
@@ -4713,6 +4768,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/connection/test'
     | '/api/carrier/edo/counterparties/$id'
     | '/api/carrier/edo/documents/$id'
+    | '/api/carrier/edo/forwarders/$id'
     | '/api/carrier/edo/saby/sync'
     | '/api/carrier/edo/scenarios/$id'
     | '/api/carrier/edo/training/start'
@@ -4730,6 +4786,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/$id/customer-send-preview'
     | '/api/dispatcher/deals/$id/status'
     | '/api/dispatcher/documents/$id/download'
+    | '/api/dispatcher/forwarders-ext/$id/create-goslog-status'
+    | '/api/dispatcher/forwarders-ext/$id/epd-documents'
+    | '/api/dispatcher/forwarders-ext/$id/link-goslog'
     | '/api/dispatcher/forwarders/$id/goslog-status'
     | '/api/dispatcher/freights/$id/create-carrier-request'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -5072,6 +5131,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/connection'
     | '/api/carrier/edo/counterparties'
     | '/api/carrier/edo/documents'
+    | '/api/carrier/edo/forwarders'
     | '/api/carrier/edo/readiness'
     | '/api/carrier/edo/scenarios'
     | '/api/carrier/email-account/test'
@@ -5134,6 +5194,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/connection/test'
     | '/api/carrier/edo/counterparties/$id'
     | '/api/carrier/edo/documents/$id'
+    | '/api/carrier/edo/forwarders/$id'
     | '/api/carrier/edo/saby/sync'
     | '/api/carrier/edo/scenarios/$id'
     | '/api/carrier/edo/training/start'
@@ -5151,6 +5212,9 @@ export interface FileRouteTypes {
     | '/api/dispatcher/deals/$id/customer-send-preview'
     | '/api/dispatcher/deals/$id/status'
     | '/api/dispatcher/documents/$id/download'
+    | '/api/dispatcher/forwarders-ext/$id/create-goslog-status'
+    | '/api/dispatcher/forwarders-ext/$id/epd-documents'
+    | '/api/dispatcher/forwarders-ext/$id/link-goslog'
     | '/api/dispatcher/forwarders/$id/goslog-status'
     | '/api/dispatcher/freights/$id/create-carrier-request'
     | '/api/dispatcher/freights/$id/match-vehicles'
@@ -5432,6 +5496,7 @@ export interface RootRouteChildren {
   ApiCarrierEdoConnectionRoute: typeof ApiCarrierEdoConnectionRouteWithChildren
   ApiCarrierEdoCounterpartiesRoute: typeof ApiCarrierEdoCounterpartiesRouteWithChildren
   ApiCarrierEdoDocumentsRoute: typeof ApiCarrierEdoDocumentsRouteWithChildren
+  ApiCarrierEdoForwardersRoute: typeof ApiCarrierEdoForwardersRouteWithChildren
   ApiCarrierEdoReadinessRoute: typeof ApiCarrierEdoReadinessRoute
   ApiCarrierEdoScenariosRoute: typeof ApiCarrierEdoScenariosRouteWithChildren
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
@@ -7850,6 +7915,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCarrierEdoReadinessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/carrier/edo/forwarders': {
+      id: '/api/carrier/edo/forwarders'
+      path: '/api/carrier/edo/forwarders'
+      fullPath: '/api/carrier/edo/forwarders'
+      preLoaderRoute: typeof ApiCarrierEdoForwardersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/edo/documents': {
       id: '/api/carrier/edo/documents'
       path: '/api/carrier/edo/documents'
@@ -8046,6 +8118,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherForwardersIdGoslogStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/forwarders-ext/$id/link-goslog': {
+      id: '/api/dispatcher/forwarders-ext/$id/link-goslog'
+      path: '/link-goslog'
+      fullPath: '/api/dispatcher/forwarders-ext/$id/link-goslog'
+      preLoaderRoute: typeof ApiDispatcherForwardersExtIdLinkGoslogRouteImport
+      parentRoute: typeof ApiDispatcherForwardersExtIdRoute
+    }
+    '/api/dispatcher/forwarders-ext/$id/epd-documents': {
+      id: '/api/dispatcher/forwarders-ext/$id/epd-documents'
+      path: '/epd-documents'
+      fullPath: '/api/dispatcher/forwarders-ext/$id/epd-documents'
+      preLoaderRoute: typeof ApiDispatcherForwardersExtIdEpdDocumentsRouteImport
+      parentRoute: typeof ApiDispatcherForwardersExtIdRoute
+    }
+    '/api/dispatcher/forwarders-ext/$id/create-goslog-status': {
+      id: '/api/dispatcher/forwarders-ext/$id/create-goslog-status'
+      path: '/create-goslog-status'
+      fullPath: '/api/dispatcher/forwarders-ext/$id/create-goslog-status'
+      preLoaderRoute: typeof ApiDispatcherForwardersExtIdCreateGoslogStatusRouteImport
+      parentRoute: typeof ApiDispatcherForwardersExtIdRoute
+    }
     '/api/dispatcher/documents/$id/download': {
       id: '/api/dispatcher/documents/$id/download'
       path: '/download'
@@ -8164,6 +8257,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/carrier/edo/saby/sync'
       preLoaderRoute: typeof ApiCarrierEdoSabySyncRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/carrier/edo/forwarders/$id': {
+      id: '/api/carrier/edo/forwarders/$id'
+      path: '/$id'
+      fullPath: '/api/carrier/edo/forwarders/$id'
+      preLoaderRoute: typeof ApiCarrierEdoForwardersIdRouteImport
+      parentRoute: typeof ApiCarrierEdoForwardersRoute
     }
     '/api/carrier/edo/documents/$id': {
       id: '/api/carrier/edo/documents/$id'
@@ -9247,13 +9347,35 @@ const ApiDispatcherDriversRouteChildren: ApiDispatcherDriversRouteChildren = {
 const ApiDispatcherDriversRouteWithChildren =
   ApiDispatcherDriversRoute._addFileChildren(ApiDispatcherDriversRouteChildren)
 
+interface ApiDispatcherForwardersExtIdRouteChildren {
+  ApiDispatcherForwardersExtIdCreateGoslogStatusRoute: typeof ApiDispatcherForwardersExtIdCreateGoslogStatusRoute
+  ApiDispatcherForwardersExtIdEpdDocumentsRoute: typeof ApiDispatcherForwardersExtIdEpdDocumentsRoute
+  ApiDispatcherForwardersExtIdLinkGoslogRoute: typeof ApiDispatcherForwardersExtIdLinkGoslogRoute
+}
+
+const ApiDispatcherForwardersExtIdRouteChildren: ApiDispatcherForwardersExtIdRouteChildren =
+  {
+    ApiDispatcherForwardersExtIdCreateGoslogStatusRoute:
+      ApiDispatcherForwardersExtIdCreateGoslogStatusRoute,
+    ApiDispatcherForwardersExtIdEpdDocumentsRoute:
+      ApiDispatcherForwardersExtIdEpdDocumentsRoute,
+    ApiDispatcherForwardersExtIdLinkGoslogRoute:
+      ApiDispatcherForwardersExtIdLinkGoslogRoute,
+  }
+
+const ApiDispatcherForwardersExtIdRouteWithChildren =
+  ApiDispatcherForwardersExtIdRoute._addFileChildren(
+    ApiDispatcherForwardersExtIdRouteChildren,
+  )
+
 interface ApiDispatcherForwardersExtRouteChildren {
-  ApiDispatcherForwardersExtIdRoute: typeof ApiDispatcherForwardersExtIdRoute
+  ApiDispatcherForwardersExtIdRoute: typeof ApiDispatcherForwardersExtIdRouteWithChildren
 }
 
 const ApiDispatcherForwardersExtRouteChildren: ApiDispatcherForwardersExtRouteChildren =
   {
-    ApiDispatcherForwardersExtIdRoute: ApiDispatcherForwardersExtIdRoute,
+    ApiDispatcherForwardersExtIdRoute:
+      ApiDispatcherForwardersExtIdRouteWithChildren,
   }
 
 const ApiDispatcherForwardersExtRouteWithChildren =
@@ -9574,6 +9696,20 @@ const ApiCarrierEdoDocumentsRouteChildren: ApiCarrierEdoDocumentsRouteChildren =
 const ApiCarrierEdoDocumentsRouteWithChildren =
   ApiCarrierEdoDocumentsRoute._addFileChildren(
     ApiCarrierEdoDocumentsRouteChildren,
+  )
+
+interface ApiCarrierEdoForwardersRouteChildren {
+  ApiCarrierEdoForwardersIdRoute: typeof ApiCarrierEdoForwardersIdRoute
+}
+
+const ApiCarrierEdoForwardersRouteChildren: ApiCarrierEdoForwardersRouteChildren =
+  {
+    ApiCarrierEdoForwardersIdRoute: ApiCarrierEdoForwardersIdRoute,
+  }
+
+const ApiCarrierEdoForwardersRouteWithChildren =
+  ApiCarrierEdoForwardersRoute._addFileChildren(
+    ApiCarrierEdoForwardersRouteChildren,
   )
 
 interface ApiCarrierEdoScenariosIdRouteChildren {
@@ -9940,6 +10076,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierEdoCounterpartiesRoute:
     ApiCarrierEdoCounterpartiesRouteWithChildren,
   ApiCarrierEdoDocumentsRoute: ApiCarrierEdoDocumentsRouteWithChildren,
+  ApiCarrierEdoForwardersRoute: ApiCarrierEdoForwardersRouteWithChildren,
   ApiCarrierEdoReadinessRoute: ApiCarrierEdoReadinessRoute,
   ApiCarrierEdoScenariosRoute: ApiCarrierEdoScenariosRouteWithChildren,
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,

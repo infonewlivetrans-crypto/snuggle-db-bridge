@@ -9,9 +9,29 @@ import {
   type CargoHolderRole,
   type EpdReadinessStatus,
 } from "@/lib/edo/scenarios";
+import {
+  getForwarderForCarrier, buildForwarderSnapshot,
+} from "@/server/edo/forwarders-public.server";
+import type { ForwarderSnapshot } from "@/lib/edo/forwarder-snapshot";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = SupabaseClient<any>;
+
+/** Перечитывает snapshot экспедитора с актуальными данными. Best-effort. */
+async function refreshForwarderSnapshot(
+  client: AnyClient,
+  forwarderId: string | null,
+  possessionMode: ForwarderPossessionMode | null,
+): Promise<ForwarderSnapshot | null> {
+  if (!forwarderId) return null;
+  try {
+    const card = await getForwarderForCarrier(client, forwarderId);
+    if (!card) return null;
+    return buildForwarderSnapshot(card, possessionMode);
+  } catch {
+    return null;
+  }
+}
 
 export interface ScenarioRow {
   id: string;
@@ -84,6 +104,13 @@ export async function createScenario(
 ): Promise<{ id: string }> {
   const def = getScenarioDef(input.scenario_type);
   if (!def) throw new Error("unknown_scenario_type");
+  const possession =
+    input.forwarder_possession_mode ?? def.default_possession_mode;
+  const participants: Record<string, unknown> = { ...(input.participants ?? {}) };
+  const snapshot = await refreshForwarderSnapshot(
+    client, input.forwarder_id ?? null, possession,
+  );
+  if (snapshot) participants.forwarder_snapshot = snapshot;
   const row = {
     carrier_ext_id: carrierExtId,
     trip_id: input.trip_id ?? null,
@@ -91,11 +118,10 @@ export async function createScenario(
     document_id: input.document_id ?? null,
     scenario_type: input.scenario_type,
     forwarder_id: input.forwarder_id ?? null,
-    forwarder_possession_mode:
-      input.forwarder_possession_mode ?? def.default_possession_mode,
+    forwarder_possession_mode: possession,
     cargo_holder_role: input.cargo_holder_role ?? def.cargo_holder_role,
     required_documents: def.required_documents,
-    participants_json: input.participants ?? {},
+    participants_json: participants,
     signing_plan_json: def.signing_plan,
     readiness_status: "draft",
     validation_errors: [],
@@ -121,14 +147,42 @@ export async function patchScenario(
   if (patch.forwarder_possession_mode !== undefined)
     row.forwarder_possession_mode = patch.forwarder_possession_mode;
   if (patch.cargo_holder_role !== undefined) row.cargo_holder_role = patch.cargo_holder_role;
-  if (patch.participants !== undefined) row.participants_json = patch.participants;
   if (patch.readiness_status !== undefined) row.readiness_status = patch.readiness_status;
   if (patch.trip_id !== undefined) row.trip_id = patch.trip_id;
   if (patch.document_id !== undefined) row.document_id = patch.document_id;
+
+  // Если меняются participants / forwarder — освежаем snapshot.
+  const cur = await getScenario(client, carrierExtId, id);
+  const newForwarderId = patch.forwarder_id !== undefined
+    ? patch.forwarder_id : cur?.forwarder_id ?? null;
+  const newPossession = patch.forwarder_possession_mode !== undefined
+    ? patch.forwarder_possession_mode
+    : cur?.forwarder_possession_mode ?? null;
+  const baseParticipants = patch.participants !== undefined
+    ? { ...patch.participants }
+    : { ...((cur?.participants_json as Record<string, unknown>) ?? {}) };
+  // Очищаем старый snapshot и пересоздаём.
+  delete (baseParticipants as Record<string, unknown>).forwarder_snapshot;
+  const snapshot = await refreshForwarderSnapshot(client, newForwarderId, newPossession);
+  if (snapshot) (baseParticipants as Record<string, unknown>).forwarder_snapshot = snapshot;
+  if (patch.participants !== undefined || patch.forwarder_id !== undefined ||
+      patch.forwarder_possession_mode !== undefined) {
+    row.participants_json = baseParticipants;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (client.from("edo_scenarios") as any)
     .update(row).eq("id", id).eq("carrier_ext_id", carrierExtId);
   if (error) throw new Error(error.message);
+}
+
+export function getForwarderSnapshotFromScenario(
+  scenario: ScenarioRow | null,
+): ForwarderSnapshot | null {
+  if (!scenario) return null;
+  const p = (scenario.participants_json ?? {}) as Record<string, unknown>;
+  const snap = p.forwarder_snapshot as ForwarderSnapshot | undefined;
+  return snap ?? null;
 }
 
 export async function validateScenario(
@@ -142,9 +196,10 @@ export async function validateScenario(
 
   if (!s.scenario_type) errors.push("Не выбран сценарий перевозки");
   if (def?.requires_forwarder && !s.forwarder_id)
-    errors.push("Сценарий требует экспедитора, но он не указан");
-  if (def?.requires_forwarder && (!s.forwarder_possession_mode || s.forwarder_possession_mode === "unknown"))
-    errors.push("Не выбран режим владения грузом у экспедитора");
+    errors.push("forwarder_required: Для выбранного сценария нужно выбрать экспедитора");
+  if (def?.requires_forwarder && s.forwarder_id &&
+      (!s.forwarder_possession_mode || s.forwarder_possession_mode === "unknown"))
+    errors.push("forwarder_possession_mode_required: Укажите, принимает ли экспедитор груз во владение");
 
   const p = s.participants_json as Record<string, unknown>;
   const need = (key: string, label: string) => {
@@ -169,14 +224,30 @@ export async function validateScenario(
     if (!r.driver_qr_ready) warnings.push("Водитель не подтвердил готовность к QR");
   }
 
-  // ГосЛог экспедитора (если есть)
+  // ГосЛог и ОКВЭД экспедитора (по snapshot или RPC).
+  const snap = getForwarderSnapshotFromScenario(s);
   if (s.forwarder_id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: gl } = await (client.from("forwarder_goslog_status") as any)
-      .select("goslog_status").eq("forwarder_id", s.forwarder_id).maybeSingle();
-    const status = (gl as { goslog_status?: string } | null)?.goslog_status ?? "unknown";
-    if (!["included", "manually_verified"].includes(status))
-      warnings.push("Экспедитор не подтверждён в ГосЛог. Проверьте по официальному источнику.");
+    let goslogStatus = snap?.goslog_status ?? null;
+    let hasOkved = snap?.has_okved_5229 ?? null;
+    if (goslogStatus === null || hasOkved === null) {
+      try {
+        const card = await getForwarderForCarrier(client, s.forwarder_id);
+        goslogStatus = card?.goslog?.goslog_status ?? goslogStatus;
+        hasOkved = card?.forwarder.has_okved_5229 ?? hasOkved;
+      } catch { /* best-effort */ }
+    }
+    if (!goslogStatus || !["included", "manually_verified"].includes(goslogStatus))
+      warnings.push("forwarder_goslog_not_confirmed: Экспедитор не подтверждён в ГосЛог. Проверьте официальный источник перед рабочим оформлением");
+    if (hasOkved === false)
+      warnings.push("forwarder_okved_5229_missing: У экспедитора не указан ОКВЭД 52.29. Проверьте вид деятельности");
+
+    // соответствие сценария режиму участия экспедитора
+    if (s.scenario_type === "forwarder_with_possession" &&
+        s.forwarder_possession_mode && s.forwarder_possession_mode !== "accepting_cargo_possession")
+      warnings.push("forwarder_possession_mismatch: Сценарий предполагает принятие груза экспедитором, но выбран другой режим участия");
+    if (s.scenario_type === "forwarder_warehouse_storage" &&
+        s.forwarder_possession_mode && s.forwarder_possession_mode !== "warehouse_storage")
+      warnings.push("forwarder_warehouse_mode_mismatch: Сценарий предполагает хранение груза у экспедитора, но выбран другой режим");
   }
 
   const readiness: EpdReadinessStatus =
@@ -201,6 +272,21 @@ export async function createDocumentsFromScenario(
   const s = await getScenario(client, carrierExtId, id);
   if (!s) throw new Error("scenario_not_found");
   const docs = (s.required_documents ?? []) as string[];
+  // Обновляем snapshot перед фиксацией в документах.
+  const snapshot = await refreshForwarderSnapshot(
+    client, s.forwarder_id, s.forwarder_possession_mode,
+  ) ?? getForwarderSnapshotFromScenario(s);
+  const epdContext = {
+    scenario_id: s.id,
+    scenario_type: s.scenario_type,
+    forwarder_possession_mode: s.forwarder_possession_mode,
+    cargo_holder_role: s.cargo_holder_role,
+    required_documents: s.required_documents,
+    signing_plan: s.signing_plan_json,
+    is_training: s.is_training,
+    forwarder: snapshot,
+    snapshot_created_at: new Date().toISOString(),
+  };
   const ids: string[] = [];
   for (const code of docs) {
     const row = {
@@ -212,6 +298,8 @@ export async function createDocumentsFromScenario(
       status: "draft",
       scenario_id: s.id,
       is_training: s.is_training,
+      epd_context_snapshot: epdContext,
+      payload_json: { epd_context: epdContext },
       meta: { from_scenario: true, scenario_type: s.scenario_type, doc_code: code },
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

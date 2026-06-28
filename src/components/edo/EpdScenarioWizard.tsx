@@ -14,11 +14,12 @@ import { apiGetAuth, apiPost, apiPatch } from "@/lib/api-client";
 import { toast } from "sonner";
 import {
   EPD_SCENARIO_CATALOG, EPD_SCENARIO_OPTIONS, getScenarioDef,
-  EPD_DOCUMENT_LABEL, EPD_PARTICIPANT_LABEL, EPD_POSSESSION_LABEL,
+  EPD_DOCUMENT_LABEL, EPD_POSSESSION_LABEL,
   EPD_TITLE_SIGNER_LABEL, EPD_READINESS_STATUS_LABEL,
   type EpdScenarioType, type ForwarderPossessionMode,
   type EpdReadinessStatus,
 } from "@/lib/edo/scenarios";
+import { ForwarderPickerBlock } from "@/components/edo/ForwarderPickerBlock";
 
 interface ScenarioRow {
   id: string;
