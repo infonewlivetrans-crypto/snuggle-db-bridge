@@ -14,6 +14,7 @@ import { ArrowLeft, CheckCircle2, X, RefreshCcw, Send, ClipboardCheck } from "lu
 import { EpdScenarioWizard } from "@/components/edo/EpdScenarioWizard";
 import { CargoAcceptanceRemarksBlock } from "@/components/edo/CargoAcceptanceRemarksBlock";
 import { EpdRouteChangesBlock } from "@/components/edo/EpdRouteChangesBlock";
+import { EpdSnapshotDiffBlock } from "@/components/edo/EpdSnapshotDiffBlock";
 
 export const Route = createFileRoute("/carrier/edo/$id")({
   head: () => ({ meta: [{ title: "Документ ЭТрН — Радиус Трек" }] }),
@@ -118,6 +119,9 @@ function CarrierEdoDocPage() {
         documentId={id}
         isTraining={Boolean((d as unknown as { is_training?: boolean }).is_training)}
       />
+
+      <EpdSnapshotDiffBlock documentId={id} />
+
 
 
 
