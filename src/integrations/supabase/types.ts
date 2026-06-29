@@ -4066,6 +4066,63 @@ export type Database = {
         }
         Relationships: []
       }
+      edo_snapshot_reviews: {
+        Row: {
+          audience: string
+          checked_at: string
+          checked_by: string | null
+          comment: string | null
+          created_at: string
+          decision: string
+          diff_snapshot_json: Json | null
+          document_id: string
+          forwarder_id: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: string
+          checked_at?: string
+          checked_by?: string | null
+          comment?: string | null
+          created_at?: string
+          decision: string
+          diff_snapshot_json?: Json | null
+          document_id: string
+          forwarder_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          checked_at?: string
+          checked_by?: string | null
+          comment?: string | null
+          created_at?: string
+          decision?: string
+          diff_snapshot_json?: Json | null
+          document_id?: string
+          forwarder_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edo_snapshot_reviews_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_edo_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edo_snapshot_reviews_forwarder_id_fkey"
+            columns: ["forwarder_id"]
+            isOneToOne: false
+            referencedRelation: "dispatcher_forwarder_ext"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       edo_training_sessions: {
         Row: {
           completed_at: string | null
