@@ -79,6 +79,8 @@ export async function sabyPrepareDocument(
   }
 
   // Снимок практических данных по ЭПД для аналитики/оператора (mock).
+  let snapshotCheck: Record<string, unknown> | null = null;
+  let snapshotCriticalWarning: string | null = null;
   try {
     const { summariseRemarks } = await import("@/server/edo/remarks.server");
     const { countChanges } = await import("@/server/edo/changes.server");
@@ -100,10 +102,30 @@ export async function sabyPrepareDocument(
       forwarder_goslog_status: (fs?.goslog_status as string | null) ?? null,
       forwarder_possession_mode: (fs?.forwarder_possession_mode as string | null) ?? null,
     };
-    epdContext = { ...(epdContext ?? {}), practice };
+    // Контроль изменений snapshot экспедитора.
+    try {
+      const { getDocumentSnapshotDiff } = await import("@/server/edo/snapshot-diff.server");
+      const diff = await getDocumentSnapshotDiff(client, docId);
+      snapshotCheck = {
+        forwarder_snapshot_checked: true,
+        forwarder_snapshot_has_diff: !diff.diff_types.includes("no_diff") && diff.has_snapshot,
+        forwarder_snapshot_risk_level: diff.risk_level,
+        forwarder_snapshot_diff_types: diff.diff_types,
+        snapshot_checked_at: diff.checked_at,
+      };
+      if (diff.risk_level === "critical" && diff.has_snapshot) {
+        snapshotCriticalWarning =
+          "Текущие данные экспедитора отличаются от snapshot документа. " +
+          "Проверьте перед отправкой оператору.";
+      }
+    } catch {
+      snapshotCheck = { forwarder_snapshot_checked: false };
+    }
+    epdContext = { ...(epdContext ?? {}), practice, snapshot_check: snapshotCheck };
   } catch {
     /* practice snapshot — best-effort, не должен ломать prepare */
   }
+
 
 
   const { draft, missing } = mapRadiusDocToSaby(doc as RadiusDocLike);
