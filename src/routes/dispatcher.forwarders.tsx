@@ -19,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiGetAuth, apiPost, apiPatch, apiDelete } from "@/lib/api-client";
 import { DispatcherForwarderGoslogSummary } from "@/components/edo/DispatcherForwarderGoslogSummary";
+import { ForwarderDocumentsDiffBlock } from "@/components/edo/ForwarderDocumentsDiffBlock";
 
 export const Route = createFileRoute("/dispatcher/forwarders")({
   component: DispatcherForwardersPage,
@@ -311,6 +312,7 @@ function ForwarderDetail({
       <DispatcherForwarderGoslogSummary forwarderId={row.id} />
       <GoslogLinkBlock forwarderId={row.id} />
       <ForwarderEpdDocumentsBlock forwarderId={row.id} />
+      <ForwarderDocumentsDiffBlock forwarderId={row.id} />
     </div>
   );
 }
