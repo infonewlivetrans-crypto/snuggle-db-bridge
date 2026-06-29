@@ -142,7 +142,9 @@ export async function sabyPrepareDocument(
     .eq("id", docId)
     .eq("carrier_ext_id", carrierExtId);
   await logDocEvent(client, docId, "saby:prepare", "Документ подготовлен для Saby (mock)");
-  return { ok: true };
+  return snapshotCriticalWarning
+    ? { ok: true, warnings: ["forwarder_snapshot_critical_diff", snapshotCriticalWarning] }
+    : { ok: true };
 }
 
 export async function sabySendDocument(
