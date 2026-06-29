@@ -3,8 +3,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { ForwarderSnapshot, ForwarderPublicCard } from "@/lib/edo/forwarder-snapshot";
-import { buildForwarderSnapshot, isGoslogConfirmed } from "@/lib/edo/forwarder-snapshot";
-import { getForwarderForCarrier } from "@/server/edo/forwarders-public.server";
+import { isGoslogConfirmed } from "@/lib/edo/forwarder-snapshot";
+import { getForwarderForCarrier, buildForwarderSnapshot } from "@/server/edo/forwarders-public.server";
 import type { ForwarderPossessionMode } from "@/lib/edo/scenarios";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
