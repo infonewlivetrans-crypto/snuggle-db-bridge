@@ -46,7 +46,7 @@ function settingsFromConnection(conn: Awaited<ReturnType<typeof loadConnectionCo
 
 export async function sabyPrepareDocument(
   client: AnyClient, carrierExtId: string, docId: string,
-): Promise<{ ok: boolean; missing?: string[]; error?: string; epd_errors?: string[] }> {
+): Promise<{ ok: boolean; missing?: string[]; error?: string; epd_errors?: string[]; warnings?: string[] }> {
   const doc = await loadDoc(client, carrierExtId, docId);
   if (!doc) return { ok: false, error: "not_found" };
   if ((doc as { is_training?: boolean }).is_training) {
