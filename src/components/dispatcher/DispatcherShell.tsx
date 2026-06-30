@@ -20,6 +20,7 @@ import {
   FileText,
   Settings,
   Sparkles,
+  Bot,
   Bell,
   LogOut,
   Menu,
@@ -41,6 +42,7 @@ type NavItem = {
 
 const NAV: readonly NavItem[] = [
   { to: "/dispatcher", label: "Обзор", icon: LayoutDashboard, match: (p) => p === "/dispatcher" || p === "/dispatcher/" },
+  { to: "/dispatcher/ai-dispatcher", label: "AI-диспетчер", icon: Bot },
   { to: "/dispatcher/map", label: "Карта машин", icon: MapPin },
   { to: "/dispatcher/freights", label: "Найденные грузы", icon: PackageSearch },
   { to: "/dispatcher/inbound-documents", label: "Входящие заявки", icon: Inbox },

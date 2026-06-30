@@ -87,6 +87,7 @@ import { Route as DispatcherDocumentsRouteImport } from './routes/dispatcher.doc
 import { Route as DispatcherDealsRouteImport } from './routes/dispatcher.deals'
 import { Route as DispatcherCommissionsRouteImport } from './routes/dispatcher.commissions'
 import { Route as DispatcherCarriersRouteImport } from './routes/dispatcher.carriers'
+import { Route as DispatcherAiDispatcherRouteImport } from './routes/dispatcher.ai-dispatcher'
 import { Route as DispatcherAiAnalyzeRouteImport } from './routes/dispatcher.ai-analyze'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
 import { Route as DataImportHistoryRouteImport } from './routes/data-import.history'
@@ -339,6 +340,7 @@ import { Route as ApiDispatcherCarrierLinkUsersRouteImport } from './routes/api/
 import { Route as ApiDispatcherCarrierLinkInvitesRouteImport } from './routes/api/dispatcher/carrier-link.invites'
 import { Route as ApiDispatcherCarrierLinkCreateUserRouteImport } from './routes/api/dispatcher/carrier-link.create-user'
 import { Route as ApiDispatcherAiParseFreightTextRouteImport } from './routes/api/dispatcher/ai.parse-freight-text'
+import { Route as ApiDispatcherAiDispatcherTasksRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks'
 import { Route as ApiDeliveryRoutesIdDriverGeoRouteImport } from './routes/api/delivery-routes.$id.driver-geo'
 import { Route as ApiDeliveryRoutesIdDetailRouteImport } from './routes/api/delivery-routes.$id.detail'
 import { Route as ApiDeliveryRoutesIdCompletionReportRouteImport } from './routes/api/delivery-routes.$id.completion-report'
@@ -393,6 +395,8 @@ import { Route as ApiDispatcherCarrierRequestsIdLinkDealRouteImport } from './ro
 import { Route as ApiDispatcherCarrierRequestsIdCreateTasksRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-tasks'
 import { Route as ApiDispatcherCarrierRequestsIdCreateDealRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-deal'
 import { Route as ApiDispatcherCarrierRequestsIdContractPreviewRouteImport } from './routes/api/dispatcher/carrier-requests.$id.contract-preview'
+import { Route as ApiDispatcherAiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id'
 import { Route as ApiCarrierVehiclesIdReadinessRouteImport } from './routes/api/carrier/vehicles.$id.readiness'
 import { Route as ApiCarrierVehiclesIdLocationRouteImport } from './routes/api/carrier/vehicles.$id.location'
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
@@ -412,6 +416,12 @@ import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './r
 import { Route as ApiDriverEdoDocumentsIdQrRouteImport } from './routes/api/driver/edo/documents.$id.qr'
 import { Route as ApiDispatcherEdoDocumentsIdSnapshotReviewRouteImport } from './routes/api/dispatcher/edo/documents.$id.snapshot-review'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
+import { Route as ApiDispatcherAiDispatcherTasksIdCallListRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.call-list'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.start-additional-search'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdMakeMainRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.make-main'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdFocusRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.focus'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.call-result'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdAddToCallListRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.add-to-call-list'
 import { Route as ApiCarrierEdoTrainingIdStepRouteImport } from './routes/api/carrier/edo/training.$id.step'
 import { Route as ApiCarrierEdoTrainingIdCompleteRouteImport } from './routes/api/carrier/edo/training.$id.complete'
 import { Route as ApiCarrierEdoScenariosIdValidateRouteImport } from './routes/api/carrier/edo/scenarios.$id.validate'
@@ -430,6 +440,11 @@ import { Route as ApiCarrierEdoDocumentsIdActionsRouteImport } from './routes/ap
 import { Route as ApiCarrierEdoCounterpartiesIdVerifyRouteImport } from './routes/api/carrier/edo/counterparties.$id.verify'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
+import { Route as ApiDispatcherAiDispatcherTasksIdAgentStopRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.stop'
+import { Route as ApiDispatcherAiDispatcherTasksIdAgentStartRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.start'
+import { Route as ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.refresh-now'
+import { Route as ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.pause'
+import { Route as ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.open-ati'
 import { Route as ApiCarrierEdoDocumentsIdSabyStatusRouteImport } from './routes/api/carrier/edo/documents.$id.saby.status'
 import { Route as ApiCarrierEdoDocumentsIdSabySendRouteImport } from './routes/api/carrier/edo/documents.$id.saby.send'
 import { Route as ApiCarrierEdoDocumentsIdSabyPrepareRouteImport } from './routes/api/carrier/edo/documents.$id.saby.prepare'
@@ -828,6 +843,11 @@ const DispatcherCommissionsRoute = DispatcherCommissionsRouteImport.update({
 const DispatcherCarriersRoute = DispatcherCarriersRouteImport.update({
   id: '/dispatcher/carriers',
   path: '/dispatcher/carriers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DispatcherAiDispatcherRoute = DispatcherAiDispatcherRouteImport.update({
+  id: '/dispatcher/ai-dispatcher',
+  path: '/dispatcher/ai-dispatcher',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DispatcherAiAnalyzeRoute = DispatcherAiAnalyzeRouteImport.update({
@@ -2157,6 +2177,12 @@ const ApiDispatcherAiParseFreightTextRoute =
     path: '/api/dispatcher/ai/parse-freight-text',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherAiDispatcherTasksRoute =
+  ApiDispatcherAiDispatcherTasksRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/tasks',
+    path: '/api/dispatcher/ai-dispatcher/tasks',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDeliveryRoutesIdDriverGeoRoute =
   ApiDeliveryRoutesIdDriverGeoRouteImport.update({
     id: '/driver-geo',
@@ -2466,6 +2492,18 @@ const ApiDispatcherCarrierRequestsIdContractPreviewRoute =
     path: '/contract-preview',
     getParentRoute: () => ApiDispatcherCarrierRequestsIdRoute,
   } as any)
+const ApiDispatcherAiDispatcherTasksIdRoute =
+  ApiDispatcherAiDispatcherTasksIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdRoute =
+  ApiDispatcherAiDispatcherCandidatesIdRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/candidates/$id',
+    path: '/api/dispatcher/ai-dispatcher/candidates/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierVehiclesIdReadinessRoute =
   ApiCarrierVehiclesIdReadinessRouteImport.update({
     id: '/readiness',
@@ -2579,6 +2617,42 @@ const ApiDispatcherCommissionsEarningsDealIdPayoutRoute =
     path: '/$dealId/payout',
     getParentRoute: () => ApiDispatcherCommissionsEarningsRoute,
   } as any)
+const ApiDispatcherAiDispatcherTasksIdCallListRoute =
+  ApiDispatcherAiDispatcherTasksIdCallListRouteImport.update({
+    id: '/call-list',
+    path: '/call-list',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute =
+  ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport.update({
+    id: '/start-additional-search',
+    path: '/start-additional-search',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute =
+  ApiDispatcherAiDispatcherCandidatesIdMakeMainRouteImport.update({
+    id: '/make-main',
+    path: '/make-main',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdFocusRoute =
+  ApiDispatcherAiDispatcherCandidatesIdFocusRouteImport.update({
+    id: '/focus',
+    path: '/focus',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdCallResultRoute =
+  ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport.update({
+    id: '/call-result',
+    path: '/call-result',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute =
+  ApiDispatcherAiDispatcherCandidatesIdAddToCallListRouteImport.update({
+    id: '/add-to-call-list',
+    path: '/add-to-call-list',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
 const ApiCarrierEdoTrainingIdStepRoute =
   ApiCarrierEdoTrainingIdStepRouteImport.update({
     id: '/api/carrier/edo/training/$id/step',
@@ -2686,6 +2760,36 @@ const ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute =
     id: '/messages',
     path: '/messages',
     getParentRoute: () => ApiPublicClientPortalTokenOrdersOrderIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdAgentStopRoute =
+  ApiDispatcherAiDispatcherTasksIdAgentStopRouteImport.update({
+    id: '/agent/stop',
+    path: '/agent/stop',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdAgentStartRoute =
+  ApiDispatcherAiDispatcherTasksIdAgentStartRouteImport.update({
+    id: '/agent/start',
+    path: '/agent/start',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute =
+  ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport.update({
+    id: '/agent/refresh-now',
+    path: '/agent/refresh-now',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdAgentPauseRoute =
+  ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport.update({
+    id: '/agent/pause',
+    path: '/agent/pause',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute =
+  ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport.update({
+    id: '/agent/open-ati',
+    path: '/agent/open-ati',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
   } as any)
 const ApiCarrierEdoDocumentsIdSabyStatusRoute =
   ApiCarrierEdoDocumentsIdSabyStatusRouteImport.update({
@@ -2871,6 +2975,7 @@ export interface FileRoutesByFullPath {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/dispatcher/ai-analyze': typeof DispatcherAiAnalyzeRoute
+  '/dispatcher/ai-dispatcher': typeof DispatcherAiDispatcherRoute
   '/dispatcher/carriers': typeof DispatcherCarriersRoute
   '/dispatcher/commissions': typeof DispatcherCommissionsRoute
   '/dispatcher/deals': typeof DispatcherDealsRoute
@@ -3040,6 +3145,7 @@ export interface FileRoutesByFullPath {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/ai-dispatcher/tasks': typeof ApiDispatcherAiDispatcherTasksRouteWithChildren
   '/api/dispatcher/ai/parse-freight-text': typeof ApiDispatcherAiParseFreightTextRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
@@ -3099,6 +3205,8 @@ export interface FileRoutesByFullPath {
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/tasks/$id': typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
@@ -3146,6 +3254,12 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/focus': typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -3157,6 +3271,11 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
@@ -3300,6 +3419,7 @@ export interface FileRoutesByTo {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/dispatcher/ai-analyze': typeof DispatcherAiAnalyzeRoute
+  '/dispatcher/ai-dispatcher': typeof DispatcherAiDispatcherRoute
   '/dispatcher/carriers': typeof DispatcherCarriersRoute
   '/dispatcher/commissions': typeof DispatcherCommissionsRoute
   '/dispatcher/deals': typeof DispatcherDealsRoute
@@ -3469,6 +3589,7 @@ export interface FileRoutesByTo {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/ai-dispatcher/tasks': typeof ApiDispatcherAiDispatcherTasksRouteWithChildren
   '/api/dispatcher/ai/parse-freight-text': typeof ApiDispatcherAiParseFreightTextRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
@@ -3528,6 +3649,8 @@ export interface FileRoutesByTo {
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/tasks/$id': typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
@@ -3575,6 +3698,12 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/focus': typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -3586,6 +3715,11 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
@@ -3731,6 +3865,7 @@ export interface FileRoutesById {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/dispatcher/ai-analyze': typeof DispatcherAiAnalyzeRoute
+  '/dispatcher/ai-dispatcher': typeof DispatcherAiDispatcherRoute
   '/dispatcher/carriers': typeof DispatcherCarriersRoute
   '/dispatcher/commissions': typeof DispatcherCommissionsRoute
   '/dispatcher/deals': typeof DispatcherDealsRoute
@@ -3900,6 +4035,7 @@ export interface FileRoutesById {
   '/api/delivery-routes/$id/completion-report': typeof ApiDeliveryRoutesIdCompletionReportRoute
   '/api/delivery-routes/$id/detail': typeof ApiDeliveryRoutesIdDetailRoute
   '/api/delivery-routes/$id/driver-geo': typeof ApiDeliveryRoutesIdDriverGeoRoute
+  '/api/dispatcher/ai-dispatcher/tasks': typeof ApiDispatcherAiDispatcherTasksRouteWithChildren
   '/api/dispatcher/ai/parse-freight-text': typeof ApiDispatcherAiParseFreightTextRoute
   '/api/dispatcher/carrier-link/create-user': typeof ApiDispatcherCarrierLinkCreateUserRoute
   '/api/dispatcher/carrier-link/invites': typeof ApiDispatcherCarrierLinkInvitesRoute
@@ -3959,6 +4095,8 @@ export interface FileRoutesById {
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/tasks/$id': typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
@@ -4006,6 +4144,12 @@ export interface FileRoutesById {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/focus': typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -4017,6 +4161,11 @@ export interface FileRoutesById {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
@@ -4163,6 +4312,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/dispatcher/ai-analyze'
+    | '/dispatcher/ai-dispatcher'
     | '/dispatcher/carriers'
     | '/dispatcher/commissions'
     | '/dispatcher/deals'
@@ -4332,6 +4482,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/ai-dispatcher/tasks'
     | '/api/dispatcher/ai/parse-freight-text'
     | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/invites'
@@ -4391,6 +4542,8 @@ export interface FileRouteTypes {
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
@@ -4438,6 +4591,12 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -4449,6 +4608,11 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
   fileRoutesByTo: FileRoutesByTo
@@ -4592,6 +4756,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/dispatcher/ai-analyze'
+    | '/dispatcher/ai-dispatcher'
     | '/dispatcher/carriers'
     | '/dispatcher/commissions'
     | '/dispatcher/deals'
@@ -4761,6 +4926,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/ai-dispatcher/tasks'
     | '/api/dispatcher/ai/parse-freight-text'
     | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/invites'
@@ -4820,6 +4986,8 @@ export interface FileRouteTypes {
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
@@ -4867,6 +5035,12 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -4878,6 +5052,11 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
   id:
@@ -5022,6 +5201,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/dispatcher/ai-analyze'
+    | '/dispatcher/ai-dispatcher'
     | '/dispatcher/carriers'
     | '/dispatcher/commissions'
     | '/dispatcher/deals'
@@ -5191,6 +5371,7 @@ export interface FileRouteTypes {
     | '/api/delivery-routes/$id/completion-report'
     | '/api/delivery-routes/$id/detail'
     | '/api/delivery-routes/$id/driver-geo'
+    | '/api/dispatcher/ai-dispatcher/tasks'
     | '/api/dispatcher/ai/parse-freight-text'
     | '/api/dispatcher/carrier-link/create-user'
     | '/api/dispatcher/carrier-link/invites'
@@ -5250,6 +5431,8 @@ export interface FileRouteTypes {
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
@@ -5297,6 +5480,12 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -5308,6 +5497,11 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
   fileRoutesById: FileRoutesById
@@ -5444,6 +5638,7 @@ export interface RootRouteChildren {
   DTokenRoute: typeof DTokenRoute
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
   DispatcherAiAnalyzeRoute: typeof DispatcherAiAnalyzeRoute
+  DispatcherAiDispatcherRoute: typeof DispatcherAiDispatcherRoute
   DispatcherCarriersRoute: typeof DispatcherCarriersRoute
   DispatcherCommissionsRoute: typeof DispatcherCommissionsRoute
   DispatcherDealsRoute: typeof DispatcherDealsRoute
@@ -5552,6 +5747,7 @@ export interface RootRouteChildren {
   ApiCarrierEdoReadinessRoute: typeof ApiCarrierEdoReadinessRoute
   ApiCarrierEdoScenariosRoute: typeof ApiCarrierEdoScenariosRouteWithChildren
   ApiCarrierFreightsSigningRoute: typeof ApiCarrierFreightsSigningRoute
+  ApiDispatcherAiDispatcherTasksRoute: typeof ApiDispatcherAiDispatcherTasksRouteWithChildren
   ApiDispatcherAiParseFreightTextRoute: typeof ApiDispatcherAiParseFreightTextRoute
   ApiDispatcherCommissionsEarningsRoute: typeof ApiDispatcherCommissionsEarningsRouteWithChildren
   ApiDispatcherContractsCarrierOfferRoute: typeof ApiDispatcherContractsCarrierOfferRoute
@@ -5572,6 +5768,7 @@ export interface RootRouteChildren {
   ApiPublicDriverInviteTokenRoute: typeof ApiPublicDriverInviteTokenRouteWithChildren
   ApiCarrierEdoSabySyncRoute: typeof ApiCarrierEdoSabySyncRoute
   ApiCarrierEdoTrainingStartRoute: typeof ApiCarrierEdoTrainingStartRoute
+  ApiDispatcherAiDispatcherCandidatesIdRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
   ApiDispatcherForwardersIdGoslogStatusRoute: typeof ApiDispatcherForwardersIdGoslogStatusRoute
   ApiCarrierEdoTrainingIdCompleteRoute: typeof ApiCarrierEdoTrainingIdCompleteRoute
   ApiCarrierEdoTrainingIdStepRoute: typeof ApiCarrierEdoTrainingIdStepRoute
@@ -6125,6 +6322,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/carriers'
       fullPath: '/dispatcher/carriers'
       preLoaderRoute: typeof DispatcherCarriersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/ai-dispatcher': {
+      id: '/dispatcher/ai-dispatcher'
+      path: '/dispatcher/ai-dispatcher'
+      fullPath: '/dispatcher/ai-dispatcher'
+      preLoaderRoute: typeof DispatcherAiDispatcherRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dispatcher/ai-analyze': {
@@ -7891,6 +8095,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiParseFreightTextRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/ai-dispatcher/tasks': {
+      id: '/api/dispatcher/ai-dispatcher/tasks'
+      path: '/api/dispatcher/ai-dispatcher/tasks'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/delivery-routes/$id/driver-geo': {
       id: '/api/delivery-routes/$id/driver-geo'
       path: '/driver-geo'
@@ -8269,6 +8480,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCarrierRequestsIdContractPreviewRouteImport
       parentRoute: typeof ApiDispatcherCarrierRequestsIdRoute
     }
+    '/api/dispatcher/ai-dispatcher/tasks/$id': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id'
+      path: '/api/dispatcher/ai-dispatcher/candidates/$id'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/vehicles/$id/readiness': {
       id: '/api/carrier/vehicles/$id/readiness'
       path: '/readiness'
@@ -8402,6 +8627,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport
       parentRoute: typeof ApiDispatcherCommissionsEarningsRoute
     }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+      path: '/call-list'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdCallListRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
+      path: '/start-additional-search'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
+      path: '/make-main'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/focus': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
+      path: '/focus'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdFocusRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
+      path: '/call-result'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+      path: '/add-to-call-list'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
     '/api/carrier/edo/training/$id/step': {
       id: '/api/carrier/edo/training/$id/step'
       path: '/api/carrier/edo/training/$id/step'
@@ -8527,6 +8794,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/client-portal/$token/orders/$orderId/messages'
       preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport
       parentRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
+      path: '/agent/stop'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStopRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
+      path: '/agent/start'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStartRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
+      path: '/agent/refresh-now'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+      path: '/agent/pause'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
+      path: '/agent/open-ati'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
     }
     '/api/carrier/edo/documents/$id/saby/status': {
       id: '/api/carrier/edo/documents/$id/saby/status'
@@ -9834,6 +10136,51 @@ const ApiCarrierEdoScenariosRouteWithChildren =
     ApiCarrierEdoScenariosRouteChildren,
   )
 
+interface ApiDispatcherAiDispatcherTasksIdRouteChildren {
+  ApiDispatcherAiDispatcherTasksIdCallListRoute: typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
+  ApiDispatcherAiDispatcherTasksIdAgentPauseRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
+  ApiDispatcherAiDispatcherTasksIdAgentStartRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
+  ApiDispatcherAiDispatcherTasksIdAgentStopRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
+}
+
+const ApiDispatcherAiDispatcherTasksIdRouteChildren: ApiDispatcherAiDispatcherTasksIdRouteChildren =
+  {
+    ApiDispatcherAiDispatcherTasksIdCallListRoute:
+      ApiDispatcherAiDispatcherTasksIdCallListRoute,
+    ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute:
+      ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute,
+    ApiDispatcherAiDispatcherTasksIdAgentPauseRoute:
+      ApiDispatcherAiDispatcherTasksIdAgentPauseRoute,
+    ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute:
+      ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute,
+    ApiDispatcherAiDispatcherTasksIdAgentStartRoute:
+      ApiDispatcherAiDispatcherTasksIdAgentStartRoute,
+    ApiDispatcherAiDispatcherTasksIdAgentStopRoute:
+      ApiDispatcherAiDispatcherTasksIdAgentStopRoute,
+  }
+
+const ApiDispatcherAiDispatcherTasksIdRouteWithChildren =
+  ApiDispatcherAiDispatcherTasksIdRoute._addFileChildren(
+    ApiDispatcherAiDispatcherTasksIdRouteChildren,
+  )
+
+interface ApiDispatcherAiDispatcherTasksRouteChildren {
+  ApiDispatcherAiDispatcherTasksIdRoute: typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
+}
+
+const ApiDispatcherAiDispatcherTasksRouteChildren: ApiDispatcherAiDispatcherTasksRouteChildren =
+  {
+    ApiDispatcherAiDispatcherTasksIdRoute:
+      ApiDispatcherAiDispatcherTasksIdRouteWithChildren,
+  }
+
+const ApiDispatcherAiDispatcherTasksRouteWithChildren =
+  ApiDispatcherAiDispatcherTasksRoute._addFileChildren(
+    ApiDispatcherAiDispatcherTasksRouteChildren,
+  )
+
 interface ApiDispatcherCommissionsEarningsRouteChildren {
   ApiDispatcherCommissionsEarningsDealIdPayoutRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
 }
@@ -9924,6 +10271,33 @@ const ApiPublicDriverInviteTokenRouteChildren: ApiPublicDriverInviteTokenRouteCh
 const ApiPublicDriverInviteTokenRouteWithChildren =
   ApiPublicDriverInviteTokenRoute._addFileChildren(
     ApiPublicDriverInviteTokenRouteChildren,
+  )
+
+interface ApiDispatcherAiDispatcherCandidatesIdRouteChildren {
+  ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute: typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  ApiDispatcherAiDispatcherCandidatesIdCallResultRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
+  ApiDispatcherAiDispatcherCandidatesIdFocusRoute: typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
+  ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute: typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
+  ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute: typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
+}
+
+const ApiDispatcherAiDispatcherCandidatesIdRouteChildren: ApiDispatcherAiDispatcherCandidatesIdRouteChildren =
+  {
+    ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute:
+      ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute,
+    ApiDispatcherAiDispatcherCandidatesIdCallResultRoute:
+      ApiDispatcherAiDispatcherCandidatesIdCallResultRoute,
+    ApiDispatcherAiDispatcherCandidatesIdFocusRoute:
+      ApiDispatcherAiDispatcherCandidatesIdFocusRoute,
+    ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute:
+      ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute,
+    ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute:
+      ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute,
+  }
+
+const ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren =
+  ApiDispatcherAiDispatcherCandidatesIdRoute._addFileChildren(
+    ApiDispatcherAiDispatcherCandidatesIdRouteChildren,
   )
 
 const rootRouteChildren: RootRouteChildren = {
@@ -10058,6 +10432,7 @@ const rootRouteChildren: RootRouteChildren = {
   DTokenRoute: DTokenRoute,
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
   DispatcherAiAnalyzeRoute: DispatcherAiAnalyzeRoute,
+  DispatcherAiDispatcherRoute: DispatcherAiDispatcherRoute,
   DispatcherCarriersRoute: DispatcherCarriersRoute,
   DispatcherCommissionsRoute: DispatcherCommissionsRoute,
   DispatcherDealsRoute: DispatcherDealsRoute,
@@ -10170,6 +10545,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierEdoReadinessRoute: ApiCarrierEdoReadinessRoute,
   ApiCarrierEdoScenariosRoute: ApiCarrierEdoScenariosRouteWithChildren,
   ApiCarrierFreightsSigningRoute: ApiCarrierFreightsSigningRoute,
+  ApiDispatcherAiDispatcherTasksRoute:
+    ApiDispatcherAiDispatcherTasksRouteWithChildren,
   ApiDispatcherAiParseFreightTextRoute: ApiDispatcherAiParseFreightTextRoute,
   ApiDispatcherCommissionsEarningsRoute:
     ApiDispatcherCommissionsEarningsRouteWithChildren,
@@ -10198,6 +10575,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDriverInviteTokenRoute: ApiPublicDriverInviteTokenRouteWithChildren,
   ApiCarrierEdoSabySyncRoute: ApiCarrierEdoSabySyncRoute,
   ApiCarrierEdoTrainingStartRoute: ApiCarrierEdoTrainingStartRoute,
+  ApiDispatcherAiDispatcherCandidatesIdRoute:
+    ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren,
   ApiDispatcherForwardersIdGoslogStatusRoute:
     ApiDispatcherForwardersIdGoslogStatusRoute,
   ApiCarrierEdoTrainingIdCompleteRoute: ApiCarrierEdoTrainingIdCompleteRoute,
