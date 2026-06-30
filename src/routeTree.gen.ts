@@ -87,6 +87,7 @@ import { Route as DispatcherDocumentsRouteImport } from './routes/dispatcher.doc
 import { Route as DispatcherDealsRouteImport } from './routes/dispatcher.deals'
 import { Route as DispatcherCommissionsRouteImport } from './routes/dispatcher.commissions'
 import { Route as DispatcherCarriersRouteImport } from './routes/dispatcher.carriers'
+import { Route as DispatcherAiDispatcherRouteImport } from './routes/dispatcher.ai-dispatcher'
 import { Route as DispatcherAiAnalyzeRouteImport } from './routes/dispatcher.ai-analyze'
 import { Route as DeliveryRoutesDeliveryRouteIdRouteImport } from './routes/delivery-routes.$deliveryRouteId'
 import { Route as DataImportHistoryRouteImport } from './routes/data-import.history'
@@ -842,6 +843,11 @@ const DispatcherCommissionsRoute = DispatcherCommissionsRouteImport.update({
 const DispatcherCarriersRoute = DispatcherCarriersRouteImport.update({
   id: '/dispatcher/carriers',
   path: '/dispatcher/carriers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DispatcherAiDispatcherRoute = DispatcherAiDispatcherRouteImport.update({
+  id: '/dispatcher/ai-dispatcher',
+  path: '/dispatcher/ai-dispatcher',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DispatcherAiAnalyzeRoute = DispatcherAiAnalyzeRouteImport.update({
@@ -2969,6 +2975,7 @@ export interface FileRoutesByFullPath {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/dispatcher/ai-analyze': typeof DispatcherAiAnalyzeRoute
+  '/dispatcher/ai-dispatcher': typeof DispatcherAiDispatcherRoute
   '/dispatcher/carriers': typeof DispatcherCarriersRoute
   '/dispatcher/commissions': typeof DispatcherCommissionsRoute
   '/dispatcher/deals': typeof DispatcherDealsRoute
@@ -3412,6 +3419,7 @@ export interface FileRoutesByTo {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/dispatcher/ai-analyze': typeof DispatcherAiAnalyzeRoute
+  '/dispatcher/ai-dispatcher': typeof DispatcherAiDispatcherRoute
   '/dispatcher/carriers': typeof DispatcherCarriersRoute
   '/dispatcher/commissions': typeof DispatcherCommissionsRoute
   '/dispatcher/deals': typeof DispatcherDealsRoute
@@ -3857,6 +3865,7 @@ export interface FileRoutesById {
   '/data-import/history': typeof DataImportHistoryRoute
   '/delivery-routes/$deliveryRouteId': typeof DeliveryRoutesDeliveryRouteIdRoute
   '/dispatcher/ai-analyze': typeof DispatcherAiAnalyzeRoute
+  '/dispatcher/ai-dispatcher': typeof DispatcherAiDispatcherRoute
   '/dispatcher/carriers': typeof DispatcherCarriersRoute
   '/dispatcher/commissions': typeof DispatcherCommissionsRoute
   '/dispatcher/deals': typeof DispatcherDealsRoute
@@ -4303,6 +4312,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/dispatcher/ai-analyze'
+    | '/dispatcher/ai-dispatcher'
     | '/dispatcher/carriers'
     | '/dispatcher/commissions'
     | '/dispatcher/deals'
@@ -4746,6 +4756,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/dispatcher/ai-analyze'
+    | '/dispatcher/ai-dispatcher'
     | '/dispatcher/carriers'
     | '/dispatcher/commissions'
     | '/dispatcher/deals'
@@ -5190,6 +5201,7 @@ export interface FileRouteTypes {
     | '/data-import/history'
     | '/delivery-routes/$deliveryRouteId'
     | '/dispatcher/ai-analyze'
+    | '/dispatcher/ai-dispatcher'
     | '/dispatcher/carriers'
     | '/dispatcher/commissions'
     | '/dispatcher/deals'
@@ -5626,6 +5638,7 @@ export interface RootRouteChildren {
   DTokenRoute: typeof DTokenRoute
   DeliveryRoutesDeliveryRouteIdRoute: typeof DeliveryRoutesDeliveryRouteIdRoute
   DispatcherAiAnalyzeRoute: typeof DispatcherAiAnalyzeRoute
+  DispatcherAiDispatcherRoute: typeof DispatcherAiDispatcherRoute
   DispatcherCarriersRoute: typeof DispatcherCarriersRoute
   DispatcherCommissionsRoute: typeof DispatcherCommissionsRoute
   DispatcherDealsRoute: typeof DispatcherDealsRoute
@@ -6309,6 +6322,13 @@ declare module '@tanstack/react-router' {
       path: '/dispatcher/carriers'
       fullPath: '/dispatcher/carriers'
       preLoaderRoute: typeof DispatcherCarriersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dispatcher/ai-dispatcher': {
+      id: '/dispatcher/ai-dispatcher'
+      path: '/dispatcher/ai-dispatcher'
+      fullPath: '/dispatcher/ai-dispatcher'
+      preLoaderRoute: typeof DispatcherAiDispatcherRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dispatcher/ai-analyze': {
@@ -10412,6 +10432,7 @@ const rootRouteChildren: RootRouteChildren = {
   DTokenRoute: DTokenRoute,
   DeliveryRoutesDeliveryRouteIdRoute: DeliveryRoutesDeliveryRouteIdRoute,
   DispatcherAiAnalyzeRoute: DispatcherAiAnalyzeRoute,
+  DispatcherAiDispatcherRoute: DispatcherAiDispatcherRoute,
   DispatcherCarriersRoute: DispatcherCarriersRoute,
   DispatcherCommissionsRoute: DispatcherCommissionsRoute,
   DispatcherDealsRoute: DispatcherDealsRoute,
