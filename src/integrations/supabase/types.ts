@@ -14,6 +14,332 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_dispatch_agent_events: {
+        Row: {
+          candidate_id: string | null
+          created_at: string
+          dispatcher_id: string
+          event_payload: Json | null
+          event_type: string
+          id: string
+          message: string | null
+          search_task_id: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          created_at?: string
+          dispatcher_id: string
+          event_payload?: Json | null
+          event_type: string
+          id?: string
+          message?: string | null
+          search_task_id?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          created_at?: string
+          dispatcher_id?: string
+          event_payload?: Json | null
+          event_type?: string
+          id?: string
+          message?: string | null
+          search_task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_dispatch_agent_events_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_load_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_dispatch_agent_events_search_task_id_fkey"
+            columns: ["search_task_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_search_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_dispatch_call_logs: {
+        Row: {
+          call_result: string | null
+          call_status: string
+          called_at: string | null
+          candidate_id: string
+          comment: string | null
+          created_at: string
+          dispatcher_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          call_result?: string | null
+          call_status?: string
+          called_at?: string | null
+          candidate_id: string
+          comment?: string | null
+          created_at?: string
+          dispatcher_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          call_result?: string | null
+          call_status?: string
+          called_at?: string | null
+          candidate_id?: string
+          comment?: string | null
+          created_at?: string
+          dispatcher_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_dispatch_call_logs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_load_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_dispatch_load_candidates: {
+        Row: {
+          agent_open_hint_json: Json | null
+          ai_reasons: Json | null
+          ai_summary: string | null
+          ai_warnings: Json | null
+          body_type: string | null
+          cargo_name: string | null
+          contact_allowed: boolean
+          contact_hidden: boolean
+          created_at: string
+          delivery_city: string | null
+          delivery_date: string | null
+          dispatcher_comment: string | null
+          dispatcher_decision: string | null
+          distance_km: number | null
+          id: string
+          is_additional_load: boolean
+          is_main_load: boolean
+          linked_main_candidate_id: string | null
+          loading_type: string | null
+          match_score: number | null
+          parsed_json: Json | null
+          payment_type: string | null
+          pickup_city: string | null
+          pickup_date: string | null
+          price: number | null
+          price_per_km: number | null
+          profitability_score: number | null
+          raw_text: string | null
+          risk_score: number | null
+          search_task_id: string
+          source_card_anchor: string | null
+          source_external_ref: string | null
+          source_name: string | null
+          source_page_url: string | null
+          source_row_index: number | null
+          source_type: string
+          status: string
+          updated_at: string
+          volume: number | null
+          weight: number | null
+        }
+        Insert: {
+          agent_open_hint_json?: Json | null
+          ai_reasons?: Json | null
+          ai_summary?: string | null
+          ai_warnings?: Json | null
+          body_type?: string | null
+          cargo_name?: string | null
+          contact_allowed?: boolean
+          contact_hidden?: boolean
+          created_at?: string
+          delivery_city?: string | null
+          delivery_date?: string | null
+          dispatcher_comment?: string | null
+          dispatcher_decision?: string | null
+          distance_km?: number | null
+          id?: string
+          is_additional_load?: boolean
+          is_main_load?: boolean
+          linked_main_candidate_id?: string | null
+          loading_type?: string | null
+          match_score?: number | null
+          parsed_json?: Json | null
+          payment_type?: string | null
+          pickup_city?: string | null
+          pickup_date?: string | null
+          price?: number | null
+          price_per_km?: number | null
+          profitability_score?: number | null
+          raw_text?: string | null
+          risk_score?: number | null
+          search_task_id: string
+          source_card_anchor?: string | null
+          source_external_ref?: string | null
+          source_name?: string | null
+          source_page_url?: string | null
+          source_row_index?: number | null
+          source_type?: string
+          status?: string
+          updated_at?: string
+          volume?: number | null
+          weight?: number | null
+        }
+        Update: {
+          agent_open_hint_json?: Json | null
+          ai_reasons?: Json | null
+          ai_summary?: string | null
+          ai_warnings?: Json | null
+          body_type?: string | null
+          cargo_name?: string | null
+          contact_allowed?: boolean
+          contact_hidden?: boolean
+          created_at?: string
+          delivery_city?: string | null
+          delivery_date?: string | null
+          dispatcher_comment?: string | null
+          dispatcher_decision?: string | null
+          distance_km?: number | null
+          id?: string
+          is_additional_load?: boolean
+          is_main_load?: boolean
+          linked_main_candidate_id?: string | null
+          loading_type?: string | null
+          match_score?: number | null
+          parsed_json?: Json | null
+          payment_type?: string | null
+          pickup_city?: string | null
+          pickup_date?: string | null
+          price?: number | null
+          price_per_km?: number | null
+          profitability_score?: number | null
+          raw_text?: string | null
+          risk_score?: number | null
+          search_task_id?: string
+          source_card_anchor?: string | null
+          source_external_ref?: string | null
+          source_name?: string | null
+          source_page_url?: string | null
+          source_row_index?: number | null
+          source_type?: string
+          status?: string
+          updated_at?: string
+          volume?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_dispatch_load_candidates_linked_main_candidate_id_fkey"
+            columns: ["linked_main_candidate_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_load_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_dispatch_load_candidates_search_task_id_fkey"
+            columns: ["search_task_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_search_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_dispatch_search_tasks: {
+        Row: {
+          auto_refresh_enabled: boolean
+          best_candidate_id: string | null
+          created_at: string
+          destination_city: string | null
+          destination_radius_km: number | null
+          dispatcher_id: string
+          driver_id: string | null
+          id: string
+          last_refresh_at: string | null
+          loads_seen_count: number
+          main_load_candidate_id: string | null
+          manual_vehicle_json: Json | null
+          matched_count: number
+          next_refresh_at: string | null
+          notes: string | null
+          parent_task_id: string | null
+          refresh_count: number
+          refresh_interval_seconds: number
+          route_points_json: Json | null
+          search_mode: string
+          start_city: string | null
+          start_radius_km: number | null
+          status: string
+          updated_at: string
+          vehicle_id: string | null
+          vehicle_params_json: Json | null
+          vehicle_source: string
+        }
+        Insert: {
+          auto_refresh_enabled?: boolean
+          best_candidate_id?: string | null
+          created_at?: string
+          destination_city?: string | null
+          destination_radius_km?: number | null
+          dispatcher_id: string
+          driver_id?: string | null
+          id?: string
+          last_refresh_at?: string | null
+          loads_seen_count?: number
+          main_load_candidate_id?: string | null
+          manual_vehicle_json?: Json | null
+          matched_count?: number
+          next_refresh_at?: string | null
+          notes?: string | null
+          parent_task_id?: string | null
+          refresh_count?: number
+          refresh_interval_seconds?: number
+          route_points_json?: Json | null
+          search_mode?: string
+          start_city?: string | null
+          start_radius_km?: number | null
+          status?: string
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_params_json?: Json | null
+          vehicle_source?: string
+        }
+        Update: {
+          auto_refresh_enabled?: boolean
+          best_candidate_id?: string | null
+          created_at?: string
+          destination_city?: string | null
+          destination_radius_km?: number | null
+          dispatcher_id?: string
+          driver_id?: string | null
+          id?: string
+          last_refresh_at?: string | null
+          loads_seen_count?: number
+          main_load_candidate_id?: string | null
+          manual_vehicle_json?: Json | null
+          matched_count?: number
+          next_refresh_at?: string | null
+          notes?: string | null
+          parent_task_id?: string | null
+          refresh_count?: number
+          refresh_interval_seconds?: number
+          route_points_json?: Json | null
+          search_mode?: string
+          start_city?: string | null
+          start_radius_km?: number | null
+          status?: string
+          updated_at?: string
+          vehicle_id?: string | null
+          vehicle_params_json?: Json | null
+          vehicle_source?: string
+        }
+        Relationships: []
+      }
       app_versions: {
         Row: {
           app_store_url: string | null
