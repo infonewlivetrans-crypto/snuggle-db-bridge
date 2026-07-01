@@ -20,6 +20,8 @@ import {
   RefreshCw, Search, Square, Target, Truck,
 } from "lucide-react";
 
+import { MultiVehicleSearchBoard, LoadBundlePanel, CallQueuePanel } from "@/components/ai-dispatcher/BundleAndMultiVehicle";
+
 export const Route = createFileRoute("/dispatcher/ai-dispatcher")({
   component: AiDispatcherPage,
 });
@@ -108,6 +110,13 @@ function AiDispatcherPage() {
           </div>
         </header>
         <AiDispatcherInner />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+          <MultiVehicleSearchBoard />
+          <div className="space-y-4">
+            <LoadBundlePanel />
+            <CallQueuePanel />
+          </div>
+        </div>
       </main>
     </DispatcherShell>
   );

@@ -62,6 +62,60 @@ export type Database = {
           },
         ]
       }
+      ai_dispatch_agent_tabs: {
+        Row: {
+          candidate_id: string | null
+          close_reason: string | null
+          closed_at: string | null
+          created_at: string
+          dispatcher_id: string
+          id: string
+          last_active_at: string | null
+          opened_at: string | null
+          search_task_id: string | null
+          session_id: string | null
+          tab_status: string
+          tab_type: string
+          title: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          close_reason?: string | null
+          closed_at?: string | null
+          created_at?: string
+          dispatcher_id: string
+          id?: string
+          last_active_at?: string | null
+          opened_at?: string | null
+          search_task_id?: string | null
+          session_id?: string | null
+          tab_status?: string
+          tab_type?: string
+          title?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          close_reason?: string | null
+          closed_at?: string | null
+          created_at?: string
+          dispatcher_id?: string
+          id?: string
+          last_active_at?: string | null
+          opened_at?: string | null
+          search_task_id?: string | null
+          session_id?: string | null
+          tab_status?: string
+          tab_type?: string
+          title?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       ai_dispatch_call_logs: {
         Row: {
           call_result: string | null
@@ -106,13 +160,182 @@ export type Database = {
           },
         ]
       }
+      ai_dispatch_call_queue: {
+        Row: {
+          bundle_id: string | null
+          call_result: string | null
+          call_status: string
+          candidate_id: string | null
+          created_at: string
+          dispatcher_comment: string | null
+          dispatcher_id: string
+          id: string
+          next_action_at: string | null
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          bundle_id?: string | null
+          call_result?: string | null
+          call_status?: string
+          candidate_id?: string | null
+          created_at?: string
+          dispatcher_comment?: string | null
+          dispatcher_id: string
+          id?: string
+          next_action_at?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          bundle_id?: string | null
+          call_result?: string | null
+          call_status?: string
+          candidate_id?: string | null
+          created_at?: string
+          dispatcher_comment?: string | null
+          dispatcher_id?: string
+          id?: string
+          next_action_at?: string | null
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_dispatch_load_bundle_items: {
+        Row: {
+          bundle_id: string
+          candidate_id: string
+          compatibility_status: string
+          compatibility_warnings_json: Json | null
+          created_at: string
+          delivery_order: number | null
+          detour_km: number | null
+          extra_time_minutes: number | null
+          id: string
+          item_role: string
+          pickup_order: number | null
+          sequence_number: number
+          updated_at: string
+        }
+        Insert: {
+          bundle_id: string
+          candidate_id: string
+          compatibility_status?: string
+          compatibility_warnings_json?: Json | null
+          created_at?: string
+          delivery_order?: number | null
+          detour_km?: number | null
+          extra_time_minutes?: number | null
+          id?: string
+          item_role?: string
+          pickup_order?: number | null
+          sequence_number?: number
+          updated_at?: string
+        }
+        Update: {
+          bundle_id?: string
+          candidate_id?: string
+          compatibility_status?: string
+          compatibility_warnings_json?: Json | null
+          created_at?: string
+          delivery_order?: number | null
+          detour_km?: number | null
+          extra_time_minutes?: number | null
+          id?: string
+          item_role?: string
+          pickup_order?: number | null
+          sequence_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_dispatch_load_bundle_items_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_load_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_dispatch_load_bundles: {
+        Row: {
+          ai_summary: string | null
+          bundle_type: string
+          created_at: string
+          dispatcher_id: string
+          id: string
+          remaining_volume: number | null
+          remaining_weight: number | null
+          risks_json: Json | null
+          route_points_json: Json | null
+          search_task_id: string | null
+          status: string
+          time_windows_json: Json | null
+          total_distance_km: number | null
+          total_price: number | null
+          total_profit: number | null
+          total_profit_per_km: number | null
+          total_volume: number | null
+          total_weight: number | null
+          updated_at: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          ai_summary?: string | null
+          bundle_type?: string
+          created_at?: string
+          dispatcher_id: string
+          id?: string
+          remaining_volume?: number | null
+          remaining_weight?: number | null
+          risks_json?: Json | null
+          route_points_json?: Json | null
+          search_task_id?: string | null
+          status?: string
+          time_windows_json?: Json | null
+          total_distance_km?: number | null
+          total_price?: number | null
+          total_profit?: number | null
+          total_profit_per_km?: number | null
+          total_volume?: number | null
+          total_weight?: number | null
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          ai_summary?: string | null
+          bundle_type?: string
+          created_at?: string
+          dispatcher_id?: string
+          id?: string
+          remaining_volume?: number | null
+          remaining_weight?: number | null
+          risks_json?: Json | null
+          route_points_json?: Json | null
+          search_task_id?: string | null
+          status?: string
+          time_windows_json?: Json | null
+          total_distance_km?: number | null
+          total_price?: number | null
+          total_profit?: number | null
+          total_profit_per_km?: number | null
+          total_volume?: number | null
+          total_weight?: number | null
+          updated_at?: string
+          vehicle_id?: string | null
+        }
+        Relationships: []
+      }
       ai_dispatch_load_candidates: {
         Row: {
           agent_open_hint_json: Json | null
+          agent_tab_id: string | null
           ai_reasons: Json | null
           ai_summary: string | null
           ai_warnings: Json | null
           body_type: string | null
+          bundle_id: string | null
           cargo_name: string | null
           contact_allowed: boolean
           contact_hidden: boolean
@@ -128,6 +351,7 @@ export type Database = {
           linked_main_candidate_id: string | null
           loading_type: string | null
           match_score: number | null
+          not_actual_reason: string | null
           parsed_json: Json | null
           payment_type: string | null
           pickup_city: string | null
@@ -151,10 +375,12 @@ export type Database = {
         }
         Insert: {
           agent_open_hint_json?: Json | null
+          agent_tab_id?: string | null
           ai_reasons?: Json | null
           ai_summary?: string | null
           ai_warnings?: Json | null
           body_type?: string | null
+          bundle_id?: string | null
           cargo_name?: string | null
           contact_allowed?: boolean
           contact_hidden?: boolean
@@ -170,6 +396,7 @@ export type Database = {
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
+          not_actual_reason?: string | null
           parsed_json?: Json | null
           payment_type?: string | null
           pickup_city?: string | null
@@ -193,10 +420,12 @@ export type Database = {
         }
         Update: {
           agent_open_hint_json?: Json | null
+          agent_tab_id?: string | null
           ai_reasons?: Json | null
           ai_summary?: string | null
           ai_warnings?: Json | null
           body_type?: string | null
+          bundle_id?: string | null
           cargo_name?: string | null
           contact_allowed?: boolean
           contact_hidden?: boolean
@@ -212,6 +441,7 @@ export type Database = {
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
+          not_actual_reason?: string | null
           parsed_json?: Json | null
           payment_type?: string | null
           pickup_city?: string | null
@@ -252,6 +482,7 @@ export type Database = {
       }
       ai_dispatch_search_tasks: {
         Row: {
+          ati_filters_json: Json | null
           auto_refresh_enabled: boolean
           best_candidate_id: string | null
           created_at: string
@@ -260,11 +491,13 @@ export type Database = {
           dispatcher_id: string
           driver_id: string | null
           id: string
+          is_multi_vehicle_member: boolean
           last_refresh_at: string | null
           loads_seen_count: number
           main_load_candidate_id: string | null
           manual_vehicle_json: Json | null
           matched_count: number
+          multi_vehicle_group_id: string | null
           next_refresh_at: string | null
           notes: string | null
           parent_task_id: string | null
@@ -281,6 +514,7 @@ export type Database = {
           vehicle_source: string
         }
         Insert: {
+          ati_filters_json?: Json | null
           auto_refresh_enabled?: boolean
           best_candidate_id?: string | null
           created_at?: string
@@ -289,11 +523,13 @@ export type Database = {
           dispatcher_id: string
           driver_id?: string | null
           id?: string
+          is_multi_vehicle_member?: boolean
           last_refresh_at?: string | null
           loads_seen_count?: number
           main_load_candidate_id?: string | null
           manual_vehicle_json?: Json | null
           matched_count?: number
+          multi_vehicle_group_id?: string | null
           next_refresh_at?: string | null
           notes?: string | null
           parent_task_id?: string | null
@@ -310,6 +546,7 @@ export type Database = {
           vehicle_source?: string
         }
         Update: {
+          ati_filters_json?: Json | null
           auto_refresh_enabled?: boolean
           best_candidate_id?: string | null
           created_at?: string
@@ -318,11 +555,13 @@ export type Database = {
           dispatcher_id?: string
           driver_id?: string | null
           id?: string
+          is_multi_vehicle_member?: boolean
           last_refresh_at?: string | null
           loads_seen_count?: number
           main_load_candidate_id?: string | null
           manual_vehicle_json?: Json | null
           matched_count?: number
+          multi_vehicle_group_id?: string | null
           next_refresh_at?: string | null
           notes?: string | null
           parent_task_id?: string | null
