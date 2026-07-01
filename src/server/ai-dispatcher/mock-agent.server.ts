@@ -24,7 +24,22 @@ export type AgentEventType =
   | "additional_search_requested"
   | "call_list_added"
   | "call_started"
-  | "call_result_saved";
+  | "call_result_saved"
+  | "ati_search_page_opened"
+  | "filters_detected"
+  | "filters_applied_mock"
+  | "page_refresh_scheduled"
+  | "page_refreshed"
+  | "candidate_seen"
+  | "candidate_updated"
+  | "candidate_became_not_actual"
+  | "candidate_focused"
+  | "candidate_page_opened"
+  | "candidate_page_closed"
+  | "irrelevant_page_closed"
+  | "bundle_suggested"
+  | "multi_vehicle_cycle_started"
+  | "multi_vehicle_cycle_completed";
 
 export async function logAgentEvent(
   client: Client,
