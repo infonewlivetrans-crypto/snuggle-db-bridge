@@ -3,7 +3,7 @@ import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import { openAtiForTask, resolveAdapterCtx, type AgentAdapterMode } from "@/server/ai-dispatcher/agent-adapter.server";
 
 function resolveMode(request: Request): AgentAdapterMode {
-  const m = (request.headers.get("x-agent-mode") ?? "mock").toLowerCase();
+  const url = new URL(request.url); const m = (request.headers.get("x-agent-mode") ?? url.searchParams.get("mode") ?? "mock").toLowerCase();
   if (m === "browser_agent_ready" || m === "browser_agent_live") return m;
   return "mock";
 }
