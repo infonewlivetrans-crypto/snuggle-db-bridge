@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_dispatch_agent_commands: {
+        Row: {
+          acknowledged_at: string | null
+          candidate_id: string | null
+          command_payload_json: Json
+          command_type: string
+          completed_at: string | null
+          created_at: string
+          dispatcher_id: string
+          error_message: string | null
+          expires_at: string | null
+          id: string
+          result_json: Json | null
+          search_task_id: string | null
+          sent_at: string | null
+          session_id: string
+          status: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          candidate_id?: string | null
+          command_payload_json?: Json
+          command_type: string
+          completed_at?: string | null
+          created_at?: string
+          dispatcher_id: string
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          result_json?: Json | null
+          search_task_id?: string | null
+          sent_at?: string | null
+          session_id: string
+          status?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          candidate_id?: string | null
+          command_payload_json?: Json
+          command_type?: string
+          completed_at?: string | null
+          created_at?: string
+          dispatcher_id?: string
+          error_message?: string | null
+          expires_at?: string | null
+          id?: string
+          result_json?: Json | null
+          search_task_id?: string | null
+          sent_at?: string | null
+          session_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_dispatch_agent_commands_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_dispatch_agent_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_dispatch_agent_events: {
         Row: {
           candidate_id: string | null
@@ -61,6 +123,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_dispatch_agent_sessions: {
+        Row: {
+          active_tab_count: number
+          agent_name: string
+          agent_type: string
+          agent_version: string | null
+          browser_name: string | null
+          browser_profile_hint: string | null
+          created_at: string
+          current_task_id: string | null
+          dispatcher_id: string
+          id: string
+          last_error: string | null
+          last_heartbeat_at: string | null
+          paired_at: string | null
+          pairing_code_hash: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          active_tab_count?: number
+          agent_name?: string
+          agent_type?: string
+          agent_version?: string | null
+          browser_name?: string | null
+          browser_profile_hint?: string | null
+          created_at?: string
+          current_task_id?: string | null
+          dispatcher_id: string
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          paired_at?: string | null
+          pairing_code_hash?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          active_tab_count?: number
+          agent_name?: string
+          agent_type?: string
+          agent_version?: string | null
+          browser_name?: string | null
+          browser_profile_hint?: string | null
+          created_at?: string
+          current_task_id?: string | null
+          dispatcher_id?: string
+          id?: string
+          last_error?: string | null
+          last_heartbeat_at?: string | null
+          paired_at?: string | null
+          pairing_code_hash?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       ai_dispatch_agent_tabs: {
         Row: {
