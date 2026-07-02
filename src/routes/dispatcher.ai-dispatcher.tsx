@@ -113,21 +113,6 @@ type CallLog = {
 };
 
 function AiDispatcherPage() {
-  return (
-    <DispatcherShell>
-      <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 space-y-4">
-        <header className="flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">AI-диспетчер</h1>
-            <p className="text-xs text-muted-foreground mt-1">
-              Dev/mock агент. Radius Track Agent открывает сайт ATI в браузере диспетчера.
-              API ATI не используется. Реальное расширение подключается следующим этапом.
-            </p>
-          </div>
-        </header>
-        <AiDispatcherInner />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
-function AiDispatcherPage() {
   const [mode, setMode] = useState<AgentAdapterMode>(() => currentAgentMode());
   useEffect(() => {
     const h = (e: Event) => setMode((e as CustomEvent).detail as AgentAdapterMode);
@@ -169,8 +154,20 @@ function AiDispatcherPage() {
     </DispatcherShell>
   );
 }
+
+function AiDispatcherInner() {
+  const qc = useQueryClient();
+  const tasksQ = useQuery({
+    queryKey: ["ai-disp-tasks"],
+    queryFn: () => apiGetAuth<{ rows: Task[] }>("/api/dispatcher/ai-dispatcher/tasks"),
+    refetchInterval: 15000,
+  });
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const tasks = tasksQ.data?.rows ?? [];
+  useEffect(() => {
     if (!activeId && tasks.length > 0) setActiveId(tasks[0].id);
   }, [tasks, activeId]);
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
