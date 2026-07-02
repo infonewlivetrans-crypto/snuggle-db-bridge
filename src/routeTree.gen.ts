@@ -404,6 +404,7 @@ import { Route as ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRouteImport }
 import { Route as ApiDispatcherAiDispatcherCandidatesIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id'
 import { Route as ApiDispatcherAiDispatcherCallQueueIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/call-queue.$id'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id'
+import { Route as ApiDispatcherAiDispatcherAgentTabsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.tabs'
 import { Route as ApiDispatcherAiDispatcherAgentSessionsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions'
 import { Route as ApiCarrierVehiclesIdReadinessRouteImport } from './routes/api/carrier/vehicles.$id.readiness'
 import { Route as ApiCarrierVehiclesIdLocationRouteImport } from './routes/api/carrier/vehicles.$id.location'
@@ -2563,6 +2564,12 @@ const ApiDispatcherAiDispatcherBundlesIdRoute =
     path: '/$id',
     getParentRoute: () => ApiDispatcherAiDispatcherBundlesRoute,
   } as any)
+const ApiDispatcherAiDispatcherAgentTabsRoute =
+  ApiDispatcherAiDispatcherAgentTabsRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/agent/tabs',
+    path: '/api/dispatcher/ai-dispatcher/agent/tabs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherAiDispatcherAgentSessionsRoute =
   ApiDispatcherAiDispatcherAgentSessionsRouteImport.update({
     id: '/api/dispatcher/ai-dispatcher/agent/sessions',
@@ -3327,6 +3334,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions': typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/agent/tabs': typeof ApiDispatcherAiDispatcherAgentTabsRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id': typeof ApiDispatcherAiDispatcherBundlesIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/call-queue/$id': typeof ApiDispatcherAiDispatcherCallQueueIdRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
@@ -3788,6 +3796,7 @@ export interface FileRoutesByTo {
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions': typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/agent/tabs': typeof ApiDispatcherAiDispatcherAgentTabsRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id': typeof ApiDispatcherAiDispatcherBundlesIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/call-queue/$id': typeof ApiDispatcherAiDispatcherCallQueueIdRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
@@ -4251,6 +4260,7 @@ export interface FileRoutesById {
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions': typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/agent/tabs': typeof ApiDispatcherAiDispatcherAgentTabsRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id': typeof ApiDispatcherAiDispatcherBundlesIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/call-queue/$id': typeof ApiDispatcherAiDispatcherCallQueueIdRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
@@ -4715,6 +4725,7 @@ export interface FileRouteTypes {
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
     | '/api/dispatcher/ai-dispatcher/agent/sessions'
+    | '/api/dispatcher/ai-dispatcher/agent/tabs'
     | '/api/dispatcher/ai-dispatcher/bundles/$id'
     | '/api/dispatcher/ai-dispatcher/call-queue/$id'
     | '/api/dispatcher/ai-dispatcher/candidates/$id'
@@ -5176,6 +5187,7 @@ export interface FileRouteTypes {
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
     | '/api/dispatcher/ai-dispatcher/agent/sessions'
+    | '/api/dispatcher/ai-dispatcher/agent/tabs'
     | '/api/dispatcher/ai-dispatcher/bundles/$id'
     | '/api/dispatcher/ai-dispatcher/call-queue/$id'
     | '/api/dispatcher/ai-dispatcher/candidates/$id'
@@ -5638,6 +5650,7 @@ export interface FileRouteTypes {
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
     | '/api/dispatcher/ai-dispatcher/agent/sessions'
+    | '/api/dispatcher/ai-dispatcher/agent/tabs'
     | '/api/dispatcher/ai-dispatcher/bundles/$id'
     | '/api/dispatcher/ai-dispatcher/call-queue/$id'
     | '/api/dispatcher/ai-dispatcher/candidates/$id'
@@ -5992,6 +6005,7 @@ export interface RootRouteChildren {
   ApiCarrierEdoSabySyncRoute: typeof ApiCarrierEdoSabySyncRoute
   ApiCarrierEdoTrainingStartRoute: typeof ApiCarrierEdoTrainingStartRoute
   ApiDispatcherAiDispatcherAgentSessionsRoute: typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  ApiDispatcherAiDispatcherAgentTabsRoute: typeof ApiDispatcherAiDispatcherAgentTabsRoute
   ApiDispatcherAiDispatcherCandidatesIdRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
   ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute: typeof ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute
   ApiDispatcherAiDispatcherMultiVehicleStartRoute: typeof ApiDispatcherAiDispatcherMultiVehicleStartRoute
@@ -8771,6 +8785,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiDispatcherBundlesIdRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherBundlesRoute
     }
+    '/api/dispatcher/ai-dispatcher/agent/tabs': {
+      id: '/api/dispatcher/ai-dispatcher/agent/tabs'
+      path: '/api/dispatcher/ai-dispatcher/agent/tabs'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/tabs'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentTabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/ai-dispatcher/agent/sessions': {
       id: '/api/dispatcher/ai-dispatcher/agent/sessions'
       path: '/api/dispatcher/ai-dispatcher/agent/sessions'
@@ -11018,6 +11039,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCarrierEdoTrainingStartRoute: ApiCarrierEdoTrainingStartRoute,
   ApiDispatcherAiDispatcherAgentSessionsRoute:
     ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren,
+  ApiDispatcherAiDispatcherAgentTabsRoute:
+    ApiDispatcherAiDispatcherAgentTabsRoute,
   ApiDispatcherAiDispatcherCandidatesIdRoute:
     ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren,
   ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute:
