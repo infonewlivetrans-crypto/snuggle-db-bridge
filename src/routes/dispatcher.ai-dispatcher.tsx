@@ -21,6 +21,22 @@ import {
 } from "lucide-react";
 
 import { MultiVehicleSearchBoard, LoadBundlePanel, CallQueuePanel } from "@/components/ai-dispatcher/BundleAndMultiVehicle";
+import {
+  AgentConnectionPanel, AgentTabsPanel, AGENT_MODE_STORAGE_KEY,
+  type AgentAdapterMode,
+} from "@/components/ai-dispatcher/AgentConnectionPanel";
+
+// Читаем режим адаптера агента из localStorage прямо во время запроса.
+// Так же передаём его серверу как ?mode=..., чтобы existing apiPost() (без headers) работал.
+function currentAgentMode(): AgentAdapterMode {
+  if (typeof window === "undefined") return "mock";
+  const v = window.localStorage.getItem(AGENT_MODE_STORAGE_KEY);
+  return (v === "browser_agent_ready" || v === "browser_agent_live") ? v : "mock";
+}
+function withMode(path: string): string {
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}mode=${currentAgentMode()}`;
+}
 
 export const Route = createFileRoute("/dispatcher/ai-dispatcher")({
   component: AiDispatcherPage,
