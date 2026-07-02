@@ -368,6 +368,7 @@ import { Route as ApiAdminUsersCleanupRouteImport } from './routes/api/admin.use
 import { Route as ApiDriverRouteIdRouteImport } from './routes/api/driver.route.$id'
 import { Route as ApiPublicDriverInviteTokenRegisterRouteImport } from './routes/api/public/driver-invite.$token.register'
 import { Route as ApiPublicDispatcherInviteTokenCompleteRouteImport } from './routes/api/public/dispatcher-invite.$token.complete'
+import { Route as ApiPublicAgentAiDispatcherSplatRouteImport } from './routes/api/public/agent.ai-dispatcher.$'
 import { Route as ApiOrdersIdDriverClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.driver-client-messages.mark-read'
 import { Route as ApiOrdersIdClientMessagesMarkReadRouteImport } from './routes/api/orders.$id.client-messages.mark-read'
 import { Route as ApiDriverTripsTripIdDocumentsRouteImport } from './routes/api/driver/trips.$tripId.documents'
@@ -404,6 +405,8 @@ import { Route as ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRouteImport }
 import { Route as ApiDispatcherAiDispatcherCandidatesIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id'
 import { Route as ApiDispatcherAiDispatcherCallQueueIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/call-queue.$id'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id'
+import { Route as ApiDispatcherAiDispatcherAgentTabsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.tabs'
+import { Route as ApiDispatcherAiDispatcherAgentSessionsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions'
 import { Route as ApiCarrierVehiclesIdReadinessRouteImport } from './routes/api/carrier/vehicles.$id.readiness'
 import { Route as ApiCarrierVehiclesIdLocationRouteImport } from './routes/api/carrier/vehicles.$id.location'
 import { Route as ApiCarrierRequestsIdRespondRouteImport } from './routes/api/carrier/requests.$id.respond'
@@ -435,6 +438,8 @@ import { Route as ApiDispatcherAiDispatcherCandidatesIdAddToCallListRouteImport 
 import { Route as ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.remove-candidate'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRecalculateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.recalculate'
 import { Route as ApiDispatcherAiDispatcherBundlesIdAddCandidateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.add-candidate'
+import { Route as ApiDispatcherAiDispatcherAgentSessionsIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions.$id'
+import { Route as ApiDispatcherAiDispatcherAgentCommandsIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.commands.$id'
 import { Route as ApiCarrierEdoTrainingIdStepRouteImport } from './routes/api/carrier/edo/training.$id.step'
 import { Route as ApiCarrierEdoTrainingIdCompleteRouteImport } from './routes/api/carrier/edo/training.$id.complete'
 import { Route as ApiCarrierEdoScenariosIdValidateRouteImport } from './routes/api/carrier/edo/scenarios.$id.validate'
@@ -458,6 +463,7 @@ import { Route as ApiDispatcherAiDispatcherTasksIdAgentStartRouteImport } from '
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.refresh-now'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.pause'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.open-ati'
+import { Route as ApiDispatcherAiDispatcherAgentSessionsIdCommandsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions.$id.commands'
 import { Route as ApiCarrierEdoDocumentsIdSabyStatusRouteImport } from './routes/api/carrier/edo/documents.$id.saby.status'
 import { Route as ApiCarrierEdoDocumentsIdSabySendRouteImport } from './routes/api/carrier/edo/documents.$id.saby.send'
 import { Route as ApiCarrierEdoDocumentsIdSabyPrepareRouteImport } from './routes/api/carrier/edo/documents.$id.saby.prepare'
@@ -2343,6 +2349,12 @@ const ApiPublicDispatcherInviteTokenCompleteRoute =
     path: '/complete',
     getParentRoute: () => ApiPublicDispatcherInviteTokenRoute,
   } as any)
+const ApiPublicAgentAiDispatcherSplatRoute =
+  ApiPublicAgentAiDispatcherSplatRouteImport.update({
+    id: '/api/public/agent/ai-dispatcher/$',
+    path: '/api/public/agent/ai-dispatcher/$',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiOrdersIdDriverClientMessagesMarkReadRoute =
   ApiOrdersIdDriverClientMessagesMarkReadRouteImport.update({
     id: '/mark-read',
@@ -2559,6 +2571,18 @@ const ApiDispatcherAiDispatcherBundlesIdRoute =
     path: '/$id',
     getParentRoute: () => ApiDispatcherAiDispatcherBundlesRoute,
   } as any)
+const ApiDispatcherAiDispatcherAgentTabsRoute =
+  ApiDispatcherAiDispatcherAgentTabsRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/agent/tabs',
+    path: '/api/dispatcher/ai-dispatcher/agent/tabs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiDispatcherAiDispatcherAgentSessionsRoute =
+  ApiDispatcherAiDispatcherAgentSessionsRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/agent/sessions',
+    path: '/api/dispatcher/ai-dispatcher/agent/sessions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierVehiclesIdReadinessRoute =
   ApiCarrierVehiclesIdReadinessRouteImport.update({
     id: '/readiness',
@@ -2744,6 +2768,18 @@ const ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute =
     path: '/add-candidate',
     getParentRoute: () => ApiDispatcherAiDispatcherBundlesIdRoute,
   } as any)
+const ApiDispatcherAiDispatcherAgentSessionsIdRoute =
+  ApiDispatcherAiDispatcherAgentSessionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiDispatcherAiDispatcherAgentSessionsRoute,
+  } as any)
+const ApiDispatcherAiDispatcherAgentCommandsIdRoute =
+  ApiDispatcherAiDispatcherAgentCommandsIdRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/agent/commands/$id',
+    path: '/api/dispatcher/ai-dispatcher/agent/commands/$id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierEdoTrainingIdStepRoute =
   ApiCarrierEdoTrainingIdStepRouteImport.update({
     id: '/api/carrier/edo/training/$id/step',
@@ -2881,6 +2917,12 @@ const ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute =
     id: '/agent/open-ati',
     path: '/agent/open-ati',
     getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute =
+  ApiDispatcherAiDispatcherAgentSessionsIdCommandsRouteImport.update({
+    id: '/commands',
+    path: '/commands',
+    getParentRoute: () => ApiDispatcherAiDispatcherAgentSessionsIdRoute,
   } as any)
 const ApiCarrierEdoDocumentsIdSabyStatusRoute =
   ApiCarrierEdoDocumentsIdSabyStatusRouteImport.update({
@@ -3298,6 +3340,8 @@ export interface FileRoutesByFullPath {
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions': typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/agent/tabs': typeof ApiDispatcherAiDispatcherAgentTabsRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id': typeof ApiDispatcherAiDispatcherBundlesIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/call-queue/$id': typeof ApiDispatcherAiDispatcherCallQueueIdRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
@@ -3334,6 +3378,7 @@ export interface FileRoutesByFullPath {
   '/api/driver/trips/$tripId/documents': typeof ApiDriverTripsTripIdDocumentsRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/agent/ai-dispatcher/$': typeof ApiPublicAgentAiDispatcherSplatRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
@@ -3352,6 +3397,8 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
@@ -3375,6 +3422,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
@@ -3755,6 +3803,8 @@ export interface FileRoutesByTo {
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions': typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/agent/tabs': typeof ApiDispatcherAiDispatcherAgentTabsRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id': typeof ApiDispatcherAiDispatcherBundlesIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/call-queue/$id': typeof ApiDispatcherAiDispatcherCallQueueIdRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
@@ -3791,6 +3841,7 @@ export interface FileRoutesByTo {
   '/api/driver/trips/$tripId/documents': typeof ApiDriverTripsTripIdDocumentsRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/agent/ai-dispatcher/$': typeof ApiPublicAgentAiDispatcherSplatRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
@@ -3809,6 +3860,8 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
@@ -3832,6 +3885,7 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
@@ -4214,6 +4268,8 @@ export interface FileRoutesById {
   '/api/carrier/requests/$id/respond': typeof ApiCarrierRequestsIdRespondRoute
   '/api/carrier/vehicles/$id/location': typeof ApiCarrierVehiclesIdLocationRoute
   '/api/carrier/vehicles/$id/readiness': typeof ApiCarrierVehiclesIdReadinessRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions': typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/agent/tabs': typeof ApiDispatcherAiDispatcherAgentTabsRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id': typeof ApiDispatcherAiDispatcherBundlesIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/call-queue/$id': typeof ApiDispatcherAiDispatcherCallQueueIdRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id': typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
@@ -4250,6 +4306,7 @@ export interface FileRoutesById {
   '/api/driver/trips/$tripId/documents': typeof ApiDriverTripsTripIdDocumentsRoute
   '/api/orders/$id/client-messages/mark-read': typeof ApiOrdersIdClientMessagesMarkReadRoute
   '/api/orders/$id/driver-client-messages/mark-read': typeof ApiOrdersIdDriverClientMessagesMarkReadRoute
+  '/api/public/agent/ai-dispatcher/$': typeof ApiPublicAgentAiDispatcherSplatRoute
   '/api/public/dispatcher-invite/$token/complete': typeof ApiPublicDispatcherInviteTokenCompleteRoute
   '/api/public/driver-invite/$token/register': typeof ApiPublicDriverInviteTokenRegisterRoute
   '/api/carrier/edo/counterparties/$id/verify': typeof ApiCarrierEdoCounterpartiesIdVerifyRoute
@@ -4268,6 +4325,8 @@ export interface FileRoutesById {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
@@ -4291,6 +4350,7 @@ export interface FileRoutesById {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
@@ -4674,6 +4734,8 @@ export interface FileRouteTypes {
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions'
+    | '/api/dispatcher/ai-dispatcher/agent/tabs'
     | '/api/dispatcher/ai-dispatcher/bundles/$id'
     | '/api/dispatcher/ai-dispatcher/call-queue/$id'
     | '/api/dispatcher/ai-dispatcher/candidates/$id'
@@ -4710,6 +4772,7 @@ export interface FileRouteTypes {
     | '/api/driver/trips/$tripId/documents'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
+    | '/api/public/agent/ai-dispatcher/$'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
     | '/api/carrier/edo/counterparties/$id/verify'
@@ -4728,6 +4791,8 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
@@ -4751,6 +4816,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
@@ -5131,6 +5197,8 @@ export interface FileRouteTypes {
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions'
+    | '/api/dispatcher/ai-dispatcher/agent/tabs'
     | '/api/dispatcher/ai-dispatcher/bundles/$id'
     | '/api/dispatcher/ai-dispatcher/call-queue/$id'
     | '/api/dispatcher/ai-dispatcher/candidates/$id'
@@ -5167,6 +5235,7 @@ export interface FileRouteTypes {
     | '/api/driver/trips/$tripId/documents'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
+    | '/api/public/agent/ai-dispatcher/$'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
     | '/api/carrier/edo/counterparties/$id/verify'
@@ -5185,6 +5254,8 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
@@ -5208,6 +5279,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
@@ -5589,6 +5661,8 @@ export interface FileRouteTypes {
     | '/api/carrier/requests/$id/respond'
     | '/api/carrier/vehicles/$id/location'
     | '/api/carrier/vehicles/$id/readiness'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions'
+    | '/api/dispatcher/ai-dispatcher/agent/tabs'
     | '/api/dispatcher/ai-dispatcher/bundles/$id'
     | '/api/dispatcher/ai-dispatcher/call-queue/$id'
     | '/api/dispatcher/ai-dispatcher/candidates/$id'
@@ -5625,6 +5699,7 @@ export interface FileRouteTypes {
     | '/api/driver/trips/$tripId/documents'
     | '/api/orders/$id/client-messages/mark-read'
     | '/api/orders/$id/driver-client-messages/mark-read'
+    | '/api/public/agent/ai-dispatcher/$'
     | '/api/public/dispatcher-invite/$token/complete'
     | '/api/public/driver-invite/$token/register'
     | '/api/carrier/edo/counterparties/$id/verify'
@@ -5643,6 +5718,8 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
@@ -5666,6 +5743,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
@@ -5939,13 +6017,17 @@ export interface RootRouteChildren {
   ApiPublicDriverInviteTokenRoute: typeof ApiPublicDriverInviteTokenRouteWithChildren
   ApiCarrierEdoSabySyncRoute: typeof ApiCarrierEdoSabySyncRoute
   ApiCarrierEdoTrainingStartRoute: typeof ApiCarrierEdoTrainingStartRoute
+  ApiDispatcherAiDispatcherAgentSessionsRoute: typeof ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren
+  ApiDispatcherAiDispatcherAgentTabsRoute: typeof ApiDispatcherAiDispatcherAgentTabsRoute
   ApiDispatcherAiDispatcherCandidatesIdRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren
   ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute: typeof ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute
   ApiDispatcherAiDispatcherMultiVehicleStartRoute: typeof ApiDispatcherAiDispatcherMultiVehicleStartRoute
   ApiDispatcherAiDispatcherMultiVehicleStopRoute: typeof ApiDispatcherAiDispatcherMultiVehicleStopRoute
   ApiDispatcherForwardersIdGoslogStatusRoute: typeof ApiDispatcherForwardersIdGoslogStatusRoute
+  ApiPublicAgentAiDispatcherSplatRoute: typeof ApiPublicAgentAiDispatcherSplatRoute
   ApiCarrierEdoTrainingIdCompleteRoute: typeof ApiCarrierEdoTrainingIdCompleteRoute
   ApiCarrierEdoTrainingIdStepRoute: typeof ApiCarrierEdoTrainingIdStepRoute
+  ApiDispatcherAiDispatcherAgentCommandsIdRoute: typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   ApiDispatcherEdoDocumentsIdSnapshotReviewRoute: typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   ApiDriverEdoDocumentsIdQrRoute: typeof ApiDriverEdoDocumentsIdQrRoute
 }
@@ -8465,6 +8547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDispatcherInviteTokenCompleteRouteImport
       parentRoute: typeof ApiPublicDispatcherInviteTokenRoute
     }
+    '/api/public/agent/ai-dispatcher/$': {
+      id: '/api/public/agent/ai-dispatcher/$'
+      path: '/api/public/agent/ai-dispatcher/$'
+      fullPath: '/api/public/agent/ai-dispatcher/$'
+      preLoaderRoute: typeof ApiPublicAgentAiDispatcherSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/orders/$id/driver-client-messages/mark-read': {
       id: '/api/orders/$id/driver-client-messages/mark-read'
       path: '/mark-read'
@@ -8717,6 +8806,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiDispatcherBundlesIdRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherBundlesRoute
     }
+    '/api/dispatcher/ai-dispatcher/agent/tabs': {
+      id: '/api/dispatcher/ai-dispatcher/agent/tabs'
+      path: '/api/dispatcher/ai-dispatcher/agent/tabs'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/tabs'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentTabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/dispatcher/ai-dispatcher/agent/sessions': {
+      id: '/api/dispatcher/ai-dispatcher/agent/sessions'
+      path: '/api/dispatcher/ai-dispatcher/agent/sessions'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/sessions'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentSessionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/vehicles/$id/readiness': {
       id: '/api/carrier/vehicles/$id/readiness'
       path: '/readiness'
@@ -8934,6 +9037,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherBundlesIdRoute
     }
+    '/api/dispatcher/ai-dispatcher/agent/sessions/$id': {
+      id: '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
+      path: '/$id'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherAgentSessionsRoute
+    }
+    '/api/dispatcher/ai-dispatcher/agent/commands/$id': {
+      id: '/api/dispatcher/ai-dispatcher/agent/commands/$id'
+      path: '/api/dispatcher/ai-dispatcher/agent/commands/$id'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/commands/$id'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentCommandsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/edo/training/$id/step': {
       id: '/api/carrier/edo/training/$id/step'
       path: '/api/carrier/edo/training/$id/step'
@@ -9094,6 +9211,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
       preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': {
+      id: '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
+      path: '/commands'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdRoute
     }
     '/api/carrier/edo/documents/$id/saby/status': {
       id: '/api/carrier/edo/documents/$id/saby/status'
@@ -10589,6 +10713,36 @@ const ApiPublicDriverInviteTokenRouteWithChildren =
     ApiPublicDriverInviteTokenRouteChildren,
   )
 
+interface ApiDispatcherAiDispatcherAgentSessionsIdRouteChildren {
+  ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
+}
+
+const ApiDispatcherAiDispatcherAgentSessionsIdRouteChildren: ApiDispatcherAiDispatcherAgentSessionsIdRouteChildren =
+  {
+    ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute:
+      ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute,
+  }
+
+const ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren =
+  ApiDispatcherAiDispatcherAgentSessionsIdRoute._addFileChildren(
+    ApiDispatcherAiDispatcherAgentSessionsIdRouteChildren,
+  )
+
+interface ApiDispatcherAiDispatcherAgentSessionsRouteChildren {
+  ApiDispatcherAiDispatcherAgentSessionsIdRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
+}
+
+const ApiDispatcherAiDispatcherAgentSessionsRouteChildren: ApiDispatcherAiDispatcherAgentSessionsRouteChildren =
+  {
+    ApiDispatcherAiDispatcherAgentSessionsIdRoute:
+      ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren,
+  }
+
+const ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren =
+  ApiDispatcherAiDispatcherAgentSessionsRoute._addFileChildren(
+    ApiDispatcherAiDispatcherAgentSessionsRouteChildren,
+  )
+
 interface ApiDispatcherAiDispatcherCandidatesIdRouteChildren {
   ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute: typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
   ApiDispatcherAiDispatcherCandidatesIdCallResultRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
@@ -10904,6 +11058,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDriverInviteTokenRoute: ApiPublicDriverInviteTokenRouteWithChildren,
   ApiCarrierEdoSabySyncRoute: ApiCarrierEdoSabySyncRoute,
   ApiCarrierEdoTrainingStartRoute: ApiCarrierEdoTrainingStartRoute,
+  ApiDispatcherAiDispatcherAgentSessionsRoute:
+    ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren,
+  ApiDispatcherAiDispatcherAgentTabsRoute:
+    ApiDispatcherAiDispatcherAgentTabsRoute,
   ApiDispatcherAiDispatcherCandidatesIdRoute:
     ApiDispatcherAiDispatcherCandidatesIdRouteWithChildren,
   ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute:
@@ -10914,8 +11072,11 @@ const rootRouteChildren: RootRouteChildren = {
     ApiDispatcherAiDispatcherMultiVehicleStopRoute,
   ApiDispatcherForwardersIdGoslogStatusRoute:
     ApiDispatcherForwardersIdGoslogStatusRoute,
+  ApiPublicAgentAiDispatcherSplatRoute: ApiPublicAgentAiDispatcherSplatRoute,
   ApiCarrierEdoTrainingIdCompleteRoute: ApiCarrierEdoTrainingIdCompleteRoute,
   ApiCarrierEdoTrainingIdStepRoute: ApiCarrierEdoTrainingIdStepRoute,
+  ApiDispatcherAiDispatcherAgentCommandsIdRoute:
+    ApiDispatcherAiDispatcherAgentCommandsIdRoute,
   ApiDispatcherEdoDocumentsIdSnapshotReviewRoute:
     ApiDispatcherEdoDocumentsIdSnapshotReviewRoute,
   ApiDriverEdoDocumentsIdQrRoute: ApiDriverEdoDocumentsIdQrRoute,

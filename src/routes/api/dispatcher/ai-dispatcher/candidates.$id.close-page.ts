@@ -1,26 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
-import { closeTab } from "@/server/ai-dispatcher/agent-tabs.server";
+import { closeCandidatePage, resolveAdapterCtx, type AgentAdapterMode } from "@/server/ai-dispatcher/agent-adapter.server";
 
-const ROLES = ["admin", "dispatcher"];
+function resolveMode(request: Request): AgentAdapterMode {
+  const url = new URL(request.url); const m = (request.headers.get("x-agent-mode") ?? url.searchParams.get("mode") ?? "mock").toLowerCase();
+  if (m === "browser_agent_ready" || m === "browser_agent_live") return m;
+  return "mock";
+}
 
 export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/candidates/$id/close-page")({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        const auth = await requireAnyRole(request, ROLES);
+        const auth = await requireAnyRole(request, ["admin", "dispatcher"]);
         if (auth instanceof Response) return auth;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const body: any = await request.json().catch(() => ({}));
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const c: any = auth.client;
-        const { data: cand } = await c.from("ai_dispatch_load_candidates")
-          .select("agent_tab_id").eq("id", params.id).single();
-        if (cand?.agent_tab_id) {
-          await closeTab(auth.client, auth.userId, cand.agent_tab_id, body.reason ?? "manual");
-          await c.from("ai_dispatch_load_candidates").update({ agent_tab_id: null }).eq("id", params.id);
+        const ctx = await resolveAdapterCtx(auth.client, auth.userId, resolveMode(request));
+        try {
+          await closeCandidatePage(ctx, params.id, body.reason ?? "manual");
+        } catch (e) {
+          return jsonResponse({ error: (e as Error).message }, { status: 400 });
         }
-        return jsonResponse({ ok: true });
+        return jsonResponse({ ok: true, mode: ctx.mode });
       },
     },
   },

@@ -21,6 +21,22 @@ import {
 } from "lucide-react";
 
 import { MultiVehicleSearchBoard, LoadBundlePanel, CallQueuePanel } from "@/components/ai-dispatcher/BundleAndMultiVehicle";
+import {
+  AgentConnectionPanel, AgentTabsPanel, AGENT_MODE_STORAGE_KEY,
+  type AgentAdapterMode,
+} from "@/components/ai-dispatcher/AgentConnectionPanel";
+
+// Читаем режим адаптера агента из localStorage прямо во время запроса.
+// Так же передаём его серверу как ?mode=..., чтобы existing apiPost() (без headers) работал.
+function currentAgentMode(): AgentAdapterMode {
+  if (typeof window === "undefined") return "mock";
+  const v = window.localStorage.getItem(AGENT_MODE_STORAGE_KEY);
+  return (v === "browser_agent_ready" || v === "browser_agent_live") ? v : "mock";
+}
+function withMode(path: string): string {
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}mode=${currentAgentMode()}`;
+}
 
 export const Route = createFileRoute("/dispatcher/ai-dispatcher")({
   component: AiDispatcherPage,
@@ -97,6 +113,16 @@ type CallLog = {
 };
 
 function AiDispatcherPage() {
+  const [mode, setMode] = useState<AgentAdapterMode>(() => currentAgentMode());
+  useEffect(() => {
+    const h = (e: Event) => setMode((e as CustomEvent).detail as AgentAdapterMode);
+    window.addEventListener("rt-agent-mode-changed", h as EventListener);
+    return () => window.removeEventListener("rt-agent-mode-changed", h as EventListener);
+  }, []);
+  const setModePersist = (m: AgentAdapterMode) => {
+    window.localStorage.setItem(AGENT_MODE_STORAGE_KEY, m);
+    window.dispatchEvent(new CustomEvent("rt-agent-mode-changed", { detail: m }));
+  };
   return (
     <DispatcherShell>
       <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 space-y-4">
@@ -104,11 +130,18 @@ function AiDispatcherPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">AI-диспетчер</h1>
             <p className="text-xs text-muted-foreground mt-1">
-              Dev/mock агент. Radius Track Agent открывает сайт ATI в браузере диспетчера.
-              API ATI не используется. Реальное расширение подключается следующим этапом.
+              Радиус Трек не использует API ATI. Поиск выполняется Browser Agent на открытой странице пользователя.
+              Диспетчер принимает решение сам: звонит, уточняет условия и подтверждает груз.
             </p>
           </div>
+          <Badge variant="outline" className="text-[11px]">
+            Режим: {mode === "mock" ? "Mock Agent" : mode === "browser_agent_ready" ? "Browser Agent Ready" : "Live (disabled)"}
+          </Badge>
         </header>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <AgentConnectionPanel mode={mode} onModeChange={setModePersist} />
+          <AgentTabsPanel />
+        </div>
         <AiDispatcherInner />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <MultiVehicleSearchBoard />
@@ -131,10 +164,10 @@ function AiDispatcherInner() {
   });
   const [activeId, setActiveId] = useState<string | null>(null);
   const tasks = tasksQ.data?.rows ?? [];
-  // Auto-select first
   useEffect(() => {
     if (!activeId && tasks.length > 0) setActiveId(tasks[0].id);
   }, [tasks, activeId]);
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
@@ -244,8 +277,8 @@ function ExistingVehiclePicker({ onCreated }: { onCreated: (taskId: string) => v
           home_city: selected.home_city,
         },
       });
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`);
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`);
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`));
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`));
       return res.row;
     },
     onSuccess: (row) => { toast.success("Поиск запущен"); onCreated(row.id); },
@@ -293,8 +326,8 @@ function ManualVehicleProfileForm({ onCreated }: { onCreated: (taskId: string) =
         vehicle_params_json: f,
         notes: f.comment || null,
       });
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`);
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`);
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`));
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`));
       return res.row;
     },
     onSuccess: (row) => { toast.success("Профиль создан, поиск запущен"); onCreated(row.id); },
@@ -353,7 +386,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
     if (task.status !== "searching") return;
     const interval = (task.refresh_interval_seconds ?? 60) * 1000;
     const timer = setInterval(() => {
-      apiPost(`/api/dispatcher/ai-dispatcher/tasks/${task.id}/agent/refresh-now`).then(() => {
+      apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${task.id}/agent/refresh-now`)).then(() => {
         qc.invalidateQueries({ queryKey: ["ai-disp-task", task.id] });
       }).catch(() => undefined);
     }, interval);
@@ -361,7 +394,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
   }, [task, qc]);
 
   const refresh = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`),
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const pause = useMutation({
@@ -468,7 +501,7 @@ function SuitableLoadAlert({ candidate, taskId, onAction }: {
   candidate: Candidate; taskId: string; onAction: () => void;
 }) {
   const focus = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`),
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`)),
     onSuccess: () => onAction(),
   });
   const makeMain = useMutation({
@@ -596,7 +629,7 @@ function LoadCandidateCard({ candidate, isMain, onRefresh }: {
   candidate: Candidate; isMain: boolean; onRefresh: () => void;
 }) {
   const focus = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`),
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`)),
     onSuccess: onRefresh,
   });
   const makeMain = useMutation({
