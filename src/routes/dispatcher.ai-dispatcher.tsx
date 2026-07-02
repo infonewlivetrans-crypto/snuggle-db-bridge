@@ -260,8 +260,8 @@ function ExistingVehiclePicker({ onCreated }: { onCreated: (taskId: string) => v
           home_city: selected.home_city,
         },
       });
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`);
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`);
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`));
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`));
       return res.row;
     },
     onSuccess: (row) => { toast.success("Поиск запущен"); onCreated(row.id); },
@@ -309,8 +309,8 @@ function ManualVehicleProfileForm({ onCreated }: { onCreated: (taskId: string) =
         vehicle_params_json: f,
         notes: f.comment || null,
       });
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`);
-      await apiPost(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`);
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/open-ati`));
+      await apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${res.row.id}/agent/refresh-now`));
       return res.row;
     },
     onSuccess: (row) => { toast.success("Профиль создан, поиск запущен"); onCreated(row.id); },
@@ -369,7 +369,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
     if (task.status !== "searching") return;
     const interval = (task.refresh_interval_seconds ?? 60) * 1000;
     const timer = setInterval(() => {
-      apiPost(`/api/dispatcher/ai-dispatcher/tasks/${task.id}/agent/refresh-now`).then(() => {
+      apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${task.id}/agent/refresh-now`)).then(() => {
         qc.invalidateQueries({ queryKey: ["ai-disp-task", task.id] });
       }).catch(() => undefined);
     }, interval);
@@ -377,7 +377,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
   }, [task, qc]);
 
   const refresh = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`),
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const pause = useMutation({
@@ -484,7 +484,7 @@ function SuitableLoadAlert({ candidate, taskId, onAction }: {
   candidate: Candidate; taskId: string; onAction: () => void;
 }) {
   const focus = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`),
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`)),
     onSuccess: () => onAction(),
   });
   const makeMain = useMutation({
@@ -612,7 +612,7 @@ function LoadCandidateCard({ candidate, isMain, onRefresh }: {
   candidate: Candidate; isMain: boolean; onRefresh: () => void;
 }) {
   const focus = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`),
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/focus`)),
     onSuccess: onRefresh,
   });
   const makeMain = useMutation({
