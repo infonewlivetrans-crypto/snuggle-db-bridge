@@ -127,6 +127,38 @@ function AiDispatcherPage() {
         </header>
         <AiDispatcherInner />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+function AiDispatcherPage() {
+  const [mode, setMode] = useState<AgentAdapterMode>(() => currentAgentMode());
+  useEffect(() => {
+    const h = (e: Event) => setMode((e as CustomEvent).detail as AgentAdapterMode);
+    window.addEventListener("rt-agent-mode-changed", h as EventListener);
+    return () => window.removeEventListener("rt-agent-mode-changed", h as EventListener);
+  }, []);
+  const setModePersist = (m: AgentAdapterMode) => {
+    window.localStorage.setItem(AGENT_MODE_STORAGE_KEY, m);
+    window.dispatchEvent(new CustomEvent("rt-agent-mode-changed", { detail: m }));
+  };
+  return (
+    <DispatcherShell>
+      <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 space-y-4">
+        <header className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">AI-диспетчер</h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              Радиус Трек не использует API ATI. Поиск выполняется Browser Agent на открытой странице пользователя.
+              Диспетчер принимает решение сам: звонит, уточняет условия и подтверждает груз.
+            </p>
+          </div>
+          <Badge variant="outline" className="text-[11px]">
+            Режим: {mode === "mock" ? "Mock Agent" : mode === "browser_agent_ready" ? "Browser Agent Ready" : "Live (disabled)"}
+          </Badge>
+        </header>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <AgentConnectionPanel mode={mode} onModeChange={setModePersist} />
+          <AgentTabsPanel />
+        </div>
+        <AiDispatcherInner />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <MultiVehicleSearchBoard />
           <div className="space-y-4">
             <LoadBundlePanel />
@@ -137,18 +169,6 @@ function AiDispatcherPage() {
     </DispatcherShell>
   );
 }
-
-function AiDispatcherInner() {
-  const qc = useQueryClient();
-  const tasksQ = useQuery({
-    queryKey: ["ai-disp-tasks"],
-    queryFn: () => apiGetAuth<{ rows: Task[] }>("/api/dispatcher/ai-dispatcher/tasks"),
-    refetchInterval: 15000,
-  });
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const tasks = tasksQ.data?.rows ?? [];
-  // Auto-select first
-  useEffect(() => {
     if (!activeId && tasks.length > 0) setActiveId(tasks[0].id);
   }, [tasks, activeId]);
 
