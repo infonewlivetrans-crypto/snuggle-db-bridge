@@ -39,7 +39,25 @@ export type AgentEventType =
   | "irrelevant_page_closed"
   | "bundle_suggested"
   | "multi_vehicle_cycle_started"
-  | "multi_vehicle_cycle_completed";
+  | "multi_vehicle_cycle_completed"
+  | "agent_session_created"
+  | "agent_pairing_code_created"
+  | "agent_connected"
+  | "agent_disconnected"
+  | "agent_heartbeat_received"
+  | "command_created"
+  | "command_sent"
+  | "command_acknowledged"
+  | "command_completed"
+  | "command_failed"
+  | "command_expired"
+  | "browser_agent_ready"
+  | "browser_agent_live_disabled"
+  | "visible_page_read_started"
+  | "visible_page_read_completed"
+  | "visible_loads_received"
+  | "load_deduplicated"
+  | "load_saved_from_agent";
 
 export async function logAgentEvent(
   client: Client,
