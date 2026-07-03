@@ -28,6 +28,8 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/agent/sessio
           await mockConnectSession(auth.client, auth.userId, params.id);
         } else if (action === "heartbeat") {
           await recordHeartbeat(auth.client, auth.userId, params.id, body.patch);
+        } else if (action === "revoke") {
+          await revokeSession(auth.client, auth.userId, params.id);
         } else {
           return jsonResponse({ error: "unknown_action" }, { status: 400 });
         }
