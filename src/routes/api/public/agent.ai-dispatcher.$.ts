@@ -1,23 +1,226 @@
-// Публичные endpoints для будущего реального Radius Track Browser Agent.
-// НА DEV-ЭТАПЕ ОТКЛЮЧЕНЫ. Возвращают 501 с пояснением. Реальная авторизация
-// агента (pairing token, подпись heartbeat) будет реализована на следующем этапе.
-// Причина: без проверки открывать writeable endpoints небезопасно.
+// Публичные endpoints Radius Track Browser Agent.
+// НЕ используют API ATI. Авторизация — Bearer agent_token,
+// который проверяется через SECURITY DEFINER RPC agent_verify_token.
+// service_role не используется, RLS не отключается.
 import { createFileRoute } from "@tanstack/react-router";
-import { jsonResponse } from "@/server/api-helpers.server";
+import { jsonResponse, makeAnonClient, getBearerToken } from "@/server/api-helpers.server";
+import {
+  requireAgentToken, hashAgentSecret, generateAgentToken,
+} from "@/server/ai-dispatcher/agent-auth.server";
+import { buildLoadDedupKey } from "@/server/ai-dispatcher/load-dedup.server";
 
-function disabled(msg: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyBody = any;
+
+async function readJson(request: Request): Promise<AnyBody> {
+  try { return await request.json(); } catch { return {}; }
+}
+
+async function handlePair(request: Request): Promise<Response> {
+  const body = await readJson(request);
+  const code = String(body?.pairing_code ?? "").trim();
+  if (!code) return jsonResponse({ error: "missing_pairing_code" }, { status: 400 });
+  const codeHash = hashAgentSecret(code);
+  const { raw, hash } = generateAgentToken();
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (rpc as any).rpc("agent_pair", {
+    _pairing_code_hash: codeHash,
+    _agent_token_hash: hash,
+    _agent_version: body?.agent_version ?? null,
+    _browser_name: body?.browser_name ?? null,
+    _token_ttl_seconds: 60 * 60 * 24 * 30,
+  });
+  if (error) return jsonResponse({ error: "invalid_pairing_code", detail: error.message }, { status: 401 });
+  const row = (data as { session_id: string; dispatcher_id: string }[])[0];
   return jsonResponse({
-    error: "agent_protocol_not_enabled",
-    message: msg,
-    note: "Dev-этап: реальный Browser Agent подключается следующим этапом. API ATI не используется.",
-  }, { status: 501 });
+    agent_token: raw, // показывается один раз
+    session_id: row.session_id,
+    expires_in_seconds: 60 * 60 * 24 * 30,
+  });
+}
+
+async function handleHeartbeat(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (rpc as any).rpc("agent_heartbeat", {
+    _token_hash: auth.tokenHash,
+    _agent_version: body?.agent_version ?? null,
+    _browser_name: body?.browser_name ?? null,
+    _active_tab_count: body?.active_tab_count ?? null,
+    _current_url: body?.current_url ?? null,
+    _current_task_id: body?.current_task_id ?? null,
+    _status: body?.status ?? null,
+    _last_action: body?.last_action ?? null,
+    _last_error: body?.last_error ?? null,
+  });
+  return jsonResponse({ ok: true });
+}
+
+async function handlePoll(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (rpc as any).rpc("agent_poll_commands", {
+    _token_hash: auth.tokenHash, _limit: 20,
+  });
+  if (error) return jsonResponse({ error: error.message }, { status: 500 });
+  return jsonResponse({ commands: data ?? [] });
+}
+
+async function handleCommandAction(
+  request: Request, action: "ack" | "complete" | "fail", commandId: string,
+): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  if (action === "ack") {
+    const { error } = await c.rpc("agent_ack_command", {
+      _token_hash: auth.tokenHash, _command_id: commandId,
+    });
+    if (error) return jsonResponse({ error: error.message }, { status: 400 });
+  } else if (action === "complete") {
+    const { error } = await c.rpc("agent_complete_command", {
+      _token_hash: auth.tokenHash, _command_id: commandId, _result: body?.result_json ?? {},
+    });
+    if (error) return jsonResponse({ error: error.message }, { status: 400 });
+  } else {
+    const { error } = await c.rpc("agent_fail_command", {
+      _token_hash: auth.tokenHash, _command_id: commandId,
+      _error: String(body?.error_message ?? "unknown"), _result: body?.result_json ?? null,
+    });
+    if (error) return jsonResponse({ error: error.message }, { status: 400 });
+  }
+  return jsonResponse({ ok: true });
+}
+
+async function handleEvents(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const events = Array.isArray(body?.events) ? body.events : [];
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  for (const ev of events) {
+    await c.rpc("agent_log_event", {
+      _token_hash: auth.tokenHash,
+      _event_type: String(ev?.event_type ?? "agent_event"),
+      _message: ev?.message ?? null,
+      _search_task_id: ev?.search_task_id ?? null,
+      _candidate_id: ev?.candidate_id ?? null,
+      _payload: ev?.payload ?? {},
+    });
+  }
+  return jsonResponse({ ok: true, saved: events.length });
+}
+
+async function handleTabs(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const tabs = Array.isArray(body?.tabs) ? body.tabs : [];
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  const ids: string[] = [];
+  for (const t of tabs) {
+    const { data } = await c.rpc("agent_upsert_tab", {
+      _token_hash: auth.tokenHash,
+      _tab_external_id: String(t?.tab_external_id ?? ""),
+      _search_task_id: t?.search_task_id ?? null,
+      _candidate_id: t?.candidate_id ?? null,
+      _tab_type: t?.tab_type ?? "search_page",
+      _tab_status: t?.tab_status ?? "open",
+      _url: t?.url ?? "",
+      _title: t?.title ?? null,
+      _close_reason: t?.close_reason ?? null,
+    });
+    if (data) ids.push(String(data));
+  }
+  return jsonResponse({ ok: true, tab_ids: ids });
+}
+
+async function handleLoads(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const searchTaskId = String(body?.search_task_id ?? "");
+  if (!searchTaskId) return jsonResponse({ error: "missing_search_task_id" }, { status: 400 });
+  const sourcePageUrl = body?.source_page_url ?? null;
+  const loads = Array.isArray(body?.loads) ? body.loads : [];
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  const created: string[] = []; const updated: string[] = []; const skipped: string[] = [];
+  for (const load of loads) {
+    const key = buildLoadDedupKey(load, sourcePageUrl);
+    const payload = { ...load, source_page_url: sourcePageUrl ?? load?.source_page_url ?? null };
+    const { data, error } = await c.rpc("agent_upsert_load", {
+      _token_hash: auth.tokenHash,
+      _search_task_id: searchTaskId,
+      _dedup_key: key,
+      _payload: payload,
+    });
+    if (error) { skipped.push(key); continue; }
+    const row = (data as { candidate_id: string; was_created: boolean }[])?.[0];
+    if (row?.was_created) created.push(row.candidate_id);
+    else if (row) updated.push(row.candidate_id);
+  }
+  // Общий event
+  await c.rpc("agent_log_event", {
+    _token_hash: auth.tokenHash,
+    _event_type: "visible_loads_received",
+    _message: `visible loads: created=${created.length} updated=${updated.length}`,
+    _search_task_id: searchTaskId, _candidate_id: null,
+    _payload: { source_page_url: sourcePageUrl, count: loads.length },
+  });
+  return jsonResponse({ ok: true, created, updated, skipped });
+}
+
+async function router(request: Request, splat: string): Promise<Response> {
+  const method = request.method.toUpperCase();
+  const parts = splat.split("/").filter(Boolean);
+  const [head, mid, tail] = parts;
+  // /pair
+  if (head === "pair" && method === "POST") return handlePair(request);
+  // /heartbeat
+  if (head === "heartbeat" && method === "POST") return handleHeartbeat(request);
+  // /commands/poll (GET)
+  if (head === "commands" && mid === "poll" && method === "GET") return handlePoll(request);
+  // /commands/:id/(ack|complete|fail)
+  if (head === "commands" && mid && tail && method === "POST") {
+    if (tail === "ack" || tail === "complete" || tail === "fail") {
+      return handleCommandAction(request, tail, mid);
+    }
+  }
+  // /events
+  if (head === "events" && method === "POST") return handleEvents(request);
+  // /tabs
+  if (head === "tabs" && method === "POST") return handleTabs(request);
+  // /loads
+  if (head === "loads" && method === "POST") return handleLoads(request);
+
+  return jsonResponse({
+    error: "unknown_agent_endpoint",
+    path: splat, method,
+    // Проверка авторизации всё равно нужна, но здесь просто говорим 404
+    hint: getBearerToken(request) ? "path not supported" : "requires Authorization: Bearer <agent_token>",
+  }, { status: 404 });
 }
 
 export const Route = createFileRoute("/api/public/agent/ai-dispatcher/$")({
   server: {
     handlers: {
-      GET: async ({ params }) => disabled(`GET ${params._splat} disabled on dev`),
-      POST: async ({ params }) => disabled(`POST ${params._splat} disabled on dev`),
+      GET: async ({ request, params }) => router(request, params._splat ?? ""),
+      POST: async ({ request, params }) => router(request, params._splat ?? ""),
     },
   },
 });

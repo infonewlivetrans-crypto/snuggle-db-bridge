@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import {
-  getSession, disconnectSession, mockConnectSession, recordHeartbeat,
+  getSession, disconnectSession, mockConnectSession, recordHeartbeat, revokeSession,
 } from "@/server/ai-dispatcher/agent-session.server";
 
 const ROLES = ["admin", "dispatcher"];
@@ -28,6 +28,8 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/agent/sessio
           await mockConnectSession(auth.client, auth.userId, params.id);
         } else if (action === "heartbeat") {
           await recordHeartbeat(auth.client, auth.userId, params.id, body.patch);
+        } else if (action === "revoke") {
+          await revokeSession(auth.client, auth.userId, params.id);
         } else {
           return jsonResponse({ error: "unknown_action" }, { status: 400 });
         }

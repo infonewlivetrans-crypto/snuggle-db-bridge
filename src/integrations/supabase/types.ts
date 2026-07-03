@@ -128,54 +128,81 @@ export type Database = {
         Row: {
           active_tab_count: number
           agent_name: string
+          agent_token_created_at: string | null
+          agent_token_expires_at: string | null
+          agent_token_hash: string | null
+          agent_token_last_used_at: string | null
           agent_type: string
           agent_version: string | null
           browser_name: string | null
           browser_profile_hint: string | null
           created_at: string
           current_task_id: string | null
+          current_url: string | null
           dispatcher_id: string
           id: string
+          last_action: string | null
           last_error: string | null
           last_heartbeat_at: string | null
           paired_at: string | null
+          pairing_code_expires_at: string | null
           pairing_code_hash: string | null
+          revoked_at: string | null
+          security_notes: string | null
           status: string
           updated_at: string
         }
         Insert: {
           active_tab_count?: number
           agent_name?: string
+          agent_token_created_at?: string | null
+          agent_token_expires_at?: string | null
+          agent_token_hash?: string | null
+          agent_token_last_used_at?: string | null
           agent_type?: string
           agent_version?: string | null
           browser_name?: string | null
           browser_profile_hint?: string | null
           created_at?: string
           current_task_id?: string | null
+          current_url?: string | null
           dispatcher_id: string
           id?: string
+          last_action?: string | null
           last_error?: string | null
           last_heartbeat_at?: string | null
           paired_at?: string | null
+          pairing_code_expires_at?: string | null
           pairing_code_hash?: string | null
+          revoked_at?: string | null
+          security_notes?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
           active_tab_count?: number
           agent_name?: string
+          agent_token_created_at?: string | null
+          agent_token_expires_at?: string | null
+          agent_token_hash?: string | null
+          agent_token_last_used_at?: string | null
           agent_type?: string
           agent_version?: string | null
           browser_name?: string | null
           browser_profile_hint?: string | null
           created_at?: string
           current_task_id?: string | null
+          current_url?: string | null
           dispatcher_id?: string
           id?: string
+          last_action?: string | null
           last_error?: string | null
           last_heartbeat_at?: string | null
           paired_at?: string | null
+          pairing_code_expires_at?: string | null
           pairing_code_hash?: string | null
+          revoked_at?: string | null
+          security_notes?: string | null
           status?: string
           updated_at?: string
         }
@@ -459,6 +486,7 @@ export type Database = {
           contact_allowed: boolean
           contact_hidden: boolean
           created_at: string
+          dedup_key: string | null
           delivery_city: string | null
           delivery_date: string | null
           dispatcher_comment: string | null
@@ -467,6 +495,7 @@ export type Database = {
           id: string
           is_additional_load: boolean
           is_main_load: boolean
+          last_seen_at: string | null
           linked_main_candidate_id: string | null
           loading_type: string | null
           match_score: number | null
@@ -481,6 +510,7 @@ export type Database = {
           raw_text: string | null
           risk_score: number | null
           search_task_id: string
+          seen_count: number
           source_card_anchor: string | null
           source_external_ref: string | null
           source_name: string | null
@@ -504,6 +534,7 @@ export type Database = {
           contact_allowed?: boolean
           contact_hidden?: boolean
           created_at?: string
+          dedup_key?: string | null
           delivery_city?: string | null
           delivery_date?: string | null
           dispatcher_comment?: string | null
@@ -512,6 +543,7 @@ export type Database = {
           id?: string
           is_additional_load?: boolean
           is_main_load?: boolean
+          last_seen_at?: string | null
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
@@ -526,6 +558,7 @@ export type Database = {
           raw_text?: string | null
           risk_score?: number | null
           search_task_id: string
+          seen_count?: number
           source_card_anchor?: string | null
           source_external_ref?: string | null
           source_name?: string | null
@@ -549,6 +582,7 @@ export type Database = {
           contact_allowed?: boolean
           contact_hidden?: boolean
           created_at?: string
+          dedup_key?: string | null
           delivery_city?: string | null
           delivery_date?: string | null
           dispatcher_comment?: string | null
@@ -557,6 +591,7 @@ export type Database = {
           id?: string
           is_additional_load?: boolean
           is_main_load?: boolean
+          last_seen_at?: string | null
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
@@ -571,6 +606,7 @@ export type Database = {
           raw_text?: string | null
           risk_score?: number | null
           search_task_id?: string
+          seen_count?: number
           source_card_anchor?: string | null
           source_external_ref?: string | null
           source_name?: string | null
@@ -8638,6 +8674,120 @@ export type Database = {
       admin_set_invite_active: {
         Args: { p_active: boolean; p_invite_id: string }
         Returns: undefined
+      }
+      agent_ack_command: {
+        Args: { _command_id: string; _token_hash: string }
+        Returns: undefined
+      }
+      agent_complete_command: {
+        Args: { _command_id: string; _result: Json; _token_hash: string }
+        Returns: undefined
+      }
+      agent_fail_command: {
+        Args: {
+          _command_id: string
+          _error: string
+          _result?: Json
+          _token_hash: string
+        }
+        Returns: undefined
+      }
+      agent_heartbeat: {
+        Args: {
+          _active_tab_count?: number
+          _agent_version?: string
+          _browser_name?: string
+          _current_task_id?: string
+          _current_url?: string
+          _last_action?: string
+          _last_error?: string
+          _status?: string
+          _token_hash: string
+        }
+        Returns: string
+      }
+      agent_log_event: {
+        Args: {
+          _candidate_id?: string
+          _event_type: string
+          _message?: string
+          _payload?: Json
+          _search_task_id?: string
+          _token_hash: string
+        }
+        Returns: string
+      }
+      agent_pair: {
+        Args: {
+          _agent_token_hash: string
+          _agent_version?: string
+          _browser_name?: string
+          _pairing_code_hash: string
+          _token_ttl_seconds?: number
+        }
+        Returns: {
+          dispatcher_id: string
+          session_id: string
+        }[]
+      }
+      agent_poll_commands: {
+        Args: { _limit?: number; _token_hash: string }
+        Returns: {
+          acknowledged_at: string | null
+          candidate_id: string | null
+          command_payload_json: Json
+          command_type: string
+          completed_at: string | null
+          created_at: string
+          dispatcher_id: string
+          error_message: string | null
+          expires_at: string | null
+          id: string
+          result_json: Json | null
+          search_task_id: string | null
+          sent_at: string | null
+          session_id: string
+          status: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "ai_dispatch_agent_commands"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      agent_upsert_load: {
+        Args: {
+          _dedup_key: string
+          _payload: Json
+          _search_task_id: string
+          _token_hash: string
+        }
+        Returns: {
+          candidate_id: string
+          was_created: boolean
+        }[]
+      }
+      agent_upsert_tab: {
+        Args: {
+          _candidate_id: string
+          _close_reason: string
+          _search_task_id: string
+          _tab_external_id: string
+          _tab_status: string
+          _tab_type: string
+          _title: string
+          _token_hash: string
+          _url: string
+        }
+        Returns: string
+      }
+      agent_verify_token: {
+        Args: { _token_hash: string }
+        Returns: {
+          dispatcher_id: string
+          session_id: string
+        }[]
       }
       bind_dispatcher_invite_to_user: {
         Args: { p_email: string; p_token: string; p_user_id: string }

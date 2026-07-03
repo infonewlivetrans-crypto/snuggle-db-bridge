@@ -32,3 +32,26 @@
 
 На dev-этапе публичные endpoints агента (`/api/public/agent/ai-dispatcher/*`)
 возвращают 501. Реальная авторизация будет реализована на следующем этапе.
+
+## Установка dev-версии
+1. Скомпилировать TS в `src/*.js` (или временно переименовать `src/background.ts` → `.js`) — MV3 сервис-воркер грузит именно JS.
+2. `chrome://extensions` → включить **Developer mode** → **Load unpacked** → выбрать папку `browser-agent/`.
+3. Открыть popup расширения.
+4. Ввести **Base URL** Радиус Трек (preview или production URL Lovable-проекта).
+5. Ввести **pairing code**, полученный из UI `/dispatcher/ai-dispatcher` (кнопка «Создать код подключения»).
+6. Нажать «Подключить». Popup покажет статус и последний heartbeat.
+
+## Как работает pairing (dev)
+- Диспетчер создаёт agent session → сервер генерирует одноразовый pairing-код `RT-XXXX-XXXX` с TTL 15 минут.
+- Popup отправляет код на `POST /api/public/agent/ai-dispatcher/pair`.
+- Сервер возвращает `agent_token` (показывается один раз). Хеш токена (SHA-256) хранится в `ai_dispatch_agent_sessions.agent_token_hash`.
+- Дальше все запросы агента идут с `Authorization: Bearer <agent_token>`.
+
+## Поддержанные endpoints
+- `POST /pair`, `POST /heartbeat`, `GET /commands/poll`,
+- `POST /commands/:id/ack|complete|fail`,
+- `POST /events`, `POST /tabs`, `POST /loads`.
+
+## Тестирование mock loads
+Кнопка «Отправить тестовые грузы» в popup отправляет 2 демо-груза в текущую `search_task_id`
+(последняя, полученная из команды агенту).

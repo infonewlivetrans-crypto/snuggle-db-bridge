@@ -9,5 +9,5 @@
   "content_scripts": [
     { "matches": ["https://ati.su/*"], "js": ["src/content.js"], "run_at": "document_idle" }
   ],
-  "action": { "default_title": "Radius Track Agent" }
+  "action": { "default_title": "Radius Track Agent", "default_popup": "popup.html" }
 }
