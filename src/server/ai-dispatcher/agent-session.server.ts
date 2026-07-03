@@ -25,32 +25,30 @@ export async function getSession(client: Client, dispatcherId: string, id: strin
   return data;
 }
 
-function hashCode(code: string): string {
-  // Небольшой не-крипто хеш (dev only). Реальный агент подтверждает pairing
-  // через отдельный обмен, здесь мы храним только маскирующий отпечаток.
-  let h = 0;
-  for (let i = 0; i < code.length; i++) h = ((h << 5) - h + code.charCodeAt(i)) | 0;
-  return `dev_${(h >>> 0).toString(16)}`;
-}
+import { hashAgentSecret, generatePairingCode } from "./agent-auth.server";
+
+const PAIRING_CODE_TTL_MS = 15 * 60 * 1000;
 
 export async function createSession(
   client: Client, dispatcherId: string,
   input: { agent_type?: "browser_extension" | "desktop_agent" | "mock_agent"; agent_name?: string },
 ) {
   const c = client as AnyClient;
-  const pairingCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const pairingCode = generatePairingCode();
+  const expiresAt = new Date(Date.now() + PAIRING_CODE_TTL_MS).toISOString();
   const { data } = await c.from("ai_dispatch_agent_sessions").insert({
     dispatcher_id: dispatcherId,
     agent_type: input.agent_type ?? "browser_extension",
     agent_name: input.agent_name ?? "Radius Track Browser Agent",
     status: "pairing",
-    pairing_code_hash: hashCode(pairingCode),
+    pairing_code_hash: hashAgentSecret(pairingCode),
+    pairing_code_expires_at: expiresAt,
   }).select("*").single();
   await logAgentEvent(client, dispatcherId, null, null, "agent_session_created",
     "Создана новая сессия агента", { session_id: data?.id });
   await logAgentEvent(client, dispatcherId, null, null, "agent_pairing_code_created",
-    "Сгенерирован код подключения агента (dev)");
-  return { session: data, pairing_code: pairingCode };
+    "Сгенерирован код подключения агента");
+  return { session: data, pairing_code: pairingCode, pairing_code_expires_at: expiresAt };
 }
 
 export async function mockConnectSession(
@@ -67,6 +65,19 @@ export async function mockConnectSession(
   }).eq("id", id).eq("dispatcher_id", dispatcherId);
   await logAgentEvent(client, dispatcherId, null, null, "agent_connected",
     "Агент подключён (mock)", { session_id: id });
+}
+
+export async function revokeSession(
+  client: Client, dispatcherId: string, id: string,
+) {
+  const c = client as AnyClient;
+  await c.from("ai_dispatch_agent_sessions").update({
+    revoked_at: new Date().toISOString(),
+    agent_token_hash: null,
+    status: "disconnected",
+  }).eq("id", id).eq("dispatcher_id", dispatcherId);
+  await logAgentEvent(client, dispatcherId, null, null, "agent_disconnected",
+    "Токен агента отозван", { session_id: id });
 }
 
 export async function disconnectSession(
