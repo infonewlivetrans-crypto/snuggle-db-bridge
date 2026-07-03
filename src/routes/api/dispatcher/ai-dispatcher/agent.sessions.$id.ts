@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import {
-  getSession, disconnectSession, mockConnectSession, recordHeartbeat,
+  getSession, disconnectSession, mockConnectSession, recordHeartbeat, revokeSession,
 } from "@/server/ai-dispatcher/agent-session.server";
 
 const ROLES = ["admin", "dispatcher"];
