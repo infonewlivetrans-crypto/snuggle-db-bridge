@@ -486,6 +486,9 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
         qc.invalidateQueries({ queryKey: ["ai-disp-calls", taskId] });
       }} />
 
+      {/* Live agent feed */}
+      <LiveAgentReadPanel taskId={taskId} events={events} task={task} />
+
       {/* Events */}
       <AgentEventLog events={events} />
     </div>
