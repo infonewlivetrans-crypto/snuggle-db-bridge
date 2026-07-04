@@ -759,3 +759,39 @@ function AgentEventLog({ events }: { events: AgentEvent[] }) {
     </Card>
   );
 }
+
+function LiveAgentReadPanel({ taskId, events, task }: {
+  taskId: string;
+  events: AgentEvent[];
+  task: { loads_seen_count?: number; matched_count?: number; last_refresh_at?: string | null };
+}) {
+  const qc = useQueryClient();
+  const read = useMutation({
+    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/read-visible-loads`)),
+    onSuccess: () => {
+      toast.success("Команда read_visible_loads отправлена агенту");
+      qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] });
+    },
+    onError: (e: unknown) => toast.error(String((e as Error).message ?? e)),
+  });
+  const lastRead = events.find((e) => e.event_type === "visible_loads_received");
+  const payload = (lastRead?.payload_json ?? {}) as { count?: number; suitable_count?: number };
+  return (
+    <Card className="p-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="text-sm font-semibold">Живая выдача агента</div>
+        <Button size="sm" variant="outline" onClick={() => read.mutate()} disabled={read.isPending}>
+          Прочитать сейчас
+        </Button>
+      </div>
+      <div className="text-xs text-muted-foreground mt-2">
+        За последний цикл: видно ~{payload.count ?? "—"} · подходит {payload.suitable_count ?? "—"}
+        <br />Всего за задачу: просмотрено {task.loads_seen_count ?? 0} · подходит {task.matched_count ?? 0}
+        <br />Последнее чтение: {fmt(task.last_refresh_at ?? null)}
+      </div>
+      <div className="text-[11px] text-muted-foreground mt-1">
+        Агент читает только видимую выдачу открытой страницы. API ATI не используется.
+      </div>
+    </Card>
+  );
+}
