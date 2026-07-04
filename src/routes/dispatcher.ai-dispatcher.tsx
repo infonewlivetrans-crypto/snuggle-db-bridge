@@ -775,7 +775,7 @@ function LiveAgentReadPanel({ taskId, events, task }: {
     onError: (e: unknown) => toast.error(String((e as Error).message ?? e)),
   });
   const lastRead = events.find((e) => e.event_type === "visible_loads_received");
-  const payload = (lastRead?.payload_json ?? {}) as { count?: number; suitable_count?: number };
+  const payload = ((lastRead as unknown as { payload_json?: { count?: number; suitable_count?: number } })?.payload_json ?? {});
   return (
     <Card className="p-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
