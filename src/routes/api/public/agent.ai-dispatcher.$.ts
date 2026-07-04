@@ -159,9 +159,14 @@ async function handleLoads(request: Request): Promise<Response> {
   const rpc = makeAnonClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c: any = rpc;
-  const created: string[] = []; const updated: string[] = []; const skipped: string[] = [];
+  interface UpsertMeta { candidate_id: string; source_row_index: number | null; source_external_ref: string | null; text_hash: string | null; }
+  const createdMeta: UpsertMeta[] = [];
+  const updatedMeta: UpsertMeta[] = [];
+  const skipped: string[] = [];
+  const seenKeys: string[] = [];
   for (const load of loads) {
     const key = buildLoadDedupKey(load, sourcePageUrl);
+    seenKeys.push(key);
     const payload = { ...load, source_page_url: sourcePageUrl ?? load?.source_page_url ?? null };
     const { data, error } = await c.rpc("agent_upsert_load", {
       _token_hash: auth.tokenHash,
@@ -171,18 +176,75 @@ async function handleLoads(request: Request): Promise<Response> {
     });
     if (error) { skipped.push(key); continue; }
     const row = (data as { candidate_id: string; was_created: boolean }[])?.[0];
-    if (row?.was_created) created.push(row.candidate_id);
-    else if (row) updated.push(row.candidate_id);
+    if (!row) continue;
+    const meta: UpsertMeta = {
+      candidate_id: row.candidate_id,
+      source_row_index: load?.source_row_index ?? null,
+      source_external_ref: load?.source_external_ref ?? null,
+      text_hash: load?.agent_open_hint_json?.textHash ?? null,
+    };
+    if (row.was_created) createdMeta.push(meta); else updatedMeta.push(meta);
   }
-  // Общий event
+
+  // Отметить пропавшие с видимой выдачи кандидаты.
+  try {
+    await c.rpc("agent_mark_missing_candidates", {
+      _token_hash: auth.tokenHash,
+      _search_task_id: searchTaskId,
+      _seen_dedup_keys: seenKeys,
+      _mark_not_actual_after: 3,
+    });
+  } catch { /* ignore */ }
+
+  // Enrich с scores/status/warnings из БД для клиентской подсветки.
+  const allIds = [...createdMeta, ...updatedMeta].map((m) => m.candidate_id);
+  const detailsById = new Map<string, {
+    match_score: number | null; profitability_score: number | null; risk_score: number | null;
+    status: string | null; ai_summary: string | null; ai_reasons: unknown; ai_warnings: unknown;
+  }>();
+  if (allIds.length) {
+    const { data: rows } = await c.from("ai_dispatch_load_candidates")
+      .select("id, match_score, profitability_score, risk_score, status, ai_summary, ai_reasons, ai_warnings")
+      .in("id", allIds);
+    for (const r of rows ?? []) detailsById.set(r.id, r);
+  }
+  const enrich = (m: UpsertMeta) => {
+    const d = detailsById.get(m.candidate_id);
+    return {
+      candidate_id: m.candidate_id,
+      source_row_index: m.source_row_index,
+      source_external_ref: m.source_external_ref,
+      text_hash: m.text_hash,
+      match_score: d?.match_score ?? null,
+      profitability_score: d?.profitability_score ?? null,
+      risk_score: d?.risk_score ?? null,
+      status: d?.status ?? null,
+      ai_summary: d?.ai_summary ?? null,
+      ai_reasons: d?.ai_reasons ?? [],
+      ai_warnings: d?.ai_warnings ?? [],
+    };
+  };
+  const created = createdMeta.map(enrich);
+  const updated = updatedMeta.map(enrich);
+  const all = [...created, ...updated];
+  const suitable_count = all.filter((x) => (x.match_score ?? 0) >= 60).length;
+  const best = all.reduce<{ id: string | null; score: number }>((acc, x) => {
+    const s = x.match_score ?? -1;
+    return s > acc.score ? { id: x.candidate_id, score: s } : acc;
+  }, { id: null, score: -1 });
+
   await c.rpc("agent_log_event", {
     _token_hash: auth.tokenHash,
     _event_type: "visible_loads_received",
-    _message: `visible loads: created=${created.length} updated=${updated.length}`,
+    _message: `visible loads: created=${created.length} updated=${updated.length} suitable=${suitable_count}`,
     _search_task_id: searchTaskId, _candidate_id: null,
-    _payload: { source_page_url: sourcePageUrl, count: loads.length },
+    _payload: { source_page_url: sourcePageUrl, count: loads.length, suitable_count },
   });
-  return jsonResponse({ ok: true, created, updated, skipped });
+
+  return jsonResponse({
+    ok: true, created, updated, skipped,
+    suitable_count, best_candidate_id: best.id,
+  });
 }
 
 async function router(request: Request, splat: string): Promise<Response> {
