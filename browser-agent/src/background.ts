@@ -8,6 +8,10 @@ const STORAGE_KEYS = {
   lastHeartbeat: "rt_last_heartbeat",
   lastError: "rt_last_error",
   currentTaskId: "rt_current_task_id",
+  lastVisibleCount: "rt_last_visible_count",
+  lastSentCount: "rt_last_sent_count",
+  lastSuitableCount: "rt_last_suitable_count",
+  lastReadAt: "rt_last_read_at",
 } as const;
 
 type Storage = Partial<Record<keyof typeof STORAGE_KEYS, string>>;
@@ -30,6 +34,26 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+async function findAtiTab(): Promise<chrome.tabs.Tab | null> {
+  const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
+    chrome.tabs.query({ url: "https://ati.su/*" }, (t) => r(t)),
+  );
+  return tabs.find((t) => t.active) ?? tabs[0] ?? null;
+}
+
+async function sendToContent<T = unknown>(tabId: number, message: unknown): Promise<T | null> {
+  return new Promise((resolve) => {
+    try {
+      chrome.tabs.sendMessage(tabId, message, (resp) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const err = (chrome as any).runtime?.lastError;
+        if (err) return resolve(null);
+        resolve((resp ?? null) as T);
+      });
+    } catch { resolve(null); }
+  });
+}
+
 async function heartbeat(): Promise<void> {
   const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
     chrome.tabs.query({ url: "https://ati.su/*" }, (t) => r(t)),
@@ -38,7 +62,7 @@ async function heartbeat(): Promise<void> {
     await api("/api/public/agent/ai-dispatcher/heartbeat", {
       method: "POST",
       body: JSON.stringify({
-        agent_version: "0.0.1-dev",
+        agent_version: "0.0.2-dev",
         browser_name: "Chrome",
         active_tab_count: tabs.length,
         status: "connected",
@@ -65,9 +89,7 @@ async function pollCommands(): Promise<AgentCommand[]> {
       "/api/public/agent/ai-dispatcher/commands/poll",
     );
     return res.commands ?? [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 async function ack(id: string) {
@@ -78,25 +100,103 @@ async function complete(id: string, result: Record<string, unknown>) {
     method: "POST", body: JSON.stringify({ result_json: result }),
   });
 }
+async function fail(id: string, error: string) {
+  await api(`/api/public/agent/ai-dispatcher/commands/${id}/fail`, {
+    method: "POST", body: JSON.stringify({ error_message: error }),
+  });
+}
+
+interface LoadsResp {
+  ok?: boolean;
+  suitable_count?: number;
+  best_candidate_id?: string | null;
+  created?: Array<{ candidate_id: string; source_row_index: number | null; source_external_ref: string | null; text_hash: string | null; match_score: number | null; status: string | null; ai_warnings: unknown }>;
+  updated?: Array<LoadsResp["created"] extends (infer R)[] | undefined ? R : never>;
+}
+
+/** Прочитать видимую страницу ATI, отправить грузы, подсветить строки. */
+async function readAndSubmitVisibleLoads(taskId: string): Promise<{ visible: number; sent: number; suitable: number }> {
+  const tab = await findAtiTab();
+  if (!tab?.id) throw new Error("no_ati_tab");
+  const extracted = await sendToContent<{ page: { pageUrl: string }; loads: unknown[] } | { error?: string }>(
+    tab.id, { type: "RT_READ_VISIBLE_LOADS" },
+  );
+  // Ждём callback от content через отдельный listener (см. onMessage ниже).
+  // Тут просто просим content выполнить extraction — реальные данные придут в fallback listener,
+  // но чтобы упростить flow, извлекаем прямо здесь через второй запрос:
+  const data = await sendToContent<{ page: { pageUrl: string }; loads: unknown[] }>(
+    tab.id, { type: "RT_READ_VISIBLE_LOADS" },
+  );
+  const page = data?.page ?? (extracted as { page?: { pageUrl: string } })?.page;
+  const loads = Array.isArray(data?.loads) ? data!.loads : [];
+  const visible = loads.length;
+  let sent = 0; let suitable = 0;
+  if (visible > 0 && page?.pageUrl) {
+    const resp = await api<LoadsResp>("/api/public/agent/ai-dispatcher/loads", {
+      method: "POST",
+      body: JSON.stringify({ search_task_id: taskId, source_page_url: page.pageUrl, loads }),
+    });
+    sent = (resp.created?.length ?? 0) + (resp.updated?.length ?? 0);
+    suitable = resp.suitable_count ?? 0;
+    const scores = [...(resp.created ?? []), ...(resp.updated ?? [])];
+    await sendToContent(tab.id, { type: "RT_HIGHLIGHT_LOADS", scores });
+    await sendToContent(tab.id, { type: "RT_SHOW_OVERLAY", state: { sent, suitable, task_id: taskId } });
+  }
+  await writeStorage({
+    [STORAGE_KEYS.lastVisibleCount]: String(visible),
+    [STORAGE_KEYS.lastSentCount]: String(sent),
+    [STORAGE_KEYS.lastSuitableCount]: String(suitable),
+    [STORAGE_KEYS.lastReadAt]: new Date().toISOString(),
+  });
+  return { visible, sent, suitable };
+}
 
 async function handleCommand(c: AgentCommand): Promise<void> {
   await ack(c.id);
   if (c.search_task_id) await writeStorage({ [STORAGE_KEYS.currentTaskId]: c.search_task_id });
-  if (c.command_type === "open_ati") {
-    await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
-    await complete(c.id, { opened: true });
-    return;
+  try {
+    if (c.command_type === "open_ati") {
+      await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      await complete(c.id, { opened: true });
+      return;
+    }
+    if (c.command_type === "refresh_page") {
+      const tab = await findAtiTab();
+      if (tab?.id) await chrome.tabs.reload(tab.id);
+      // После reload — небольшая задержка и чтение.
+      if (tab?.id && c.search_task_id) {
+        await new Promise((r) => setTimeout(r, 2500));
+        const r = await readAndSubmitVisibleLoads(c.search_task_id);
+        await complete(c.id, { reloaded: true, ...r });
+        return;
+      }
+      await complete(c.id, { reloaded: Boolean(tab?.id) });
+      return;
+    }
+    if (c.command_type === "read_visible_loads") {
+      if (!c.search_task_id) throw new Error("missing_search_task_id");
+      const r = await readAndSubmitVisibleLoads(c.search_task_id);
+      await complete(c.id, r);
+      return;
+    }
+    if (c.command_type === "focus_candidate") {
+      const tab = await findAtiTab();
+      if (!tab?.id) throw new Error("no_ati_tab");
+      const hint = c.command_payload_json ?? {};
+      await sendToContent(tab.id, { type: "RT_FOCUS_LOAD", hint });
+      await complete(c.id, { focused: true });
+      return;
+    }
+    if (c.command_type === "close_candidate_page") {
+      const tab = await findAtiTab();
+      if (tab?.id) await sendToContent(tab.id, { type: "RT_CLEAR_HIGHLIGHTS" });
+      await complete(c.id, { cleared: true });
+      return;
+    }
+    await complete(c.id, { noop: true, command_type: c.command_type });
+  } catch (e) {
+    await fail(c.id, String((e as Error).message ?? e));
   }
-  if (c.command_type === "refresh_page") {
-    const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
-      chrome.tabs.query({ url: "https://ati.su/loads*" }, (t) => r(t)),
-    );
-    for (const t of tabs) if (t.id) await chrome.tabs.reload(t.id);
-    await complete(c.id, { reloaded: tabs.length });
-    return;
-  }
-  // Прочие команды пока просто ack+complete как noop (skeleton stage).
-  await complete(c.id, { noop: true, command_type: c.command_type });
 }
 
 async function tick(): Promise<void> {
@@ -109,14 +209,14 @@ async function tick(): Promise<void> {
 
 setInterval(() => { void tick(); }, 30_000);
 
-// Bridge для popup / manual actions.
+// Bridge для popup / manual actions / content.
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   (async () => {
     try {
       if (msg?.type === "rt/pair") {
         const res = await fetch(`${msg.baseUrl}/api/public/agent/ai-dispatcher/pair`, {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: "0.0.1-dev", browser_name: "Chrome" }),
+          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: "0.0.2-dev", browser_name: "Chrome" }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "pair_failed");
@@ -128,14 +228,28 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         sendResponse({ ok: true, session_id: data.session_id });
         return;
       }
-      if (msg?.type === "rt/status") {
-        sendResponse(await readStorage());
-        return;
-      }
+      if (msg?.type === "rt/status") { sendResponse(await readStorage()); return; }
       if (msg?.type === "rt/disconnect") {
         await writeStorage({ [STORAGE_KEYS.token]: "", [STORAGE_KEYS.sessionId]: "" });
-        sendResponse({ ok: true });
+        sendResponse({ ok: true }); return;
+      }
+      if (msg?.type === "rt/read-current-page") {
+        const s = await readStorage();
+        const taskId = msg.search_task_id ?? s[STORAGE_KEYS.currentTaskId];
+        if (!taskId) throw new Error("missing_search_task_id");
+        const r = await readAndSubmitVisibleLoads(taskId);
+        sendResponse({ ok: true, ...r });
         return;
+      }
+      if (msg?.type === "rt/show-overlay") {
+        const tab = await findAtiTab();
+        if (tab?.id) await sendToContent(tab.id, { type: "RT_SHOW_OVERLAY", state: {} });
+        sendResponse({ ok: true }); return;
+      }
+      if (msg?.type === "rt/hide-overlay") {
+        const tab = await findAtiTab();
+        if (tab?.id) await sendToContent(tab.id, { type: "RT_HIDE_OVERLAY" });
+        sendResponse({ ok: true }); return;
       }
       if (msg?.type === "rt/send-mock-loads") {
         const s = await readStorage();
@@ -145,11 +259,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           { pickup_city: "Москва", delivery_city: "Санкт-Петербург", weight: 20, price: 45000, distance_km: 700, raw_text: "M-SPB 20т", source_external_ref: `mock-${Date.now()}-1` },
           { pickup_city: "Москва", delivery_city: "Казань", weight: 10, price: 30000, distance_km: 800, raw_text: "M-KZN 10т", source_external_ref: `mock-${Date.now()}-2` },
         ];
-        await api("/api/public/agent/ai-dispatcher/loads", {
+        const resp = await api<LoadsResp>("/api/public/agent/ai-dispatcher/loads", {
           method: "POST",
           body: JSON.stringify({ search_task_id: taskId, source_page_url: "https://ati.su/loads/", loads }),
         });
-        sendResponse({ ok: true, sent: loads.length });
+        sendResponse({ ok: true, sent: (resp.created?.length ?? 0) + (resp.updated?.length ?? 0), suitable: resp.suitable_count ?? 0 });
         return;
       }
       sendResponse({ error: "unknown_message" });
@@ -161,3 +275,4 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 });
 
 console.log("[radius-track-agent] background loaded");
+export {};

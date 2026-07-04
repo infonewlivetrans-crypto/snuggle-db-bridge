@@ -4,13 +4,14 @@
   <meta charset="utf-8" />
   <title>Radius Track Agent</title>
   <style>
-    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 300px; }
+    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 320px; }
     h1 { font-size: 13px; margin: 0 0 8px; }
     input, button { font: inherit; width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 6px; }
     button { cursor: pointer; }
     .row { display: flex; gap: 6px; }
     .row > * { flex: 1; }
     .status { padding: 6px; background: #f4f4f5; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
+    .live { padding: 6px; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
     .ok { color: #047857; }
     .err { color: #b91c1c; }
     .muted { color: #6b7280; }
@@ -19,12 +20,18 @@
 <body>
   <h1>Radius Track Browser Agent (dev)</h1>
   <div id="status" class="status">…</div>
+  <div id="live" class="live">Ожидание чтения страницы…</div>
 
   <input id="baseUrl" placeholder="https://your-project.lovable.app" />
   <input id="code" placeholder="Pairing code (RT-XXXX-XXXX)" />
   <div class="row">
     <button id="pair">Подключить</button>
     <button id="disconnect">Отключить</button>
+  </div>
+  <button id="read">Прочитать текущую страницу</button>
+  <div class="row">
+    <button id="overlayOn">Показать панель РТ</button>
+    <button id="overlayOff">Скрыть</button>
   </div>
   <button id="mock">Отправить тестовые грузы</button>
   <p class="muted">
