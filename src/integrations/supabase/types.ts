@@ -495,10 +495,12 @@ export type Database = {
           id: string
           is_additional_load: boolean
           is_main_load: boolean
+          last_missing_at: string | null
           last_seen_at: string | null
           linked_main_candidate_id: string | null
           loading_type: string | null
           match_score: number | null
+          missing_seen_count: number
           not_actual_reason: string | null
           parsed_json: Json | null
           payment_type: string | null
@@ -543,10 +545,12 @@ export type Database = {
           id?: string
           is_additional_load?: boolean
           is_main_load?: boolean
+          last_missing_at?: string | null
           last_seen_at?: string | null
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
+          missing_seen_count?: number
           not_actual_reason?: string | null
           parsed_json?: Json | null
           payment_type?: string | null
@@ -591,10 +595,12 @@ export type Database = {
           id?: string
           is_additional_load?: boolean
           is_main_load?: boolean
+          last_missing_at?: string | null
           last_seen_at?: string | null
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
+          missing_seen_count?: number
           not_actual_reason?: string | null
           parsed_json?: Json | null
           payment_type?: string | null
@@ -8716,6 +8722,18 @@ export type Database = {
           _token_hash: string
         }
         Returns: string
+      }
+      agent_mark_missing_candidates: {
+        Args: {
+          _mark_not_actual_after?: number
+          _search_task_id: string
+          _seen_dedup_keys: string[]
+          _token_hash: string
+        }
+        Returns: {
+          marked_not_actual: number
+          warned: number
+        }[]
       }
       agent_pair: {
         Args: {
