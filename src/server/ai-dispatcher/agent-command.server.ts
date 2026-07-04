@@ -128,6 +128,12 @@ export const createOpenAtiCommand = (client: Client, d: string, s: string, t: st
 export const createRefreshCommand = (client: Client, d: string, s: string, t: string) =>
   createAgentCommand(client, d, { sessionId: s, searchTaskId: t, commandType: "refresh_page" });
 
+export const createReadVisibleLoadsCommand = (
+  client: Client, d: string, s: string, t: string,
+) => createAgentCommand(client, d, {
+  sessionId: s, searchTaskId: t, commandType: "read_visible_loads",
+});
+
 export const createFocusCandidateCommand = (
   client: Client, d: string, s: string, t: string | null, cand: string,
   hint?: Record<string, unknown>,

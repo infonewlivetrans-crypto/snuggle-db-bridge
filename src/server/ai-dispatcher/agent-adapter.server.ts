@@ -15,7 +15,7 @@ import {
 } from "./agent-tabs.server";
 import {
   createOpenAtiCommand, createRefreshCommand, createFocusCandidateCommand,
-  createCloseCandidatePageCommand,
+  createCloseCandidatePageCommand, createReadVisibleLoadsCommand,
 } from "./agent-command.server";
 
 type Client = SupabaseClient<Database>;
@@ -79,6 +79,23 @@ export async function refreshTask(ctx: AdapterCtx, taskId: string) {
   const s = await requireSession(ctx);
   const id = await createRefreshCommand(ctx.client, ctx.dispatcherId, s, taskId);
   return { created: 0, matched: 0, bestCandidateId: null, command_id: id };
+}
+
+/** Попросить агент прочитать видимую выдачу текущей вкладки ATI. */
+export async function readVisibleLoadsForTask(ctx: AdapterCtx, taskId: string) {
+  await ensureLiveDisabled(ctx);
+  if (ctx.mode === "mock") {
+    // В mock-режиме читать нечего — вернём пустой результат.
+    await logAgentEvent(ctx.client, ctx.dispatcherId, taskId, null,
+      "visible_page_read_started", "mock: skip read_visible_loads");
+    return { created: 0, updated: 0, command_id: null };
+  }
+  const s = await requireSession(ctx);
+  const id = await createReadVisibleLoadsCommand(ctx.client, ctx.dispatcherId, s, taskId);
+  await logAgentEvent(ctx.client, ctx.dispatcherId, taskId, null,
+    "visible_page_read_started", "команда read_visible_loads отправлена агенту",
+    { command_id: id });
+  return { created: 0, updated: 0, command_id: id };
 }
 
 export async function focusCandidate(ctx: AdapterCtx, candidateId: string) {

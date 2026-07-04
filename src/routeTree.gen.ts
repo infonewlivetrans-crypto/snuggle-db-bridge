@@ -461,6 +461,7 @@ import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } f
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentStopRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.stop'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentStartRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.start'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.refresh-now'
+import { Route as ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.read-visible-loads'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.pause'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.open-ati'
 import { Route as ApiDispatcherAiDispatcherAgentSessionsIdCommandsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions.$id.commands'
@@ -2906,6 +2907,12 @@ const ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute =
     path: '/agent/refresh-now',
     getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
   } as any)
+const ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute =
+  ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRouteImport.update({
+    id: '/agent/read-visible-loads',
+    path: '/agent/read-visible-loads',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
 const ApiDispatcherAiDispatcherTasksIdAgentPauseRoute =
   ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport.update({
     id: '/agent/pause',
@@ -3425,6 +3432,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads': typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
@@ -3888,6 +3896,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads': typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
@@ -4353,6 +4362,7 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads': typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
@@ -4819,6 +4829,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
@@ -5282,6 +5293,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
@@ -5746,6 +5758,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
@@ -9198,6 +9211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
     }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads'
+      path: '/agent/read-visible-loads'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/read-visible-loads'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
     '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': {
       id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
       path: '/agent/pause'
@@ -10580,6 +10600,7 @@ interface ApiDispatcherAiDispatcherTasksIdRouteChildren {
   ApiDispatcherAiDispatcherTasksIdCallListRoute: typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
   ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   ApiDispatcherAiDispatcherTasksIdAgentPauseRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
+  ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute
   ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   ApiDispatcherAiDispatcherTasksIdAgentStartRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   ApiDispatcherAiDispatcherTasksIdAgentStopRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
@@ -10593,6 +10614,8 @@ const ApiDispatcherAiDispatcherTasksIdRouteChildren: ApiDispatcherAiDispatcherTa
       ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute,
     ApiDispatcherAiDispatcherTasksIdAgentPauseRoute:
       ApiDispatcherAiDispatcherTasksIdAgentPauseRoute,
+    ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute:
+      ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute,
     ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute:
       ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute,
     ApiDispatcherAiDispatcherTasksIdAgentStartRoute:
