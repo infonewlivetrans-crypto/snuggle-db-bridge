@@ -15,7 +15,7 @@ import {
 } from "./agent-tabs.server";
 import {
   createOpenAtiCommand, createRefreshCommand, createFocusCandidateCommand,
-  createCloseCandidatePageCommand,
+  createCloseCandidatePageCommand, createReadVisibleLoadsCommand,
 } from "./agent-command.server";
 
 type Client = SupabaseClient<Database>;
