@@ -98,10 +98,12 @@ export interface VehicleMapPanelProps {
   selfId?: string | null;
   onOpen: (id: string) => void;
   onTake?: (id: string) => void;
+  onAiSearch?: (id: string) => void;
   taking?: boolean;
 }
 
-export function VehicleMapPanel({ rows, selfId, onOpen, onTake, taking }: VehicleMapPanelProps) {
+export function VehicleMapPanel({ rows, selfId, onOpen, onTake, onAiSearch, taking }: VehicleMapPanelProps) {
+
   const withCoords = useMemo(() => withCoordsOnly(rows), [rows]);
   const withoutCoords = useMemo(() => rows.filter((r) => !r.has_coordinates), [rows]);
 
@@ -151,6 +153,7 @@ export function VehicleMapPanel({ rows, selfId, onOpen, onTake, taking }: Vehicl
             selfId={selfId}
             onOpen={onOpen}
             onTake={onTake}
+            onAiSearch={onAiSearch}
             taking={!!taking}
           />
         </div>
@@ -169,10 +172,12 @@ export function VehicleMapPanel({ rows, selfId, onOpen, onTake, taking }: Vehicl
                   selfId={selfId}
                   onOpen={() => onOpen(v.id)}
                   onTake={onTake ? () => onTake(v.id) : undefined}
+                  onAiSearch={onAiSearch ? () => onAiSearch(v.id) : undefined}
                   taking={!!taking}
                 />
               ))}
             </div>
+
           ) : (
             <div className="px-3 py-6 text-center text-xs text-muted-foreground">
               Нет машин с координатами
@@ -222,14 +227,17 @@ function VehicleMiniCard({
   selfId,
   onOpen,
   onTake,
+  onAiSearch,
   taking,
 }: {
   v: FreeVehicleRow;
   selfId: string | null | undefined;
   onOpen: () => void;
   onTake?: () => void;
+  onAiSearch?: () => void;
   taking: boolean;
 }) {
+
   const st = statusOf(v, selfId);
   const body = getVehicleBodyTypeLabel(v.body_type) || v.body_type || "—";
   return (
@@ -279,7 +287,7 @@ function VehicleMiniCard({
           <span className="text-foreground/70">Готовность:</span> {v.ready_comment}
         </div>
       ) : null}
-      <div className="mt-0.5 flex gap-1">
+      <div className="mt-0.5 flex flex-wrap gap-1">
         <Button size="sm" variant="outline" className="h-7 flex-1 text-xs" onClick={onOpen}>
           Открыть
         </Button>
@@ -288,7 +296,18 @@ function VehicleMiniCard({
             Взять
           </Button>
         ) : null}
+        {onAiSearch ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 w-full text-xs"
+            onClick={onAiSearch}
+          >
+            Найти груз (AI)
+          </Button>
+        ) : null}
       </div>
+
     </div>
   );
 }
@@ -300,14 +319,17 @@ function LeafletVehicleMap({
   selfId,
   onOpen,
   onTake,
+  onAiSearch,
   taking,
 }: {
   rows: FreeVehicleRow[];
   selfId: string | null | undefined;
   onOpen: (id: string) => void;
   onTake?: (id: string) => void;
+  onAiSearch?: (id: string) => void;
   taking: boolean;
 }) {
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   // Хранимся в any, чтобы не тянуть типы leaflet в SSR-граф.
   const mapRef = useRef<any>(null);
@@ -446,12 +468,16 @@ function LeafletVehicleMap({
           if (!root) return;
           const openBtn = root.querySelector<HTMLButtonElement>('[data-act="open"]');
           const takeBtn = root.querySelector<HTMLButtonElement>('[data-act="take"]');
+          const aiBtn = root.querySelector<HTMLButtonElement>('[data-act="ai"]');
           openBtn?.addEventListener("click", () => onOpen(v.id));
           if (onTake && st === "free" && takeBtn) {
             takeBtn.addEventListener("click", () => {
               takeBtn.disabled = true;
               onTake(v.id);
             });
+          }
+          if (onAiSearch && aiBtn) {
+            aiBtn.addEventListener("click", () => onAiSearch(v.id));
           }
         });
 
@@ -471,7 +497,8 @@ function LeafletVehicleMap({
       // На случай скрытого контейнера на момент маунта
       setTimeout(() => map.invalidateSize(), 0);
     })();
-  }, [rows, ready, selfId, onOpen, onTake]);
+  }, [rows, ready, selfId, onOpen, onTake, onAiSearch]);
+
 
   // На каждом обновлении rows перерисовываем — taking влияет только на disabled,
   // оставляем как есть (попап создаётся заново при popupopen).
@@ -544,6 +571,10 @@ function renderPopupHtml(v: FreeVehicleRow, st: Status): string {
         <button data-act="open" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:12px;cursor:pointer">Открыть</button>
         ${takeBtn}
       </div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button data-act="ai" style="flex:1;padding:6px 8px;border-radius:6px;border:0;background:#2563eb;color:#fff;font-size:12px;cursor:pointer;font-weight:500">🔎 Найти груз (AI)</button>
+      </div>
+
     </div>
   `;
 }

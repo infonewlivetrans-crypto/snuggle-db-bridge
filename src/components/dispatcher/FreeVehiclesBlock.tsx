@@ -226,8 +226,15 @@ export function FreeVehiclesBlock() {
             selfId={data?.user_id ?? null}
             onOpen={(id) => setOpenId(id)}
             onTake={(id) => takeMut.mutate(id)}
+            onAiSearch={(id) =>
+              navigate({
+                to: "/dispatcher/ai-dispatcher",
+                search: { vehicleId: id, source: "map" },
+              } as never)
+            }
             taking={takeMut.isPending}
           />
+
         </ErrorBoundary>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
