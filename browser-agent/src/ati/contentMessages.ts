@@ -20,6 +20,8 @@ export type BgToContentMessage =
       href?: string | null;
     } }
   | { type: "RT_CLEAR_HIGHLIGHTS" }
+  | { type: "RT_APPLY_FILTERS"; filters: Record<string, unknown> }
+  | { type: "RT_DIAGNOSTICS" }
   | { type: "RT_SHOW_OVERLAY"; state?: { sent?: number; suitable?: number; task_id?: string | null } }
   | { type: "RT_HIDE_OVERLAY" };
 
@@ -29,3 +31,4 @@ export type ContentToBgMessage =
   | { type: "RT_PAGE_NOT_SUPPORTED"; url: string }
   | { type: "RT_EXTRACTION_FAILED"; error: string }
   | { type: "RT_OVERLAY_READY" };
+

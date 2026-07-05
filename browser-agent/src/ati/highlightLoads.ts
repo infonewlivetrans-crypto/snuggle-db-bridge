@@ -74,7 +74,35 @@ export function applyHighlights(entries: ScoreEntry[]): number {
     const warnings = Array.isArray(entry.ai_warnings) ? entry.ai_warnings.join("; ") : "";
     badge.title = warnings || `candidate: ${entry.candidate_id ?? "—"}`;
     el.appendChild(badge);
+
+    // Кнопка "В звонки". Никаких автозвонков — только добавление в очередь.
+    if (entry.candidate_id) {
+      const callBtn = document.createElement("button");
+      callBtn.textContent = "В звонки";
+      callBtn.dataset.rtCandidateId = entry.candidate_id;
+      Object.assign(callBtn.style, {
+        position: "absolute", top: "28px", right: "4px", zIndex: "2147483000",
+        background: "#0f172a", color: "#fff", border: "0", borderRadius: "6px",
+        padding: "3px 6px", font: "600 11px system-ui, sans-serif", cursor: "pointer",
+      } as CSSStyleDeclaration);
+      callBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation(); ev.preventDefault();
+        callBtn.disabled = true; callBtn.textContent = "…";
+        try {
+          chrome.runtime.sendMessage(
+            { type: "rt/add-to-call-queue", candidate_id: entry.candidate_id },
+            (resp: { ok?: boolean; error?: string; already?: boolean } | undefined) => {
+              callBtn.disabled = false;
+              if (resp?.ok) callBtn.textContent = resp.already ? "Уже в очереди" : "Добавлено";
+              else callBtn.textContent = "Ошибка";
+            },
+          );
+        } catch { callBtn.textContent = "Ошибка"; callBtn.disabled = false; }
+      });
+      el.appendChild(callBtn);
+    }
     applied++;
   }
   return applied;
 }
+
