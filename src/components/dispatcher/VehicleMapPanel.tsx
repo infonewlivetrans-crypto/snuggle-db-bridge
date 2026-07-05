@@ -153,6 +153,7 @@ export function VehicleMapPanel({ rows, selfId, onOpen, onTake, onAiSearch, taki
             selfId={selfId}
             onOpen={onOpen}
             onTake={onTake}
+            onAiSearch={onAiSearch}
             taking={!!taking}
           />
         </div>
@@ -171,10 +172,12 @@ export function VehicleMapPanel({ rows, selfId, onOpen, onTake, onAiSearch, taki
                   selfId={selfId}
                   onOpen={() => onOpen(v.id)}
                   onTake={onTake ? () => onTake(v.id) : undefined}
+                  onAiSearch={onAiSearch ? () => onAiSearch(v.id) : undefined}
                   taking={!!taking}
                 />
               ))}
             </div>
+
           ) : (
             <div className="px-3 py-6 text-center text-xs text-muted-foreground">
               Нет машин с координатами
