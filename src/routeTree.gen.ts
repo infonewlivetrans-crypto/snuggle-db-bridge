@@ -447,6 +447,7 @@ import { Route as ApiDispatcherAiDispatcherBundlesIdCreateDealRouteImport } from
 import { Route as ApiDispatcherAiDispatcherBundlesIdAddCandidateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.add-candidate'
 import { Route as ApiDispatcherAiDispatcherAgentSessionsIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions.$id'
 import { Route as ApiDispatcherAiDispatcherAgentCommandsIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.commands.$id'
+import { Route as ApiDispatcherAiDispatcherAgentAutoPairChallengeRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.auto-pair.challenge'
 import { Route as ApiCarrierEdoTrainingIdStepRouteImport } from './routes/api/carrier/edo/training.$id.step'
 import { Route as ApiCarrierEdoTrainingIdCompleteRouteImport } from './routes/api/carrier/edo/training.$id.complete'
 import { Route as ApiCarrierEdoScenariosIdValidateRouteImport } from './routes/api/carrier/edo/scenarios.$id.validate'
@@ -472,6 +473,7 @@ import { Route as ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRouteImpo
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentPauseRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.pause'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.open-ati'
 import { Route as ApiDispatcherAiDispatcherAgentSessionsIdCommandsRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions.$id.commands'
+import { Route as ApiDispatcherAiDispatcherAgentAutoPairStatusIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.auto-pair.status.$id'
 import { Route as ApiCarrierEdoDocumentsIdSabyStatusRouteImport } from './routes/api/carrier/edo/documents.$id.saby.status'
 import { Route as ApiCarrierEdoDocumentsIdSabySendRouteImport } from './routes/api/carrier/edo/documents.$id.saby.send'
 import { Route as ApiCarrierEdoDocumentsIdSabyPrepareRouteImport } from './routes/api/carrier/edo/documents.$id.saby.prepare'
@@ -2830,6 +2832,12 @@ const ApiDispatcherAiDispatcherAgentCommandsIdRoute =
     path: '/api/dispatcher/ai-dispatcher/agent/commands/$id',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute =
+  ApiDispatcherAiDispatcherAgentAutoPairChallengeRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge',
+    path: '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCarrierEdoTrainingIdStepRoute =
   ApiCarrierEdoTrainingIdStepRouteImport.update({
     id: '/api/carrier/edo/training/$id/step',
@@ -2979,6 +2987,12 @@ const ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute =
     id: '/commands',
     path: '/commands',
     getParentRoute: () => ApiDispatcherAiDispatcherAgentSessionsIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute =
+  ApiDispatcherAiDispatcherAgentAutoPairStatusIdRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id',
+    path: '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const ApiCarrierEdoDocumentsIdSabyStatusRoute =
   ApiCarrierEdoDocumentsIdSabyStatusRouteImport.update({
@@ -3454,6 +3468,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge': typeof ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute
   '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
@@ -3485,6 +3500,7 @@ export interface FileRoutesByFullPath {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id': typeof ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
@@ -3925,6 +3941,7 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge': typeof ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute
   '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
@@ -3956,6 +3973,7 @@ export interface FileRoutesByTo {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id': typeof ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
@@ -4398,6 +4416,7 @@ export interface FileRoutesById {
   '/api/carrier/edo/scenarios/$id/validate': typeof ApiCarrierEdoScenariosIdValidateRoute
   '/api/carrier/edo/training/$id/complete': typeof ApiCarrierEdoTrainingIdCompleteRoute
   '/api/carrier/edo/training/$id/step': typeof ApiCarrierEdoTrainingIdStepRoute
+  '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge': typeof ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute
   '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
@@ -4429,6 +4448,7 @@ export interface FileRoutesById {
   '/api/carrier/edo/documents/$id/saby/prepare': typeof ApiCarrierEdoDocumentsIdSabyPrepareRoute
   '/api/carrier/edo/documents/$id/saby/send': typeof ApiCarrierEdoDocumentsIdSabySendRoute
   '/api/carrier/edo/documents/$id/saby/status': typeof ApiCarrierEdoDocumentsIdSabyStatusRoute
+  '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id': typeof ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands': typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati': typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause': typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
@@ -4872,6 +4892,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge'
     | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
@@ -4903,6 +4924,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
@@ -5343,6 +5365,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge'
     | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
@@ -5374,6 +5397,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
@@ -5815,6 +5839,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/scenarios/$id/validate'
     | '/api/carrier/edo/training/$id/complete'
     | '/api/carrier/edo/training/$id/step'
+    | '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge'
     | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
@@ -5846,6 +5871,7 @@ export interface FileRouteTypes {
     | '/api/carrier/edo/documents/$id/saby/prepare'
     | '/api/carrier/edo/documents/$id/saby/send'
     | '/api/carrier/edo/documents/$id/saby/status'
+    | '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/open-ati'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/pause'
@@ -6132,9 +6158,11 @@ export interface RootRouteChildren {
   ApiPublicAgentAiDispatcherSplatRoute: typeof ApiPublicAgentAiDispatcherSplatRoute
   ApiCarrierEdoTrainingIdCompleteRoute: typeof ApiCarrierEdoTrainingIdCompleteRoute
   ApiCarrierEdoTrainingIdStepRoute: typeof ApiCarrierEdoTrainingIdStepRoute
+  ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute: typeof ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute
   ApiDispatcherAiDispatcherAgentCommandsIdRoute: typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   ApiDispatcherEdoDocumentsIdSnapshotReviewRoute: typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   ApiDriverEdoDocumentsIdQrRoute: typeof ApiDriverEdoDocumentsIdQrRoute
+  ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute: typeof ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -9205,6 +9233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentCommandsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge': {
+      id: '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge'
+      path: '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/auto-pair/challenge'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentAutoPairChallengeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/carrier/edo/training/$id/step': {
       id: '/api/carrier/edo/training/$id/step'
       path: '/api/carrier/edo/training/$id/step'
@@ -9379,6 +9414,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/dispatcher/ai-dispatcher/agent/sessions/$id/commands'
       preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdCommandsRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherAgentSessionsIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id': {
+      id: '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id'
+      path: '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id'
+      fullPath: '/api/dispatcher/ai-dispatcher/agent/auto-pair/status/$id'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherAgentAutoPairStatusIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/carrier/edo/documents/$id/saby/status': {
       id: '/api/carrier/edo/documents/$id/saby/status'
@@ -11259,11 +11301,15 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicAgentAiDispatcherSplatRoute: ApiPublicAgentAiDispatcherSplatRoute,
   ApiCarrierEdoTrainingIdCompleteRoute: ApiCarrierEdoTrainingIdCompleteRoute,
   ApiCarrierEdoTrainingIdStepRoute: ApiCarrierEdoTrainingIdStepRoute,
+  ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute:
+    ApiDispatcherAiDispatcherAgentAutoPairChallengeRoute,
   ApiDispatcherAiDispatcherAgentCommandsIdRoute:
     ApiDispatcherAiDispatcherAgentCommandsIdRoute,
   ApiDispatcherEdoDocumentsIdSnapshotReviewRoute:
     ApiDispatcherEdoDocumentsIdSnapshotReviewRoute,
   ApiDriverEdoDocumentsIdQrRoute: ApiDriverEdoDocumentsIdQrRoute,
+  ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute:
+    ApiDispatcherAiDispatcherAgentAutoPairStatusIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
