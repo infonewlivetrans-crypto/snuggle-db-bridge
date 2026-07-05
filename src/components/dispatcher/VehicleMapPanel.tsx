@@ -287,7 +287,7 @@ function VehicleMiniCard({
           <span className="text-foreground/70">Готовность:</span> {v.ready_comment}
         </div>
       ) : null}
-      <div className="mt-0.5 flex gap-1">
+      <div className="mt-0.5 flex flex-wrap gap-1">
         <Button size="sm" variant="outline" className="h-7 flex-1 text-xs" onClick={onOpen}>
           Открыть
         </Button>
@@ -296,7 +296,18 @@ function VehicleMiniCard({
             Взять
           </Button>
         ) : null}
+        {onAiSearch ? (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-7 w-full text-xs"
+            onClick={onAiSearch}
+          >
+            Найти груз (AI)
+          </Button>
+        ) : null}
       </div>
+
     </div>
   );
 }
