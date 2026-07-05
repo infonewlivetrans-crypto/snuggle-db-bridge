@@ -399,6 +399,8 @@ async function router(request: Request, splat: string): Promise<Response> {
   if (head === "session-health" && method === "GET") return handleSessionHealth(request);
   // /pair
   if (head === "pair" && method === "POST") return handlePair(request);
+  // /pair-auto (одноразовый challenge → agent_token только расширению)
+  if (head === "pair-auto" && method === "POST") return handlePairAuto(request);
   // /heartbeat
   if (head === "heartbeat" && method === "POST") return handleHeartbeat(request);
   // /commands/poll (GET)
