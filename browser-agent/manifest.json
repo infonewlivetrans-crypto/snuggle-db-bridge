@@ -1,13 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "Radius Track Browser Agent (dev skeleton)",
-  "version": "0.0.1",
-  "description": "Dev skeleton. Работает поверх открытого сайта ATI в браузере пользователя. API ATI не используется.",
+  "name": "Radius Track Browser Agent (dev)",
+  "version": "0.1.0",
+  "description": "Dev-расширение Радиус Трек. Работает поверх открытого сайта ATI в браузере пользователя. API ATI не используется. Cookies и пароли ATI не читаются.",
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
-  "host_permissions": ["https://ati.su/*"],
-  "background": { "service_worker": "src/background.js", "type": "module" },
+  "host_permissions": [
+    "https://ati.su/*",
+    "http://localhost/*",
+    "https://*.lovable.app/*"
+  ],
+  "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [
-    { "matches": ["https://ati.su/*"], "js": ["src/content.js"], "run_at": "document_idle" }
+    {
+      "matches": ["https://ati.su/loads/*", "https://ati.su/loadinfo/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
   ],
   "action": { "default_title": "Radius Track Agent", "default_popup": "popup.html" }
 }
