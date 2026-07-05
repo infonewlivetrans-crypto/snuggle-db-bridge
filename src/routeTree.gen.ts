@@ -427,6 +427,7 @@ import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './r
 import { Route as ApiDriverEdoDocumentsIdQrRouteImport } from './routes/api/driver/edo/documents.$id.qr'
 import { Route as ApiDispatcherEdoDocumentsIdSnapshotReviewRouteImport } from './routes/api/dispatcher/edo/documents.$id.snapshot-review'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
+import { Route as ApiDispatcherAiDispatcherTasksIdMissingCandidatesRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.missing-candidates'
 import { Route as ApiDispatcherAiDispatcherTasksIdCallListRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.call-list'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.start-additional-search'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdRestoreRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.restore'
@@ -2709,6 +2710,12 @@ const ApiDispatcherCommissionsEarningsDealIdPayoutRoute =
     path: '/$dealId/payout',
     getParentRoute: () => ApiDispatcherCommissionsEarningsRoute,
   } as any)
+const ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute =
+  ApiDispatcherAiDispatcherTasksIdMissingCandidatesRouteImport.update({
+    id: '/missing-candidates',
+    path: '/missing-candidates',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
 const ApiDispatcherAiDispatcherTasksIdCallListRoute =
   ApiDispatcherAiDispatcherTasksIdCallListRouteImport.update({
     id: '/call-list',
@@ -3466,6 +3473,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/candidates/$id/restore': typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -3936,6 +3944,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/candidates/$id/restore': typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -4408,6 +4417,7 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/candidates/$id/restore': typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -4881,6 +4891,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -5351,6 +5362,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -5822,6 +5834,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -9052,6 +9065,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport
       parentRoute: typeof ApiDispatcherCommissionsEarningsRoute
     }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
+      path: '/missing-candidates'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
     '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': {
       id: '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
       path: '/call-list'
@@ -10722,6 +10742,7 @@ const ApiDispatcherAiDispatcherCallQueueRouteWithChildren =
 
 interface ApiDispatcherAiDispatcherTasksIdRouteChildren {
   ApiDispatcherAiDispatcherTasksIdCallListRoute: typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute: typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   ApiDispatcherAiDispatcherTasksIdAgentPauseRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
   ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute
@@ -10734,6 +10755,8 @@ const ApiDispatcherAiDispatcherTasksIdRouteChildren: ApiDispatcherAiDispatcherTa
   {
     ApiDispatcherAiDispatcherTasksIdCallListRoute:
       ApiDispatcherAiDispatcherTasksIdCallListRoute,
+    ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute:
+      ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute,
     ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute:
       ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute,
     ApiDispatcherAiDispatcherTasksIdAgentPauseRoute:
