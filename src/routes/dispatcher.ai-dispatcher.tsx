@@ -209,6 +209,8 @@ function AgentCommandStatusPanelWrapper() {
 
 function AiDispatcherInner() {
   const qc = useQueryClient();
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const tasksQ = useQuery({
     queryKey: ["ai-disp-tasks"],
     queryFn: () => apiGetAuth<{ rows: Task[] }>("/api/dispatcher/ai-dispatcher/tasks"),
@@ -220,6 +222,11 @@ function AiDispatcherInner() {
     if (!activeId && tasks.length > 0) setActiveId(tasks[0].id);
   }, [tasks, activeId]);
 
+  const launchIds = useMemo<string[]>(() => {
+    if (search.vehicleIds) return search.vehicleIds.split(",").map((s) => s.trim()).filter(Boolean);
+    if (search.vehicleId) return [search.vehicleId];
+    return [];
+  }, [search.vehicleId, search.vehicleIds]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
@@ -258,7 +265,18 @@ function AiDispatcherInner() {
         </Card>
       </div>
 
-      <div>
+      <div className="space-y-4">
+        {launchIds.length > 0 && (
+          <VehicleLaunchFromMapPanel
+            vehicleIds={launchIds}
+            source={search.source ?? null}
+            onCreated={(id) => {
+              qc.invalidateQueries({ queryKey: ["ai-disp-tasks"] });
+              setActiveId(id);
+              navigate({ search: {} as never });
+            }}
+          />
+        )}
         {activeId ? <TaskWorkspace taskId={activeId} onChangeTask={setActiveId} /> : (
           <Card className="p-6 text-sm text-muted-foreground">
             Выберите задачу или создайте новую слева.
