@@ -5,9 +5,15 @@ import { useMemo, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, ShieldCheck, ShieldAlert, ShieldOff, TriangleAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Activity, ShieldCheck, ShieldAlert, ShieldOff, TriangleAlert, ExternalLink } from "lucide-react";
 import { apiGetAuth } from "@/lib/api-client";
 import type { AgentCommandRow } from "./AgentCommandStatusPanel";
+import {
+  getAgentCompatibilityStatus, MINIMUM_AGENT_VERSION, RECOMMENDED_AGENT_VERSION,
+  AGENT_PROTOCOL_VERSION, SUPPORTED_SELECTOR_CONFIG_VERSIONS,
+  type CompatibilityStatus,
+} from "@/lib/ai-dispatcher/agent-version-contract";
 
 type Session = {
   id: string;
