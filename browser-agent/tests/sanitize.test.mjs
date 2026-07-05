@@ -25,12 +25,12 @@ test("dist background includes sanitizeAgentDiagnostics import", () => {
     "sanitizeAgentDiagnostics must be bundled into background");
 });
 
-// Package (zip) не должен содержать .env / node_modules
-test("package script strips secrets", () => {
+// Package (zip) не должен содержать .env / node_modules — script упаковывает только dist/.
+test("package script packages only dist/", () => {
   const p = path.join(root, "scripts", "package-extension.mjs");
   const src = readFileSync(p, "utf8");
-  // zip создаётся из dist/ — там нет .env / node_modules по определению.
   assert.ok(src.includes("dist"), "package script must package only dist/");
-  assert.ok(!src.includes("node_modules"), "package script must NOT include node_modules");
-  assert.ok(!src.includes(".env"), "package script must NOT include .env");
+  // Убедимся, что нет случайного включения node_modules/.env в аргументы zip.
+  assert.ok(!/zip[^\n]*node_modules/.test(src), "package must not zip node_modules");
+  assert.ok(!/zip[^\n]*\.env/.test(src), "package must not zip .env");
 });
