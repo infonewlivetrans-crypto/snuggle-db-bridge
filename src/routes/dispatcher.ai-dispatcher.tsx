@@ -25,6 +25,7 @@ import {
   AgentConnectionPanel, AgentTabsPanel, AGENT_MODE_STORAGE_KEY,
   type AgentAdapterMode,
 } from "@/components/ai-dispatcher/AgentConnectionPanel";
+import { SearchTargetBlock, TargetProgressBadge, type SearchTargetValues } from "@/components/ai-dispatcher/SearchTargetBlock";
 
 // Читаем режим адаптера агента из localStorage прямо во время запроса.
 // Так же передаём его серверу как ?mode=..., чтобы existing apiPost() (без headers) работал.
