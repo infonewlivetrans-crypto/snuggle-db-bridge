@@ -4,41 +4,62 @@
   <meta charset="utf-8" />
   <title>Radius Track Agent</title>
   <style>
-    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 340px; }
-    h1 { font-size: 13px; margin: 0 0 8px; }
+    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 360px; }
+    .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .hd img { width: 24px; height: 24px; }
+    h1 { font-size: 13px; margin: 0; }
+    .sub { color: #6b7280; font-size: 10px; }
     input, button { font: inherit; width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 6px; }
     button { cursor: pointer; }
     .row { display: flex; gap: 6px; }
     .row > * { flex: 1; }
-    .status { padding: 6px; background: #f4f4f5; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
-    .live { padding: 6px; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
+    .box { padding: 6px; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
+    .status { background: #f4f4f5; }
+    .live { background: #ecfeff; border: 1px solid #a5f3fc; }
+    .meta { background: #fffbeb; border: 1px solid #fde68a; font-family: ui-monospace, monospace; font-size: 10px; }
     .ok { color: #047857; } .err { color: #b91c1c; } .muted { color: #6b7280; }
+    .compat-compatible { color: #047857; }
+    .compat-update_recommended { color: #92400e; }
+    .compat-unsupported, .compat-protocol_mismatch { color: #b91c1c; }
+    .compat-selector_config_warning { color: #92400e; }
   </style>
 </head>
 <body>
-  <h1>Radius Track Browser Agent (dev)</h1>
-  <div id="status" class="status">…</div>
-  <div id="live" class="live">Ожидание чтения страницы…</div>
+  <div class="hd">
+    <img src="icons/icon-32.png" alt="RT" />
+    <div>
+      <h1>Radius Track Browser Agent</h1>
+      <div class="sub" id="verSub">v… (dev)</div>
+    </div>
+  </div>
+  <div id="status" class="box status">…</div>
+  <div id="live" class="box live">Ожидание чтения страницы…</div>
+  <div id="meta" class="box meta">build info…</div>
 
   <input id="baseUrl" placeholder="https://your-project.lovable.app" />
   <div class="row">
     <button id="testConn">Проверить соединение</button>
+    <button id="openApp">Открыть Радиус Трек</button>
   </div>
   <input id="code" placeholder="Pairing code (RT-XXXX-XXXX)" />
   <div class="row">
     <button id="pair">Подключить</button>
     <button id="disconnect">Отключить</button>
   </div>
-  <button id="read">Прочитать текущую страницу</button>
-  <button id="diag">Диагностика страницы</button>
   <div class="row">
-    <button id="overlayOn">Показать панель РТ</button>
-    <button id="overlayOff">Скрыть</button>
+    <button id="read">Прочитать страницу</button>
+    <button id="overlayOn">Показать панель на ATI</button>
   </div>
+  <div class="row">
+    <button id="diag">Открыть диагностику</button>
+    <button id="copyDiag">Скопировать диагностику</button>
+  </div>
+  <button id="overlayOff">Скрыть панель РТ</button>
   <button id="mock">Отправить тестовые грузы</button>
   <p class="muted">
-    Работает поверх открытого сайта ATI в вашем браузере. API ATI не используется.
+    Расширение работает поверх открытого сайта ATI. API ATI не используется.
     Логин, пароль, cookies и localStorage ATI не читаются.
+    Agent token после подключения не отображается.
   </p>
   <script src="popup.js" type="module"></script>
 </body>
