@@ -25,7 +25,25 @@ import {
   AgentConnectionPanel, AgentTabsPanel, AGENT_MODE_STORAGE_KEY,
   type AgentAdapterMode,
 } from "@/components/ai-dispatcher/AgentConnectionPanel";
+import { AgentCommandStatusPanel, AgentActiveCommandBadge } from "@/components/ai-dispatcher/AgentCommandStatusPanel";
+import { AgentHealthPanel } from "@/components/ai-dispatcher/AgentHealthPanel";
+import { useAgentCommandToast } from "@/hooks/use-agent-command-toast";
 import { SearchTargetBlock, TargetProgressBadge, type SearchTargetValues } from "@/components/ai-dispatcher/SearchTargetBlock";
+
+type SessionLite = { id: string; status: string; revoked_at: string | null };
+function useActiveAgentSessionId(): string | null {
+  const q = useQuery({
+    queryKey: ["ai-agent-sessions"],
+    queryFn: () => apiGetAuth<{ rows: SessionLite[] }>(
+      "/api/dispatcher/ai-dispatcher/agent/sessions"),
+    refetchInterval: 15000,
+  });
+  const rows = q.data?.rows ?? [];
+  const active = rows.find(
+    (r) => ["connected", "opening_site", "searching", "reading_page", "refreshing"].includes(r.status),
+  ) ?? rows.find((r) => !r.revoked_at) ?? null;
+  return active?.id ?? null;
+}
 
 // Читаем режим адаптера агента из localStorage прямо во время запроса.
 // Так же передаём его серверу как ?mode=..., чтобы existing apiPost() (без headers) работал.
