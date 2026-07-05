@@ -468,12 +468,16 @@ function LeafletVehicleMap({
           if (!root) return;
           const openBtn = root.querySelector<HTMLButtonElement>('[data-act="open"]');
           const takeBtn = root.querySelector<HTMLButtonElement>('[data-act="take"]');
+          const aiBtn = root.querySelector<HTMLButtonElement>('[data-act="ai"]');
           openBtn?.addEventListener("click", () => onOpen(v.id));
           if (onTake && st === "free" && takeBtn) {
             takeBtn.addEventListener("click", () => {
               takeBtn.disabled = true;
               onTake(v.id);
             });
+          }
+          if (onAiSearch && aiBtn) {
+            aiBtn.addEventListener("click", () => onAiSearch(v.id));
           }
         });
 
@@ -493,7 +497,8 @@ function LeafletVehicleMap({
       // На случай скрытого контейнера на момент маунта
       setTimeout(() => map.invalidateSize(), 0);
     })();
-  }, [rows, ready, selfId, onOpen, onTake]);
+  }, [rows, ready, selfId, onOpen, onTake, onAiSearch]);
+
 
   // На каждом обновлении rows перерисовываем — taking влияет только на disabled,
   // оставляем как есть (попап создаётся заново при popupopen).
