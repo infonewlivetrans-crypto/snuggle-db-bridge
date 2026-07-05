@@ -1,6 +1,12 @@
 // Radius Track Browser Agent — background service worker.
 // Никакого API ATI. Хранит agent token в chrome.storage.local и общается
 // только с /api/public/agent/ai-dispatcher/* endpoints Радиус Трек.
+import {
+  AGENT_VERSION, AGENT_PROTOCOL_VERSION, ATI_SELECTOR_CONFIG_VERSION,
+  BUILD_CHANNEL, BUILD_DATE,
+} from "./version";
+import { BUILD_INFO, buildLoadedPayload } from "./build-info";
+import { sanitizeAgentDiagnostics } from "./sanitize";
 const STORAGE_KEYS = {
   baseUrl: "rt_base_url",
   token: "rt_agent_token",
