@@ -5,6 +5,16 @@
 // Все флаги по умолчанию выключены (enabled=false) и помечены как
 // экспериментальные — при включении админ увидит предупреждение.
 
+// ─── Simple Browser Agent mode (подблок 2) ────────────────────────────────
+// Упрощённый интерфейс: только «Подключить агент» и «Найти груз».
+// Всё техническое (pairing, mock, agent mode, heartbeat, session/command id)
+// скрыто в закрытом drawer «Диагностика».
+export const SIMPLE_AGENT_MODE = true;
+export const AGENT_DIAGNOSTICS_ENABLED = true;
+export const AGENT_MOCK_MODE_ENABLED =
+  Boolean(import.meta.env.DEV) &&
+  import.meta.env.VITE_RT_AGENT_MOCK_ENABLED === "true";
+
 export type FeatureFlagCategory =
   | "drivers"
   | "logists"

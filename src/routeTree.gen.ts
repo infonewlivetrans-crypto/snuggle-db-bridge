@@ -105,6 +105,7 @@ import { Route as CarrierEmailSettingsRouteImport } from './routes/carrier.email
 import { Route as CarrierEdoRouteImport } from './routes/carrier.edo'
 import { Route as CarrierDriversRouteImport } from './routes/carrier.drivers'
 import { Route as CTokenRouteImport } from './routes/c.$token'
+import { Route as BrowserAgentInstallRouteImport } from './routes/browser-agent.install'
 import { Route as ApiWarehousesRouteImport } from './routes/api/warehouses'
 import { Route as ApiWarehouseStatusAlertsRouteImport } from './routes/api/warehouse-status-alerts'
 import { Route as ApiWarehouseScheduleRouteImport } from './routes/api/warehouse-schedule'
@@ -964,6 +965,11 @@ const CarrierDriversRoute = CarrierDriversRouteImport.update({
 const CTokenRoute = CTokenRouteImport.update({
   id: '/c/$token',
   path: '/c/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrowserAgentInstallRoute = BrowserAgentInstallRouteImport.update({
+  id: '/browser-agent/install',
+  path: '/browser-agent/install',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWarehousesRoute = ApiWarehousesRouteImport.update({
@@ -3161,6 +3167,7 @@ export interface FileRoutesByFullPath {
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
+  '/browser-agent/install': typeof BrowserAgentInstallRoute
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
   '/carrier/edo': typeof CarrierEdoRouteWithChildren
@@ -3634,6 +3641,7 @@ export interface FileRoutesByTo {
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
+  '/browser-agent/install': typeof BrowserAgentInstallRoute
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
   '/carrier/edo': typeof CarrierEdoRouteWithChildren
@@ -4109,6 +4117,7 @@ export interface FileRoutesById {
   '/api/warehouse-schedule': typeof ApiWarehouseScheduleRoute
   '/api/warehouse-status-alerts': typeof ApiWarehouseStatusAlertsRoute
   '/api/warehouses': typeof ApiWarehousesRouteWithChildren
+  '/browser-agent/install': typeof BrowserAgentInstallRoute
   '/c/$token': typeof CTokenRoute
   '/carrier/drivers': typeof CarrierDriversRoute
   '/carrier/edo': typeof CarrierEdoRouteWithChildren
@@ -4585,6 +4594,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-schedule'
     | '/api/warehouse-status-alerts'
     | '/api/warehouses'
+    | '/browser-agent/install'
     | '/c/$token'
     | '/carrier/drivers'
     | '/carrier/edo'
@@ -5058,6 +5068,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-schedule'
     | '/api/warehouse-status-alerts'
     | '/api/warehouses'
+    | '/browser-agent/install'
     | '/c/$token'
     | '/carrier/drivers'
     | '/carrier/edo'
@@ -5532,6 +5543,7 @@ export interface FileRouteTypes {
     | '/api/warehouse-schedule'
     | '/api/warehouse-status-alerts'
     | '/api/warehouses'
+    | '/browser-agent/install'
     | '/c/$token'
     | '/carrier/drivers'
     | '/carrier/edo'
@@ -6007,6 +6019,7 @@ export interface RootRouteChildren {
   ApiWarehouseScheduleRoute: typeof ApiWarehouseScheduleRoute
   ApiWarehouseStatusAlertsRoute: typeof ApiWarehouseStatusAlertsRoute
   ApiWarehousesRoute: typeof ApiWarehousesRouteWithChildren
+  BrowserAgentInstallRoute: typeof BrowserAgentInstallRoute
   CTokenRoute: typeof CTokenRoute
   CarriersCarrierIdRoute: typeof CarriersCarrierIdRoute
   CarriersVerificationRoute: typeof CarriersVerificationRoute
@@ -6837,6 +6850,13 @@ declare module '@tanstack/react-router' {
       path: '/c/$token'
       fullPath: '/c/$token'
       preLoaderRoute: typeof CTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/browser-agent/install': {
+      id: '/browser-agent/install'
+      path: '/browser-agent/install'
+      fullPath: '/browser-agent/install'
+      preLoaderRoute: typeof BrowserAgentInstallRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/warehouses': {
@@ -11127,6 +11147,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWarehouseScheduleRoute: ApiWarehouseScheduleRoute,
   ApiWarehouseStatusAlertsRoute: ApiWarehouseStatusAlertsRoute,
   ApiWarehousesRoute: ApiWarehousesRouteWithChildren,
+  BrowserAgentInstallRoute: BrowserAgentInstallRoute,
   CTokenRoute: CTokenRoute,
   CarriersCarrierIdRoute: CarriersCarrierIdRoute,
   CarriersVerificationRoute: CarriersVerificationRoute,
