@@ -589,6 +589,14 @@ function MainLoadPanel({ candidate, onAdditional }: {
       onAdditional(res.row.id);
     },
   });
+  const createDeal = useMutation({
+    mutationFn: () => apiPost<{ status: string; deal_id: string }>(
+      `/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/create-deal`),
+    onSuccess: (res) => {
+      toast.success(res.status === "already_exists" ? "Черновик уже создан" : "Черновик сделки создан");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Ошибка"),
+  });
   const remainingWeight = Math.max(0, 20000 - (candidate.weight ?? 0));
   const remainingVolume = Math.max(0, 86 - (candidate.volume ?? 0));
   return (
@@ -597,18 +605,23 @@ function MainLoadPanel({ candidate, onAdditional }: {
         <div className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
           <Target className="h-4 w-4" /> Основной груз: {candidate.pickup_city} → {candidate.delivery_city}
         </div>
-        <Button size="sm" onClick={() => startAdd.mutate()} disabled={startAdd.isPending}>
-          <Search className="h-3.5 w-3.5 mr-1" /> Найти догруз
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={() => createDeal.mutate()} disabled={createDeal.isPending}>
+            Договорились — создать сделку
+          </Button>
+          <Button size="sm" onClick={() => startAdd.mutate()} disabled={startAdd.isPending}>
+            <Search className="h-3.5 w-3.5 mr-1" /> Найти догруз
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mt-2">
         <Field label="Ставка" value={`${candidate.price ?? "—"} ₽`} />
-        <Field label="₽/км" value={String(candidate.price_per_km ?? "—")} />
+        <Field label="₽/км" value={String(candidate.price_per_km ?? candidate.calculated_price_per_km ?? "—")} />
+        <Field label="Прибыль ~" value={`${candidate.calculated_profit ?? "—"} ₽`} />
         <Field label="Вес" value={`${candidate.weight ?? "—"} кг`} />
         <Field label="Объём" value={`${candidate.volume ?? "—"} м³`} />
         <Field label="Остаток вес" value={`${remainingWeight} кг`} />
         <Field label="Остаток объём" value={`${remainingVolume} м³`} />
-        <Field label="Дата загрузки" value={candidate.pickup_date ?? "—"} />
         <Field label="Кузов" value={candidate.body_type ?? "—"} />
       </div>
     </Card>
