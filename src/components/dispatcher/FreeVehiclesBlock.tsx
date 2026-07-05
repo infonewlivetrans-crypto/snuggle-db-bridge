@@ -71,11 +71,31 @@ function LoadStatusBadge({
 
 export function FreeVehiclesBlock() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [view, setView] = useState<View>("map");
   const [tab, setTab] = useState<WorkStatus>("free");
   const [city, setCity] = useState("");
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [multiMode, setMultiMode] = useState(false);
+  const toggleSelected = (id: string) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  const clearSelection = () => setSelectedIds(new Set());
+  const launchSelected = () => {
+    if (selectedIds.size === 0) { toast.error("Выберите хотя бы одну машину"); return; }
+    const ids = Array.from(selectedIds);
+    navigate({
+      to: "/dispatcher/ai-dispatcher",
+      search: ids.length === 1
+        ? { vehicleId: ids[0], source: "map" }
+        : { vehicleIds: ids.join(","), source: "map" },
+    } as never);
+  };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["free-vehicles", tab, city, search],
