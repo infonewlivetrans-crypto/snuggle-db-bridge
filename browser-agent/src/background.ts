@@ -235,7 +235,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (msg?.type === "rt/pair") {
         const res = await fetch(`${msg.baseUrl}/api/public/agent/ai-dispatcher/pair`, {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: "0.1.1-dev", browser_name: "Chrome" }),
+          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: AGENT_VERSION, protocol_version: AGENT_PROTOCOL_VERSION, browser_name: "Chrome" }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "pair_failed");
