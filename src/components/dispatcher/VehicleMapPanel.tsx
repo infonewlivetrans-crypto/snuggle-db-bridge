@@ -319,14 +319,17 @@ function LeafletVehicleMap({
   selfId,
   onOpen,
   onTake,
+  onAiSearch,
   taking,
 }: {
   rows: FreeVehicleRow[];
   selfId: string | null | undefined;
   onOpen: (id: string) => void;
   onTake?: (id: string) => void;
+  onAiSearch?: (id: string) => void;
   taking: boolean;
 }) {
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   // Хранимся в any, чтобы не тянуть типы leaflet в SSR-граф.
   const mapRef = useRef<any>(null);
