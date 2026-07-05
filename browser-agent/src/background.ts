@@ -14,7 +14,7 @@ const STORAGE_KEYS = {
   lastReadAt: "rt_last_read_at",
 } as const;
 
-type Storage = Partial<Record<keyof typeof STORAGE_KEYS, string>>;
+type Storage = Partial<Record<(typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS], string>>;
 
 async function readStorage(): Promise<Storage> {
   const keys = Object.values(STORAGE_KEYS);

@@ -1,6 +1,6 @@
 // Клиентские хелперы для dedup. Совместимы с серверной логикой в src/server/ai-dispatcher/load-dedup.server.ts.
 // Не заменяют серверный dedup — используются только для локальной группировки и тестов.
-import { hashText } from "./parseLoadText";
+import { hashText } from "./parseLoadText.ts";
 
 export interface DedupInput {
   source_external_ref?: string | null;
