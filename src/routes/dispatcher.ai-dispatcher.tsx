@@ -509,6 +509,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Activity className="h-4 w-4" /> Статус агента: <StatusBadge status={task.status} />
             <AgentActiveCommandBadge sessionId={sessionId} taskId={taskId} />
+            <MissingCandidatesBadge taskId={taskId} />
             <span className="text-xs text-muted-foreground">
               Обновлений: {task.refresh_count} · Просмотрено: {task.loads_seen_count} · Подходит: {task.matched_count}
             </span>
