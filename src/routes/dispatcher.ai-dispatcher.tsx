@@ -30,6 +30,7 @@ import { AgentHealthPanel } from "@/components/ai-dispatcher/AgentHealthPanel";
 import { useAgentCommandToast } from "@/hooks/use-agent-command-toast";
 import { SearchTargetBlock, TargetProgressBadge, type SearchTargetValues } from "@/components/ai-dispatcher/SearchTargetBlock";
 import { VehicleLaunchFromMapPanel } from "@/components/ai-dispatcher/VehicleLaunchFromMapPanel";
+import { MissingCandidatesPanel, MissingCandidatesBadge } from "@/components/ai-dispatcher/MissingCandidatesPanel";
 
 type SessionLite = { id: string; status: string; revoked_at: string | null };
 function useActiveAgentSessionId(): string | null {
