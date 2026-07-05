@@ -585,6 +585,9 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
       {/* Live agent feed */}
       <LiveAgentReadPanel taskId={taskId} events={events} task={task} />
 
+      {/* Пропавшие и неактуальные кандидаты */}
+      <MissingCandidatesPanel taskId={taskId} />
+
       {/* Events */}
       <AgentEventLog events={events} />
     </div>
