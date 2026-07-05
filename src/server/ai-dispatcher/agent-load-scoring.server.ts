@@ -93,7 +93,7 @@ export function scoreAgentLoadCandidate(input: ScoringInput): ScoringResult {
   const vehBody = str(vp.body_type);
   const vehLoading = str(vp.loading_type);
   const capW = (num(vp.tonnage) ?? num(vp.capacity_t) ?? 0) * 1000;
-  const capV = num(vp.volume) ?? num(vp.volume_m3) ?? 0;
+  const capV = num(vp.volume_m3) ?? num(vp.volume) ?? 0;
   const homeCity = str(task.start_city) ?? str(vp.home_city);
   const destCity = str(task.destination_city);
 
