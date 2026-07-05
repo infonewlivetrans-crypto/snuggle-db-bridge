@@ -835,3 +835,32 @@ function LiveAgentReadPanel({ taskId, events, task }: {
     </Card>
   );
 }
+
+function TaskTargetCard({ task, onSaved }: { task: Task; onSaved: () => void }) {
+  const [values, setValues] = useState<SearchTargetValues>({
+    min_price: task.min_price ?? null,
+    min_price_per_km: task.min_price_per_km ?? null,
+    target_total_price: task.target_total_price ?? null,
+    target_price_per_km: task.target_price_per_km ?? null,
+    target_net_profit: task.target_net_profit ?? null,
+    target_bundle_price: task.target_bundle_price ?? null,
+    max_bundle_items: task.max_bundle_items ?? 3,
+    bundle_search_enabled: task.bundle_search_enabled ?? true,
+    stop_search_when_target_reached: task.stop_search_when_target_reached ?? false,
+  });
+  const save = useMutation({
+    mutationFn: () => apiPatch(`/api/dispatcher/ai-dispatcher/tasks/${task.id}`, values),
+    onSuccess: () => { toast.success("Цель сохранена"); onSaved(); },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Ошибка"),
+  });
+  return (
+    <div className="space-y-2">
+      <SearchTargetBlock values={values} onChange={setValues} />
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending}>
+          Сохранить цель
+        </Button>
+      </div>
+    </div>
+  );
+}
