@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Radius Track Browser Agent (dev)",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Dev-расширение Радиус Трек. Работает поверх открытого сайта ATI в браузере пользователя. API ATI не используется. Cookies и пароли ATI не читаются.",
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "host_permissions": [
@@ -17,5 +17,20 @@
       "run_at": "document_idle"
     }
   ],
-  "action": { "default_title": "Radius Track Agent", "default_popup": "popup.html" }
+  "action": {
+    "default_title": "Radius Track Agent",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
 }

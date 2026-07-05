@@ -1,6 +1,12 @@
 // Radius Track Browser Agent — background service worker.
 // Никакого API ATI. Хранит agent token в chrome.storage.local и общается
 // только с /api/public/agent/ai-dispatcher/* endpoints Радиус Трек.
+import {
+  AGENT_VERSION, AGENT_PROTOCOL_VERSION, ATI_SELECTOR_CONFIG_VERSION,
+  BUILD_CHANNEL, BUILD_DATE,
+} from "./version";
+import { BUILD_INFO, buildLoadedPayload } from "./build-info";
+import { sanitizeAgentDiagnostics } from "./sanitize";
 const STORAGE_KEYS = {
   baseUrl: "rt_base_url",
   token: "rt_agent_token",
@@ -62,7 +68,11 @@ async function heartbeat(): Promise<void> {
     await api("/api/public/agent/ai-dispatcher/heartbeat", {
       method: "POST",
       body: JSON.stringify({
-        agent_version: "0.1.1-dev",
+        agent_version: AGENT_VERSION,
+        protocol_version: AGENT_PROTOCOL_VERSION,
+        selector_config_version: ATI_SELECTOR_CONFIG_VERSION,
+        build_channel: BUILD_CHANNEL,
+        build_date: BUILD_DATE,
         browser_name: "Chrome",
         active_tab_count: tabs.length,
         status: "connected",
@@ -225,7 +235,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (msg?.type === "rt/pair") {
         const res = await fetch(`${msg.baseUrl}/api/public/agent/ai-dispatcher/pair`, {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: "0.1.1-dev", browser_name: "Chrome" }),
+          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: AGENT_VERSION, protocol_version: AGENT_PROTOCOL_VERSION, browser_name: "Chrome" }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "pair_failed");
@@ -277,9 +287,26 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       }
       if (msg?.type === "rt/diagnostics") {
         const tab = await findAtiTab();
-        if (!tab?.id) throw new Error("no_ati_tab");
-        const r = await sendToContent<{ diagnostics?: unknown }>(tab.id, { type: "RT_DIAGNOSTICS" });
-        sendResponse({ ok: true, diagnostics: r?.diagnostics ?? null });
+        const raw = tab?.id ? await sendToContent<{ diagnostics?: unknown }>(tab.id, { type: "RT_DIAGNOSTICS" }) : null;
+        const diagnostics = sanitizeAgentDiagnostics({
+          build_info: BUILD_INFO,
+          page: raw?.diagnostics ?? null,
+          has_ati_tab: Boolean(tab?.id),
+        });
+        sendResponse({ ok: true, diagnostics });
+        return;
+      }
+      if (msg?.type === "rt/build-info") {
+        sendResponse({ ok: true, build_info: BUILD_INFO });
+        return;
+      }
+      if (msg?.type === "rt/session-health") {
+        try {
+          const data = await api<Record<string, unknown>>("/api/public/agent/ai-dispatcher/session-health");
+          sendResponse({ ok: true, data });
+        } catch (e) {
+          sendResponse({ ok: false, error: String((e as Error).message ?? e) });
+        }
         return;
       }
       if (msg?.type === "rt/add-to-call-queue") {
@@ -303,5 +330,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   return true; // async
 });
 
-console.log("[radius-track-agent] background loaded");
+// extension_build_loaded — безопасное событие о загрузке background.
+(async () => {
+  try {
+    const s = await readStorage();
+    if (!s[STORAGE_KEYS.token]) return;
+    await api("/api/public/agent/ai-dispatcher/events", {
+      method: "POST",
+      body: JSON.stringify({
+        events: [{ event_type: "extension_build_loaded", payload: buildLoadedPayload(),
+          message: `Browser Agent ${AGENT_VERSION} (${BUILD_CHANNEL})` }],
+      }),
+    });
+  } catch { /* игнорируем — не критично */ }
+})();
+
+console.log(`[radius-track-agent] background loaded v${AGENT_VERSION} (protocol ${AGENT_PROTOCOL_VERSION}, build_date=${BUILD_DATE})`);
 export {};

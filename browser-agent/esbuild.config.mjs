@@ -1,9 +1,11 @@
 // Build script for Radius Track Browser Agent (MV3).
-// Bundles src/background.ts and src/content.ts, then copies static assets.
+// Bundles background/content/popup, copies static assets, injects BUILD_DATE.
 import esbuild from "esbuild";
 import { copyStatic } from "./scripts/copy-static.mjs";
 
 const watch = process.argv.includes("--watch");
+const buildDate = new Date().toISOString();
+const commitSha = process.env.RT_COMMIT_SHA ?? "";
 
 /** @type {import('esbuild').BuildOptions} */
 const common = {
@@ -14,6 +16,10 @@ const common = {
   sourcemap: true,
   minify: false,
   legalComments: "none",
+  define: {
+    "__RT_BUILD_DATE__": JSON.stringify(buildDate),
+    "__RT_COMMIT_SHA__": JSON.stringify(commitSha),
+  },
 };
 
 const entries = [
@@ -29,7 +35,7 @@ async function buildAll() {
     ),
   );
   await copyStatic();
-  console.log("[browser-agent] build complete → dist/");
+  console.log(`[browser-agent] build complete → dist/  (build_date=${buildDate})`);
 }
 
 if (watch) {

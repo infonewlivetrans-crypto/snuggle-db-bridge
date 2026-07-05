@@ -5,9 +5,15 @@ import { useMemo, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, ShieldCheck, ShieldAlert, ShieldOff, TriangleAlert } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Activity, ShieldCheck, ShieldAlert, ShieldOff, TriangleAlert, ExternalLink } from "lucide-react";
 import { apiGetAuth } from "@/lib/api-client";
 import type { AgentCommandRow } from "./AgentCommandStatusPanel";
+import {
+  getAgentCompatibilityStatus, MINIMUM_AGENT_VERSION, RECOMMENDED_AGENT_VERSION,
+  AGENT_PROTOCOL_VERSION, SUPPORTED_SELECTOR_CONFIG_VERSIONS,
+  type CompatibilityStatus,
+} from "@/lib/ai-dispatcher/agent-version-contract";
 
 type Session = {
   id: string;
@@ -144,6 +150,45 @@ export function AgentHealthPanel() {
             <Field label="Failed за 5 мин" value={String(health.failedCount)} />
             <Field label="Задача" value={active.current_task_id?.slice(0, 8) ?? "—"} />
           </div>
+          {(() => {
+            const compat = getAgentCompatibilityStatus({
+              agent_version: active.agent_version,
+              protocol_version: null,
+              selector_config_version: null,
+            });
+            const labels: Record<CompatibilityStatus, string> = {
+              compatible: "Версия актуальна",
+              update_recommended: "Рекомендуется обновить",
+              unsupported: "Версия не поддерживается",
+              protocol_mismatch: "Несовместимая версия протокола",
+              selector_config_warning: "Неизвестная версия селекторов",
+            };
+            const cls: Record<CompatibilityStatus, string> = {
+              compatible: "bg-emerald-100 text-emerald-800",
+              update_recommended: "bg-amber-100 text-amber-900",
+              unsupported: "bg-rose-100 text-rose-800",
+              protocol_mismatch: "bg-rose-100 text-rose-800",
+              selector_config_warning: "bg-amber-100 text-amber-900",
+            };
+            return (
+              <div className="mt-2 rounded border p-2 text-[11px] space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded ${cls[compat.status]}`}>{labels[compat.status]}</span>
+                  <span className="text-muted-foreground">
+                    protocol {AGENT_PROTOCOL_VERSION} · selectors {SUPPORTED_SELECTOR_CONFIG_VERSIONS.join(",")}
+                  </span>
+                  <Button size="sm" variant="ghost" className="ml-auto h-6 text-[11px]"
+                    onClick={() => window.open("/docs/agent/update", "_blank", "noopener,noreferrer")}>
+                    <ExternalLink className="h-3 w-3 mr-1" /> Инструкция по обновлению
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-1 text-muted-foreground">
+                  <div>Минимальная версия: <span className="font-medium">{MINIMUM_AGENT_VERSION}</span></div>
+                  <div>Рекомендуемая: <span className="font-medium">{RECOMMENDED_AGENT_VERSION}</span></div>
+                </div>
+              </div>
+            );
+          })()}
           {active.last_error && (
             <div className="text-rose-700 text-[11px]">Последняя ошибка: {active.last_error}</div>
           )}

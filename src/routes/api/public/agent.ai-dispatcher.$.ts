@@ -295,15 +295,62 @@ async function handleCallQueueAdd(request: Request, candidateId: string): Promis
 }
 
 async function handleHealth(): Promise<Response> {
-  return jsonResponse({ ok: true, ts: new Date().toISOString(), service: "radius-track-agent-endpoint" });
+  // Строгий whitelist. Никаких session/user/token/pairing/dispatcher/candidate/task.
+  const { buildPublicHealthPayload } = await import("@/lib/ai-dispatcher/agent-version-contract");
+  return jsonResponse(buildPublicHealthPayload());
+}
+
+async function handleSessionHealth(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  const { data, error } = await c
+    .from("ai_dispatch_agent_sessions")
+    .select("id, status, last_heartbeat_at, agent_version, browser_name, active_tab_count, current_task_id, last_action, last_error, revoked_at, agent_token_expires_at, paired_at")
+    .eq("id", auth.sessionId)
+    .maybeSingle();
+  if (error || !data) return jsonResponse({ error: "session_not_found" }, { status: 404 });
+  const { getAgentCompatibilityStatus } = await import("@/lib/ai-dispatcher/agent-version-contract");
+  const compatibility = getAgentCompatibilityStatus({
+    agent_version: data.agent_version,
+    protocol_version: null,
+    selector_config_version: null,
+  });
+  const tokenStatus = data.revoked_at
+    ? "revoked"
+    : data.agent_token_expires_at && new Date(data.agent_token_expires_at).getTime() < Date.now()
+      ? "expired" : "active";
+  return jsonResponse({
+    session_id: data.id,
+    status: data.status,
+    token_status: tokenStatus,
+    last_heartbeat_at: data.last_heartbeat_at,
+    agent_version: data.agent_version,
+    protocol_version: null,
+    selector_config_version: null,
+    browser_name: data.browser_name,
+    active_tab_count: data.active_tab_count,
+    current_task_id: data.current_task_id,
+    last_action: data.last_action,
+    last_error: data.last_error,
+    revoked_at: data.revoked_at,
+    expires_at: data.agent_token_expires_at,
+    paired_at: data.paired_at,
+    compatibility_status: compatibility.status,
+    compatibility_reasons: compatibility.reasons,
+  });
 }
 
 async function router(request: Request, splat: string): Promise<Response> {
   const method = request.method.toUpperCase();
   const parts = splat.split("/").filter(Boolean);
   const [head, mid, tail] = parts;
-  // /health (без авторизации) — для popup-теста
+  // /health (без авторизации) — только whitelist метаданных
   if (head === "health" && method === "GET") return handleHealth();
+  // /session-health (Bearer agent_token) — только данные своей сессии
+  if (head === "session-health" && method === "GET") return handleSessionHealth(request);
   // /pair
   if (head === "pair" && method === "POST") return handlePair(request);
   // /heartbeat
