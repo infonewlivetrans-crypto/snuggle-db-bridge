@@ -25,6 +25,7 @@ const common = {
 const entries = [
   { in: "src/background.ts", out: "dist/background.js" },
   { in: "src/content.ts",    out: "dist/content.js" },
+  { in: "src/web-bridge.ts", out: "dist/web-bridge.js" },
   { in: "src/popup.ts",      out: "dist/popup.js" },
 ];
 
