@@ -17,7 +17,7 @@ export interface ParsedLoadFields {
   price_per_km?: number;
 }
 
-const CITY_ARROW = /([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-]+)?)\s*[—–\->]{1,2}\s*([А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-]+)?)/;
+const CITY_ARROW = /([А-ЯЁ][а-яё]+(?:[\s\-][А-ЯЁа-яё]+)*)\s*[—–\->]{1,2}\s*([А-ЯЁ][а-яё]+(?:[\s\-][А-ЯЁа-яё]+)*)/;
 const WEIGHT_RE = /(\d+(?:[.,]\d+)?)\s*т(?:онн)?\b/i;
 const VOLUME_RE = /(\d+(?:[.,]\d+)?)\s*м[3³]/i;
 const PRICE_RE = /(\d[\d\s]{2,})\s*(?:₽|руб|р\.?)/i;

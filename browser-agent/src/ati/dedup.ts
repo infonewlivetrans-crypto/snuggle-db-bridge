@@ -34,7 +34,7 @@ export function normaliseLoadForDedup(l: DedupInput): Record<string, string | nu
 export function buildLoadDedupKey(l: DedupInput): string {
   const n = normaliseLoadForDedup(l);
   if (n.ref) return `ref:${n.ref}`;
-  const natural = `${n.from}|${n.to}|${n.date}|${n.weight}|${n.price}`;
-  if (natural.replace(/\|/g, "").trim().length > 0) return `nat:${natural}`;
+  const hasContent = String(n.from).trim() || String(n.to).trim() || String(n.date).trim() || n.weight || n.price;
+  if (hasContent) return `nat:${n.from}|${n.to}|${n.date}|${n.weight}|${n.price}`;
   return `hash:${hashText(String(l.raw_text ?? "").slice(0, 300))}`;
 }
