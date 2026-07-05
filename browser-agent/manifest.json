@@ -6,8 +6,12 @@
   "permissions": ["storage", "tabs", "activeTab", "scripting"],
   "host_permissions": [
     "https://ati.su/*",
+    "https://radius-track.ru/*",
+    "https://www.radius-track.ru/*",
+    "https://snuggle-db-bridge.lovable.app/*",
+    "https://id-preview--d0d5cb47-0414-4a28-a4e9-a8beda3d2828.lovable.app/*",
     "http://localhost/*",
-    "https://*.lovable.app/*"
+    "http://127.0.0.1/*"
   ],
   "background": { "service_worker": "background.js", "type": "module" },
   "content_scripts": [
@@ -15,6 +19,19 @@
       "matches": ["https://ati.su/loads/*", "https://ati.su/loadinfo/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://radius-track.ru/*",
+        "https://www.radius-track.ru/*",
+        "https://snuggle-db-bridge.lovable.app/*",
+        "https://id-preview--d0d5cb47-0414-4a28-a4e9-a8beda3d2828.lovable.app/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*"
+      ],
+      "js": ["web-bridge.js"],
+      "run_at": "document_start",
+      "all_frames": false
     }
   ],
   "action": {

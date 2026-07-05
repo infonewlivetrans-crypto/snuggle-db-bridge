@@ -124,6 +124,48 @@ export type Database = {
           },
         ]
       }
+      ai_dispatch_agent_pair_challenges: {
+        Row: {
+          challenge_secret_hash: string
+          connected_session_id: string | null
+          created_at: string
+          dispatcher_id: string
+          expires_at: string
+          failure_reason: string | null
+          id: string
+          origin: string
+          status: string
+          updated_at: string
+          used_at: string | null
+        }
+        Insert: {
+          challenge_secret_hash: string
+          connected_session_id?: string | null
+          created_at?: string
+          dispatcher_id: string
+          expires_at: string
+          failure_reason?: string | null
+          id?: string
+          origin: string
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Update: {
+          challenge_secret_hash?: string
+          connected_session_id?: string | null
+          created_at?: string
+          dispatcher_id?: string
+          expires_at?: string
+          failure_reason?: string | null
+          id?: string
+          origin?: string
+          status?: string
+          updated_at?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       ai_dispatch_agent_sessions: {
         Row: {
           active_tab_count: number
@@ -8766,6 +8808,33 @@ export type Database = {
       agent_complete_command: {
         Args: { _command_id: string; _result: Json; _token_hash: string }
         Returns: undefined
+      }
+      agent_consume_pair_challenge: {
+        Args: {
+          _agent_token_hash: string
+          _agent_version: string
+          _browser_name: string
+          _challenge_id: string
+          _challenge_secret_hash: string
+          _origin: string
+          _protocol_version: string
+          _token_ttl_seconds?: number
+        }
+        Returns: {
+          dispatcher_id: string
+          session_id: string
+        }[]
+      }
+      agent_create_pair_challenge: {
+        Args: {
+          _challenge_secret_hash: string
+          _origin: string
+          _ttl_seconds?: number
+        }
+        Returns: {
+          expires_at: string
+          id: string
+        }[]
       }
       agent_fail_command: {
         Args: {
