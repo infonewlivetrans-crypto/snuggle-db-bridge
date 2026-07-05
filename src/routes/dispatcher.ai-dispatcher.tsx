@@ -174,6 +174,10 @@ function AiDispatcherPage() {
           <AgentConnectionPanel mode={mode} onModeChange={setModePersist} />
           <AgentTabsPanel />
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <AgentHealthPanel />
+          <AgentCommandStatusPanelWrapper />
+        </div>
         <AiDispatcherInner />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <MultiVehicleSearchBoard />
@@ -185,6 +189,11 @@ function AiDispatcherPage() {
       </main>
     </DispatcherShell>
   );
+}
+
+function AgentCommandStatusPanelWrapper() {
+  const sessionId = useActiveAgentSessionId();
+  return <AgentCommandStatusPanel sessionId={sessionId} />;
 }
 
 function AiDispatcherInner() {
