@@ -330,5 +330,20 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   return true; // async
 });
 
-console.log("[radius-track-agent] background loaded");
+// extension_build_loaded — безопасное событие о загрузке background.
+(async () => {
+  try {
+    const s = await readStorage();
+    if (!s[STORAGE_KEYS.token]) return;
+    await api("/api/public/agent/ai-dispatcher/events", {
+      method: "POST",
+      body: JSON.stringify({
+        events: [{ event_type: "extension_build_loaded", payload: buildLoadedPayload(),
+          message: `Browser Agent ${AGENT_VERSION} (${BUILD_CHANNEL})` }],
+      }),
+    });
+  } catch { /* игнорируем — не критично */ }
+})();
+
+console.log(`[radius-track-agent] background loaded v${AGENT_VERSION} (protocol ${AGENT_PROTOCOL_VERSION}, build_date=${BUILD_DATE})`);
 export {};
