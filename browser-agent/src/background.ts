@@ -193,11 +193,20 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       await complete(c.id, { cleared: true });
       return;
     }
+    if (c.command_type === "apply_filters") {
+      const tab = await findAtiTab();
+      if (!tab?.id) throw new Error("no_ati_tab");
+      const filters = (c.command_payload_json?.filters ?? c.command_payload_json ?? {}) as Record<string, unknown>;
+      const res = await sendToContent<{ ok?: boolean; result?: unknown }>(tab.id, { type: "RT_APPLY_FILTERS", filters });
+      await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null });
+      return;
+    }
     await complete(c.id, { noop: true, command_type: c.command_type });
   } catch (e) {
     await fail(c.id, String((e as Error).message ?? e));
   }
 }
+
 
 async function tick(): Promise<void> {
   const s = await readStorage();
@@ -264,6 +273,26 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           body: JSON.stringify({ search_task_id: taskId, source_page_url: "https://ati.su/loads/", loads }),
         });
         sendResponse({ ok: true, sent: (resp.created?.length ?? 0) + (resp.updated?.length ?? 0), suitable: resp.suitable_count ?? 0 });
+        return;
+      }
+      if (msg?.type === "rt/diagnostics") {
+        const tab = await findAtiTab();
+        if (!tab?.id) throw new Error("no_ati_tab");
+        const r = await sendToContent<{ diagnostics?: unknown }>(tab.id, { type: "RT_DIAGNOSTICS" });
+        sendResponse({ ok: true, diagnostics: r?.diagnostics ?? null });
+        return;
+      }
+      if (msg?.type === "rt/add-to-call-queue") {
+        if (!msg.candidate_id) throw new Error("missing_candidate_id");
+        try {
+          const r = await api<{ already?: boolean }>(
+            `/api/public/agent/ai-dispatcher/call-queue/${encodeURIComponent(msg.candidate_id)}`,
+            { method: "POST", body: JSON.stringify({ source: "ati_page_button" }) },
+          );
+          sendResponse({ ok: true, already: Boolean(r?.already) });
+        } catch (e) {
+          sendResponse({ ok: false, error: String((e as Error).message ?? e) });
+        }
         return;
       }
       sendResponse({ error: "unknown_message" });
