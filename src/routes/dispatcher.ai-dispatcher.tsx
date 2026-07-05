@@ -57,7 +57,17 @@ function withMode(path: string): string {
   return `${path}${sep}mode=${currentAgentMode()}`;
 }
 
+type AiDispatcherSearch = {
+  vehicleId?: string;
+  vehicleIds?: string;
+  source?: string;
+};
 export const Route = createFileRoute("/dispatcher/ai-dispatcher")({
+  validateSearch: (s: Record<string, unknown>): AiDispatcherSearch => ({
+    vehicleId: typeof s.vehicleId === "string" ? s.vehicleId : undefined,
+    vehicleIds: typeof s.vehicleIds === "string" ? s.vehicleIds : undefined,
+    source: typeof s.source === "string" ? s.source : undefined,
+  }),
   component: AiDispatcherPage,
 });
 
