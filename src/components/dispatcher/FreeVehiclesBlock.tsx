@@ -353,6 +353,14 @@ function VehicleListCard({
         <Button size="sm" variant="outline" onClick={onOpen} className="flex-1">
           Открыть
         </Button>
+        <Button asChild size="sm" variant="secondary" className="flex-1">
+          <Link
+            to="/dispatcher/ai-dispatcher"
+            search={{ vehicleId: v.id, source: "vehicle-list" } as never}
+          >
+            <SearchIcon className="h-3 w-3 mr-1" /> Найти груз
+          </Link>
+        </Button>
         {byMe ? (
           <Button size="sm" variant="secondary" onClick={onRelease} disabled={releasing} className="flex-1">
             Освободить
