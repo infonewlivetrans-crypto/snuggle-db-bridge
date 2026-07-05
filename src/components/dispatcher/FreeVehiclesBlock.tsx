@@ -240,6 +240,9 @@ export function FreeVehiclesBlock() {
               onRelease={() => releaseMut.mutate(v.id)}
               taking={takeMut.isPending}
               releasing={releaseMut.isPending}
+              multiMode={multiMode}
+              selected={selectedIds.has(v.id)}
+              onToggleSelect={() => toggleSelected(v.id)}
             />
           ))}
         </div>
