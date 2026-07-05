@@ -62,7 +62,7 @@ async function heartbeat(): Promise<void> {
     await api("/api/public/agent/ai-dispatcher/heartbeat", {
       method: "POST",
       body: JSON.stringify({
-        agent_version: "0.0.2-dev",
+        agent_version: "0.1.1-dev",
         browser_name: "Chrome",
         active_tab_count: tabs.length,
         status: "connected",
@@ -225,7 +225,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (msg?.type === "rt/pair") {
         const res = await fetch(`${msg.baseUrl}/api/public/agent/ai-dispatcher/pair`, {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: "0.0.2-dev", browser_name: "Chrome" }),
+          body: JSON.stringify({ pairing_code: msg.pairing_code, agent_version: "0.1.1-dev", browser_name: "Chrome" }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "pair_failed");
