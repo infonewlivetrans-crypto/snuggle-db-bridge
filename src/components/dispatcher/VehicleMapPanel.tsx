@@ -571,6 +571,10 @@ function renderPopupHtml(v: FreeVehicleRow, st: Status): string {
         <button data-act="open" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;font-size:12px;cursor:pointer">Открыть</button>
         ${takeBtn}
       </div>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button data-act="ai" style="flex:1;padding:6px 8px;border-radius:6px;border:0;background:#2563eb;color:#fff;font-size:12px;cursor:pointer;font-weight:500">🔎 Найти груз (AI)</button>
+      </div>
+
     </div>
   `;
 }
