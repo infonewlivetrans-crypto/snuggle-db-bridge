@@ -7,12 +7,15 @@ import { detectPage } from "./ati/detectPage";
 import { extractVisibleLoads } from "./ati/extractVisibleLoads";
 import { applyHighlights, clearHighlights } from "./ati/highlightLoads";
 import { showOverlay, hideOverlay } from "./ati/agentOverlay";
+import { applySearchFilters, type AtiFilters } from "./ati/applySearchFilters";
+import { collectFormDiagnostics } from "./ati/formDiagnostics";
 import type { BgToContentMessage, ContentToBgMessage } from "./ati/contentMessages";
 
 function send(msg: ContentToBgMessage): void {
   try { (chrome as unknown as { runtime: { sendMessage: (m: unknown) => void } })
     .runtime.sendMessage(msg); } catch { /* ignore */ }
 }
+
 
 function handleRead(): void {
   const page = detectPage();
