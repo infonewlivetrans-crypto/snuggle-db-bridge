@@ -41,6 +41,52 @@ async function handlePair(request: Request): Promise<Response> {
   });
 }
 
+async function handlePairAuto(request: Request): Promise<Response> {
+  // Расширение обменивает одноразовый challenge на agent token.
+  // Не требует Authorization. Проверяются challenge_id + secret + origin через RPC.
+  const { isTrustedAgentOrigin, normalizeOrigin } = await import("@/lib/ai-dispatcher/agent-origins");
+  const body = await readJson(request);
+  const challengeId = String(body?.challenge_id ?? "").trim();
+  const challengeSecret = String(body?.challenge_secret ?? "").trim();
+  const origin = normalizeOrigin(String(body?.origin ?? ""));
+  if (!challengeId || !challengeSecret) {
+    return jsonResponse({ error: "missing_challenge" }, { status: 400 });
+  }
+  if (!origin || !isTrustedAgentOrigin(origin)) {
+    return jsonResponse({ error: "untrusted_origin" }, { status: 400 });
+  }
+  const secretHash = hashAgentSecret(challengeSecret);
+  const { raw, hash } = generateAgentToken();
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (rpc as any).rpc("agent_consume_pair_challenge", {
+    _challenge_id: challengeId,
+    _challenge_secret_hash: secretHash,
+    _origin: origin,
+    _agent_token_hash: hash,
+    _agent_version: body?.agent_version ?? null,
+    _protocol_version: body?.protocol_version ?? null,
+    _browser_name: body?.browser_name ?? null,
+    _token_ttl_seconds: 60 * 60 * 24 * 30,
+  });
+  if (error || !data || !data.length) {
+    const msg = String(error?.message ?? "");
+    let code = "pair_failed";
+    if (msg.includes("challenge_expired")) code = "challenge_expired";
+    else if (msg.includes("challenge_already_used")) code = "challenge_already_used";
+    else if (msg.includes("origin_mismatch")) code = "origin_mismatch";
+    else if (msg.includes("challenge_secret_mismatch")) code = "invalid_challenge_secret";
+    else if (msg.includes("challenge_not_found")) code = "challenge_not_found";
+    return jsonResponse({ error: code }, { status: 401 });
+  }
+  const row = data[0] as { session_id: string };
+  return jsonResponse({
+    agent_token: raw, // возвращается только расширению; не должно уходить в Web
+    session_id: row.session_id,
+    expires_in_seconds: 60 * 60 * 24 * 30,
+  });
+}
+
 async function handleHeartbeat(request: Request): Promise<Response> {
   const auth = await requireAgentToken(request);
   if (auth instanceof Response) return auth;
