@@ -167,6 +167,8 @@ function AiDispatcherPage() {
     window.localStorage.setItem(AGENT_MODE_STORAGE_KEY, m);
     window.dispatchEvent(new CustomEvent("rt-agent-mode-changed", { detail: m }));
   };
+  const [diagOpen, setDiagOpen] = useState(false);
+  const sessionId = useActiveAgentSessionId();
   return (
     <DispatcherShell>
       <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 space-y-4">
@@ -178,18 +180,31 @@ function AiDispatcherPage() {
               Диспетчер принимает решение сам: звонит, уточняет условия и подтверждает груз.
             </p>
           </div>
-          <Badge variant="outline" className="text-[11px]">
-            Режим: {mode === "mock" ? "Mock Agent" : mode === "browser_agent_ready" ? "Browser Agent Ready" : "Live (disabled)"}
-          </Badge>
+          {!SIMPLE_AGENT_MODE && (
+            <Badge variant="outline" className="text-[11px]">
+              Режим: {mode === "mock" ? "Mock Agent" : mode === "browser_agent_ready" ? "Browser Agent Ready" : "Live (disabled)"}
+            </Badge>
+          )}
         </header>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <AgentConnectionPanel mode={mode} onModeChange={setModePersist} />
-          <AgentTabsPanel />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <AgentHealthPanel />
-          <AgentCommandStatusPanelWrapper />
-        </div>
+
+        {SIMPLE_AGENT_MODE ? (
+          <>
+            <SimpleAgentPanel onOpenDiagnostics={() => setDiagOpen(true)} />
+            <AgentDiagnosticsDrawer open={diagOpen} onOpenChange={setDiagOpen} sessionId={sessionId} />
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <AgentConnectionPanel mode={mode} onModeChange={setModePersist} />
+              <AgentTabsPanel />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <AgentHealthPanel />
+              <AgentCommandStatusPanelWrapper />
+            </div>
+          </>
+        )}
+
         <AiDispatcherInner />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <MultiVehicleSearchBoard />
