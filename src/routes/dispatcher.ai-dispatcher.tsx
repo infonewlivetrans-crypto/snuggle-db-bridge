@@ -70,6 +70,15 @@ type Task = {
   auto_refresh_enabled: boolean;
   parent_task_id: string | null;
   created_at: string;
+  min_price?: number | null;
+  min_price_per_km?: number | null;
+  target_total_price?: number | null;
+  target_price_per_km?: number | null;
+  target_net_profit?: number | null;
+  target_bundle_price?: number | null;
+  max_bundle_items?: number | null;
+  bundle_search_enabled?: boolean | null;
+  stop_search_when_target_reached?: boolean | null;
 };
 type Candidate = {
   id: string;
