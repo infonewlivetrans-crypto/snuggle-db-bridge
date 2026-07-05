@@ -68,7 +68,11 @@ async function heartbeat(): Promise<void> {
     await api("/api/public/agent/ai-dispatcher/heartbeat", {
       method: "POST",
       body: JSON.stringify({
-        agent_version: "0.1.1-dev",
+        agent_version: AGENT_VERSION,
+        protocol_version: AGENT_PROTOCOL_VERSION,
+        selector_config_version: ATI_SELECTOR_CONFIG_VERSION,
+        build_channel: BUILD_CHANNEL,
+        build_date: BUILD_DATE,
         browser_name: "Chrome",
         active_tab_count: tabs.length,
         status: "connected",
