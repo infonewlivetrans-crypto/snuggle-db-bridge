@@ -98,10 +98,12 @@ export interface VehicleMapPanelProps {
   selfId?: string | null;
   onOpen: (id: string) => void;
   onTake?: (id: string) => void;
+  onAiSearch?: (id: string) => void;
   taking?: boolean;
 }
 
-export function VehicleMapPanel({ rows, selfId, onOpen, onTake, taking }: VehicleMapPanelProps) {
+export function VehicleMapPanel({ rows, selfId, onOpen, onTake, onAiSearch, taking }: VehicleMapPanelProps) {
+
   const withCoords = useMemo(() => withCoordsOnly(rows), [rows]);
   const withoutCoords = useMemo(() => rows.filter((r) => !r.has_coordinates), [rows]);
 
