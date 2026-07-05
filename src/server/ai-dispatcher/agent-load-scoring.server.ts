@@ -89,7 +89,7 @@ export function scoreAgentLoadCandidate(input: ScoringInput): ScoringResult {
   const deliveryCity = str(cand.delivery_city);
   const distance = num(cand.distance_km);
 
-  const vp = ((task.vehicle_params_json ?? {}) as Record<string, unknown>) ?? {};
+  const vp = (task.vehicle_params_json ?? {}) as Record<string, unknown>;
   const vehBody = str(vp.body_type);
   const vehLoading = str(vp.loading_type);
   const capW = (num(vp.tonnage) ?? num(vp.capacity_t) ?? 0) * 1000;
