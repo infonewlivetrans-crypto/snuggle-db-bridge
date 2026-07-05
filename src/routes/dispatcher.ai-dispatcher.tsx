@@ -434,20 +434,38 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
     return () => clearInterval(timer);
   }, [task, qc]);
 
+  const runWithToast = useAgentCommandToast();
+  const sessionId = useActiveAgentSessionId();
   const refresh = useMutation({
-    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`)),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`)),
+      { label: "Обновить страницу" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const pause = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/pause`),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        `/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/pause`),
+      { label: "Остановить поиск" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const startAgent = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/start`),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        `/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/start`),
+      { label: "Начать поиск" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const stop = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/stop`),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        `/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/stop`),
+      { label: "Остановить поиск" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
 
@@ -460,6 +478,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Activity className="h-4 w-4" /> Статус агента: <StatusBadge status={task.status} />
+            <AgentActiveCommandBadge sessionId={sessionId} taskId={taskId} />
             <span className="text-xs text-muted-foreground">
               Обновлений: {task.refresh_count} · Просмотрено: {task.loads_seen_count} · Подходит: {task.matched_count}
             </span>
