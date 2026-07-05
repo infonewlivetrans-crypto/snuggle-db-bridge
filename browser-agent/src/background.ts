@@ -228,10 +228,155 @@ async function tick(): Promise<void> {
 
 setInterval(() => { void tick(); }, 30_000);
 
-// Bridge для popup / manual actions / content.
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+// ---------- Web ↔ Extension bridge (через content script web-bridge.js) ----------
+import { isTrustedAgentOrigin } from "./agent-origins";
+
+async function handleBridgeMessage(
+  bridgeType: string,
+  origin: string,
+  payload: Record<string, unknown>,
+): Promise<{ ok: boolean; data?: Record<string, unknown>; error?: string }> {
+  if (!isTrustedAgentOrigin(origin)) {
+    return { ok: false, error: "untrusted_origin" };
+  }
+  const s = await readStorage();
+
+  if (bridgeType === "RT_AGENT_PING") {
+    return {
+      ok: true,
+      data: {
+        installed: true,
+        connected: Boolean(s[STORAGE_KEYS.token]),
+        agentVersion: AGENT_VERSION,
+        protocolVersion: AGENT_PROTOCOL_VERSION,
+      },
+    };
+  }
+  if (bridgeType === "RT_AGENT_STATUS") {
+    const hasToken = Boolean(s[STORAGE_KEYS.token]);
+    return {
+      ok: true,
+      data: {
+        installed: true,
+        connected: hasToken,
+        agentVersion: AGENT_VERSION,
+        protocolVersion: AGENT_PROTOCOL_VERSION,
+        lastHeartbeatAt: s[STORAGE_KEYS.lastHeartbeat] ?? null,
+        needsReconnect: !hasToken,
+      },
+    };
+  }
+  if (bridgeType === "RT_AGENT_CONNECT_REQUEST") {
+    const challengeId = String(payload?.challenge_id ?? "").trim();
+    const challengeSecret = String(payload?.challenge_secret ?? "").trim();
+    const reqOrigin = String(payload?.origin ?? origin).trim();
+    if (!challengeId || !challengeSecret) {
+      return { ok: false, error: "missing_challenge" };
+    }
+    if (!isTrustedAgentOrigin(reqOrigin) || reqOrigin !== origin) {
+      return { ok: false, error: "untrusted_origin" };
+    }
+    try {
+      const res = await fetch(`${reqOrigin}/api/public/agent/ai-dispatcher/pair-auto`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          challenge_id: challengeId,
+          challenge_secret: challengeSecret,
+          origin: reqOrigin,
+          agent_version: AGENT_VERSION,
+          protocol_version: AGENT_PROTOCOL_VERSION,
+          browser_name: "Chrome",
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.agent_token) {
+        return {
+          ok: false,
+          data: { installed: true, connected: false, errorCode: data?.error ?? "pair_failed" },
+        };
+      }
+      await writeStorage({
+        [STORAGE_KEYS.baseUrl]: reqOrigin,
+        [STORAGE_KEYS.token]: data.agent_token,
+        [STORAGE_KEYS.sessionId]: data.session_id,
+      });
+      // heartbeat сразу — чтобы Web увидел connected.
+      void heartbeat();
+      return {
+        ok: true,
+        data: {
+          installed: true,
+          connected: true,
+          sessionStatus: "connected",
+          agentVersion: AGENT_VERSION,
+        },
+      };
+    } catch (e) {
+      return { ok: false, error: String((e as Error).message ?? e) };
+    }
+  }
+  if (bridgeType === "RT_AGENT_DISCONNECT") {
+    // Отзываем и очищаем локальный token.
+    try {
+      if (s[STORAGE_KEYS.baseUrl] && s[STORAGE_KEYS.token]) {
+        await api("/api/public/agent/ai-dispatcher/events", {
+          method: "POST",
+          body: JSON.stringify({ events: [{ event_type: "agent_disconnected_by_user" }] }),
+        }).catch(() => undefined);
+      }
+    } finally {
+      await writeStorage({
+        [STORAGE_KEYS.token]: "",
+        [STORAGE_KEYS.sessionId]: "",
+      });
+    }
+    return { ok: true, data: { installed: true, connected: false } };
+  }
+  return { ok: false, error: "unknown_bridge_type" };
+}
+
+// ---------- Восстановление подключения после перезапуска ----------
+async function restoreOnStart(): Promise<void> {
+  const s = await readStorage();
+  if (!s[STORAGE_KEYS.token] || !s[STORAGE_KEYS.baseUrl]) return;
+  try {
+    const res = await fetch(`${s[STORAGE_KEYS.baseUrl]}/api/public/agent/ai-dispatcher/session-health`, {
+      headers: { Authorization: `Bearer ${s[STORAGE_KEYS.token]}` },
+    });
+    if (res.status === 401 || res.status === 404) {
+      await writeStorage({ [STORAGE_KEYS.token]: "", [STORAGE_KEYS.sessionId]: "" });
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    if (data?.token_status === "revoked" || data?.token_status === "expired") {
+      await writeStorage({ [STORAGE_KEYS.token]: "", [STORAGE_KEYS.sessionId]: "" });
+      return;
+    }
+    void heartbeat();
+  } catch { /* offline — оставляем token */ }
+}
+
+try {
+  chrome.runtime.onStartup?.addListener(() => { void restoreOnStart(); });
+  chrome.runtime.onInstalled?.addListener(() => { void restoreOnStart(); });
+} catch { /* ignore */ }
+void restoreOnStart();
+
+// Bridge для popup / manual actions / content / web-bridge.
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     try {
+      if (msg?.type === "rt/bridge") {
+        const senderOrigin = String(msg.origin ?? sender?.origin ?? sender?.url ?? "");
+        const out = await handleBridgeMessage(
+          String(msg.bridgeType ?? ""),
+          senderOrigin,
+          (msg.payload ?? {}) as Record<string, unknown>,
+        );
+        sendResponse(out);
+        return;
+      }
       if (msg?.type === "rt/pair") {
         const res = await fetch(`${msg.baseUrl}/api/public/agent/ai-dispatcher/pair`, {
           method: "POST", headers: { "content-type": "application/json" },
