@@ -62,7 +62,15 @@ export type AgentEventType =
   | "visible_page_read_completed"
   | "visible_loads_received"
   | "load_deduplicated"
-  | "load_saved_from_agent";
+  | "load_saved_from_agent"
+  | "candidate_missing_once"
+  | "candidate_missing_twice"
+  | "candidate_reappeared"
+  | "candidate_reappeared_but_closed"
+  | "candidate_restored_by_dispatcher"
+  | "candidate_archived_by_dispatcher"
+  | "candidate_recheck_requested"
+  | "candidate_marked_not_actual_by_dispatcher";
 
 export async function logAgentEvent(
   client: Client,
