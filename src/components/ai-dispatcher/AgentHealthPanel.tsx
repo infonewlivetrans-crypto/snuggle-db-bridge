@@ -64,7 +64,7 @@ function computeHealth(s: Session | undefined, cmds: AgentCommandRow[]): {
 }
 
 function healthBadge(h: Health) {
-  const map: Record<Health, { cls: string; label: string; icon: JSX.Element }> = {
+  const map: Record<Health, { cls: string; label: string; icon: ReactElement }> = {
     healthy: { cls: "bg-emerald-100 text-emerald-800 border-emerald-300",
       label: "Healthy", icon: <ShieldCheck className="h-3 w-3 mr-1" /> },
     warning: { cls: "bg-amber-100 text-amber-900 border-amber-300",
