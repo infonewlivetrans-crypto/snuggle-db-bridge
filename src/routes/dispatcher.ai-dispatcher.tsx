@@ -25,6 +25,7 @@ import {
   AgentConnectionPanel, AgentTabsPanel, AGENT_MODE_STORAGE_KEY,
   type AgentAdapterMode,
 } from "@/components/ai-dispatcher/AgentConnectionPanel";
+import { SearchTargetBlock, TargetProgressBadge, type SearchTargetValues } from "@/components/ai-dispatcher/SearchTargetBlock";
 
 // Читаем режим адаптера агента из localStorage прямо во время запроса.
 // Так же передаём его серверу как ?mode=..., чтобы existing apiPost() (без headers) работал.
@@ -69,6 +70,15 @@ type Task = {
   auto_refresh_enabled: boolean;
   parent_task_id: string | null;
   created_at: string;
+  min_price?: number | null;
+  min_price_per_km?: number | null;
+  target_total_price?: number | null;
+  target_price_per_km?: number | null;
+  target_net_profit?: number | null;
+  target_bundle_price?: number | null;
+  max_bundle_items?: number | null;
+  bundle_search_enabled?: boolean | null;
+  stop_search_when_target_reached?: boolean | null;
 };
 type Candidate = {
   id: string;
@@ -95,6 +105,10 @@ type Candidate = {
   is_additional_load: boolean;
   status: string;
   dispatcher_decision: string | null;
+  target_progress_percent?: number | null;
+  target_status?: string | null;
+  calculated_profit?: number | null;
+  calculated_price_per_km?: number | null;
 };
 type AgentEvent = {
   id: string;
@@ -362,13 +376,13 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
     queryKey: ["ai-disp-task", taskId],
     queryFn: () => apiGetAuth<{ task: Task; candidates: Candidate[]; events: AgentEvent[] }>(
       `/api/dispatcher/ai-dispatcher/tasks/${taskId}`),
-    refetchInterval: 10000,
+    refetchInterval: 5000,
   });
   const callsQ = useQuery({
     queryKey: ["ai-disp-calls", taskId],
     queryFn: () => apiGetAuth<{ rows: CallLog[] }>(
       `/api/dispatcher/ai-dispatcher/tasks/${taskId}/call-list`),
-    refetchInterval: 15000,
+    refetchInterval: 10000,
   });
 
   const task = detailQ.data?.task;
@@ -448,6 +462,11 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
           Если не авторизованы в ATI — войдите вручную в открытой вкладке. Радиус Трек не хранит логин и пароль.
         </div>
       </Card>
+
+      {/* Цель поиска */}
+      <TaskTargetCard task={task} onSaved={() => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] })} />
+
+
 
       {/* Suitable alert */}
       {newSuitable && (
@@ -570,6 +589,14 @@ function MainLoadPanel({ candidate, onAdditional }: {
       onAdditional(res.row.id);
     },
   });
+  const createDeal = useMutation({
+    mutationFn: () => apiPost<{ status: string; deal_id: string }>(
+      `/api/dispatcher/ai-dispatcher/candidates/${candidate.id}/create-deal`),
+    onSuccess: (res) => {
+      toast.success(res.status === "already_exists" ? "Черновик уже создан" : "Черновик сделки создан");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Ошибка"),
+  });
   const remainingWeight = Math.max(0, 20000 - (candidate.weight ?? 0));
   const remainingVolume = Math.max(0, 86 - (candidate.volume ?? 0));
   return (
@@ -578,18 +605,23 @@ function MainLoadPanel({ candidate, onAdditional }: {
         <div className="text-sm font-semibold text-emerald-900 flex items-center gap-2">
           <Target className="h-4 w-4" /> Основной груз: {candidate.pickup_city} → {candidate.delivery_city}
         </div>
-        <Button size="sm" onClick={() => startAdd.mutate()} disabled={startAdd.isPending}>
-          <Search className="h-3.5 w-3.5 mr-1" /> Найти догруз
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" onClick={() => createDeal.mutate()} disabled={createDeal.isPending}>
+            Договорились — создать сделку
+          </Button>
+          <Button size="sm" onClick={() => startAdd.mutate()} disabled={startAdd.isPending}>
+            <Search className="h-3.5 w-3.5 mr-1" /> Найти догруз
+          </Button>
+        </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mt-2">
         <Field label="Ставка" value={`${candidate.price ?? "—"} ₽`} />
-        <Field label="₽/км" value={String(candidate.price_per_km ?? "—")} />
+        <Field label="₽/км" value={String(candidate.price_per_km ?? candidate.calculated_price_per_km ?? "—")} />
+        <Field label="Прибыль ~" value={`${candidate.calculated_profit ?? "—"} ₽`} />
         <Field label="Вес" value={`${candidate.weight ?? "—"} кг`} />
         <Field label="Объём" value={`${candidate.volume ?? "—"} м³`} />
         <Field label="Остаток вес" value={`${remainingWeight} кг`} />
         <Field label="Остаток объём" value={`${remainingVolume} м³`} />
-        <Field label="Дата загрузки" value={candidate.pickup_date ?? "—"} />
         <Field label="Кузов" value={candidate.body_type ?? "—"} />
       </div>
     </Card>
@@ -658,7 +690,15 @@ function LoadCandidateCard({ candidate, isMain, onRefresh }: {
             {candidate.cargo_name ?? "—"} · {candidate.weight ?? "—"} кг · {candidate.volume ?? "—"} м³ · {candidate.body_type ?? "—"}
           </div>
           <div className="text-muted-foreground">
-            {candidate.price ?? "—"} ₽ ({candidate.price_per_km ?? "—"} ₽/км) · {candidate.distance_km ?? "—"} км · {candidate.payment_type ?? "—"}
+            {candidate.price ?? "—"} ₽ ({candidate.price_per_km ?? candidate.calculated_price_per_km ?? "—"} ₽/км) · {candidate.distance_km ?? "—"} км · прибыль ~{candidate.calculated_profit ?? "—"} ₽
+          </div>
+          <div className="mt-1">
+            <TargetProgressBadge
+              percent={candidate.target_progress_percent ?? null}
+              status={candidate.target_status ?? null}
+              totalPrice={candidate.price ?? null}
+              target={null}
+            />
           </div>
         </div>
         <Badge className={`${scoreClass} text-white`}>{score}</Badge>
@@ -793,5 +833,34 @@ function LiveAgentReadPanel({ taskId, events, task }: {
         Агент читает только видимую выдачу открытой страницы. API ATI не используется.
       </div>
     </Card>
+  );
+}
+
+function TaskTargetCard({ task, onSaved }: { task: Task; onSaved: () => void }) {
+  const [values, setValues] = useState<SearchTargetValues>({
+    min_price: task.min_price ?? null,
+    min_price_per_km: task.min_price_per_km ?? null,
+    target_total_price: task.target_total_price ?? null,
+    target_price_per_km: task.target_price_per_km ?? null,
+    target_net_profit: task.target_net_profit ?? null,
+    target_bundle_price: task.target_bundle_price ?? null,
+    max_bundle_items: task.max_bundle_items ?? 3,
+    bundle_search_enabled: task.bundle_search_enabled ?? true,
+    stop_search_when_target_reached: task.stop_search_when_target_reached ?? false,
+  });
+  const save = useMutation({
+    mutationFn: () => apiPatch(`/api/dispatcher/ai-dispatcher/tasks/${task.id}`, values),
+    onSuccess: () => { toast.success("Цель сохранена"); onSaved(); },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Ошибка"),
+  });
+  return (
+    <div className="space-y-2">
+      <SearchTargetBlock values={values} onChange={setValues} />
+      <div className="flex justify-end">
+        <Button size="sm" onClick={() => save.mutate()} disabled={save.isPending}>
+          Сохранить цель
+        </Button>
+      </div>
+    </div>
   );
 }

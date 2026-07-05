@@ -8,6 +8,7 @@ import {
   requireAgentToken, hashAgentSecret, generateAgentToken,
 } from "@/server/ai-dispatcher/agent-auth.server";
 import { buildLoadDedupKey } from "@/server/ai-dispatcher/load-dedup.server";
+import { scoreCandidatesForTask } from "@/server/ai-dispatcher/agent-load-scoring.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyBody = any;
@@ -196,15 +197,30 @@ async function handleLoads(request: Request): Promise<Response> {
     });
   } catch { /* ignore */ }
 
-  // Enrich с scores/status/warnings из БД для клиентской подсветки.
+  // Полноценный server-side scoring для всех новых/обновлённых кандидатов.
   const allIds = [...createdMeta, ...updatedMeta].map((m) => m.candidate_id);
+  let bestId: string | null = null;
+  let suitableCount = 0;
+  let highCount = 0;
+  if (allIds.length) {
+    try {
+      const res = await scoreCandidatesForTask(rpc, auth.tokenHash, searchTaskId, allIds);
+      bestId = res.best.id;
+      suitableCount = res.suitable;
+      highCount = res.high;
+    } catch (_e) { /* оставим базовые значения */ }
+  }
+
+  // Enrich с scores/status/warnings из БД (уже с новым scoring) для клиента.
   const detailsById = new Map<string, {
     match_score: number | null; profitability_score: number | null; risk_score: number | null;
     status: string | null; ai_summary: string | null; ai_reasons: unknown; ai_warnings: unknown;
+    target_progress_percent: number | null; target_status: string | null;
+    calculated_profit: number | null; calculated_price_per_km: number | null;
   }>();
   if (allIds.length) {
     const { data: rows } = await c.from("ai_dispatch_load_candidates")
-      .select("id, match_score, profitability_score, risk_score, status, ai_summary, ai_reasons, ai_warnings")
+      .select("id, match_score, profitability_score, risk_score, status, ai_summary, ai_reasons, ai_warnings, target_progress_percent, target_status, calculated_profit, calculated_price_per_km")
       .in("id", allIds);
     for (const r of rows ?? []) detailsById.set(r.id, r);
   }
@@ -222,28 +238,27 @@ async function handleLoads(request: Request): Promise<Response> {
       ai_summary: d?.ai_summary ?? null,
       ai_reasons: d?.ai_reasons ?? [],
       ai_warnings: d?.ai_warnings ?? [],
+      target_progress_percent: d?.target_progress_percent ?? null,
+      target_status: d?.target_status ?? null,
+      calculated_profit: d?.calculated_profit ?? null,
+      calculated_price_per_km: d?.calculated_price_per_km ?? null,
     };
   };
   const created = createdMeta.map(enrich);
   const updated = updatedMeta.map(enrich);
-  const all = [...created, ...updated];
-  const suitable_count = all.filter((x) => (x.match_score ?? 0) >= 60).length;
-  const best = all.reduce<{ id: string | null; score: number }>((acc, x) => {
-    const s = x.match_score ?? -1;
-    return s > acc.score ? { id: x.candidate_id, score: s } : acc;
-  }, { id: null, score: -1 });
+  const suitable_count = suitableCount || [...created, ...updated].filter((x) => (x.match_score ?? 0) >= 60).length;
 
   await c.rpc("agent_log_event", {
     _token_hash: auth.tokenHash,
     _event_type: "visible_loads_received",
-    _message: `visible loads: created=${created.length} updated=${updated.length} suitable=${suitable_count}`,
+    _message: `visible loads: created=${created.length} updated=${updated.length} suitable=${suitable_count} high=${highCount}`,
     _search_task_id: searchTaskId, _candidate_id: null,
-    _payload: { source_page_url: sourcePageUrl, count: loads.length, suitable_count },
+    _payload: { source_page_url: sourcePageUrl, count: loads.length, suitable_count, high_count: highCount },
   });
 
   return jsonResponse({
     ok: true, created, updated, skipped,
-    suitable_count, best_candidate_id: best.id,
+    suitable_count, high_count: highCount, best_candidate_id: bestId,
   });
 }
 

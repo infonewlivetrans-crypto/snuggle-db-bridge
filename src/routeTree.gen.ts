@@ -432,11 +432,13 @@ import { Route as ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRouteImport } fr
 import { Route as ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.mark-not-actual'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdMakeMainRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.make-main'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdFocusRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.focus'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdCreateDealRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.create-deal'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdClosePageRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.close-page'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.call-result'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdAddToCallListRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.add-to-call-list'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.remove-candidate'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRecalculateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.recalculate'
+import { Route as ApiDispatcherAiDispatcherBundlesIdCreateDealRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.create-deal'
 import { Route as ApiDispatcherAiDispatcherBundlesIdAddCandidateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.add-candidate'
 import { Route as ApiDispatcherAiDispatcherAgentSessionsIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.sessions.$id'
 import { Route as ApiDispatcherAiDispatcherAgentCommandsIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/agent.commands.$id'
@@ -2733,6 +2735,12 @@ const ApiDispatcherAiDispatcherCandidatesIdFocusRoute =
     path: '/focus',
     getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
   } as any)
+const ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute =
+  ApiDispatcherAiDispatcherCandidatesIdCreateDealRouteImport.update({
+    id: '/create-deal',
+    path: '/create-deal',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
 const ApiDispatcherAiDispatcherCandidatesIdClosePageRoute =
   ApiDispatcherAiDispatcherCandidatesIdClosePageRouteImport.update({
     id: '/close-page',
@@ -2761,6 +2769,12 @@ const ApiDispatcherAiDispatcherBundlesIdRecalculateRoute =
   ApiDispatcherAiDispatcherBundlesIdRecalculateRouteImport.update({
     id: '/recalculate',
     path: '/recalculate',
+    getParentRoute: () => ApiDispatcherAiDispatcherBundlesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherBundlesIdCreateDealRoute =
+  ApiDispatcherAiDispatcherBundlesIdCreateDealRouteImport.update({
+    id: '/create-deal',
+    path: '/create-deal',
     getParentRoute: () => ApiDispatcherAiDispatcherBundlesIdRoute,
   } as any)
 const ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute =
@@ -3407,11 +3421,13 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
+  '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal': typeof ApiDispatcherAiDispatcherBundlesIdCreateDealRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/focus': typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual': typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
@@ -3871,11 +3887,13 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
+  '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal': typeof ApiDispatcherAiDispatcherBundlesIdCreateDealRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/focus': typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual': typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
@@ -4337,11 +4355,13 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/agent/commands/$id': typeof ApiDispatcherAiDispatcherAgentCommandsIdRoute
   '/api/dispatcher/ai-dispatcher/agent/sessions/$id': typeof ApiDispatcherAiDispatcherAgentSessionsIdRouteWithChildren
   '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
+  '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal': typeof ApiDispatcherAiDispatcherBundlesIdCreateDealRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/focus': typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual': typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
@@ -4804,11 +4824,13 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
+    | '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual'
@@ -5268,11 +5290,13 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
+    | '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual'
@@ -5733,11 +5757,13 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/agent/commands/$id'
     | '/api/dispatcher/ai-dispatcher/agent/sessions/$id'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate'
+    | '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/focus'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual'
@@ -9008,6 +9034,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdFocusRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
     }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
+      path: '/create-deal'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
     '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': {
       id: '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
       path: '/close-page'
@@ -9041,6 +9074,13 @@ declare module '@tanstack/react-router' {
       path: '/recalculate'
       fullPath: '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
       preLoaderRoute: typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherBundlesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal': {
+      id: '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal'
+      path: '/create-deal'
+      fullPath: '/api/dispatcher/ai-dispatcher/bundles/$id/create-deal'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherBundlesIdCreateDealRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherBundlesIdRoute
     }
     '/api/dispatcher/ai-dispatcher/bundles/$id/add-candidate': {
@@ -10547,6 +10587,7 @@ const ApiCarrierEdoScenariosRouteWithChildren =
 
 interface ApiDispatcherAiDispatcherBundlesIdRouteChildren {
   ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute: typeof ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute
+  ApiDispatcherAiDispatcherBundlesIdCreateDealRoute: typeof ApiDispatcherAiDispatcherBundlesIdCreateDealRoute
   ApiDispatcherAiDispatcherBundlesIdRecalculateRoute: typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute: typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
 }
@@ -10555,6 +10596,8 @@ const ApiDispatcherAiDispatcherBundlesIdRouteChildren: ApiDispatcherAiDispatcher
   {
     ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute:
       ApiDispatcherAiDispatcherBundlesIdAddCandidateRoute,
+    ApiDispatcherAiDispatcherBundlesIdCreateDealRoute:
+      ApiDispatcherAiDispatcherBundlesIdCreateDealRoute,
     ApiDispatcherAiDispatcherBundlesIdRecalculateRoute:
       ApiDispatcherAiDispatcherBundlesIdRecalculateRoute,
     ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute:
@@ -10770,6 +10813,7 @@ interface ApiDispatcherAiDispatcherCandidatesIdRouteChildren {
   ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute: typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
   ApiDispatcherAiDispatcherCandidatesIdCallResultRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   ApiDispatcherAiDispatcherCandidatesIdClosePageRoute: typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
+  ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
   ApiDispatcherAiDispatcherCandidatesIdFocusRoute: typeof ApiDispatcherAiDispatcherCandidatesIdFocusRoute
   ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute: typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute: typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
@@ -10785,6 +10829,8 @@ const ApiDispatcherAiDispatcherCandidatesIdRouteChildren: ApiDispatcherAiDispatc
       ApiDispatcherAiDispatcherCandidatesIdCallResultRoute,
     ApiDispatcherAiDispatcherCandidatesIdClosePageRoute:
       ApiDispatcherAiDispatcherCandidatesIdClosePageRoute,
+    ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute:
+      ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute,
     ApiDispatcherAiDispatcherCandidatesIdFocusRoute:
       ApiDispatcherAiDispatcherCandidatesIdFocusRoute,
     ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute:
@@ -11107,3 +11153,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

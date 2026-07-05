@@ -35,6 +35,10 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/tasks/$id")(
           "status", "auto_refresh_enabled", "refresh_interval_seconds",
           "notes", "main_load_candidate_id", "vehicle_params_json",
           "start_city", "destination_city", "start_radius_km", "destination_radius_km",
+          "min_price", "min_price_per_km",
+          "target_total_price", "target_price_per_km", "target_net_profit", "target_bundle_price",
+          "max_bundle_items", "bundle_search_enabled", "stop_search_when_target_reached",
+          "fuel_consumption_l_per_100km", "fuel_price_per_l", "other_expenses", "commission_percent",
         ];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const patch: any = {};

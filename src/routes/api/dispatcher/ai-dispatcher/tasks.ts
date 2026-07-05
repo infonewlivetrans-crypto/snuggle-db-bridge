@@ -46,6 +46,19 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/tasks")({
           main_load_candidate_id: body.main_load_candidate_id ?? null,
           refresh_interval_seconds: body.refresh_interval_seconds ?? 60,
           notes: body.notes ?? null,
+          min_price: body.min_price ?? null,
+          min_price_per_km: body.min_price_per_km ?? null,
+          target_total_price: body.target_total_price ?? null,
+          target_price_per_km: body.target_price_per_km ?? null,
+          target_net_profit: body.target_net_profit ?? null,
+          target_bundle_price: body.target_bundle_price ?? null,
+          max_bundle_items: body.max_bundle_items ?? 3,
+          bundle_search_enabled: body.bundle_search_enabled ?? true,
+          stop_search_when_target_reached: body.stop_search_when_target_reached ?? false,
+          fuel_consumption_l_per_100km: body.fuel_consumption_l_per_100km ?? null,
+          fuel_price_per_l: body.fuel_price_per_l ?? null,
+          other_expenses: body.other_expenses ?? null,
+          commission_percent: body.commission_percent ?? null,
         };
         const { data, error } = await c
           .from("ai_dispatch_search_tasks")
