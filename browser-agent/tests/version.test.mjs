@@ -38,17 +38,13 @@ test("icon PNG files exist in source and dist (after build)", () => {
   }
 });
 
-test("compareVersions works", async () => {
-  const m = await import("../src/version-contract.ts").catch(() => null);
-  // TS import is not runnable directly under node --test; parse via source instead.
-  // Use a JS re-implementation for the contract:
+test("version-contract source declares required exports", () => {
   const src = readFileSync(path.join(root, "src", "version-contract.ts"), "utf8");
   assert.ok(src.includes("export function compareVersions"), "compareVersions must exist");
   assert.ok(src.includes("update_recommended"));
   assert.ok(src.includes("unsupported"));
   assert.ok(src.includes("protocol_mismatch"));
   assert.ok(src.includes("selector_config_warning"));
-  assert.equal(m, null); // sanity: TS not import-able here
 });
 
 test("version.ts holds single source of truth", () => {
@@ -58,9 +54,14 @@ test("version.ts holds single source of truth", () => {
   assert.ok(src.includes(`ATI_SELECTOR_CONFIG_VERSION = "dev-1"`));
 });
 
-test("build-info payload does not include token/cookie/pairing", () => {
+test("build-info payload does not include token/cookie/pairing keys", () => {
+  // Проверяем именно ключи полей buildLoadedPayload, а не текст комментариев.
   const src = readFileSync(path.join(root, "src", "build-info.ts"), "utf8");
-  assert.ok(!/token/i.test(src));
-  assert.ok(!/cookie/i.test(src));
-  assert.ok(!/pairing/i.test(src));
+  // Извлечь тело функции buildLoadedPayload — там могут быть только безопасные поля.
+  const m = src.match(/buildLoadedPayload[^{]*\{[\s\S]*?return\s*\{([\s\S]*?)\};/);
+  assert.ok(m, "buildLoadedPayload return object not found");
+  const body = m[1];
+  for (const bad of ["token", "cookie", "pairing", "password", "secret", "authorization"]) {
+    assert.ok(!new RegExp(bad, "i").test(body), `buildLoadedPayload must not include ${bad}`);
+  }
 });
