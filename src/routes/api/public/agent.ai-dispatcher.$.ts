@@ -8,6 +8,7 @@ import {
   requireAgentToken, hashAgentSecret, generateAgentToken,
 } from "@/server/ai-dispatcher/agent-auth.server";
 import { buildLoadDedupKey } from "@/server/ai-dispatcher/load-dedup.server";
+import { scoreCandidatesForTask } from "@/server/ai-dispatcher/agent-load-scoring.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyBody = any;
@@ -196,15 +197,30 @@ async function handleLoads(request: Request): Promise<Response> {
     });
   } catch { /* ignore */ }
 
-  // Enrich с scores/status/warnings из БД для клиентской подсветки.
+  // Полноценный server-side scoring для всех новых/обновлённых кандидатов.
   const allIds = [...createdMeta, ...updatedMeta].map((m) => m.candidate_id);
+  let bestId: string | null = null;
+  let suitableCount = 0;
+  let highCount = 0;
+  if (allIds.length) {
+    try {
+      const res = await scoreCandidatesForTask(rpc, auth.tokenHash, searchTaskId, allIds);
+      bestId = res.best.id;
+      suitableCount = res.suitable;
+      highCount = res.high;
+    } catch (_e) { /* оставим базовые значения */ }
+  }
+
+  // Enrich с scores/status/warnings из БД (уже с новым scoring) для клиента.
   const detailsById = new Map<string, {
     match_score: number | null; profitability_score: number | null; risk_score: number | null;
     status: string | null; ai_summary: string | null; ai_reasons: unknown; ai_warnings: unknown;
+    target_progress_percent: number | null; target_status: string | null;
+    calculated_profit: number | null; calculated_price_per_km: number | null;
   }>();
   if (allIds.length) {
     const { data: rows } = await c.from("ai_dispatch_load_candidates")
-      .select("id, match_score, profitability_score, risk_score, status, ai_summary, ai_reasons, ai_warnings")
+      .select("id, match_score, profitability_score, risk_score, status, ai_summary, ai_reasons, ai_warnings, target_progress_percent, target_status, calculated_profit, calculated_price_per_km")
       .in("id", allIds);
     for (const r of rows ?? []) detailsById.set(r.id, r);
   }
