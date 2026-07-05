@@ -398,6 +398,7 @@ import { Route as ApiDispatcherCarrierRequestsIdLinkDealRouteImport } from './ro
 import { Route as ApiDispatcherCarrierRequestsIdCreateTasksRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-tasks'
 import { Route as ApiDispatcherCarrierRequestsIdCreateDealRouteImport } from './routes/api/dispatcher/carrier-requests.$id.create-deal'
 import { Route as ApiDispatcherCarrierRequestsIdContractPreviewRouteImport } from './routes/api/dispatcher/carrier-requests.$id.contract-preview'
+import { Route as ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/vehicle-snapshot.$vehicleId'
 import { Route as ApiDispatcherAiDispatcherTasksIdRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id'
 import { Route as ApiDispatcherAiDispatcherMultiVehicleStopRouteImport } from './routes/api/dispatcher/ai-dispatcher/multi-vehicle.stop'
 import { Route as ApiDispatcherAiDispatcherMultiVehicleStartRouteImport } from './routes/api/dispatcher/ai-dispatcher/multi-vehicle.start'
@@ -2532,6 +2533,12 @@ const ApiDispatcherCarrierRequestsIdContractPreviewRoute =
     path: '/contract-preview',
     getParentRoute: () => ApiDispatcherCarrierRequestsIdRoute,
   } as any)
+const ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute =
+  ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRouteImport.update({
+    id: '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId',
+    path: '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiDispatcherAiDispatcherTasksIdRoute =
   ApiDispatcherAiDispatcherTasksIdRouteImport.update({
     id: '/$id',
@@ -3370,6 +3377,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/multi-vehicle/start': typeof ApiDispatcherAiDispatcherMultiVehicleStartRoute
   '/api/dispatcher/ai-dispatcher/multi-vehicle/stop': typeof ApiDispatcherAiDispatcherMultiVehicleStopRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id': typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId': typeof ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
@@ -3836,6 +3844,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/multi-vehicle/start': typeof ApiDispatcherAiDispatcherMultiVehicleStartRoute
   '/api/dispatcher/ai-dispatcher/multi-vehicle/stop': typeof ApiDispatcherAiDispatcherMultiVehicleStopRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id': typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId': typeof ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
@@ -4304,6 +4313,7 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/multi-vehicle/start': typeof ApiDispatcherAiDispatcherMultiVehicleStartRoute
   '/api/dispatcher/ai-dispatcher/multi-vehicle/stop': typeof ApiDispatcherAiDispatcherMultiVehicleStopRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id': typeof ApiDispatcherAiDispatcherTasksIdRouteWithChildren
+  '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId': typeof ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute
   '/api/dispatcher/carrier-requests/$id/contract-preview': typeof ApiDispatcherCarrierRequestsIdContractPreviewRoute
   '/api/dispatcher/carrier-requests/$id/create-deal': typeof ApiDispatcherCarrierRequestsIdCreateDealRoute
   '/api/dispatcher/carrier-requests/$id/create-tasks': typeof ApiDispatcherCarrierRequestsIdCreateTasksRoute
@@ -4773,6 +4783,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/multi-vehicle/start'
     | '/api/dispatcher/ai-dispatcher/multi-vehicle/stop'
     | '/api/dispatcher/ai-dispatcher/tasks/$id'
+    | '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
@@ -5239,6 +5250,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/multi-vehicle/start'
     | '/api/dispatcher/ai-dispatcher/multi-vehicle/stop'
     | '/api/dispatcher/ai-dispatcher/tasks/$id'
+    | '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
@@ -5706,6 +5718,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/multi-vehicle/start'
     | '/api/dispatcher/ai-dispatcher/multi-vehicle/stop'
     | '/api/dispatcher/ai-dispatcher/tasks/$id'
+    | '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId'
     | '/api/dispatcher/carrier-requests/$id/contract-preview'
     | '/api/dispatcher/carrier-requests/$id/create-deal'
     | '/api/dispatcher/carrier-requests/$id/create-tasks'
@@ -6062,6 +6075,7 @@ export interface RootRouteChildren {
   ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute: typeof ApiDispatcherAiDispatcherMultiVehicleRefreshCycleRoute
   ApiDispatcherAiDispatcherMultiVehicleStartRoute: typeof ApiDispatcherAiDispatcherMultiVehicleStartRoute
   ApiDispatcherAiDispatcherMultiVehicleStopRoute: typeof ApiDispatcherAiDispatcherMultiVehicleStopRoute
+  ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute: typeof ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute
   ApiDispatcherForwardersIdGoslogStatusRoute: typeof ApiDispatcherForwardersIdGoslogStatusRoute
   ApiPublicAgentAiDispatcherSplatRoute: typeof ApiPublicAgentAiDispatcherSplatRoute
   ApiCarrierEdoTrainingIdCompleteRoute: typeof ApiCarrierEdoTrainingIdCompleteRoute
@@ -8796,6 +8810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCarrierRequestsIdContractPreviewRouteImport
       parentRoute: typeof ApiDispatcherCarrierRequestsIdRoute
     }
+    '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId': {
+      id: '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId'
+      path: '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId'
+      fullPath: '/api/dispatcher/ai-dispatcher/vehicle-snapshot/$vehicleId'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/dispatcher/ai-dispatcher/tasks/$id': {
       id: '/api/dispatcher/ai-dispatcher/tasks/$id'
       path: '/$id'
@@ -11139,6 +11160,8 @@ const rootRouteChildren: RootRouteChildren = {
     ApiDispatcherAiDispatcherMultiVehicleStartRoute,
   ApiDispatcherAiDispatcherMultiVehicleStopRoute:
     ApiDispatcherAiDispatcherMultiVehicleStopRoute,
+  ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute:
+    ApiDispatcherAiDispatcherVehicleSnapshotVehicleIdRoute,
   ApiDispatcherForwardersIdGoslogStatusRoute:
     ApiDispatcherForwardersIdGoslogStatusRoute,
   ApiPublicAgentAiDispatcherSplatRoute: ApiPublicAgentAiDispatcherSplatRoute,
