@@ -93,9 +93,9 @@ export function TargetProgressBadge({
   percent: number | null; status: string | null;
   totalPrice: number | null; target: number | null;
 }) {
-  if (!target || target <= 0) return null;
-  const p = percent ?? 0;
-  const remaining = Math.max(0, target - (totalPrice ?? 0));
+  if (percent == null && !target) return null;
+  const p = percent ?? (target ? Math.round(((totalPrice ?? 0) / target) * 100) : 0);
+  const remaining = target ? Math.max(0, target - (totalPrice ?? 0)) : null;
   const cls =
     status === "target_reached" || status === "target_exceeded" ? "bg-emerald-600 text-white" :
     status === "target_almost_reached" ? "bg-amber-500 text-white" :
@@ -103,7 +103,7 @@ export function TargetProgressBadge({
   return (
     <div className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${cls}`}>
       <Target className="h-3 w-3" />
-      Цель: {p}% · до цели {Math.round(remaining)} ₽
+      Цель: {p}%{remaining != null ? ` · до цели ${Math.round(remaining)} ₽` : ""}
     </div>
   );
 }
