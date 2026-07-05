@@ -463,6 +463,11 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
         </div>
       </Card>
 
+      {/* Цель поиска */}
+      <TaskTargetCard task={task} onSaved={() => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] })} />
+
+
+
       {/* Suitable alert */}
       {newSuitable && (
         <SuitableLoadAlert candidate={newSuitable} taskId={taskId} onAction={() => {
