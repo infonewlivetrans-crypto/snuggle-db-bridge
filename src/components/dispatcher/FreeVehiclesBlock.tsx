@@ -154,8 +154,33 @@ export function FreeVehiclesBlock() {
             placeholder="Поиск"
             className="h-8 w-40"
           />
+          <Button
+            size="sm"
+            variant={multiMode ? "default" : "outline"}
+            className="h-8"
+            onClick={() => { setMultiMode((m) => !m); clearSelection(); }}
+          >
+            <SearchIcon className="h-3.5 w-3.5 mr-1" />
+            {multiMode ? "Выйти из мульти-выбора" : "Выбрать несколько"}
+          </Button>
         </div>
       </div>
+
+      {multiMode && (
+        <div className="mb-3 flex items-center justify-between gap-2 rounded-md border border-primary/40 bg-primary/5 px-3 py-2 text-xs">
+          <div>
+            Выбрано: <strong>{selectedIds.size}</strong> · Отметьте машины для группового AI-поиска
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="ghost" className="h-7" onClick={clearSelection} disabled={selectedIds.size === 0}>
+              <X className="h-3 w-3 mr-1" /> Очистить
+            </Button>
+            <Button size="sm" className="h-7" onClick={launchSelected} disabled={selectedIds.size === 0}>
+              <SearchIcon className="h-3 w-3 mr-1" /> Запустить поиск ({selectedIds.size})
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as WorkStatus)} className="mb-3">
         <TabsList>
