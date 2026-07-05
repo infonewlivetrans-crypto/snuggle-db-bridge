@@ -238,28 +238,27 @@ async function handleLoads(request: Request): Promise<Response> {
       ai_summary: d?.ai_summary ?? null,
       ai_reasons: d?.ai_reasons ?? [],
       ai_warnings: d?.ai_warnings ?? [],
+      target_progress_percent: d?.target_progress_percent ?? null,
+      target_status: d?.target_status ?? null,
+      calculated_profit: d?.calculated_profit ?? null,
+      calculated_price_per_km: d?.calculated_price_per_km ?? null,
     };
   };
   const created = createdMeta.map(enrich);
   const updated = updatedMeta.map(enrich);
-  const all = [...created, ...updated];
-  const suitable_count = all.filter((x) => (x.match_score ?? 0) >= 60).length;
-  const best = all.reduce<{ id: string | null; score: number }>((acc, x) => {
-    const s = x.match_score ?? -1;
-    return s > acc.score ? { id: x.candidate_id, score: s } : acc;
-  }, { id: null, score: -1 });
+  const suitable_count = suitableCount || [...created, ...updated].filter((x) => (x.match_score ?? 0) >= 60).length;
 
   await c.rpc("agent_log_event", {
     _token_hash: auth.tokenHash,
     _event_type: "visible_loads_received",
-    _message: `visible loads: created=${created.length} updated=${updated.length} suitable=${suitable_count}`,
+    _message: `visible loads: created=${created.length} updated=${updated.length} suitable=${suitable_count} high=${highCount}`,
     _search_task_id: searchTaskId, _candidate_id: null,
-    _payload: { source_page_url: sourcePageUrl, count: loads.length, suitable_count },
+    _payload: { source_page_url: sourcePageUrl, count: loads.length, suitable_count, high_count: highCount },
   });
 
   return jsonResponse({
     ok: true, created, updated, skipped,
-    suitable_count, best_candidate_id: best.id,
+    suitable_count, high_count: highCount, best_candidate_id: bestId,
   });
 }
 
