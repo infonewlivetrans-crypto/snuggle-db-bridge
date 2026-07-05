@@ -7,12 +7,15 @@ import { detectPage } from "./ati/detectPage";
 import { extractVisibleLoads } from "./ati/extractVisibleLoads";
 import { applyHighlights, clearHighlights } from "./ati/highlightLoads";
 import { showOverlay, hideOverlay } from "./ati/agentOverlay";
+import { applySearchFilters, type AtiFilters } from "./ati/applySearchFilters";
+import { collectFormDiagnostics } from "./ati/formDiagnostics";
 import type { BgToContentMessage, ContentToBgMessage } from "./ati/contentMessages";
 
 function send(msg: ContentToBgMessage): void {
   try { (chrome as unknown as { runtime: { sendMessage: (m: unknown) => void } })
     .runtime.sendMessage(msg); } catch { /* ignore */ }
 }
+
 
 function handleRead(): void {
   const page = detectPage();
@@ -93,6 +96,11 @@ function handleFocus(hint: {
       }
       case "RT_CLEAR_HIGHLIGHTS": clearHighlights(); respond({ ok: true }); return;
       case "RT_FOCUS_LOAD": handleFocus(msg.hint ?? {}); respond({ ok: true }); return;
+      case "RT_APPLY_FILTERS": {
+        const r = applySearchFilters((msg.filters ?? {}) as AtiFilters);
+        respond({ ok: r.success, result: r }); return;
+      }
+      case "RT_DIAGNOSTICS": respond({ ok: true, diagnostics: collectFormDiagnostics() }); return;
       case "RT_SHOW_OVERLAY":
         showOverlay(
           {

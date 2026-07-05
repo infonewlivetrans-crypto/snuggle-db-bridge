@@ -2,6 +2,9 @@
 // API ATI не используется. Все селекторы намеренно "мягкие" — если разметка
 // изменится, мы деградируем к fallback-разбору видимого текста.
 
+/** Версия конфигурации селекторов. Передаётся в heartbeat / events. */
+export const ATI_SELECTOR_CONFIG_VERSION = "dev-1";
+
 export const LOAD_ROW_SELECTORS = [
   '[data-testid*="loads-list-item"]',
   '[data-testid*="loads-list-row"]',

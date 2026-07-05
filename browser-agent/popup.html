@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>Radius Track Agent</title>
   <style>
-    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 320px; }
+    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 340px; }
     h1 { font-size: 13px; margin: 0 0 8px; }
     input, button { font: inherit; width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 6px; }
     button { cursor: pointer; }
@@ -12,9 +12,7 @@
     .row > * { flex: 1; }
     .status { padding: 6px; background: #f4f4f5; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
     .live { padding: 6px; background: #ecfeff; border: 1px solid #a5f3fc; border-radius: 4px; margin-bottom: 8px; font-size: 11px; }
-    .ok { color: #047857; }
-    .err { color: #b91c1c; }
-    .muted { color: #6b7280; }
+    .ok { color: #047857; } .err { color: #b91c1c; } .muted { color: #6b7280; }
   </style>
 </head>
 <body>
@@ -23,12 +21,16 @@
   <div id="live" class="live">Ожидание чтения страницы…</div>
 
   <input id="baseUrl" placeholder="https://your-project.lovable.app" />
+  <div class="row">
+    <button id="testConn">Проверить соединение</button>
+  </div>
   <input id="code" placeholder="Pairing code (RT-XXXX-XXXX)" />
   <div class="row">
     <button id="pair">Подключить</button>
     <button id="disconnect">Отключить</button>
   </div>
   <button id="read">Прочитать текущую страницу</button>
+  <button id="diag">Диагностика страницы</button>
   <div class="row">
     <button id="overlayOn">Показать панель РТ</button>
     <button id="overlayOff">Скрыть</button>
@@ -36,8 +38,8 @@
   <button id="mock">Отправить тестовые грузы</button>
   <p class="muted">
     Работает поверх открытого сайта ATI в вашем браузере. API ATI не используется.
-    Логин/пароль ATI не сохраняются.
+    Логин, пароль, cookies и localStorage ATI не читаются.
   </p>
-  <script src="popup.js"></script>
+  <script src="popup.js" type="module"></script>
 </body>
 </html>

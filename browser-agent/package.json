@@ -1,0 +1,19 @@
+{
+  "name": "radius-track-browser-agent",
+  "version": "0.1.0-dev",
+  "private": true,
+  "description": "Radius Track Browser Agent — MV3 extension (dev). Does NOT use ATI API.",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "node scripts/package-extension.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.6.3"
+  }
+}
