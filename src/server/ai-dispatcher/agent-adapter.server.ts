@@ -47,17 +47,18 @@ async function requireSession(ctx: AdapterCtx): Promise<string> {
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────
-export async function openAtiForTask(ctx: AdapterCtx, taskId: string): Promise<void> {
+export async function openAtiForTask(ctx: AdapterCtx, taskId: string): Promise<{ command_id: string | null }> {
   await ensureLiveDisabled(ctx);
   if (ctx.mode === "mock") {
     await mockOpenAti(ctx.client, ctx.dispatcherId, taskId);
     await openSearchTab(ctx.client, ctx.dispatcherId, taskId, "https://ati.su/loads/");
-    return;
+    return { command_id: null };
   }
   const s = await requireSession(ctx);
-  await createOpenAtiCommand(ctx.client, ctx.dispatcherId, s, taskId);
+  const id = await createOpenAtiCommand(ctx.client, ctx.dispatcherId, s, taskId);
   await logAgentEvent(ctx.client, ctx.dispatcherId, taskId, null,
     "browser_agent_ready", "Отправлена команда open_ati реальному агенту");
+  return { command_id: id };
 }
 
 export async function startSearchForTask(ctx: AdapterCtx, taskId: string): Promise<void> {

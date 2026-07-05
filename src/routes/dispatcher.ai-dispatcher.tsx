@@ -25,7 +25,25 @@ import {
   AgentConnectionPanel, AgentTabsPanel, AGENT_MODE_STORAGE_KEY,
   type AgentAdapterMode,
 } from "@/components/ai-dispatcher/AgentConnectionPanel";
+import { AgentCommandStatusPanel, AgentActiveCommandBadge } from "@/components/ai-dispatcher/AgentCommandStatusPanel";
+import { AgentHealthPanel } from "@/components/ai-dispatcher/AgentHealthPanel";
+import { useAgentCommandToast } from "@/hooks/use-agent-command-toast";
 import { SearchTargetBlock, TargetProgressBadge, type SearchTargetValues } from "@/components/ai-dispatcher/SearchTargetBlock";
+
+type SessionLite = { id: string; status: string; revoked_at: string | null };
+function useActiveAgentSessionId(): string | null {
+  const q = useQuery({
+    queryKey: ["ai-agent-sessions"],
+    queryFn: () => apiGetAuth<{ rows: SessionLite[] }>(
+      "/api/dispatcher/ai-dispatcher/agent/sessions"),
+    refetchInterval: 15000,
+  });
+  const rows = q.data?.rows ?? [];
+  const active = rows.find(
+    (r) => ["connected", "opening_site", "searching", "reading_page", "refreshing"].includes(r.status),
+  ) ?? rows.find((r) => !r.revoked_at) ?? null;
+  return active?.id ?? null;
+}
 
 // Читаем режим адаптера агента из localStorage прямо во время запроса.
 // Так же передаём его серверу как ?mode=..., чтобы existing apiPost() (без headers) работал.
@@ -156,6 +174,10 @@ function AiDispatcherPage() {
           <AgentConnectionPanel mode={mode} onModeChange={setModePersist} />
           <AgentTabsPanel />
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <AgentHealthPanel />
+          <AgentCommandStatusPanelWrapper />
+        </div>
         <AiDispatcherInner />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <MultiVehicleSearchBoard />
@@ -167,6 +189,11 @@ function AiDispatcherPage() {
       </main>
     </DispatcherShell>
   );
+}
+
+function AgentCommandStatusPanelWrapper() {
+  const sessionId = useActiveAgentSessionId();
+  return <AgentCommandStatusPanel sessionId={sessionId} />;
 }
 
 function AiDispatcherInner() {
@@ -407,20 +434,38 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
     return () => clearInterval(timer);
   }, [task, qc]);
 
+  const runWithToast = useAgentCommandToast();
+  const sessionId = useActiveAgentSessionId();
   const refresh = useMutation({
-    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`)),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/refresh-now`)),
+      { label: "Обновить страницу" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const pause = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/pause`),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        `/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/pause`),
+      { label: "Остановить поиск" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const startAgent = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/start`),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        `/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/start`),
+      { label: "Начать поиск" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
   const stop = useMutation({
-    mutationFn: () => apiPost(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/stop`),
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        `/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/stop`),
+      { label: "Остановить поиск" },
+    ),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
   });
 
@@ -433,6 +478,7 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 text-sm font-semibold">
             <Activity className="h-4 w-4" /> Статус агента: <StatusBadge status={task.status} />
+            <AgentActiveCommandBadge sessionId={sessionId} taskId={taskId} />
             <span className="text-xs text-muted-foreground">
               Обновлений: {task.refresh_count} · Просмотрено: {task.loads_seen_count} · Подходит: {task.matched_count}
             </span>
@@ -806,12 +852,14 @@ function LiveAgentReadPanel({ taskId, events, task }: {
   task: { loads_seen_count?: number; matched_count?: number; last_refresh_at?: string | null };
 }) {
   const qc = useQueryClient();
+  const runWithToast = useAgentCommandToast();
   const read = useMutation({
-    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/read-visible-loads`)),
-    onSuccess: () => {
-      toast.success("Команда read_visible_loads отправлена агенту");
-      qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] });
-    },
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/read-visible-loads`)),
+      { label: "Прочитать выдачу" },
+    ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
     onError: (e: unknown) => toast.error(String((e as Error).message ?? e)),
   });
   const lastRead = events.find((e) => e.event_type === "visible_loads_received");

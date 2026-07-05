@@ -16,11 +16,11 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/tasks/$id/ag
         if (auth instanceof Response) return auth;
         const ctx = await resolveAdapterCtx(auth.client, auth.userId, resolveMode(request));
         try {
-          await openAtiForTask(ctx, params.id);
+          const res = await openAtiForTask(ctx, params.id);
+          return jsonResponse({ ok: true, mode: ctx.mode, session_id: ctx.sessionId ?? null, command_id: res.command_id });
         } catch (e) {
           return jsonResponse({ error: (e as Error).message }, { status: 400 });
         }
-        return jsonResponse({ ok: true, mode: ctx.mode, session_id: ctx.sessionId ?? null });
       },
     },
   },

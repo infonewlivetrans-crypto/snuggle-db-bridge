@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { jsonResponse, requireAnyRole } from "@/server/api-helpers.server";
 import {
-  createAgentCommand, listPendingAgentCommands, type AgentCommandType,
+  createAgentCommand, listPendingAgentCommands, listRecentAgentCommands,
+  type AgentCommandType,
 } from "@/server/ai-dispatcher/agent-command.server";
 
 const ROLES = ["admin", "dispatcher"];
@@ -12,7 +13,12 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/agent/sessio
       GET: async ({ request, params }) => {
         const auth = await requireAnyRole(request, ROLES);
         if (auth instanceof Response) return auth;
-        const rows = await listPendingAgentCommands(auth.client, params.id, 50);
+        const url = new URL(request.url);
+        const all = url.searchParams.get("all") === "1";
+        const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || (all ? 30 : 50)));
+        const rows = all
+          ? await listRecentAgentCommands(auth.client, params.id, limit)
+          : await listPendingAgentCommands(auth.client, params.id, limit);
         return jsonResponse({ rows });
       },
       POST: async ({ request, params }) => {
@@ -33,3 +39,4 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/agent/sessio
     },
   },
 });
+

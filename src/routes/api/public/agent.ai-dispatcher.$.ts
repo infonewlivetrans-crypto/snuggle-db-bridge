@@ -262,10 +262,45 @@ async function handleLoads(request: Request): Promise<Response> {
   });
 }
 
+async function handleCallQueueAdd(request: Request, candidateId: string): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  if (!candidateId) return jsonResponse({ error: "missing_candidate_id" }, { status: 400 });
+  const body = await readJson(request);
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  const { data, error } = await c.rpc("agent_add_to_call_queue", {
+    _token_hash: auth.tokenHash,
+    _candidate_id: candidateId,
+    _source: String(body?.source ?? "agent"),
+    _comment: body?.comment ?? null,
+  });
+  if (error) {
+    return jsonResponse({
+      ok: false, status: "failed", error: error.message,
+    }, { status: error.message?.includes("invalid_candidate") ? 404 : 400 });
+  }
+  const row = (data as { status: string; queue_id: string }[])?.[0];
+  const status = row?.status ?? "failed";
+  return jsonResponse({
+    ok: status !== "failed",
+    status,
+    already: status === "already_exists",
+    queue_id: row?.queue_id ?? null,
+  });
+}
+
+async function handleHealth(): Promise<Response> {
+  return jsonResponse({ ok: true, ts: new Date().toISOString(), service: "radius-track-agent-endpoint" });
+}
+
 async function router(request: Request, splat: string): Promise<Response> {
   const method = request.method.toUpperCase();
   const parts = splat.split("/").filter(Boolean);
   const [head, mid, tail] = parts;
+  // /health (без авторизации) — для popup-теста
+  if (head === "health" && method === "GET") return handleHealth();
   // /pair
   if (head === "pair" && method === "POST") return handlePair(request);
   // /heartbeat
@@ -284,11 +319,12 @@ async function router(request: Request, splat: string): Promise<Response> {
   if (head === "tabs" && method === "POST") return handleTabs(request);
   // /loads
   if (head === "loads" && method === "POST") return handleLoads(request);
+  // /call-queue/:candidate_id
+  if (head === "call-queue" && mid && method === "POST") return handleCallQueueAdd(request, mid);
 
   return jsonResponse({
     error: "unknown_agent_endpoint",
     path: splat, method,
-    // Проверка авторизации всё равно нужна, но здесь просто говорим 404
     hint: getBearerToken(request) ? "path not supported" : "requires Authorization: Bearer <agent_token>",
   }, { status: 404 });
 }
