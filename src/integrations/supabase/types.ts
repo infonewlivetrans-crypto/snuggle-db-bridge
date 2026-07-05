@@ -8808,18 +8808,34 @@ export type Database = {
         }
         Returns: string
       }
-      agent_mark_missing_candidates: {
-        Args: {
-          _mark_not_actual_after?: number
-          _search_task_id: string
-          _seen_dedup_keys: string[]
-          _token_hash: string
-        }
-        Returns: {
-          marked_not_actual: number
-          warned: number
-        }[]
-      }
+      agent_mark_missing_candidates:
+        | {
+            Args: {
+              _mark_not_actual_after?: number
+              _search_task_id: string
+              _seen_dedup_keys: string[]
+              _token_hash: string
+            }
+            Returns: {
+              marked_not_actual: number
+              warned: number
+            }[]
+          }
+        | {
+            Args: {
+              _mark_not_actual_after?: number
+              _read_cycle_started_at?: string
+              _read_success?: boolean
+              _search_task_id: string
+              _seen_dedup_keys: string[]
+              _token_hash: string
+            }
+            Returns: {
+              marked_not_actual: number
+              reappeared: number
+              warned: number
+            }[]
+          }
       agent_pair: {
         Args: {
           _agent_token_hash: string

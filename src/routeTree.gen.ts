@@ -427,8 +427,11 @@ import { Route as ApiPublicClientPortalTokenOrdersOrderIdRouteImport } from './r
 import { Route as ApiDriverEdoDocumentsIdQrRouteImport } from './routes/api/driver/edo/documents.$id.qr'
 import { Route as ApiDispatcherEdoDocumentsIdSnapshotReviewRouteImport } from './routes/api/dispatcher/edo/documents.$id.snapshot-review'
 import { Route as ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport } from './routes/api/dispatcher/commissions.earnings.$dealId.payout'
+import { Route as ApiDispatcherAiDispatcherTasksIdMissingCandidatesRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.missing-candidates'
 import { Route as ApiDispatcherAiDispatcherTasksIdCallListRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.call-list'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.start-additional-search'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdRestoreRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.restore'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdRecheckRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.recheck'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.open-on-ati'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.mark-not-actual'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdMakeMainRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.make-main'
@@ -436,6 +439,7 @@ import { Route as ApiDispatcherAiDispatcherCandidatesIdFocusRouteImport } from '
 import { Route as ApiDispatcherAiDispatcherCandidatesIdCreateDealRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.create-deal'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdClosePageRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.close-page'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.call-result'
+import { Route as ApiDispatcherAiDispatcherCandidatesIdArchiveRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.archive'
 import { Route as ApiDispatcherAiDispatcherCandidatesIdAddToCallListRouteImport } from './routes/api/dispatcher/ai-dispatcher/candidates.$id.add-to-call-list'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.remove-candidate'
 import { Route as ApiDispatcherAiDispatcherBundlesIdRecalculateRouteImport } from './routes/api/dispatcher/ai-dispatcher/bundles.$id.recalculate'
@@ -2706,6 +2710,12 @@ const ApiDispatcherCommissionsEarningsDealIdPayoutRoute =
     path: '/$dealId/payout',
     getParentRoute: () => ApiDispatcherCommissionsEarningsRoute,
   } as any)
+const ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute =
+  ApiDispatcherAiDispatcherTasksIdMissingCandidatesRouteImport.update({
+    id: '/missing-candidates',
+    path: '/missing-candidates',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
 const ApiDispatcherAiDispatcherTasksIdCallListRoute =
   ApiDispatcherAiDispatcherTasksIdCallListRouteImport.update({
     id: '/call-list',
@@ -2716,6 +2726,18 @@ const ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute =
   ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport.update({
     id: '/start-additional-search',
     path: '/start-additional-search',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdRestoreRoute =
+  ApiDispatcherAiDispatcherCandidatesIdRestoreRouteImport.update({
+    id: '/restore',
+    path: '/restore',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdRecheckRoute =
+  ApiDispatcherAiDispatcherCandidatesIdRecheckRouteImport.update({
+    id: '/recheck',
+    path: '/recheck',
     getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
   } as any)
 const ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute =
@@ -2758,6 +2780,12 @@ const ApiDispatcherAiDispatcherCandidatesIdCallResultRoute =
   ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport.update({
     id: '/call-result',
     path: '/call-result',
+    getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherCandidatesIdArchiveRoute =
+  ApiDispatcherAiDispatcherCandidatesIdArchiveRouteImport.update({
+    id: '/archive',
+    path: '/archive',
     getParentRoute: () => ApiDispatcherAiDispatcherCandidatesIdRoute,
   } as any)
 const ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute =
@@ -3433,6 +3461,7 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/archive': typeof ApiDispatcherAiDispatcherCandidatesIdArchiveRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
@@ -3440,8 +3469,11 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual': typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati': typeof ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/recheck': typeof ApiDispatcherAiDispatcherCandidatesIdRecheckRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/restore': typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -3900,6 +3932,7 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/archive': typeof ApiDispatcherAiDispatcherCandidatesIdArchiveRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
@@ -3907,8 +3940,11 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual': typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati': typeof ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/recheck': typeof ApiDispatcherAiDispatcherCandidatesIdRecheckRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/restore': typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -4369,6 +4405,7 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate': typeof ApiDispatcherAiDispatcherBundlesIdRecalculateRoute
   '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate': typeof ApiDispatcherAiDispatcherBundlesIdRemoveCandidateRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/archive': typeof ApiDispatcherAiDispatcherCandidatesIdArchiveRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/call-result': typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/close-page': typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal': typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
@@ -4376,8 +4413,11 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/candidates/$id/make-main': typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual': typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati': typeof ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/recheck': typeof ApiDispatcherAiDispatcherCandidatesIdRecheckRoute
+  '/api/dispatcher/ai-dispatcher/candidates/$id/restore': typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search': typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   '/api/dispatcher/commissions/earnings/$dealId/payout': typeof ApiDispatcherCommissionsEarningsDealIdPayoutRoute
   '/api/dispatcher/edo/documents/$id/snapshot-review': typeof ApiDispatcherEdoDocumentsIdSnapshotReviewRoute
   '/api/driver/edo/documents/$id/qr': typeof ApiDriverEdoDocumentsIdQrRoute
@@ -4839,6 +4879,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/archive'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
@@ -4846,8 +4887,11 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/recheck'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -5306,6 +5350,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/archive'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
@@ -5313,8 +5358,11 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/recheck'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -5774,6 +5822,7 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/bundles/$id/recalculate'
     | '/api/dispatcher/ai-dispatcher/bundles/$id/remove-candidate'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/archive'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/close-page'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/create-deal'
@@ -5781,8 +5830,11 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/candidates/$id/make-main'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/mark-not-actual'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/recheck'
+    | '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
     | '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
     | '/api/dispatcher/commissions/earnings/$dealId/payout'
     | '/api/dispatcher/edo/documents/$id/snapshot-review'
     | '/api/driver/edo/documents/$id/qr'
@@ -9013,6 +9065,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDispatcherCommissionsEarningsDealIdPayoutRouteImport
       parentRoute: typeof ApiDispatcherCommissionsEarningsRoute
     }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
+      path: '/missing-candidates'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/missing-candidates'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
     '/api/dispatcher/ai-dispatcher/tasks/$id/call-list': {
       id: '/api/dispatcher/ai-dispatcher/tasks/$id/call-list'
       path: '/call-list'
@@ -9025,6 +9084,20 @@ declare module '@tanstack/react-router' {
       path: '/start-additional-search'
       fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/start-additional-search'
       preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/restore': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
+      path: '/restore'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/restore'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/recheck': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/recheck'
+      path: '/recheck'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/recheck'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRecheckRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
     }
     '/api/dispatcher/ai-dispatcher/candidates/$id/open-on-ati': {
@@ -9074,6 +9147,13 @@ declare module '@tanstack/react-router' {
       path: '/call-result'
       fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/call-result'
       preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/candidates/$id/archive': {
+      id: '/api/dispatcher/ai-dispatcher/candidates/$id/archive'
+      path: '/archive'
+      fullPath: '/api/dispatcher/ai-dispatcher/candidates/$id/archive'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherCandidatesIdArchiveRouteImport
       parentRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRoute
     }
     '/api/dispatcher/ai-dispatcher/candidates/$id/add-to-call-list': {
@@ -10662,6 +10742,7 @@ const ApiDispatcherAiDispatcherCallQueueRouteWithChildren =
 
 interface ApiDispatcherAiDispatcherTasksIdRouteChildren {
   ApiDispatcherAiDispatcherTasksIdCallListRoute: typeof ApiDispatcherAiDispatcherTasksIdCallListRoute
+  ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute: typeof ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute
   ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute
   ApiDispatcherAiDispatcherTasksIdAgentPauseRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentPauseRoute
   ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentReadVisibleLoadsRoute
@@ -10674,6 +10755,8 @@ const ApiDispatcherAiDispatcherTasksIdRouteChildren: ApiDispatcherAiDispatcherTa
   {
     ApiDispatcherAiDispatcherTasksIdCallListRoute:
       ApiDispatcherAiDispatcherTasksIdCallListRoute,
+    ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute:
+      ApiDispatcherAiDispatcherTasksIdMissingCandidatesRoute,
     ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute:
       ApiDispatcherAiDispatcherTasksIdAgentOpenAtiRoute,
     ApiDispatcherAiDispatcherTasksIdAgentPauseRoute:
@@ -10832,6 +10915,7 @@ const ApiDispatcherAiDispatcherAgentSessionsRouteWithChildren =
 
 interface ApiDispatcherAiDispatcherCandidatesIdRouteChildren {
   ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute: typeof ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute
+  ApiDispatcherAiDispatcherCandidatesIdArchiveRoute: typeof ApiDispatcherAiDispatcherCandidatesIdArchiveRoute
   ApiDispatcherAiDispatcherCandidatesIdCallResultRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCallResultRoute
   ApiDispatcherAiDispatcherCandidatesIdClosePageRoute: typeof ApiDispatcherAiDispatcherCandidatesIdClosePageRoute
   ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute: typeof ApiDispatcherAiDispatcherCandidatesIdCreateDealRoute
@@ -10839,6 +10923,8 @@ interface ApiDispatcherAiDispatcherCandidatesIdRouteChildren {
   ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute: typeof ApiDispatcherAiDispatcherCandidatesIdMakeMainRoute
   ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute: typeof ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute
   ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute: typeof ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute
+  ApiDispatcherAiDispatcherCandidatesIdRecheckRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRecheckRoute
+  ApiDispatcherAiDispatcherCandidatesIdRestoreRoute: typeof ApiDispatcherAiDispatcherCandidatesIdRestoreRoute
   ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute: typeof ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute
 }
 
@@ -10846,6 +10932,8 @@ const ApiDispatcherAiDispatcherCandidatesIdRouteChildren: ApiDispatcherAiDispatc
   {
     ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute:
       ApiDispatcherAiDispatcherCandidatesIdAddToCallListRoute,
+    ApiDispatcherAiDispatcherCandidatesIdArchiveRoute:
+      ApiDispatcherAiDispatcherCandidatesIdArchiveRoute,
     ApiDispatcherAiDispatcherCandidatesIdCallResultRoute:
       ApiDispatcherAiDispatcherCandidatesIdCallResultRoute,
     ApiDispatcherAiDispatcherCandidatesIdClosePageRoute:
@@ -10860,6 +10948,10 @@ const ApiDispatcherAiDispatcherCandidatesIdRouteChildren: ApiDispatcherAiDispatc
       ApiDispatcherAiDispatcherCandidatesIdMarkNotActualRoute,
     ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute:
       ApiDispatcherAiDispatcherCandidatesIdOpenOnAtiRoute,
+    ApiDispatcherAiDispatcherCandidatesIdRecheckRoute:
+      ApiDispatcherAiDispatcherCandidatesIdRecheckRoute,
+    ApiDispatcherAiDispatcherCandidatesIdRestoreRoute:
+      ApiDispatcherAiDispatcherCandidatesIdRestoreRoute,
     ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute:
       ApiDispatcherAiDispatcherCandidatesIdStartAdditionalSearchRoute,
   }

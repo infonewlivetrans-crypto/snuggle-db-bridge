@@ -188,12 +188,15 @@ async function handleLoads(request: Request): Promise<Response> {
   }
 
   // Отметить пропавшие с видимой выдачи кандидаты.
+  // read_success=true: сюда мы попадаем только после успешного extraction страницы.
   try {
     await c.rpc("agent_mark_missing_candidates", {
       _token_hash: auth.tokenHash,
       _search_task_id: searchTaskId,
       _seen_dedup_keys: seenKeys,
       _mark_not_actual_after: 3,
+      _read_success: true,
+      _read_cycle_started_at: body?.read_cycle_started_at ?? null,
     });
   } catch { /* ignore */ }
 
