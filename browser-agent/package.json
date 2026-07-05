@@ -1,6 +1,6 @@
 {
   "name": "radius-track-browser-agent",
-  "version": "0.1.1-dev",
+  "version": "0.2.0",
   "private": true,
   "description": "Radius Track Browser Agent — MV3 extension (dev). Does NOT use ATI API.",
   "type": "module",
