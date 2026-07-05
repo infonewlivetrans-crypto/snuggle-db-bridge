@@ -96,6 +96,11 @@ function handleFocus(hint: {
       }
       case "RT_CLEAR_HIGHLIGHTS": clearHighlights(); respond({ ok: true }); return;
       case "RT_FOCUS_LOAD": handleFocus(msg.hint ?? {}); respond({ ok: true }); return;
+      case "RT_APPLY_FILTERS": {
+        const r = applySearchFilters((msg.filters ?? {}) as AtiFilters);
+        respond({ ok: r.success, result: r }); return;
+      }
+      case "RT_DIAGNOSTICS": respond({ ok: true, diagnostics: collectFormDiagnostics() }); return;
       case "RT_SHOW_OVERLAY":
         showOverlay(
           {
