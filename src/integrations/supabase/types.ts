@@ -482,6 +482,8 @@ export type Database = {
           ai_warnings: Json | null
           body_type: string | null
           bundle_id: string | null
+          calculated_price_per_km: number | null
+          calculated_profit: number | null
           cargo_name: string | null
           contact_allowed: boolean
           contact_hidden: boolean
@@ -511,6 +513,7 @@ export type Database = {
           profitability_score: number | null
           raw_text: string | null
           risk_score: number | null
+          scored_at: string | null
           search_task_id: string
           seen_count: number
           source_card_anchor: string | null
@@ -520,6 +523,8 @@ export type Database = {
           source_row_index: number | null
           source_type: string
           status: string
+          target_progress_percent: number | null
+          target_status: string | null
           updated_at: string
           volume: number | null
           weight: number | null
@@ -532,6 +537,8 @@ export type Database = {
           ai_warnings?: Json | null
           body_type?: string | null
           bundle_id?: string | null
+          calculated_price_per_km?: number | null
+          calculated_profit?: number | null
           cargo_name?: string | null
           contact_allowed?: boolean
           contact_hidden?: boolean
@@ -561,6 +568,7 @@ export type Database = {
           profitability_score?: number | null
           raw_text?: string | null
           risk_score?: number | null
+          scored_at?: string | null
           search_task_id: string
           seen_count?: number
           source_card_anchor?: string | null
@@ -570,6 +578,8 @@ export type Database = {
           source_row_index?: number | null
           source_type?: string
           status?: string
+          target_progress_percent?: number | null
+          target_status?: string | null
           updated_at?: string
           volume?: number | null
           weight?: number | null
@@ -582,6 +592,8 @@ export type Database = {
           ai_warnings?: Json | null
           body_type?: string | null
           bundle_id?: string | null
+          calculated_price_per_km?: number | null
+          calculated_profit?: number | null
           cargo_name?: string | null
           contact_allowed?: boolean
           contact_hidden?: boolean
@@ -611,6 +623,7 @@ export type Database = {
           profitability_score?: number | null
           raw_text?: string | null
           risk_score?: number | null
+          scored_at?: string | null
           search_task_id?: string
           seen_count?: number
           source_card_anchor?: string | null
@@ -620,6 +633,8 @@ export type Database = {
           source_row_index?: number | null
           source_type?: string
           status?: string
+          target_progress_percent?: number | null
+          target_status?: string | null
           updated_at?: string
           volume?: number | null
           weight?: number | null
@@ -646,11 +661,15 @@ export type Database = {
           ati_filters_json: Json | null
           auto_refresh_enabled: boolean
           best_candidate_id: string | null
+          bundle_search_enabled: boolean | null
+          commission_percent: number | null
           created_at: string
           destination_city: string | null
           destination_radius_km: number | null
           dispatcher_id: string
           driver_id: string | null
+          fuel_consumption_l_per_100km: number | null
+          fuel_price_per_l: number | null
           id: string
           is_multi_vehicle_member: boolean
           last_refresh_at: string | null
@@ -658,9 +677,13 @@ export type Database = {
           main_load_candidate_id: string | null
           manual_vehicle_json: Json | null
           matched_count: number
+          max_bundle_items: number | null
+          min_price: number | null
+          min_price_per_km: number | null
           multi_vehicle_group_id: string | null
           next_refresh_at: string | null
           notes: string | null
+          other_expenses: number | null
           parent_task_id: string | null
           refresh_count: number
           refresh_interval_seconds: number
@@ -669,6 +692,11 @@ export type Database = {
           start_city: string | null
           start_radius_km: number | null
           status: string
+          stop_search_when_target_reached: boolean | null
+          target_bundle_price: number | null
+          target_net_profit: number | null
+          target_price_per_km: number | null
+          target_total_price: number | null
           updated_at: string
           vehicle_id: string | null
           vehicle_params_json: Json | null
@@ -678,11 +706,15 @@ export type Database = {
           ati_filters_json?: Json | null
           auto_refresh_enabled?: boolean
           best_candidate_id?: string | null
+          bundle_search_enabled?: boolean | null
+          commission_percent?: number | null
           created_at?: string
           destination_city?: string | null
           destination_radius_km?: number | null
           dispatcher_id: string
           driver_id?: string | null
+          fuel_consumption_l_per_100km?: number | null
+          fuel_price_per_l?: number | null
           id?: string
           is_multi_vehicle_member?: boolean
           last_refresh_at?: string | null
@@ -690,9 +722,13 @@ export type Database = {
           main_load_candidate_id?: string | null
           manual_vehicle_json?: Json | null
           matched_count?: number
+          max_bundle_items?: number | null
+          min_price?: number | null
+          min_price_per_km?: number | null
           multi_vehicle_group_id?: string | null
           next_refresh_at?: string | null
           notes?: string | null
+          other_expenses?: number | null
           parent_task_id?: string | null
           refresh_count?: number
           refresh_interval_seconds?: number
@@ -701,6 +737,11 @@ export type Database = {
           start_city?: string | null
           start_radius_km?: number | null
           status?: string
+          stop_search_when_target_reached?: boolean | null
+          target_bundle_price?: number | null
+          target_net_profit?: number | null
+          target_price_per_km?: number | null
+          target_total_price?: number | null
           updated_at?: string
           vehicle_id?: string | null
           vehicle_params_json?: Json | null
@@ -710,11 +751,15 @@ export type Database = {
           ati_filters_json?: Json | null
           auto_refresh_enabled?: boolean
           best_candidate_id?: string | null
+          bundle_search_enabled?: boolean | null
+          commission_percent?: number | null
           created_at?: string
           destination_city?: string | null
           destination_radius_km?: number | null
           dispatcher_id?: string
           driver_id?: string | null
+          fuel_consumption_l_per_100km?: number | null
+          fuel_price_per_l?: number | null
           id?: string
           is_multi_vehicle_member?: boolean
           last_refresh_at?: string | null
@@ -722,9 +767,13 @@ export type Database = {
           main_load_candidate_id?: string | null
           manual_vehicle_json?: Json | null
           matched_count?: number
+          max_bundle_items?: number | null
+          min_price?: number | null
+          min_price_per_km?: number | null
           multi_vehicle_group_id?: string | null
           next_refresh_at?: string | null
           notes?: string | null
+          other_expenses?: number | null
           parent_task_id?: string | null
           refresh_count?: number
           refresh_interval_seconds?: number
@@ -733,6 +782,11 @@ export type Database = {
           start_city?: string | null
           start_radius_km?: number | null
           status?: string
+          stop_search_when_target_reached?: boolean | null
+          target_bundle_price?: number | null
+          target_net_profit?: number | null
+          target_price_per_km?: number | null
+          target_total_price?: number | null
           updated_at?: string
           vehicle_id?: string | null
           vehicle_params_json?: Json | null
@@ -2623,6 +2677,10 @@ export type Database = {
       dispatcher_deals: {
         Row: {
           addon_freight_ids: string[]
+          ai_bundle_id: string | null
+          ai_candidate_id: string | null
+          ai_search_task_id: string | null
+          ai_source: string | null
           cancel_reason: string | null
           carrier_comment: string | null
           carrier_id: string | null
@@ -2674,6 +2732,10 @@ export type Database = {
         }
         Insert: {
           addon_freight_ids?: string[]
+          ai_bundle_id?: string | null
+          ai_candidate_id?: string | null
+          ai_search_task_id?: string | null
+          ai_source?: string | null
           cancel_reason?: string | null
           carrier_comment?: string | null
           carrier_id?: string | null
@@ -2725,6 +2787,10 @@ export type Database = {
         }
         Update: {
           addon_freight_ids?: string[]
+          ai_bundle_id?: string | null
+          ai_candidate_id?: string | null
+          ai_search_task_id?: string | null
+          ai_source?: string | null
           cancel_reason?: string | null
           carrier_comment?: string | null
           carrier_id?: string | null
@@ -8698,6 +8764,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      agent_get_candidate_scoring_context: {
+        Args: { _candidate_id: string; _token_hash: string }
+        Returns: {
+          candidate: Json
+          task: Json
+        }[]
+      }
       agent_heartbeat: {
         Args: {
           _active_tab_count?: number
@@ -8773,6 +8846,33 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      agent_update_candidate_scoring: {
+        Args: {
+          _calculated_price_per_km: number
+          _calculated_profit: number
+          _candidate_id: string
+          _match_score: number
+          _new_status?: string
+          _profitability_score: number
+          _reasons: Json
+          _risk_score: number
+          _summary: string
+          _target_progress_percent: number
+          _target_status: string
+          _token_hash: string
+          _warnings: Json
+        }
+        Returns: boolean
+      }
+      agent_update_task_search_result: {
+        Args: {
+          _best_candidate_id: string
+          _matched_count: number
+          _task_id: string
+          _token_hash: string
+        }
+        Returns: boolean
       }
       agent_upsert_load: {
         Args: {
