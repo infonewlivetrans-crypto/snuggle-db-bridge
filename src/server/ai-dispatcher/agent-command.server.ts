@@ -70,6 +70,93 @@ export async function listPendingAgentCommands(
   return data ?? [];
 }
 
+/** Возвращает последние N команд по сессии (для панели статусов). */
+export async function listRecentAgentCommands(
+  client: Client,
+  sessionId: string,
+  limit = 30,
+) {
+  const c = client as AnyClient;
+  const { data } = await c.from("ai_dispatch_agent_commands")
+    .select("*")
+    .eq("session_id", sessionId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return data ?? [];
+}
+
+/** Последние N команд для диспетчера по всем сессиям. */
+export async function listRecentDispatcherCommands(
+  client: Client,
+  dispatcherId: string,
+  limit = 30,
+) {
+  const c = client as AnyClient;
+  const { data } = await c.from("ai_dispatch_agent_commands")
+    .select("*")
+    .eq("dispatcher_id", dispatcherId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return data ?? [];
+}
+
+export async function getAgentCommand(
+  client: Client, dispatcherId: string, commandId: string,
+) {
+  const c = client as AnyClient;
+  const { data } = await c.from("ai_dispatch_agent_commands")
+    .select("*")
+    .eq("id", commandId)
+    .eq("dispatcher_id", dispatcherId)
+    .maybeSingle();
+  return data;
+}
+
+/** Диспетчер отменяет queued/sent команду. Completed/failed не трогаем. */
+export async function cancelAgentCommand(
+  client: Client, dispatcherId: string, commandId: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const c = client as AnyClient;
+  const { data: row } = await c.from("ai_dispatch_agent_commands")
+    .select("id, status").eq("id", commandId).eq("dispatcher_id", dispatcherId).maybeSingle();
+  if (!row) return { ok: false, reason: "not_found" };
+  if (!["queued", "sent"].includes(row.status)) {
+    return { ok: false, reason: `cannot_cancel_${row.status}` };
+  }
+  await c.from("ai_dispatch_agent_commands").update({
+    status: "cancelled",
+    completed_at: new Date().toISOString(),
+  }).eq("id", commandId).eq("dispatcher_id", dispatcherId);
+  await logAgentEvent(client, dispatcherId, null, null, "command_cancelled",
+    "Диспетчер отменил команду", { command_id: commandId });
+  return { ok: true };
+}
+
+/** Повтор: создаёт НОВУЮ команду по образцу failed/expired/cancelled. */
+export async function retryAgentCommand(
+  client: Client, dispatcherId: string, commandId: string,
+): Promise<{ ok: boolean; new_id?: string | null; reason?: string }> {
+  const c = client as AnyClient;
+  const { data: row } = await c.from("ai_dispatch_agent_commands")
+    .select("*").eq("id", commandId).eq("dispatcher_id", dispatcherId).maybeSingle();
+  if (!row) return { ok: false, reason: "not_found" };
+  if (!["failed", "expired", "cancelled"].includes(row.status)) {
+    return { ok: false, reason: `cannot_retry_${row.status}` };
+  }
+  const newId = await createAgentCommand(client, dispatcherId, {
+    sessionId: row.session_id,
+    commandType: row.command_type,
+    searchTaskId: row.search_task_id ?? null,
+    candidateId: row.candidate_id ?? null,
+    payload: (row.command_payload_json ?? {}) as Record<string, unknown>,
+  });
+  await logAgentEvent(client, dispatcherId, row.search_task_id ?? null,
+    row.candidate_id ?? null, "command_retried",
+    "Команда повторена по образцу failed/expired",
+    { original_id: commandId, new_id: newId });
+  return { ok: true, new_id: newId };
+}
+
 export async function ackAgentCommand(
   client: Client, dispatcherId: string, commandId: string,
 ): Promise<void> {
