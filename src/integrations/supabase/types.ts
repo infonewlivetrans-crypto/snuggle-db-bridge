@@ -8751,6 +8751,18 @@ export type Database = {
         Args: { _command_id: string; _token_hash: string }
         Returns: undefined
       }
+      agent_add_to_call_queue: {
+        Args: {
+          _candidate_id: string
+          _comment?: string
+          _source?: string
+          _token_hash: string
+        }
+        Returns: {
+          queue_id: string
+          status: string
+        }[]
+      }
       agent_complete_command: {
         Args: { _command_id: string; _result: Json; _token_hash: string }
         Returns: undefined
