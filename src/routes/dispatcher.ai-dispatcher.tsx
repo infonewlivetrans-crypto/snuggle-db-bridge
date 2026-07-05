@@ -96,6 +96,10 @@ type Candidate = {
   is_additional_load: boolean;
   status: string;
   dispatcher_decision: string | null;
+  target_progress_percent?: number | null;
+  target_status?: string | null;
+  calculated_profit?: number | null;
+  calculated_price_per_km?: number | null;
 };
 type AgentEvent = {
   id: string;
