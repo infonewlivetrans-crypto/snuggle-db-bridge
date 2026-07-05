@@ -852,12 +852,14 @@ function LiveAgentReadPanel({ taskId, events, task }: {
   task: { loads_seen_count?: number; matched_count?: number; last_refresh_at?: string | null };
 }) {
   const qc = useQueryClient();
+  const runWithToast = useAgentCommandToast();
   const read = useMutation({
-    mutationFn: () => apiPost(withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/read-visible-loads`)),
-    onSuccess: () => {
-      toast.success("Команда read_visible_loads отправлена агенту");
-      qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] });
-    },
+    mutationFn: () => runWithToast(
+      () => apiPost<{ command_id?: string | null }>(
+        withMode(`/api/dispatcher/ai-dispatcher/tasks/${taskId}/agent/read-visible-loads`)),
+      { label: "Прочитать выдачу" },
+    ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ai-disp-task", taskId] }),
     onError: (e: unknown) => toast.error(String((e as Error).message ?? e)),
   });
   const lastRead = events.find((e) => e.event_type === "visible_loads_received");
