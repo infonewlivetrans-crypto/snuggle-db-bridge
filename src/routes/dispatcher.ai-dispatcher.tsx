@@ -376,13 +376,13 @@ function TaskWorkspace({ taskId, onChangeTask }: { taskId: string; onChangeTask:
     queryKey: ["ai-disp-task", taskId],
     queryFn: () => apiGetAuth<{ task: Task; candidates: Candidate[]; events: AgentEvent[] }>(
       `/api/dispatcher/ai-dispatcher/tasks/${taskId}`),
-    refetchInterval: 10000,
+    refetchInterval: 5000,
   });
   const callsQ = useQuery({
     queryKey: ["ai-disp-calls", taskId],
     queryFn: () => apiGetAuth<{ rows: CallLog[] }>(
       `/api/dispatcher/ai-dispatcher/tasks/${taskId}/call-list`),
-    refetchInterval: 15000,
+    refetchInterval: 10000,
   });
 
   const task = detailQ.data?.task;
