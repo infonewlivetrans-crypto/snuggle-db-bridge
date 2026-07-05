@@ -267,6 +267,9 @@ function VehicleListCard({
   onRelease,
   taking,
   releasing,
+  multiMode = false,
+  selected = false,
+  onToggleSelect,
 }: {
   v: FreeVehicleRow;
   onOpen: () => void;
@@ -274,6 +277,9 @@ function VehicleListCard({
   onRelease: () => void;
   taking: boolean;
   releasing: boolean;
+  multiMode?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const inWork = v.dispatcher_work_status === "in_work" || v.dispatcher_work_status === "offered" || v.dispatcher_work_status === "accepted";
   const byOther = inWork && v.dispatcher_taken_by && !v.taken_by_self;
@@ -281,16 +287,26 @@ function VehicleListCard({
   const driverPhone = v.driver?.phone ?? null;
 
   return (
-    <div className="flex flex-col rounded-lg border border-border bg-card p-3">
+    <div className={`flex flex-col rounded-lg border p-3 ${selected ? "border-primary bg-primary/5" : "border-border bg-card"}`}>
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-foreground">
-            {v.vehicle_kind ?? "—"}
-            {v.body_type ? <span className="text-muted-foreground"> · {getVehicleBodyTypeLabel(v.body_type)}</span> : null}
-          </div>
-          <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3" />
-            {v.current_city ?? v.home_city ?? "—"}
+        <div className="min-w-0 flex items-start gap-2">
+          {multiMode && (
+            <Checkbox
+              className="mt-1"
+              checked={selected}
+              onCheckedChange={() => onToggleSelect?.()}
+              aria-label="Выбрать машину"
+            />
+          )}
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold text-foreground">
+              {v.vehicle_kind ?? "—"}
+              {v.body_type ? <span className="text-muted-foreground"> · {getVehicleBodyTypeLabel(v.body_type)}</span> : null}
+            </div>
+            <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3" />
+              {v.current_city ?? v.home_city ?? "—"}
+            </div>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1">
