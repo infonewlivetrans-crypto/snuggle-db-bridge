@@ -1,7 +1,7 @@
 // Панель здоровья Radius Track Browser Agent.
 // Комбинирует данные активной сессии + список команд + время последнего heartbeat
 // в единый статус: Healthy / Warning / Offline / Error. Никакого API ATI.
-import { useMemo } from "react";
+import { useMemo, type ReactElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
