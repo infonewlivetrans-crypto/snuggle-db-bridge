@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import {
   REMARK_TYPES, REMARK_TYPE_LABEL,
   type RemarkType, type RemarkSeverity,
-} from "@/server/edo/remarks.server";
+} from "@/lib/edo/remarks-shared";
 
 const SEVERITY_LABEL: Record<RemarkSeverity, string> = {
   info: "Информационно",
