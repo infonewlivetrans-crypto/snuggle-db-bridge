@@ -223,7 +223,7 @@ function AiDispatcherInner() {
   }, [tasks, activeId]);
 
   const launchIds = useMemo<string[]>(() => {
-    if (search.vehicleIds) return search.vehicleIds.split(",").map((s) => s.trim()).filter(Boolean);
+    if (search.vehicleIds) return search.vehicleIds.split(",").map((s: string) => s.trim()).filter(Boolean);
     if (search.vehicleId) return [search.vehicleId];
     return [];
   }, [search.vehicleId, search.vehicleIds]);
