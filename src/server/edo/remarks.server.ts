@@ -5,34 +5,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = SupabaseClient<any>;
 
-export const REMARK_TYPES = [
-  "cargo_dirty",
-  "cargo_damaged",
-  "packaging_damaged",
-  "quantity_mismatch",
-  "weight_mismatch",
-  "volume_mismatch",
-  "marking_issue",
-  "loading_issue",
-  "vehicle_issue",
-  "other",
-] as const;
-export type RemarkType = (typeof REMARK_TYPES)[number];
-
-export const REMARK_TYPE_LABEL: Record<RemarkType, string> = {
-  cargo_dirty: "Груз грязный",
-  cargo_damaged: "Повреждение груза",
-  packaging_damaged: "Повреждение упаковки",
-  quantity_mismatch: "Несоответствие количества",
-  weight_mismatch: "Несоответствие веса",
-  volume_mismatch: "Несоответствие объёма",
-  marking_issue: "Проблемы с маркировкой",
-  loading_issue: "Проблемы с погрузкой",
-  vehicle_issue: "Проблемы с транспортным средством",
-  other: "Другое",
-};
-
-export type RemarkSeverity = "info" | "warning" | "critical";
+export {
+  REMARK_TYPES,
+  REMARK_TYPE_LABEL,
+  type RemarkType,
+  type RemarkSeverity,
+} from "@/lib/edo/remarks-shared";
+import type { RemarkType, RemarkSeverity } from "@/lib/edo/remarks-shared";
 
 export interface RemarkRow {
   id: string;

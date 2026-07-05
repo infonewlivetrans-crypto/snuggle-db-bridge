@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import {
   CHANGE_TYPES, CHANGE_TYPE_LABEL, CHANGE_STATUS_LABEL,
   type ChangeType, type ChangeStatus,
-} from "@/server/edo/changes.server";
+} from "@/lib/edo/changes-shared";
 
 interface ChangeRow {
   id: string;
