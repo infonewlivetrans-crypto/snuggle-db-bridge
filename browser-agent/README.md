@@ -1,57 +1,66 @@
-# Radius Track Browser Agent — skeleton (dev)
+# Radius Track Browser Agent (dev)
 
-Это dev-заготовка Chrome-расширения. **Не подключено к основному build.**
+Chrome MV3 extension. **Работает только с открытой страницей ATI в браузере диспетчера.**
 
-## Принципы
-- Агент работает только на страницах, открытых пользователем.
-- Не хранит логин и пароль ATI.
-- **Не использует API ATI.**
-- Не обходит защиту (капча, rate-limits и т.д.).
+- Не использует API ATI.
+- Не читает cookies, localStorage, пароли ATI.
+- Не обходит капчу и защиту.
 - Читает только видимую выдачу.
-- Передаёт в Радиус Трек только видимые/выбранные данные для оценки груза.
-- Диспетчер принимает решение сам: звонит и подтверждает груз вручную.
+- Диспетчер сам звонит и подтверждает груз.
 
-## Команды (Agent Protocol)
-Агент polling'ом получает команды от Радиус Трек:
-`open_ati`, `apply_filters`, `start_search`, `refresh_page`, `read_visible_loads`,
-`focus_candidate`, `open_candidate_page`, `close_candidate_page`,
-`close_irrelevant_tabs`, `pause_search`, `resume_search`, `stop_search`,
-`heartbeat_check`.
+## Сборка
 
-## Структура
-- `manifest.json` — MV3 manifest.
-- `src/background.ts` — service worker: heartbeat + polling команд.
-- `src/content.ts` — content script: чтение видимой выдачи со страницы ATI.
-- `src/popup.tsx` — popup для pairing-кода и статуса.
+```bash
+cd browser-agent
+npm install
+npm run build          # → dist/
+npm run typecheck      # tsc --noEmit
+npm test               # node --test
+npm run package        # → packaged/radius-track-agent.zip (нужен `zip`)
+```
 
-## Подключение (следующий этап)
-1. Диспетчер создаёт код подключения в `/dispatcher/ai-dispatcher`.
-2. Вводит код в popup расширения.
-3. Расширение сохраняет session_id + pairing token в локальном storage браузера.
-4. Далее — heartbeat каждые 30 сек и polling команд.
+Собирается через esbuild:
 
-На dev-этапе публичные endpoints агента (`/api/public/agent/ai-dispatcher/*`)
-возвращают 501. Реальная авторизация будет реализована на следующем этапе.
+- `src/background.ts` → `dist/background.js`
+- `src/content.ts` → `dist/content.js`
+- `src/popup.ts` → `dist/popup.js`
+- `manifest.json`, `popup.html` копируются в `dist/`.
 
-## Установка dev-версии
-1. Скомпилировать TS в `src/*.js` (или временно переименовать `src/background.ts` → `.js`) — MV3 сервис-воркер грузит именно JS.
-2. `chrome://extensions` → включить **Developer mode** → **Load unpacked** → выбрать папку `browser-agent/`.
-3. Открыть popup расширения.
-4. Ввести **Base URL** Радиус Трек (preview или production URL Lovable-проекта).
-5. Ввести **pairing code**, полученный из UI `/dispatcher/ai-dispatcher` (кнопка «Создать код подключения»).
-6. Нажать «Подключить». Popup покажет статус и последний heartbeat.
+## Установка в Chrome (dev)
 
-## Как работает pairing (dev)
-- Диспетчер создаёт agent session → сервер генерирует одноразовый pairing-код `RT-XXXX-XXXX` с TTL 15 минут.
-- Popup отправляет код на `POST /api/public/agent/ai-dispatcher/pair`.
-- Сервер возвращает `agent_token` (показывается один раз). Хеш токена (SHA-256) хранится в `ai_dispatch_agent_sessions.agent_token_hash`.
-- Дальше все запросы агента идут с `Authorization: Bearer <agent_token>`.
+1. `cd browser-agent && npm install && npm run build`
+2. Открыть `chrome://extensions`.
+3. Включить «Режим разработчика».
+4. Нажать «Загрузить распакованное расширение».
+5. Выбрать папку `browser-agent/dist`.
+6. Открыть popup расширения.
+7. Ввести dev URL Радиус Трек (например `https://your-project.lovable.app`), нажать «Проверить соединение».
+8. В кабинете диспетчера `/dispatcher/ai-dispatcher` создать pairing-код (`RT-XXXX-XXXX`).
+9. Ввести код в popup и нажать «Подключить».
+10. Открыть `https://ati.su/loads/` и войти вручную.
+11. Запустить поиск из Радиус Трек — агент откроет вкладку задачи, применит фильтры, прочитает видимую выдачу.
+12. При проблемах — «Диагностика страницы» в popup (данные обезличены, без токенов).
 
-## Поддержанные endpoints
-- `POST /pair`, `POST /heartbeat`, `GET /commands/poll`,
-- `POST /commands/:id/ack|complete|fail`,
-- `POST /events`, `POST /tabs`, `POST /loads`.
+## Что делать, если ATI изменил разметку
 
-## Тестирование mock loads
-Кнопка «Отправить тестовые грузы» в popup отправляет 2 демо-груза в текущую `search_task_id`
-(последняя, полученная из команды агенту).
+1. Открыть popup → «Диагностика страницы» → «Скопировать диагностику».
+2. Прислать вывод в чат разработчика.
+3. В `browser-agent/src/ati/atiSelectors.ts` и `formSelectors.ts` добавить/обновить стратегии.
+4. Поднять `ATI_SELECTOR_CONFIG_VERSION`.
+5. Пересобрать: `npm run build`.
+6. В Chrome нажать «Обновить» на карточке расширения.
+
+## Fixture для локальных тестов
+
+`browser-agent/test-fixtures/ati-loads-page.html` — упрощённая страница с формой и 7 карточками грузов.
+Открыть локально (например через `python3 -m http.server`) и проверить apply_filters / read / highlight / focus / «В звонки».
+Fixture **не является копией настоящего сайта ATI**.
+
+## Endpoints (public agent API)
+
+`POST /pair`, `POST /heartbeat`, `GET /commands/poll`,
+`POST /commands/:id/{ack|complete|fail}`,
+`POST /events`, `POST /tabs`, `POST /loads`, `POST /call-queue/:candidate_id`.
+
+Все, кроме `/pair`, требуют `Authorization: Bearer <agent_token>`.
+Токен хранится в `chrome.storage.local`, только на устройстве диспетчера.

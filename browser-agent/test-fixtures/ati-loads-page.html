@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>ATI test fixture — Radius Track Browser Agent</title>
+  <style>
+    body { font: 13px/1.4 system-ui, sans-serif; margin: 16px; }
+    form { display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px; max-width: 640px; }
+    form label { align-self: center; }
+    input, select { padding: 4px 6px; }
+    .loads { margin-top: 20px; display: grid; gap: 8px; }
+    .load-card { border: 1px solid #d1d5db; border-radius: 6px; padding: 10px; }
+    .price { color: #16a34a; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>ATI test fixture (dev only)</h1>
+  <p><i>Не является копией настоящего сайта ATI. Используется для локальных тестов Browser Agent.</i></p>
+
+  <form id="searchForm" onsubmit="event.preventDefault()">
+    <label for="from">Откуда</label>
+    <input id="from" name="from" aria-label="Откуда" placeholder="город" />
+    <label for="from_radius">Радиус погрузки, км</label>
+    <input id="from_radius" name="from_radius" type="number" aria-label="Радиус погрузки" />
+    <label for="to">Куда</label>
+    <input id="to" name="to" aria-label="Куда" placeholder="город" />
+    <label for="to_radius">Радиус выгрузки, км</label>
+    <input id="to_radius" name="to_radius" type="number" aria-label="Радиус выгрузки" />
+    <label for="distance_min">Мин. расстояние</label>
+    <input id="distance_min" name="distance_min" type="number" aria-label="Мин расстояние" />
+    <label for="distance_max">Макс. расстояние</label>
+    <input id="distance_max" name="distance_max" type="number" aria-label="Макс расстояние" />
+    <label for="weight">Вес, т</label>
+    <input id="weight" name="weight" type="number" step="0.1" aria-label="Вес" />
+    <label for="volume">Объём, м³</label>
+    <input id="volume" name="volume" type="number" step="0.1" aria-label="Объём" />
+    <label for="date">Дата загрузки</label>
+    <input id="date" name="date" type="date" aria-label="Дата загрузки" />
+    <label for="body">Тип кузова</label>
+    <select id="body" name="body" aria-label="Тип кузова">
+      <option value="">—</option><option>тент</option><option>реф</option><option>изотерм</option><option>борт</option>
+    </select>
+    <label for="loading">Тип загрузки</label>
+    <select id="loading" name="loading" aria-label="Тип загрузки">
+      <option value="">—</option><option>задняя</option><option>боковая</option><option>верхняя</option><option>полная</option>
+    </select>
+    <label for="payment">Форма оплаты</label>
+    <select id="payment" name="payment" aria-label="Форма оплаты">
+      <option value="">—</option><option>нал</option><option>безнал</option><option>карта</option>
+    </select>
+    <label for="price_min">Мин. ставка</label>
+    <input id="price_min" name="price_min" type="number" aria-label="Мин ставка" />
+    <label for="ppkm">Ставка за км</label>
+    <input id="ppkm" name="ppkm" type="number" step="0.1" aria-label="Ставка за км" />
+    <div></div>
+    <button type="submit">Найти</button>
+  </form>
+
+  <div class="loads" data-testid="loads-list">
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-001">
+      <a href="/loads/F-001">Москва — Санкт-Петербург</a>
+      · 20 т · 82 м3 · 07/07 · тент · задняя · безнал ·
+      <span class="price">65 000 ₽</span> · 700 км · 92 ₽/км
+    </article>
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-002">
+      <a href="/loads/F-002">Москва — Казань</a>
+      · 10 т · 40 м3 · 08/07 · реф · боковая · нал ·
+      <span class="price">45 000 ₽</span> · 800 км · 56 ₽/км
+    </article>
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-003">
+      <a href="/loads/F-003">Санкт-Петербург — Нижний Новгород</a>
+      · 5 т · 20 м3 · 09/07 · изотерм · верхняя · карта ·
+      <span class="price">28 000 ₽</span> · 1200 км · 23 ₽/км
+    </article>
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-004">
+      <a href="/loads/F-004">Казань — Уфа</a>
+      · 15 т · 60 м3 · 10/07 · тент · полная · безнал ·
+      <span class="price">40 000 ₽</span> · 520 км · 77 ₽/км
+    </article>
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-005">
+      <a href="/loads/F-005">Москва — Ростов-на-Дону</a>
+      · 22 т · 85 м3 · 11/07 · борт · задняя · безнал ·
+      <span class="price">90 000 ₽</span> · 1100 км · 82 ₽/км
+    </article>
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-006">
+      <a href="/loads/F-006">Екатеринбург — Челябинск</a>
+      · 12 т · 45 м3 · 12/07 · тент · боковая · нал ·
+      (ставка договорная) · 210 км
+    </article>
+    <article class="load-card" data-testid="loads-list-item" data-load-id="F-007">
+      <a href="/loads/F-007">Пермь — Ижевск</a>
+      · неполные данные · тент
+    </article>
+  </div>
+</body>
+</html>
