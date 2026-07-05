@@ -287,9 +287,26 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       }
       if (msg?.type === "rt/diagnostics") {
         const tab = await findAtiTab();
-        if (!tab?.id) throw new Error("no_ati_tab");
-        const r = await sendToContent<{ diagnostics?: unknown }>(tab.id, { type: "RT_DIAGNOSTICS" });
-        sendResponse({ ok: true, diagnostics: r?.diagnostics ?? null });
+        const raw = tab?.id ? await sendToContent<{ diagnostics?: unknown }>(tab.id, { type: "RT_DIAGNOSTICS" }) : null;
+        const diagnostics = sanitizeAgentDiagnostics({
+          build_info: BUILD_INFO,
+          page: raw?.diagnostics ?? null,
+          has_ati_tab: Boolean(tab?.id),
+        });
+        sendResponse({ ok: true, diagnostics });
+        return;
+      }
+      if (msg?.type === "rt/build-info") {
+        sendResponse({ ok: true, build_info: BUILD_INFO });
+        return;
+      }
+      if (msg?.type === "rt/session-health") {
+        try {
+          const data = await api<Record<string, unknown>>("/api/public/agent/ai-dispatcher/session-health");
+          sendResponse({ ok: true, data });
+        } catch (e) {
+          sendResponse({ ok: false, error: String((e as Error).message ?? e) });
+        }
         return;
       }
       if (msg?.type === "rt/add-to-call-queue") {
