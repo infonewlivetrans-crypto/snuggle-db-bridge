@@ -347,8 +347,10 @@ async function router(request: Request, splat: string): Promise<Response> {
   const method = request.method.toUpperCase();
   const parts = splat.split("/").filter(Boolean);
   const [head, mid, tail] = parts;
-  // /health (без авторизации) — для popup-теста
+  // /health (без авторизации) — только whitelist метаданных
   if (head === "health" && method === "GET") return handleHealth();
+  // /session-health (Bearer agent_token) — только данные своей сессии
+  if (head === "session-health" && method === "GET") return handleSessionHealth(request);
   // /pair
   if (head === "pair" && method === "POST") return handlePair(request);
   // /heartbeat
