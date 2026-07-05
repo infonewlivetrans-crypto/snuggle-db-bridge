@@ -690,7 +690,15 @@ function LoadCandidateCard({ candidate, isMain, onRefresh }: {
             {candidate.cargo_name ?? "—"} · {candidate.weight ?? "—"} кг · {candidate.volume ?? "—"} м³ · {candidate.body_type ?? "—"}
           </div>
           <div className="text-muted-foreground">
-            {candidate.price ?? "—"} ₽ ({candidate.price_per_km ?? "—"} ₽/км) · {candidate.distance_km ?? "—"} км · {candidate.payment_type ?? "—"}
+            {candidate.price ?? "—"} ₽ ({candidate.price_per_km ?? candidate.calculated_price_per_km ?? "—"} ₽/км) · {candidate.distance_km ?? "—"} км · прибыль ~{candidate.calculated_profit ?? "—"} ₽
+          </div>
+          <div className="mt-1">
+            <TargetProgressBadge
+              percent={candidate.target_progress_percent ?? null}
+              status={candidate.target_status ?? null}
+              totalPrice={candidate.price ?? null}
+              target={null}
+            />
           </div>
         </div>
         <Badge className={`${scoreClass} text-white`}>{score}</Badge>
