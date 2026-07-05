@@ -227,14 +227,17 @@ function VehicleMiniCard({
   selfId,
   onOpen,
   onTake,
+  onAiSearch,
   taking,
 }: {
   v: FreeVehicleRow;
   selfId: string | null | undefined;
   onOpen: () => void;
   onTake?: () => void;
+  onAiSearch?: () => void;
   taking: boolean;
 }) {
+
   const st = statusOf(v, selfId);
   const body = getVehicleBodyTypeLabel(v.body_type) || v.body_type || "—";
   return (
