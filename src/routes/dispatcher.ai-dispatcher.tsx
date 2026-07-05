@@ -31,6 +31,9 @@ import { useAgentCommandToast } from "@/hooks/use-agent-command-toast";
 import { SearchTargetBlock, TargetProgressBadge, type SearchTargetValues } from "@/components/ai-dispatcher/SearchTargetBlock";
 import { VehicleLaunchFromMapPanel } from "@/components/ai-dispatcher/VehicleLaunchFromMapPanel";
 import { MissingCandidatesPanel, MissingCandidatesBadge } from "@/components/ai-dispatcher/MissingCandidatesPanel";
+import { SIMPLE_AGENT_MODE } from "@/lib/feature-flags";
+import { SimpleAgentPanel } from "@/components/ai-dispatcher/SimpleAgentPanel";
+import { AgentDiagnosticsDrawer } from "@/components/ai-dispatcher/AgentDiagnosticsDrawer";
 
 type SessionLite = { id: string; status: string; revoked_at: string | null };
 function useActiveAgentSessionId(): string | null {
