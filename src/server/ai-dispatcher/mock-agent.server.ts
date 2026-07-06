@@ -70,7 +70,19 @@ export type AgentEventType =
   | "candidate_restored_by_dispatcher"
   | "candidate_archived_by_dispatcher"
   | "candidate_recheck_requested"
-  | "candidate_marked_not_actual_by_dispatcher";
+  | "candidate_marked_not_actual_by_dispatcher"
+  | "orchestration_started"
+  | "orchestration_step_changed"
+  | "orchestration_waiting_user_login"
+  | "orchestration_resumed_after_login"
+  | "orchestration_completed_initial_cycle"
+  | "orchestration_failed"
+  | "orchestration_timed_out"
+  | "orchestration_paused"
+  | "orchestration_retried"
+  | "orchestration_stopped"
+  | "orchestration_stale_event_ignored"
+  | "ati_login_detected";
 
 export async function logAgentEvent(
   client: Client,
