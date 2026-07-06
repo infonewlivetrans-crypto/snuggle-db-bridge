@@ -16,7 +16,7 @@
 | 3 | Включить режим разработчика | ☐ PASS ☐ FAIL |
 | 4 | «Загрузить распакованное расширение» → `browser-agent/dist` | ☐ PASS ☐ FAIL |
 | 5 | Иконка Радиус Трек отображается в панели расширений | ☐ PASS ☐ FAIL |
-| 6 | Открыть popup — версия 0.2.0, protocol 1, selectors dev-1 | ☐ PASS ☐ FAIL |
+| 6 | Открыть popup — версия 0.2.1, protocol 1, selectors dev-1 | ☐ PASS ☐ FAIL |
 
 ## Соединение
 
