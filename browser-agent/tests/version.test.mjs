@@ -7,15 +7,15 @@ import { fileURLToPath } from "node:url";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
-test("manifest version is 0.2.0", () => {
+test("manifest version is 0.2.1", () => {
   const m = JSON.parse(readFileSync(path.join(root, "manifest.json"), "utf8"));
-  assert.equal(m.version, "0.2.0");
+  assert.equal(m.version, "0.2.1");
   assert.equal(m.manifest_version, 3);
 });
 
-test("package version is 0.2.0", () => {
+test("package version is 0.2.1", () => {
   const p = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
-  assert.equal(p.version, "0.2.0");
+  assert.equal(p.version, "0.2.1");
 });
 
 test("manifest declares icon set", () => {
