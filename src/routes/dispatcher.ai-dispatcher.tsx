@@ -172,6 +172,12 @@ function AiDispatcherPage() {
   };
   const [diagOpen, setDiagOpen] = useState(false);
   const sessionId = useActiveAgentSessionId();
+  const tasksQ = useQuery({
+    queryKey: ["ai-disp-tasks"],
+    queryFn: () => apiGetAuth<{ rows: Task[] }>("/api/dispatcher/ai-dispatcher/tasks"),
+    refetchInterval: 15000,
+  });
+  const activeTaskId = tasksQ.data?.rows?.[0]?.id ?? null;
   return (
     <DispatcherShell>
       <main className="mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 space-y-4">
@@ -192,7 +198,7 @@ function AiDispatcherPage() {
 
         {SIMPLE_AGENT_MODE ? (
           <>
-            <SimpleAgentPanel onOpenDiagnostics={() => setDiagOpen(true)} />
+            <SimpleAgentPanel onOpenDiagnostics={() => setDiagOpen(true)} activeTaskId={activeTaskId} />
             <AgentDiagnosticsDrawer open={diagOpen} onOpenChange={setDiagOpen} sessionId={sessionId} />
           </>
         ) : (

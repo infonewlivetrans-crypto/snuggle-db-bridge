@@ -467,6 +467,11 @@ import { Route as ApiCarrierEdoDocumentsIdActionsRouteImport } from './routes/ap
 import { Route as ApiCarrierEdoCounterpartiesIdVerifyRouteImport } from './routes/api/carrier/edo/counterparties.$id.verify'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdTimelineRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.timeline'
 import { Route as ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport } from './routes/api/public/client-portal.$token.orders.$orderId.messages'
+import { Route as ApiDispatcherAiDispatcherTasksIdOrchestratorStopRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.orchestrator.stop'
+import { Route as ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.orchestrator.status'
+import { Route as ApiDispatcherAiDispatcherTasksIdOrchestratorStartRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.orchestrator.start'
+import { Route as ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.orchestrator.retry'
+import { Route as ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.orchestrator.pause'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentStopRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.stop'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentStartRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.start'
 import { Route as ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRouteImport } from './routes/api/dispatcher/ai-dispatcher/tasks.$id.agent.refresh-now'
@@ -2952,6 +2957,36 @@ const ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute =
     path: '/messages',
     getParentRoute: () => ApiPublicClientPortalTokenOrdersOrderIdRoute,
   } as any)
+const ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute =
+  ApiDispatcherAiDispatcherTasksIdOrchestratorStopRouteImport.update({
+    id: '/orchestrator/stop',
+    path: '/orchestrator/stop',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute =
+  ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRouteImport.update({
+    id: '/orchestrator/status',
+    path: '/orchestrator/status',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute =
+  ApiDispatcherAiDispatcherTasksIdOrchestratorStartRouteImport.update({
+    id: '/orchestrator/start',
+    path: '/orchestrator/start',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute =
+  ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRouteImport.update({
+    id: '/orchestrator/retry',
+    path: '/orchestrator/retry',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
+const ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute =
+  ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRouteImport.update({
+    id: '/orchestrator/pause',
+    path: '/orchestrator/pause',
+    getParentRoute: () => ApiDispatcherAiDispatcherTasksIdRoute,
+  } as any)
 const ApiDispatcherAiDispatcherTasksIdAgentStopRoute =
   ApiDispatcherAiDispatcherTasksIdAgentStopRouteImport.update({
     id: '/agent/stop',
@@ -3515,6 +3550,11 @@ export interface FileRoutesByFullPath {
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
@@ -3989,6 +4029,11 @@ export interface FileRoutesByTo {
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
@@ -4465,6 +4510,11 @@ export interface FileRoutesById {
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now': typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start': typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute
+  '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop': typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute
   '/api/public/client-portal/$token/orders/$orderId/messages': typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRoute
   '/api/public/client-portal/$token/orders/$orderId/timeline': typeof ApiPublicClientPortalTokenOrdersOrderIdTimelineRoute
 }
@@ -4942,6 +4992,11 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
   fileRoutesByTo: FileRoutesByTo
@@ -5416,6 +5471,11 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
   id:
@@ -5891,6 +5951,11 @@ export interface FileRouteTypes {
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/refresh-now'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/start'
     | '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status'
+    | '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop'
     | '/api/public/client-portal/$token/orders/$orderId/messages'
     | '/api/public/client-portal/$token/orders/$orderId/timeline'
   fileRoutesById: FileRoutesById
@@ -9386,6 +9451,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdMessagesRouteImport
       parentRoute: typeof ApiPublicClientPortalTokenOrdersOrderIdRoute
     }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop'
+      path: '/orchestrator/stop'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/stop'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStopRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status'
+      path: '/orchestrator/status'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/status'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start'
+      path: '/orchestrator/start'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/start'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStartRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry'
+      path: '/orchestrator/retry'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/retry'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
+    '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause': {
+      id: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause'
+      path: '/orchestrator/pause'
+      fullPath: '/api/dispatcher/ai-dispatcher/tasks/$id/orchestrator/pause'
+      preLoaderRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRouteImport
+      parentRoute: typeof ApiDispatcherAiDispatcherTasksIdRoute
+    }
     '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop': {
       id: '/api/dispatcher/ai-dispatcher/tasks/$id/agent/stop'
       path: '/agent/stop'
@@ -10811,6 +10911,11 @@ interface ApiDispatcherAiDispatcherTasksIdRouteChildren {
   ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentRefreshNowRoute
   ApiDispatcherAiDispatcherTasksIdAgentStartRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStartRoute
   ApiDispatcherAiDispatcherTasksIdAgentStopRoute: typeof ApiDispatcherAiDispatcherTasksIdAgentStopRoute
+  ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute
+  ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute
+  ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute
+  ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute
+  ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute: typeof ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute
 }
 
 const ApiDispatcherAiDispatcherTasksIdRouteChildren: ApiDispatcherAiDispatcherTasksIdRouteChildren =
@@ -10831,6 +10936,16 @@ const ApiDispatcherAiDispatcherTasksIdRouteChildren: ApiDispatcherAiDispatcherTa
       ApiDispatcherAiDispatcherTasksIdAgentStartRoute,
     ApiDispatcherAiDispatcherTasksIdAgentStopRoute:
       ApiDispatcherAiDispatcherTasksIdAgentStopRoute,
+    ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute:
+      ApiDispatcherAiDispatcherTasksIdOrchestratorPauseRoute,
+    ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute:
+      ApiDispatcherAiDispatcherTasksIdOrchestratorRetryRoute,
+    ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute:
+      ApiDispatcherAiDispatcherTasksIdOrchestratorStartRoute,
+    ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute:
+      ApiDispatcherAiDispatcherTasksIdOrchestratorStatusRoute,
+    ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute:
+      ApiDispatcherAiDispatcherTasksIdOrchestratorStopRoute,
   }
 
 const ApiDispatcherAiDispatcherTasksIdRouteWithChildren =

@@ -725,6 +725,15 @@ export type Database = {
           multi_vehicle_group_id: string | null
           next_refresh_at: string | null
           notes: string | null
+          orchestration_completed_at: string | null
+          orchestration_current_command_id: string | null
+          orchestration_error: string | null
+          orchestration_error_code: string | null
+          orchestration_retry_count: number
+          orchestration_run_id: string | null
+          orchestration_started_at: string | null
+          orchestration_status: string | null
+          orchestration_updated_at: string | null
           other_expenses: number | null
           parent_task_id: string | null
           refresh_count: number
@@ -770,6 +779,15 @@ export type Database = {
           multi_vehicle_group_id?: string | null
           next_refresh_at?: string | null
           notes?: string | null
+          orchestration_completed_at?: string | null
+          orchestration_current_command_id?: string | null
+          orchestration_error?: string | null
+          orchestration_error_code?: string | null
+          orchestration_retry_count?: number
+          orchestration_run_id?: string | null
+          orchestration_started_at?: string | null
+          orchestration_status?: string | null
+          orchestration_updated_at?: string | null
           other_expenses?: number | null
           parent_task_id?: string | null
           refresh_count?: number
@@ -815,6 +833,15 @@ export type Database = {
           multi_vehicle_group_id?: string | null
           next_refresh_at?: string | null
           notes?: string | null
+          orchestration_completed_at?: string | null
+          orchestration_current_command_id?: string | null
+          orchestration_error?: string | null
+          orchestration_error_code?: string | null
+          orchestration_retry_count?: number
+          orchestration_run_id?: string | null
+          orchestration_started_at?: string | null
+          orchestration_status?: string | null
+          orchestration_updated_at?: string | null
           other_expenses?: number | null
           parent_task_id?: string | null
           refresh_count?: number
