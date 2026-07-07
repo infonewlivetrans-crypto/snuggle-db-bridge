@@ -1,105 +1,112 @@
-## Этап «ЭПД-мастер сценариев» — план реализации
+# Подблок 4B — Финальная интеграция Browser Agent 0.2.2
 
-Большой этап, выполняем одним пакетом в dev-режиме Lovable (без VPS, без live-вызовов Saby/1С/ГосЛог).
+Работа только в Lovable/dev. Никакого service_role. RLS не отключается. VPS/production, nginx, PM2, DNS, ЭПД/ЭДО не затрагиваются.
 
-### 1. Миграции БД
+## 1. Миграция БД: атомарный advance
 
-Создаю 3 новые таблицы (RLS включён, GRANT для authenticated/service_role, без anon):
+Новая миграция создаёт SECURITY DEFINER RPC (search_path = public):
 
-- `edo_scenarios` — сценарий ЭПД, привязан к `carrier_ext_id` + опционально `trip_id`/`deal_id`/`document_id`. Поля: `scenario_type`, `forwarder_id`, `forwarder_possession_mode`, `cargo_holder_role`, `required_documents jsonb`, `participants_json jsonb`, `signing_plan_json jsonb`, `readiness_status`, `validation_errors jsonb`, `validation_warnings jsonb`, `is_training bool`.
-- `carrier_epd_readiness` — одна строка на carrier_ext_id: `edo_operator`, `has_1c`, `has_1c_edo`, `has_1c_epd`, `onec_epd_tariff`, `edo_participant_id`, `has_director_kep`, `has_mchd`, `responsible_person`, `driver_has_smartphone`, `driver_qr_ready`, `readiness_status`, `last_checked_at`, `notes`.
-- `forwarder_goslog_status` — `forwarder_id` (ссылка на carriers/companies, опционально), `inn`, `ogrn`, `company_name`, `okved_codes jsonb`, `has_okved_5229`, `goslog_status`, `registry_number`, `application_number`, `application_date`, `included_at`, `source_url`, `verified_by`, `verified_at`, `verification_comment`.
-- `edo_training_sessions` — `user_id`, `role`, `scenario_type`, `current_step`, `status`, `progress_percent`, `mistakes_json`, `completed_at`.
+- `public.agent_advance_orchestration_after_command(_token_hash text, _command_id uuid, _outcome text, _result_json jsonb, _error_message text) returns jsonb`
 
-Поля `carrier_epd_readiness_snapshot`, `scenario_id` добавляются в `carrier_edo_documents` (jsonb + uuid nullable) — для связи со сценарием и snapshot готовности на момент отправки.
+Внутри RPC:
+1. По `_token_hash` находит `ai_dispatch_agent_sessions` (active).
+2. Находит `ai_dispatch_agent_commands` по `_command_id` и `session_id`.
+3. `SELECT ... FOR UPDATE` по `ai_dispatch_search_tasks` (задача команды).
+4. Идемпотентность: если `orchestration_current_command_id != _command_id` или задача уже paused/stopped/suitable_found — возвращает `{status:'already_processed'}`.
+5. Проверяет `command_payload_json->>'orchestration_run_id' = task.orchestration_run_id`; иначе — `stale_ignored`.
+6. Для outcome `completed` определяет следующий `commandType` по чистой SQL-таблице (open_ati→apply_filters→start_search→read_visible_loads→null). Создаёт следующую команду с полным payload (orchestration_run_id, step, search_task_id, vehicle_params_json, ati_filters_json, main_load_candidate_id, route_points_json, cargo_capacity_left_json, refresh_interval_seconds) и обновляет `orchestration_current_command_id`, `orchestration_status`, `orchestration_updated_at`.
+7. Для `failed`/`expired` — `orchestration_status='failed'`, `orchestration_error_code` (agent_timeout при expired).
+8. Для `login_required` — `orchestration_status='waiting_user_login'`, следующая команда НЕ создаётся.
+9. Возвращает UI-safe payload: `{status, next_command_id?, next_command_type?, orchestration_status, orchestration_error_code?}`.
+10. `GRANT EXECUTE ... TO anon, authenticated` (агент вызывает публично, авторизация через token_hash внутри).
 
-RLS: всё через `carrier_my_ext_id()` и `auth.uid()`. Без service_role.
+Также RPC `public.agent_resume_after_ati_login(_token_hash, _search_task_id, _orchestration_run_id)` — атомарно создаёт apply_filters при `waiting_user_login` и совпадении run_id; повторный вызов → `already_processed`.
 
-### 2. Серверный слой (`src/server/edo/`)
+## 2. Public agent callback hook
 
-- `scenarios.server.ts` — CRUD сценариев, `validateScenario` (возвращает errors/warnings), `createDocumentsFromScenario` (заготовки документов по списку required_documents).
-- `epd-readiness.server.ts` — GET/PATCH готовности перевозчика, вычисление `readiness_status`.
-- `goslog.server.ts` — ручная фиксация статуса ГосЛог (без live).
-- `training.server.ts` — start/step/complete; жёсткий `is_training=true`.
-- `scenario-catalog.ts` — справочник 8 сценариев, для каждого: required_documents, signing_plan, участники, риски.
+`src/routes/api/public/agent.ai-dispatcher.$.ts`:
+- В обработчиках `command_completed`/`failed`/`expired` — после сохранения статуса команды вызывает RPC `agent_advance_orchestration_after_command`.
+- Новый action `ati_login_required` → outcome=login_required.
+- Новый action `ati_login_detected` → вызывает `agent_resume_after_ati_login`.
+- Возвращает агенту `{ok:true, next_command:{id,type}?, orchestration_status}` (без dispatcher_id, email, token).
 
-В `saby-actions.server.ts` (`sabyPrepareDocument`) — добавить чтение `scenario_id` документа, вызвать `validateScenario`, в payload передавать `scenario_type`, `forwarder_possession_mode`, `required_documents`, `signing_plan`, `cargo_holder_role`, `goslog_status_snapshot`, `epd_readiness_snapshot`, `is_training`. При наличии критических ошибок — вернуть `{ ok:false, errors }` и НЕ переводить в `prepared`.
+Ленивый advance в `getSearchOrchestrationStatus` остаётся как read-only fallback.
 
-### 3. API (TanStack server routes под `src/routes/api/`)
+## 3. Search Orchestrator server
 
-Перевозчик:
-- `carrier/edo/readiness.ts` (GET/PATCH)
-- `carrier/edo/scenarios.ts` (GET/POST)
-- `carrier/edo/scenarios.$id.ts` (GET/PATCH)
-- `carrier/edo/scenarios.$id.validate.ts` (POST)
-- `carrier/edo/scenarios.$id.create-documents.ts` (POST)
-- `carrier/edo/training.start.ts`, `training.$id.step.ts`, `training.$id.complete.ts`
+`src/server/ai-dispatcher/search-orchestrator.server.ts`:
+- `startSearchOrchestration` создаёт open_ati с полным payload (включая `orchestration_run_id`).
+- `handleCommandCompleted/Failed/Expired`, `handleAtiLoginRequired`, `resumeAfterAtiLogin` становятся тонкими обёртками вокруг RPC (для внутренних вызовов из UI-функций тоже проходят через RPC, чтобы не было двух путей).
+- `pause/stop/retry/getStatus` — без изменений (retry генерирует новый `orchestration_run_id`).
 
-Экспедитор:
-- `forwarder/epd.ts`, `forwarder/goslog-status.ts`, `forwarder/epd.training.start.ts`
+Новый защищённый agent endpoint:
+`GET /api/public/agent/ai-dispatcher/tasks/:id/scheduler-status` — по Bearer token агента, возвращает whitelisted поля: task_id, active, status, orchestration_status, auto_refresh_enabled, refresh_interval_seconds, next_refresh_at, search_mode, should_stop_scheduler.
 
-Диспетчер:
-- `dispatcher/epd/readiness.ts`, `dispatcher/forwarders.goslog-status.ts`, `dispatcher/forwarders.$id.goslog-status.ts`, `dispatcher/carriers.$id.epd-readiness.ts`
+## 4. Browser Agent 0.2.2
 
-### 4. UI
+Версия bumped: `version.ts`, `manifest.json`, `package.json`, popup, build-info, README, MANUAL_TEST_CHECKLIST.
 
-Константы и каталог сценариев — `src/lib/edo/scenarios.ts` (тексты на русском, метки документов, статусы).
+### content.ts
+- Импортирует `detectAtiAuthState` из `ati/detectAuthState.ts`.
+- Обработчики сообщений: `RT_DETECT_ATI_AUTH` → возвращает текущее состояние.
+- MutationObserver с debounce 500ms, шлёт `RT_ATI_AUTH_STATE_CHANGED` только при переходе login_required↔authenticated (кэширует последнее отправленное состояние в модуле).
 
-Компоненты в `src/components/edo/`:
-- `EpdScenarioWizard` (12 шагов, шаг = отдельный sub-component)
-- `EpdScenarioStepParticipants`, `EpdScenarioStepDocuments`, `EpdScenarioStepSigningPlan`
-- `EpdReadinessBadge`, `CarrierEpdReadinessBlock`
-- `ForwarderGoslogBadge`, `ForwarderGoslogBlock`
-- `EpdValidationPanel`, `EpdDocumentTimeline`, `DriverQrMockBlock`, `CargoRemarksBlock`, `EpdTrainingBlock`
+### background.ts
+- При command `open_ati/apply_filters/start_search` перед выполнением вызывает `detectAtiAuthState` в managed tab. Если `login_required` — шлёт callback `ati_login_required`, не выполняет команду.
+- Слушает `RT_ATI_AUTH_STATE_CHANGED` из content; при переходе `→authenticated` и наличии waiting task в storage → шлёт `ati_login_detected` серверу.
+- При успешном `read_visible_loads` (первом) — вызывает `scheduleTaskRefresh` из `search-scheduler.ts`.
+- `chrome.alarms.onAlarm`: `parseAlarmName` → `lockTaskRefresh` (try/finally) → GET scheduler-status → проверки stop-условий → auth check → refresh_page + read_visible_loads → POST loads → scoring → обновляет lastRefreshAt/nextRefreshAt.
+- `restoreOnStart`: `restoreManagedTabs` + `restoreActiveSearchSchedules` + verify через `chrome.tabs.get`.
+- Managed tab protection: закрывает/использует только при `createdByAgent===true` && `searchTaskId===expected`.
 
-Встраивание:
-- `carrier.edo.$id.tsx` — сверху блок «Сценарий ЭПД» + EpdValidationPanel; кнопки Saby оборачиваются проверкой scenario_id.
-- `carrier.edo.tsx` — вкладка/секция «Готовность к ЭПД» + «Тренажёр».
-- `carrier.trips.tsx` (`CarrierTripEdoBlock`) — кнопка «Открыть Мастер ЭПД».
-- `forwarder.tsx` — две секции `/forwarder/epd` и `/forwarder/goslog` (как табы внутри одного маршрута, чтобы не плодить страницы).
-- В карточке перевозчика (`carriers.$carrierId.tsx`) — блок `CarrierEpdReadinessBlock` (read-only для диспетчера + кнопка ручной правки).
+### popup.ts / popup.html
+- Основной блок: версия 0.2.2, статус подключения, статус ATI, активных машин, найдено грузов, подходит, последняя/следующая проверка. Кнопки: «Открыть Радиус Трек», «Открыть ATI», «Диагностика» (toggle details).
+- `<details>Диагностика</details>` — base URL, protocol, ручной pairing, selector config, counters.
 
-Тренажёр — отдельный flow `EpdTrainingBlock` с явным баннером «Учебный режим, документы не отправляются оператору».
+## 5. Pure test modules и тесты
 
-### 5. Saby интеграция
+Новые:
+- `browser-agent/src/shared/scheduler-state.mjs` — normalizeRefresh, shouldStopScheduler(taskStatus), lock helpers контракта.
+- `browser-agent/src/shared/auth-state-transition.mjs` — pure `shouldEmitAuthTransition(prev, next)`.
+- `browser-agent/src/shared/managed-tab-rules.mjs` — `canCloseTab(record, expectedTaskId)`.
 
-`sabyPrepareDocument`:
-1. Загружает doc → ищет `scenario_id`. Если нет — возвращает `{ ok:false, error:"scenario_required" }`.
-2. Зовёт `validateScenario` → если есть `errors` — `{ ok:false, errors }`.
-3. Иначе строит payload + дополнительный `meta.epd_context = { scenario_type, forwarder_possession_mode, ... }`.
+Тесты (`browser-agent/tests/`):
+- `scheduler-state.test.mjs` — сценарии 11–13, 15–20.
+- `auth-state-transition.test.mjs` — сценарии 26–30.
+- `managed-tab-rules.test.mjs` — сценарии 23–25, 31.
+- Дополняем существующий `orchestrator-transitions.test.mjs` сценариями 1–10 (в pure форме, симулируя in-memory state machine — RPC как таковой не тестируется через node:test).
 
-`sabySendDocument` — блокируется тем же чеком; для `is_training=true` документов отправка явно запрещена.
+## 6. Simple UI
 
-### 6. Что НЕ делаем (явные ограничения)
+Минимальные изменения в `SimpleAgentPanel.tsx` / `SearchProgressBlock.tsx`:
+- Новые статусы: «Нужно войти в ATI», «Продолжаю поиск», «Соединение восстановлено», «Последняя проверка HH:MM», «Следующая проверка HH:MM».
+- Никаких command_id/run_id в основном UI.
 
-- Реальной подписи КЭП/МЧД/Госключ нет.
-- Live HTTP в Saby/1С/ГосЛог нет.
-- QR — mock UID с пометкой «тестовый».
-- Парсинг сайтов не делаем.
-- Логины Госуслуг и закрытые ключи нигде не хранятся.
-- Никаких VPS/nginx/PM2.
+## 7. Packaging
 
-### 7. Проверка
+`browser-agent/scripts/package-extension.mjs` → `browser-agent/packaged/radius-track-agent-0.2.2.zip`. Архивы 0.2.0 и 0.2.1 сохраняются.
 
-`npx tsc --noEmit` в конце. Проверяю, что старые страницы (carrier.edo.$id, carrier.trips, forwarder, dispatcher) открываются и mock Saby не сломан.
+## 8. Verification
 
-### Технические детали
+- `bunx tsgo --noEmit`
+- `cd browser-agent && npm run typecheck && npm run build && npm test && npm run package`
+- Проверка dist/ (background.js, content.js, web-bridge.js, popup.js, manifest.json v0.2.2, icons).
 
-- Все серверные модули — через `resolveCarrierCtx` (user-client + RLS).
-- `*.server.ts` импортируется только внутри API-роутов; UI ничего серверного не тянет.
-- `process.env.*` — только внутри handler'ов.
-- `carrier_my_ext_id()` RPC переиспользуем.
-- Для forwarder/dispatcher API — новые helpers `resolveForwarderCtx`, `resolveDispatcherCtx` (минимальные, по аналогии).
-- В новых таблицах — `update_updated_at_column` триггер.
+## Технические детали
 
-### Объём
+**RPC не использует service_role** — SECURITY DEFINER с `search_path = public`, авторизация по `token_hash` (sha256 от agent_token, hash уже хранится в `ai_dispatch_agent_sessions.token_hash`).
 
-Примерно: 1 миграция, ~6 серверных модулей, ~15 API-роутов, ~13 UI-компонентов, изменения в 5-6 существующих файлах. Один пакет.
+**Идемпотентность**: атомарность гарантируется `FOR UPDATE` на search_task + проверкой `orchestration_current_command_id`. Второй одновременный callback увидит уже обновлённый current_command_id и вернёт `already_processed`.
 
-### На следующий этап остаётся
+**Managed tab safety**: `createdByAgent` в storage — никогда не закрываем/используем tabs без этой пометки.
 
-- Реальная live-интеграция Saby (HTTP, OAuth).
-- Реальный 1С-коннектор.
-- Реальная подпись КЭП/Госключ/МЧД.
-- Реальный QR ГИС ЭПД.
-- Live-проверка ГосЛог по официальному API.
+**Missing candidates safety**: scheduler вызывает POST /loads только после успешного extraction + authenticated + распознанной страницы ATI.
+
+## Область, которую не трогаем
+
+`src/lib/edo/*`, кабинеты carrier/driver/forwarder, карта/GPS, очередь звонков, ЭПД/ЭДО, `src/integrations/supabase/client.ts`, `types.ts` (регенерируется автоматически после миграции).
+
+## Что останется на ручную проверку
+
+- Реальные селекторы ATI (форма фильтров, кнопка поиска, список грузов, user-menu) — проверяются вручную на установленном 0.2.2 против живой ATI по `MANUAL_TEST_CHECKLIST.md`.
+- Наблюдение за таймингом minute-cycle scheduler при закрытой вкладке Radius Track.
