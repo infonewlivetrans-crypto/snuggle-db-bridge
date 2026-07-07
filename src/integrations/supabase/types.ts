@@ -8832,6 +8832,16 @@ export type Database = {
           status: string
         }[]
       }
+      agent_advance_orchestration_after_command: {
+        Args: {
+          _command_id: string
+          _error_message?: string
+          _outcome: string
+          _result_json?: Json
+          _token_hash: string
+        }
+        Returns: Json
+      }
       agent_complete_command: {
         Args: { _command_id: string; _result: Json; _token_hash: string }
         Returns: undefined
@@ -8970,6 +8980,14 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      agent_resume_after_ati_login: {
+        Args: {
+          _orchestration_run_id: string
+          _search_task_id: string
+          _token_hash: string
+        }
+        Returns: Json
       }
       agent_update_candidate_scoring: {
         Args: {
