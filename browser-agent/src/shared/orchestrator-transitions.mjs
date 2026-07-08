@@ -44,6 +44,18 @@ export function containsSensitiveFields(obj) {
   const json = JSON.stringify(obj).toLowerCase();
   return forbidden.some((f) => json.includes(f));
 }
+export function isTerminalOrchestrationStatus(status) {
+  if (!status) return false;
+  return ["failed", "stopped", "suitable_found"].includes(status);
+}
+export function isActiveOrchestrationStatus(status) {
+  if (!status) return false;
+  return [
+    "checking_agent", "creating_task", "opening_ati",
+    "applying_filters", "starting_search", "waiting_results",
+    "reading_loads", "scoring", "searching",
+  ].includes(status);
+}
 export function normalizeRefreshIntervalSeconds(v) {
   const n = Number(v ?? 60);
   if (!Number.isFinite(n) || n < 60) return 60;

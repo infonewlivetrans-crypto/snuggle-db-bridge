@@ -83,6 +83,22 @@ export function containsSensitiveFields(obj: unknown): boolean {
   return forbidden.some((f) => json.includes(f));
 }
 
+/** Терминальные (не активные) статусы оркестрации. */
+export function isTerminalOrchestrationStatus(status: OrchestrationStatus | null | undefined): boolean {
+  if (!status) return false;
+  return ["failed", "stopped", "suitable_found"].includes(status);
+}
+
+/** Активные (движущиеся) статусы. */
+export function isActiveOrchestrationStatus(status: OrchestrationStatus | null | undefined): boolean {
+  if (!status) return false;
+  return [
+    "checking_agent", "creating_task", "opening_ati",
+    "applying_filters", "starting_search", "waiting_results",
+    "reading_loads", "scoring", "searching",
+  ].includes(status);
+}
+
 /** Нормализация интервала refresh — не чаще 60 секунд. */
 export function normalizeRefreshIntervalSeconds(v: number | null | undefined): number {
   const n = Number(v ?? 60);

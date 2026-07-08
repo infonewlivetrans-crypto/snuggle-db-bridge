@@ -7,7 +7,26 @@ import {
   mapOrchestrationStatusToSimpleStage,
   containsSensitiveFields,
   normalizeRefreshIntervalSeconds,
+  isTerminalOrchestrationStatus,
+  isActiveOrchestrationStatus,
 } from "../src/shared/orchestrator-transitions.mjs";
+
+test("isTerminal: failed/stopped/suitable_found", () => {
+  for (const s of ["failed", "stopped", "suitable_found"]) {
+    assert.equal(isTerminalOrchestrationStatus(s), true, s);
+  }
+  assert.equal(isTerminalOrchestrationStatus("searching"), false);
+  assert.equal(isTerminalOrchestrationStatus(null), false);
+});
+
+test("isActive: active states", () => {
+  for (const s of ["opening_ati", "applying_filters", "starting_search", "waiting_results", "reading_loads", "scoring", "searching"]) {
+    assert.equal(isActiveOrchestrationStatus(s), true, s);
+  }
+  assert.equal(isActiveOrchestrationStatus("paused"), false);
+  assert.equal(isActiveOrchestrationStatus("waiting_user_login"), false);
+});
+
 
 test("open_ati → apply_filters", () => {
   const n = getNextOrchestrationStep("open_ati");

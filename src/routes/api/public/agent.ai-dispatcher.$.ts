@@ -119,6 +119,47 @@ async function handlePoll(request: Request): Promise<Response> {
   return jsonResponse({ commands: data ?? [] });
 }
 
+// Sanitize RPC advance result before returning to agent.
+// Whitelist только UI-safe поля; никаких токенов, dispatcher_id, SQL-текстов.
+function sanitizeAdvanceResult(raw: unknown): Record<string, unknown> {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const status = typeof r.status === "string" ? r.status : "unknown";
+  const orchestration_status = typeof r.orchestration_status === "string" ? r.orchestration_status : null;
+  const next_command_type = typeof r.next_command_type === "string" ? r.next_command_type : null;
+  const next_command_id = typeof r.next_command_id === "string" ? r.next_command_id : null;
+  const orchestration_error_code = typeof r.orchestration_error_code === "string" ? r.orchestration_error_code : null;
+  return {
+    advance_status: status,
+    already_processed: status === "already_processed",
+    stale_ignored: status === "stale_ignored",
+    orchestration_status,
+    next_command_created: !!next_command_id,
+    next_command_type,
+    next_command_id,
+    orchestration_error_code,
+  };
+}
+
+async function advanceOrchestrationSafely(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  c: any, tokenHash: string, commandId: string, outcome: string,
+  resultJson: unknown, errorMessage: string | null,
+): Promise<Record<string, unknown>> {
+  try {
+    const { data, error } = await c.rpc("agent_advance_orchestration_after_command", {
+      _token_hash: tokenHash,
+      _command_id: commandId,
+      _outcome: outcome,
+      _result_json: resultJson ?? {},
+      _error_message: errorMessage,
+    });
+    if (error) return { advance_status: "error", already_processed: false, orchestration_status: null };
+    return sanitizeAdvanceResult(data);
+  } catch {
+    return { advance_status: "error", already_processed: false, orchestration_status: null };
+  }
+}
+
 async function handleCommandAction(
   request: Request, action: "ack" | "complete" | "fail", commandId: string,
 ): Promise<Response> {
@@ -132,21 +173,73 @@ async function handleCommandAction(
     const { error } = await c.rpc("agent_ack_command", {
       _token_hash: auth.tokenHash, _command_id: commandId,
     });
-    if (error) return jsonResponse({ error: error.message }, { status: 400 });
-  } else if (action === "complete") {
+    if (error) return jsonResponse({ error: "ack_failed" }, { status: 400 });
+    return jsonResponse({ ok: true });
+  }
+  if (action === "complete") {
     const { error } = await c.rpc("agent_complete_command", {
       _token_hash: auth.tokenHash, _command_id: commandId, _result: body?.result_json ?? {},
     });
-    if (error) return jsonResponse({ error: error.message }, { status: 400 });
-  } else {
-    const { error } = await c.rpc("agent_fail_command", {
-      _token_hash: auth.tokenHash, _command_id: commandId,
-      _error: String(body?.error_message ?? "unknown"), _result: body?.result_json ?? null,
-    });
-    if (error) return jsonResponse({ error: error.message }, { status: 400 });
+    if (error) return jsonResponse({ error: "complete_failed" }, { status: 400 });
+    const advance = await advanceOrchestrationSafely(
+      c, auth.tokenHash, commandId, "completed", body?.result_json ?? {}, null,
+    );
+    return jsonResponse({ ok: true, ...advance });
   }
-  return jsonResponse({ ok: true });
+  // action === "fail" — поддерживаем sub-outcome через body.outcome
+  const rawOutcome = String(body?.outcome ?? "failed").toLowerCase();
+  const outcome = ["failed", "expired", "cancelled", "login_required"].includes(rawOutcome)
+    ? rawOutcome : "failed";
+  const errMsg = String(body?.error_message ?? (outcome === "expired" ? "agent_timeout" : "unknown"));
+  const { error } = await c.rpc("agent_fail_command", {
+    _token_hash: auth.tokenHash, _command_id: commandId,
+    _error: errMsg, _result: body?.result_json ?? null,
+  });
+  if (error) return jsonResponse({ error: "fail_failed" }, { status: 400 });
+  const advance = await advanceOrchestrationSafely(
+    c, auth.tokenHash, commandId, outcome, body?.result_json ?? null, errMsg,
+  );
+  return jsonResponse({ ok: true, ...advance });
 }
+
+async function handleLoginDetected(request: Request): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const searchTaskId = String(body?.search_task_id ?? "").trim();
+  const runId = String(body?.orchestration_run_id ?? "").trim();
+  if (!searchTaskId || !runId) {
+    return jsonResponse({ error: "missing_params" }, { status: 400 });
+  }
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  try {
+    const { data, error } = await c.rpc("agent_resume_after_ati_login", {
+      _token_hash: auth.tokenHash,
+      _search_task_id: searchTaskId,
+      _orchestration_run_id: runId,
+    });
+    if (error) return jsonResponse({ ok: false, error: "resume_failed" }, { status: 400 });
+    const sanitized = sanitizeAdvanceResult(data);
+    // Лог события (без токенов/dispatcher_id)
+    await c.rpc("agent_log_event", {
+      _token_hash: auth.tokenHash,
+      _event_type: sanitized.advance_status === "ok" ? "ati_login_detected" : "atomic_orchestration_duplicate_ignored",
+      _message: sanitized.advance_status === "ok" ? "Вход в ATI обнаружен" : "Повторное событие login_detected",
+      _search_task_id: searchTaskId,
+      _candidate_id: null,
+      _payload: {
+        advance_status: sanitized.advance_status,
+        orchestration_status: sanitized.orchestration_status,
+      },
+    });
+    return jsonResponse({ ok: true, ...sanitized });
+  } catch {
+    return jsonResponse({ ok: false, error: "resume_failed" }, { status: 400 });
+  }
+}
+
 
 async function handleEvents(request: Request): Promise<Response> {
   const auth = await requireAgentToken(request);
@@ -417,8 +510,11 @@ async function router(request: Request, splat: string): Promise<Response> {
   if (head === "tabs" && method === "POST") return handleTabs(request);
   // /loads
   if (head === "loads" && method === "POST") return handleLoads(request);
+  // /login-detected — atomic resume после ручного входа в ATI
+  if (head === "login-detected" && method === "POST") return handleLoginDetected(request);
   // /call-queue/:candidate_id
   if (head === "call-queue" && mid && method === "POST") return handleCallQueueAdd(request, mid);
+
 
   return jsonResponse({
     error: "unknown_agent_endpoint",
