@@ -510,8 +510,11 @@ async function router(request: Request, splat: string): Promise<Response> {
   if (head === "tabs" && method === "POST") return handleTabs(request);
   // /loads
   if (head === "loads" && method === "POST") return handleLoads(request);
+  // /login-detected — atomic resume после ручного входа в ATI
+  if (head === "login-detected" && method === "POST") return handleLoginDetected(request);
   // /call-queue/:candidate_id
   if (head === "call-queue" && mid && method === "POST") return handleCallQueueAdd(request, mid);
+
 
   return jsonResponse({
     error: "unknown_agent_endpoint",
