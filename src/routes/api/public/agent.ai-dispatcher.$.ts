@@ -482,6 +482,38 @@ async function handleSessionHealth(request: Request): Promise<Response> {
   });
 }
 
+async function handleSchedulerStatus(request: Request, taskId: string): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  if (!taskId) return jsonResponse({ error: "missing_task_id" }, { status: 400 });
+  const rpc = makeAnonClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c: any = rpc;
+  const { data, error } = await c
+    .from("ai_dispatch_search_tasks")
+    .select("id, dispatcher_id, status, orchestration_status, auto_refresh_enabled, refresh_interval_seconds, search_mode")
+    .eq("id", taskId)
+    .maybeSingle();
+  if (error || !data) return jsonResponse({ error: "task_not_found" }, { status: 404 });
+  if (data.dispatcher_id !== auth.dispatcherId) {
+    return jsonResponse({ error: "forbidden" }, { status: 403 });
+  }
+  const stopStatuses = new Set([
+    "paused", "stopped", "failed", "confirmed", "deal_created", "suitable_found",
+  ]);
+  const should_stop = stopStatuses.has(String(data.status));
+  return jsonResponse({
+    task_id: data.id,
+    active: !should_stop && Boolean(data.auto_refresh_enabled ?? true),
+    task_status: data.status ?? null,
+    orchestration_status: data.orchestration_status ?? null,
+    auto_refresh_enabled: Boolean(data.auto_refresh_enabled ?? true),
+    refresh_interval_seconds: Math.max(60, Number(data.refresh_interval_seconds ?? 60)),
+    search_mode: data.search_mode ?? null,
+    should_stop_scheduler: should_stop,
+  });
+}
+
 async function router(request: Request, splat: string): Promise<Response> {
   const method = request.method.toUpperCase();
   const parts = splat.split("/").filter(Boolean);
