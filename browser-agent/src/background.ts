@@ -622,6 +622,26 @@ async function restoreOnStart(): Promise<void> {
       return;
     }
     void heartbeat();
+    // Восстанавливаем schedules и события agent_state_restored.
+    try {
+      await restoreActiveSearchSchedules();
+      const tasks = await getScheduledTasks();
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{
+          event_type: "agent_state_restored",
+          payload: { schedules: tasks.length },
+        }] }),
+      }).catch(() => undefined);
+      for (const t of tasks) {
+        await api("/api/public/agent/ai-dispatcher/events", {
+          method: "POST",
+          body: JSON.stringify({ events: [{
+            event_type: "scheduler_restored", search_task_id: t.searchTaskId,
+          }] }),
+        }).catch(() => undefined);
+      }
+    } catch { /* ignore restore errors */ }
   } catch { /* offline — оставляем token */ }
 }
 
