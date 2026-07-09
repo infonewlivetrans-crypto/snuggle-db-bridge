@@ -2,7 +2,7 @@
 // НЕ дублировать эти константы в других файлах — импортировать отсюда.
 // BUILD_DATE подставляется esbuild define при сборке.
 
-export const AGENT_VERSION = "0.2.1";
+export const AGENT_VERSION = "0.2.2";
 export const AGENT_PROTOCOL_VERSION = "1";
 export const ATI_SELECTOR_CONFIG_VERSION = "dev-1";
 export const BUILD_CHANNEL: "dev" | "beta" | "stable" = "dev";

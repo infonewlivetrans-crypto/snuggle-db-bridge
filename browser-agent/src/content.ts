@@ -10,10 +10,52 @@ import { showOverlay, hideOverlay } from "./ati/agentOverlay";
 import { applySearchFilters, type AtiFilters } from "./ati/applySearchFilters";
 import { collectFormDiagnostics } from "./ati/formDiagnostics";
 import type { BgToContentMessage, ContentToBgMessage } from "./ati/contentMessages";
+import { detectAtiAuthState, type AtiAuthState } from "./ati/detectAuthState";
+import {
+  normalizeAuthState, shouldEmitLoginRequired, shouldEmitLoginDetected,
+} from "./shared/auth-state-transition.mjs";
 
-function send(msg: ContentToBgMessage): void {
+function send(msg: ContentToBgMessage | Record<string, unknown>): void {
   try { (chrome as unknown as { runtime: { sendMessage: (m: unknown) => void } })
     .runtime.sendMessage(msg); } catch { /* ignore */ }
+}
+
+let lastAuthState: AtiAuthState = "unknown";
+let authDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function safePageUrl(): string {
+  try {
+    const u = new URL(location.href);
+    // Отбрасываем query — там могут быть чувствительные параметры
+    return `${u.origin}${u.pathname}`;
+  } catch { return ""; }
+}
+
+function checkAuthAndEmit(): void {
+  const det = detectAtiAuthState();
+  const prev = lastAuthState;
+  const curr = normalizeAuthState(det.status) as AtiAuthState;
+  if (curr === prev) return;
+  const emitLogin = shouldEmitLoginRequired(prev, curr);
+  const emitDetected = shouldEmitLoginDetected(prev, curr);
+  lastAuthState = curr;
+  if (!emitLogin && !emitDetected && curr === "unknown") return;
+  send({
+    type: "RT_ATI_AUTH_STATE_CHANGED",
+    previousState: prev,
+    currentState: curr,
+    strategy: det.strategy ?? null,
+    confidence: det.confidence ?? null,
+    pageUrl: safePageUrl(),
+    detectedAt: new Date().toISOString(),
+    emitLoginRequired: emitLogin,
+    emitLoginDetected: emitDetected,
+  });
+}
+
+function scheduleAuthCheck(): void {
+  if (authDebounceTimer) clearTimeout(authDebounceTimer);
+  authDebounceTimer = setTimeout(() => { authDebounceTimer = null; checkAuthAndEmit(); }, 700);
 }
 
 
@@ -84,29 +126,36 @@ function handleFocus(hint: {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-(chrome as any).runtime.onMessage.addListener((msg: BgToContentMessage, _s: unknown, respond: (r: unknown) => void) => {
+(chrome as any).runtime.onMessage.addListener((msg: BgToContentMessage | { type: string }, _s: unknown, respond: (r: unknown) => void) => {
   try {
     if (!msg || typeof msg !== "object") return;
-    switch (msg.type) {
+    // Auth detection запрос
+    if ((msg as { type: string }).type === "RT_DETECT_ATI_AUTH") {
+      const det = detectAtiAuthState();
+      lastAuthState = normalizeAuthState(det.status) as AtiAuthState;
+      respond({ ok: true, status: det.status, strategy: det.strategy, confidence: det.confidence });
+      return;
+    }
+    switch ((msg as BgToContentMessage).type) {
       case "RT_READ_VISIBLE_LOADS": handleRead(); respond({ ok: true }); return;
       case "RT_HIGHLIGHT_LOADS": {
-        const n = applyHighlights(msg.scores ?? []);
+        const n = applyHighlights((msg as { scores?: unknown[] }).scores as never ?? []);
         respond({ ok: true, applied: n });
         return;
       }
       case "RT_CLEAR_HIGHLIGHTS": clearHighlights(); respond({ ok: true }); return;
-      case "RT_FOCUS_LOAD": handleFocus(msg.hint ?? {}); respond({ ok: true }); return;
+      case "RT_FOCUS_LOAD": handleFocus((msg as { hint?: Record<string, unknown> }).hint ?? {}); respond({ ok: true }); return;
       case "RT_APPLY_FILTERS": {
-        const r = applySearchFilters((msg.filters ?? {}) as AtiFilters);
+        const r = applySearchFilters(((msg as { filters?: unknown }).filters ?? {}) as AtiFilters);
         respond({ ok: r.success, result: r }); return;
       }
       case "RT_DIAGNOSTICS": respond({ ok: true, diagnostics: collectFormDiagnostics() }); return;
       case "RT_SHOW_OVERLAY":
         showOverlay(
           {
-            sent_count: msg.state?.sent,
-            suitable_count: msg.state?.suitable,
-            task_id: msg.state?.task_id ?? null,
+            sent_count: (msg as { state?: { sent?: number } }).state?.sent,
+            suitable_count: (msg as { state?: { suitable?: number } }).state?.suitable,
+            task_id: (msg as { state?: { task_id?: string } }).state?.task_id ?? null,
           },
           (a) => {
             if (a === "hide") { hideOverlay(); return; }
@@ -124,11 +173,21 @@ function handleFocus(hint: {
   }
 });
 
-// Автоматически покажем маленькую панель только на выдаче.
+// Автоматически покажем маленькую панель только на выдаче + запустим auth observer.
 try {
   const page = detectPage();
   if (page.isLoadsSearchPage) showOverlay({ task_id: null });
+  if (page.isAtiPage) {
+    // initial detection
+    lastAuthState = normalizeAuthState(detectAtiAuthState().status) as AtiAuthState;
+    // Observer с debounce: не читаем формы/пароли, только смотрим на изменения DOM.
+    const observer = new MutationObserver(() => scheduleAuthCheck());
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    // Первый актуальный emit после загрузки
+    scheduleAuthCheck();
+  }
 } catch { /* ignore */ }
 
 console.log("[radius-track-agent] content loaded");
 export {};
+
