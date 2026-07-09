@@ -143,3 +143,8 @@ $("mock").addEventListener("click", async () => {
 
 refresh();
 setInterval(refresh, 5000);
+
+const openAtiBtn = document.getElementById("openAti");
+if (openAtiBtn) openAtiBtn.addEventListener("click", () => {
+  chrome.tabs.create({ url: "https://ati.su/loads/" });
+});
