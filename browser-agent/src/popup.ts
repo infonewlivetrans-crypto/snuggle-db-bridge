@@ -30,6 +30,8 @@ interface StatusResp {
   rt_last_read_at?: string;
   rt_current_task_id?: string;
   rt_base_url?: string;
+  rt_next_refresh_at?: string;
+  rt_waiting_login_tasks_v1?: string;
 }
 
 $("verSub").textContent = `v${AGENT_VERSION} · protocol ${AGENT_PROTOCOL_VERSION} · ${BUILD_CHANNEL}`;
