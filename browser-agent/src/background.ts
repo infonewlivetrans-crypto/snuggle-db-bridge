@@ -149,10 +149,35 @@ async function complete(id: string, result: Record<string, unknown>) {
     method: "POST", body: JSON.stringify({ result_json: result }),
   });
 }
-async function fail(id: string, error: string) {
+async function fail(id: string, error: string, outcome: "failed" | "expired" | "cancelled" | "login_required" = "failed") {
   await api(`/api/public/agent/ai-dispatcher/commands/${id}/fail`, {
-    method: "POST", body: JSON.stringify({ error_message: error }),
+    method: "POST", body: JSON.stringify({ error_message: error, outcome }),
   });
+}
+
+// ---------- Auth check ----------
+type AuthStatus = "authenticated" | "login_required" | "unknown";
+async function checkAtiAuth(tabId: number): Promise<AuthStatus> {
+  const res = await sendToContent<{ ok?: boolean; status?: AuthStatus }>(
+    tabId, { type: "RT_DETECT_ATI_AUTH" },
+  );
+  const s = res?.status;
+  if (s === "authenticated" || s === "login_required" || s === "unknown") return s;
+  return "unknown";
+}
+
+const AUTH_REQUIRED_COMMANDS = new Set([
+  "apply_filters", "start_search", "read_visible_loads", "refresh_page",
+]);
+
+async function getSchedulerStatus(taskId: string): Promise<{
+  active?: boolean; task_status?: string; orchestration_status?: string;
+  auto_refresh_enabled?: boolean; refresh_interval_seconds?: number;
+  should_stop_scheduler?: boolean; search_mode?: string;
+} | null> {
+  try {
+    return await api(`/api/public/agent/ai-dispatcher/tasks/${encodeURIComponent(taskId)}/scheduler-status`);
+  } catch { return null; }
 }
 
 interface LoadsResp {
