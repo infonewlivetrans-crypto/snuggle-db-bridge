@@ -10,10 +10,52 @@ import { showOverlay, hideOverlay } from "./ati/agentOverlay";
 import { applySearchFilters, type AtiFilters } from "./ati/applySearchFilters";
 import { collectFormDiagnostics } from "./ati/formDiagnostics";
 import type { BgToContentMessage, ContentToBgMessage } from "./ati/contentMessages";
+import { detectAtiAuthState, type AtiAuthState } from "./ati/detectAuthState";
+import {
+  normalizeAuthState, shouldEmitLoginRequired, shouldEmitLoginDetected,
+} from "./shared/auth-state-transition.mjs";
 
-function send(msg: ContentToBgMessage): void {
+function send(msg: ContentToBgMessage | Record<string, unknown>): void {
   try { (chrome as unknown as { runtime: { sendMessage: (m: unknown) => void } })
     .runtime.sendMessage(msg); } catch { /* ignore */ }
+}
+
+let lastAuthState: AtiAuthState = "unknown";
+let authDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function safePageUrl(): string {
+  try {
+    const u = new URL(location.href);
+    // Отбрасываем query — там могут быть чувствительные параметры
+    return `${u.origin}${u.pathname}`;
+  } catch { return ""; }
+}
+
+function checkAuthAndEmit(): void {
+  const det = detectAtiAuthState();
+  const prev = lastAuthState;
+  const curr = normalizeAuthState(det.status) as AtiAuthState;
+  if (curr === prev) return;
+  const emitLogin = shouldEmitLoginRequired(prev, curr);
+  const emitDetected = shouldEmitLoginDetected(prev, curr);
+  lastAuthState = curr;
+  if (!emitLogin && !emitDetected && curr === "unknown") return;
+  send({
+    type: "RT_ATI_AUTH_STATE_CHANGED",
+    previousState: prev,
+    currentState: curr,
+    strategy: det.strategy ?? null,
+    confidence: det.confidence ?? null,
+    pageUrl: safePageUrl(),
+    detectedAt: new Date().toISOString(),
+    emitLoginRequired: emitLogin,
+    emitLoginDetected: emitDetected,
+  });
+}
+
+function scheduleAuthCheck(): void {
+  if (authDebounceTimer) clearTimeout(authDebounceTimer);
+  authDebounceTimer = setTimeout(() => { authDebounceTimer = null; checkAuthAndEmit(); }, 700);
 }
 
 
