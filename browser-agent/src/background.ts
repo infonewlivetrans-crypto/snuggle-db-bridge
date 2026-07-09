@@ -655,6 +655,24 @@ void restoreOnStart();
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     try {
+      // Auth state change из content script — единственный источник login-detected.
+      if (msg?.type === "RT_ATI_AUTH_STATE_CHANGED") {
+        const senderTabId = sender?.tab?.id;
+        if (msg.emitLoginDetected && senderTabId) {
+          const map = await readWaitingLogin();
+          const waiting = Object.values(map).find((w) => w.managedTabId === senderTabId)
+            ?? Object.values(map)[0];
+          if (waiting) await processLoginDetected(waiting);
+        }
+        if (msg.emitLoginRequired && senderTabId) {
+          // Обновим lastAuthState для соответствующей записи.
+          const map = await readWaitingLogin();
+          const w = Object.values(map).find((x) => x.managedTabId === senderTabId);
+          if (w) { w.lastAuthState = "login_required"; await upsertWaitingLogin(w); }
+        }
+        sendResponse({ ok: true });
+        return;
+      }
       if (msg?.type === "rt/bridge") {
         const senderOrigin = String(msg.origin ?? sender?.origin ?? sender?.url ?? "");
         const out = await handleBridgeMessage(
