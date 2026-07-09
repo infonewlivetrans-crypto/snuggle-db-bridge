@@ -546,6 +546,11 @@ async function router(request: Request, splat: string): Promise<Response> {
   if (head === "login-detected" && method === "POST") return handleLoginDetected(request);
   // /call-queue/:candidate_id
   if (head === "call-queue" && mid && method === "POST") return handleCallQueueAdd(request, mid);
+  // /tasks/:id/scheduler-status — UI-safe статус для background scheduler
+  if (head === "tasks" && mid && tail === "scheduler-status" && method === "GET") {
+    return handleSchedulerStatus(request, mid);
+  }
+
 
 
   return jsonResponse({
