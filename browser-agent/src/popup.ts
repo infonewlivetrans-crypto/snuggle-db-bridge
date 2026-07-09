@@ -61,15 +61,30 @@ function renderMeta(): void {
 async function refresh(): Promise<void> {
   const s = await send<StatusResp>({ type: "rt/status" });
   const connected = Boolean(s?.rt_agent_token);
-  $("status").innerHTML = connected
-    ? `<span class="ok">Paired · токен активен</span><br/>session: ${s.rt_session_id || "?"}<br/>heartbeat: ${fmt(s.rt_last_heartbeat)}${s.rt_last_error ? `<br/><span class="err">${s.rt_last_error}</span>` : ""}`
-    : `<span class="muted">Not paired</span>`;
+  let waiting = 0;
+  try {
+    const raw = s?.rt_waiting_login_tasks_v1;
+    if (raw) waiting = Object.keys(JSON.parse(raw)).length;
+  } catch { /* ignore */ }
+  let statusLabel = "Не подключён";
+  if (connected) {
+    if (waiting > 0) statusLabel = "Нужно войти в ATI";
+    else if (s?.rt_last_read_at) statusLabel = "Идёт поиск";
+    else statusLabel = "Готов";
+  }
+  const cls = connected ? (waiting > 0 ? "err" : "ok") : "muted";
+  $("status").innerHTML = `<span class="${cls}">${statusLabel}</span>`
+    + (s?.rt_last_error ? `<br/><span class="err">${s.rt_last_error}</span>` : "");
   const visible = s?.rt_last_visible_count ?? "—";
   const sent = s?.rt_last_sent_count ?? "—";
   const suitable = s?.rt_last_suitable_count ?? "—";
   const at = s?.rt_last_read_at ? fmt(s.rt_last_read_at) : "—";
-  const task = s?.rt_current_task_id ?? "—";
-  $("live").innerHTML = `Задача: ${task}<br/>Видно: <b>${visible}</b> · Отправлено: <b>${sent}</b> · Подходит: <b>${suitable}</b><br/>Последнее чтение: ${at}`;
+  const nextAt = s?.rt_next_refresh_at ? fmt(s.rt_next_refresh_at) : "—";
+  $("live").innerHTML = `Активных задач: <b>${s?.rt_current_task_id ? 1 : 0}</b>`
+    + ` · Найдено: <b>${visible}</b> · Подходит: <b>${suitable}</b>`
+    + `<br/>Отправлено: <b>${sent}</b>`
+    + `<br/>Последняя проверка: ${at}`
+    + `<br/>Следующая проверка: ${nextAt}`;
   if (s?.rt_base_url) ($("baseUrl") as HTMLInputElement).value = s.rt_base_url;
   renderMeta();
 }
