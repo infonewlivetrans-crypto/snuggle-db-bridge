@@ -228,16 +228,57 @@ async function readAndSubmitVisibleLoads(taskId: string): Promise<{ visible: num
 async function handleCommand(c: AgentCommand): Promise<void> {
   await ack(c.id);
   if (c.search_task_id) await writeStorage({ [STORAGE_KEYS.currentTaskId]: c.search_task_id });
+  const runId = String((c.command_payload_json as Record<string, unknown> | undefined)?.orchestration_run_id ?? "") || null;
   try {
+    // Auth gate для команд, требующих активной ATI-сессии
+    if (AUTH_REQUIRED_COMMANDS.has(c.command_type)) {
+      let tab = await findAtiTab();
+      if (!tab?.id && c.command_type === "refresh_page") {
+        throw new Error("no_ati_tab");
+      }
+      if (tab?.id) {
+        const auth = await checkAtiAuth(tab.id);
+        if (auth === "login_required") {
+          if (c.search_task_id) {
+            await upsertWaitingLogin({
+              searchTaskId: c.search_task_id,
+              orchestrationRunId: runId,
+              managedTabId: tab.id,
+              waitingSince: new Date().toISOString(),
+              lastAuthState: "login_required",
+              loginDetectedSent: false,
+              createdByAgent: true,
+            });
+          }
+          await fail(c.id, "ati_login_required", "login_required");
+          return;
+        }
+        if (auth === "unknown") {
+          await fail(c.id, "auth_state_unknown");
+          return;
+        }
+      }
+    }
     if (c.command_type === "open_ati") {
-      await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
-      await complete(c.id, { opened: true });
+      const created = await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      if (c.search_task_id && created?.id) {
+        // Сохраним связку task ↔ tab, чтобы scheduler мог её найти.
+        await upsertWaitingLogin({
+          searchTaskId: c.search_task_id,
+          orchestrationRunId: runId,
+          managedTabId: created.id,
+          waitingSince: new Date().toISOString(),
+          lastAuthState: "unknown",
+          loginDetectedSent: false,
+          createdByAgent: true,
+        });
+      }
+      await complete(c.id, { opened: true, tab_id: created?.id ?? null });
       return;
     }
     if (c.command_type === "refresh_page") {
       const tab = await findAtiTab();
       if (tab?.id) await chrome.tabs.reload(tab.id);
-      // После reload — небольшая задержка и чтение.
       if (tab?.id && c.search_task_id) {
         await new Promise((r) => setTimeout(r, 2500));
         const r = await readAndSubmitVisibleLoads(c.search_task_id);
@@ -251,6 +292,30 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       if (!c.search_task_id) throw new Error("missing_search_task_id");
       const r = await readAndSubmitVisibleLoads(c.search_task_id);
       await complete(c.id, r);
+      // После первого успешного чтения включаем фоновый scheduler.
+      if (r.sent > 0 || r.visible > 0) {
+        const tab = await findAtiTab();
+        await scheduleTaskRefresh({
+          searchTaskId: c.search_task_id,
+          managedTabId: tab?.id ?? null,
+          taskMode: "search",
+          refreshIntervalSeconds: 60,
+          orchestrationRunId: runId,
+          createdByAgent: true,
+          enabled: true,
+        });
+        await writeStorage({
+          [STORAGE_KEYS.nextRefreshAt]: new Date(Date.now() + 60_000).toISOString(),
+        });
+        await api("/api/public/agent/ai-dispatcher/events", {
+          method: "POST",
+          body: JSON.stringify({ events: [{
+            event_type: "scheduler_started",
+            search_task_id: c.search_task_id,
+            payload: { interval_sec: 60, run_id: runId },
+          }] }),
+        }).catch(() => undefined);
+      }
       return;
     }
     if (c.command_type === "focus_candidate") {
@@ -270,9 +335,21 @@ async function handleCommand(c: AgentCommand): Promise<void> {
     if (c.command_type === "apply_filters") {
       const tab = await findAtiTab();
       if (!tab?.id) throw new Error("no_ati_tab");
-      const filters = (c.command_payload_json?.filters ?? c.command_payload_json ?? {}) as Record<string, unknown>;
+      const payload = (c.command_payload_json ?? {}) as Record<string, unknown>;
+      const filters = (payload.filters ?? payload) as Record<string, unknown>;
       const res = await sendToContent<{ ok?: boolean; result?: unknown }>(tab.id, { type: "RT_APPLY_FILTERS", filters });
       await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null });
+      return;
+    }
+    if (c.command_type === "start_search") {
+      // Заглушка: пользователь запускает поиск на ATI сам после apply_filters.
+      // Успешный complete нужен, чтобы orchestrator продвинулся к read_visible_loads.
+      await complete(c.id, { started: true });
+      return;
+    }
+    if (c.command_type === "pause_search" || c.command_type === "stop_search") {
+      if (c.search_task_id) await cancelTaskRefresh(c.search_task_id);
+      await complete(c.id, { paused: c.command_type === "pause_search", stopped: c.command_type === "stop_search" });
       return;
     }
     await complete(c.id, { noop: true, command_type: c.command_type });
@@ -291,6 +368,133 @@ async function tick(): Promise<void> {
 }
 
 setInterval(() => { void tick(); }, 30_000);
+
+// ---------- Alarm cycle (background scheduled refresh) ----------
+async function handleScheduledRefresh(taskId: string): Promise<void> {
+  const s = await readStorage();
+  if (!s[STORAGE_KEYS.token]) { await cancelTaskRefresh(taskId); return; }
+  const locked = await lockTaskRefresh(taskId);
+  if (!locked) {
+    await api("/api/public/agent/ai-dispatcher/events", {
+      method: "POST",
+      body: JSON.stringify({ events: [{ event_type: "refresh_skipped_locked", search_task_id: taskId }] }),
+    }).catch(() => undefined);
+    return;
+  }
+  try {
+    const status = await getSchedulerStatus(taskId);
+    if (status?.should_stop_scheduler || shouldStopScheduler(status?.task_status)) {
+      await cancelTaskRefresh(taskId);
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{ event_type: "scheduler_stopped", search_task_id: taskId,
+          payload: { reason: status?.task_status ?? "unknown" } }] }),
+      }).catch(() => undefined);
+      return;
+    }
+    if (!shouldRunScheduledRefresh({
+      taskStatus: status?.task_status, autoRefreshEnabled: status?.auto_refresh_enabled ?? true,
+    })) return;
+    let tab = await findAtiTab();
+    if (!tab?.id) {
+      // Managed tab был закрыт — пересоздаём.
+      const created = await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      tab = created;
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{ event_type: "managed_tab_recreated", search_task_id: taskId,
+          payload: { tab_id: created?.id ?? null } }] }),
+      }).catch(() => undefined);
+      await new Promise((r) => setTimeout(r, 2500));
+    }
+    if (!tab?.id) return;
+    const auth = await checkAtiAuth(tab.id);
+    if (auth !== "authenticated") {
+      // Missing logic не запускаем. Просто пропускаем цикл.
+      if (auth === "login_required") {
+        await upsertWaitingLogin({
+          searchTaskId: taskId, orchestrationRunId: null, managedTabId: tab.id,
+          waitingSince: new Date().toISOString(), lastAuthState: "login_required",
+          loginDetectedSent: false, createdByAgent: true,
+        });
+        await api("/api/public/agent/ai-dispatcher/events", {
+          method: "POST",
+          body: JSON.stringify({ events: [{ event_type: "ati_login_required", search_task_id: taskId }] }),
+        }).catch(() => undefined);
+      }
+      return;
+    }
+    await api("/api/public/agent/ai-dispatcher/events", {
+      method: "POST",
+      body: JSON.stringify({ events: [{ event_type: "scheduled_refresh_started", search_task_id: taskId }] }),
+    }).catch(() => undefined);
+    try {
+      await chrome.tabs.reload(tab.id);
+      await new Promise((r) => setTimeout(r, 2500));
+      const r = await readAndSubmitVisibleLoads(taskId);
+      // Missing logic safety: только если read успешен.
+      if (shouldRunMissingLogic({ taskStatus: status?.task_status, readSuccess: true, authenticated: true })) {
+        // Пока missing logic на сервере запускается по /loads — событий достаточно.
+      }
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{ event_type: "scheduled_refresh_completed", search_task_id: taskId,
+          payload: { visible: r.visible, sent: r.sent, suitable: r.suitable } }] }),
+      }).catch(() => undefined);
+      const interval = normalizeRefreshIntervalSeconds(status?.refresh_interval_seconds ?? 60);
+      await writeStorage({ [STORAGE_KEYS.nextRefreshAt]: new Date(Date.now() + interval * 1000).toISOString() });
+    } catch (e) {
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{ event_type: "scheduled_refresh_failed", search_task_id: taskId,
+          payload: { error: String((e as Error).message ?? e) } }] }),
+      }).catch(() => undefined);
+    }
+  } finally {
+    await unlockTaskRefresh(taskId);
+  }
+}
+
+try {
+  chrome.alarms?.onAlarm.addListener((alarm) => {
+    const taskId = parseAlarmName(alarm.name);
+    if (!taskId) return;
+    void handleScheduledRefresh(taskId);
+  });
+} catch { /* alarms may be missing in tests */ }
+
+// ---------- login-detected orchestration resume ----------
+async function processLoginDetected(waiting: WaitingLoginTask): Promise<void> {
+  if (waiting.loginDetectedSent) return;
+  const lockKey = `login_detected:${waiting.searchTaskId}`;
+  const locked = await lockTaskRefresh(lockKey, 15_000);
+  if (!locked) return;
+  try {
+    const resp = await api<{ ok?: boolean; advance_status?: string; orchestration_status?: string }>(
+      "/api/public/agent/ai-dispatcher/login-detected",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          search_task_id: waiting.searchTaskId,
+          orchestration_run_id: waiting.orchestrationRunId,
+          tab_id: waiting.managedTabId,
+          detected_at: new Date().toISOString(),
+        }),
+      },
+    );
+    if (resp?.ok) {
+      waiting.loginDetectedSent = true;
+      await upsertWaitingLogin(waiting);
+      await removeWaitingLogin(waiting.searchTaskId);
+    }
+  } catch {
+    // Оставляем waiting запись для повторной попытки.
+  } finally {
+    await unlockTaskRefresh(lockKey);
+  }
+}
+
+// ---------- Web ↔ Extension bridge (через content script web-bridge.js) ----------
 
 // ---------- Web ↔ Extension bridge (через content script web-bridge.js) ----------
 import { isTrustedAgentOrigin } from "./agent-origins";
