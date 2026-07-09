@@ -7,6 +7,14 @@ import {
 } from "./version";
 import { BUILD_INFO, buildLoadedPayload } from "./build-info";
 import { sanitizeAgentDiagnostics } from "./sanitize";
+import {
+  scheduleTaskRefresh, cancelTaskRefresh, restoreActiveSearchSchedules,
+  lockTaskRefresh, unlockTaskRefresh, getScheduledTasks, parseAlarmName,
+} from "./search-scheduler";
+import {
+  shouldRunScheduledRefresh, shouldStopScheduler, shouldRunMissingLogic,
+  normalizeRefreshIntervalSeconds,
+} from "./shared/scheduler-state.mjs";
 const STORAGE_KEYS = {
   baseUrl: "rt_base_url",
   token: "rt_agent_token",
@@ -18,6 +26,8 @@ const STORAGE_KEYS = {
   lastSentCount: "rt_last_sent_count",
   lastSuitableCount: "rt_last_suitable_count",
   lastReadAt: "rt_last_read_at",
+  waitingLogin: "rt_waiting_login_tasks_v1",
+  nextRefreshAt: "rt_next_refresh_at",
 } as const;
 
 type Storage = Partial<Record<(typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS], string>>;
@@ -29,6 +39,35 @@ async function readStorage(): Promise<Storage> {
 async function writeStorage(patch: Storage): Promise<void> {
   return new Promise((resolve) => chrome.storage.local.set(patch, () => resolve()));
 }
+
+// ---------- Waiting login state ----------
+interface WaitingLoginTask {
+  searchTaskId: string;
+  orchestrationRunId: string | null;
+  managedTabId: number | null;
+  waitingSince: string;
+  lastAuthState: string;
+  loginDetectedSent: boolean;
+  createdByAgent: boolean;
+}
+async function readWaitingLogin(): Promise<Record<string, WaitingLoginTask>> {
+  return new Promise((r) => chrome.storage.local.get([STORAGE_KEYS.waitingLogin], (v) => {
+    const raw = v?.[STORAGE_KEYS.waitingLogin];
+    try { return r(raw ? JSON.parse(String(raw)) : {}); } catch { return r({}); }
+  }));
+}
+async function writeWaitingLogin(map: Record<string, WaitingLoginTask>): Promise<void> {
+  return new Promise((r) => chrome.storage.local.set(
+    { [STORAGE_KEYS.waitingLogin]: JSON.stringify(map) }, () => r(),
+  ));
+}
+async function upsertWaitingLogin(t: WaitingLoginTask): Promise<void> {
+  const m = await readWaitingLogin(); m[t.searchTaskId] = t; await writeWaitingLogin(m);
+}
+async function removeWaitingLogin(taskId: string): Promise<void> {
+  const m = await readWaitingLogin(); delete m[taskId]; await writeWaitingLogin(m);
+}
+
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const s = await readStorage();
