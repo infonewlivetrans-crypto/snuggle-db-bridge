@@ -1,0 +1,15 @@
+{
+  "latestVersion": "0.2.2",
+  "minSupportedVersion": "0.2.2",
+  "fileName": "radius-track-agent-0.2.2.zip",
+  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.2.zip",
+  "sizeBytes": 71353,
+  "sha256": "8af5c6d1b6a99b960ca4591d9c57914682df50639a9bdb96463f35313af2aab1",
+  "publishedAt": "2026-07-10T06:05:00Z",
+  "releaseNotes": [
+    "Автоматическое продолжение поиска после входа в ATI",
+    "Фоновое обновление примерно раз в минуту",
+    "Восстановление после перезапуска Chrome"
+  ],
+  "chromeWebStoreUrl": null
+}
