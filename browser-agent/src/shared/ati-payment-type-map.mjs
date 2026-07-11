@@ -12,8 +12,15 @@ export const ATI_PAYMENT_TYPE_MAP = {
 export function matchAtiPaymentType(labelText) {
   const t = String(labelText || "").trim().toLowerCase();
   if (!t) return null;
+  // Более длинные/специфичные алиасы должны иметь приоритет,
+  // чтобы «безнал с НДС» не поймалось на алиас «нал».
+  const flat = [];
   for (const [key, aliases] of Object.entries(ATI_PAYMENT_TYPE_MAP)) {
-    if (aliases.some((a) => t === a || t.includes(a))) return key;
+    for (const a of aliases) flat.push({ key, alias: a });
+  }
+  flat.sort((a, b) => b.alias.length - a.alias.length);
+  for (const { key, alias } of flat) {
+    if (t === alias || t.includes(alias)) return key;
   }
   return null;
 }
