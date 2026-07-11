@@ -1,6 +1,6 @@
 // Package dist/ into a versioned zip and publish it to public/downloads/browser-agent
 // so the app can serve the agent installer directly from the site (no manual copy).
-// The zip contains ONLY dist/ — no node_modules, no .env, no source secrets.
+// The archive contains ONLY dist/ — no dev deps, no .env, no source secrets.
 //
 // After a successful zip the script also:
 //   - copies the zip into <repo>/public/downloads/browser-agent/
