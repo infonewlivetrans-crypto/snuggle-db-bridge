@@ -536,11 +536,13 @@ export type Database = {
           dispatcher_comment: string | null
           dispatcher_decision: string | null
           distance_km: number | null
+          first_seen_page: number | null
           id: string
           is_additional_load: boolean
           is_main_load: boolean
           last_missing_at: string | null
           last_seen_at: string | null
+          last_seen_page: number | null
           linked_main_candidate_id: string | null
           loading_type: string | null
           match_score: number | null
@@ -553,7 +555,11 @@ export type Database = {
           price: number | null
           price_per_km: number | null
           profitability_score: number | null
+          rating_negative: boolean
+          rating_reasons: Json | null
           raw_text: string | null
+          rejection_details: Json | null
+          rejection_reason: string | null
           risk_score: number | null
           scored_at: string | null
           search_task_id: string
@@ -591,11 +597,13 @@ export type Database = {
           dispatcher_comment?: string | null
           dispatcher_decision?: string | null
           distance_km?: number | null
+          first_seen_page?: number | null
           id?: string
           is_additional_load?: boolean
           is_main_load?: boolean
           last_missing_at?: string | null
           last_seen_at?: string | null
+          last_seen_page?: number | null
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
@@ -608,7 +616,11 @@ export type Database = {
           price?: number | null
           price_per_km?: number | null
           profitability_score?: number | null
+          rating_negative?: boolean
+          rating_reasons?: Json | null
           raw_text?: string | null
+          rejection_details?: Json | null
+          rejection_reason?: string | null
           risk_score?: number | null
           scored_at?: string | null
           search_task_id: string
@@ -646,11 +658,13 @@ export type Database = {
           dispatcher_comment?: string | null
           dispatcher_decision?: string | null
           distance_km?: number | null
+          first_seen_page?: number | null
           id?: string
           is_additional_load?: boolean
           is_main_load?: boolean
           last_missing_at?: string | null
           last_seen_at?: string | null
+          last_seen_page?: number | null
           linked_main_candidate_id?: string | null
           loading_type?: string | null
           match_score?: number | null
@@ -663,7 +677,11 @@ export type Database = {
           price?: number | null
           price_per_km?: number | null
           profitability_score?: number | null
+          rating_negative?: boolean
+          rating_reasons?: Json | null
           raw_text?: string | null
+          rejection_details?: Json | null
+          rejection_reason?: string | null
           risk_score?: number | null
           scored_at?: string | null
           search_task_id?: string
@@ -710,11 +728,18 @@ export type Database = {
           destination_radius_km: number | null
           dispatcher_id: string
           driver_id: string | null
+          filter_fingerprint: string | null
           fuel_consumption_l_per_100km: number | null
           fuel_price_per_l: number | null
           id: string
+          initial_scan_completed_at: string | null
+          initial_scan_error: string | null
+          initial_scan_pages_read: number
+          initial_scan_started_at: string | null
+          initial_scan_status: string
           is_multi_vehicle_member: boolean
           last_refresh_at: string | null
+          last_seen_page_fingerprint: string | null
           loads_seen_count: number
           main_load_candidate_id: string | null
           manual_vehicle_json: Json | null
@@ -735,6 +760,7 @@ export type Database = {
           orchestration_status: string | null
           orchestration_updated_at: string | null
           other_expenses: number | null
+          pagination_max_pages: number
           parent_task_id: string | null
           refresh_count: number
           refresh_interval_seconds: number
@@ -764,11 +790,18 @@ export type Database = {
           destination_radius_km?: number | null
           dispatcher_id: string
           driver_id?: string | null
+          filter_fingerprint?: string | null
           fuel_consumption_l_per_100km?: number | null
           fuel_price_per_l?: number | null
           id?: string
+          initial_scan_completed_at?: string | null
+          initial_scan_error?: string | null
+          initial_scan_pages_read?: number
+          initial_scan_started_at?: string | null
+          initial_scan_status?: string
           is_multi_vehicle_member?: boolean
           last_refresh_at?: string | null
+          last_seen_page_fingerprint?: string | null
           loads_seen_count?: number
           main_load_candidate_id?: string | null
           manual_vehicle_json?: Json | null
@@ -789,6 +822,7 @@ export type Database = {
           orchestration_status?: string | null
           orchestration_updated_at?: string | null
           other_expenses?: number | null
+          pagination_max_pages?: number
           parent_task_id?: string | null
           refresh_count?: number
           refresh_interval_seconds?: number
@@ -818,11 +852,18 @@ export type Database = {
           destination_radius_km?: number | null
           dispatcher_id?: string
           driver_id?: string | null
+          filter_fingerprint?: string | null
           fuel_consumption_l_per_100km?: number | null
           fuel_price_per_l?: number | null
           id?: string
+          initial_scan_completed_at?: string | null
+          initial_scan_error?: string | null
+          initial_scan_pages_read?: number
+          initial_scan_started_at?: string | null
+          initial_scan_status?: string
           is_multi_vehicle_member?: boolean
           last_refresh_at?: string | null
+          last_seen_page_fingerprint?: string | null
           loads_seen_count?: number
           main_load_candidate_id?: string | null
           manual_vehicle_json?: Json | null
@@ -843,6 +884,7 @@ export type Database = {
           orchestration_status?: string | null
           orchestration_updated_at?: string | null
           other_expenses?: number | null
+          pagination_max_pages?: number
           parent_task_id?: string | null
           refresh_count?: number
           refresh_interval_seconds?: number
@@ -8980,6 +9022,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      agent_reset_initial_scan_if_filters_changed: {
+        Args: { _fingerprint: string; _task_id: string }
+        Returns: Json
       }
       agent_resume_after_ati_login: {
         Args: {
