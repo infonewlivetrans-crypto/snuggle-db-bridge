@@ -550,14 +550,95 @@ async function router(request: Request, splat: string): Promise<Response> {
   if (head === "tasks" && mid && tail === "scheduler-status" && method === "GET") {
     return handleSchedulerStatus(request, mid);
   }
-
-
+  // /full-scan/(sync-filters|begin|page|complete|status)/:task_id
+  if (head === "full-scan" && mid && tail) {
+    return handleFullScan(request, mid, tail, method);
+  }
+  // /candidates/:id/reject
+  if (head === "candidates" && mid && tail === "reject" && method === "POST") {
+    return handleCandidateReject(request, mid);
+  }
 
   return jsonResponse({
     error: "unknown_agent_endpoint",
     path: splat, method,
     hint: getBearerToken(request) ? "path not supported" : "requires Authorization: Bearer <agent_token>",
   }, { status: 404 });
+}
+
+async function handleFullScan(
+  request: Request,
+  action: string,
+  taskId: string,
+  method: string,
+): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  if (!taskId) return jsonResponse({ error: "missing_task_id" }, { status: 400 });
+  const {
+    syncFilterFingerprint, beginInitialScan, recordScanPage,
+    completeInitialScan, getScanStatus,
+  } = await import("@/server/ai-dispatcher/full-scan.server");
+  if (action === "status" && method === "GET") {
+    const s = await getScanStatus(taskId, auth.dispatcherId);
+    if (!s.found) return jsonResponse({ error: "not_found" }, { status: 404 });
+    return jsonResponse(s);
+  }
+  if (method !== "POST") return jsonResponse({ error: "method_not_allowed" }, { status: 405 });
+  const body = await readJson(request);
+  if (action === "sync-filters") {
+    const fp = String(body?.filter_fingerprint ?? "").trim();
+    if (!fp) return jsonResponse({ error: "missing_fingerprint" }, { status: 400 });
+    const r = await syncFilterFingerprint(taskId, auth.dispatcherId, fp);
+    if (!r.ok) return jsonResponse({ error: r.error ?? "sync_failed" }, { status: 400 });
+    return jsonResponse({ ok: true, reset: r.reset ?? false, previous_fingerprint: r.previous ?? null });
+  }
+  if (action === "begin") {
+    const r = await beginInitialScan(taskId, auth.dispatcherId);
+    if (!r.ok) return jsonResponse({ error: r.error ?? "begin_failed" }, { status: 400 });
+    return jsonResponse({ ok: true, status: r.status ?? "running" });
+  }
+  if (action === "page") {
+    const fp = String(body?.page_fingerprint ?? "").trim();
+    if (!fp) return jsonResponse({ error: "missing_page_fingerprint" }, { status: 400 });
+    const r = await recordScanPage(taskId, auth.dispatcherId, fp);
+    if (!r.ok) {
+      return jsonResponse(
+        { ok: false, reason: r.reason, pages_read: r.pages_read ?? null, continue: false },
+        { status: 200 },
+      );
+    }
+    return jsonResponse({ ok: true, continue: true, pages_read: r.pages_read });
+  }
+  if (action === "complete") {
+    const finalStatus = body?.status === "failed" ? "failed" : "done";
+    const r = await completeInitialScan(
+      taskId, auth.dispatcherId, finalStatus, body?.error ?? null,
+    );
+    if (!r.ok) return jsonResponse({ error: r.error ?? "complete_failed" }, { status: 400 });
+    return jsonResponse({ ok: true, status: finalStatus });
+  }
+  return jsonResponse({ error: "unknown_full_scan_action" }, { status: 404 });
+}
+
+async function handleCandidateReject(request: Request, candidateId: string): Promise<Response> {
+  const auth = await requireAgentToken(request);
+  if (auth instanceof Response) return auth;
+  const body = await readJson(request);
+  const reason = String(body?.reason ?? "").trim();
+  if (!reason) return jsonResponse({ error: "missing_reason" }, { status: 400 });
+  const { markCandidateRejected } = await import("@/server/ai-dispatcher/full-scan.server");
+  const r = await markCandidateRejected(candidateId, auth.dispatcherId, {
+    rejection_reason: reason,
+    rejection_details: body?.details ?? null,
+    rating_negative: body?.rating_negative,
+    rating_reasons: body?.rating_reasons,
+  });
+  if (!r.ok) {
+    const status = r.error === "not_found" ? 404 : r.error === "forbidden" ? 403 : 400;
+    return jsonResponse({ error: r.error ?? "reject_failed" }, { status });
+  }
+  return jsonResponse({ ok: true });
 }
 
 export const Route = createFileRoute("/api/public/agent/ai-dispatcher/$")({
