@@ -395,7 +395,13 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       const payload = (c.command_payload_json ?? {}) as Record<string, unknown>;
       const filters = (payload.filters ?? payload) as Record<string, unknown>;
       const res = await sendToContent<{ ok?: boolean; result?: unknown }>(tab.id, { type: "RT_APPLY_FILTERS", filters });
-      await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null });
+      let filterReset = false;
+      if (c.search_task_id && res?.ok) {
+        const sync = await fullScanSyncFilters(c.search_task_id, filters);
+        filterReset = Boolean(sync?.reset);
+        await fullScanBegin(c.search_task_id);
+      }
+      await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null, filter_reset: filterReset });
       return;
     }
     if (c.command_type === "start_search") {
