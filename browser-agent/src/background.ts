@@ -15,6 +15,45 @@ import {
   shouldRunScheduledRefresh, shouldStopScheduler, shouldRunMissingLogic,
   normalizeRefreshIntervalSeconds,
 } from "./shared/scheduler-state.mjs";
+import { computeFilterFingerprint } from "./shared/filter-fingerprint.mjs";
+
+// ---------- Full-scan helpers ----------
+async function fullScanSyncFilters(taskId: string, filters: unknown): Promise<{ reset: boolean } | null> {
+  try {
+    const fp = computeFilterFingerprint(filters);
+    const r = await api<{ ok?: boolean; reset?: boolean }>(
+      `/api/public/agent/ai-dispatcher/full-scan/sync-filters/${encodeURIComponent(taskId)}`,
+      { method: "POST", body: JSON.stringify({ filter_fingerprint: fp }) },
+    );
+    return { reset: Boolean(r?.reset) };
+  } catch { return null; }
+}
+async function fullScanBegin(taskId: string): Promise<void> {
+  try {
+    await api(`/api/public/agent/ai-dispatcher/full-scan/begin/${encodeURIComponent(taskId)}`, {
+      method: "POST", body: JSON.stringify({}),
+    });
+  } catch { /* idempotent */ }
+}
+async function fullScanRecordPage(
+  taskId: string, pageUrl: string, textHashes: string[],
+): Promise<{ ok: boolean; reason?: string; pages_read?: number }> {
+  const fp = computeFilterFingerprint({ url: String(pageUrl || ""), hashes: textHashes.slice().sort() });
+  try {
+    const r = await api<{ ok?: boolean; reason?: string; pages_read?: number }>(
+      `/api/public/agent/ai-dispatcher/full-scan/page/${encodeURIComponent(taskId)}`,
+      { method: "POST", body: JSON.stringify({ page_fingerprint: fp }) },
+    );
+    return { ok: Boolean(r?.ok), reason: r?.reason, pages_read: r?.pages_read };
+  } catch { return { ok: false, reason: "network_error" }; }
+}
+async function fullScanComplete(taskId: string, status: "done" | "failed", error?: string): Promise<void> {
+  try {
+    await api(`/api/public/agent/ai-dispatcher/full-scan/complete/${encodeURIComponent(taskId)}`, {
+      method: "POST", body: JSON.stringify({ status, error: error ?? null }),
+    });
+  } catch { /* best effort */ }
+}
 const STORAGE_KEYS = {
   baseUrl: "rt_base_url",
   token: "rt_agent_token",
@@ -215,6 +254,24 @@ async function readAndSubmitVisibleLoads(taskId: string): Promise<{ visible: num
     const scores = [...(resp.created ?? []), ...(resp.updated ?? [])];
     await sendToContent(tab.id, { type: "RT_HIGHLIGHT_LOADS", scores });
     await sendToContent(tab.id, { type: "RT_SHOW_OVERLAY", state: { sent, suitable, task_id: taskId } });
+    // Full-scan: регистрируем прочитанную страницу (защита от петли/лимита).
+    await fullScanBegin(taskId);
+    const hashes = loads
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((l: any) => String(l?.agent_open_hint_json?.textHash ?? l?.source_external_ref ?? l?.raw_text ?? ""))
+      .filter((h) => h.length > 0);
+    const pageRes = await fullScanRecordPage(taskId, page.pageUrl, hashes);
+    if (!pageRes.ok && (pageRes.reason === "loop_detected" || pageRes.reason === "max_pages")) {
+      await fullScanComplete(taskId, "done");
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{
+          event_type: "initial_scan_completed",
+          search_task_id: taskId,
+          payload: { reason: pageRes.reason, pages_read: pageRes.pages_read ?? null },
+        }] }),
+      }).catch(() => undefined);
+    }
   }
   await writeStorage({
     [STORAGE_KEYS.lastVisibleCount]: String(visible),
@@ -338,7 +395,13 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       const payload = (c.command_payload_json ?? {}) as Record<string, unknown>;
       const filters = (payload.filters ?? payload) as Record<string, unknown>;
       const res = await sendToContent<{ ok?: boolean; result?: unknown }>(tab.id, { type: "RT_APPLY_FILTERS", filters });
-      await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null });
+      let filterReset = false;
+      if (c.search_task_id && res?.ok) {
+        const sync = await fullScanSyncFilters(c.search_task_id, filters);
+        filterReset = Boolean(sync?.reset);
+        await fullScanBegin(c.search_task_id);
+      }
+      await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null, filter_reset: filterReset });
       return;
     }
     if (c.command_type === "start_search") {
