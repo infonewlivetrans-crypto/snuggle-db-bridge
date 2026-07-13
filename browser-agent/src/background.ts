@@ -254,6 +254,24 @@ async function readAndSubmitVisibleLoads(taskId: string): Promise<{ visible: num
     const scores = [...(resp.created ?? []), ...(resp.updated ?? [])];
     await sendToContent(tab.id, { type: "RT_HIGHLIGHT_LOADS", scores });
     await sendToContent(tab.id, { type: "RT_SHOW_OVERLAY", state: { sent, suitable, task_id: taskId } });
+    // Full-scan: регистрируем прочитанную страницу (защита от петли/лимита).
+    await fullScanBegin(taskId);
+    const hashes = loads
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((l: any) => String(l?.agent_open_hint_json?.textHash ?? l?.source_external_ref ?? l?.raw_text ?? ""))
+      .filter((h) => h.length > 0);
+    const pageRes = await fullScanRecordPage(taskId, page.pageUrl, hashes);
+    if (!pageRes.ok && (pageRes.reason === "loop_detected" || pageRes.reason === "max_pages")) {
+      await fullScanComplete(taskId, "done");
+      await api("/api/public/agent/ai-dispatcher/events", {
+        method: "POST",
+        body: JSON.stringify({ events: [{
+          event_type: "initial_scan_completed",
+          search_task_id: taskId,
+          payload: { reason: pageRes.reason, pages_read: pageRes.pages_read ?? null },
+        }] }),
+      }).catch(() => undefined);
+    }
   }
   await writeStorage({
     [STORAGE_KEYS.lastVisibleCount]: String(visible),
