@@ -27,14 +27,13 @@ export async function retryWithBackoff(attemptFn, opts = {}) {
   let lastErr = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     if (signal?.aborted) throw new Error("aborted");
+    let nonRetryable = false;
     try {
       const res = await attemptFn(attempt);
       if (res && typeof res === "object" && "status" in res) {
         if (res.status >= 200 && res.status < 300) return res.body;
-        if (!isRetryableStatus(res.status)) {
-          throw new Error(`http_${res.status}`);
-        }
         lastErr = new Error(`http_${res.status}`);
+        if (!isRetryableStatus(res.status)) nonRetryable = true;
       } else {
         return res;
       }
@@ -42,6 +41,7 @@ export async function retryWithBackoff(attemptFn, opts = {}) {
       if (e && e.message === "aborted") throw e;
       lastErr = e;
     }
+    if (nonRetryable) break;
     if (attempt < maxAttempts) {
       await sleep(computeBackoffMs(attempt, { baseMs, maxMs }));
     }
