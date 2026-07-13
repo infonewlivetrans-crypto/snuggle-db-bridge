@@ -15,6 +15,45 @@ import {
   shouldRunScheduledRefresh, shouldStopScheduler, shouldRunMissingLogic,
   normalizeRefreshIntervalSeconds,
 } from "./shared/scheduler-state.mjs";
+import { computeFilterFingerprint } from "./shared/filter-fingerprint.mjs";
+
+// ---------- Full-scan helpers ----------
+async function fullScanSyncFilters(taskId: string, filters: unknown): Promise<{ reset: boolean } | null> {
+  try {
+    const fp = computeFilterFingerprint(filters);
+    const r = await api<{ ok?: boolean; reset?: boolean }>(
+      `/api/public/agent/ai-dispatcher/full-scan/sync-filters/${encodeURIComponent(taskId)}`,
+      { method: "POST", body: JSON.stringify({ filter_fingerprint: fp }) },
+    );
+    return { reset: Boolean(r?.reset) };
+  } catch { return null; }
+}
+async function fullScanBegin(taskId: string): Promise<void> {
+  try {
+    await api(`/api/public/agent/ai-dispatcher/full-scan/begin/${encodeURIComponent(taskId)}`, {
+      method: "POST", body: JSON.stringify({}),
+    });
+  } catch { /* idempotent */ }
+}
+async function fullScanRecordPage(
+  taskId: string, pageUrl: string, textHashes: string[],
+): Promise<{ ok: boolean; reason?: string; pages_read?: number }> {
+  const fp = computeFilterFingerprint({ url: String(pageUrl || ""), hashes: textHashes.slice().sort() });
+  try {
+    const r = await api<{ ok?: boolean; reason?: string; pages_read?: number }>(
+      `/api/public/agent/ai-dispatcher/full-scan/page/${encodeURIComponent(taskId)}`,
+      { method: "POST", body: JSON.stringify({ page_fingerprint: fp }) },
+    );
+    return { ok: Boolean(r?.ok), reason: r?.reason, pages_read: r?.pages_read };
+  } catch { return { ok: false, reason: "network_error" }; }
+}
+async function fullScanComplete(taskId: string, status: "done" | "failed", error?: string): Promise<void> {
+  try {
+    await api(`/api/public/agent/ai-dispatcher/full-scan/complete/${encodeURIComponent(taskId)}`, {
+      method: "POST", body: JSON.stringify({ status, error: error ?? null }),
+    });
+  } catch { /* best effort */ }
+}
 const STORAGE_KEYS = {
   baseUrl: "rt_base_url",
   token: "rt_agent_token",
