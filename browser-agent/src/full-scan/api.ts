@@ -1,14 +1,8 @@
 // Типизированный клиент Full Scan для Browser Agent.
-// Отвечает ТОЛЬКО за HTTP-контракт с /api/public/agent/ai-dispatcher/full-scan/*.
-// Логика состояний — в shared/full-scan-state.mjs.
-//
-// Дизайн:
-// - fetch и sleep инжектируются (для юнит-тестов);
-// - retry с экспоненциальным backoff только на сетевых ошибках и 5xx;
-// - 4xx — терминальная ошибка (не ретраим);
-// - каждый запрос принимает AbortSignal — можно отменить при переключении задания.
+// HTTP-контракт /api/public/agent/ai-dispatcher/full-scan/*.
+// Логика состояний — shared/full-scan-state.mjs; ретрай — shared/full-scan-retry.mjs.
 
-import { computeBackoffMs } from "../shared/full-scan-state.mjs";
+import { retryWithBackoff, computePageFingerprint as pfp } from "../shared/full-scan-retry.mjs";
 
 export type FullScanServerStatus = "pending" | "reset" | "running" | "done" | "failed";
 
@@ -40,62 +34,44 @@ export interface FullScanApiOptions {
   maxBackoffMs?: number;
 }
 
-const defaultSleep: ApiSleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-function isRetryableStatus(status: number): boolean {
-  return status === 0 || status === 408 || status === 429 || (status >= 500 && status < 600);
-}
-
 export class FullScanApi {
   private readonly fetchImpl: ApiFetch;
-  private readonly sleep: ApiSleep;
+  private readonly sleep?: ApiSleep;
   private readonly maxAttempts: number;
   private readonly baseBackoffMs: number;
   private readonly maxBackoffMs: number;
 
   constructor(opts: FullScanApiOptions) {
     this.fetchImpl = opts.fetchImpl;
-    this.sleep = opts.sleep ?? defaultSleep;
+    this.sleep = opts.sleep;
     this.maxAttempts = Math.max(1, opts.maxAttempts ?? 3);
     this.baseBackoffMs = opts.baseBackoffMs ?? 500;
     this.maxBackoffMs = opts.maxBackoffMs ?? 8000;
   }
 
-  private async request<T>(
+  private request<T>(
     method: "GET" | "POST",
     path: string,
     body: unknown | null,
     signal?: AbortSignal,
   ): Promise<T> {
-    let attempt = 0;
-    let lastErr: Error | null = null;
-    while (attempt < this.maxAttempts) {
-      attempt += 1;
-      if (signal?.aborted) throw new Error("aborted");
-      try {
-        const init: RequestInit = { method, signal };
-        if (body !== null) {
-          init.body = JSON.stringify(body);
-          init.headers = { "content-type": "application/json" };
-        }
-        const res = await this.fetchImpl(path, init);
-        if (res.ok) return (await res.json()) as T;
-        // 4xx — не ретраим.
-        if (!isRetryableStatus(res.status)) {
-          const text = await res.text().catch(() => "");
-          throw new Error(`http_${res.status}:${text}`);
-        }
-        lastErr = new Error(`http_${res.status}`);
-      } catch (e) {
-        if ((e as Error).message === "aborted") throw e;
-        lastErr = e as Error;
+    return retryWithBackoff<T>(async () => {
+      const init: RequestInit = { method, signal };
+      if (body !== null) {
+        init.body = JSON.stringify(body);
+        init.headers = { "content-type": "application/json" };
       }
-      if (attempt < this.maxAttempts) {
-        const wait = computeBackoffMs(attempt, { baseMs: this.baseBackoffMs, maxMs: this.maxBackoffMs });
-        await this.sleep(wait);
-      }
-    }
-    throw lastErr ?? new Error("request_failed");
+      const res = await this.fetchImpl(path, init);
+      let parsed: T;
+      try { parsed = (await res.json()) as T; } catch { parsed = {} as T; }
+      return { status: res.status, body: parsed };
+    }, {
+      maxAttempts: this.maxAttempts,
+      baseMs: this.baseBackoffMs,
+      maxMs: this.maxBackoffMs,
+      sleep: this.sleep,
+      signal,
+    });
   }
 
   syncFilters(taskId: string, fingerprint: string, signal?: AbortSignal): Promise<SyncFiltersResult> {
@@ -149,14 +125,4 @@ export class FullScanApi {
   }
 }
 
-/**
- * Вычислить стабильный fingerprint страницы: URL + отсортированные хеши грузов.
- * Изолировано, чтобы можно было тестировать и переиспользовать.
- */
-export function computePageFingerprint(pageUrl: string, loadHashes: readonly string[]): string {
-  const hashes = [...loadHashes].filter((h) => h && h.length > 0).sort();
-  const s = `${pageUrl}|${hashes.join(",")}`;
-  let h = 5381;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
-  return (h >>> 0).toString(16);
-}
+export const computePageFingerprint = pfp;
