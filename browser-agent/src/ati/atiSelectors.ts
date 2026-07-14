@@ -3,33 +3,42 @@
 // изменится, мы деградируем к fallback-разбору видимого текста.
 
 /** Версия конфигурации селекторов. Передаётся в heartbeat / events. */
-export const ATI_SELECTOR_CONFIG_VERSION = "dev-1";
+export const ATI_SELECTOR_CONFIG_VERSION = "dev-2";
 
+// Реальный DOM loads.ati.su (2026): карточки груза оформлены как строки
+// в виртуализованном списке. Оставляем несколько стратегий подряд —
+// первая непустая выигрывает.
 export const LOAD_ROW_SELECTORS = [
   '[data-testid*="loads-list-item"]',
   '[data-testid*="loads-list-row"]',
+  '[data-testid*="load-row"]',
   '[class*="loads-list__row"]',
   '[class*="LoadsList__row"]',
+  '[class*="load-row"]',
   'tr[data-load-id]',
 ];
 
 export const LOAD_CARD_SELECTORS = [
   '[data-testid*="loads-card"]',
-  '[data-testid="load-item"]',
+  '[data-testid*="load-item"]',
   '[class*="loads-item"]',
   '[class*="load-card"]',
+  '[class*="LoadCard"]',
   'article[class*="load"]',
 ];
 
+// На реальной выдаче каждая карточка содержит ссылку /loadinfo/<uuid>
+// (иногда /loads/<id>). Используем как самый надёжный признак.
 export const LOAD_LINK_SELECTORS = [
-  'a[href*="/loads/"]',
   'a[href*="/loadinfo/"]',
+  'a[href*="/loads/"]',
 ];
 
 export const PRICE_SELECTORS = [
   '[data-testid*="price"]',
   '[class*="price"]',
   '[class*="Price"]',
+  '[class*="rate"]',
 ];
 
 export const ROUTE_SELECTORS = [
@@ -37,6 +46,7 @@ export const ROUTE_SELECTORS = [
   '[class*="route"]',
   '[class*="Route"]',
   '[class*="city"]',
+  '[class*="direction"]',
 ];
 
 export const DATE_SELECTORS = [
