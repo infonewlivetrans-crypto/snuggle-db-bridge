@@ -784,21 +784,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (tab?.id) await sendToContent(tab.id, { type: "RT_HIDE_OVERLAY" });
         sendResponse({ ok: true }); return;
       }
-      if (msg?.type === "rt/send-mock-loads") {
-        const s = await readStorage();
-        const taskId = msg.search_task_id ?? s[STORAGE_KEYS.currentTaskId];
-        if (!taskId) throw new Error("missing_search_task_id");
-        const loads = [
-          { pickup_city: "Москва", delivery_city: "Санкт-Петербург", weight: 20, price: 45000, distance_km: 700, raw_text: "M-SPB 20т", source_external_ref: `mock-${Date.now()}-1` },
-          { pickup_city: "Москва", delivery_city: "Казань", weight: 10, price: 30000, distance_km: 800, raw_text: "M-KZN 10т", source_external_ref: `mock-${Date.now()}-2` },
-        ];
-        const resp = await api<LoadsResp>("/api/public/agent/ai-dispatcher/loads", {
-          method: "POST",
-          body: JSON.stringify({ search_task_id: taskId, source_page_url: "https://ati.su/loads/", loads }),
-        });
-        sendResponse({ ok: true, sent: (resp.created?.length ?? 0) + (resp.updated?.length ?? 0), suitable: resp.suitable_count ?? 0 });
-        return;
-      }
+      // rt/send-mock-loads удалён в 0.2.3 — реальные грузы только из ATI DOM.
+
       if (msg?.type === "rt/diagnostics") {
         const tab = await findAtiTab();
         const raw = tab?.id ? await sendToContent<{ diagnostics?: unknown }>(tab.id, { type: "RT_DIAGNOSTICS" }) : null;

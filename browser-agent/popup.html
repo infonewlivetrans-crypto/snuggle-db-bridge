@@ -38,6 +38,7 @@
   <!-- Simple mode: одна панель статуса + основные кнопки -->
   <div id="status" class="box status">…</div>
   <div id="live" class="box live">Активных задач: 0 · Найдено: 0 · Подходит: 0</div>
+  <div id="notice" class="box status" style="display:none"></div>
   <div class="row">
     <button id="openApp">Открыть Радиус Трек</button>
     <button id="openAti">Открыть ATI</button>
@@ -62,20 +63,16 @@
 
     <div class="row">
       <button id="read">Прочитать страницу</button>
-      <button id="overlayOn">Показать панель на ATI</button>
-    </div>
-    <div class="row">
       <button id="diag">Диагностика ATI</button>
-      <button id="copyDiag">Скопировать диагностику</button>
     </div>
-    <button id="overlayOff">Скрыть панель РТ</button>
-    <button id="mock">Отправить тестовые грузы</button>
+    <button id="copyDiag">Скопировать диагностику</button>
 
     <p class="muted">
       Agent token, session_id, base URL и pairing code не отображаются в основном режиме.
       Логин, пароль, cookies и localStorage ATI не читаются.
     </p>
   </details>
+
 
   <script src="popup.js" type="module"></script>
 </body>

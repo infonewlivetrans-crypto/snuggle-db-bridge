@@ -89,56 +89,56 @@ async function refresh(): Promise<void> {
   renderMeta();
 }
 
+function notice(text: string, cls: "ok" | "err" | "muted" = "muted"): void {
+  const el = $("notice");
+  if (!el) return;
+  el.style.display = "";
+  el.innerHTML = `<span class="${cls}">${text}</span>`;
+  setTimeout(() => { if (el.textContent === el.textContent) el.style.display = "none"; }, 6000);
+}
+
 $("pair").addEventListener("click", async () => {
   const baseUrl = ($("baseUrl") as HTMLInputElement).value.trim().replace(/\/$/, "");
   const code = ($("code") as HTMLInputElement).value.trim();
   const v = validateBaseUrl(baseUrl);
-  if (!v.ok) { alert("Некорректный URL Радиус Трек: " + v.reason); return; }
-  if (!code) { alert("Введите pairing-код"); return; }
+  if (!v.ok) { notice("Некорректный URL: " + v.reason, "err"); return; }
+  if (!code) { notice("Введите pairing-код", "err"); return; }
   const res = await send<{ ok?: boolean; error?: string }>({ type: "rt/pair", baseUrl, pairing_code: code });
-  if (res?.ok) { ($("code") as HTMLInputElement).value = ""; refresh(); }
-  else alert("Ошибка: " + (res?.error ?? "unknown"));
+  if (res?.ok) { ($("code") as HTMLInputElement).value = ""; notice("Подключено", "ok"); refresh(); }
+  else notice("Ошибка: " + (res?.error ?? "unknown"), "err");
 });
 $("testConn").addEventListener("click", async () => {
   const baseUrl = ($("baseUrl") as HTMLInputElement).value.trim().replace(/\/$/, "");
   const v = validateBaseUrl(baseUrl);
-  if (!v.ok) { alert("URL: " + v.reason); return; }
+  if (!v.ok) { notice("URL: " + v.reason, "err"); return; }
   try {
     const r = await fetch(`${baseUrl}/api/public/agent/ai-dispatcher/health`);
-    const data = await r.json().catch(() => ({}));
-    alert(`Public health ${r.status}\n\n` + JSON.stringify(data, null, 2));
-  } catch (e) { alert("Ошибка: " + (e as Error).message); }
+    notice(`Public health: ${r.status}`, r.ok ? "ok" : "err");
+  } catch (e) { notice("Ошибка: " + (e as Error).message, "err"); }
 });
 $("openApp").addEventListener("click", async () => {
   const baseUrl = ($("baseUrl") as HTMLInputElement).value.trim().replace(/\/$/, "");
   if (!validateBaseUrl(baseUrl).ok) return;
   chrome.tabs.create({ url: `${baseUrl}/dispatcher/ai-dispatcher` });
 });
-$("disconnect").addEventListener("click", async () => { await send({ type: "rt/disconnect" }); refresh(); });
+$("disconnect").addEventListener("click", async () => { await send({ type: "rt/disconnect" }); notice("Отключено", "muted"); refresh(); });
 $("read").addEventListener("click", async () => {
   const res = await send<{ ok?: boolean; visible?: number; sent?: number; suitable?: number; error?: string }>({ type: "rt/read-current-page" });
-  if (res?.ok) { refresh(); alert(`Прочитано: ${res.visible}. Отправлено: ${res.sent}. Подходит: ${res.suitable}`); }
-  else alert("Ошибка: " + (res?.error ?? "unknown"));
+  if (res?.ok) { refresh(); notice(`Прочитано: ${res.visible}, отправлено ${res.sent}, подходит ${res.suitable}`, "ok"); }
+  else notice("Ошибка: " + (res?.error ?? "unknown"), "err");
 });
 $("diag").addEventListener("click", async () => {
   const res = await send<{ ok?: boolean; diagnostics?: unknown; error?: string }>({ type: "rt/diagnostics" });
   if (res?.diagnostics) {
     const txt = JSON.stringify(res.diagnostics, null, 2);
-    alert("Диагностика (безопасная):\n\n" + txt.slice(0, 1200));
-  } else alert("Ошибка: " + (res?.error ?? "unknown"));
+    notice("Диагностика собрана (см. «Скопировать»). " + txt.slice(0, 160) + "…", "muted");
+  } else notice("Ошибка: " + (res?.error ?? "unknown"), "err");
 });
 $("copyDiag").addEventListener("click", async () => {
   const res = await send<{ ok?: boolean; diagnostics?: unknown }>({ type: "rt/diagnostics" });
   const txt = JSON.stringify(res?.diagnostics ?? {}, null, 2);
-  try { await navigator.clipboard.writeText(txt); alert("Скопировано в буфер"); }
-  catch { alert("Не удалось скопировать"); }
-});
-$("overlayOn").addEventListener("click", async () => { await send({ type: "rt/show-overlay" }); });
-$("overlayOff").addEventListener("click", async () => { await send({ type: "rt/hide-overlay" }); });
-$("mock").addEventListener("click", async () => {
-  const res = await send<{ ok?: boolean; sent?: number; suitable?: number; error?: string }>({ type: "rt/send-mock-loads" });
-  if (res?.ok) { refresh(); alert(`Отправлено: ${res.sent}. Подходит: ${res.suitable}`); }
-  else alert("Ошибка: " + (res?.error ?? "unknown"));
+  try { await navigator.clipboard.writeText(txt); notice("Скопировано в буфер", "ok"); }
+  catch { notice("Не удалось скопировать", "err"); }
 });
 
 refresh();

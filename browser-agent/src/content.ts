@@ -173,17 +173,14 @@ function handleFocus(hint: {
   }
 });
 
-// Автоматически покажем маленькую панель только на выдаче + запустим auth observer.
+// Auth observer запускаем всегда на ATI; плавающую панель больше
+// автоматически НЕ показываем — только по явному RT_SHOW_OVERLAY из background.
 try {
   const page = detectPage();
-  if (page.isLoadsSearchPage) showOverlay({ task_id: null });
   if (page.isAtiPage) {
-    // initial detection
     lastAuthState = normalizeAuthState(detectAtiAuthState().status) as AtiAuthState;
-    // Observer с debounce: не читаем формы/пароли, только смотрим на изменения DOM.
     const observer = new MutationObserver(() => scheduleAuthCheck());
     observer.observe(document.documentElement, { childList: true, subtree: true });
-    // Первый актуальный emit после загрузки
     scheduleAuthCheck();
   }
 } catch { /* ignore */ }
