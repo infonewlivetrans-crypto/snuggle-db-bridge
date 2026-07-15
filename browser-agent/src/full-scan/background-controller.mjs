@@ -284,19 +284,20 @@ export class FullScanBackgroundController {
     });
   }
 
-  stop(reason) {
-    return this._run(async () => {
-      if (this._abort) { try { this._abort.abort(); } catch { /* noop */ } this._abort = null; }
-      this._state = initialState();
-      const prev = this._snapshot;
-      this._snapshot = {
-        ...emptySnapshot(),
-        dispatcherId: prev.dispatcherId,
-        sessionId: prev.sessionId,
-        lastErrorCode: reason || null,
-      };
-      await this._persist();
-    });
+  // stop() НЕ идёт через _run: мы должны отменить in-flight операцию,
+  // а не ждать её завершения. In-flight submitPage/complete увидят
+  // state.taskId === null и вернут task_id_mismatch (либо получат AbortError).
+  async stop(reason) {
+    if (this._abort) { try { this._abort.abort(); } catch { /* noop */ } this._abort = null; }
+    this._state = initialState();
+    const prev = this._snapshot;
+    this._snapshot = {
+      ...emptySnapshot(),
+      dispatcherId: prev.dispatcherId,
+      sessionId: prev.sessionId,
+      lastErrorCode: reason || null,
+    };
+    await this._persist();
   }
 }
 
