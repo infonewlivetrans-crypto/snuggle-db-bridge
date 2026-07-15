@@ -49,7 +49,7 @@ test("version-contract source declares required exports", () => {
 
 test("version.ts holds single source of truth", () => {
   const src = readFileSync(path.join(root, "src", "version.ts"), "utf8");
-  assert.ok(src.includes(`AGENT_VERSION = "0.2.3"`));
+  assert.ok(src.includes(`AGENT_VERSION = "0.2.4"`));
   assert.ok(src.includes(`AGENT_PROTOCOL_VERSION = "1"`));
   assert.ok(src.includes(`ATI_SELECTOR_CONFIG_VERSION = "dev-2"`));
 });
