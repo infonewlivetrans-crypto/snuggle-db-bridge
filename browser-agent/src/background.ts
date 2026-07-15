@@ -382,9 +382,13 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       const res = await sendToContent<{ ok?: boolean; result?: unknown }>(tab.id, { type: "RT_APPLY_FILTERS", filters });
       let filterReset = false;
       if (c.search_task_id && res?.ok) {
-        const sync = await fullScanSyncFilters(c.search_task_id, filters);
-        filterReset = Boolean(sync?.reset);
-        await fullScanBegin(c.search_task_id);
+        try {
+          const fp = computeFilterFingerprint(filters);
+          const sync = await fullScan.startOrSyncFilters(c.search_task_id, fp, {
+            sessionId: (await readStorage())[STORAGE_KEYS.sessionId] ?? null,
+          });
+          filterReset = Boolean(sync?.reset);
+        } catch { /* controller уже сохранил ошибку в snapshot */ }
       }
       await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null, filter_reset: filterReset });
       return;
