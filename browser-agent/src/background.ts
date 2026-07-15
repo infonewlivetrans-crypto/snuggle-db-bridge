@@ -16,44 +16,29 @@ import {
   normalizeRefreshIntervalSeconds,
 } from "./shared/scheduler-state.mjs";
 import { computeFilterFingerprint } from "./shared/filter-fingerprint.mjs";
+import { FullScanApi } from "./full-scan/api";
+import {
+  FullScanBackgroundController, createChromeSnapshotStorage,
+} from "./full-scan/background-controller.mjs";
 
-// ---------- Full-scan helpers ----------
-async function fullScanSyncFilters(taskId: string, filters: unknown): Promise<{ reset: boolean } | null> {
-  try {
-    const fp = computeFilterFingerprint(filters);
-    const r = await api<{ ok?: boolean; reset?: boolean }>(
-      `/api/public/agent/ai-dispatcher/full-scan/sync-filters/${encodeURIComponent(taskId)}`,
-      { method: "POST", body: JSON.stringify({ filter_fingerprint: fp }) },
-    );
-    return { reset: Boolean(r?.reset) };
-  } catch { return null; }
-}
-async function fullScanBegin(taskId: string): Promise<void> {
-  try {
-    await api(`/api/public/agent/ai-dispatcher/full-scan/begin/${encodeURIComponent(taskId)}`, {
-      method: "POST", body: JSON.stringify({}),
-    });
-  } catch { /* idempotent */ }
-}
-async function fullScanRecordPage(
-  taskId: string, pageUrl: string, textHashes: string[],
-): Promise<{ ok: boolean; reason?: string; pages_read?: number }> {
-  const fp = computeFilterFingerprint({ url: String(pageUrl || ""), hashes: textHashes.slice().sort() });
-  try {
-    const r = await api<{ ok?: boolean; reason?: string; pages_read?: number }>(
-      `/api/public/agent/ai-dispatcher/full-scan/page/${encodeURIComponent(taskId)}`,
-      { method: "POST", body: JSON.stringify({ page_fingerprint: fp }) },
-    );
-    return { ok: Boolean(r?.ok), reason: r?.reason, pages_read: r?.pages_read };
-  } catch { return { ok: false, reason: "network_error" }; }
-}
-async function fullScanComplete(taskId: string, status: "done" | "failed", error?: string): Promise<void> {
-  try {
-    await api(`/api/public/agent/ai-dispatcher/full-scan/complete/${encodeURIComponent(taskId)}`, {
-      method: "POST", body: JSON.stringify({ status, error: error ?? null }),
-    });
-  } catch { /* best effort */ }
-}
+// ---- Full Scan runtime (единственный владелец) ----
+// fetchImpl читает baseUrl+token из chrome.storage каждый запрос,
+// чтобы rotate/disconnect подхватывались сразу и токен не попадал в snapshot.
+const fullScanFetch = async (path: string, init: RequestInit): Promise<Response> => {
+  const s = await readStorage();
+  if (!s[STORAGE_KEYS.baseUrl]) throw new Error("base_url_not_set");
+  const headers: Record<string, string> = {
+    ...(init.headers as Record<string, string> | undefined ?? {}),
+  };
+  if (s[STORAGE_KEYS.token]) headers.Authorization = `Bearer ${s[STORAGE_KEYS.token]}`;
+  return fetch(`${s[STORAGE_KEYS.baseUrl]}${path}`, { ...init, headers });
+};
+const fullScanApi = new FullScanApi({ fetchImpl: fullScanFetch });
+const fullScan = new FullScanBackgroundController({
+  api: fullScanApi,
+  storage: createChromeSnapshotStorage(),
+});
+
 const STORAGE_KEYS = {
   baseUrl: "rt_base_url",
   token: "rt_agent_token",
@@ -254,21 +239,21 @@ async function readAndSubmitVisibleLoads(taskId: string): Promise<{ visible: num
     const scores = [...(resp.created ?? []), ...(resp.updated ?? [])];
     await sendToContent(tab.id, { type: "RT_HIGHLIGHT_LOADS", scores });
     await sendToContent(tab.id, { type: "RT_SHOW_OVERLAY", state: { sent, suitable, task_id: taskId } });
-    // Full-scan: регистрируем прочитанную страницу (защита от петли/лимита).
-    await fullScanBegin(taskId);
+    // Full-scan: регистрируем страницу через controller (защита от петли/лимита).
     const hashes = loads
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((l: any) => String(l?.agent_open_hint_json?.textHash ?? l?.source_external_ref ?? l?.raw_text ?? ""))
       .filter((h) => h.length > 0);
-    const pageRes = await fullScanRecordPage(taskId, page.pageUrl, hashes);
-    if (!pageRes.ok && (pageRes.reason === "loop_detected" || pageRes.reason === "max_pages")) {
-      await fullScanComplete(taskId, "done");
+    const pageRes = await fullScan.submitPage(taskId, page.pageUrl, hashes).catch(() => (
+      { ok: false, reason: "controller_error", completed: false } as { ok: boolean; reason?: string; completed: boolean; pagesRead?: number }
+    ));
+    if (pageRes.completed) {
       await api("/api/public/agent/ai-dispatcher/events", {
         method: "POST",
         body: JSON.stringify({ events: [{
           event_type: "initial_scan_completed",
           search_task_id: taskId,
-          payload: { reason: pageRes.reason, pages_read: pageRes.pages_read ?? null },
+          payload: { reason: pageRes.reason ?? null, pages_read: pageRes.pagesRead ?? null },
         }] }),
       }).catch(() => undefined);
     }
@@ -397,9 +382,13 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       const res = await sendToContent<{ ok?: boolean; result?: unknown }>(tab.id, { type: "RT_APPLY_FILTERS", filters });
       let filterReset = false;
       if (c.search_task_id && res?.ok) {
-        const sync = await fullScanSyncFilters(c.search_task_id, filters);
-        filterReset = Boolean(sync?.reset);
-        await fullScanBegin(c.search_task_id);
+        try {
+          const fp = computeFilterFingerprint(filters);
+          const sync = await fullScan.startOrSyncFilters(c.search_task_id, fp, {
+            sessionId: (await readStorage())[STORAGE_KEYS.sessionId] ?? null,
+          });
+          filterReset = Boolean(sync?.reset);
+        } catch { /* controller уже сохранил ошибку в snapshot */ }
       }
       await complete(c.id, { applied: res?.ok ?? false, result: res?.result ?? null, filter_reset: filterReset });
       return;
@@ -412,6 +401,9 @@ async function handleCommand(c: AgentCommand): Promise<void> {
     }
     if (c.command_type === "pause_search" || c.command_type === "stop_search") {
       if (c.search_task_id) await cancelTaskRefresh(c.search_task_id);
+      if (c.command_type === "stop_search") {
+        await fullScan.stop("stop_search").catch(() => undefined);
+      }
       await complete(c.id, { paused: c.command_type === "pause_search", stopped: c.command_type === "stop_search" });
       return;
     }
@@ -685,6 +677,8 @@ async function restoreOnStart(): Promise<void> {
       return;
     }
     void heartbeat();
+    // Восстанавливаем Full Scan runtime из snapshot (один запрос status максимум).
+    await fullScan.restore().catch(() => undefined);
     // Восстанавливаем schedules и события agent_state_restored.
     try {
       await restoreActiveSearchSchedules();
