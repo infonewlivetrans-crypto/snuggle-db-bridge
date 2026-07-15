@@ -401,6 +401,9 @@ async function handleCommand(c: AgentCommand): Promise<void> {
     }
     if (c.command_type === "pause_search" || c.command_type === "stop_search") {
       if (c.search_task_id) await cancelTaskRefresh(c.search_task_id);
+      if (c.command_type === "stop_search") {
+        await fullScan.stop("stop_search").catch(() => undefined);
+      }
       await complete(c.id, { paused: c.command_type === "pause_search", stopped: c.command_type === "stop_search" });
       return;
     }
