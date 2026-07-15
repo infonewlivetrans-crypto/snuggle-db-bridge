@@ -209,7 +209,8 @@ export class FullScanBackgroundController {
   submitPage(taskId, pageUrl, textHashes) {
     return this._run(async () => {
       if (!taskId) return { ok: false, reason: "missing_task_id", completed: false };
-      if (this._state.taskId && this._state.taskId !== taskId) {
+      if (!this._state.taskId || this._state.taskId !== taskId) {
+        // Задание отменено/сменилось до входа в очередь.
         return { ok: false, reason: "task_id_mismatch", completed: false };
       }
       if (this._state.state === STATES.COMPLETED || this._state.state === STATES.FAILED) {
