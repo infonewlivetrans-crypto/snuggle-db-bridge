@@ -171,13 +171,17 @@ test("restore from scanning: hits getStatus once and restores FSM", async () => 
     pagesRead: 2, lastPageFingerprint: "p", nextExpectedPage: 3,
     updatedAt: "x", lastErrorCode: null, dispatcherId: null, sessionId: null,
   });
+  let getStatusCalls = 0;
   const api = makeApi({
-    async getStatus() { return { found: true, status: "running", pages_read: 5, filter_fingerprint: "fp" }; },
+    async getStatus() {
+      getStatusCalls++;
+      return { found: true, status: "running", pages_read: 5, filter_fingerprint: "fp" };
+    },
   });
   const c = new FullScanBackgroundController({ api, storage });
   await c.restore();
   await c.restore(); // повторный вызов не должен снова дёргать сервер
-  assert.equal(api._calls.getStatus.length, 1);
+  assert.equal(getStatusCalls, 1);
   assert.equal(c.getState().state, STATES.SCANNING);
   assert.equal(c.getState().pagesRead, 5);
 });
