@@ -677,6 +677,8 @@ async function restoreOnStart(): Promise<void> {
       return;
     }
     void heartbeat();
+    // Восстанавливаем Full Scan runtime из snapshot (один запрос status максимум).
+    await fullScan.restore().catch(() => undefined);
     // Восстанавливаем schedules и события agent_state_restored.
     try {
       await restoreActiveSearchSchedules();
