@@ -235,6 +235,9 @@ export class FullScanBackgroundController {
       if (this._state.taskId !== taskId) {
         return { ok: false, reason: "task_id_mismatch", completed: false };
       }
+      if (this._state.state !== STATES.SCANNING) {
+        return { ok: false, reason: "already_terminal", completed: true };
+      }
       if (r && r.ok) {
         this._state = transition(this._state, { type: EVENTS.PAGE_OK },
           { taskId, pagesRead: r.pages_read ?? (this._state.pagesRead + 1) });
