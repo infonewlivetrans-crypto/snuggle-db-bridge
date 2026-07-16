@@ -10,8 +10,10 @@ import {
   detectExtension,
   getAgentStatus,
   requestAgentConnection,
+  openAtiAndStart,
   type AgentStatus,
 } from "@/lib/ai-dispatcher/extension-bridge";
+import { isNewer } from "@/lib/semver";
 import { apiPost, apiGetAuth } from "@/lib/api-client";
 import { getSimpleAgentErrorMessage } from "@/lib/ai-dispatcher/agent-error-messages";
 import { InstallAgentCard } from "@/components/dispatcher/InstallAgentCard";
