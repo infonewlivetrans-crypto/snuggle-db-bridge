@@ -5,6 +5,7 @@ import {
   AGENT_VERSION, AGENT_PROTOCOL_VERSION, ATI_SELECTOR_CONFIG_VERSION,
   BUILD_CHANNEL, BUILD_DATE,
 } from "./version";
+import { ATI_LOADS_URL, ATI_HOST_MATCH_PATTERNS, isAtiHost } from "./ati/atiUrls";
 import { BUILD_INFO, buildLoadedPayload } from "./build-info";
 import { sanitizeAgentDiagnostics } from "./sanitize";
 import {
