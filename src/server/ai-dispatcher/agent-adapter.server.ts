@@ -51,7 +51,7 @@ export async function openAtiForTask(ctx: AdapterCtx, taskId: string): Promise<{
   await ensureLiveDisabled(ctx);
   if (ctx.mode === "mock") {
     await mockOpenAti(ctx.client, ctx.dispatcherId, taskId);
-    await openSearchTab(ctx.client, ctx.dispatcherId, taskId, "https://ati.su/loads/");
+    await openSearchTab(ctx.client, ctx.dispatcherId, taskId, "https://loads.ati.su/");
     return { command_id: null };
   }
   const s = await requireSession(ctx);
@@ -109,7 +109,7 @@ export async function focusCandidate(ctx: AdapterCtx, candidateId: string) {
   if (ctx.mode === "mock") {
     await mockFocusCandidate(ctx.client, ctx.dispatcherId, candidateId);
     await openCandidateTab(ctx.client, ctx.dispatcherId, candidateId,
-      cand.source_page_url ?? "https://ati.su/loads/");
+      cand.source_page_url ?? "https://loads.ati.su/");
     return;
   }
   const s = await requireSession(ctx);

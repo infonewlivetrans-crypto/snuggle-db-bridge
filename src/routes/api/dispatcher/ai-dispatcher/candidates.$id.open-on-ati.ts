@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/dispatcher/ai-dispatcher/candidates/$
           "candidate_focused", "Диспетчер запросил открытие груза на ATI");
         const tabId = await openCandidateTab(
           auth.client, auth.userId, params.id,
-          cand.source_page_url ?? "https://ati.su/loads/",
+          cand.source_page_url ?? "https://loads.ati.su/",
         );
         return jsonResponse({ ok: true, tab_id: tabId });
       },

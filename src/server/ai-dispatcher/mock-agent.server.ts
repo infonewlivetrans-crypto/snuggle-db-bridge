@@ -153,7 +153,7 @@ export async function mockRefreshTask(
     const score = Math.min(100, Math.round((pricePerKm / 80) * 60 + Math.random() * 40));
     const rowIndex = i + 1;
     const externalRef = `mock-${Date.now()}-${i}`;
-    const sourceUrl = "https://ati.su/loads/" + externalRef;
+    const sourceUrl = "https://loads.ati.su/" + externalRef;
     const isMatch = score >= 60;
     if (isMatch) matched++;
     const { data: ins } = await c

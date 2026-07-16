@@ -302,7 +302,7 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       }
     }
     if (c.command_type === "open_ati") {
-      const created = await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      const created = await chrome.tabs.create({ url: "https://loads.ati.su/", active: false });
       if (c.search_task_id && created?.id) {
         // Сохраним связку task ↔ tab, чтобы scheduler мог её найти.
         await upsertWaitingLogin({
@@ -453,7 +453,7 @@ async function handleScheduledRefresh(taskId: string): Promise<void> {
     let tab = await findAtiTab();
     if (!tab?.id) {
       // Managed tab был закрыт — пересоздаём.
-      const created = await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      const created = await chrome.tabs.create({ url: "https://loads.ati.su/", active: false });
       tab = created;
       await api("/api/public/agent/ai-dispatcher/events", {
         method: "POST",
