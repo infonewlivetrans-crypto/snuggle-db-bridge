@@ -164,3 +164,25 @@ export async function disconnectAgent(): Promise<{ ok: boolean; error?: string }
   const res = await sendBridgeMessage("RT_AGENT_DISCONNECT", {}, 5000);
   return { ok: res.ok, error: res.error };
 }
+
+export interface OpenAtiResult {
+  ok: boolean;
+  tabId?: number | null;
+  url?: string;
+  reused?: boolean;
+  errorCode?: string;
+}
+
+export async function openAtiAndStart(taskId: string, timeoutMs = 5000): Promise<OpenAtiResult> {
+  const res = await sendBridgeMessage("RT_OPEN_ATI_AND_START", { taskId }, timeoutMs);
+  if (!res.ok || !res.data) {
+    return { ok: false, errorCode: res.error ?? "bridge_failed" };
+  }
+  const d = res.data;
+  return {
+    ok: true,
+    tabId: typeof d.tabId === "number" ? d.tabId : null,
+    url: typeof d.url === "string" ? d.url : undefined,
+    reused: Boolean(d.reused),
+  };
+}

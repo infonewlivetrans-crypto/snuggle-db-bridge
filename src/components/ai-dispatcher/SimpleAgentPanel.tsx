@@ -10,8 +10,10 @@ import {
   detectExtension,
   getAgentStatus,
   requestAgentConnection,
+  openAtiAndStart,
   type AgentStatus,
 } from "@/lib/ai-dispatcher/extension-bridge";
+import { isNewer } from "@/lib/semver";
 import { apiPost, apiGetAuth } from "@/lib/api-client";
 import { getSimpleAgentErrorMessage } from "@/lib/ai-dispatcher/agent-error-messages";
 import { InstallAgentCard } from "@/components/dispatcher/InstallAgentCard";
@@ -107,6 +109,8 @@ export function SimpleAgentPanel({
   const [state, setState] = useState<SimplePanelState>(mobile ? "desktop_required" : "checking");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orch, setOrch] = useState<OrchestratorStatus | null>(null);
+  const [installedAgentVersion, setInstalledAgentVersion] = useState<string | null>(null);
+  const [latestAgentVersion, setLatestAgentVersion] = useState<string | null>(null);
   const lastCheckRef = useRef(0);
 
   const refreshStatus = useCallback(async () => {
@@ -118,6 +122,7 @@ export function SimpleAgentPanel({
       const detected = await detectExtension(2000);
       if (!detected.installed) { setState("not_installed"); return; }
       const status: AgentStatus = await getAgentStatus();
+      if (status.agentVersion) setInstalledAgentVersion(status.agentVersion);
       if (status.connected) {
         setState((prev) => (prev === "connecting" || prev === "checking" || prev === "disconnected" || prev === "error") ? "ready" : prev);
       } else {
@@ -142,6 +147,26 @@ export function SimpleAgentPanel({
       window.clearInterval(iv);
     };
   }, [mobile, refreshStatus]);
+
+  // Проверка последней доступной версии агента (для баннера обновления).
+  useEffect(() => {
+    if (mobile) return;
+    let cancelled = false;
+    fetch("/downloads/browser-agent/version.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data && typeof data.version === "string") {
+          setLatestAgentVersion(data.version);
+        }
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [mobile]);
+
+  const updateAvailable = Boolean(
+    installedAgentVersion && latestAgentVersion && isNewer(latestAgentVersion, installedAgentVersion),
+  );
+
 
   // Poll orchestrator status when task is set
   useEffect(() => {
@@ -209,6 +234,18 @@ export function SimpleAgentPanel({
       toast.message("Поиск уже запущен");
       return;
     }
+    // Открываем/фокусируем управляемую вкладку ATI ДО запуска оркестратора.
+    try {
+      const open = await openAtiAndStart(activeTaskId, 5000);
+      if (!open.ok) {
+        const msg = getSimpleAgentErrorMessage(open.errorCode ?? null, "Не удалось открыть ATI");
+        toast.error(msg);
+        return;
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось открыть ATI");
+      return;
+    }
     try {
       const r = await apiPost<{ ok: boolean; status?: OrchestratorStatus; error_message?: string }>(
         `/api/dispatcher/ai-dispatcher/tasks/${activeTaskId}/orchestrator/start`,
@@ -269,6 +306,22 @@ export function SimpleAgentPanel({
 
   return (
     <Card className="p-4" data-testid="simple-agent-panel">
+      {updateAvailable && (
+        <div
+          className="mb-3 flex items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+          data-testid="agent-update-banner"
+        >
+          <span>
+            Доступна новая версия агента {latestAgentVersion}. Установлена {installedAgentVersion}.
+          </span>
+          <a
+            href="/browser-agent/install"
+            className="font-medium underline underline-offset-2 hover:no-underline"
+          >
+            Обновить
+          </a>
+        </div>
+      )}
       <div className="flex items-start gap-3">
         <div className="rounded-lg bg-primary/10 p-2 text-primary">
           <Icon className={"h-5 w-5 " + (spin ? "animate-spin" : "")} />

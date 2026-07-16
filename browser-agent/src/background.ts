@@ -5,6 +5,7 @@ import {
   AGENT_VERSION, AGENT_PROTOCOL_VERSION, ATI_SELECTOR_CONFIG_VERSION,
   BUILD_CHANNEL, BUILD_DATE,
 } from "./version";
+import { ATI_LOADS_URL, ATI_HOST_MATCH_PATTERNS, isAtiHost } from "./ati/atiUrls";
 import { BUILD_INFO, buildLoadedPayload } from "./build-info";
 import { sanitizeAgentDiagnostics } from "./sanitize";
 import {
@@ -105,7 +106,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function findAtiTab(): Promise<chrome.tabs.Tab | null> {
   const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
-    chrome.tabs.query({ url: "https://ati.su/*" }, (t) => r(t)),
+    chrome.tabs.query({ url: ATI_HOST_MATCH_PATTERNS as unknown as string[] }, (t) => r(t)),
   );
   return tabs.find((t) => t.active) ?? tabs[0] ?? null;
 }
@@ -125,7 +126,7 @@ async function sendToContent<T = unknown>(tabId: number, message: unknown): Prom
 
 async function heartbeat(): Promise<void> {
   const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
-    chrome.tabs.query({ url: "https://ati.su/*" }, (t) => r(t)),
+    chrome.tabs.query({ url: ATI_HOST_MATCH_PATTERNS as unknown as string[] }, (t) => r(t)),
   );
   try {
     await api("/api/public/agent/ai-dispatcher/heartbeat", {
@@ -302,7 +303,7 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       }
     }
     if (c.command_type === "open_ati") {
-      const created = await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      const created = await chrome.tabs.create({ url: ATI_LOADS_URL, active: false });
       if (c.search_task_id && created?.id) {
         // Сохраним связку task ↔ tab, чтобы scheduler мог её найти.
         await upsertWaitingLogin({
@@ -453,7 +454,7 @@ async function handleScheduledRefresh(taskId: string): Promise<void> {
     let tab = await findAtiTab();
     if (!tab?.id) {
       // Managed tab был закрыт — пересоздаём.
-      const created = await chrome.tabs.create({ url: "https://ati.su/loads/", active: false });
+      const created = await chrome.tabs.create({ url: ATI_LOADS_URL, active: false });
       tab = created;
       await api("/api/public/agent/ai-dispatcher/events", {
         method: "POST",
@@ -655,6 +656,32 @@ async function handleBridgeMessage(
       });
     }
     return { ok: true, data: { installed: true, connected: false } };
+  }
+  if (bridgeType === "RT_OPEN_ATI_AND_START") {
+    const taskId = String(payload?.taskId ?? "").trim();
+    if (!taskId) return { ok: false, error: "missing_task_id" };
+    // URL берётся ТОЛЬКО из константы — payload.url игнорируется.
+    let tab = await findAtiTab();
+    let reused = false;
+    if (tab?.id && isAtiHost(tab.url ?? "")) {
+      reused = true;
+      try {
+        await chrome.tabs.update(tab.id, { active: true });
+        if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
+      } catch { /* ignore */ }
+    } else {
+      tab = await chrome.tabs.create({ url: ATI_LOADS_URL, active: true });
+    }
+    return {
+      ok: true,
+      data: {
+        installed: true,
+        connected: Boolean(s[STORAGE_KEYS.token]),
+        tabId: tab?.id ?? null,
+        url: ATI_LOADS_URL,
+        reused,
+      },
+    };
   }
   return { ok: false, error: "unknown_bridge_type" };
 }
