@@ -148,6 +148,26 @@ export function SimpleAgentPanel({
     };
   }, [mobile, refreshStatus]);
 
+  // Проверка последней доступной версии агента (для баннера обновления).
+  useEffect(() => {
+    if (mobile) return;
+    let cancelled = false;
+    fetch("/downloads/browser-agent/version.json", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data && typeof data.version === "string") {
+          setLatestAgentVersion(data.version);
+        }
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [mobile]);
+
+  const updateAvailable = Boolean(
+    installedAgentVersion && latestAgentVersion && isNewer(latestAgentVersion, installedAgentVersion),
+  );
+
+
   // Poll orchestrator status when task is set
   useEffect(() => {
     if (!activeTaskId) { setOrch(null); return; }
