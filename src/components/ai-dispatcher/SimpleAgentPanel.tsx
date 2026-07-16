@@ -109,6 +109,8 @@ export function SimpleAgentPanel({
   const [state, setState] = useState<SimplePanelState>(mobile ? "desktop_required" : "checking");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orch, setOrch] = useState<OrchestratorStatus | null>(null);
+  const [installedAgentVersion, setInstalledAgentVersion] = useState<string | null>(null);
+  const [latestAgentVersion, setLatestAgentVersion] = useState<string | null>(null);
   const lastCheckRef = useRef(0);
 
   const refreshStatus = useCallback(async () => {
@@ -120,6 +122,7 @@ export function SimpleAgentPanel({
       const detected = await detectExtension(2000);
       if (!detected.installed) { setState("not_installed"); return; }
       const status: AgentStatus = await getAgentStatus();
+      if (status.agentVersion) setInstalledAgentVersion(status.agentVersion);
       if (status.connected) {
         setState((prev) => (prev === "connecting" || prev === "checking" || prev === "disconnected" || prev === "error") ? "ready" : prev);
       } else {
