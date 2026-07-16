@@ -211,6 +211,18 @@ export function SimpleAgentPanel({
       toast.message("Поиск уже запущен");
       return;
     }
+    // Открываем/фокусируем управляемую вкладку ATI ДО запуска оркестратора.
+    try {
+      const open = await openAtiAndStart(activeTaskId, 5000);
+      if (!open.ok) {
+        const msg = getSimpleAgentErrorMessage(open.errorCode ?? null, "Не удалось открыть ATI");
+        toast.error(msg);
+        return;
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Не удалось открыть ATI");
+      return;
+    }
     try {
       const r = await apiPost<{ ok: boolean; status?: OrchestratorStatus; error_message?: string }>(
         `/api/dispatcher/ai-dispatcher/tasks/${activeTaskId}/orchestrator/start`,
