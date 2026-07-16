@@ -105,7 +105,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 async function findAtiTab(): Promise<chrome.tabs.Tab | null> {
   const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
-    chrome.tabs.query({ url: "https://ati.su/*" }, (t) => r(t)),
+    chrome.tabs.query({ url: ATI_HOST_MATCH_PATTERNS as unknown as string[] }, (t) => r(t)),
   );
   return tabs.find((t) => t.active) ?? tabs[0] ?? null;
 }
@@ -125,7 +125,7 @@ async function sendToContent<T = unknown>(tabId: number, message: unknown): Prom
 
 async function heartbeat(): Promise<void> {
   const tabs = await new Promise<chrome.tabs.Tab[]>((r) =>
-    chrome.tabs.query({ url: "https://ati.su/*" }, (t) => r(t)),
+    chrome.tabs.query({ url: ATI_HOST_MATCH_PATTERNS as unknown as string[] }, (t) => r(t)),
   );
   try {
     await api("/api/public/agent/ai-dispatcher/heartbeat", {
@@ -302,7 +302,7 @@ async function handleCommand(c: AgentCommand): Promise<void> {
       }
     }
     if (c.command_type === "open_ati") {
-      const created = await chrome.tabs.create({ url: "https://loads.ati.su/", active: false });
+      const created = await chrome.tabs.create({ url: ATI_LOADS_URL, active: false });
       if (c.search_task_id && created?.id) {
         // Сохраним связку task ↔ tab, чтобы scheduler мог её найти.
         await upsertWaitingLogin({
@@ -453,7 +453,7 @@ async function handleScheduledRefresh(taskId: string): Promise<void> {
     let tab = await findAtiTab();
     if (!tab?.id) {
       // Managed tab был закрыт — пересоздаём.
-      const created = await chrome.tabs.create({ url: "https://loads.ati.su/", active: false });
+      const created = await chrome.tabs.create({ url: ATI_LOADS_URL, active: false });
       tab = created;
       await api("/api/public/agent/ai-dispatcher/events", {
         method: "POST",
