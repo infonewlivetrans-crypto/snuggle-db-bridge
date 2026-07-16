@@ -657,6 +657,32 @@ async function handleBridgeMessage(
     }
     return { ok: true, data: { installed: true, connected: false } };
   }
+  if (bridgeType === "RT_OPEN_ATI_AND_START") {
+    const taskId = String(payload?.taskId ?? "").trim();
+    if (!taskId) return { ok: false, error: "missing_task_id" };
+    // URL берётся ТОЛЬКО из константы — payload.url игнорируется.
+    let tab = await findAtiTab();
+    let reused = false;
+    if (tab?.id && isAtiHost(tab.url ?? "")) {
+      reused = true;
+      try {
+        await chrome.tabs.update(tab.id, { active: true });
+        if (tab.windowId != null) await chrome.windows.update(tab.windowId, { focused: true });
+      } catch { /* ignore */ }
+    } else {
+      tab = await chrome.tabs.create({ url: ATI_LOADS_URL, active: true });
+    }
+    return {
+      ok: true,
+      data: {
+        installed: true,
+        connected: Boolean(s[STORAGE_KEYS.token]),
+        tabId: tab?.id ?? null,
+        url: ATI_LOADS_URL,
+        reused,
+      },
+    };
+  }
   return { ok: false, error: "unknown_bridge_type" };
 }
 

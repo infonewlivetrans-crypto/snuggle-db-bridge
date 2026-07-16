@@ -49,6 +49,7 @@ const ALLOWED_TYPES = new Set([
   "RT_AGENT_STATUS",
   "RT_AGENT_CONNECT_REQUEST",
   "RT_AGENT_DISCONNECT",
+  "RT_OPEN_ATI_AND_START",
 ]);
 
 function sendToBackground(payload: unknown): Promise<Record<string, unknown> | null> {
