@@ -239,7 +239,10 @@ async function readAndSubmitVisibleLoads(taskId: string): Promise<{ visible: num
     suitable = resp.suitable_count ?? 0;
     const scores = [...(resp.created ?? []), ...(resp.updated ?? [])];
     await sendToContent(tab.id, { type: "RT_HIGHLIGHT_LOADS", scores });
-    await sendToContent(tab.id, { type: "RT_SHOW_OVERLAY", state: { sent, suitable, task_id: taskId } });
+    await sendToContent(tab.id, { type: "RT_UPDATE_OVERLAY", state: {
+      visible, sent, suitable, task_id: taskId,
+      connected: true, agent_version: AGENT_VERSION, status: "Идёт поиск",
+    } });
     // Full-scan: регистрируем страницу через controller (защита от петли/лимита).
     const hashes = loads
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
