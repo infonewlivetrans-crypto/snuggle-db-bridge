@@ -248,6 +248,7 @@ export async function mockOpenAti(
   dispatcherId: string,
   taskId: string,
 ) {
+  ensureMockAllowed();
   const c = client as AnyClient;
   await logAgentEvent(client, dispatcherId, taskId, null, "ati_open_requested",
     "Запрошено открытие сайта ATI (агент открывает в браузере диспетчера)");
