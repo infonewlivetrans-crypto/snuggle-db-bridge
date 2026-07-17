@@ -116,11 +116,24 @@ function rndN(min: number, max: number): number {
   return Math.round(min + Math.random() * (max - min));
 }
 
+// Разрешаем mock-генерацию только в dev или при явно выставленном ALLOW_MOCK_AGENT.
+// В production запуск mock-refresh создаёт битые mock-URL (`https://loads.ati.su/mock-…`),
+// которые дают 404 при клике «Открыть груз». В live-режиме такого происходить не должно.
+function ensureMockAllowed(): void {
+  const env = (typeof process !== "undefined" ? process.env : {}) as Record<string, string | undefined>;
+  const isProd = env.NODE_ENV === "production";
+  const allow = env.ALLOW_MOCK_AGENT === "1" || env.ALLOW_MOCK_AGENT === "true";
+  if (isProd && !allow) {
+    throw new Error("mock_agent_disabled_in_production");
+  }
+}
+
 export async function mockRefreshTask(
   client: Client,
   dispatcherId: string,
   taskId: string,
 ): Promise<{ created: number; matched: number; bestCandidateId: string | null }> {
+  ensureMockAllowed();
   const c = client as AnyClient;
   const { data: task } = await c
     .from("ai_dispatch_search_tasks")
@@ -128,6 +141,7 @@ export async function mockRefreshTask(
     .eq("id", taskId)
     .single();
   if (!task) return { created: 0, matched: 0, bestCandidateId: null };
+
 
   await logAgentEvent(client, dispatcherId, taskId, null, "refresh_started",
     "Агент обновляет выдачу на сайте ATI (mock)");
@@ -153,7 +167,7 @@ export async function mockRefreshTask(
     const score = Math.min(100, Math.round((pricePerKm / 80) * 60 + Math.random() * 40));
     const rowIndex = i + 1;
     const externalRef = `mock-${Date.now()}-${i}`;
-    const sourceUrl = "https://loads.ati.su/" + externalRef;
+    const sourceUrl = `https://loads.ati.su/loadinfo/${externalRef}`;
     const isMatch = score >= 60;
     if (isMatch) matched++;
     const { data: ins } = await c
@@ -234,6 +248,7 @@ export async function mockOpenAti(
   dispatcherId: string,
   taskId: string,
 ) {
+  ensureMockAllowed();
   const c = client as AnyClient;
   await logAgentEvent(client, dispatcherId, taskId, null, "ati_open_requested",
     "Запрошено открытие сайта ATI (агент открывает в браузере диспетчера)");

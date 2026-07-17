@@ -1,11 +1,11 @@
 {
-  "latestVersion": "0.2.5",
+  "latestVersion": "0.2.6",
   "minSupportedVersion": "0.2.2",
-  "fileName": "radius-track-agent-0.2.5.zip",
-  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.5.zip",
-  "sizeBytes": 89810,
-  "sha256": "038730ecdd3dc555e11bf4ae7f2d093489f85d40d156495013681a12809e79ca",
-  "publishedAt": "2026-07-16T05:42:47.658Z",
+  "fileName": "radius-track-agent-0.2.6.zip",
+  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.6.zip",
+  "sizeBytes": 94093,
+  "sha256": "230ce67b3ba7f84394342c17e462b667d270ed1bf1ae068c7bf30b53491e2d35",
+  "publishedAt": "2026-07-17T06:36:11.657Z",
   "releaseNotes": [
     "Автоматическое продолжение поиска после входа в ATI",
     "Фоновое обновление примерно раз в минуту",

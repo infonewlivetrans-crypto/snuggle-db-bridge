@@ -185,18 +185,27 @@ export function SimpleAgentPanel({
     return () => { cancelled = true; window.clearInterval(iv); };
   }, [activeTaskId]);
 
-  // Overlay orchestrator state onto panel state
+  // Overlay orchestrator state onto panel state.
+  // Приоритет: активный/успешный оркестратор перекрывает stale-ошибку подключения.
   const orchStage = orch?.orchestration_status ?? null;
+  const orchActive = Boolean(orchStage && ACTIVE_ORCH.includes(orchStage));
+  const orchFailed = orchStage === "failed";
   let effectiveState: SimplePanelState = state;
-  if (state === "ready" && orchStage) {
+  if (orchActive || orchStage === "paused") {
     if (orchStage === "waiting_user_login") effectiveState = "needs_ati_login";
     else if (orchStage === "suitable_found") effectiveState = "suitable_found";
     else if (orchStage === "paused") effectiveState = "paused";
-    else if (orchStage === "failed") effectiveState = "error";
-    else if (ACTIVE_ORCH.includes(orchStage)) effectiveState = "searching";
+    else effectiveState = "searching";
+  } else if (orchFailed) {
+    effectiveState = "error";
   }
-  const uiErrorMsg = errorMsg
-    ?? (orch?.orchestration_status === "failed" ? (orch.error_message ?? "Произошла ошибка") : null);
+  // Как только оркестратор перешёл в активное состояние — забываем старую ошибку подключения.
+  useEffect(() => {
+    if (orchActive && errorMsg) setErrorMsg(null);
+  }, [orchActive, errorMsg]);
+  const uiErrorMsg = orchActive
+    ? null
+    : (orchFailed ? (orch?.error_message ?? "Произошла ошибка") : errorMsg);
 
   const handleConnect = useCallback(async () => {
     setErrorMsg(null);
@@ -298,7 +307,7 @@ export function SimpleAgentPanel({
   const spin = effectiveState === "checking" || effectiveState === "connecting" || effectiveState === "searching";
   const showConnect = effectiveState === "disconnected" || effectiveState === "error" && !orch;
   const canFind = ["ready", "suitable_found", "paused"].includes(effectiveState);
-  const orchActive = orch && orch.orchestration_status && ACTIVE_ORCH.includes(orch.orchestration_status);
+  // orchActive уже вычислен выше
   const showFind = canFind && !orchActive;
   const showRetry = orch?.can_retry === true;
   const showPause = orch?.can_pause === true;

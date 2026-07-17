@@ -6,10 +6,11 @@
 import { detectPage } from "./ati/detectPage";
 import { extractVisibleLoads } from "./ati/extractVisibleLoads";
 import { applyHighlights, clearHighlights } from "./ati/highlightLoads";
-import { showOverlay, hideOverlay } from "./ati/agentOverlay";
+import { showOverlay, hideOverlay, updateOverlay } from "./ati/agentOverlay";
 import { applySearchFilters, type AtiFilters } from "./ati/applySearchFilters";
 import { collectFormDiagnostics } from "./ati/formDiagnostics";
 import type { BgToContentMessage, ContentToBgMessage } from "./ati/contentMessages";
+import { isAtiHost } from "./ati/atiUrls";
 import { detectAtiAuthState, type AtiAuthState } from "./ati/detectAuthState";
 import {
   normalizeAuthState, shouldEmitLoginRequired, shouldEmitLoginDetected,
@@ -150,22 +151,40 @@ function handleFocus(hint: {
         respond({ ok: r.success, result: r }); return;
       }
       case "RT_DIAGNOSTICS": respond({ ok: true, diagnostics: collectFormDiagnostics() }); return;
-      case "RT_SHOW_OVERLAY":
+      case "RT_SHOW_OVERLAY": {
+        const st = (msg as { state?: Record<string, unknown> }).state ?? {};
         showOverlay(
           {
-            sent_count: (msg as { state?: { sent?: number } }).state?.sent,
-            suitable_count: (msg as { state?: { suitable?: number } }).state?.suitable,
-            task_id: (msg as { state?: { task_id?: string } }).state?.task_id ?? null,
+            visible_count: st.visible as number | undefined,
+            sent_count: st.sent as number | undefined,
+            suitable_count: st.suitable as number | undefined,
+            status: st.status as string | undefined,
+            task_id: (st.task_id as string | null | undefined) ?? null,
+            connected: st.connected as boolean | undefined,
+            agent_version: st.agent_version as string | null | undefined,
           },
           (a) => {
-            if (a === "hide") { hideOverlay(); return; }
-            if (a === "read") handleRead();
-            if (a === "send") handleRead();
+            if (a === "hide" || a === "minimize" || a === "restore") return;
+            if (a === "read" || a === "send") handleRead();
           },
         );
         send({ type: "RT_OVERLAY_READY" });
         respond({ ok: true });
         return;
+      }
+      case "RT_UPDATE_OVERLAY": {
+        const st = (msg as { state?: Record<string, unknown> }).state ?? {};
+        updateOverlay({
+          visible_count: st.visible as number | undefined,
+          sent_count: st.sent as number | undefined,
+          suitable_count: st.suitable as number | undefined,
+          status: st.status as string | undefined,
+          task_id: (st.task_id as string | null | undefined) ?? null,
+          connected: st.connected as boolean | undefined,
+        });
+        respond({ ok: true });
+        return;
+      }
       case "RT_HIDE_OVERLAY": hideOverlay(); respond({ ok: true }); return;
     }
   } catch (e) {
@@ -173,8 +192,9 @@ function handleFocus(hint: {
   }
 });
 
-// Auth observer запускаем всегда на ATI; плавающую панель больше
-// автоматически НЕ показываем — только по явному RT_SHOW_OVERLAY из background.
+// Автомонтаж overlay на loads.ati.su. Панель — единственный визуальный
+// индикатор для пользователя, что расширение живёт и работает; она должна
+// быть видна всегда, даже без активного поиска. Стили изолированы Shadow DOM.
 try {
   const page = detectPage();
   if (page.isAtiPage) {
@@ -182,6 +202,15 @@ try {
     const observer = new MutationObserver(() => scheduleAuthCheck());
     observer.observe(document.documentElement, { childList: true, subtree: true });
     scheduleAuthCheck();
+  }
+  if (isAtiHost(location.hostname)) {
+    // Показываем панель сразу — background пришлёт RT_UPDATE_OVERLAY с деталями.
+    showOverlay(
+      { status: "Проверка агента…" },
+      (a) => { if (a === "read" || a === "send") handleRead(); },
+    );
+    // Сообщаем background, что content готов принимать команды.
+    send({ type: "RT_CONTENT_READY", url: safePageUrl() } as unknown as ContentToBgMessage);
   }
 } catch { /* ignore */ }
 
