@@ -1,11 +1,11 @@
 {
-  "version": "0.2.5",
-  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.5.zip",
+  "version": "0.2.6",
+  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.6.zip",
   "required": false,
-  "publishedAt": "2026-07-16",
+  "publishedAt": "2026-07-17",
   "changes": [
-    "Запуск ATI непосредственно из Радиус Трек",
-    "Автоматический полный поиск грузов",
-    "Исправлен адрес поиска ATI (loads.ati.su)"
+    "Панель агента теперь всегда видна на loads.ati.su (Shadow DOM, устойчива к SPA-навигации)",
+    "Панель Радиус Трек больше не показывает ложную ошибку, если поиск уже идёт",
+    "Кнопка «Открыть груз» теперь ведёт на реальную страницу ATI (mock-URL заблокированы в production)"
   ]
 }
