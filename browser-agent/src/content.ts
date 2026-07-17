@@ -192,8 +192,9 @@ function handleFocus(hint: {
   }
 });
 
-// Auth observer запускаем всегда на ATI; плавающую панель больше
-// автоматически НЕ показываем — только по явному RT_SHOW_OVERLAY из background.
+// Автомонтаж overlay на loads.ati.su. Панель — единственный визуальный
+// индикатор для пользователя, что расширение живёт и работает; она должна
+// быть видна всегда, даже без активного поиска. Стили изолированы Shadow DOM.
 try {
   const page = detectPage();
   if (page.isAtiPage) {
@@ -201,6 +202,15 @@ try {
     const observer = new MutationObserver(() => scheduleAuthCheck());
     observer.observe(document.documentElement, { childList: true, subtree: true });
     scheduleAuthCheck();
+  }
+  if (isAtiHost(location.hostname)) {
+    // Показываем панель сразу — background пришлёт RT_UPDATE_OVERLAY с деталями.
+    showOverlay(
+      { status: "Проверка агента…" },
+      (a) => { if (a === "read" || a === "send") handleRead(); },
+    );
+    // Сообщаем background, что content готов принимать команды.
+    send({ type: "RT_CONTENT_READY", url: safePageUrl() } as unknown as ContentToBgMessage);
   }
 } catch { /* ignore */ }
 
