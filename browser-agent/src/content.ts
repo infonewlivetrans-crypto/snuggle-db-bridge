@@ -6,10 +6,11 @@
 import { detectPage } from "./ati/detectPage";
 import { extractVisibleLoads } from "./ati/extractVisibleLoads";
 import { applyHighlights, clearHighlights } from "./ati/highlightLoads";
-import { showOverlay, hideOverlay } from "./ati/agentOverlay";
+import { showOverlay, hideOverlay, updateOverlay } from "./ati/agentOverlay";
 import { applySearchFilters, type AtiFilters } from "./ati/applySearchFilters";
 import { collectFormDiagnostics } from "./ati/formDiagnostics";
 import type { BgToContentMessage, ContentToBgMessage } from "./ati/contentMessages";
+import { isAtiHost } from "./ati/atiUrls";
 import { detectAtiAuthState, type AtiAuthState } from "./ati/detectAuthState";
 import {
   normalizeAuthState, shouldEmitLoginRequired, shouldEmitLoginDetected,
