@@ -307,7 +307,7 @@ export function SimpleAgentPanel({
   const spin = effectiveState === "checking" || effectiveState === "connecting" || effectiveState === "searching";
   const showConnect = effectiveState === "disconnected" || effectiveState === "error" && !orch;
   const canFind = ["ready", "suitable_found", "paused"].includes(effectiveState);
-  const orchActive = orch && orch.orchestration_status && ACTIVE_ORCH.includes(orch.orchestration_status);
+  // orchActive уже вычислен выше
   const showFind = canFind && !orchActive;
   const showRetry = orch?.can_retry === true;
   const showPause = orch?.can_pause === true;
