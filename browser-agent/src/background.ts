@@ -742,6 +742,28 @@ void restoreOnStart();
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   (async () => {
     try {
+      // Content script ready — сразу отправляем актуальное состояние overlay.
+      if (msg?.type === "RT_CONTENT_READY") {
+        const senderTabId = sender?.tab?.id;
+        if (senderTabId) {
+          const st = await readStorage();
+          const connected = Boolean(st[STORAGE_KEYS.token]);
+          await sendToContent(senderTabId, {
+            type: "RT_SHOW_OVERLAY",
+            state: {
+              connected,
+              agent_version: AGENT_VERSION,
+              task_id: st[STORAGE_KEYS.currentTaskId] ?? null,
+              visible: Number(st[STORAGE_KEYS.lastVisibleCount] ?? 0) || undefined,
+              sent: Number(st[STORAGE_KEYS.lastSentCount] ?? 0) || undefined,
+              suitable: Number(st[STORAGE_KEYS.lastSuitableCount] ?? 0) || undefined,
+              status: connected ? "Агент подключён" : "Агент установлен, не подключён",
+            },
+          });
+        }
+        sendResponse({ ok: true });
+        return;
+      }
       // Auth state change из content script — единственный источник login-detected.
       if (msg?.type === "RT_ATI_AUTH_STATE_CHANGED") {
         const senderTabId = sender?.tab?.id;
