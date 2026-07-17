@@ -663,7 +663,9 @@ function SuitableLoadAlert({ candidate, taskId, onAction }: {
       <div className="flex flex-wrap gap-2 mt-3">
         <Button size="sm" onClick={() => {
           focus.mutate();
-          if (candidate.source_page_url) window.open(candidate.source_page_url, "_blank");
+          const url = candidate.source_page_url;
+          const safe = url && !/\/mock-/i.test(url) ? url : "https://loads.ati.su/";
+          window.open(safe, "_blank");
         }}>
           <ExternalLink className="h-3.5 w-3.5 mr-1" /> Открыть груз
         </Button>
