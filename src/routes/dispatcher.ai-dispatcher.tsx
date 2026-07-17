@@ -813,7 +813,9 @@ function LoadCandidateCard({ candidate, isMain, onRefresh }: {
       <div className="flex flex-wrap gap-1 mt-2">
         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => {
           focus.mutate();
-          if (candidate.source_page_url) window.open(candidate.source_page_url, "_blank");
+          const url = candidate.source_page_url;
+          const safe = url && !/\/mock-/i.test(url) ? url : "https://loads.ati.su/";
+          window.open(safe, "_blank");
         }}>
           <ExternalLink className="h-3 w-3 mr-1" /> Провалиться в груз на ATI
         </Button>
