@@ -1,11 +1,11 @@
 {
-  "version": "0.2.6",
-  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.6.zip",
-  "required": false,
-  "publishedAt": "2026-07-17",
+  "version": "0.2.7",
+  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.7.zip",
+  "required": true,
+  "publishedAt": "2026-07-18",
   "changes": [
-    "Панель агента теперь всегда видна на loads.ati.su (Shadow DOM, устойчива к SPA-навигации)",
-    "Панель Радиус Трек больше не показывает ложную ошибку, если поиск уже идёт",
-    "Кнопка «Открыть груз» теперь ведёт на реальную страницу ATI (mock-URL заблокированы в production)"
+    "Панель агента на ATI: исправлен показ CSS текстом (Shadow DOM с отдельным <style>)",
+    "Удалены старые тестовые кнопки «Прочитать» и «Отправить» — только статус и «Свернуть»",
+    "При обновлении расширения на странице автоматически подчищаются старые legacy-панели"
   ]
 }
