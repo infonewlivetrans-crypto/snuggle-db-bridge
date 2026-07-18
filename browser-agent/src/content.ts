@@ -153,21 +153,15 @@ function handleFocus(hint: {
       case "RT_DIAGNOSTICS": respond({ ok: true, diagnostics: collectFormDiagnostics() }); return;
       case "RT_SHOW_OVERLAY": {
         const st = (msg as { state?: Record<string, unknown> }).state ?? {};
-        showOverlay(
-          {
-            visible_count: st.visible as number | undefined,
-            sent_count: st.sent as number | undefined,
-            suitable_count: st.suitable as number | undefined,
-            status: st.status as string | undefined,
-            task_id: (st.task_id as string | null | undefined) ?? null,
-            connected: st.connected as boolean | undefined,
-            agent_version: st.agent_version as string | null | undefined,
-          },
-          (a) => {
-            if (a === "hide" || a === "minimize" || a === "restore") return;
-            if (a === "read" || a === "send") handleRead();
-          },
-        );
+        showOverlay({
+          visible_count: st.visible as number | undefined,
+          sent_count: st.sent as number | undefined,
+          suitable_count: st.suitable as number | undefined,
+          status: st.status as string | undefined,
+          task_id: (st.task_id as string | null | undefined) ?? null,
+          connected: st.connected as boolean | undefined,
+          agent_version: st.agent_version as string | null | undefined,
+        });
         send({ type: "RT_OVERLAY_READY" });
         respond({ ok: true });
         return;
@@ -204,12 +198,9 @@ try {
     scheduleAuthCheck();
   }
   if (isAtiHost(location.hostname)) {
-    // Показываем панель сразу — background пришлёт RT_UPDATE_OVERLAY с деталями.
-    showOverlay(
-      { status: "Проверка агента…" },
-      (a) => { if (a === "read" || a === "send") handleRead(); },
-    );
-    // Сообщаем background, что content готов принимать команды.
+    // Показываем панель сразу — без кнопок «Прочитать»/«Отправить».
+    // Background пришлёт RT_UPDATE_OVERLAY с реальным состоянием.
+    showOverlay({ status: "Проверка агента…" });
     send({ type: "RT_CONTENT_READY", url: safePageUrl() } as unknown as ContentToBgMessage);
   }
 } catch { /* ignore */ }

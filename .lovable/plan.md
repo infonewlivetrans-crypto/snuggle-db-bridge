@@ -1,117 +1,102 @@
 
-# План: запуск ATI из Радиус Трек + уведомление об обновлении + фикс URL
+# Production Cleanup — Radius Track Agent 0.2.7
 
-Объём большой (3 связанных подзадачи, много файлов расширения и UI). Разбиваю на 4 подэтапа. Прошу подтвердить план — далее иду сразу по всем этапам без остановок.
+Это большой этап. Разобью его на подэтапы, чтобы каждый можно было проверить отдельно перед следующим. Ниже — план по всем 15 пунктам. Прошу подтвердить (или указать, что сдвинуть/упростить), прежде чем начну.
 
-## Подэтап A. Единая константа ATI_LOADS_URL и фикс 404
+## Подэтап A. Shadow DOM и удаление legacy-панели (пункты 1, 2)
 
-Причина: сейчас везде используется `https://ati.su/loads/` — возвращает 404.
+- Переписать `browser-agent/src/ati/agentOverlay.ts`:
+  - один host `radius-track-agent-host`;
+  - `attachShadow({mode:"open"})`;
+  - отдельный `<style>` с `style.textContent = CSS` (никакого `innerHTML` для стилей);
+  - отдельный UI root, весь рендер только внутрь него;
+  - защита от дублей и от повреждённого host.
+- В `content.ts` при инициализации удалить legacy id/классы:
+  `rt-agent-overlay-host`, старые кнопки «Прочитать»/«Отправить», старый DOM.
+- Убрать кнопки `read`/`send` из production overlay (оставить только статус + свернуть).
+- Тесты: CSS не появляется как текст в `document.body`, host один, style + ui root существуют.
 
-- Создать `browser-agent/src/ati/atiUrls.ts` с `ATI_LOADS_URL = "https://loads.ati.su/"` и helper `isAtiHost(hostname)` (принимает `ati.su` и `loads.ati.su`).
-- Заменить все литералы `https://ati.su/loads/` и `chrome.tabs.query({ url: "https://ati.su/*" })` в:
-  - `browser-agent/src/background.ts` (2 места создания вкладки, 2 места query, restore)
-  - `browser-agent/src/popup.ts`
-  - `src/server/ai-dispatcher/agent-adapter.server.ts` (2 места) и `candidates.$id.open-on-ati.ts`
-  - `src/server/ai-dispatcher/mock-agent.server.ts`
-  - `browser-agent/MANUAL_TEST_CHECKLIST.md`
-- `browser-agent/manifest.json`: добавить `https://loads.ati.su/*` в `host_permissions` и в `content_scripts.matches` (сохранить обратную совместимость с `ati.su/*`).
-- `managed-tab-rules.mjs` уже принимает `loads.ati.su` (регекс `(^|\.)ati\.su$`) — оставить.
-- Тест `browser-agent/tests/ati-urls.test.mjs`: запретить старый адрес (grep-ом по исходникам + проверка константы).
+## Подэтап B. Разделение channel dev / stable (пункты 3, 4, 12)
 
-## Подэтап B. Web ↔ Extension bridge: RT_OPEN_ATI_AND_START и прогресс
+- Добавить `CHANNEL` в `esbuild.config.mjs` через env (`stable` / `dev`).
+- Production bundle:
+  - `BASE_URL = https://radius-track.ru`;
+  - вырезать mock-агент, ALLOW_MOCK_AGENT, dev popup, диагностику, ручной base URL, pairing code UI, кнопки «Прочитать/Отправить/Диагностика», build date;
+  - build fail при обнаружении в bundle: `lovable.app`, `channel: dev`, `ALLOW_MOCK_AGENT`, `/mock-`, `mockOpenAti`, `mockRefreshTask`, «Прочитать», «Отправить», dev base URL.
+- Упростить `popup.html`/`popup.ts` под production: имя, версия, подключён/нет, пользователь, ATI-статус, активный поиск, «Открыть Радиус Трек», «Открыть ATI».
+- `package-extension.mjs` собирает и валидирует только stable-архив `radius-track-agent-0.2.7.zip`.
 
-Расширить существующий `web-bridge.ts`, не создавая параллельный протокол.
+## Подэтап C. Удаление runtime mock (пункт 4)
 
-Новые события (все проходят origin-фильтр в `agent-origins.ts` — только `radius-track.ru` и preview-домены Lovable):
-- `RT_AGENT_PING` / `RT_AGENT_READY` (RT_AGENT_READY возвращает `{ installed:true, version }`).
-- `RT_OPEN_ATI_AND_START` — payload `{ taskId }`. URL берётся только из константы, из payload не принимается.
-- Ответные: `RT_ATI_OPENING`, `RT_ATI_LOGIN_REQUIRED`, `RT_ATI_READY`, `RT_SEARCH_STARTED`, `RT_SEARCH_PROGRESS`, `RT_SEARCH_COMPLETED`, `RT_SEARCH_FAILED`, `RT_SEARCH_STOPPED`.
+- Удалить `src/server/ai-dispatcher/mock-agent.server.ts` и все runtime импорты.
+- Удалить `mockRefreshTask`, `mockOpenAti`, `ALLOW_MOCK_AGENT`, mock fallback в UI.
+- Fixtures оставить только в `browser-agent/test-fixtures/` и в тестовых файлах.
+- Если агент не подключён — UI показывает «Агент не подключён», без mock-данных.
 
-Правила:
-- Никогда не отправлять agent token / session / Supabase creds наружу.
-- Строгая zod-подобная валидация формы сообщений.
-- Клиент: `src/lib/ai-dispatcher/extension-bridge.ts` получает `openAtiAndStart(taskId)` и подписку `onOrchestratorEvent`.
+## Подэтап D. Чистка тестовых данных (пункт 5)
 
-## Подэтап C. Background: managed tab, авторизация, Full Scan loop
+- Сначала прогнать SELECT (через `supabase--read_query`) и показать пользователю кол-во:
+  - `ai_dispatch_search_tasks` с mock/test/пустыми направлениями;
+  - `ai_dispatch_load_candidates` с `external_url LIKE '%/mock-%'` или `external_id LIKE 'mock-%'`.
+- Миграция + insert-скрипт: удалить mock-кандидатов; задачи с пустым направлением «— → —» → архив (`archived_at`, скрыть из UI), реальные не трогать.
+- В UI фильтровать по `archived_at IS NULL` + скрывать пустые направления.
+- Отдельная кнопка «Показать архив».
 
-В `browser-agent/src/background.ts`:
-- Обработчик `RT_OPEN_ATI_AND_START`:
-  1. Проверить сохранённый `managedTabId` (уже в `state.ts`).
-  2. Если вкладка есть и её URL проходит `isAtiHost` — переиспользовать; `chrome.tabs.update(id, { active:true })` + фокус окна.
-  3. Иначе `chrome.tabs.create({ url: ATI_LOADS_URL, active:true })`, сохранить id.
-  4. На `chrome.tabs.onRemoved` — очистить `managedTabId`.
-  5. Дождаться `content ready` (уже есть механизм) и запросить `detectAuthState`.
-  6. Если не залогинен — эмитить `RT_ATI_LOGIN_REQUIRED`, ждать существующий `login-detected` flow. taskId не создаём заново.
-  7. После login — `apply_filters` → `RT_SHOW_OVERLAY` → `fullScan.startOrSyncFilters` → цикл `submitPage` до `completed`.
-  8. Прогресс страниц → `RT_SEARCH_PROGRESS { pagesRead, matched }`.
+## Подэтап E. Цель ₽/км в автомобиле (пункт 6)
 
-Не открывать произвольные URL из сообщения. URL — только `ATI_LOADS_URL`.
+- Миграция: `vehicles.target_rub_per_km numeric` (уже есть `min_rub_per_km`?) — проверить и добавить, если нет.
+- В форме автомобиля: поля «Мин. ₽/км» и «Целевая ставка, ₽/км», разные подписи.
+- При выборе авто в поиске — автоподстановка `target_rub_per_km`.
+- «Разовое переопределение» только в текущей задаче, без записи в `vehicles`.
+- Убрать отдельный блок цели, если он дублируется.
+- Если цель не заполнена — модалка «Указать и сохранить в карточке?».
 
-## Подэтап D. UI: единая кнопка + уведомление об обновлении
+## Подэтап F. Первичная привязка ATI (пункты 7, 8, 9, 13)
 
-`SimpleAgentPanel.tsx` (state machine расширяется):
-- Одна главная кнопка с состояниями: «Установить агент» / «Подключить» / «Запустить поиск в ATI» / «Открываю ATI…» / «Войдите в ATI» / «Применяю фильтры…» / «Идёт поиск» / «Продолжить поиск» / «Поиск завершён».
-- Подписка на события bridge для обновления состояния (в дополнение к существующему поллингу оркестратора).
+- Проверить существующие таблицы: `ai_dispatch_agent_sessions`, `dispatcher_carrier_*`.
+  Скорее всего расширим `ai_dispatch_agent_sessions` полями `ati_account_code`, `ati_display_name`, `linked_at`, `status`. Новую таблицу создам только если существующая не подходит.
+- Content script: детектор ATI-аккаунта (имя + код 2809104) через DOM после логина.
+- Bridge command `RT_ATI_BIND_REQUEST`: открыть/сфокусировать `loads.ati.su`, дождаться логина, вернуть `{code, name}`.
+- Onboarding UI (`/dispatcher/ai-dispatcher`): 3 шага — установить агент → подключить ATI → подтвердить `код + имя`.
+- Одноразовый confirm-токен (RPC, SECURITY DEFINER, фиксированный `search_path`).
+- Никакого сохранения логина/пароля/cookies/localStorage ATI.
+- Кнопки «Открыть ATI», «Проверить подключение», «Перепривязать ATI», «Отключить ATI».
+- При повторном входе binding уже есть — onboarding пропускается. Если ATI-код изменился — стоп + перепривязка.
+- Admin-view: `who / code / name / last_seen` (без секретов).
 
-Уведомление об обновлении:
-- Новый файл `public/downloads/browser-agent/version.json` (см. ниже).
-- Компонент `src/components/ai-dispatcher/AgentUpdateBanner.tsx` — жёлтая карточка сверху `SimpleAgentPanel`.
-- Хук `src/hooks/use-agent-version-check.ts`: fetch `version.json?ts=Date.now()`, ping расширения, semver compare (мини-функция `compareSemver` в `src/lib/semver.ts` — корректно обрабатывает `0.2.9` vs `0.2.10`).
-- Кнопки: «Скачать обновление» (только относительный URL или `radius-track.ru`), «Как обновить» (Dialog с инструкцией), «Позже» (localStorage `rt-agent-update-dismissed:<version>`).
-- `required=true` — блокировать «Позже».
-- Если расширения нет вовсе → показывать `InstallAgentCard`, а не баннер.
-- «Проверить версию» — повторный ping без reload.
-- Ошибка fetch version.json — тихо скрыть баннер, не ломать AI-диспетчер.
-- Скрипт `browser-agent/scripts/package-extension.mjs` расширить: писать `version.json` рядом с существующим `latest.json`, поля из плана.
+## Подэтап G. Понятные статусы (пункт 11)
 
-Тесты (Node --test):
-- `browser-agent/tests/ati-urls.test.mjs` — запрещает старый URL, проверяет константу и manifest.
-- `browser-agent/tests/web-bridge-origin.test.mjs` — принимает только radius-track.ru, отклоняет чужой origin, отклоняет произвольный URL в payload.
-- `browser-agent/tests/managed-tab-open.test.mjs` — reuse существующей managed-вкладки, создание при отсутствии, cleanup при закрытии.
-- `src/lib/semver.test.ts` (vitest) — сравнение 0.2.9 vs 0.2.10, равные, новее, невалидные.
+- Маппинг orchestrator-стадий → человеческие строки в `src/lib/ai-dispatcher/status-labels.ts`.
+- `SimpleAgentPanel` / `SearchProgressBlock` показывают только маппед-строки.
+- `task_id`/`command_id` — только в dev/diagnostics.
+- Пустые задачи скрыты.
 
-## Подэтап E. Bump 0.2.5, typecheck, tests, package
+## Подэтап H. Запуск поиска (пункт 10)
 
-- `browser-agent/package.json`, `manifest.json`, `browser-agent/src/version.ts`: 0.2.5.
-- `bunx tsgo --noEmit` в корне и `tsc --noEmit` в `browser-agent/`.
-- `node --test browser-agent/tests/*.test.mjs`.
-- Сборка `radius-track-agent-0.2.5.zip` через существующий `scripts/package-extension.mjs`, публикация в `public/downloads/browser-agent/`.
+- Кнопка «Найти груз»: цепочка проверок агент → binding → managed-tab → auth → filters(target) → search.
+- Кандидаты без реального `loadinfo`: кнопка disabled + «Ссылка ATI не получена». Fallback на главную ATI убрать.
 
-## Что НЕ трогаю
+## Подэтап I. Тесты, typecheck, релиз (пункты 14, 15)
 
-- Миграции и БД.
-- `mock-agent.server.ts` кроме одиночной замены URL на константу (без изменения логики).
-- ЭДО, склад, маршруты и прочее.
-- `src/integrations/supabase/*` (auto-gen).
+- Все проверки из пункта 14 как unit-тесты (browser-agent) + Playwright для критических UI-флоу.
+- Скрипт валидации ZIP: `grep`-поиск запрещённых строк, exit 1 при найденном.
+- Bump до `0.2.7`, `version.json`, собрать stable-zip.
+- Typecheck (`tsgo`) + полный test-run.
+- Финальный отчёт: удалённый runtime, кол-во mock-записей, схема binding, миграции, файлы, результаты, ссылка на 0.2.7.
 
-## Технические детали
+## Технические заметки
 
-```text
-Web (radius-track.ru)                Extension (background)
-  ─ RT_AGENT_PING ────────────────▶  answer RT_AGENT_READY {version}
-  ─ RT_OPEN_ATI_AND_START {taskId} ▶  managed tab logic ─► ATI_LOADS_URL
-                                       │
-  ◀── RT_ATI_OPENING ─────────────────┤
-  ◀── RT_ATI_LOGIN_REQUIRED (если) ───┤ (ждём login-detected)
-  ◀── RT_ATI_READY ───────────────────┤ (apply_filters)
-  ◀── RT_SEARCH_STARTED ──────────────┤
-  ◀── RT_SEARCH_PROGRESS × N ─────────┤ (fullScan loop)
-  ◀── RT_SEARCH_COMPLETED / FAILED ───┘
-```
+- Не трогаю `src/integrations/supabase/*.ts` (auto-gen).
+- Миграции применяю через `supabase--migration`, данные через `supabase--insert` (после подтверждения количеств).
+- Deploy на `radius-track.ru`: у меня нет прямого доступа к production-домену — публикация выполняется через кнопку «Publish» в Lovable, а на кастомный домен — через настройки проекта. Я подготовлю сборку и открою publish, но нажать «Update» и подтвердить домен нужно вам.
 
-`version.json` (единый источник):
-```json
-{
-  "version": "0.2.5",
-  "downloadUrl": "/downloads/browser-agent/radius-track-agent-0.2.5.zip",
-  "required": false,
-  "publishedAt": "2026-07-16",
-  "changes": [
-    "Запуск ATI непосредственно из Радиус Трек",
-    "Автоматический полный поиск грузов",
-    "Исправлен адрес поиска ATI (loads.ati.su)"
-  ]
-}
-```
+## Порядок работ и проверок
 
-Подтвердите план — начинаю реализацию по всем подэтапам подряд без остановки.
+Предлагаю идти по подэтапам A → B → C → D → E → F → G → H → I, останавливаясь после каждого для короткой проверки в preview. Если хотите — могу сразу склеить A+B+C (technical cleanup) и потом D+E+F (data + UX) двумя большими блоками. Скажите, какой ритм удобнее.
+
+## Что уточнить перед стартом
+
+1. **Ритм**: подэтап-за-подэтапом (безопаснее) или два больших блока (быстрее)?
+2. **Домен** `radius-track.ru` — уже привязан к проекту в Lovable, или его нужно подключить?
+3. **ATI-код 2809104** и «Мезенцев С.Э.» — это тестовые данные для примера, или это реальный первый пользователь, который сейчас сидит в проде? От этого зависит, насколько агрессивно чистить существующие записи.
+4. **Legacy данные**: удалить mock-кандидаты hard-delete или soft-archive?
