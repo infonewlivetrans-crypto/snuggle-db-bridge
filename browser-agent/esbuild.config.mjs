@@ -3,8 +3,16 @@
 // Channel is selected via RT_CHANNEL env var: "dev" (default) or "stable".
 // Stable strips dev popup, lovable.app hosts, diagnostic UI, and mock helpers
 // (enforced by scripts/package-extension.mjs forbidden-strings scan).
+import { rmSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import esbuild from "esbuild";
 import { copyStatic } from "./scripts/copy-static.mjs";
+
+// Clean dist/ before each build so leftover dev sourcemaps or dev artifacts
+// never contaminate a stable package.
+const __root = path.dirname(fileURLToPath(import.meta.url));
+rmSync(path.join(__root, "dist"), { recursive: true, force: true });
 
 const watch = process.argv.includes("--watch");
 const buildDate = new Date().toISOString();
