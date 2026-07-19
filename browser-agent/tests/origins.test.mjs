@@ -1,7 +1,15 @@
 // Node test для agent-origins whitelist.
+// Тест эмулирует esbuild-define, выставляя __RT_DEV_ORIGINS__ до импорта модуля.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isTrustedAgentOrigin, normalizeOrigin } from "../src/agent-origins.ts";
+
+globalThis.__RT_DEV_ORIGINS__ = [
+  "https://snuggle-db-bridge.lovable.app",
+  "https://id-preview--d0d5cb47-0414-4a28-a4e9-a8beda3d2828.lovable.app",
+];
+globalThis.__RT_CHANNEL__ = "dev";
+
+const { isTrustedAgentOrigin, normalizeOrigin } = await import("../src/agent-origins.ts");
 
 test("trusted radius-track.ru", () => {
   assert.equal(isTrustedAgentOrigin("https://radius-track.ru"), true);
