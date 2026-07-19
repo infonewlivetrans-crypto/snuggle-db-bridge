@@ -24,6 +24,16 @@ const common = {
     "__RT_BUILD_DATE__": JSON.stringify(buildDate),
     "__RT_COMMIT_SHA__": JSON.stringify(commitSha),
     "__RT_CHANNEL__": JSON.stringify(channel),
+    // Dev-only origin whitelist injected at build time. Empty for stable so
+    // no lovable.app / preview literals appear in the production bundle.
+    "__RT_DEV_ORIGINS__": JSON.stringify(
+      channel === "stable"
+        ? []
+        : [
+            "https://snuggle-db-bridge.lovable.app",
+            "https://id-preview--d0d5cb47-0414-4a28-a4e9-a8beda3d2828.lovable.app",
+          ],
+    ),
   },
 };
 

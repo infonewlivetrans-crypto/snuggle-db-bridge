@@ -1,9 +1,11 @@
 // Radius Track Browser Agent — Web-origin whitelist.
-// Production (stable) allows ONLY radius-track.ru. Dev channel adds
-// Lovable preview hosts and localhost so the extension can talk to the
-// unpublished preview. __RT_CHANNEL__ is injected by esbuild define.
+// Production (stable) allows ONLY radius-track.ru. Dev channel extras
+// are injected by esbuild define (__RT_DEV_ORIGINS__), so no lovable.app
+// or preview literal ends up in the stable bundle.
 
 declare const __RT_CHANNEL__: string;
+declare const __RT_DEV_ORIGINS__: string[];
+
 const CHANNEL: "dev" | "stable" | "beta" =
   (typeof __RT_CHANNEL__ !== "undefined" ? (__RT_CHANNEL__ as "dev" | "stable" | "beta") : "dev");
 
@@ -12,22 +14,11 @@ const STABLE_ALLOWED: readonly string[] = [
   "https://www.radius-track.ru",
 ];
 
-// Dev-only extras are computed lazily so esbuild + minifier can dead-code
-// eliminate them when CHANNEL === "stable". Reference by string concatenation
-// so no lovable.app literal appears in stable bundle after DCE. Keeping the
-// literals in a single function guarded by `CHANNEL !== "stable"` lets the
-// minifier drop the entire branch.
-function devExtras(): readonly string[] {
-  if (CHANNEL === "stable") return [];
-  const l = "lovable" + "." + "app";
-  return [
-    `https://snuggle-db-bridge.${l}`,
-    `https://id-preview--d0d5cb47-0414-4a28-a4e9-a8beda3d2828.${l}`,
-  ];
-}
+const DEV_EXTRAS: readonly string[] =
+  typeof __RT_DEV_ORIGINS__ !== "undefined" ? __RT_DEV_ORIGINS__ : [];
 
 const STATIC_ALLOWED: readonly string[] =
-  CHANNEL === "stable" ? STABLE_ALLOWED : [...STABLE_ALLOWED, ...devExtras()];
+  CHANNEL === "stable" ? STABLE_ALLOWED : [...STABLE_ALLOWED, ...DEV_EXTRAS];
 
 const LOCALHOST_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
 
@@ -55,3 +46,4 @@ export function isTrustedAgentOrigin(input: string | null | undefined): boolean 
 export function getTrustedAgentOrigins(): string[] {
   return [...STATIC_ALLOWED];
 }
+
