@@ -3,13 +3,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).__RT_DEV_ORIGINS__ = [
+globalThis.__RT_DEV_ORIGINS__ = [
   "https://snuggle-db-bridge.lovable.app",
   "https://id-preview--d0d5cb47-0414-4a28-a4e9-a8beda3d2828.lovable.app",
 ];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).__RT_CHANNEL__ = "dev";
+globalThis.__RT_CHANNEL__ = "dev";
 
 const { isTrustedAgentOrigin, normalizeOrigin } = await import("../src/agent-origins.ts");
 
