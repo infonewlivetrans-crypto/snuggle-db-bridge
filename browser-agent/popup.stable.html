@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Radius Track Agent</title>
+  <style>
+    body { font: 12px/1.4 system-ui, sans-serif; margin: 0; padding: 12px; width: 320px; }
+    .hd { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .hd img { width: 24px; height: 24px; }
+    h1 { font-size: 13px; margin: 0; }
+    .sub { color: #6b7280; font-size: 10px; }
+    button { font: inherit; width: 100%; padding: 6px; box-sizing: border-box; margin-bottom: 6px; cursor: pointer; }
+    .row { display: flex; gap: 6px; }
+    .row > * { flex: 1; }
+    .box { padding: 6px; border-radius: 4px; margin-bottom: 8px; font-size: 11px; background: #f4f4f5; }
+    .ok { color: #047857; } .err { color: #b91c1c; } .muted { color: #6b7280; }
+    dl { margin: 0; font-size: 11px; }
+    dt { color: #6b7280; margin-top: 4px; }
+    dd { margin: 0 0 2px 0; }
+  </style>
+</head>
+<body>
+  <div class="hd">
+    <img src="icons/icon-32.png" alt="RT" />
+    <div>
+      <h1>Радиус Трек Агент</h1>
+      <div class="sub" id="verSub">v…</div>
+    </div>
+  </div>
+
+  <div id="status" class="box">…</div>
+
+  <dl id="details">
+    <dt>Пользователь Радиус Трек</dt><dd id="rtUser">—</dd>
+    <dt>ATI</dt><dd id="atiState">—</dd>
+    <dt>Активный поиск</dt><dd id="activeSearch">—</dd>
+    <dt>Найдено / подходит</dt><dd id="counters">— / —</dd>
+  </dl>
+
+  <div class="row" style="margin-top:8px">
+    <button id="openApp">Открыть Радиус Трек</button>
+    <button id="openAti">Открыть ATI</button>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
