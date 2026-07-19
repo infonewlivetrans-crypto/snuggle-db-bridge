@@ -1,7 +1,7 @@
 // Radius Track Agent — production popup (stable channel).
 // Показывает только пользовательские данные: подключение агента, ATI,
-// активный поиск, счётчики. Никакой диагностики, pairing code, base URL,
-// mock-кнопок и dev-полей. См. подэтап A production cleanup 0.2.7.
+// активный поиск, счётчики. Никаких dev-полей и служебных кнопок.
+// См. этап A production cleanup 0.2.7.
 /// <reference types="chrome" />
 import { AGENT_VERSION } from "./version";
 
